@@ -19,7 +19,7 @@ o.spec("FormatterTests", function () {
 		let referenceDate = new Date(2017, 5, 23)
 		languages.forEach(l => {
 			let code = l.code.replace("_", "-")
-			lang.setLanguageTag(code)
+			lang._setLanguageTag(code)
 			let formattedDate = formatDate(referenceDate)
 			let parsedTimestamp = parseDate(formattedDate)
 			o(formatDate(new Date(parsedTimestamp))).equals(formattedDate)(`invalid date parsing for lang ${code}: ${formatDate(new Date(parsedTimestamp))}`)
@@ -27,7 +27,7 @@ o.spec("FormatterTests", function () {
 	}))
 
 	o("parse date edge cases", browser(function () {
-		lang.setLanguageTag("de")
+		lang._setLanguageTag("de")
 		try {
 			formatDate(new Date(parseDate("01.2015")))
 			o(false).equals(true)("should have thrown an exception")
@@ -44,7 +44,7 @@ o.spec("FormatterTests", function () {
 		o(formatDate(new Date(parseDate("2015")))).equals("1.1.2015")
 		o(formatDate(new Date(parseDate("05.05.")))).equals("5.5.2001")
 
-		lang.setLanguageTag("en")
+		lang._setLanguageTag("en")
 		o(formatDate(new Date(parseDate("2015/01")))).equals("1/1/2015")
 		o(formatDate(new Date(parseDate("2015/05/")))).equals("5/1/2015")
 		o(formatDate(new Date(parseDate("2015")))).equals("1/1/2015")

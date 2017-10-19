@@ -117,7 +117,7 @@ class Header {
 				'{username}': username,
 				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
-			editor.initWithTemplate(null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
 				editor.show()
 			})
 		})
@@ -129,7 +129,7 @@ class Header {
 			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "") + " app" : "Browser")
 			signature += "<br>Tutanota version: " + env.versionNumber
 			signature += "<br>User agent:<br>" + navigator.userAgent
-			editor.initWithTemplate("premium@tutao.de", "", signature, true).then(() => {
+			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
 				editor.show()
 			})
 		})

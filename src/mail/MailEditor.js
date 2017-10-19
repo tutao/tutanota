@@ -321,12 +321,12 @@ export class MailEditor {
 		})
 	}
 
-	initWithTemplate(recipientMailAddress: ?string, subject: string, bodyText: string, confidential: boolean): Promise<void> {
+	initWithTemplate(recipientName:?string ,recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
 		let recipients = []
 		if (recipientMailAddress) {
 			let recipient = createMailAddress()
 			recipient.address = recipientMailAddress
-			recipient.name = ""
+			recipient.name = (recipientName? recipientName:"")
 			recipients.push(recipient)
 		}
 		if (recipientMailAddress) {
@@ -388,11 +388,13 @@ export class MailEditor {
 		})
 	}
 
-	_setMailData(previousMail: ?Mail, confidential: boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, body: string, replyTos: EncryptedMailAddress[]): void {
+	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, body: string, replyTos: EncryptedMailAddress[]): void {
 		this._previousMail = previousMail
 		this.conversationType = conversationType
 		this.previousMessageId = previousMessageId
-		this._confidentialButtonState = confidential
+		if (confidential != null) {
+			this._confidentialButtonState = confidential
+		}
 		this._senderField.selectedValue(senderMailAddress)
 		this.subject.setValue(subject)
 		this._attachments = []

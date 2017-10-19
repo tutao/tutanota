@@ -14,6 +14,11 @@ import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {NotFoundError} from "../api/common/error/RestError"
+import {MailBoxController} from "../mail/MailBoxController"
+import {logins} from "../api/main/LoginController"
+import {MailEditor} from "../mail/MailEditor"
+import {BootIcons} from "../gui/base/icons/BootIcons"
+import {ContactSocialType} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -51,25 +56,43 @@ export class ContactViewer {
 			.add(new Button('delete_action', () => this.delete(), () => Icons.Trash))
 
 		this.mailAddresses = this.contact.mailAddresses.map(element => {
-			return new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
+			let textField = new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
 				.setValue(element.address)
 				.setDisabled()
+			let newMailButton = new Button('sendMail_alt', () => this._writeMail(element.address), () => BootIcons.Mail)
+			textField._injectionsRight = () => [m(newMailButton)]
+			return textField
 		})
 		this.phones = this.contact.phoneNumbers.map(element => {
-			return new TextField(() => getContactPhoneNumberTypeLabel((element.type:any), element.customTypeName))
+			let textField = new TextField(() => getContactPhoneNumberTypeLabel((element.type:any), element.customTypeName))
 				.setValue(element.number)
 				.setDisabled()
+			let callButton = new Button('callNumber_alt', () => null, () => Icons.Call)
+			textField._injectionsRight = () => m(`a[href="tel:${element.number}"][target=_blank]`, m(callButton))
+			return textField
 		})
 		this.addresses = this.contact.addresses.map(element => {
-			return new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
+			let showAddress = new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
 				.setType(Type.Area)
 				.setValue(element.address)
 				.setDisabled()
+			let prepAddress
+			if (element.address.indexOf("\n") != -1) {
+				prepAddress = encodeURIComponent(element.address.split("\n").join(" "))
+			} else {
+				prepAddress = encodeURIComponent(element.address)
+			}
+			let showButton = new Button('showAddress_alt', () => null, () => Icons.Pin)
+			showAddress._injectionsRight = () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, m(showButton))
+			return showAddress
 		})
 		this.socials = this.contact.socialIds.map(element => {
-			return new TextField(() => getContactSocialTypeLabel((element.type:any), element.customTypeName))
+			let showURL = new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
+			let showButton = new Button('showURL_alt', () => null, () => Icons.ArrowForward)
+			showURL._injectionsRight = () => m(`a[href=${this.getSocialUrl(element)}][target=_blank]`, m(showButton))
+			return showURL
 		})
 
 
@@ -123,6 +146,56 @@ export class ContactViewer {
 			]
 		}
 		this._setupShortcuts()
+	}
+
+	getSocialUrl(element: ContactSocialId) {
+		let socialUrlType = ""
+		let http = "https://"
+		let worldwidew = "www."
+		switch (element.type) {
+			case ContactSocialType.TWITTER:
+				socialUrlType = "twitter.com/"
+				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+					socialUrlType = ""
+				}
+				break
+			case ContactSocialType.FACEBOOK:
+				socialUrlType = "facebook.com/"
+				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+					socialUrlType = ""
+				}
+				break
+			case ContactSocialType.XING:
+				socialUrlType = "xing.com/profile/"
+				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+					socialUrlType = ""
+				}
+				break
+			case ContactSocialType.LINKED_IN:
+				socialUrlType = "linkedin.com/in/"
+				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+					socialUrlType = ""
+				}
+			default:
+		}
+		if (element.socialId.indexOf("http") != -1) {
+			http = ""
+		}
+		if (element.socialId.indexOf(worldwidew) != -1) {
+			worldwidew = ""
+		}
+		let socialURL = `${http}${worldwidew}${socialUrlType}${element.socialId.trim()}`
+		return socialURL
+	}
+
+
+	_writeMail(mailAddress: string) {
+		new MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
+			let editor = new MailEditor(mc)
+			editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", "", null).then(() => {
+				editor.show()
+			})
+		})
 	}
 
 	_setupShortcuts() {

@@ -183,7 +183,7 @@ export class ContactView {
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
 
-		], 250).setColors(ButtonColors.Nav)
+		], 280).setColors(ButtonColors.Nav)
 	}
 
 	/**

@@ -92,7 +92,7 @@ class LanguageViewModel {
 	}
 
 	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
-		this.setLanguageTag(lang.languageTag)
+		this._setLanguageTag(lang.languageTag)
 		if (this.code == lang.code) {
 			return Promise.resolve()
 		}
@@ -106,7 +106,7 @@ class LanguageViewModel {
 	 * must be invoked at startup from LanguageViewModel to initialize all DateTimeFormats
 	 * @param codes
 	 */
-	setLanguageTag(tag: string) {
+	_setLanguageTag(tag: string) {
 		this.languageTag = tag
 		if (client.dateFormat()) {
 			this.formats = {
