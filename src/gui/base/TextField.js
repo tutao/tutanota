@@ -83,6 +83,7 @@ export class TextField {
 					class: this.active ? "content-accent-fg" : "",
 					oncreate: (vnode) => {
 						this._domLabel = vnode.dom
+						this._baseLabel = this.isEmpty() && !this.disabled // needed for BubbleTextField in Firefox. BubbleTextField overwrites isEmpty() so it must be called initially
 						if (this._baseLabel) { // if the text field is disabled do not show the label in base position.
 							this._domLabel.style.fontSize = px(size.font_size_base)
 							this._domLabel.style.transform = 'translateY(' + this.baseLabelPosition + "px)"
