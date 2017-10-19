@@ -105,6 +105,22 @@ class WindowFacade {
 	addOfflineListener(listener: Function) {
 		window.addEventListener("offline", listener)
 	}
+
+	/**
+	 * Runs a setInterval and if more time than expected has passed we assume we resumed after suspend.
+	 */
+	addResumeAfterSuspendListener(listener: Function) {
+		let CHECK_INTERVAL_SECONDS = 10
+		let lastCheckTime = new Date().getTime()
+		setInterval(() => {
+			let newTime = new Date().getTime()
+			// if more than 10 seconds more have passed we assume we resumed from suspend
+			if (newTime - lastCheckTime - CHECK_INTERVAL_SECONDS > 10 * 1000) {
+				listener()
+			}
+			lastCheckTime = newTime
+		}, CHECK_INTERVAL_SECONDS * 1000)
+	}
 }
 
 export const windowFacade: WindowFacade = new WindowFacade()

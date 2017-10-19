@@ -126,6 +126,10 @@ export class LoginViewController {
 	_postLoginActions() {
 		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - Tutanota"
 
+		windowFacade.addResumeAfterSuspendListener(() => {
+			console.log("resume after suspend")
+			worker.tryReconnectEventBus()
+		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
 			worker.tryReconnectEventBus()

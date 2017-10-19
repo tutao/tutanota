@@ -180,6 +180,10 @@ export class ExternalLoginView {
 	}
 
 	_postLoginActions() {
+		windowFacade.addResumeAfterSuspendListener(() => {
+			console.log("resume after suspend")
+			worker.tryReconnectEventBus()
+		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
 			worker.tryReconnectEventBus()

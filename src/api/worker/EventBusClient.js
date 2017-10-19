@@ -160,7 +160,7 @@ export class EventBusClient {
 				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false);
 			}
-			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(30, 100));
+			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(10, 30));
 		}
 	}
 
