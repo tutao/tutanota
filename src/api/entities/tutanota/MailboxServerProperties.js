@@ -59,7 +59,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "22"
+	"version": "23"
 }
 
 export function createMailboxServerProperties(): MailboxServerProperties {

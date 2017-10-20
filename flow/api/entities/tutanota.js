@@ -112,23 +112,27 @@ type Contact = {
 	_area:NumberString;
 	_format:NumberString;
 	_id:IdTuple;
-	_ownerEncSessionKey:?Uint8Array;
 	_owner:Id;
+	_ownerEncSessionKey:?Uint8Array;
 	_ownerGroup:?Id;
 	_permissions:Id;
 	autoTransmitPassword:string;
-	birthday:?Date;
 	comment:string;
 	company:string;
 	firstName:string;
 	lastName:string;
+	nickname:?string;
+	oldBirthday:?Date;
 	presharedPassword:?string;
-	title:string;
+	role:string;
+	title:?string;
 
 	addresses:ContactAddress[];
+	birthday:?Birthday;
 	mailAddresses:ContactMailAddress[];
 	phoneNumbers:ContactPhoneNumber[];
 	socialIds:ContactSocialId[];
+	photo:?IdTuple;
 }
 
 type ConversationEntry = {
@@ -244,6 +248,7 @@ type ContactList = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 
+	photos:?PhotosRef;
 	contacts:Id;
 }
 
@@ -955,4 +960,20 @@ type DeleteContactFormConversationIndex = {
 	_id:Id;
 
 	items:Id;
+}
+
+type Birthday = {
+	_type: TypeRef<Birthday>;
+	_id:Id;
+	day:NumberString;
+	month:NumberString;
+	year:?NumberString;
+
+}
+
+type PhotosRef = {
+	_type: TypeRef<PhotosRef>;
+	_id:Id;
+
+	files:Id;
 }

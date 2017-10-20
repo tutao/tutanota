@@ -97,7 +97,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					let bDayDetails = vCardLines[j].substring(indexAfterTag + 1, (indexOfT != -1) ? indexOfT : vCardLines[j].length).split("-")
 					bDayDetails = [bDayDetails[1], bDayDetails[2], bDayDetails[0]]
 					let timestamp = new Date(bDayDetails.join("/")).getTime()
-					contact.birthday = isNaN(timestamp) ? null : new Date(timestamp)
+					contact.oldBirthday = isNaN(timestamp) ? null : new Date(timestamp)
 					break
 				case "ORG":
 					let orgDetails = vCardLines[j].substring(indexAfterTag + 1)
@@ -161,9 +161,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 				case "TITLE":
 				case "ROLE":
-					let titel = vCardLines[j].substring(indexAfterTag + 1)
-					titel = vCardReescapingArray(vCardEscapingSplit(titel))
-					contact.title += ((contact.title.length > 0) ? " " : "") + titel.join(" ")
+					let role = vCardLines[j].substring(indexAfterTag + 1)
+					role = vCardReescapingArray(vCardEscapingSplit(role))
+					contact.role += ((contact.role.length > 0) ? " " : "") + role.join(" ")
 					break
 				default:
 

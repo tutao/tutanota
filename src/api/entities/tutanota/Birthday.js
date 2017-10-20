@@ -1,40 +1,49 @@
 // @flow
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const DataBlockTypeRef: TypeRef<DataBlock> = new TypeRef("tutanota", "DataBlock")
+export const BirthdayTypeRef: TypeRef<Birthday> = new TypeRef("tutanota", "Birthday")
 export const _TypeModel: TypeModel = {
-	"name": "DataBlock",
-	"since": 1,
+	"name": "Birthday",
+	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 0,
-	"rootId": "CHR1dGFub3RhAAA",
+	"id": 844,
+	"rootId": "CHR1dGFub3RhAANM",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1,
-			"since": 1,
+			"id": 845,
+			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"blockData": {
-			"name": "blockData",
-			"id": 3,
-			"since": 1,
-			"type": "GeneratedId",
+		"day": {
+			"name": "day",
+			"id": 846,
+			"since": 23,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"size": {
-			"name": "size",
-			"id": 2,
-			"since": 1,
+		"month": {
+			"name": "month",
+			"id": 847,
+			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"year": {
+			"name": "year",
+			"id": 848,
+			"since": 23,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		}
@@ -44,6 +53,6 @@ export const _TypeModel: TypeModel = {
 	"version": "23"
 }
 
-export function createDataBlock(): DataBlock {
+export function createBirthday(): Birthday {
 	return create(_TypeModel)
 }

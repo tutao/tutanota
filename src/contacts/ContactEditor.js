@@ -78,14 +78,14 @@ export class ContactEditor {
 			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
-			.setValue(this.contact.birthday != null ? formatDate((this.contact.birthday:any)) : "")
+			.setValue(this.contact.oldBirthday != null ? formatDate((this.contact.oldBirthday:any)) : "")
 			.onUpdate(value => {
 				try {
 					if (value.trim().length > 0) {
 						let timestamp = parseDate(value)
-						this.contact.birthday = isNaN(timestamp) ? null : new Date(timestamp)
+						this.contact.oldBirthday = isNaN(timestamp) ? null : new Date(timestamp)
 					} else {
-						this.contact.birthday = null
+						this.contact.oldBirthday = null
 					}
 					this.invalidBirthday = false
 				} catch (e) {
@@ -101,8 +101,8 @@ export class ContactEditor {
 			.setValue(this.contact.company)
 			.onUpdate(value => this.contact.company = value)
 		let title = new TextField("title_placeholder")
-			.setValue(this.contact.title)
-			.onUpdate(value => this.contact.title = value)
+			.setValue(this.contact.role)
+			.onUpdate(value => this.contact.role = value)
 
 		this.mailAddressEditors = this.contact.mailAddresses.map(ma => new ContactAggregateEditor(ma, e => remove(this.mailAddressEditors, e)))
 		this.createNewMailAddressEditor()

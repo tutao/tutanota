@@ -1,20 +1,20 @@
 // @flow
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", "Subfiles")
+export const PhotosRefTypeRef: TypeRef<PhotosRef> = new TypeRef("tutanota", "PhotosRef")
 export const _TypeModel: TypeModel = {
-	"name": "Subfiles",
-	"since": 1,
+	"name": "PhotosRef",
+	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 11,
-	"rootId": "CHR1dGFub3RhAAs",
+	"id": 853,
+	"rootId": "CHR1dGFub3RhAANV",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 12,
-			"since": 1,
+			"id": 854,
+			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"files": {
 			"name": "files",
-			"since": 1,
+			"since": 23,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "File",
@@ -36,6 +36,6 @@ export const _TypeModel: TypeModel = {
 	"version": "23"
 }
 
-export function createSubfiles(): Subfiles {
+export function createPhotosRef(): PhotosRef {
 	return create(_TypeModel)
 }

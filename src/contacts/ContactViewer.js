@@ -105,8 +105,8 @@ export class ContactViewer {
 					]),
 					insertBetween([
 						this.contact.company ? m("span.company", this.contact.company) : null,
-						this.contact.title ? m("span.title", this.contact.title) : null,
-						this.contact.birthday ? m("span.birthday", formatDateWithMonth((this.contact.birthday:any))) : null,
+						this.contact.role ? m("span.title", this.contact.role) : null,
+						this.contact.oldBirthday ? m("span.birthday", formatDateWithMonth((this.contact.oldBirthday:any))) : null,
 					], m("span", " | ")),
 					m("hr.hr.mt-l"),
 
