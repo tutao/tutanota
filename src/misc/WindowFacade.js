@@ -115,7 +115,7 @@ class WindowFacade {
 		setInterval(() => {
 			let newTime = new Date().getTime()
 			// if more than 10 seconds more have passed we assume we resumed from suspend
-			if (newTime - lastCheckTime - CHECK_INTERVAL_SECONDS > 10 * 1000) {
+			if ((newTime - lastCheckTime - CHECK_INTERVAL_SECONDS * 1000) > 10 * 1000) {
 				listener()
 			}
 			lastCheckTime = newTime
