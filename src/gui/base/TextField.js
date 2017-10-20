@@ -130,9 +130,10 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
+			let value = this.type !== Type.Password ? this.value() : undefined // chrome autofill does not work on password fields if the value has been set before
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
-				value: this.value(),
+				value,
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					if (this.type != Type.Area) {
