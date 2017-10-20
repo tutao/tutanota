@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2017-10-19T16:10:41Z",
+	"updated_at": "2017-10-20T09:56:36Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kwa bahati mbaya, akaunti yako ya Tutanota kimezimwa. Tafadhali wasiliana na msimamizi wako.",

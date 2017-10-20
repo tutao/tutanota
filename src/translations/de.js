@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-10-20T09:42:56Z",
+	"updated_at": "2017-10-20T09:56:56Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -583,7 +583,7 @@ module.exports = {
 		"noContact_msg": "Kein Kontakt ausgewählt.",
 		"noEntries_msg": "<Keine Einträge>",
 		"noMailHeadersInfo_msg": "Für diese Nachricht sind keine E-Mail-Header verfügbar.",
-		"noMails_msg": "Herzlichen Glückwunsch! Hier gibt es nichts zu tun.",
+		"noMails_msg": "Keine Nachrichten.",
 		"noMail_msg": "Keine E-Mail ausgewählt.",
 		"nonConfidentialStatus_msg": "Diese Nachricht wird nicht Ende-zu-Ende verschlüsselt.",
 		"nonConfidential_action": "Nicht vertraulich",
@@ -922,7 +922,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"functionNotSupported_msg": "Diese Funktion wird von diesem Gerät oder Browser nicht unterstützt."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

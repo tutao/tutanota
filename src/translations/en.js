@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-10-20T09:42:06Z",
+	"updated_at": "2017-10-20T09:56:36Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -583,7 +583,7 @@ module.exports = {
 		"noContact_msg": "No contact selected.",
 		"noEntries_msg": "<No entries>",
 		"noMailHeadersInfo_msg": "No email headers available for this message.",
-		"noMails_msg": "Congrats! Nothing to do here.",
+		"noMails_msg": "No messages.",
 		"noMail_msg": "No email selected.",
 		"nonConfidentialStatus_msg": "This message is not sent end-to-end encrypted.",
 		"nonConfidential_action": "Not confidential",

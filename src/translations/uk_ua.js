@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2017-10-19T17:39:43Z",
+	"updated_at": "2017-10-20T09:56:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "На жаль ваш обліковий запис Tutanota було відключено. Будь ласка зв'яжіться із своїм адміністратором.",
