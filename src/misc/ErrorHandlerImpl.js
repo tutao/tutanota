@@ -7,7 +7,8 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
-	SessionExpiredError
+	SessionExpiredError,
+	ServiceUnavailableError
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
@@ -105,6 +106,8 @@ export function handleUncaughtError(e: Error) {
 		} else {
 			Dialog.error("insufficientStorageUser_msg")
 		}
+	} else if (e instanceof ServiceUnavailableError) {
+		Dialog.error("serviceUnavailable_msg")
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true

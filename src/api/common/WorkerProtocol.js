@@ -26,7 +26,7 @@ import {
 	BadGatewayError,
 	ResourceError,
 	InsufficientStorageError,
-	SessionExpiredError
+	SessionExpiredError, ServiceUnavailableError
 } from "./error/RestError"
 import {ProgrammingError} from "./error/ProgrammingError"
 import {RecipientsNotFoundError} from "./error/RecipientsNotFoundError"
@@ -196,6 +196,7 @@ const ErrorNameToType = {
 	RecipientsNotFoundError,
 	OutOfSyncError,
 	SecondFactorPendingError,
+	ServiceUnavailableError,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,
 	"java.io.EOFException": ConnectionError,
