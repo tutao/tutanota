@@ -474,13 +474,16 @@ export class MailViewer {
 	}
 
 	_handleMailto(event: Event) {
-		let anchorElement = (event.target:any).closest("a")
-		if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
-			let mailEditor = new MailEditor(neverNull(this.mailView.selectedMailbox))
-			event.preventDefault()
-			return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
-				mailEditor.show()
-			})
+		let target = (event.target:any)
+		if (target && target.closest) {
+			let anchorElement = target.closest("a")
+			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
+				let mailEditor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+				event.preventDefault()
+				return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
+					mailEditor.show()
+				})
+			}
 		}
 	}
 
