@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-10-17T14:32:38Z",
+	"updated_at": "2017-10-20T09:42:06Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -356,6 +356,7 @@ module.exports = {
 		"forward_action": "Forward",
 		"for_label": "for",
 		"from_label": "From",
+		"functionNotSupported_msg": "This function is not supported by your device or browser.",
 		"globalSettings_label": "Global settings",
 		"goodPassphrase_action": "How to find a good password?",
 		"gross_label": "incl. taxes",
@@ -786,6 +787,7 @@ module.exports = {
 		"sent_action": "Sent",
 		"serverDownForMaintenance_msg": "The server is down for maintenance. Please try again later.",
 		"serverNotReachable_msg": "Could not reach server, looks like you are offline. Please try again later.",
+		"serviceUnavailable_msg": "A temporary error occured on the server. Please try again at a later time.",
 		"sessionsInfo_msg": "Client and IP address are only stored encrypted.",
 		"setCatchAllMailbox_action": "Set catch all mailbox",
 		"setMobileNumber_msg": "Please enter mobile phone number.",
@@ -793,7 +795,6 @@ module.exports = {
 		"settings_alt": "Settings",
 		"settings_label": "Settings",
 		"showAddress_alt": "Show this address in Openstreetmap",
-		"showURL_alt": "Open link",
 		"showAttachment_label": "Display attachment",
 		"showBlockedContent_action": "Show",
 		"showContact_action": "Show contact",
@@ -808,6 +809,7 @@ module.exports = {
 		"showPasswordChannelColumn_title": "Enter passwords for external recipients.",
 		"showPassword_alt": "Keep button pressed to show the password.",
 		"showQuotation_action": "+ Show all",
+		"showURL_alt": "Open link",
 		"show_action": "Show",
 		"signatureConfigFailure_msg": "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
 		"smallLogo_label": "Small custom logo",
@@ -920,7 +922,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"functionNotSupported_msg": "This function is not supported by your device or browser."
+		"yourMessage_label": "Your message"
 	}
 }

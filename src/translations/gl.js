@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2017-10-17T09:23:32Z",
+	"updated_at": "2017-10-19T16:10:41Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Por favor desactive todos os usarios adicionais antes de cambiar o tipo de conta.",
