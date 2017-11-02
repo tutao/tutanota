@@ -8,6 +8,7 @@ import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNum
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 
@@ -15,11 +16,15 @@ assertMainOrNode()
  * @returns The list of created Contact instances (but not yet saved) or null if vCardFileData is not a valid vCard string.
  */
 export function vCardFileToVCards(vCardFileData: string): ?string[] {
-	let V = "\nVERSION:3.0"
+	let V3 = "\nVERSION:3.0"
+	let V2 = "\nVERSION:2.1"
 	let B = "BEGIN:VCARD\n"
 	let E = "END:VCARD"
+	vCardFileData = vCardFileData.replace(/begin:vcard/g, "BEGIN:VCARD")
+	vCardFileData = vCardFileData.replace(/end:vcard/g, "END:VCARD")
+	vCardFileData = vCardFileData.replace(/version:2.1/g, "VERSION:2.1")
 	let vCardList = []
-	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V) > -1) {
+	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1) {
 		vCardFileData = vCardFileData.replace(/\r/g, "")
 		vCardFileData = vCardFileData.replace(/\n /g, "")
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n\n/g, "")
@@ -37,6 +42,7 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 export function vCardEscapingSplit(details: string): string[] {
 	details = details.replace(/\\\\/g, "--bslashbslash++")
 	details = details.replace(/\\;/g, "--semiColonsemiColon++")
+	details = details.replace(/\\:/g, "--dPunktdPunkt++")
 	let array = details.split(';')
 	array = array.map(elem => {
 		return elem.trim()
@@ -47,6 +53,7 @@ export function vCardReescapingArray(details: string[]): string[] {
 	return details.map(a => {
 		a = a.replace(/\-\-bslashbslash\+\+/g, "\\")
 		a = a.replace(/\-\-semiColonsemiColon\+\+/g, ";")
+		a = a.replace(/\-\-dPunktdPunkt\+\+/g, ":")
 		a = a.replace(/\\n/g, "\n")
 		a = a.replace(/\\,/g, ",")
 		return a
@@ -78,91 +85,102 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		let vCardLines = vCardList[i].split('\n')
 		for (let j = 0; j < vCardLines.length; j++) {
 			let indexAfterTag = vCardLines[j].indexOf(":")
-			let semiIndex = vCardLines[j].indexOf(";")
-			if (semiIndex > -1 && semiIndex < indexAfterTag) {
-				indexAfterTag = semiIndex
-			}
-
-			let tagAndTypeString = vCardLines[j].substring(0, vCardLines[j].indexOf(":"))
-			switch (vCardLines[j].substring(0, indexAfterTag)) {
+			let tagAndTypeString = vCardLines[j].substring(0, indexAfterTag).toUpperCase()
+			let tagName = tagAndTypeString.split(";")[0]
+			let tagValue = vCardLines[j].substring(indexAfterTag + 1)
+			switch (tagName) {
 				case "N":
-					let nameDetails = vCardLines[j].substring(indexAfterTag + 1)
-					nameDetails = vCardReescapingArray(vCardEscapingSplit(nameDetails))
+					let nameDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
+
+					for (let i = nameDetails.length; nameDetails.length < 3; i++) {
+						nameDetails.push("")
+					}
 					contact.lastName = nameDetails[0]
 					contact.firstName = (nameDetails[1] + " " + nameDetails[2]).trim() // nameDetails[2] (second first name) may be empty
-					// contact.title = nameDetails[3] use "Anrede" here later
+					contact.title = nameDetails[3]
+					break
+				case "FN"://Thunderbird can export FULLNAME tag if that is given with the email address automatic contact creation. If there is no first name or second name the namestring will be saved as full name.
+					if (contact.firstName == "" && contact.lastName == "" && contact.title == null) {
+
+						let fullName = vCardReescapingArray(vCardEscapingSplit(tagValue))
+						contact.firstName = fullName.join(" ").replace(/"/g, "") //Thunderbird saves the Fullname in "quoteations marks" they are deleted here
+					}
 					break
 				case "BDAY":
-					let indexOfT = vCardLines[j].indexOf("T")
-					let bDayDetails = vCardLines[j].substring(indexAfterTag + 1, (indexOfT != -1) ? indexOfT : vCardLines[j].length).split("-")
-					bDayDetails = [bDayDetails[1], bDayDetails[2], bDayDetails[0]]
-					let timestamp = new Date(bDayDetails.join("/")).getTime()
+					let indexOfT = tagValue.indexOf("T")
+					let bDay = tagValue.substring(0, (indexOfT != -1) ? indexOfT : tagValue.length).split("-")
+					let bDayDetails = createBirthday()
+					bDayDetails.day = bDay[2].trim()
+					bDayDetails.month = bDay[1].trim()
+					bDayDetails.year = bDay[0].trim()
+					contact.birthday = bDayDetails
+					bDay = [bDay[1], bDay[2], bDay[0]]
+					let timestamp = new Date(bDay.join("/")).getTime()
 					contact.oldBirthday = isNaN(timestamp) ? null : new Date(timestamp)
 					break
 				case "ORG":
-					let orgDetails = vCardLines[j].substring(indexAfterTag + 1)
-					orgDetails = vCardReescapingArray(vCardEscapingSplit(orgDetails))
+					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					contact.company = orgDetails.join(" ")
 					break
 				case "NOTE":
-					let note = vCardLines[j].substring(indexAfterTag + 1)
-					note = vCardReescapingArray(vCardEscapingSplit(note))
+					let note = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					contact.comment = note.join(" ")
 					break
 				case "ADR":
-				case "item1.ADR":// necessary for apple vcards
-				case "item2.ADR":// necessary for apple vcards
+				case "ITEM1.ADR":// necessary for apple vcards
+				case "ITEM2.ADR":// necessary for apple vcards
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
-						_addAddress(vCardLines[j], contact, ContactAddressType.PRIVATE)
+						_addAddress(tagValue, contact, ContactAddressType.PRIVATE)
 					} else if (tagAndTypeString.indexOf("WORK") > (-1)) {
-						_addAddress(vCardLines[j], contact, ContactAddressType.WORK)
+						_addAddress(tagValue, contact, ContactAddressType.WORK)
 					} else {
-						_addAddress(vCardLines[j], contact, ContactAddressType.OTHER)
+						_addAddress(tagValue, contact, ContactAddressType.OTHER)
 					}
 					break
 				case "EMAIL":
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
-						_addMailAddress(vCardLines[j], contact, ContactAddressType.PRIVATE)
+						_addMailAddress(tagValue, contact, ContactAddressType.PRIVATE)
 					} else if (tagAndTypeString.indexOf("WORK") > (-1)) {
-						_addMailAddress(vCardLines[j], contact, ContactAddressType.WORK)
+						_addMailAddress(tagValue, contact, ContactAddressType.WORK)
 					} else {
-						_addMailAddress(vCardLines[j], contact, ContactAddressType.OTHER)
+						_addMailAddress(tagValue, contact, ContactAddressType.OTHER)
 					}
 					break
 				case "TEL":
+				case "ITEM1.TEL":// necessary for apple vcards
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
-						_addPhoneNumber(vCardLines[j], contact, ContactPhoneNumberType.PRIVATE)
+						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.PRIVATE)
 					} else if (tagAndTypeString.indexOf("WORK") > (-1)) {
-						_addPhoneNumber(vCardLines[j], contact, ContactPhoneNumberType.WORK)
+						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.WORK)
 					} else if (tagAndTypeString.indexOf("FAX") > (-1)) {
-						_addPhoneNumber(vCardLines[j], contact, ContactPhoneNumberType.FAX)
+						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.FAX)
 					} else if (tagAndTypeString.indexOf("CELL") > (-1)) {
-						_addPhoneNumber(vCardLines[j], contact, ContactPhoneNumberType.MOBILE)
+						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.MOBILE)
 					} else {
-						_addPhoneNumber(vCardLines[j], contact, ContactPhoneNumberType.OTHER)
+						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.OTHER)
 					}
 					break
 				case "URL":
-				case "item1.URL":// necessary for apple vcards
-				case "item2.URL":// necessary for apple vcards
+				case "ITEM1.URL":// necessary for apple vcards
+				case "ITEM2.URL":// necessary for apple vcards
 					let website = createContactSocialId()
 					website.type = ContactSocialType.OTHER
-					website.socialId = vCardLines[j].substring(indexAfterTag + 1)
+					website.socialId = vCardReescapingArray(vCardEscapingSplit(tagValue)).join("")
 					website.customTypeName = ""
 					contact.socialIds.push(website)
 					break
 				case "NICKNAME":
-					/*let nick=vCardLines[j].substring(vCardLines[j].indexOf(":") + 1)
-					 nick= vCardReescapingArray(vCardEscapingSplit(nick))
-					 contact.nickName=nick.join(" ")*///IM DATENMODEL NOCH NICHT VORHANDEN
+					let nick = vCardReescapingArray(vCardEscapingSplit(tagValue))
+					contact.nickname = nick.join(" ")
 					break
 				case "PHOTO":
-					/*Here will be the photo import*/
+					// if (indexAfterTag < tagValue.indexOf(":")) {
+					// 	indexAfterTag = tagValue.indexOf(":")
+					// }
+					// /*Here will be the photo import*/
 					break
-				case "TITLE":
 				case "ROLE":
-					let role = vCardLines[j].substring(indexAfterTag + 1)
-					role = vCardReescapingArray(vCardEscapingSplit(role))
+					let role = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					contact.role += ((contact.role.length > 0) ? " " : "") + role.join(" ")
 					break
 				default:
@@ -173,34 +191,27 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		contacts[i] = contact
 	}
 
-	function _addAddress(vCardAddressLine: string, contact: Contact, type: ContactAddressTypeEnum) {
+	function _addAddress(vCardAddressValue: string, contact: Contact, type: ContactAddressTypeEnum) {
 		let address = createContactAddress()
 		address.type = type
-		let addressDetails = vCardAddressLine.substring(vCardAddressLine.indexOf(":") + 1)
-		addressDetails = vCardReescapingArray(vCardEscapingSplitAdr(addressDetails))
+		let addressDetails = vCardReescapingArray(vCardEscapingSplitAdr(vCardAddressValue))
 		address.address = addressDetails.join("").trim()
 		address.customTypeName = ""
 		contact.addresses.push(address)
 	}
 
-	function _addPhoneNumber(vCardPhoneNumberLine: string, contact: Contact, type: ContactPhoneNumberTypeEnum) {
+	function _addPhoneNumber(vCardPhoneNumberValue: string, contact: Contact, type: ContactPhoneNumberTypeEnum) {
 		let phoneNumber = createContactPhoneNumber()
 		phoneNumber.type = type
-		let tel = vCardPhoneNumberLine.substring(vCardPhoneNumberLine.indexOf(":") + 1)
-		if (tel.indexOf(":") > -1) {
-			tel = tel.substring(tel.indexOf(":") + 1)
-			phoneNumber.number = tel
-		} else {
-			phoneNumber.number = tel
-		}
+		phoneNumber.number = vCardPhoneNumberValue
 		phoneNumber.customTypeName = ""
 		contact.phoneNumbers.push(phoneNumber)
 	}
 
-	function _addMailAddress(vCardMailAddressLine: string, contact: Contact, type: ContactAddressTypeEnum) {
+	function _addMailAddress(vCardMailAddressValue: string, contact: Contact, type: ContactAddressTypeEnum) {
 		let email = createContactMailAddress()
 		email.type = type
-		email.address = vCardMailAddressLine.substring(vCardMailAddressLine.indexOf(":") + 1)
+		email.address = vCardMailAddressValue
 		email.customTypeName = ""
 		contact.mailAddresses.push(email)
 	}

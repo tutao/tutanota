@@ -100,7 +100,7 @@ export class ContactViewer {
 			return [
 				m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".flex-space-between.pt", [
-						m(".h2", this.contact.firstName + " " + contact.lastName),
+						m(".h2", (this.contact.title ? this.contact.title : "") + " " + this.contact.firstName + " " + this.contact.lastName + (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")),
 						m(actions),
 					]),
 					insertBetween([

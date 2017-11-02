@@ -8,6 +8,7 @@ import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
+import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("VCardImporterTest", function () {
 	let date = new Date()
@@ -154,6 +155,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
+		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -169,7 +171,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.comment = "Hello World\nHier ist ein Umbruch\n\n" + importNote + date.toDateString() + "."
 		b.company = ""
 		b.role = ""
-		b.title = null
+		b.title = "Mr."
+		b.nickname = neverNull(null)
+		bday.day = "09"
+		bday.month = "09"
+		bday.year = "2016"
+		b.birthday = bday
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
@@ -179,6 +186,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
+		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -194,7 +202,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.comment = importNote + date.toDateString() + "."
 		b.company = ""
 		b.role = ""
-		b.title = null
+		b.title = "Mr."
+		b.nickname = neverNull(null)
+		bday.day = "09"
+		bday.month = "09"
+		bday.year = "2016"
+		b.birthday = bday
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 
@@ -206,6 +219,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
+		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -221,7 +235,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.comment = importNote + date.toDateString() + "."
 		b.company = ""
 		b.role = ""
-		b.title = null
+		b.title = "Mr."
+		b.nickname = neverNull(null)
+		bday.day = "09"
+		bday.month = "09"
+		bday.year = "2016"
+		b.birthday = bday
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})

@@ -377,7 +377,7 @@ module.exports = {
 		"importCsv_label": "CSV-Daten importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
 		"importVCardSuccess_msg": "{1} Kontakt(e) erfolgreich importiert!",
-		"importVCard_action": "VCard 3.0 importieren",
+		"importVCard_action": "VCard importieren",
 		"import_action": "Importieren",
 		"inboxRuleAlreadyExists_msg": "Diese Regel ist bereits vorhanden.",
 		"inboxRuleBCCRecipientEquals_action": "Bcc-Empfänger",

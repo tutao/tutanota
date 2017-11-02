@@ -68,6 +68,9 @@ export class ContactEditor {
 		let firstName = new TextField("firstName_placeholder")
 			.setValue(this.contact.firstName)
 			.onUpdate(value => this.contact.firstName = value)
+		let nickname = new TextField("nickname_placeholder")
+			.setValue(this.contact.nickname)
+			.onUpdate(value => this.contact.nickname = value)
 		let lastName = new TextField("lastName_placeholder")
 			.setValue(this.contact.lastName)
 			.onUpdate(value => this.contact.lastName = value)
@@ -100,9 +103,12 @@ export class ContactEditor {
 		let company = new TextField("company_label")
 			.setValue(this.contact.company)
 			.onUpdate(value => this.contact.company = value)
-		let title = new TextField("title_placeholder")
+		let role = new TextField("role_placeholder")
 			.setValue(this.contact.role)
 			.onUpdate(value => this.contact.role = value)
+		let title = new TextField("title_placeholder")
+			.setValue(this.contact.title)
+			.onUpdate(value => this.contact.title = value)
 
 		this.mailAddressEditors = this.contact.mailAddresses.map(ma => new ContactAggregateEditor(ma, e => remove(this.mailAddressEditors, e)))
 		this.createNewMailAddressEditor()
@@ -135,7 +141,9 @@ export class ContactEditor {
 			]),
 			m(".wrapping-row", [
 				m(company),
-				m(title)
+				m(role),
+				m(title),
+				m(nickname)
 			]),
 			m(".wrapping-row", [
 				m(".mail.mt-xl", [

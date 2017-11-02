@@ -156,25 +156,33 @@ export class ContactView {
 		return createDropDownButton("more_label", () => Icons.More, () => [
 			new Button('importVCard_action', () => {
 
-				fileController.showFileChooser(false, ["vcf"]).then((contactFile) => {
+				fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
 					try {
-						let vCardFileData = utf8Uint8ArrayToString(contactFile[0].data)
-						let vCards = vCardFileToVCards(vCardFileData)
-						if (vCards) {
-							let contactList = vCardListToContacts(vCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
-							return showProgressDialog("pleaseWait_msg", worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
-								let promises = []
-								contactList.forEach((contact) => {
-									promises.push(setup(contactListId, contact))
-								})
-								return Promise.all(promises).then(() => {
-									return promises.length
-								})
-							})).then(numberOfContacts => {
-								return Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+						if (contactFiles.length > 0) {
+							let vCardsList = contactFiles.map(contactFile => {
+								let vCardFileData = utf8Uint8ArrayToString(contactFile.data)
+								let vCards = vCardFileToVCards(vCardFileData)
+								if (vCards == null) {
+									throw new Error("no vcards found")
+								} else {
+									return vCards
+								}
 							})
-						} else {
-							Dialog.error("importVCardError_msg")
+							return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+								let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
+								let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
+								return worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+									let promises = []
+									contactList.forEach((contact) => {
+										promises.push(setup(contactListId, contact))
+									})
+									return Promise.all(promises).then(() => {
+										return promises.length
+									})
+								}).then(numberOfContacts => {
+									Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+								})
+							}))
 						}
 					} catch (e) {
 						console.log(e)
@@ -183,7 +191,7 @@ export class ContactView {
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
 
-		], 280).setColors(ButtonColors.Nav)
+		], 250).setColors(ButtonColors.Nav)
 	}
 
 	/**
