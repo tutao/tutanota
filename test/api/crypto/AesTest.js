@@ -59,7 +59,6 @@ o.spec("aes", function () {
 		]).then(done)
 	}
 
-
 	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(aes128RandomKey, 24))
 	o("generateRandomKeyAndBase64Conversion 256", () => randomKeyBase64Conversion(aes256RandomKey, 44))
 	function randomKeyBase64Conversion(randomKey, length) {

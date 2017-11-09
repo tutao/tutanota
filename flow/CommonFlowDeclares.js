@@ -191,3 +191,5 @@ declare class Notification {
 	onclick:any;
 	close:Function;
 }
+
+declare var indexedDB: any;

@@ -50,14 +50,22 @@ export function valueToDefault(type: ValueTypeEnum) {
 	else throw new ProgrammingError(`${type} is not a valid value type`)
 }
 
-const fixedIv = hexToUint8Array('88888888888888888888888888888888')
+export const fixedIv = hexToUint8Array('88888888888888888888888888888888')
+
+export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
+	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+}
 
 export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key|Aes256Key {
 	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
 }
 
-export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
+export function encrypt256Key(encryptionKey: Aes128Key, key: Aes256Key): Uint8Array {
 	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+}
+
+export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
+	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
 }
 
 export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv: ?Uint8Array): Uint8Array {
@@ -174,7 +182,13 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 				} else {
 					return loaders.loadGroup(bp.group).then(group => {
 						let keypair = group.keys[0]
-						let privKey = decryptRsaKey(loginFacade.getGroupKey(group._id), keypair.symEncPrivKey)
+						let privKey
+						try {
+							privKey = decryptRsaKey(loginFacade.getGroupKey(group._id), keypair.symEncPrivKey)
+						} catch (e) {
+							console.log("failed to decrypt rsa key for group with id " + group._id)
+							throw e
+						}
 						let pubEncBucketKey = bucketPermission.pubEncBucketKey
 						if (pubEncBucketKey == null) {
 							throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)

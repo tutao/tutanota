@@ -82,4 +82,8 @@ export class EntityRestClient {
 			}
 		})
 	}
+
+	entityEventReceived(data: EntityUpdate): Promise<void> {
+		return Promise.resolve()
+	}
 }

@@ -19,6 +19,7 @@ import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
+import {searchFacade} from "./facades/SearchFacade"
 
 assertWorkerOrNode()
 
@@ -259,28 +260,30 @@ export class EventBusClient {
 						throw e // do not continue processing the other events
 					}
 				})
-		}).filter(event => event != null)
-			.each(event => {
-				return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(event))
-					.then(() => this._executeIfNotTerminated(() => mailFacade.entityEventReceived(event)))
-					.then(() => this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event)))
-			}).then(() => {
-				if (!this._lastEntityEventIds[groupId]) {
-					this._lastEntityEventIds[groupId] = []
-				}
-				this._lastEntityEventIds[groupId].push(batchId)
-				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-				this._lastEntityEventIds[groupId].sort((e1, e2) => {
-					if (e1 == e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
-				})
-				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-					this._lastEntityEventIds[groupId].shift()
+		}).filter(event => event != null).then(filteredEvents => {
+			this._executeIfNotTerminated(() => searchFacade.processEntityEvents(filteredEvents, groupId, batchId))
+			return filteredEvents
+		}).each(event => {
+			return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(event))
+				.then(() => this._executeIfNotTerminated(() => mailFacade.entityEventReceived(event)))
+				.then(() => this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event)))
+		}).then(() => {
+			if (!this._lastEntityEventIds[groupId]) {
+				this._lastEntityEventIds[groupId] = []
+			}
+			this._lastEntityEventIds[groupId].push(batchId)
+			// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+			this._lastEntityEventIds[groupId].sort((e1, e2) => {
+				if (e1 == e2) {
+					return 0
+				} else {
+					return firstBiggerThanSecond(e1, e2) ? 1 : -1
 				}
 			})
+			if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+				this._lastEntityEventIds[groupId].shift()
+			}
+		})
 	}
 
 	/**
@@ -301,6 +304,7 @@ export class EventBusClient {
 	}
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
+		// TODO handle lost updates (old event surpassed by newer one, we store the new id and retrieve instances from the newer one on next login
 		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ? this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
 	}
 

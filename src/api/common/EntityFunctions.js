@@ -37,6 +37,9 @@ export const GENERATED_ID_BYTES_LENGTH = 9
  * The minimum ID for elements with custom id stored on the server
  */
 export const CUSTOM_MIN_ID = ""
+
+export const RANGE_ITEM_LIMIT = 1000
+
 /**
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
  */

@@ -154,6 +154,7 @@ type ModelValue = {
 }
 
 type ModelAssociation = {
+	id: number,
 	type: AssociationTypeEnum,
 	cardinality: CardinalityEnum,
 	refType: string

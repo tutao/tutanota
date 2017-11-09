@@ -41,6 +41,7 @@ import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorA
 import {workerImpl} from "../WorkerImpl"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
 import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
+import {searchFacade} from "./SearchFacade"
 
 assertWorkerOrNode()
 
@@ -185,6 +186,7 @@ export class LoginFacade {
 			this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
+			.then(() => searchFacade.init(userId, this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact)))
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
 			.then(() => this._eventBusClient.connect(false))
@@ -300,6 +302,7 @@ export class LoginFacade {
 
 	getGroupKey(groupId: Id): Aes128Key {
 		if (!this.groupKeys[groupId]) {
+			console.log("decrypting groupKey for group with id " + groupId + " with user group id " + this.getUserGroupId())
 			this.groupKeys[groupId] = decryptKey(this.groupKeys[this.getUserGroupId()], this._getMembership(groupId).symEncGKey)
 		}
 		return this.groupKeys[groupId]
@@ -331,6 +334,10 @@ export class LoginFacade {
 			}
 			return membership.group
 		}
+	}
+
+	getGroupIds(groupType: GroupTypeEnum): Id[] {
+		return this.getLoggedInUser().memberships.filter(m => m.groupType === groupType).map(gm => gm.group)
 	}
 
 	isExternalUserLoggedIn() {

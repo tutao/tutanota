@@ -26,7 +26,8 @@ import {
 	BadGatewayError,
 	ResourceError,
 	InsufficientStorageError,
-	SessionExpiredError, ServiceUnavailableError
+	SessionExpiredError,
+	ServiceUnavailableError
 } from "./error/RestError"
 import {ProgrammingError} from "./error/ProgrammingError"
 import {RecipientsNotFoundError} from "./error/RecipientsNotFoundError"
@@ -35,6 +36,7 @@ import {PermissionError} from "./error/PermissionError"
 import {OutOfSyncError} from "./error/OutOfSyncError"
 import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
 import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
+import {DbError} from "./error/DbError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -197,6 +199,8 @@ const ErrorNameToType = {
 	OutOfSyncError,
 	SecondFactorPendingError,
 	ServiceUnavailableError,
+	DbError,
+	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,
 	"java.io.EOFException": ConnectionError,
