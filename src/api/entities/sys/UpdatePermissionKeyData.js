@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", "UpdatePermissionKeyData")
 export const _TypeModel: TypeModel = {
@@ -42,6 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bucketPermission": {
 			"name": "bucketPermission",
+			"id": 451,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -51,6 +53,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"permission": {
 			"name": "permission",
+			"id": 450,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

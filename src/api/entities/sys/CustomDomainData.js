@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const CustomDomainDataTypeRef: TypeRef<CustomDomainData> = new TypeRef("sys", "CustomDomainData")
 export const _TypeModel: TypeModel = {
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"catchAllMailGroup": {
 			"name": "catchAllMailGroup",
+			"id": 1045,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

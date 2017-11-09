@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const DraftDataTypeRef: TypeRef<DraftData> = new TypeRef("tutanota", "DraftData")
 export const _TypeModel: TypeModel = {
@@ -69,6 +70,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"addedAttachments": {
 			"name": "addedAttachments",
+			"id": 506,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -77,6 +79,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"bccRecipients": {
 			"name": "bccRecipients",
+			"id": 505,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -85,6 +88,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"ccRecipients": {
 			"name": "ccRecipients",
+			"id": 504,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -93,6 +97,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"replyTos": {
 			"name": "replyTos",
+			"id": 819,
 			"since": 21,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -101,6 +106,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"toRecipients": {
 			"name": "toRecipients",
+			"id": 503,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -109,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"removedAttachments": {
 			"name": "removedAttachments",
+			"id": 507,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",

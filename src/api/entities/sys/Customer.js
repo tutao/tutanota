@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 export const _TypeModel: TypeModel = {
@@ -78,6 +79,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"auditLog": {
 			"name": "auditLog",
+			"id": 1161,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -86,6 +88,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactFormUserAreaGroups": {
 			"name": "contactFormUserAreaGroups",
+			"id": 1160,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -94,6 +97,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactFormUserGroups": {
 			"name": "contactFormUserGroups",
+			"id": 1159,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -102,6 +106,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customizations": {
 			"name": "customizations",
+			"id": 1256,
 			"since": 25,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -110,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userAreaGroups": {
 			"name": "userAreaGroups",
+			"id": 992,
 			"since": 17,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -118,6 +124,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"adminGroup": {
 			"name": "adminGroup",
+			"id": 37,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -127,6 +134,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"adminGroups": {
 			"name": "adminGroups",
+			"id": 39,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -136,6 +144,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroup": {
 			"name": "customerGroup",
+			"id": 38,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -145,6 +154,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroups": {
 			"name": "customerGroups",
+			"id": 40,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -154,6 +164,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerInfo": {
 			"name": "customerInfo",
+			"id": 160,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -163,6 +174,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"properties": {
 			"name": "properties",
+			"id": 662,
 			"since": 6,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -172,6 +184,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"serverProperties": {
 			"name": "serverProperties",
+			"id": 960,
 			"since": 13,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -181,6 +194,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"teamGroups": {
 			"name": "teamGroups",
+			"id": 42,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -190,6 +204,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroups": {
 			"name": "userGroups",
+			"id": 41,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", "SecondFactor")
 export const _TypeModel: TypeModel = {
@@ -78,6 +79,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"u2f": {
 			"name": "u2f",
+			"id": 1177,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",

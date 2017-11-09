@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", "MembershipRemoveData")
 export const _TypeModel: TypeModel = {
@@ -24,6 +25,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"group": {
 			"name": "group",
+			"id": 870,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -33,6 +35,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
+			"id": 869,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

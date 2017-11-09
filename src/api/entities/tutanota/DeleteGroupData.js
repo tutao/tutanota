@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const DeleteGroupDataTypeRef: TypeRef<DeleteGroupData> = new TypeRef("tutanota", "DeleteGroupData")
 export const _TypeModel: TypeModel = {
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"group": {
 			"name": "group",
+			"id": 716,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 export const _TypeModel: TypeModel = {
@@ -105,6 +106,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"auth": {
 			"name": "auth",
+			"id": 1210,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -113,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"authenticatedDevices": {
 			"name": "authenticatedDevices",
+			"id": 97,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -121,6 +124,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"externalAuthInfo": {
 			"name": "externalAuthInfo",
+			"id": 98,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -129,6 +133,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"memberships": {
 			"name": "memberships",
+			"id": 96,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -137,6 +142,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"phoneNumbers": {
 			"name": "phoneNumbers",
+			"id": 94,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -145,6 +151,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"pushIdentifierList": {
 			"name": "pushIdentifierList",
+			"id": 638,
 			"since": 5,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -153,6 +160,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroup": {
 			"name": "userGroup",
+			"id": 95,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -161,6 +169,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customer": {
 			"name": "customer",
+			"id": 99,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -170,6 +179,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"failedLogins": {
 			"name": "failedLogins",
+			"id": 101,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -179,6 +189,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"secondFactorAuthentications": {
 			"name": "secondFactorAuthentications",
+			"id": 102,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -188,6 +199,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"successfulLogins": {
 			"name": "successfulLogins",
+			"id": 100,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

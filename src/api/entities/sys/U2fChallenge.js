@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const U2fChallengeTypeRef: TypeRef<U2fChallenge> = new TypeRef("sys", "U2fChallenge")
 export const _TypeModel: TypeModel = {
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"keys": {
 			"name": "keys",
+			"id": 1186,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

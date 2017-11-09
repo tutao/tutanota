@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const CreateFileDataTypeRef: TypeRef<CreateFileData> = new TypeRef("tutanota", "CreateFileData")
 export const _TypeModel: TypeModel = {
@@ -60,6 +61,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"fileData": {
 			"name": "fileData",
+			"id": 352,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -69,6 +71,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"parentFolder": {
 			"name": "parentFolder",
+			"id": 353,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

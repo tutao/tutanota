@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const EntityEventBatchTypeRef: TypeRef<EntityEventBatch> = new TypeRef("sys", "EntityEventBatch")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"events": {
 			"name": "events",
+			"id": 1085,
 			"since": 20,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

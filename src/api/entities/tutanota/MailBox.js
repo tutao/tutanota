@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 export const _TypeModel: TypeModel = {
@@ -78,6 +79,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"systemFolders": {
 			"name": "systemFolders",
+			"id": 443,
 			"since": 7,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -86,6 +88,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mails": {
 			"name": "mails",
+			"id": 132,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -95,6 +98,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"receivedAttachments": {
 			"name": "receivedAttachments",
+			"id": 134,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -104,6 +108,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sentAttachments": {
 			"name": "sentAttachments",
+			"id": 133,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

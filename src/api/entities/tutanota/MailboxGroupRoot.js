@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"contactFormUserContactForm": {
 			"name": "contactFormUserContactForm",
+			"id": 748,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -60,6 +62,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mailbox": {
 			"name": "mailbox",
+			"id": 699,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -69,6 +72,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participatingContactForms": {
 			"name": "participatingContactForms",
+			"id": 842,
 			"since": 22,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -78,6 +82,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"serverProperties": {
 			"name": "serverProperties",
+			"id": 700,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -87,6 +92,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"targetMailGroupContactForm": {
 			"name": "targetMailGroupContactForm",
+			"id": 749,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -96,6 +102,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"whitelistRequests": {
 			"name": "whitelistRequests",
+			"id": 701,
 			"since": 18,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

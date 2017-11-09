@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", "GroupInfo")
 export const _TypeModel: TypeModel = {
@@ -105,6 +106,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"mailAddressAliases": {
 			"name": "mailAddressAliases",
+			"id": 687,
 			"since": 8,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -113,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"group": {
 			"name": "group",
+			"id": 20,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", "GroupRoot")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"externalUserAreaGroupInfos": {
 			"name": "externalUserAreaGroupInfos",
+			"id": 999,
 			"since": 17,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -59,6 +61,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"externalGroupInfos": {
 			"name": "externalGroupInfos",
+			"id": 116,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -68,6 +71,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"externalUserReferences": {
 			"name": "externalUserReferences",
+			"id": 117,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

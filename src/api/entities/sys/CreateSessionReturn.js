@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const CreateSessionReturnTypeRef: TypeRef<CreateSessionReturn> = new TypeRef("sys", "CreateSessionReturn")
 export const _TypeModel: TypeModel = {
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"challenges": {
 			"name": "challenges",
+			"id": 1222,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -41,6 +43,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
+			"id": 1223,
 			"since": 23,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const ExternalUserReferenceTypeRef: TypeRef<ExternalUserReference> = new TypeRef("sys", "ExternalUserReference")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"user": {
 			"name": "user",
+			"id": 108,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -60,6 +62,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroup": {
 			"name": "userGroup",
+			"id": 109,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"contactFormConversations": {
 			"name": "contactFormConversations",
+			"id": 841,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -59,6 +61,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactForms": {
 			"name": "contactForms",
+			"id": 789,
 			"since": 19,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -68,6 +71,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"statisticsLog": {
 			"name": "statisticsLog",
+			"id": 790,
 			"since": 19,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
 export const _TypeModel: TypeModel = {
@@ -42,6 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"targetFolder": {
 			"name": "targetFolder",
+			"id": 577,
 			"since": 12,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

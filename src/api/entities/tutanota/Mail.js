@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 export const _TypeModel: TypeModel = {
@@ -159,6 +160,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bccRecipients": {
 			"name": "bccRecipients",
+			"id": 114,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -167,6 +169,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"ccRecipients": {
 			"name": "ccRecipients",
+			"id": 113,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -175,6 +178,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"replyTos": {
 			"name": "replyTos",
+			"id": 616,
 			"since": 14,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -183,6 +187,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"restrictions": {
 			"name": "restrictions",
+			"id": 723,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -191,6 +196,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sender": {
 			"name": "sender",
+			"id": 111,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -199,6 +205,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"toRecipients": {
 			"name": "toRecipients",
+			"id": 112,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -207,6 +214,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"attachments": {
 			"name": "attachments",
+			"id": 115,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -216,6 +224,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"body": {
 			"name": "body",
+			"id": 116,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -225,6 +234,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"conversationEntry": {
 			"name": "conversationEntry",
+			"id": 117,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -234,6 +244,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"headers": {
 			"name": "headers",
+			"id": 618,
 			"since": 14,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

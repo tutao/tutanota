@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 export const _TypeModel: TypeModel = {
@@ -168,6 +169,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"addresses": {
 			"name": "addresses",
+			"id": 82,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -176,6 +178,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"birthday": {
 			"name": "birthday",
+			"id": 851,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -184,6 +187,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mailAddresses": {
 			"name": "mailAddresses",
+			"id": 80,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -192,6 +196,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"phoneNumbers": {
 			"name": "phoneNumbers",
+			"id": 81,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -200,6 +205,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"socialIds": {
 			"name": "socialIds",
+			"id": 83,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -208,6 +214,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"photo": {
 			"name": "photo",
+			"id": 852,
 			"since": 23,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

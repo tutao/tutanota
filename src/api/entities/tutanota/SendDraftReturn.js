@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", "SendDraftReturn")
 export const _TypeModel: TypeModel = {
@@ -42,6 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"notifications": {
 			"name": "notifications",
+			"id": 561,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -50,6 +52,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sentMail": {
 			"name": "sentMail",
+			"id": 562,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

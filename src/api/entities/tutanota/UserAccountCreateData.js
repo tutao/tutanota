@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 export const _TypeModel: TypeModel = {
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"userData": {
 			"name": "userData",
+			"id": 666,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -41,6 +43,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroupData": {
 			"name": "userGroupData",
+			"id": 667,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",

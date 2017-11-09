@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const InputFieldTypeRef: TypeRef<InputField> = new TypeRef("tutanota", "InputField")
 export const _TypeModel: TypeModel = {
@@ -42,6 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"enumValues": {
 			"name": "enumValues",
+			"id": 732,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
