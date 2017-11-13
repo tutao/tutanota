@@ -357,6 +357,17 @@ styles.registerStyle('main', () => {
 		'.header-right': {position: 'absolute', left: '310px', right: '0', top: 0, bottom: 0},
 		'.header-right > .nav-bar': {width: '100%'},
 
+		'.nav-bar-spacer': {
+			width: "2px",
+			height: "24px",
+			'margin-left': "2px",
+			'margin-top': "10px",
+			"background-color": theme.navigation_border,
+		},
+		'.search-bar > .text-field': {
+			"padding-top": '0 !important'
+		},
+
 
 		// dialogs
 		'.dialog': {'min-width': px(200), width: '100%'},

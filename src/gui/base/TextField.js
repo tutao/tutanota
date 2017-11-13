@@ -23,7 +23,7 @@ export const Type = {
 }
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
-const inputLineHeight = size.font_size_base + 8
+export const inputLineHeight = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
 /**

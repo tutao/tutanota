@@ -1003,7 +1003,7 @@ class SwipeHandler {
 	}
 
 	updateWidth() {
-		console.log("update", this.list._width)
+		//console.log("update", this.list._width)
 		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
 		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'

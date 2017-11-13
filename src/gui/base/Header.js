@@ -14,6 +14,10 @@ import {px} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
 import {Mode, assertMainOrNodeBoot} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
+import {TextField} from "./TextField"
+import {Button, ButtonType} from "./Button"
+import {Icons} from "./icons/Icons"
+import {SearchBar} from "./SearchBar"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -26,21 +30,35 @@ class Header {
 	contactsUrl: stream<string>;
 	mailsUrl: stream<string>;
 	settingsUrl: stream<string>;
+	searchUrl: stream<string>;
 	_viewSlider: ?IViewSlider;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
 
+	searchInputField: TextField;
+
 	constructor() {
 		this.contactsUrl = '/contact'
 		this.mailsUrl = '/mail'
 		this.settingsUrl = '/settings'
+		this.searchUrl = '/search'
 		this._viewSlider = null
 		let premiumUrl = '/settings/premium'
 
+
+		this.searchInputField = new TextField("search_label")
+		let searchInputFieldAction = new Button("search_label", () => console.log("quick search"), () => Icons.Search).setType(ButtonType.Action)
+		this.searchInputField._injectionsRight = () => m(searchInputFieldAction)
+
+		let searchViewButton = new NavButton("search_label", () => Icons.Search, () => m.route.get(), this.searchUrl)
+			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
+			.setClickHandler(() => console.log("show search input field"))
+
 		this.defaultButtonBar = new NavBar()
+			.addButton(searchViewButton, 0, true, false)
 			.addButton(new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false, true)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => premiumUrl, premiumUrl)
@@ -57,6 +75,8 @@ class Header {
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
+
+		this.defaultButtonBar.searchBar = new SearchBar()
 
 		this.buttonBar = this.defaultButtonBar
 
@@ -159,7 +179,7 @@ class Header {
 			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => viewSlider.focusPreviousColumn())
-				.hideLabel()
+				.setHideLabel(true)
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {

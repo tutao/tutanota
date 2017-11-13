@@ -71,8 +71,8 @@ export class NavButton {
 		}
 	}
 
-	hideLabel(): NavButton {
-		this._hideLabel = true
+	setHideLabel(hide: boolean): NavButton {
+		this._hideLabel = hide
 		return this
 	}
 
@@ -230,6 +230,6 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 				modal.display(dropdown)
 			}
 		}:clickHandler))
-		.hideLabel()
+		.setHideLabel(true)
 	return mainButton
 }

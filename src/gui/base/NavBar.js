@@ -4,13 +4,13 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {NavButton, NavButtonColors, createDropDownNavButton} from "./NavButton"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {size} from "../size"
-import {theme} from "../theme"
 import {styles} from "../styles"
 import {BootIcons} from "./icons/BootIcons"
+import {SearchBar} from "./SearchBar"
 
 assertMainOrNodeBoot()
 
-type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number}
+type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number, hideLabelDefault:boolean}
 
 type SortedButtons = {visible: ButtonWrapper[], hidden: ButtonWrapper[]}
 
@@ -33,6 +33,7 @@ export class NavBar {
 	controller: Function;
 	view: Function;
 	_domNavBar: ?HTMLElement;
+	searchBar: SearchBar;
 
 	/**
 	 * @param buttonType determines how the buttons are displayed and how the width of each button is calculated
@@ -50,17 +51,10 @@ export class NavBar {
 				return buttons
 			}),
 			prefixComponent: styles.isDesktopLayout() ? {
-					view: () => m("div", {
-						style: {
-							width: "2px",
-							height: "24px",
-							'margin-left': "2px",
-							'margin-top': "10px",
-							"background-color": theme.navigation_border,
-						}
-					})
+					view: () => m(".nav-bar-spacer")
 				} : undefined,
-			width: size.button_height + styles.isDesktopLayout() ? 4 : 0 // spacer width is 4px
+			width: size.button_height + styles.isDesktopLayout() ? 4 : 0, // spacer width is 4px
+			hideLabelDefault: true
 		}
 		this.more.button.setColors(NavButtonColors.Header)
 
@@ -80,13 +74,13 @@ export class NavBar {
 			let buttons = this.getVisibleButtons()
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
-			}, buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
+			}, [m(this.searchBar)].concat(buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
 				key: wrapper.id,
 				oncreate: vnode => {
 					wrapper.width = vnode.dom.getBoundingClientRect().width
 				},
 				style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
-			}, m(wrapper.button))]))
+			}, m(wrapper.button))])))
 		}
 	}
 
@@ -102,7 +96,7 @@ export class NavBar {
 	 * @param priority The higher the value the higher the priority. Values from 0 to MAX_PRIO are allowed.
 	 * @param moreOnly this button should only be visible, when the more button dropdown is visible
 	 */
-	addButton(button: NavButton, priority: number = 0, moreOnly: boolean = false): NavBar {
+	addButton(button: NavButton, priority: number = 0, moreOnly: boolean = false, showSpacer: boolean = false): NavBar {
 		if (priority > MAX_PRIO) {
 			throw new Error("prio > " + MAX_PRIO);
 		}
@@ -110,12 +104,20 @@ export class NavBar {
 			id: this.buttonId++,
 			priority,
 			button,
-			width: 0
+			width: 0,
+			hideLabelDefault: button._hideLabel,
+			prefixComponent: undefined
 		}
 		if (moreOnly) {
 			this.moreButtons.push(wrapper)
 		} else {
 			this.buttons.push(wrapper)
+		}
+
+		if (showSpacer) {
+			wrapper.prefixComponent = {
+				view: () => m(".nav-bar-spacer")
+			}
 		}
 		return this
 	}
@@ -161,8 +163,8 @@ export class NavBar {
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
-		buttons.hidden.forEach(b => b.button.setColors(NavButtonColors.Content))
-		buttons.visible.forEach(b => b.button.setColors(NavButtonColors.Header))
+		buttons.hidden.forEach(b => b.button.setColors(NavButtonColors.Content).setHideLabel(false))
+		buttons.visible.forEach(b => b.button.setColors(NavButtonColors.Header).setHideLabel(b.hideLabelDefault))
 		return buttons
 	}
 
