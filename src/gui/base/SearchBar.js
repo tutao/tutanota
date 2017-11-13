@@ -19,7 +19,6 @@ export class SearchBar {
 	value: stream<string>;
 	focused: boolean;
 	expanded: boolean;
-	searchHandler: function;
 
 
 	constructor() {
@@ -82,7 +81,7 @@ export class SearchBar {
 			this.expanded = true
 			this.value("")
 		} else {
-			this.searchHandler(this.value())
+			// TODO search
 		}
 
 	}
