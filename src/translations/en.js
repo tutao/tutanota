@@ -927,6 +927,6 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"search_label": "Search",
 		"searchResult_label" : "Results",
-		"searchNoResults_msg": "No results"
+		"searchNoResults_msg": "No results",
 	}
 }

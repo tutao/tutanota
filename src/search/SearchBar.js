@@ -24,6 +24,10 @@ import {mod} from "../misc/MathUtils"
 import {searchModel, getRestriction} from "./SearchModel"
 import {lang} from "../misc/LanguageViewModel"
 
+type ShowMoreAction = {
+	resultCount:Number,
+	indexDate:Date
+}
 
 export class SearchBar {
 	view: Function;
@@ -35,11 +39,11 @@ export class SearchBar {
 	expanded: boolean;
 	dropdown: Dropdown;
 	skipNextBlur: boolean;
-	_results: Array<Mail|Contact>;
+	_results: Array<Mail|Contact|ShowMoreAction>;
 	oncreate: Function;
 	onbeforeremove: Function;
 	busy: boolean;
-	_selected: ?Mail|Contact;
+	_selected: ?Mail|Contact|ShowMoreAction;
 
 	constructor() {
 		this.expanded = false
@@ -131,40 +135,38 @@ export class SearchBar {
 			let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
 			displayOverlay(buttonRect, {
 				view: () => {
-					if (this._results.length == 0) {
-						return m("ul.list.click.mail-list",
-							m("li.plr-l.pt-s.pb-s.items-center.flex-center", {
+					return m("ul.list.click.mail-list", [
+						this._results.map(result => {
+							return m("li.plr-l.pt-s.pb-s", {
 								style: {
 									height: px(52),
 									'border-left': px(size.border_selection) + " solid transparent",
 								},
-							}, lang.get("searchNoResults_msg")))
-					} else {
-						return m("ul.list.click.mail-list", [
-							this._results.map(result => {
-								return m("li.plr-l.pt-s.pb-s", {
-									style: {
-										height: px(52),
-										'border-left': px(size.border_selection) + " solid transparent",
-									},
-									onmousedown: e => this.skipNextBlur = true,
-									onclick: e => this._selectResult(result),
+								onmousedown: e => this.skipNextBlur = true,
+								onclick: e => this._selectResult(result),
 
-									class: this._selected === result ? "row-selected" : "",
-								}, this.renderResult(result))
-							}),
-						])
-					}
+								class: this._selected === result ? "row-selected" : "",
+							}, this.renderResult(result))
+						}),
+					])
 				}
-
 			})
 		}
 		// updates the suggestion list if the dropdown is already visible
 		m.redraw()
 	}
 
-	renderResult(result: Mail|Contact) {
-		if (isSameTypeRef(MailTypeRef, result._type)) {
+	renderResult(result: Mail|Contact|ShowMoreAction) {
+
+		if (!result._type) { // show more action
+			let showMoreAction = ((result:any):ShowMoreAction)
+			return m("ul.list.click.mail-list",
+				m("li.plr-l.pt-s.pb-s.items-center.flex-center", {
+					style: {
+						'border-left': px(size.border_selection) + " solid transparent",
+					},
+				}, showMoreAction.resultCount == 0 ? lang.get("searchNoResults_msg") : lang.get("showMore_action")))
+		} else if (isSameTypeRef(MailTypeRef, result._type)) {
 
 			let mail = ((result:any):Mail)
 			return [m(".top.flex-space-between", [
@@ -192,14 +194,18 @@ export class SearchBar {
 					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length > 0) ? contact.mailAddresses[0].address : ""),
 				)
 			]
+		} else {
+
 		}
 	}
 
-	_selectResult(result: ?Mail|Contact) {
+	_selectResult(result: ?Mail|Contact|ShowMoreAction) {
 		if (result != null) {
 			closeOverlay()
 			this._domInput.blur()
-			if (isSameTypeRef(MailTypeRef, result._type)) {
+			if (!result._type) {
+				m.route.set("/search/" + m.route.get().split("/")[1])
+			} else if (isSameTypeRef(MailTypeRef, result._type)) {
 				m.route.set(`/mail/${result._id[0]}/${result._id[1]}`)
 			} else if (isSameTypeRef(ContactTypeRef, result._type)) {
 				m.route.set(`/contact/${result._id[0]}/${result._id[1]}`)
@@ -239,6 +245,10 @@ export class SearchBar {
 						).then(() => {
 							if (this.value() == value) {
 								this._results = newResults
+								this._results.push({
+									resultCount: (searchModel.result().mails.length + searchModel.result().contacts.length),
+									indexDate: new Date()
+								}) // add SearchMoreAction
 								if (this._results.length > 0) {
 									this._selected = this._results[0]
 								} else {
