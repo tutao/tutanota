@@ -87,7 +87,7 @@ declare class Promise<+R> {
 	static join<T, A, B, C>(value1: $Promisable<A>, value2: $Promisable<B>, value3: $Promisable<C>, handler: (a: A, b: B, c: C) => $Promisable<T>): Promise<any>;
 	static join<T, A, B, C, D>(value1: $Promisable<A>, value2: $Promisable<B>, value3: $Promisable<C>, value4: $Promisable<D>, handler: (a: A, b: B, c: C, d: D) => $Promisable<T>): Promise<any>;
 
-	static reduce<T>(array: Promise<Array<T>> | Array<T>, mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
+	static reduce<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => any, initialValue: U): Promise<U>;
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 	static delay<T>(millis: number, value: ?T|Promise<T>): Promise<T>;
 	static any<T>(array: Array<Promise<T>>):Promise<T>;

@@ -85,7 +85,7 @@ let initialized = lang.init(en).then(() => {
 						promise = Promise.resolve(cache.view)
 					}
 					promise.then(view => {
-						view.updateUrl(args)
+						view.updateUrl(args, requestedPath)
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})
@@ -103,6 +103,7 @@ let initialized = lang.init(en).then(() => {
 	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false)
 	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js").then(module => new module.LoginView()), false)
 	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js").then(module => new module.SettingsView()))
+	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js").then(module => new module.SearchView()))
 	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false)
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js").then(module => new module.ContactFormView()), false)
 
@@ -141,6 +142,8 @@ let initialized = lang.init(en).then(() => {
 		"/contact": contactViewResolver,
 		"/contact/:listId": contactViewResolver,
 		"/contact/:listId/:contactId": contactViewResolver,
+		"/search/:category": searchViewResolver,
+		"/search/:category/:listId/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
 		"/signup": registerViewResolver,

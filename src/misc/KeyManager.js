@@ -34,6 +34,7 @@ export const Keys = {
 	SIX: {code: 54, name: "6"},
 	C: {code: 67, name: "C"},
 	E: {code: 69, name: "E"},
+	F: {code: 70, name: "F"},
 	H: {code: 72, name: "H"},
 	L: {code: 76, name: "L"},
 	M: {code: 77, name: "M"},

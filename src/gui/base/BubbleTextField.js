@@ -48,7 +48,7 @@ export class BubbleTextField<T> {
 		this.originalIsEmpty = this.textField.isEmpty.bind(this.textField)
 		this.textField.isEmpty = () => this.originalIsEmpty() && this.bubbles.length == 0
 		this.textField.baseLabelPosition = size.text_field_label_top
-		this.textField.onblur.map(() => this.createBubbles())
+		//this.textField.onblur.map(() => this.createBubbles())
 		this.textField._keyHandler = key => this.handleKey(key)
 
 		this.bubbleHandler = bubbleHandler

@@ -2,7 +2,7 @@
 import {DbError} from "../../common/error/DbError"
 
 export const SearchIndexOS = "SearchIndex"
-export const ElementIdToListIdOS = "ElementIdToListIdIndex"
+export const ElementIdToIndexDataOS = "ElementIdToIndexData"
 export const MetaDataOS = "MetaData"
 export const GroupIdToBatchIdsOS = "GroupIdToBatchIds"
 
@@ -19,7 +19,7 @@ export class DbFacade {
 			let DBOpenRequest = indexedDB.open(id, 1);
 
 			DBOpenRequest.onerror = (event) => {
-				callback(new DbError("could not open indexeddb tutanota", event), null)
+				callback(new DbError(`could not open indexeddb ${id}`, event), null)
 			}
 
 			DBOpenRequest.onupgradeneeded = (event) => {
@@ -27,7 +27,7 @@ export class DbFacade {
 				let db = event.target.result
 				try {
 					db.createObjectStore(SearchIndexOS)
-					db.createObjectStore(ElementIdToListIdOS)
+					db.createObjectStore(ElementIdToIndexDataOS)
 					db.createObjectStore(MetaDataOS)
 					db.createObjectStore(GroupIdToBatchIdsOS)
 				} catch (e) {
@@ -107,7 +107,6 @@ class DbTransaction {
 		})
 	}
 
-
 	put(objectStore: string, key: string|Uint8Array, value: any): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
@@ -120,6 +119,23 @@ class DbTransaction {
 				}
 			} catch (e) {
 				callback(new DbError("IDB could not write data", e))
+			}
+		})
+	}
+
+
+	delete(objectStore: string, key: string|Uint8Array): Promise<void> {
+		return Promise.fromCallback((callback) => {
+			try {
+				let request = this._transaction.objectStore(objectStore).delete(key)
+				request.onerror = (event) => {
+					callback(new DbError("IDB Unable to delete key from database!", event))
+				}
+				request.onsuccess = (event) => {
+					callback()
+				}
+			} catch (e) {
+				callback(new DbError("IDB could not delete key", e))
 			}
 		})
 	}

@@ -925,6 +925,8 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"search_label": "Search"
+		"search_label": "Search",
+		"searchResult_label" : "Results",
+		"searchNoResults_msg": "No results"
 	}
 }

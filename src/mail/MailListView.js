@@ -58,7 +58,7 @@ export class MailListView {
 			},
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new MailRow(this),
+			createVirtualRow: () => new MailRow(),
 			showStatus: false,
 			className: className,
 			swipe: ({
@@ -129,12 +129,10 @@ export class MailRow {
 	_domAttachmentIcon: HTMLElement;
 	_domLockIcon: HTMLElement;
 	_domErrorIcon: HTMLElement;
-	list: MailListView;
 
-	constructor(list: MailListView) {
+	constructor() {
 		this.top = 0
 		this.entity = null
-		this.list = list
 	}
 
 	stringToPicto(s: string) {

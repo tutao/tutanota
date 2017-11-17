@@ -277,6 +277,14 @@ styles.registerStyle('main', () => {
 			height: px(size.icon_size_medium),
 			width: px(size.icon_size_medium),
 		},
+		'.icon-progress-search': {
+			height: px(20),
+			width: px(20),
+		},
+		'.icon-progress-search > svg': {
+			height: px(20),
+			width: px(20),
+		},
 		'.icon-large': {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large)
@@ -433,6 +441,7 @@ styles.registerStyle('main', () => {
 			overflow: 'hidden',
 			'list-style': 'none',
 			margin: 0,
+			padding: 0,
 		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,

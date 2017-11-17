@@ -17,6 +17,7 @@ import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import {contactFormFacade} from "./facades/ContactFormFacade"
+import {searchFacade} from "./facades/SearchFacade"
 import {restClient} from "./rest/RestClient"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
@@ -182,6 +183,9 @@ export class WorkerImpl {
 			},
 			generateTotpCode: (message: Request) => {
 				return this.getTotpVerifier().then(totp => totp.generateTotp.apply(totp, message.args))
+			},
+			search: (message: Request) => {
+				return searchFacade.search.apply(searchFacade, message.args)
 			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])

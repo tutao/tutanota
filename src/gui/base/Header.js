@@ -14,10 +14,6 @@ import {px} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
 import {Mode, assertMainOrNodeBoot} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
-import {TextField} from "./TextField"
-import {Button, ButtonType} from "./Button"
-import {Icons} from "./icons/Icons"
-import {SearchBar} from "./SearchBar"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -36,8 +32,6 @@ class Header {
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
 
-	searchInputField: TextField;
-
 	constructor() {
 		this.contactsUrl = '/contact'
 		this.mailsUrl = '/mail'
@@ -46,17 +40,14 @@ class Header {
 		this._viewSlider = null
 		let premiumUrl = '/settings/premium'
 
-
-		this.searchInputField = new TextField("search_label")
-		let searchInputFieldAction = new Button("search_label", () => console.log("quick search"), () => Icons.Search).setType(ButtonType.Action)
-		this.searchInputField._injectionsRight = () => m(searchInputFieldAction)
-
-		let searchViewButton = new NavButton("search_label", () => Icons.Search, () => m.route.get(), this.searchUrl)
-			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
-			.setClickHandler(() => console.log("show search input field"))
-
+		/*
+		 TODO search for mobiles
+		 let searchViewButton = new NavButton("search_label", () => Icons.Search, () => m.route.get(), this.searchUrl)
+		 .setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
+		 .setClickHandler(() => console.log("show search input field"))
+		 */
 		this.defaultButtonBar = new NavBar()
-			.addButton(searchViewButton, 0, true, false)
+		//.addButton(searchViewButton, 0, true, false)
 			.addButton(new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false, true)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
@@ -76,7 +67,6 @@ class Header {
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
-		this.defaultButtonBar.searchBar = new SearchBar()
 
 		this.buttonBar = this.defaultButtonBar
 
@@ -201,6 +191,7 @@ class Header {
 		} else {
 			this.buttonBar = this.defaultButtonBar
 		}
+
 	}
 }
 

@@ -1,7 +1,7 @@
 //@flow
 import {MailTypeRef, _TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
-import {DbFacade, SearchIndexOS, ElementIdToListIdOS, MetaDataOS, GroupIdToBatchIdsOS} from "./DbFacade"
+import {DbFacade, SearchIndexOS, ElementIdToIndexDataOS, MetaDataOS, GroupIdToBatchIdsOS} from "./DbFacade"
 import {
 	isSameTypeRef,
 	TypeRef,
@@ -23,7 +23,7 @@ import {
 import {aes256Decrypt, IV_BYTE_LENGTH, aes256Encrypt, aes256RandomKey} from "../crypto/Aes"
 import {encrypt256Key, decrypt256Key, fixedIv} from "../crypto/CryptoFacade"
 import {random} from "../crypto/Randomizer"
-import {OperationType} from "../../common/TutanotaConstants"
+import {OperationType, MailState} from "../../common/TutanotaConstants"
 import {load, loadAll, loadRoot, loadRange} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -33,6 +33,8 @@ import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {EntityRestClient} from "../rest/EntityRestClient"
+import {module as replaced} from "@hot"
+
 
 type AttributeHandler ={
 	attribute: ModelValue|ModelAssociation;
@@ -40,21 +42,17 @@ type AttributeHandler ={
 }
 
 type KeyToIndexEntries = {
-	key: string;
+	indexKey: Uint8Array;
 	indexEntries: SearchIndexEntry[];
 }
 
-type EncryptedKeyToIndexEntries = {
-	key: Uint8Array;
+type KeyToEncryptedIndexEntries = {
+	indexKey: Uint8Array;
 	indexEntries: EncryptedSearchIndexEntry[];
 }
 
-type SearchResult = {
-	mails: IdTuple[];
-	contacts: IdTuple[];
-}
 
-export type EncryptedSearchIndexEntry =[Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
+export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
 
 export type SearchIndexEntry = {
 	id:Id;
@@ -62,21 +60,39 @@ export type SearchIndexEntry = {
 	type:number;
 	attribute: number;
 	positions:number[];
+	// encId and rank are only set for entries that are retrived from the db (see decryptSearchIndexEntry)
+	encId?: Uint8Array;
+	rank?: number;
 }
+type IndexData = [Id, Uint8Array] // first element of value is listId, second is encrypted words of instance seperated by whitespace
 
 type IndexUpdate = {
-	encInstanceIdToListIdAndEncWords: Map<B64EncInstanceId,[Id, Uint8Array]>; // first element of value is listId, second is encrypted words of instance seperated by whitespace
-	indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
 	batchId: ?IdTuple;
 	contactListId:?Id;
+	create : {
+		encInstanceIdToIndexData: Map<B64EncInstanceId,IndexData>;
+		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
+	};
+	move: {
+		encInstanceId: Uint8Array;
+		newListId: Id;
+	}[];
+	delete: {
+		encWordToEncInstanceIds: Map<Uint8Array, Uint8Array[]>;
+		encInstanceIds: Uint8Array[];
+	};
 }
 
-function _createNewIndexUpdate(): IndexUpdate {
+export function _createNewIndexUpdate(): IndexUpdate {
 	return {
-		encInstanceIdToListIdAndEncWords: new Map(),
-		indexMap: new Map(),
 		batchId: null,
-		contactListId: null
+		contactListId: null,
+		create: {
+			encInstanceIdToIndexData: new Map(),
+			indexMap: new Map(),
+		},
+		move: [],
+		delete: {encWordToEncInstanceIds: new Map(), encInstanceIds: []},
 	}
 }
 
@@ -107,6 +123,7 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry[1], true)))
 	return {
 		id: id,
+		encId: entry[0],
 		app: data[0],
 		type: data[1],
 		attribute: data[2],
@@ -145,7 +162,6 @@ class SearchFacade {
 	 * The noop ENTITY_EVENT_BATCH must be written for each area group.
 	 *
 	 * FIXME user added to group / removed from group
-	 *
 	 */
 	init(userId: Id, groupKey: Aes128Key, userGroupId: Id, mailGroupIds: Id[], contactGroupIds: Id[]): Promise<void> {
 		this._mailGroupIds = mailGroupIds
@@ -164,7 +180,7 @@ class SearchFacade {
 							groupBatches.forEach(groupIdToLastBatchId => {
 								t2.put(GroupIdToBatchIdsOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.lastBatchIds)
 							})
-							return t2.await()
+							return t2.await().then(() => this.indexFullContactList(userGroupId))
 						})
 					} else {
 						this._dbKey = decrypt256Key(groupKey, value)
@@ -218,39 +234,129 @@ class SearchFacade {
 		})
 	}
 
-	search(searchString: string, type: ?TypeRef<any>, attributes: string[]): Promise<SearchResult> {
-		let searchTokens = tokenize(searchString)
-		let encryptedIndexEntries = null
-		let transaction = this._dbFacade.createTransaction(true, [SearchIndexOS, ElementIdToListIdOS])
-		return Promise.each(searchTokens, (token) => {
+	/****************************** SEARCH ******************************/
+
+	/**
+	 * Invoke an AND-query.
+	 * @param query is tokenized. All tokens must be matched by the result (AND-query)
+	 * @param type
+	 * @param attributes
+	 * @returns {Promise.<U>|Promise.<SearchResult>}
+	 */
+	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
+		let searchTokens = tokenize(query)
+		return this._findIndexEntries(searchTokens)
+			.then(results => this._filterByEncryptedId(results))
+			.then(results => this._decryptSearchResult(results))
+			.then(results => this._filterByAttributeId(results, restriction))
+			.then(results => this._groupSearchResults(query, restriction, results))
+		// ranking ->all tokens are in correct order in the same attribute
+	}
+
+	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
+		let transaction = this._dbFacade.createTransaction(true, [SearchIndexOS])
+		return Promise.map(searchTokens, (token) => {
 			let indexKey = encryptIndexKey(this._dbKey, token)
-			if (encryptedIndexEntries && encryptedIndexEntries.length === 0) { // return in case a previous search word returned an empty result
-				return []
-			}
-			return transaction.getAsList(SearchIndexOS, indexKey).then((result: EncryptedSearchIndexEntry[]) => {
-				if (encryptedIndexEntries == null) {
-					encryptedIndexEntries = result
-				} else {
-					// filter results which include all tokens
-					encryptedIndexEntries = encryptedIndexEntries.filter(entry => result.find(r => arrayEquals(r[0], entry[0])))
-				}
+			return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
+				return {indexKey, indexEntries}
 			})
-		}).then(() => {
-			// decrypt results
-			return encryptedIndexEntries ? encryptedIndexEntries.map((entry: EncryptedSearchIndexEntry) => decryptSearchIndexEntry(this._dbKey, entry)) : []
-		}).reduce((searchResult, entry: SearchIndexEntry, index) => {
-			let encryptedListElementId = (encryptedIndexEntries:any)[index][0]
-			return transaction.get(ElementIdToListIdOS, encryptedListElementId).then(listId => {
-				if (entry.type == MailModel.id) {
-					neverNull(searchResult).mails.push([listId, entry.id])
-				} else if (entry.type == ContactModel.id) {
-					neverNull(searchResult).contacts.push([listId, entry.id])
+		})
+	}
+
+	/**
+	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
+	 */
+	_filterByEncryptedId(results: KeyToEncryptedIndexEntries[]): KeyToEncryptedIndexEntries[] {
+		let matchingEncIds = null
+		results.forEach(keyToEncryptedIndexEntry => {
+			if (matchingEncIds == null) {
+				matchingEncIds = keyToEncryptedIndexEntry.indexEntries.map(entry => entry[0])
+			} else {
+				matchingEncIds = matchingEncIds.filter((encId) => {
+					return keyToEncryptedIndexEntry.indexEntries.find(entry => arrayEquals(entry[0], encId))
+				})
+			}
+		})
+		return results.map(r => {
+			return {
+				indexKey: r.indexKey,
+				indexEntries: r.indexEntries.filter(entry => neverNull(matchingEncIds).find(encId => arrayEquals(entry[0], encId)))
+			}
+		})
+	}
+
+
+	_decryptSearchResult(results: KeyToEncryptedIndexEntries[]): KeyToIndexEntries[] {
+		return results.map(searchResult => {
+			return {
+				indexKey: searchResult.indexKey,
+				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._dbKey, entry))
+			}
+		})
+	}
+
+
+	_filterByAttributeId(results: KeyToIndexEntries[], restriction: ?SearchRestriction): SearchIndexEntry[] {
+		let indexEntries = null
+		results.forEach(r => {
+			if (indexEntries == null) {
+				indexEntries = r.indexEntries.filter(entry => {
+					return this._isIncluded(restriction, entry)
+				})
+			} else {
+				indexEntries = indexEntries.filter(e1 => {
+					return r.indexEntries.find(e2 => e1.id != e2.id ? false : true) != null
+				})
+			}
+		})
+		if (indexEntries) {
+			return indexEntries
+		} else {
+			return []
+		}
+	}
+
+	_isIncluded(restriction: ?SearchRestriction, entry: SearchIndexEntry) {
+		if (restriction) {
+			let typeInfo = typeRefToTypeInfo(restriction.type)
+			if (typeInfo.appId != entry.app || typeInfo.typeId != entry.type) {
+				return false
+			}
+			if (restriction.attributes.length > 0) {
+				for (let a of restriction.attributes) {
+					if (typeInfo.attributeIds.indexOf(Number(a)) === -1) {
+						return false
+					}
+				}
+			}
+		}
+		return true
+	}
+
+
+	_groupSearchResults(query: string, restriction: ?SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
+		let uniqueIds = {}
+		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
+			//console.log(entry)
+			let transaction = this._dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+			return transaction.get(ElementIdToIndexDataOS, neverNull(entry.encId)).then((indexData: IndexData) => {
+				let safeSearchResult = neverNull(searchResult)
+				if (!uniqueIds[entry.id]) {
+					uniqueIds[entry.id] = true
+					if (entry.type == MailModel.id) {
+						safeSearchResult.mails.push([indexData[0], entry.id])
+					} else if (entry.type == ContactModel.id) {
+						safeSearchResult.contacts.push([indexData[0], entry.id])
+					}
 				}
 				return searchResult
 			})
-		}, {mails: [], contacts: []})
-		// ranking ->all tokens are in correct order in the same attribute
+		}, {query, restriction, mails: [], contacts: []})
 	}
+
+
+	/****************************** INDEXING ******************************/
+
 
 	indexFullMailbox(): Promise<void> {
 		this._indexingTime = 0
@@ -417,15 +523,15 @@ class SearchFacade {
 		keyToIndexEntries.forEach((value, indexKey) => {
 			let encIndexKey = encryptIndexKey(this._dbKey, indexKey)
 			let b64IndexKey = uint8ArrayToBase64(encIndexKey)
-			let indexEntries = indexUpdate.indexMap.get(b64IndexKey)
+			let indexEntries = indexUpdate.create.indexMap.get(b64IndexKey)
 			words.push(indexKey)
 			if (!indexEntries) {
 				indexEntries = []
 			}
-			indexUpdate.indexMap.set(b64IndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this._dbKey, indexEntry, encryptedInstanceId))))
+			indexUpdate.create.indexMap.set(b64IndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this._dbKey, indexEntry, encryptedInstanceId))))
 		})
 
-		indexUpdate.encInstanceIdToListIdAndEncWords.set(b64InstanceId, [
+		indexUpdate.create.encInstanceIdToIndexData.set(b64InstanceId, [
 			listId,
 			aes256Encrypt(this._dbKey, stringToUtf8Uint8Array(words.join(" ")), random.generateRandomData(IV_BYTE_LENGTH), true, false)
 		])
@@ -457,7 +563,7 @@ class SearchFacade {
 				if (!attributeKeyToIndexMap.has(token)) {
 					attributeKeyToIndexMap.set(token, {
 						id: instance._id instanceof Array ? instance._id[1] : instance._id,
-						app: this.getAppId(instance),
+						app: this.getAppId(instance._type),
 						type: model.id,
 						attribute: attributeHandler.attribute.id,
 						positions: [index]
@@ -475,22 +581,41 @@ class SearchFacade {
 	_writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = performance.now()
 		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
-		let transaction = this._dbFacade.createTransaction(false, [SearchIndexOS, ElementIdToListIdOS, MetaDataOS, GroupIdToBatchIdsOS])
-		let promises = []
-		indexUpdate.encInstanceIdToListIdAndEncWords.forEach((instanceData, b64EncInstanceId) => {
-			promises.push(transaction.get(ElementIdToListIdOS, b64EncInstanceId).then(result => {
+		let transaction = this._dbFacade.createTransaction(false, [SearchIndexOS, ElementIdToIndexDataOS, MetaDataOS, GroupIdToBatchIdsOS])
+
+		let promises = indexUpdate.move.map(moveInstance => {
+			return transaction.get(ElementIdToIndexDataOS, moveInstance.encInstanceId).then(indexData => {
+				indexData[0] = moveInstance.newListId
+				transaction.put(ElementIdToIndexDataOS, moveInstance.encInstanceId, indexData)
+			});
+		})
+
+		promises = promises.concat(Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
+			return transaction.get(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
+				let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => arrayEquals(e[0], encInstanceId)) == null)
+				if (newEntries.length > 0) {
+					return transaction.put(SearchIndexOS, encWord, newEntries)
+				} else {
+					transaction.delete(SearchIndexOS, encWord)
+				}
+			})
+		}))).concat(indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementIdToIndexDataOS, encInstanceId)))
+
+
+		indexUpdate.create.encInstanceIdToIndexData.forEach((indexData, b64EncInstanceId) => {
+			promises.push(transaction.get(ElementIdToIndexDataOS, b64EncInstanceId).then(result => {
 				if (!result) { // only add the element to the index if it has not been indexed before
 					this._writeRequests += 1
 					let encInstanceId = base64ToUint8Array(b64EncInstanceId)
-					this._storedBytes += encInstanceId.length + instanceData[0].length + instanceData[1].length
+					this._storedBytes += encInstanceId.length + indexData[0].length + indexData[1].length
 					keysToUpdate[b64EncInstanceId] = true
-					transaction.put(ElementIdToListIdOS, encInstanceId, instanceData)
+					transaction.put(ElementIdToIndexDataOS, encInstanceId, indexData)
 				}
 			}))
 		})
 
 		return Promise.all(promises).then(() => {
-			indexUpdate.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
+			indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
 				let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])])
 				let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 				if (filteredEncryptedEntries.length > 0) {
@@ -533,56 +658,124 @@ class SearchFacade {
 		})
 	}
 
-	getAppId(instance: Object): number {
-		if (instance._type.app == "sys") {
+	getAppId(typeRef: TypeRef<any>): number {
+		if (typeRef.app == "sys") {
 			return 0
-		} else if (instance._type.app == "tutanota") {
+		} else if (typeRef.app == "tutanota") {
 			return 1
 		}
-		throw new Error("non indexed application " + instance._type.app)
+		throw new Error("non indexed application " + typeRef.app)
 	}
 
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		// FIXME delete mails and contacts
 		let indexUpdate = _createNewIndexUpdate()
 		indexUpdate.batchId = [groupId, batchId]
 		Promise.each(events, (event, index) => {
 			if (event.operation == OperationType.CREATE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
-					// FIXME move mails
+					// move mail
+					return this._processMovedMail(event, indexUpdate)
 				} else {
-					return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-						return load(MailBodyTypeRef, mail.body).then(body => {
-							this._createMailIndexEntries(mail, body, indexUpdate)
-						})
-					}).catch(NotFoundError, () => {
-						console.log("tried to index non existing mail")
-					})
+					// new mail
+					// FIXME ignore mails in trash folder and SPAM folder
+					return this._processNewMail(event, indexUpdate)
+				}
+			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
+				return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+					if (mail.state == MailState.DRAFT) {
+						return Promise.all([
+							this._processDeleted(event, indexUpdate),
+							this._processNewMail(event, indexUpdate)
+						])
+					}
+				})
+			} else if (event.operation == OperationType.DELETE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
+				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
+					return this._processDeleted(event, indexUpdate)
 				}
 			} else if (event.operation == OperationType.CREATE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
-				// FIXME update for contacts
-				return load(ContactTypeRef, [event.instanceListId, event.instanceId]).then(contact => {
-					this._createContactIndexEntries(contact, indexUpdate)
-				}).catch(NotFoundError, () => {
-					console.log("tried to index non existing contact")
-				})
+				return this._processNewContact(event, indexUpdate)
+			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
+				return Promise.all([
+					this._processDeleted(event, indexUpdate),
+					this._processNewContact(event, indexUpdate)
+				])
+			} else if (event.operation == OperationType.DELETE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
+				return this._processDeleted(event, indexUpdate)
 			}
 		}).then(() => {
-			return this._writeIndexUpdate(indexUpdate)
+			if (indexUpdate.create.encInstanceIdToIndexData.size > 0 || indexUpdate.delete.encInstanceIds.length > 0 || indexUpdate.move.length > 0) {
+				return this._writeIndexUpdate(indexUpdate)
+			}
 		})
 		return Promise.resolve()
 	}
+
+	_processNewContact(event: EntityUpdate, indexUpdate: IndexUpdate) {
+		return load(ContactTypeRef, [event.instanceListId, event.instanceId]).then(contact => {
+			this._createContactIndexEntries(contact, indexUpdate)
+		}).catch(NotFoundError, () => {
+			console.log("tried to index non existing contact")
+		})
+	}
+
+	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate) {
+		let encInstanceId = encryptIndexKey(this._dbKey, event.instanceId)
+		let transaction = this._dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
+			let words = utf8Uint8ArrayToString(aes256Decrypt(this._dbKey, indexData[1], true)).split(" ")
+			let encWords = words.map(word => encryptIndexKey(this._dbKey, word))
+			encWords.map(encWord => {
+				let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
+				if (ids == null) {
+					ids = []
+				}
+				ids.push(encInstanceId)
+				indexUpdate.delete.encWordToEncInstanceIds.set(encWord, ids)
+			})
+			indexUpdate.delete.encInstanceIds.push(encInstanceId)
+		})
+	}
+
+	_processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
+		// FIXME handle moves to trash folder and SPAM folder as deletes
+		let encInstanceId = encryptIndexKey(this._dbKey, event.instanceId)
+		let transaction = this._dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
+			if (indexData) {
+				indexUpdate.move.push({
+					encInstanceId,
+					newListId: event.instanceListId
+				})
+			} else {
+				// instance is moved but not yet indexed: handle as new
+				return this._processNewMail(event, indexUpdate)
+			}
+		})
+	}
+
+	_processNewMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
+		return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+			return load(MailBodyTypeRef, mail.body).then(body => {
+				this._createMailIndexEntries(mail, body, indexUpdate)
+			})
+		}).catch(NotFoundError, () => {
+			console.log("tried to index non existing mail")
+		})
+	}
+
 }
 
 function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation == type && event.instanceId == elementId) ? true : false
+	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0 ? true : false
 }
 
 export const searchFacade = new SearchFacade()
 
-
-self.search = searchFacade
+if (typeof self != "undefined") {
+	self.search = searchFacade // export in worker scope
+}
 
 /**
  * Merges multiple maps into a single map with lists of values.
@@ -601,12 +794,171 @@ function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 	}, new Map())
 }
 
-
-export function htmlToText(html: string): string {
-	return html.replace(/<[^>]*>?/gm, " ")
-		.replace(/&nbsp;/gi, " ")
-		.replace(/&amp;/gi, "&")
-		.replace(/&lt;/gi, '<')
-		.replace(/&gt;/gi, '>')
+const HTML_ENTITIES = {
+	"&nbsp;": " ",
+	"&amp;": "&",
+	"&lt;": '<',
+	"&gt;": '>',
+	"&Agrave;": "À",
+	"&Aacute;": "Á",
+	"&Acirc;": "Â",
+	"&Atilde;": "Ã",
+	"&Auml;": "Ä",
+	"&Aring;": "Å",
+	"&AElig;": "Æ",
+	"&Ccedil;": "Ç",
+	"&Egrave;": "È",
+	"&Eacute;": "É",
+	"&Ecirc;": "Ê",
+	"&Euml;": "Ë",
+	"&Igrave;": "Ì",
+	"&Iacute;": "Í",
+	"&Icirc;": "Î",
+	"&Iuml;": "Ï",
+	"&ETH;": "Ð",
+	"&Ntilde;": "Ñ",
+	"&Ograve;": "Ò",
+	"&Oacute;": "Ó",
+	"&Ocirc;": "Ô",
+	"&Otilde;": "Õ",
+	"&Ouml;": "Ö",
+	"&Oslash;": "Ø",
+	"&Ugrave;": "Ù",
+	"&Uacute;": "Ú",
+	"&Ucirc;": "Û",
+	"&Uuml;": "Ü",
+	"&Yacute;": "Ý",
+	"&THORN;": "Þ",
+	"&szlig;": "ß",
+	"&agrave;": "à",
+	"&aacute;": "á",
+	"&acirc;": "â",
+	"&atilde;": "ã",
+	"&auml;": "ä",
+	"&aring;": "å",
+	"&aelig;": "æ",
+	"&ccedil;": "ç",
+	"&egrave;": "è",
+	"&eacute;": "é",
+	"&ecirc;": "ê",
+	"&euml;": "ë",
+	"&igrave;": "ì",
+	"&iacute;": "í",
+	"&icirc;": "î",
+	"&iuml;": "ï",
+	"&eth;": "ð",
+	"&ntilde;": "ñ",
+	"&ograve;": "ò",
+	"&oacute;": "ó",
+	"&ocirc;": "ô",
+	"&otilde;": "õ",
+	"&ouml;": "ö",
+	"&oslash;": "ø",
+	"&ugrave;": "ù",
+	"&uacute;": "ú",
+	"&ucirc;": "û",
+	"&uuml;": "ü",
+	"&yacute;": "ý",
+	"&thorn;": "þ",
+	"&yuml;": "ÿ",
+	"&Alpha;": "Α",
+	"&Beta;": "Β",
+	"&Gamma;": "Γ",
+	"&Delta;": "Δ",
+	"&Epsilon;": "Ε",
+	"&Zeta;": "Ζ",
+	"&Eta;": "Η",
+	"&Theta;": "Θ",
+	"&Iota;": "Ι",
+	"&Kappa;": "Κ",
+	"&Lambda;": "Λ",
+	"&Mu;": "Μ",
+	"&Nu;": "Ν",
+	"&Xi;": "Ξ",
+	"&Omicron;": "Ο",
+	"&Pi;": "Π",
+	"&Rho;": "Ρ",
+	"&Sigma;": "Σ",
+	"&Tau;": "Τ",
+	"&Upsilon;": "Υ",
+	"&Phi;": "Φ",
+	"&Chi;": "Χ",
+	"&Psi;": "Ψ",
+	"&Omega;": "Ω",
+	"&alpha;": "α",
+	"&beta;": "β",
+	"&gamma;": "γ",
+	"&delta;": "δ",
+	"&epsilon;": "ε",
+	"&zeta;": "ζ",
+	"&eta;": "η",
+	"&theta;": "θ",
+	"&iota;": "ι",
+	"&kappa;": "κ",
+	"&lambda;": "λ",
+	"&mu;": "μ",
+	"&nu;": "ν",
+	"&xi;": "ξ",
+	"&omicron;": "ο",
+	"&pi;": "π",
+	"&rho;": "ρ",
+	"&sigmaf;": "ς",
+	"&sigma;": "σ",
+	"&tau;": "τ",
+	"&upsilon;": "υ",
+	"&phi;": "φ",
+	"&chi;": "χ",
+	"&psi;": "ψ",
+	"&omega;": "ω",
+	"&thetasym;": "ϑ",
+	"&upsih;": "ϒ",
+	"&piv;": "ϖ",
 }
 
+export function htmlToText(html: string): string {
+	let text = html.replace(/<[^>]*>?/gm, " ")
+	return text.replace(/&[#,0-9,a-z,A-Z]{1,5};/g, (match) => {
+		let replacement
+		if (match.startsWith("&#")) {
+			let charCode = match.substring(2, match.length - 1) // remove &# and ;
+			if (!isNaN(charCode)) {
+				replacement = String.fromCharCode(Number(charCode))
+			}
+		} else {
+			replacement = HTML_ENTITIES[match]
+		}
+		return replacement ? replacement : match;
+	})
+}
+
+if (replaced) {
+	Object.assign(searchFacade, replaced.searchFacade)
+}
+
+
+type TypeInfo ={
+	appId: number;
+	typeId: number;
+	attributeIds: number[];
+}
+
+const typeInfos = {
+	"tutanota|Mail": {
+		appId: 1,
+		typeId: MailModel.id,
+		attributeIds: getAttributeIds(MailModel)
+	},
+	"tutanota|Contact": {
+		appId: 1,
+		typeId: ContactModel.id,
+		attributeIds: getAttributeIds(ContactModel)
+	}
+}
+
+function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
+	return typeInfos[typeRef.app + "|" + typeRef.type]
+}
+
+function getAttributeIds(model: TypeModel) {
+	return Object.keys(model.values).map(name => model.values[name].id).concat(Object.keys(model.associations).map(name => model.associations[name].id))
+}

@@ -6,7 +6,8 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import {size} from "../size"
 import {styles} from "../styles"
 import {BootIcons} from "./icons/BootIcons"
-import {SearchBar} from "./SearchBar"
+import type {SearchBar} from "../../search/SearchBar"
+import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -58,6 +59,10 @@ export class NavBar {
 		}
 		this.more.button.setColors(NavButtonColors.Header)
 
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
+			this.searchBar = new searchBarModule.SearchBar()
+		})
+
 		this.maxWidth = 0;
 		this.resizeListener = (width, height) => {
 			this._setButtonBarWidth()
@@ -74,7 +79,7 @@ export class NavBar {
 			let buttons = this.getVisibleButtons()
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
-			}, [m(this.searchBar)].concat(buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
+			}, [this.searchBar ? m(this.searchBar) : null].concat(buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
 				key: wrapper.id,
 				oncreate: vnode => {
 					wrapper.width = vnode.dom.getBoundingClientRect().width

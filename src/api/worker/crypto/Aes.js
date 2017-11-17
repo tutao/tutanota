@@ -54,6 +54,7 @@ export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array,
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
+// TODO add mac validation for AES-256 before switching from AES-128
 export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 	// take the iv from the front of the encrypted data

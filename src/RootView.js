@@ -3,6 +3,7 @@ import m from "mithril"
 import {header} from "./gui/base/Header"
 import {modal} from "./gui/base/Modal"
 import {assertMainOrNodeBoot} from "./api/Env"
+import {overlay} from "./gui/base/Overlay"
 
 assertMainOrNodeBoot()
 
@@ -15,6 +16,7 @@ class RootView {
 
 		this.view = (vnode): VirtualElement => {
 			return m("#root", [
+				m(overlay),
 				m(header),
 				m(modal),
 				vnode.children

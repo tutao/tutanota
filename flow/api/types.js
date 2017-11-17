@@ -96,6 +96,7 @@ type WorkerRequestType = 'setup'
 	| 'createContactFormUser'
 	| 'generateTotpCode'
 	| 'generateTotpSecret'
+	| 'search'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -212,4 +213,15 @@ type FileReference = {
 type KeyListener = {
 	modifier: number,
 	callback: Function
+}
+type SearchRestriction = {
+	type: TypeRef<any>;
+	attributes:string[]
+}
+
+type SearchResult = {
+	query: string,
+	restriction: ?SearchRestriction,
+	mails: IdTuple[];
+	contacts: IdTuple[];
 }

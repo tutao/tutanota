@@ -318,6 +318,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('generateTotpCode', arguments))
 	}
 
+	search(searchString: string, restriction: ?SearchRestriction): Promise<SearchResult> {
+		return this._postRequest(new Request('search', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
