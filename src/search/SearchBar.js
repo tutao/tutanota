@@ -25,7 +25,7 @@ import {searchModel, getRestriction} from "./SearchModel"
 import {lang} from "../misc/LanguageViewModel"
 
 type ShowMoreAction = {
-	resultCount:Number,
+	resultCount:number,
 	indexDate:Date
 }
 
@@ -157,17 +157,17 @@ export class SearchBar {
 	}
 
 	renderResult(result: Mail|Contact|ShowMoreAction) {
-
-		if (!result._type) { // show more action
+		let type: ?TypeRef = result._type ? result._type : null
+		if (!type) { // show more action
 			let showMoreAction = ((result:any):ShowMoreAction)
 			return m("ul.list.click.mail-list",
 				m("li.plr-l.pt-s.pb-s.items-center.flex-center", {
 					style: {
 						'border-left': px(size.border_selection) + " solid transparent",
 					},
-				}, showMoreAction.resultCount == 0 ? lang.get("searchNoResults_msg") : lang.get("showMore_action")))
-		} else if (isSameTypeRef(MailTypeRef, result._type)) {
 
+				}, showMoreAction.resultCount == 0 ? lang.get("searchNoResults_msg") : lang.get("showMore_action")))
+		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result:any):Mail)
 			return [m(".top.flex-space-between", [
 				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
@@ -184,7 +184,7 @@ export class SearchBar {
 					])
 				])
 			]
-		} else if (isSameTypeRef(ContactTypeRef, result._type)) {
+		} else if (isSameTypeRef(ContactTypeRef, type)) {
 			let contact = ((result:any):Contact)
 			return [
 				m(".top.flex-space-between",
@@ -194,8 +194,6 @@ export class SearchBar {
 					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length > 0) ? contact.mailAddresses[0].address : ""),
 				)
 			]
-		} else {
-
 		}
 	}
 
@@ -203,12 +201,15 @@ export class SearchBar {
 		if (result != null) {
 			closeOverlay()
 			this._domInput.blur()
-			if (!result._type) {
+			let type: ?TypeRef = result._type ? result._type : null
+			if (!type) {
 				m.route.set("/search/" + m.route.get().split("/")[1])
-			} else if (isSameTypeRef(MailTypeRef, result._type)) {
-				m.route.set(`/mail/${result._id[0]}/${result._id[1]}`)
-			} else if (isSameTypeRef(ContactTypeRef, result._type)) {
-				m.route.set(`/contact/${result._id[0]}/${result._id[1]}`)
+			} else if (isSameTypeRef(MailTypeRef, type)) {
+				let mail = ((result:any):Mail)
+				m.route.set(`/mail/${mail._id[0]}/${mail._id[1]}`)
+			} else if (isSameTypeRef(ContactTypeRef, type)) {
+				let contact = ((result:any):Contact)
+				m.route.set(`/contact/${contact._id[0]}/${contact._id[1]}`)
 			}
 		}
 	}
