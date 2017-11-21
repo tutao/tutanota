@@ -29,7 +29,18 @@ import {ExpanderPanel, ExpanderButton} from "../gui/base/Expander"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {createRecipientInfo, resolveRecipientInfo, getDisplayText, createNewContact, parseMailtoUrl} from "./MailUtils"
+import {
+	createRecipientInfo,
+	resolveRecipientInfo,
+	getDisplayText,
+	createNewContact,
+	parseMailtoUrl,
+	getSenderName,
+	getEmailSignature,
+	getMailboxName,
+	getEnabledMailAddresses,
+	getDefaultSender
+} from "./MailUtils"
 import {fileController} from "../file/FileController"
 import {remove, contains, replace} from "../api/common/utils/ArrayUtils"
 import {FileTypeRef} from "../api/entities/tutanota/File"
@@ -45,13 +56,13 @@ import {fileApp} from "../native/FileApp"
 import {contactApp} from "../native/ContactApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {logins} from "../api/main/LoginController"
-import {MailBoxController} from "./MailBoxController"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {size, px} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {MailboxDetails} from "./MailModel"
 
 
 assertMainOrNode()
@@ -79,7 +90,7 @@ export class MailEditor {
 	_previousMail: ?Mail;
 	_entityEventReceived: EntityEventReceived;
 	_attachFilesButton: Button;
-	_mailboxController: MailBoxController;
+	_mailboxDetails: MailboxDetails;
 	_replyTos: RecipientInfo[];
 
 	/**
@@ -87,7 +98,7 @@ export class MailEditor {
 	 * to an existing message or edit an existing draft.
 	 *
 	 */
-	constructor(mailboxController: MailBoxController) {
+	constructor(mailboxDetails: MailboxDetails) {
 		this.conversationType = ConversationType.NEW
 		this.toRecipients = new BubbleTextField("to_label", new MailBubbleHandler(this))
 		this.ccRecipients = new BubbleTextField("cc_label", new MailBubbleHandler(this))
@@ -99,13 +110,13 @@ export class MailEditor {
 		this._loadingAttachments = false
 		this._previousMail = null
 		this.draft = null
-		this._mailboxController = mailboxController
+		this._mailboxDetails = mailboxDetails
 
 		let props = logins.getUserController().props
 
-		this._senderField = new DropDownSelector("sender_label", null, this._mailboxController.getEnabledMailAddresses().map(mailAddress => {
+		this._senderField = new DropDownSelector("sender_label", null, getEnabledMailAddresses(this._mailboxDetails).map(mailAddress => {
 			return {name: mailAddress, value: mailAddress}
-		}), this._mailboxController.getDefaultSender(), 250)
+		}), getDefaultSender(this._mailboxDetails), 250)
 
 		let sortedLanguages = languages.slice()
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
@@ -150,7 +161,7 @@ export class MailEditor {
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)
 			this.editor.initialized.promise.then(() => {
-				this.editor.squire.setHTML(this._mailboxController.getEmailSignature())
+				this.editor.squire.setHTML(getEmailSignature())
 			})
 		} else {
 			this.toRecipients.textField.setDisabled()
@@ -291,8 +302,8 @@ export class MailEditor {
 
 	getPasswordStrength(recipientInfo: RecipientInfo) {
 		let user = logins.getUserController()
-		let reserved = this._mailboxController.getEnabledMailAddresses().concat(
-			this._mailboxController.displayName,
+		let reserved = getEnabledMailAddresses(this._mailboxDetails).concat(
+			getMailboxName(this._mailboxDetails),
 			recipientInfo.mailAddress,
 			recipientInfo.name
 		)
@@ -303,7 +314,7 @@ export class MailEditor {
 		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		if (addSignature) {
 			bodyText = "<br><br><br>" + bodyText
-			let signature = this._mailboxController.getEmailSignature()
+			let signature = getEmailSignature()
 			if (logins.getUserController().isInternalUser() && signature) {
 				bodyText = signature + bodyText
 			}
@@ -321,12 +332,12 @@ export class MailEditor {
 		})
 	}
 
-	initWithTemplate(recipientName:?string ,recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
+	initWithTemplate(recipientName: ?string, recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
 		let recipients = []
 		if (recipientMailAddress) {
 			let recipient = createMailAddress()
 			recipient.address = recipientMailAddress
-			recipient.name = (recipientName? recipientName:"")
+			recipient.name = (recipientName ? recipientName : "")
 			recipients.push(recipient)
 		}
 		if (recipientMailAddress) {
@@ -341,7 +352,7 @@ export class MailEditor {
 		let result = parseMailtoUrl(mailtoUrl)
 
 		let bodyText = result.body
-		let signature = this._mailboxController.getEmailSignature()
+		let signature = getEmailSignature()
 		if (logins.getUserController().isInternalUser() && signature) {
 			bodyText = bodyText + signature
 		}
@@ -497,7 +508,7 @@ export class MailEditor {
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
-		let senderName = this._mailboxController.getSenderName()
+		let senderName = getSenderName(this._mailboxDetails)
 		let to = this.toRecipients.bubbles.map(bubble => bubble.entity)
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)

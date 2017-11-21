@@ -10,7 +10,6 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, InboxRuleType, PushServiceType} from "../api/common/TutanotaConstants"
 import {load, update, loadAll, erase} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
-import {MailBoxController} from "../mail/MailBoxController"
 import {neverNull, getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
@@ -26,19 +25,19 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSenderFromUser} from "../mail/MailUtils"
+import {getDefaultSenderFromUser, getFolderName} from "../mail/MailUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {mailModel} from "../mail/MailModel"
 
 assertMainOrNode()
 
 export class MailSettingsViewer {
 	view: Function
 
-	_mailboxController: MailBoxController;
 	_senderName: TextField;
 	_signature: TextField;
 	_defaultSender: DropDownSelector<string>;
@@ -97,7 +96,7 @@ export class MailSettingsViewer {
 
 		this._aliases = new EditAliasesForm(logins.getUserController().userGroupInfo)
 
-		let addInboxRuleButton = new Button("addInboxRule_action", () => AddInboxRuleDialog.show(this._mailboxController, InboxRuleType.RECIPIENT_TO_EQUALS, ""), () => Icons.Add)
+		let addInboxRuleButton = new Button("addInboxRule_action", () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), InboxRuleType.RECIPIENT_TO_EQUALS, ""), () => Icons.Add)
 		this._inboxRulesTable = new Table(["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true, addInboxRuleButton)
 		let inboxRulesExpander = new ExpanderButton("showInboxRules_action", new ExpanderPanel(this._inboxRulesTable), false)
 
@@ -132,10 +131,8 @@ export class MailSettingsViewer {
 				])
 			]
 		}
-		this._mailboxController = new MailBoxController(logins.getUserController().getUserMailGroupMembership())
-		this._mailboxController.loadMailBox().then(() => {
-			this._updateInboxRules(logins.getUserController().props)
-		})
+
+		this._updateInboxRules(logins.getUserController().props)
 		this._loadPushIdentifiers()
 	}
 
@@ -161,9 +158,9 @@ export class MailSettingsViewer {
 	}
 
 	_getTextForTarget = function (targetFolderId: IdTuple) {
-		let folder = neverNull(this._mailboxController).getAllFolders().find(folder => isSameId(folder.folder._id, targetFolderId))
+		let folder = mailModel.getUserMailboxDetails().folders.find(folder => isSameId(folder._id, targetFolderId))
 		if (folder) {
-			return folder.getDisplayName()
+			return getFolderName(folder)
 		} else {
 			return "?"
 		}
@@ -225,11 +222,7 @@ export class MailSettingsViewer {
 				this._updateInboxRules(props)
 			})
 		} else if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
-			let m = new MailBoxController(logins.getUserController().getUserMailGroupMembership())
-			m.loadMailBox().then(() => {
-				this._mailboxController = m
-				this._updateInboxRules(logins.getUserController().props)
-			})
+			this._updateInboxRules(logins.getUserController().props)
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
 			this._loadPushIdentifiers()
 		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE && isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {

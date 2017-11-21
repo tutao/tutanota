@@ -4,19 +4,16 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {isSameId} from "../api/common/EntityFunctions"
 import {MailBoxTypeRef} from "../api/entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import {MailFolderType, EmailSignatureType as TutanotaConstants, FeatureType} from "../api/common/TutanotaConstants"
+import {MailFolderType, FeatureType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {NavButton} from "../gui/base/NavButton"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import {neverNull, getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {ExpanderButton} from "../gui/base/Expander"
 import {Button} from "../gui/base/Button"
-import {contains} from "../api/common/utils/ArrayUtils"
-import {getDefaultSignature} from "./MailUtils"
-import {lang} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -53,20 +50,10 @@ export class MailBoxController {
 		promises.push(load(GroupInfoTypeRef, this.mailGroupMembership.groupInfo).then(mailGroupInfo => this.mailGroupInfo = mailGroupInfo))
 		promises.push(load(GroupTypeRef, this.mailGroupMembership.group).then(mailGroup => this._mailGroup = mailGroup))
 		return Promise.all(promises).then(() => {
-			if (!logins.isInternalUserLoggedIn()) {
-				this.displayName = lang.get("mailbox_label")
-			} else if (this.isUserMailbox()) {
-				this.displayName = getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
-			} else {
-				this.displayName = getGroupInfoDisplayName(neverNull(this.mailGroupInfo))
-			}
 			return this
 		})
 	}
 
-	isUserMailbox() {
-		return this._mailGroup && neverNull(this._mailGroup).user != null
-	}
 
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<void> {
 		return loadAll(MailFolderTypeRef, folderListId).map(folder => {
@@ -192,47 +179,6 @@ export class MailBoxController {
 			})
 		} else {
 			return Promise.resolve(false)
-		}
-	}
-
-	getEnabledMailAddresses(): string[] {
-		if (this.isUserMailbox()) {
-			return getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
-		} else {
-			return this._mailGroup != null ? getEnabledMailAddressesForGroupInfo(neverNull(this.mailGroupInfo)) : []
-		}
-	}
-
-
-	getEmailSignature(): string {
-		// provide the user signature, even for shared mail groups
-		var type = logins.getUserController().props.emailSignatureType
-		if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
-			return getDefaultSignature()
-		} else if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-			return logins.getUserController().props.customEmailSignature
-		} else {
-			return ""
-		}
-	}
-
-
-	getDefaultSender(): string {
-		if (this.isUserMailbox()) {
-			let props = logins.getUserController().props
-			return (props.defaultSender && contains(this.getEnabledMailAddresses(), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
-		} else {
-			return neverNull(neverNull(this.mailGroupInfo).mailAddress)
-		}
-	}
-
-	getSenderName(): string {
-		let senderName = ""
-		if (this.isUserMailbox()) {
-			// external users do not have access to the user group info
-			return logins.getUserController().userGroupInfo.name
-		} else {
-			return this.mailGroupInfo ? this.mailGroupInfo.name : ""
 		}
 	}
 

@@ -4,7 +4,6 @@ import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {load, update, loadMultiple} from "../api/main/Entity"
 import {Button, ButtonType, createDropDownButton, createAsyncDropDownButton} from "../gui/base/Button"
-import {MailView} from "./MailView"
 import {
 	formatDateWithWeekday,
 	formatTime,
@@ -32,7 +31,16 @@ import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {contains, addAll} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
-import {getSenderOrRecipientHeading, getDisplayText, createNewContact} from "./MailUtils"
+import {
+	getSenderOrRecipientHeading,
+	getDisplayText,
+	createNewContact,
+	getFolderName,
+	getFolderIcon,
+	getArchiveFolder,
+	getEnabledMailAddresses,
+	getDefaultSender
+} from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
 import MessageBox from "../gui/base/MessageBox"
@@ -50,6 +58,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {animations, scroll} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {mailModel} from "./MailModel"
 
 assertMainOrNode()
 
@@ -59,7 +68,6 @@ assertMainOrNode()
 export class MailViewer {
 	view: Function;
 	mail: Mail;
-	mailView: MailView;
 	_mailBody: ?MailBody;
 	_htmlBody: string;
 	_loadingAttachments: boolean;
@@ -74,11 +82,10 @@ export class MailViewer {
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
 
-	constructor(mail: Mail, mailView: MailView) {
+	constructor(mail: Mail) {
 		this.mail = mail
 		this._attachments = []
 		this._attachmentButtons = []
-		this.mailView = mailView
 		this._htmlBody = ""
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
@@ -141,12 +148,12 @@ export class MailViewer {
 			if (logins.getUserController().isInternalUser() && !restrictedParticipants) {
 				actions.add(new Button('forward_action', () => this._forward(), () => Icons.Forward))
 			} else if (logins.getUserController().isInternalUser() && restrictedParticipants) {
+				// remove the current mailbox/owner from the recipients list.
 				const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
-					let mailbox = neverNull(this.mailView.selectedMailbox)
-					if (mailbox.isUserMailbox()) {
-						return userOrMailGroupInfo.group != logins.getUserController().userGroupInfo.group
+					if (logins.getUserController().getUserMailGroupMembership().group == this.mail._ownerGroup) {
+						return userOrMailGroupInfo.group != logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group != mail._ownerGroup
 					} else {
-						return userOrMailGroupInfo.group != neverNull(mailbox.mailGroupInfo).group
+						return userOrMailGroupInfo.group != mail._ownerGroup
 					}
 				}).map(userOrMailGroupInfo => {
 					return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
@@ -155,13 +162,13 @@ export class MailViewer {
 				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
 			}
 			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-				return neverNull(this.mailView.selectedMailbox).getAllFolders().filter(vm => vm.folder !== this.mailView.selectedFolder).map(targetVm => {
-					return new Button(() => targetVm.getDisplayName(), () => this.mailView.moveMails(targetVm, [mail]), targetVm.getDisplayIcon())
+				return mailModel.getMailboxFolders(this.mail).filter(f => f.mails != this.mail._id[0]).map(f => {
+					return new Button(() => getFolderName(f), () => mailModel.moveMails([mail], f), getFolderIcon(f))
 						.setType(ButtonType.Dropdown)
 				})
 			}))
 		}
-		actions.add(new Button('delete_action', () => this.mailView.deleteSelectedMails(), () => Icons.Trash))
+		actions.add(new Button('delete_action', () => mailModel.deleteMails([this.mail]), () => Icons.Trash))
 		if (mail.state !== MailState.DRAFT) {
 			actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 				let moreButtons = []
@@ -319,7 +326,7 @@ export class MailViewer {
 			}
 			if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount() && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)) {
 				buttons.push(new Button("addRule_action", () => {
-					AddInboxRuleDialog.show(neverNull(this.mailView.selectedMailbox), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+					AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
 				}, null).setType(ButtonType.Secondary))
 			}
 		}
@@ -338,7 +345,7 @@ export class MailViewer {
 	_editDraft() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				let editor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				return editor.initFromDraft(this.mail).then(() => {
 					editor.show()
 				})
@@ -366,7 +373,7 @@ export class MailViewer {
 						toRecipients.push(this.mail.sender)
 					}
 					if (replyAll) {
-						let myMailAddresses = neverNull(this.mailView.selectedMailbox).getEnabledMailAddresses()
+						let myMailAddresses = getEnabledMailAddresses(mailModel.getMailboxDetails(this.mail))
 						addAll(ccRecipients, this.mail.toRecipients.filter(recipient => !contains(myMailAddresses, recipient.address)))
 						addAll(ccRecipients, this.mail.ccRecipients.filter(recipient => !contains(myMailAddresses, recipient.address)))
 					}
@@ -378,7 +385,7 @@ export class MailViewer {
 						addAll(bccRecipients, this.mail.bccRecipients)
 					}
 				}
-				let editor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				return editor.initAsResponse(this.mail, ConversationType.REPLY, this._getSenderOfResponseMail(), toRecipients, ccRecipients, bccRecipients, [], subject, body, [], true).then(() => {
 					editor.show()
 				})
@@ -411,7 +418,7 @@ export class MailViewer {
 
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
 
-		let editor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		return editor.initAsResponse(this.mail, ConversationType.FORWARD, this._getSenderOfResponseMail(), recipients, [], [], this._attachments.slice(), "Fwd: " + this.mail.subject, body, replyTos, addSignature).then(() => {
 			return editor
 		})
@@ -441,7 +448,7 @@ export class MailViewer {
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name
 
-		let editor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		let newReplyTos;
 		if (this.mail.replyTos.length > 0) {
 			newReplyTos = this.mail.replyTos
@@ -454,12 +461,13 @@ export class MailViewer {
 		this._createForwardingMailEditor([recipient], newReplyTos, false).then(editor => {
 			return editor.send()
 		}).then(() => {
-			this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getArchiveFolder(), [this.mail])
+			mailModel.moveMails([this.mail], getArchiveFolder(mailModel.getMailboxFolders(this.mail)))
 		})
 	}
 
 	_getSenderOfResponseMail(): string {
-		let myMailAddresses = neverNull(this.mailView.selectedMailbox).getEnabledMailAddresses()
+		let mailboxDetails = mailModel.getMailboxDetails(this.mail)
+		let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
 		let addressesInMail = []
 		addAll(addressesInMail, this.mail.toRecipients)
 		addAll(addressesInMail, this.mail.ccRecipients)
@@ -469,7 +477,7 @@ export class MailViewer {
 		if (foundAddress) {
 			return foundAddress.address
 		} else {
-			return neverNull(this.mailView.selectedMailbox).getDefaultSender()
+			return getDefaultSender(mailboxDetails)
 		}
 	}
 
@@ -478,7 +486,7 @@ export class MailViewer {
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
-				let mailEditor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+				let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				event.preventDefault()
 				return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
 					mailEditor.show()

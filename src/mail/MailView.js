@@ -19,7 +19,6 @@ import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/Entity
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {neverNull} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
@@ -39,6 +38,8 @@ import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {getFolderName, getFolderIcon, isFinallyDeleteAllowed} from "./MailUtils"
+import {mailModel} from "./MailModel"
 
 assertMainOrNode()
 
@@ -82,7 +83,7 @@ export class MailView {
 				this.mailList ? m(this.mailList) : null,
 			])
 		}, ColumnType.Background, 300, 500, () => {
-			return this.selectedFolder ? this.selectedFolder.getDisplayName() : ""
+			return this.selectedFolder ? getFolderName(this.selectedFolder.folder) : ""
 		})
 
 		let multiMailViewer = new MultiMailViewer(this)
@@ -255,7 +256,7 @@ export class MailView {
 	createMailBoxExpander(mailBoxController: MailBoxController): ExpanderButton {
 		let folderMoreButton = this.createFolderMoreButton(mailBoxController)
 		let purgeAllButton = new Button('delete_action', () => {
-			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
+			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.selectedFolder.folder)})).then(confirmed => {
 				if (confirmed) {
 					this._finallyDeleteAllMailsInSelectedFolder()
 				}
@@ -265,7 +266,7 @@ export class MailView {
 		let mailboxExpander = new ExpanderButton(() => mailBoxController.displayName, new ExpanderPanel({
 			view: () => m(".folders", mailBoxController.systemFolderButtons.map(fb => m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb),
-				fb.isSelected() && this.selectedFolder && this.selectedFolder.isFinallyDeleteAllowed() ? m(purgeAllButton, {
+				fb.isSelected() && this.selectedFolder && isFinallyDeleteAllowed(this.selectedFolder.folder) ? m(purgeAllButton, {
 						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
@@ -366,7 +367,7 @@ export class MailView {
 
 	createFolderButtons(folders: MailFolderViewModel[]) {
 		return folders.map(vm => {
-			let button = new NavButton(() => vm.getDisplayName(), vm.getDisplayIcon(), () => vm.url, "/mail/" + vm.folder.mails)
+			let button = new NavButton(() => getFolderName(vm.folder), getFolderIcon(vm.folder), () => vm.url, "/mail/" + vm.folder.mails)
 				.setColors(ButtonColors.Nav)
 			button.setClickHandler((event) => {
 				this.viewSlider.focus(this.listColumn)
@@ -375,11 +376,11 @@ export class MailView {
 			button.setDropHandler(droppedMailId => {
 				// the dropped mail is among the selected mails, move all selected mails
 				if (this.mailList.list.isEntitySelected(droppedMailId)) {
-					this.moveMails(vm, this.mailList.list.getSelectedEntities())
+					mailModel.moveMails(this.mailList.list.getSelectedEntities(), vm.folder)
 				} else {
 					let entity = this.mailList.list.getEntity(droppedMailId)
 					if (entity) {
-						this.moveMails(vm, [entity])
+						mailModel.moveMails([entity], vm.folder)
 					}
 				}
 			})
@@ -398,13 +399,13 @@ export class MailView {
 	createFolderMoreButton(mailbox: MailBoxController) {
 		return createDropDownButton("more_label", () => Icons.More, () => [
 			new Button('rename_action', () => {
-				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null, this.selectedFolder.getDisplayName(), (name) => this._checkFolderName(name, mailbox)).then((newName) => {
+				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null, getFolderName(this.selectedFolder.folder), (name) => this._checkFolderName(name, mailbox)).then((newName) => {
 					this.selectedFolder.folder.name = newName
 					return update(this.selectedFolder.folder)
 				})
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
-				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg", {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
+				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg", {"{1}": getFolderName(this.selectedFolder.folder)})).then(confirmed => {
 					if (confirmed) {
 						this._finallyDeleteCustomMailFolder()
 					}
@@ -416,7 +417,7 @@ export class MailView {
 	_newMail() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				new MailEditor(neverNull(this.selectedMailbox)).show()
+				new MailEditor(mailModel.getMailboxDetailsForMembership(neverNull(this.selectedMailbox).mailGroupMembership)).show()
 			}
 		})
 	}
@@ -449,7 +450,7 @@ export class MailView {
 	elementSelected(mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (mails.length == 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 			// set or update the visible mail
-			this.mailViewer = new MailViewer(mails[0], (this:any))
+			this.mailViewer = new MailViewer(mails[0])
 			let url = `/mail/${mails[0]._id.join("/")}`
 			this.selectedFolder.url = url
 			this._setUrl(url)
@@ -477,21 +478,7 @@ export class MailView {
 	}
 
 	deleteSelectedMails(): Promise<void> {
-		return this.deleteMailsFromSelectedFolder(this.mailList.list.getSelectedEntities())
-	}
-
-	deleteMailsFromSelectedFolder(mails: Mail[]): Promise<void> {
-		if (mails.length > 0) {
-			if (this.selectedFolder.isFinallyDeleteAllowed()) {
-				let deleteMailData = createDeleteMailData()
-				deleteMailData.mails.push(...mails.map(m => m._id))
-				return serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
-					.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-			} else {
-				return this.moveMails(neverNull(this.selectedMailbox).getTrashFolder(), mails)
-			}
-		}
-		return Promise.resolve()
+		return mailModel.deleteMails(this.mailList.list.getSelectedEntities())
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder() {
@@ -503,19 +490,6 @@ export class MailView {
 			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}
 
-	moveMails(target: MailFolderViewModel, mails: Mail[]): Promise<void> {
-		if (mails.length > 0) {
-			if (this.selectedFolder == target || !isSameId(neverNull(target.folder._ownerGroup), neverNull(mails[0]._ownerGroup))) { // prevent moving mails between mail boxes.
-				return Promise.resolve()
-			}
-			let moveMailData = createMoveMailData()
-			moveMailData.targetFolder = target.folder._id
-			moveMailData.mails.push(...mails.map(m => m._id))
-			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
-				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-		}
-		return Promise.resolve()
-	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, MailTypeRef) && this.mailList) {
@@ -528,7 +502,7 @@ export class MailView {
 				// update the displayed or edited mail if necessary
 				if (operation == OperationType.UPDATE && this.mailViewer && isSameId(this.mailViewer.mail._id, [neverNull(listId), elementId])) {
 					load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, (this:any))
+						this.mailViewer = new MailViewer(updatedMail)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

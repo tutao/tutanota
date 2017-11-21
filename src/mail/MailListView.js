@@ -9,13 +9,14 @@ import {ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getSenderOrRecipientHeading} from "./MailUtils"
+import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import {mailModel} from "./MailModel"
 
 assertMainOrNode()
 
@@ -64,12 +65,12 @@ export class MailListView {
 			swipe: ({
 				renderLeftSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
-				swipeLeft: (listElement: Mail) => this.mailView.deleteMailsFromSelectedFolder([listElement]),
+				swipeLeft: (listElement: Mail) => mailModel.deleteMails([listElement]),
 				swipeRight: (listElement: Mail) => {
 					if (this.targetInbox()) {
-						return this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getInboxFolder(), [listElement])
+						return mailModel.moveMails([listElement], getInboxFolder(mailModel.getMailboxFolders(listElement)))
 					} else {
-						return this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getArchiveFolder(), [listElement])
+						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
 			}:any),

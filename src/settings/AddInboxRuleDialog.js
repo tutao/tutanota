@@ -13,20 +13,22 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {MailBoxController} from "../mail/MailBoxController"
 import {logins} from "../api/main/LoginController"
+import {getFolderName, getInboxFolder, getArchiveFolder} from "../mail/MailUtils"
+import type {MailboxDetails} from "../mail/MailModel"
 
 assertMainOrNode()
 
-export function show(mailboxController: MailBoxController, preselectedInboxRuleType: string, preselectedValue: string) {
+export function show(mailBoxDetails: MailboxDetails, preselectedInboxRuleType: string, preselectedValue: string) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
-	} else if (mailboxController) {
+	} else if (mailBoxDetails) {
 		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), preselectedInboxRuleType)
 		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue() != InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue() != InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
 			.setValue(preselectedValue)
-		let targetFolders = mailboxController.getAllFolders().filter(folderVm => folderVm != mailboxController.getInboxFolder()).map(folderVm => {
-			return {name: folderVm.getDisplayName(), value: folderVm}
+		let targetFolders = mailBoxDetails.folders.filter(folder => folder != getInboxFolder(mailBoxDetails.folders)).map(folder => {
+			return {name: getFolderName(folder), value: folder}
 		})
-		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, mailboxController.getArchiveFolder())
+		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, getArchiveFolder(mailBoxDetails.folders))
 		let form = {
 			view: () => {
 				return [

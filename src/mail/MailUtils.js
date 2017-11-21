@@ -3,8 +3,14 @@ import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientI
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import {ContactAddressType, GroupType, MailState} from "../api/common/TutanotaConstants"
-import {neverNull, getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
+import {
+	ContactAddressType,
+	GroupType,
+	MailState,
+	MailFolderType,
+	EmailSignatureType as TutanotaConstants
+} from "../api/common/TutanotaConstants"
+import {neverNull, getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
 import {serviceRequest} from "../api/main/Entity"
@@ -18,6 +24,8 @@ import {logins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {lang} from "../misc/LanguageViewModel"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {Icons} from "../gui/base/icons/Icons"
+import type {MailboxDetails} from "./MailModel"
 
 assertMainOrNode()
 
@@ -156,5 +164,121 @@ export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAdd
 		bcc: bccRecipients,
 		subject: subject,
 		body: body
+	}
+}
+
+export function getFolderName(folder: MailFolder) {
+	switch (folder.folderType) {
+		case '0':
+			return folder.name
+		case '1':
+			return lang.get("received_action")
+		case '2':
+			return lang.get("sent_action")
+		case '3':
+			return lang.get("trash_action")
+		case '4':
+			return lang.get("archive_action")
+		case '5':
+			return lang.get("spam_action")
+		case '6':
+			return lang.get("draft_action")
+		default:
+			// do not throw an error - new system folders may cause problems
+			//throw new Error("illegal folder type: " + this.folder.getFolderType())
+			return ""
+	}
+}
+
+export function getFolderIcon(folder: MailFolder) {
+	switch (folder.folderType) {
+		case '0':
+			return () => Icons.Folder
+		case '1':
+			return () => Icons.Inbox
+		case '2':
+			return () => Icons.Send
+		case '3':
+			return () => Icons.Trash
+		case '4':
+			return () => Icons.Archive
+		case '5':
+			return () => Icons.Spam
+		case '6':
+			return () => Icons.Edit
+		default:
+			return () => Icons.Folder
+	}
+}
+
+
+export function getTrashFolder(folders: MailFolder[]): MailFolder {
+	return (folders.find(f => f.folderType === MailFolderType.TRASH):any)
+}
+
+export function getInboxFolder(folders: MailFolder[]): MailFolder {
+	return (folders.find(f => f.folderType === MailFolderType.INBOX):any)
+}
+
+export function getArchiveFolder(folders: MailFolder[]): MailFolder {
+	return (folders.find(f => f.folderType === MailFolderType.ARCHIVE):any)
+}
+
+export function getEnabledMailAddresses(mailboxDetails: MailboxDetails): string[] {
+	if (isUserMailbox(mailboxDetails)) {
+		return getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
+	} else {
+		return getEnabledMailAddressesForGroupInfo(mailboxDetails.mailGroupInfo)
+	}
+}
+
+export function isUserMailbox(mailboxDetails: MailboxDetails) {
+	return mailboxDetails.mailGroup.user != null
+}
+
+
+export function getDefaultSender(mailboxDetails: MailboxDetails): string {
+	if (isUserMailbox(mailboxDetails)) {
+		let props = logins.getUserController().props
+		return (props.defaultSender && contains(getEnabledMailAddresses(mailboxDetails), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
+	} else {
+		return neverNull(mailboxDetails.mailGroupInfo.mailAddress)
+	}
+}
+
+export function isFinallyDeleteAllowed(folder: MailFolder): boolean {
+	return folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM
+}
+
+export function getSenderName(mailboxDetails: MailboxDetails): string {
+	let senderName = ""
+	if (isUserMailbox(mailboxDetails)) {
+		// external users do not have access to the user group info
+		return logins.getUserController().userGroupInfo.name
+	} else {
+		return this.mailGroupInfo ? this.mailGroupInfo.name : ""
+	}
+}
+
+export function getEmailSignature(): string {
+	// provide the user signature, even for shared mail groups
+	var type = logins.getUserController().props.emailSignatureType
+	if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+		return getDefaultSignature()
+	} else if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+		return logins.getUserController().props.customEmailSignature
+	} else {
+		return ""
+	}
+}
+
+
+export function getMailboxName(mailboxDetails: MailboxDetails): string {
+	if (!logins.isInternalUserLoggedIn()) {
+		return lang.get("mailbox_label")
+	} else if (isUserMailbox(mailboxDetails)) {
+		return getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
+	} else {
+		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
 	}
 }

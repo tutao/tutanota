@@ -61,6 +61,7 @@ export class SearchView {
 
 		// let multiContactViewer = new MultiContactViewer(this)
 		//let multiContactViewer = new MultiMailViewer(this)
+		
 		this.resultDetailsColumn = new ViewColumn({
 			view: () => m(".contact", null)
 		}, ColumnType.Background, 600, 2400, () => {

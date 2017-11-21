@@ -62,11 +62,12 @@ export class SearchListView {
 				sortCompare: () => 0,
 
 				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
+
 					//contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 				},
 				createVirtualRow: () => new SearchResultListRow(mail ? new MailRow() : new ContactRow()),
 				showStatus: false,
-				className: mail ? "mail-list": "contact-list",
+				className: mail ? "mail-list" : "contact-list",
 				swipe: ({
 					renderLeftSpacer: () => [],
 					renderRightSpacer: () => [],
