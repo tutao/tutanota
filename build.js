@@ -1,7 +1,7 @@
 const Promise = require('bluebird')
 const path = require("path")
 const Builder = require('./buildSrc/Builder.js').Builder
-const builder = new Builder('.', path.join(__dirname, "build/"))
+const builder = new Builder(path.join(__dirname, '.'), path.join(__dirname, "build/"))
 const fs = Promise.Promise.promisifyAll(require("fs-extra"))
 const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
