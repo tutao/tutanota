@@ -208,7 +208,10 @@ export class LoginFacade {
 			this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
-			.then(() => this._indexer.init(userId, this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact)))
+			.then(() => {
+				// index new items in background
+				this._indexer.init(userId, this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact))
+			})
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
 			.then(() => this._eventBusClient.connect(false))

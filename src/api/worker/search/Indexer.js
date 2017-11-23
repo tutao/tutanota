@@ -112,34 +112,37 @@ export class Indexer {
 
 	_loadNewEntities(groupIds: Id[]): Promise<void> {
 		let t = this._db.dbFacade.createTransaction(true, [GroupIdToBatchIdsOS])
-		let groupIdToEventBatch = new Map()
+		let groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[] = []
 		groupIds.forEach(groupId => {
 			t.get(GroupIdToBatchIdsOS, groupId).then(lastEventBatchIds => {
-				groupIdToEventBatch.set(groupId, lastEventBatchIds.sort((e1, e2) => { // sort batch ids in ascending order
-					if (e1 == e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
-				}))
+				groupIdToEventBatches.push({
+					groupId,
+					eventBatchIds: lastEventBatchIds.sort((e1, e2) => { // sort batch ids in ascending order
+						if (e1 == e2) {
+							return 0
+						} else {
+							return firstBiggerThanSecond(e1, e2) ? 1 : -1
+						}
+					})
+				})
 			})
 		})
 		return t.await().then(() => {
-			let promises = []
-			groupIdToEventBatch.forEach((lastEventBatchIds, groupId) => {
-				if (lastEventBatchIds.length > 0) {
-					let startId = lastEventBatchIds[0] // start from lowest id
-					promises.push(loadAll(EntityEventBatchTypeRef, groupId, startId).then(eventBatches => {
+			return Promise.each(groupIdToEventBatches, (groupIdToEventBatch) => {
+				if (groupIdToEventBatch.eventBatchIds.length > 0) {
+					let startId = groupIdToEventBatch.eventBatchIds[0] // start from lowest id
+					return loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
 						return Promise.each(eventBatches, batch => {
-							if (lastEventBatchIds.indexOf(batch._id[1]) == -1) {
-								return this.processEntityEvents(batch.events, groupId, batch._id[1])
+							if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
+								//return Promise.delay(0).then(() => {
+								return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
+								//})
 							}
 						})
-					}))
+					})
 				}
 			})
-			return Promise.all(promises).return()
-		})
+		}).return()
 	}
 
 
@@ -409,11 +412,12 @@ export class Indexer {
 			if (indexUpdate.batchId) {
 				let batchId = indexUpdate.batchId
 				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityEvents => {
-					lastEntityEvents.push(batchId[1])
-					if (lastEntityEvents.size > 1000) {
-						lastEntityEvents.shift()
+					let events = lastEntityEvents ? lastEntityEvents : []
+					events.push(batchId[1])
+					if (events.length > 1000) {
+						events.shift()
 					}
-					transaction.put(GroupIdToBatchIdsOS, batchId[0], lastEntityEvents)
+					transaction.put(GroupIdToBatchIdsOS, batchId[0], events)
 				})
 			}
 			if (indexUpdate.contactListId) {
@@ -431,7 +435,7 @@ export class Indexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
 		let indexUpdate = _createNewIndexUpdate()
 		indexUpdate.batchId = [groupId, batchId]
-		Promise.each(events, (event, index) => {
+		return Promise.each(events, (event, index) => {
 			if (event.operation == OperationType.CREATE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// move mail
@@ -449,7 +453,7 @@ export class Indexer {
 							this._processNewMail(event, indexUpdate)
 						])
 					}
-				})
+				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
 			} else if (event.operation == OperationType.DELETE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
 					return this._processDeleted(event, indexUpdate)
@@ -465,11 +469,10 @@ export class Indexer {
 				return this._processDeleted(event, indexUpdate)
 			}
 		}).then(() => {
-			if (indexUpdate.create.encInstanceIdToIndexData.size > 0 || indexUpdate.delete.encInstanceIds.length > 0 || indexUpdate.move.length > 0) {
-				return this._writeIndexUpdate(indexUpdate)
-			}
+			//	if (indexUpdate.create.encInstanceIdToIndexData.size > 0 || indexUpdate.delete.encInstanceIds.length > 0 || indexUpdate.move.length > 0) {
+			return this._writeIndexUpdate(indexUpdate)
+			//	}
 		})
-		return Promise.resolve()
 	}
 
 	_processNewContact(event: EntityUpdate, indexUpdate: IndexUpdate) {
@@ -484,6 +487,10 @@ export class Indexer {
 		let encInstanceId = encryptIndexKey(this._db.key, event.instanceId)
 		let transaction = this._db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
+			if (!indexData) {
+				console.log("index data not available", encInstanceId)
+				return
+			}
 			let words = utf8Uint8ArrayToString(aes256Decrypt(this._db.key, indexData[1], true)).split(" ")
 			let encWords = words.map(word => encryptIndexKey(this._db.key, word))
 			encWords.map(encWord => {
