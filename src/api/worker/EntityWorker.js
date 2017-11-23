@@ -1,5 +1,4 @@
 // @flow
-import {getEntityRestCache} from "./rest/EntityRestCache"
 import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_setupEntity,
@@ -16,31 +15,32 @@ import {
 import {_service} from "./rest/ServiceRestClient"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
 import {assertWorkerOrNode} from "../Env"
+import {locator} from "./WorkerLocator"
 
 assertWorkerOrNode()
 
 export function setup<T>(listId: ?Id, instance: T): Promise<Id> {
-	return _setupEntity(listId, instance, getEntityRestCache())
+	return _setupEntity(listId, instance, locator.cache)
 }
 
 export function update<T>(instance: T): Promise<void> {
-	return _updateEntity(instance, getEntityRestCache())
+	return _updateEntity(instance, locator.cache)
 }
 
 export function erase<T>(instance: T): Promise<void> {
-	return _eraseEntity(instance, getEntityRestCache())
+	return _eraseEntity(instance, locator.cache)
 }
 
 export function load<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params): Promise<T> {
-	return _loadEntity(typeRef, id, queryParams, getEntityRestCache())
+	return _loadEntity(typeRef, id, queryParams, locator.cache)
 }
 
 export function loadMultiple<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
-	return _loadMultipleEntities(typeRef, listId, elementIds, getEntityRestCache())
+	return _loadMultipleEntities(typeRef, listId, elementIds, locator.cache)
 }
 
 export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-	return _loadEntityRange(typeRef, listId, start, count, reverse, getEntityRestCache())
+	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }
 
 export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {

@@ -28,7 +28,6 @@ import {neverNull} from "../../common/utils/Utils"
 import {isSameTypeRef, TypeRef, isSameId, HttpMethod, GENERATED_ID_BYTES_LENGTH} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {hash} from "../crypto/Sha256"
-import {module as replaced} from "@hot"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
@@ -38,14 +37,13 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient, MediaType} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
-import {workerImpl} from "../WorkerImpl"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
 import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
-import {searchFacade} from "./SearchFacade"
+import type {WorkerImpl} from "../WorkerImpl"
+import type {Indexer} from "../search/Indexer"
 
 assertWorkerOrNode()
 
-export const state = replaced ? replaced.state : {}
 
 export class LoginFacade {
 	_user: ?User;
@@ -54,10 +52,35 @@ export class LoginFacade {
 	_authVerifierAfterNextRequest: ?Base64Url; // needed for password changes
 	groupKeys: {[key:Id] : Aes128Key};
 	_eventBusClient: EventBusClient;
+	_worker: WorkerImpl;
+	_indexer: Indexer;
 
-	constructor() {
-		this._reset()
+	constructor(worker: WorkerImpl) {
+		this._worker = worker
+		this.reset()
 	}
+
+	init(indexer: Indexer, eventBusClient: EventBusClient) {
+		if (indexer) {
+			this._indexer = indexer
+		}
+		if (eventBusClient) {
+			this._eventBusClient = eventBusClient
+		}
+	}
+
+	reset(): Promise<void> {
+		this._user = null
+		this._userGroupInfo = null
+		this._accessToken = null
+		this._authVerifierAfterNextRequest = null
+		this.groupKeys = {}
+		if (this._eventBusClient) {
+			this._eventBusClient.close()
+		}
+		return Promise.resolve()
+	}
+
 
 	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
@@ -82,7 +105,7 @@ export class LoginFacade {
 				let p = Promise.resolve()
 				let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
 				if (createSessionReturn.challenges.length > 0) {
-					workerImpl.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
+					this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
 					p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken)
 				}
 				return p.then(() => {
@@ -181,33 +204,21 @@ export class LoginFacade {
 		}
 		this._accessToken = accessToken
 		return load(UserTypeRef, userId).then(user => {
-			state.user = user
 			this._user = user
 			this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
-			.then(() => searchFacade.init(userId, this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact)))
+			.then(() => this._indexer.init(userId, this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact)))
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
 			.then(() => this._eventBusClient.connect(false))
 			.then(() => this.storeEntropy())
 			.catch(e => {
-				this._reset()
+				this.reset()
 				throw e
 			})
 	}
 
-	_reset() {
-		this._user = null
-		this._userGroupInfo = null
-		this._accessToken = null
-		this._authVerifierAfterNextRequest = null
-		this.groupKeys = {}
-		if (this._eventBusClient) {
-			this._eventBusClient.close()
-		}
-		this._eventBusClient = new EventBusClient()
-	}
 
 	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
@@ -225,17 +236,6 @@ export class LoginFacade {
 		}
 	}
 
-	reset(): Promise<void> {
-		if (!this._user) {
-			console.log("reset without login")
-			return Promise.resolve()
-		}
-		const user = this._user
-		console.log("reset worker")
-		this._eventBusClient.close()
-		this._reset()
-		return Promise.resolve()
-	}
 
 	/**
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
@@ -292,7 +292,7 @@ export class LoginFacade {
 
 	getAllGroupIds(): Id[] {
 		let groups = this.getLoggedInUser().memberships.map(membership => membership.group)
-		groups.push(loginFacade.getLoggedInUser().userGroup.group)
+		groups.push(this.getLoggedInUser().userGroup.group)
 		return groups
 	}
 
@@ -356,10 +356,10 @@ export class LoginFacade {
 	 * Loads entropy from the last logout.
 	 */
 	loadEntropy(): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, loginFacade.getUserGroupId()).then(tutanotaProperties => {
+		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
-					let entropy = aes128Decrypt(loginFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
+					let entropy = aes128Decrypt(this.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
 					random.addStaticEntropy(entropy)
 				} catch (error) {
 					if (error instanceof CryptoError) {
@@ -373,8 +373,8 @@ export class LoginFacade {
 	storeEntropy(): Promise<void> {
 		if (!this._accessToken) return Promise.resolve()
 		console.log("updating stored entropy")
-		return loadRoot(TutanotaPropertiesTypeRef, loginFacade.getUserGroupId()).then(tutanotaProperties => {
-			tutanotaProperties.groupEncEntropy = encryptBytes(loginFacade.getUserGroupKey(), random.generateRandomData(32))
+		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
+			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
 		})
 	}
@@ -418,13 +418,4 @@ export class LoginFacade {
 }
 
 
-export var loginFacade: LoginFacade = new LoginFacade()
 
-if (replaced) {
-	Object.assign(loginFacade, replaced.loginFacade)
-	loginFacade._eventBusClient.close()
-	loginFacade._eventBusClient = new EventBusClient()
-	if (loginFacade.isLoggedIn()) {
-		loginFacade._eventBusClient.connect(false)
-	}
-}

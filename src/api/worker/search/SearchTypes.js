@@ -1,0 +1,71 @@
+//@flow
+import type {DbFacade} from "./DbFacade"
+
+type B64EncIndexKey = Base64;
+type EncIndexKey = Uint8Array
+type EncInstanceId = Uint8Array;
+export type B64EncInstanceId = Base64;
+
+export type AttributeHandler ={
+	attribute: ModelValue|ModelAssociation;
+	value: lazy<string>;
+}
+
+export type KeyToIndexEntries = {
+	indexKey: Uint8Array;
+	indexEntries: SearchIndexEntry[];
+}
+
+export type KeyToEncryptedIndexEntries = {
+	indexKey: Uint8Array;
+	indexEntries: EncryptedSearchIndexEntry[];
+}
+
+export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
+
+export type SearchIndexEntry = {
+	id:Id;
+	app:number;
+	type:number;
+	attribute: number;
+	positions:number[];
+	// encId and rank are only set for entries that are retrived from the db (see decryptSearchIndexEntry)
+	encId?: Uint8Array;
+	rank?: number;
+}
+export type IndexData = [Id, Uint8Array] // first element of value is listId, second is encrypted words of instance seperated by whitespace
+
+export type IndexUpdate = {
+	batchId: ?IdTuple;
+	contactListId:?Id;
+	create : {
+		encInstanceIdToIndexData: Map<B64EncInstanceId,IndexData>;
+		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
+	};
+	move: {
+		encInstanceId: Uint8Array;
+		newListId: Id;
+	}[];
+	delete: {
+		encWordToEncInstanceIds: Map<Uint8Array, Uint8Array[]>;
+		encInstanceIds: Uint8Array[];
+	};
+}
+
+export function _createNewIndexUpdate(): IndexUpdate {
+	return {
+		batchId: null,
+		contactListId: null,
+		create: {
+			encInstanceIdToIndexData: new Map(),
+			indexMap: new Map(),
+		},
+		move: [],
+		delete: {encWordToEncInstanceIds: new Map(), encInstanceIds: []},
+	}
+}
+
+export type Db = {
+	key: Aes256Key;
+	dbFacade: DbFacade;
+}

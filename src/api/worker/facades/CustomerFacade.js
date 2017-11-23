@@ -1,13 +1,10 @@
 // @flow
-import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
 import {serviceRequest, load, update, serviceRequestVoid} from "../EntityWorker"
-import {ReadCounterReturnTypeRef} from "../../entities/monitor/ReadCounterReturn"
 import type {AccountTypeEnum} from "../../common/TutanotaConstants"
 import {Const, AccountType, BookingItemFeatureType, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {bookingFacade} from "./BookingFacade"
-import {loginFacade} from "./LoginFacade"
 import {assertWorkerOrNode} from "../../Env"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
@@ -26,9 +23,8 @@ import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {createCustomerAccountCreateData} from "../../entities/tutanota/CustomerAccountCreateData"
 import {createContactFormAccountData} from "../../entities/tutanota/ContactFormAccountData"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {workerImpl} from "../WorkerImpl"
-import {userManagementFacade} from "./UserManagementFacade"
-import {groupManagementFacade} from "./GroupManagementFacade"
+import type {UserManagementFacade} from "./UserManagementFacade"
+import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createCustomDomainData} from "../../entities/sys/CustomDomainData"
 import {CustomDomainReturnTypeRef} from "../../entities/sys/CustomDomainReturn"
 import {ContactFormAccountReturnTypeRef} from "../../entities/tutanota/ContactFormAccountReturn"
@@ -37,13 +33,25 @@ import {createBrandingDomainData} from "../../entities/sys/BrandingDomainData"
 import {createContactFormStatisticEntry} from "../../entities/tutanota/ContactFormStatisticEntry"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {createContactFormStatisticField} from "../../entities/tutanota/ContactFormStatisticField"
+import type {LoginFacade} from "./LoginFacade"
+import type {WorkerImpl} from "../WorkerImpl"
+import {readCounterValue} from "./CounterFacade"
 
 assertWorkerOrNode()
 
 export class CustomerFacade {
+	_login: LoginFacade;
+	_groupManagement: GroupManagementFacade;
+	_userManagement: UserManagementFacade;
+	_worker: WorkerImpl;
 	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 
-	constructor() {
+
+	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, userManagement: UserManagementFacade) {
+		this._worker = worker
+		this._login = login
+		this._groupManagement = groupManagement
+		this._userManagement = userManagement
 	}
 
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
@@ -66,7 +74,7 @@ export class CustomerFacade {
 	}
 
 	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
-		return load(CustomerTypeRef, neverNull(loginFacade.getLoggedInUser().customer)).then(customer => {
+		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let updateCertificate = neverNull(customerInfo.domainInfos.find(info => info.domain == domainName)).certificate != null
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
@@ -92,19 +100,10 @@ export class CustomerFacade {
 	}
 
 	readUsedCustomerStorage(customerId: Id): Promise<number> {
-		return this.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
-			return this.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
+		return readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
+			return readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
 				return (Number(usedMemoryInternal) + Number(usedMemoryExternal));
 			})
-		})
-	}
-
-	readCounterValue(monitorValue: string, ownerId: Id) {
-		let counterData = createReadCounterData()
-		counterData.monitor = monitorValue
-		counterData.owner = ownerId
-		return serviceRequest("counterservice", HttpMethod.GET, counterData, ReadCounterReturnTypeRef).then(counterReturn => {
-			return counterReturn.value;
 		})
 	}
 
@@ -132,14 +131,14 @@ export class CustomerFacade {
 	}
 
 	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		return load(CustomerTypeRef, neverNull(loginFacade.getLoggedInUser().customer)).then(customer => {
+		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			let p
 			if (customer.serverProperties) {
 				p = Promise.resolve(customer.serverProperties)
 			} else {
 				// create properties
 				let sessionKey = aes128RandomKey()
-				let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
+				let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
 				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 				let data = createCreateCustomerServerPropertiesData()
 				data.adminGroupEncSessionKey = groupEncSessionKey
@@ -179,18 +178,18 @@ export class CustomerFacade {
 
 			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
 			return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
-				return workerImpl.sendProgress(5).then(() => {
-					return groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
-						return workerImpl.sendProgress(35).then(() => {
-							return groupManagementFacade.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(adminGroupData => {
-								return workerImpl.sendProgress(65).then(() => {
-									return groupManagementFacade.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
-										return workerImpl.sendProgress(95).then(() => {
+				return this._worker.sendProgress(5).then(() => {
+					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
+						return this._worker.sendProgress(35).then(() => {
+							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(adminGroupData => {
+								return this._worker.sendProgress(65).then(() => {
+									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
+										return this._worker.sendProgress(95).then(() => {
 											let data = createCustomerAccountCreateData()
 											data.authToken = authToken
 											data.date = Const.CURRENT_DATE
 											data.lang = currentLanguage
-											data.userData = userManagementFacade.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
+											data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
 											data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
 											data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
 											data.userGroupData = userGroupData
@@ -214,7 +213,7 @@ export class CustomerFacade {
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
+		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
 			return {userGroupKey, userGroupData}
 		})
 		return Promise.resolve()
@@ -227,10 +226,10 @@ export class CustomerFacade {
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
 		return neverNull(this.contactFormUserGroupData).then(contactFormUserGroupData => {
 			let {userGroupKey, userGroupData} = contactFormUserGroupData
-			return workerImpl.sendProgress(35).then(() => {
+			return this._worker.sendProgress(35).then(() => {
 				let data = createContactFormAccountData()
-				data.userData = userManagementFacade.generateContactFormUserAccountData(userGroupKey, password)
-				return workerImpl.sendProgress(95).then(() => {
+				data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
+				return this._worker.sendProgress(95).then(() => {
 					return serviceRequest(SysService.CustomerPublicKeyService, HttpMethod.GET, null, PublicKeyReturnTypeRef).then(publicKeyData => {
 						let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
 
@@ -275,4 +274,3 @@ export class CustomerFacade {
 	}
 
 }
-export const customerFacade: CustomerFacade = new CustomerFacade()

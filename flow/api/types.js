@@ -214,7 +214,7 @@ type KeyListener = {
 	modifier: number,
 	callback: Function
 }
-type SearchRestriction = {
+export type SearchRestriction = {
 	type: TypeRef<any>;
 	attributes:string[]
 }

@@ -5,18 +5,19 @@ import {_service} from "../rest/ServiceRestClient"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createMailAddressAliasServiceData} from "../../entities/sys/MailAddressAliasServiceData"
 import {createDomainMailAddressAvailabilityData} from "../../entities/sys/DomainMailAddressAvailabilityData"
-import {loginFacade} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import {createMailAddressAvailabilityData} from "../../entities/sys/MailAddressAvailabilityData"
 import {DomainMailAddressAvailabilityReturnTypeRef} from "../../entities/sys/DomainMailAddressAvailabilityReturn"
 import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddressAvailabilityReturn"
 import {MailAddressAliasServiceReturnTypeRef} from "../../entities/sys/MailAddressAliasServiceReturn"
 import {SysService} from "../../entities/sys/Services"
-
 assertWorkerOrNode()
 
 export class MailAddressFacade {
+	_login: LoginFacade;
 
-	constructor() {
+	constructor(login: LoginFacade) {
+		this._login = login
 
 	}
 
@@ -25,7 +26,7 @@ export class MailAddressFacade {
 	}
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
-		if (loginFacade.isLoggedIn()) {
+		if (this._login.isLoggedIn()) {
 			let data = createDomainMailAddressAvailabilityData()
 			data.mailAddress = mailAddress
 			return _service(SysService.DomainMailAddressAvailabilityService, HttpMethod.GET, data, DomainMailAddressAvailabilityReturnTypeRef).then(result => result.available)
@@ -51,5 +52,3 @@ export class MailAddressFacade {
 		return _service(SysService.MailAddressAliasService, HttpMethod.DELETE, deleteData)
 	}
 }
-
-export const mailAddressAliasFacade: MailAddressFacade = new MailAddressFacade()

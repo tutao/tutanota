@@ -508,40 +508,6 @@ export class MailView {
 					})
 				}
 			})
-		} else if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
-			if (operation == OperationType.CREATE) {
-				this.mailboxControllers.forEach(mc => mc.addFolder([(listId:any), elementId]).then((success) => {
-					if (success) {
-						mc.customFolderButtons = this.createFolderButtons(mc.getCustomFolders())
-						m.redraw();
-					}
-				}))
-			} else if (operation == OperationType.UPDATE) {
-				this.mailboxControllers.forEach(mc => mc.updateFolder([(listId:any), elementId]).then((success) => {
-					if (success) {
-						mc.customFolderButtons = this.createFolderButtons(mc.getCustomFolders())
-						m.redraw();
-					}
-				}))
-			} else if (operation == OperationType.DELETE) {
-				if (isSameId(this.selectedFolder.folder._id, [(listId:any), elementId])) {
-					this._setUrl(neverNull(this.selectedMailbox).getInboxFolder().url)
-				}
-				this.mailboxControllers.forEach(mc => mc.deleteFolder([(listId:any), elementId]).then((success) => {
-					if (success) {
-						mc.customFolderButtons = this.createFolderButtons(mc.getCustomFolders())
-						m.redraw();
-					}
-				}))
-			}
-		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef)) {
-			if (operation == OperationType.UPDATE) {
-				this.mailboxControllers.forEach(mc => mc.updateNameFromGroupInfo([(listId:any), elementId]).then((success) => {
-					if (success) {
-						m.redraw();
-					}
-				}))
-			}
 		} else if (isSameTypeRef(typeRef, UserTypeRef)) {
 			if (operation == OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
 				load(UserTypeRef, elementId).then(updatedUser => {

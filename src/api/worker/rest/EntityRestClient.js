@@ -1,6 +1,5 @@
 //@flow
 import {restClient, MediaType} from "./RestClient"
-import {loginFacade} from "../facades/LoginFacade"
 import {
 	decryptAndMapToInstance,
 	encryptAndMapToLiteral,
@@ -12,6 +11,7 @@ import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {resolveTypeReference, TypeRef, HttpMethod} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
+import type {LoginFacade} from "../facades/LoginFacade"
 
 assertWorkerOrNode()
 
@@ -28,7 +28,10 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
  *
  */
 export class EntityRestClient {
-	constructor() {
+	_login: LoginFacade;
+
+	constructor(login: LoginFacade) {
+		this._login = login
 	}
 
 
@@ -42,7 +45,7 @@ export class EntityRestClient {
 				path += '/' + id
 			}
 			let queryParams = queryParameter == null ? {} : queryParameter
-			let headers = loginFacade.createAuthHeaders()
+			let headers = this._login.createAuthHeaders()
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity:any))

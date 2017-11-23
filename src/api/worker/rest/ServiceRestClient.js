@@ -1,6 +1,6 @@
 //@flow
 import {restClient, MediaType} from "./RestClient"
-import {loginFacade} from "../facades/LoginFacade"
+import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
@@ -12,7 +12,7 @@ export function _service<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorS
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef:any)).then(modelForAppAndVersion => {
 		let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
 		let queryParams = queryParameter != null ? queryParameter : {}
-		let headers = loginFacade.createAuthHeaders()
+		let headers = locator.login.createAuthHeaders()
 		headers['v'] = modelForAppAndVersion.version
 
 		let p: ?Promise<?Object> = null;

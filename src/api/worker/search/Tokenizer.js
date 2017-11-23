@@ -1,7 +1,8 @@
 //@flow
 
 
-export function tokenize(text: string): string[] {
+export function tokenize(text: ?string): string[] {
+	if (text == null) return []
 	let currentWord = []
 	let words = []
 	for (var i = 0; i < text.length; i++) {

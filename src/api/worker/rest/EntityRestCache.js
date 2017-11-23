@@ -423,14 +423,3 @@ export class EntityRestCache {
 		}
 	}
 }
-
-let entityRestCache: EntityRestCache = new EntityRestCache(new EntityRestClient())
-
-export function getEntityRestCache(): EntityRestCache {
-	return entityRestCache
-}
-
-export function resetEntityRestCache(): void {
-	// create a new instance instead of resetting the db because old server requests might be running when resetting and the result would be put into the new cache
-	entityRestCache = new EntityRestCache(entityRestCache._entityRestClient)
-}

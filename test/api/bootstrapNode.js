@@ -32,6 +32,14 @@ global.bodyParser = require('body-parser')
 global.WebSocket = function () {
 }
 
+var nowOffset = Date.now();
+global.performance = {
+	now: function() {
+		return Date.now() - nowOffset;
+	}
+}
+
+
 const caller = require('caller')
 const path = require('path')
 global.System = {

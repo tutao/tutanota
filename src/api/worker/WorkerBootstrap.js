@@ -9,7 +9,7 @@ self.onmessage = function (msg) {
 		self.env = data.args[0]
 		System.config(self.env.systemConfig)
 		System.import("src/system-resolve.js")
-		.then(() => System.import('systemjs-hot-reloader'))
+			.then(() => System.import('systemjs-hot-reloader'))
 			.then((connect) => {
 				if (connect instanceof Function && location.protocol != "https:") {
 					connect({
@@ -20,7 +20,8 @@ self.onmessage = function (msg) {
 
 				System.import('src/api/worker/WorkerImpl').then((workerModule) => {
 					let initialRandomizerEntropy = data.args[1]
-					workerModule.workerImpl.addEntropy(initialRandomizerEntropy)
+					let workerImpl = new WorkerImpl(typeof self !== 'undefined' ? self : null)
+					workerImpl.addEntropy(initialRandomizerEntropy)
 					self.postMessage({id: data.id, type: 'response', value: {}})
 				})
 			})

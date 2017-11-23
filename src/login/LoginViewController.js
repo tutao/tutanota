@@ -26,6 +26,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {mailModel} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -144,7 +145,7 @@ export class LoginViewController {
 			}
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
-		})
+		}).then(() => mailModel.init())
 	}
 
 	_showUpgradeReminder(): Promise<void> {

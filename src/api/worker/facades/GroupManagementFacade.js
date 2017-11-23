@@ -1,13 +1,12 @@
 // @flow
 import {assertWorkerOrNode} from "../../Env"
-import {customerFacade} from "./CustomerFacade"
 import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array} from "../../common/utils/Encoding"
 import {encryptRsaKey, encryptKey, decryptKey, encryptString} from "../crypto/CryptoFacade"
-import {loginFacade} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import {serviceRequestVoid, load} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
@@ -18,23 +17,26 @@ import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {neverNull} from "../../common/utils/Utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
-
+import {readCounterValue} from "./CounterFacade"
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
 
-	constructor() {
+	_login: LoginFacade;
+
+	constructor(login: LoginFacade) {
+		this._login = login
 	}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
-		return customerFacade.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
+		return readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
 			return Number(usedStorage)
 		})
 	}
 
 	createMailGroup(name: string, mailAddress: string): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
-		let customerGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Customer))
+		let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let mailGroupKey = aes128RandomKey()
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
@@ -50,8 +52,8 @@ export class GroupManagementFacade {
 	}
 
 	createTeamGroup(name: string): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
-		let customerGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Customer))
+		let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let teamGroupKey = aes128RandomKey()
 		let teamGroupInfoSessionKey = aes128RandomKey()
 
@@ -75,7 +77,7 @@ export class GroupManagementFacade {
 	}
 
 	addUserToGroup(user: User, groupId: Id): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
+		let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
 			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
 			return load(GroupTypeRef, groupId).then(group => {
@@ -109,5 +111,3 @@ export class GroupManagementFacade {
 		}
 	}
 }
-
-export var groupManagementFacade: GroupManagementFacade = new GroupManagementFacade()

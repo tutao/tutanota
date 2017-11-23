@@ -1,14 +1,23 @@
 //@flow
+import m from "mithril"
 import {neverNull} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
-import {serviceRequestVoid} from "../api/main/Entity"
+import {serviceRequestVoid, loadAll, load} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {isFinallyDeleteAllowed, getTrashFolder} from "./MailUtils"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
+import {MailBoxTypeRef} from "../api/entities/tutanota/MailBox"
+import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import {GroupTypeRef} from "../api/entities/sys/Group"
+import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
+import {worker} from "../api/main/WorkerClient"
+import {OperationType} from "../api/common/TutanotaConstants"
+import {module as replaced} from "@hot"
 
 
 export type MailboxDetails ={
@@ -24,6 +33,40 @@ class MailModel {
 
 	constructor() {
 		this._mailboxes = []
+
+		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+	}
+
+	init(): Promise<void> {
+		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
+		return Promise.all(mailGroupMemberships.map(mailGroupMembership => {
+			return Promise.all([
+				load(MailboxGroupRootTypeRef, mailGroupMembership.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)),
+				load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
+				load(GroupTypeRef, mailGroupMembership.group)
+			]).spread((mailbox, mailGroupInfo, mailGroup) => {
+				return this._loadFolders(neverNull(mailbox.systemFolders).folders, true).then(folders => {
+					this._mailboxes.push({
+						mailbox,
+						folders,
+						mailGroupInfo,
+						mailGroup
+					})
+				})
+			})
+		})).return()
+	}
+
+	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
+		return loadAll(MailFolderTypeRef, folderListId).then(folders => {
+			if (loadSubFolders) {
+				return Promise.map(folders, folder => this._loadFolders(folder.subFolders, false)).then(subfolders => {
+					return folders.concat(...subfolders)
+				})
+			} else {
+				return folders
+			}
+		})
 	}
 
 	getMailboxDetails(mail: Mail): MailboxDetails {
@@ -32,6 +75,10 @@ class MailModel {
 
 	getMailboxDetailsForMembership(mailGroupMembership: GroupMembership): MailboxDetails {
 		return neverNull(this._mailboxes.find((md) => mailGroupMembership.group == md.mailbox._ownerGroup))
+	}
+
+	getMailboxDetailsForGroupInfo(mailGroupInfoId: IdTuple): MailboxDetails {
+		return neverNull(this._mailboxes.find((md) => isSameId(mailGroupInfoId, md.mailGroupInfo._id)))
 	}
 
 	getUserMailboxDetails(): MailboxDetails {
@@ -85,8 +132,25 @@ class MailModel {
 		return Promise.all(promises).return()
 	}
 
+	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
+		if (isSameTypeRef(typeRef, MailFolderTypeRef) || isSameTypeRef(typeRef, GroupInfoTypeRef)) {
+			this.init().then(() => m.redraw())
+		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef)) {
+			if (operation == OperationType.UPDATE) {
+				this.init().then(() => m.redraw())
+			}
+		}
+	}
 
 }
 
 
 export const mailModel = new MailModel()
+
+if (replaced) {
+	Object.assign(mailModel, replaced.mailModel)
+}
+
+
+
+

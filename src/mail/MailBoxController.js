@@ -14,6 +14,8 @@ import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {ExpanderButton} from "../gui/base/Expander"
 import {Button} from "../gui/base/Button"
+import {mailModel} from "./MailModel"
+import {isUserMailbox} from "./MailUtils"
 
 assertMainOrNode()
 
@@ -166,12 +168,13 @@ export class MailBoxController {
 	}
 
 	updateNameFromGroupInfo(groupInfoId: IdTuple): Promise<boolean> {
-		if (this.isUserMailbox() && isSameId(logins.getUserController().userGroupInfo._id, groupInfoId)) {
+		let userMailbox = isUserMailbox(mailModel.getMailboxDetailsForGroupInfo(groupInfoId))
+		if (userMailbox && isSameId(logins.getUserController().userGroupInfo._id, groupInfoId)) {
 			return load(GroupInfoTypeRef, groupInfoId).then(groupInfo => {
 				this.displayName = getGroupInfoDisplayName(groupInfo)
 				return true
 			})
-		} else if (!this.isUserMailbox() && isSameId(this.mailGroupMembership.groupInfo, groupInfoId)) {
+		} else if (!userMailbox && isSameId(this.mailGroupMembership.groupInfo, groupInfoId)) {
 			return load(GroupInfoTypeRef, groupInfoId).then(groupInfo => {
 				this.mailGroupInfo = groupInfo
 				this.displayName = getGroupInfoDisplayName(groupInfo)

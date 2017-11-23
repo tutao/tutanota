@@ -1,6 +1,5 @@
 // @flow
 import o from "ospec/ospec.js"
-import {loginFacade} from "../../../src/api/worker/facades/LoginFacade"
 import {setup, loadAll, loadRoot} from "../../../src/api/worker/EntityWorker"
 import {GroupType} from "../../../src/api/common/TutanotaConstants"
 import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
@@ -10,29 +9,32 @@ import {MailFolderTypeRef} from "../../../src/api/entities/tutanota/MailFolder"
 import {MailBoxTypeRef} from "../../../src/api/entities/tutanota/MailBox"
 import {neverNull} from "../../../src/api/common/utils/Utils"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
+import {initLocator, locator} from "../../../src/api/worker/WorkerLocator"
 
 function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 	return loadAll(MailFolderTypeRef, folderListId)
 }
 
 function loadMailboxSystemFolders(): Promise<MailFolder[]> {
-	return loadRoot(MailBoxTypeRef, loginFacade.getUserGroupId()).then(mailbox => {
+	return loadRoot(MailBoxTypeRef, locator.login.getUserGroupId()).then(mailbox => {
 		return loadFolders(neverNull(mailbox.systemFolders).folders)
 	})
 }
 
 function loadContactList() {
-	return loadRoot(ContactListTypeRef, loginFacade.getUserGroupId())
+	return loadRoot(ContactListTypeRef, locator.login.getUserGroupId())
 }
+
 
 o.spec("integration test", function () {
 
 	let mailbox = null
 
 	o("login, read mails, update contact", function (done, timeout) {
+		initLocator((null:any))
 		timeout(5000)
 		env.staticUrl = 'http://localhost:9000'
-		loginFacade.createSession("map-free@tutanota.de", "map", "Linux node", false)
+		locator.login.createSession("map-free@tutanota.de", "map", "Linux node", false)
 			.then(() => Promise.all(
 				[
 					loadMailboxSystemFolders().then(folders => {
@@ -45,8 +47,8 @@ o.spec("integration test", function () {
 						address.customTypeName = "0"
 						let contact = createContact()
 						contact._area = "0"
-						contact._owner = loginFacade.getLoggedInUser()._id
-						contact._ownerGroup = loginFacade.getGroupId(GroupType.Contact)
+						contact._owner = locator.login.getLoggedInUser()._id
+						contact._ownerGroup = locator.login.getGroupId(GroupType.Contact)
 						contact.title = "Dr."
 						contact.firstName = "Max"
 						contact.lastName = "Meier"

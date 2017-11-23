@@ -5,7 +5,7 @@ import {encryptAndMapToLiteral, resolveSessionKey, encryptBytes} from "../crypto
 import {aes128Decrypt} from "../crypto/Aes"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
 import {neverNull} from "../../common/utils/Utils"
-import {loginFacade} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
 import {FileDataReturnPostTypeRef} from "../../entities/tutanota/FileDataReturnPost"
@@ -18,10 +18,14 @@ import {aesEncryptFile, aesDecryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
 import {createDataFile} from "../../common/DataFile"
-
 assertWorkerOrNode()
 
-class FileFacade {
+export class FileFacade {
+	_login: LoginFacade;
+
+	constructor(login: LoginFacade) {
+		this._login = login
+	}
 
 	downloadFileContent(file: TutanotaFile): Promise<DataFile | FileReference> {
 		let requestData = createFileDataDataGet()
@@ -30,7 +34,7 @@ class FileFacade {
 
 		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
 			return encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
-				let headers = loginFacade.createAuthHeaders()
+				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
 				if (env.mode == Mode.App) {
@@ -56,15 +60,15 @@ class FileFacade {
 		})
 	}
 
-	uploadFileData(dataFile: DataFile, sessionKey): Promise<Id> {
+	uploadFileData(dataFile: DataFile, sessionKey: Aes128Key): Promise<Id> {
 		let encryptedData = encryptBytes(sessionKey, dataFile.data)
 		let fileData = createFileDataDataPost()
 		fileData.size = dataFile.data.byteLength.toString()
-		fileData.group = loginFacade.getGroupId(GroupType.Mail) // currently only used for attachments
+		fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
 		return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
 			// upload the file content
 			let fileDataId = fileDataPostReturn.fileData
-			let headers = loginFacade.createAuthHeaders()
+			let headers = this._login.createAuthHeaders()
 			headers['v'] = FileDataDataReturnTypeModel.version
 			return restClient.request("/rest/tutanota/filedataservice", HttpMethod.PUT, {fileDataId: fileDataId}, headers, encryptedData, MediaType.Binary).then(() => fileDataId)
 		})
@@ -74,10 +78,10 @@ class FileFacade {
 		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16)).then(encryptedFileLocation => {
 			let fileData = createFileDataDataPost()
 			fileData.size = fileReference.size + ""
-			fileData.group = loginFacade.getGroupId(GroupType.Mail) // currently only used for attachments
+			fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
 			return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
 				let fileDataId = fileDataPostReturn.fileData
-				let headers = loginFacade.createAuthHeaders()
+				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataReturnTypeModel.version
 				let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
 				return fileApp.upload(encryptedFileLocation, url, headers).then(responseCode => {
@@ -95,6 +99,3 @@ class FileFacade {
 		})
 	}
 }
-
-
-export const fileFacade: FileFacade = new FileFacade()

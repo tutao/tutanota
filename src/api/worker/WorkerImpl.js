@@ -1,26 +1,18 @@
 // @flow
 import {Queue, Request, errorToObj} from "../common/WorkerProtocol"
 import {CryptoError} from "../common/error/CryptoError"
-import {loginFacade} from "./facades/LoginFacade"
-import {userManagementFacade} from "./facades/UserManagementFacade"
-import {groupManagementFacade} from "./facades/GroupManagementFacade"
 import {bookingFacade} from "./facades/BookingFacade"
-import {mailFacade} from "./facades/MailFacade"
-import {mailAddressAliasFacade} from "./facades/MailAddressFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
-import {getEntityRestCache, resetEntityRestCache} from "./rest/EntityRestCache"
+import {resetEntityRestCache, locator, initLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
-import {customerFacade} from "./facades/CustomerFacade"
-import {fileFacade} from "./facades/FileFacade"
 import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
-import {contactFormFacade} from "./facades/ContactFormFacade"
-import {searchFacade} from "./facades/SearchFacade"
 import {restClient} from "./rest/RestClient"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
+import {loadContactForm} from "./facades/ContactFormFacade"
 
 assertWorkerOrNode()
 
@@ -37,6 +29,8 @@ export class WorkerImpl {
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
+		initLocator(this);
+
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
 			testError: (message: any) => {
@@ -49,134 +43,134 @@ export class WorkerImpl {
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
 			},
 			signup: (message: Request) => {
-				return customerFacade.signup.apply(customerFacade, message.args)
+				return locator.customer.signup.apply(locator.customer, message.args)
 			},
 			createContactFormUserGroupData: (message: Request) => {
-				return customerFacade.createContactFormUserGroupData.apply(customerFacade, message.args)
+				return locator.customer.createContactFormUserGroupData.apply(locator.customer, message.args)
 			},
 			createContactFormUser: (message: Request): Promise<ContactFormAccountReturn> => {
-				return customerFacade.createContactFormUser.apply(customerFacade, message.args)
+				return locator.customer.createContactFormUser.apply(locator.customer, message.args)
 			},
 			createSession: (message: Request) => {
-				return loginFacade.createSession.apply(loginFacade, message.args)
+				return locator.login.createSession.apply(locator.login, message.args)
 			},
 			createExternalSession: (message: Request) => {
-				return loginFacade.createExternalSession.apply(loginFacade, message.args)
+				return locator.login.createExternalSession.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
-				return loginFacade.reset().then(() => resetEntityRestCache())
+				return locator.login.reset().then(() => resetEntityRestCache())
 			},
 			resumeSession: (message: Request) => {
-				return loginFacade.resumeSession.apply(loginFacade, message.args)
+				return locator.login.resumeSession.apply(locator.login, message.args)
 			},
 			deleteSession: (message: Request) => {
-				return loginFacade.deleteSession.apply(loginFacade, message.args)
+				return locator.login.deleteSession.apply(locator.login, message.args)
 			},
 			changePassword: (message: Request) => {
-				return loginFacade.changePassword.apply(loginFacade, message.args)
+				return locator.login.changePassword.apply(locator.login, message.args)
 			},
 			createMailFolder: (message: Request) => {
-				return mailFacade.createMailFolder.apply(mailFacade, message.args)
+				return locator.mail.createMailFolder.apply(locator.mail, message.args)
 			},
 			createMailDraft: (message: Request) => {
-				return mailFacade.createDraft.apply(mailFacade, message.args)
+				return locator.mail.createDraft.apply(locator.mail, message.args)
 			},
 			updateMailDraft: (message: Request) => {
-				return mailFacade.updateDraft.apply(mailFacade, message.args)
+				return locator.mail.updateDraft.apply(locator.mail, message.args)
 			},
 			sendMailDraft: (message: Request) => {
-				return mailFacade.sendDraft.apply(mailFacade, message.args)
+				return locator.mail.sendDraft.apply(locator.mail, message.args)
 			},
 			readAvailableCustomerStorage: (message: Request) => {
-				return customerFacade.readAvailableCustomerStorage.apply(customerFacade, message.args)
+				return locator.customer.readAvailableCustomerStorage.apply(locator.customer, message.args)
 			},
 			readUsedCustomerStorage: (message: Request) => {
-				return customerFacade.readUsedCustomerStorage.apply(customerFacade, message.args)
+				return locator.customer.readUsedCustomerStorage.apply(locator.customer, message.args)
 			},
 			restRequest: (message: Request) => {
-				message.args[3] = Object.assign(loginFacade.createAuthHeaders(), message.args[3])
+				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
 				return restClient.request.apply(restClient, message.args)
 			},
 			entityRequest: (message: Request) => {
-				return getEntityRestCache().entityRequest.apply(getEntityRestCache(), message.args)
+				return locator.cache.entityRequest.apply(locator.cache, message.args)
 			},
 			serviceRequest: (message: Request) => {
 				return _service.apply(null, message.args)
 			},
 			downloadFileContent: (message: Request) => {
-				return fileFacade.downloadFileContent.apply(fileFacade, message.args)
+				return locator.file.downloadFileContent.apply(locator.file, message.args)
 			},
 			addMailAlias: (message: Request) => {
-				return mailAddressAliasFacade.addMailAlias.apply(mailAddressAliasFacade, message.args)
+				return locator.mailAddress.addMailAlias.apply(locator.mailAddress, message.args)
 			},
 			setMailAliasStatus: (message: Request) => {
-				return mailAddressAliasFacade.setMailAliasStatus.apply(mailAddressAliasFacade, message.args)
+				return locator.mailAddress.setMailAliasStatus.apply(locator.mailAddress, message.args)
 			},
 			isMailAddressAvailable: (message: Request) => {
-				return mailAddressAliasFacade.isMailAddressAvailable.apply(mailAddressAliasFacade, message.args)
+				return locator.mailAddress.isMailAddressAvailable.apply(locator.mailAddress, message.args)
 			},
 			getAliasCounters: (message: Request) => {
-				return mailAddressAliasFacade.getAliasCounters.apply(mailAddressAliasFacade, message.args)
+				return locator.mailAddress.getAliasCounters.apply(locator.mailAddress, message.args)
 			},
 			changeUserPassword: (message: Request) => {
-				return userManagementFacade.changeUserPassword.apply(userManagementFacade, message.args)
+				return locator.userManagement.changeUserPassword.apply(locator.userManagement, message.args)
 			},
 			changeAdminFlag: (message: Request) => {
-				return userManagementFacade.changeAdminFlag.apply(userManagementFacade, message.args)
+				return locator.userManagement.changeAdminFlag.apply(locator.userManagement, message.args)
 			},
 			readUsedUserStorage: (message: Request) => {
-				return userManagementFacade.readUsedUserStorage.apply(userManagementFacade, message.args)
+				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
 			},
 			deleteUser: (message: Request) => {
-				return userManagementFacade.deleteUser.apply(userManagementFacade, message.args)
+				return locator.userManagement.deleteUser.apply(locator.userManagement, message.args)
 			},
 			getPrice: (message: Request) => {
 				return bookingFacade.getPrice.apply(bookingFacade, message.args)
 			},
 			loadCustomerServerProperties: (message: Request) => {
-				return customerFacade.loadCustomerServerProperties.apply(customerFacade, message.args)
+				return locator.customer.loadCustomerServerProperties.apply(locator.customer, message.args)
 			},
 			addSpamRule: (message: Request) => {
-				return customerFacade.addSpamRule.apply(customerFacade, message.args)
+				return locator.customer.addSpamRule.apply(locator.customer, message.args)
 			},
 			createUser: (message: Request) => {
-				return userManagementFacade.createUser.apply(userManagementFacade, message.args)
+				return locator.userManagement.createUser.apply(locator.userManagement, message.args)
 			},
 			readUsedGroupStorage: (message: Request) => {
-				return groupManagementFacade.readUsedGroupStorage.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.readUsedGroupStorage.apply(locator.groupManagement, message.args)
 			},
 			createMailGroup: (message: Request) => {
-				return groupManagementFacade.createMailGroup.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.createMailGroup.apply(locator.groupManagement, message.args)
 			},
 			createTeamGroup: (message: Request) => {
-				return groupManagementFacade.createTeamGroup.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.createTeamGroup.apply(locator.groupManagement, message.args)
 			},
 			addUserToGroup: (message: Request) => {
-				return groupManagementFacade.addUserToGroup.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.addUserToGroup.apply(locator.groupManagement, message.args)
 			},
 			removeUserFromGroup: (message: Request) => {
-				return groupManagementFacade.removeUserFromGroup.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.removeUserFromGroup.apply(locator.groupManagement, message.args)
 			},
 			deactivateGroup: (message: Request) => {
-				return groupManagementFacade.deactivateGroup.apply(groupManagementFacade, message.args)
+				return locator.groupManagement.deactivateGroup.apply(locator.groupManagement, message.args)
 			},
 			loadContactFormByPath: (message: Request) => {
-				return contactFormFacade.loadContactForm.apply(contactFormFacade, message.args)
+				return loadContactForm.apply(null, message.args)
 			},
 			addDomain: (message: Request) => {
-				return customerFacade.addDomain.apply(customerFacade, message.args)
+				return locator.customer.addDomain.apply(locator.customer, message.args)
 			},
 			removeDomain: (message: Request) => {
-				return customerFacade.removeDomain.apply(customerFacade, message.args)
+				return locator.customer.removeDomain.apply(locator.customer, message.args)
 			},
 			setCatchAllGroup: (message: Request) => {
-				return customerFacade.setCatchAllGroup.apply(customerFacade, message.args)
+				return locator.customer.setCatchAllGroup.apply(locator.customer, message.args)
 			},
 			uploadCertificate: (message: Request) => {
-				return customerFacade.uploadCertificate.apply(customerFacade, message.args)
+				return locator.customer.uploadCertificate.apply(locator.customer, message.args)
 			},
 			deleteCertificate: (message: Request) => {
-				return customerFacade.deleteCertificate.apply(customerFacade, message.args)
+				return locator.customer.deleteCertificate.apply(locator.customer, message.args)
 			},
 			generateTotpSecret: (message: Request) => {
 				return this.getTotpVerifier().then(totp => totp.generateSecret.apply(totp, message.args))
@@ -185,13 +179,13 @@ export class WorkerImpl {
 				return this.getTotpVerifier().then(totp => totp.generateTotp.apply(totp, message.args))
 			},
 			search: (message: Request) => {
-				return searchFacade.search.apply(searchFacade, message.args)
+				return locator.search.search.apply(locator.search, message.args)
 			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},
 			tryReconnectEventBus(message: Request) {
-				return loginFacade.tryReconnectEventBus()
+				return locator.login.tryReconnectEventBus()
 			}
 		})
 
@@ -216,7 +210,7 @@ export class WorkerImpl {
 			if (this._newEntropy > 5000 && (now - this._lastEntropyUpdate) > 1000 * 60 * 5) {
 				this._lastEntropyUpdate = now
 				this._newEntropy = 0
-				loginFacade.storeEntropy()
+				locator.login.storeEntropy()
 			}
 		}
 	}
@@ -241,4 +235,3 @@ export class WorkerImpl {
 	}
 }
 
-export const workerImpl: WorkerImpl = new WorkerImpl(typeof self !== 'undefined' ? self : null)

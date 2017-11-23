@@ -16,7 +16,6 @@ import {loadAll, load, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {rsaDecrypt, privateKeyToHex, hexToPrivateKey} from "./Rsa"
 import {random} from "./Randomizer"
-import {loginFacade} from "../facades/LoginFacade"
 import {resolveTypeReference, TypeRef, isSameTypeRef, HttpMethod} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -34,6 +33,7 @@ import EC from "../../common/EntityConstants"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {locator} from "../WorkerLocator"
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -79,8 +79,8 @@ export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uin
 export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
 	if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 		//FIXME: do we still need this?
-		let customerGroupMembership = (loginFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer):any)
-		let customerGroupKey = loginFacade.getGroupKey(customerGroupMembership.group)
+		let customerGroupMembership = (locator.login.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer):any)
+		let customerGroupKey = locator.login.getGroupKey(customerGroupMembership.group)
 		return loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
 			let customerGroupPermission = listPermissions.find(p => p.group === customerGroupMembership.group)
 			if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
@@ -93,8 +93,8 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 	} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
 		// TODO remove the EncryptTutanotaPropertiesService and replace with an Migration that writes the key
 		let migrationData = createEncryptTutanotaPropertiesData()
-		data._ownerGroup = loginFacade.getUserGroupId()
-		let groupEncSessionKey = encryptKey(loginFacade.getUserGroupKey(), aes128RandomKey())
+		data._ownerGroup = locator.login.getUserGroupId()
+		let groupEncSessionKey = encryptKey(locator.login.getUserGroupKey(), aes128RandomKey())
 		data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
 		migrationData.properties = data._id
 		migrationData.symEncSessionKey = groupEncSessionKey
@@ -134,8 +134,8 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 	let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 	if (!typeModel.encrypted) {
 		return Promise.resolve(null)
-	} else if (instance._ownerEncSessionKey && loginFacade.isLoggedIn() && loginFacade.hasGroup(instance._ownerGroup)) {
-		let gk = loginFacade.getGroupKey(instance._ownerGroup)
+	} else if (instance._ownerEncSessionKey && locator.login.isLoggedIn() && locator.login.hasGroup(instance._ownerGroup)) {
+		let gk = locator.login.getGroupKey(instance._ownerGroup)
 		let key = instance._ownerEncSessionKey
 		if (typeof key === "string") {
 			key = base64ToUint8Array(instance._ownerEncSessionKey)
@@ -144,7 +144,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 	} else if (instance.ownerEncSessionKey) {
 		// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
 		// add to payment data service
-		let gk = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Mail))
+		let gk = locator.login.getGroupKey(locator.login.getGroupId(GroupType.Mail))
 		let key = instance.ownerEncSessionKey
 		if (typeof key === "string") {
 			key = base64ToUint8Array(instance.ownerEncSessionKey)
@@ -155,7 +155,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		return loaders.loadPermissions(instance._permissions).then((listPermissions: Permission[]) => {
 			let p: ?Permission = listPermissions.find(p => p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric)
 			if (p) {
-				let gk = loginFacade.getGroupKey((p._ownerGroup:any))
+				let gk = locator.login.getGroupKey((p._ownerGroup:any))
 				return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
 			}
 			p = (listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External):any)
@@ -172,9 +172,9 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 				if (bp.type === BucketPermissionType.External) {
 					let bucketKey
 					if (bp.ownerEncBucketKey != null) {
-						bucketKey = decryptKey(loginFacade.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
+						bucketKey = decryptKey(locator.login.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
 					} else if (bp.symEncBucketKey) {
-						bucketKey = decryptKey(loginFacade.getUserGroupKey(), neverNull(bp.symEncBucketKey))
+						bucketKey = decryptKey(locator.login.getUserGroupKey(), neverNull(bp.symEncBucketKey))
 					} else {
 						throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 					}
@@ -184,7 +184,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 						let keypair = group.keys[0]
 						let privKey
 						try {
-							privKey = decryptRsaKey(loginFacade.getGroupKey(group._id), keypair.symEncPrivKey)
+							privKey = decryptRsaKey(locator.login.getGroupKey(group._id), keypair.symEncPrivKey)
 						} catch (e) {
 							console.log("failed to decrypt rsa key for group with id " + group._id)
 							throw e
@@ -202,8 +202,8 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 							}
 							let sk = decryptKey(bucketKey, bucketEncSessionKey)
 
-							let bucketPermissionOwnerGroupKey = loginFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
-							let bucketPermissionGroupKey = loginFacade.getGroupKey(bucketPermission.group)
+							let bucketPermissionOwnerGroupKey = locator.login.getGroupKey(neverNull(bucketPermission._ownerGroup))
+							let bucketPermissionGroupKey = locator.login.getGroupKey(bucketPermission.group)
 							return _updateWithSymPermissionKey(typeModel, instance, permission, bucketPermission, bucketPermissionOwnerGroupKey, bucketPermissionGroupKey, sk)
 								.catch(NotFoundError, e => {
 									console.log("w> could not find instance to update permission")
@@ -237,7 +237,7 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 		// we have to call the rest client directly because instance is still the encrypted server-side version
 		let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/' + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
 
-		let headers = loginFacade.createAuthHeaders()
+		let headers = locator.login.createAuthHeaders()
 		headers["v"] = typeModel.version
 		return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
 	} else { // instances shared via permissions (e.g. body)
@@ -260,7 +260,7 @@ export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes
 			throw new Error(`ownerEncSessionKey already set ${JSON.stringify(entity)}`)
 		}
 		let sessionKey = aes128RandomKey()
-		entity._ownerEncSessionKey = encryptKey(loginFacade.getGroupKey(entity._ownerGroup), sessionKey)
+		entity._ownerEncSessionKey = encryptKey(locator.login.getGroupKey(entity._ownerGroup), sessionKey)
 		return sessionKey
 	} else {
 		return null

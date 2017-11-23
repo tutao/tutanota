@@ -3,7 +3,7 @@ import {encryptKey, decryptKey, resolveSessionKey, encryptBytes, encryptString} 
 import {aes128RandomKey} from "../crypto/Aes"
 import {serviceRequestVoid, load, serviceRequest, loadRoot} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {loginFacade} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import type {ConversationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
@@ -49,7 +49,7 @@ import {hash} from "../crypto/Sha256"
 import {createDraftAttachment} from "../../entities/tutanota/DraftAttachment"
 import {createNewDraftAttachment} from "../../entities/tutanota/NewDraftAttachment"
 import {_TypeModel as FileTypeModel, FileTypeRef} from "../../entities/tutanota/File"
-import {fileFacade} from "./FileFacade"
+import type {FileFacade} from "./FileFacade"
 import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData"
 import {assertWorkerOrNode} from "../../Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -59,18 +59,21 @@ import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailA
 
 assertWorkerOrNode()
 
-class MailFacade {
-
+export class MailFacade {
+	_login: LoginFacade;
+	_file: FileFacade;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
 
-	constructor() {
+	constructor(login: LoginFacade, fileFacade: FileFacade) {
+		this._login = login
+		this._file = fileFacade
 		this._deferredDraftId = null
 		this._deferredDraftUpdate = null
 	}
 
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id) {
-		let mailGroupKey = loginFacade.getGroupKey(ownerGroupId)
+		let mailGroupKey = this._login.getGroupKey(ownerGroupId)
 		let sk = aes128RandomKey()
 		let newFolder = createCreateMailFolderData()
 		newFolder.folderName = name
@@ -87,9 +90,9 @@ class MailFacade {
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
 	 */
 	createDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], conversationType: ConversationTypeEnum, previousMessageId: ?Id, attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, replyTos: RecipientInfo[]): Promise<Mail> {
-		return getMailGroupIdForMailAddress(loginFacade.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
-			let userGroupKey = loginFacade.getUserGroupKey()
-			let mailGroupKey = loginFacade.getGroupKey(senderMailGroupId)
+		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
+			let userGroupKey = this._login.getUserGroupKey()
+			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
 			let sk = aes128RandomKey()
 			let service = createDraftCreateData()
 			service.previousMessageId = previousMessageId
@@ -124,7 +127,7 @@ class MailFacade {
 		})
 	}
 
-	_recipientInfoToDraftRecipient(toRecipients) {
+	_recipientInfoToDraftRecipient(toRecipients: RecipientInfo[]) {
 		return toRecipients.map(ri => {
 			let draftRecipient = createDraftRecipient()
 			draftRecipient.mailAddress = ri.mailAddress
@@ -148,8 +151,8 @@ class MailFacade {
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
 	updateDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
-		return getMailGroupIdForMailAddress(loginFacade.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
-			let mailGroupKey = loginFacade.getGroupKey(senderMailGroupId)
+		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
+			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
 			let sk = decryptKey(mailGroupKey, (draft._ownerEncSessionKey:any))
 
 			let service = createDraftUpdateData()
@@ -211,13 +214,13 @@ class MailFacade {
 					// user added attachment
 					let fileSessionKey = aes128RandomKey()
 					let dataFile = ((providedFile:any):DataFile)
-					return fileFacade.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
+					return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
 						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
 					})
 				} else if (providedFile._type == "FileReference") {
 					let fileSessionKey = aes128RandomKey()
 					let fileRef = ((providedFile:any):FileReference)
-					return fileFacade.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
+					return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
 						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
 					})
 				} else if (!containsId((existingFileIds:any), getLetId(providedFile))) {
@@ -248,8 +251,8 @@ class MailFacade {
 		return attachment
 	}
 
-	sendDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string) {
-		return getMailGroupIdForMailAddress(loginFacade.getLoggedInUser(), draft.sender.address).then(senderMailGroupId => {
+	sendDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string): Promise<void> {
+		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address).then(senderMailGroupId => {
 			let bucketKey = aes128RandomKey()
 
 			let service = createSendDraftData()
@@ -271,7 +274,7 @@ class MailFacade {
 				})
 			}).then(() => {
 				return Promise.all([
-					loadRoot(TutanotaPropertiesTypeRef, loginFacade.getUserGroupId()).then(tutanotaProperties => {
+					loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
 						service.plaintext = tutanotaProperties.sendPlaintextOnly
 					}),
 					resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
@@ -308,7 +311,7 @@ class MailFacade {
 						password = recipientInfo.contact.autoTransmitPassword
 						let preshared = false
 					}
-					if (password == null || !isSameId(loginFacade.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
+					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
 						notFoundRecipients.push(recipientInfo.mailAddress)
 						return Promise.resolve()
 					}
@@ -361,21 +364,21 @@ class MailFacade {
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
 	_getExternalGroupKey = function (recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey :Aes128Key, externalMailGroupKey :Aes128Key}> {
-		return loadRoot(GroupRootTypeRef, loginFacade.getUserGroupId()).then(groupRoot => {
+		return loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
 			return load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId]).then(externalUserReference => {
 				return load(UserTypeRef, externalUserReference.user).then(externalUser => {
 					let mailGroupId = neverNull(externalUser.memberships.find(m => m.groupType === GroupType.Mail)).group
 					return Promise.all([load(GroupTypeRef, mailGroupId), load(GroupTypeRef, externalUserReference.userGroup)]).then(([externalMailGroup, externalUserGroup]) => {
-						let externalUserGroupKey = decryptKey(loginFacade.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
+						let externalUserGroupKey = decryptKey(this._login.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
 						let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
 						return {externalUserGroupKey, externalMailGroupKey}
 					})
 				})
 			}).catch(NotFoundError, e => {
 				// it does not exist, so create it
-				let internalMailGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Mail))
+				let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
 				let externalUserGroupKey = aes128RandomKey()
 				let externalMailGroupKey = aes128RandomKey()
 				let externalUserGroupInfoSessionKey = aes128RandomKey()
@@ -401,7 +404,7 @@ class MailFacade {
 				let userGroupData = createCreateExternalUserGroupData()
 				userGroupData.mailAddress = cleanedMailAddress
 				userGroupData.externalPwEncUserGroupKey = encryptKey(externalUserPwKey, externalUserGroupKey)
-				userGroupData.internalUserEncUserGroupKey = encryptKey(loginFacade.getUserGroupKey(), externalUserGroupKey)
+				userGroupData.internalUserEncUserGroupKey = encryptKey(this._login.getUserGroupKey(), externalUserGroupKey)
 
 				d.userGroupData = userGroupData
 
@@ -452,4 +455,3 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 	})
 }
 
-export const mailFacade: MailFacade = new MailFacade()

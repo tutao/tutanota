@@ -2,18 +2,59 @@
 import o from "ospec/ospec.js"
 import {EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
-import {getEntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
-import {mockAttribute, unmockAttribute} from "../TestUtils"
-import {loginFacade} from "../../../src/api/worker/facades/LoginFacade"
-import {mailFacade} from "../../../src/api/worker/facades/MailFacade"
-import {workerImpl} from "../../../src/api/worker/WorkerImpl"
 
 o.spec("EventBusClient test", () => {
 
-	let ebc = new EventBusClient()
+	let ebc: any = null
+	let cacheMock: any = null
 
 	o.beforeEach(() => {
-		ebc = new EventBusClient()
+		cacheMock = ({
+			cacheCallState: "initial",
+			entityEventReceived: (data: EntityUpdate) => {
+				//console.log("enter", cacheCallState)
+				if (cacheMock.cacheCallState == "initial") {
+					cacheMock.cacheCallState = "firstEntered"
+				} else if (cacheMock.cacheCallState == "firstFinished") {
+					cacheMock.cacheCallState = "secondEntered"
+				} else {
+					o(cacheMock.cacheCallState).equals("invalid state found entering entityEventReceived")
+				}
+				return Promise.delay(10).then(() => {
+					//console.log("finish", cacheCallState)
+					if (cacheMock.cacheCallState == "firstEntered") {
+						cacheMock.cacheCallState = "firstFinished"
+					} else if (cacheMock.cacheCallState == "secondEntered") {
+						cacheMock.cacheCallState = "secondFinished"
+					} else {
+						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventReceived")
+					}
+				})
+			}
+		}:any)
+		let loginMock: any = {
+			entityEventReceived: () => {
+				return Promise.resolve()
+			}
+		}
+		let mailMock: any = {
+			entityEventReceived: () => {
+				return Promise.resolve()
+			}
+		}
+		let workerMock: any = {
+			entityEventReceived: () => {
+				return Promise.resolve()
+			}
+		}
+		let indexerMock: any = {
+			processEntityEvents: (filteredEvents, groupId, batchId) => {
+				return Promise.resolve()
+			}
+		}
+
+
+		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock)
 		let e = (ebc:any)
 		e.connect = function (reconnect: boolean) {
 		}
@@ -38,36 +79,6 @@ o.spec("EventBusClient test", () => {
 
 	o("parallel received event batches are passed sequentially to the entity rest cache", node((done, timeout) => {
 		timeout(500)
-		let cacheCallState = "initial"
-		let cacheMock = mockAttribute(getEntityRestCache(), getEntityRestCache().entityEventReceived, (data: EntityUpdate) => {
-			//console.log("enter", cacheCallState)
-			if (cacheCallState == "initial") {
-				cacheCallState = "firstEntered"
-			} else if (cacheCallState == "firstFinished") {
-				cacheCallState = "secondEntered"
-			} else {
-				o(cacheCallState).equals("invalid state found entering entityEventReceived")
-			}
-			return Promise.delay(10).then(() => {
-				//console.log("finish", cacheCallState)
-				if (cacheCallState == "firstEntered") {
-					cacheCallState = "firstFinished"
-				} else if (cacheCallState == "secondEntered") {
-					cacheCallState = "secondFinished"
-				} else {
-					o(cacheCallState).equals("invalid state found finishing entityEventReceived")
-				}
-			})
-		})
-		let loginMock = mockAttribute(loginFacade, loginFacade.entityEventReceived, () => {
-			return Promise.resolve()
-		})
-		let mailMock = mockAttribute(mailFacade, mailFacade.entityEventReceived, () => {
-			return Promise.resolve()
-		})
-		let workerMock = mockAttribute(workerImpl, workerImpl.entityEventReceived, () => {
-			return Promise.resolve()
-		})
 
 		let messageData1 = _createMessageData(1)
 		let messageData2 = _createMessageData(2)
@@ -77,11 +88,7 @@ o.spec("EventBusClient test", () => {
 		let p2 = ebc._message(({data: JSON.stringify(messageData2)}:any))
 		Promise.all([p1, p2]).then(() => {
 			// make sure the second queued event was also processed
-			o(cacheCallState).equals("secondFinished")
-			unmockAttribute(workerMock)
-			unmockAttribute(mailMock)
-			unmockAttribute(loginMock)
-			unmockAttribute(cacheMock)
+			o(cacheMock.cacheCallState).equals("secondFinished")
 			done()
 		})
 	}))
