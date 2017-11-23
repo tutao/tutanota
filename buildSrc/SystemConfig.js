@@ -18,7 +18,8 @@ const dependencyMap = {
 	"dompurify": "./libs/purify.min.js",
 	"autolinker": "./libs/Autolinker.js",
 	"qrcode": "./libs/qrcode-svg.min.js",
-	"@hot": "@empty" // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
+	"@hot": "@empty", // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
+	"util": "@empty" // used by ospec to provide debug output in node
 }
 
 const systemConfigTemplate = {
