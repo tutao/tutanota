@@ -53,7 +53,8 @@ class HtmlSanitizer {
 		let cleanHtml = this.purifier.sanitize(html, {
 			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
 			ADD_URI_SAFE_ATTR: ['poster'], // for video element
-			FORBID_TAGS: ['style'] // prevent loading of external fonts.
+			FORBID_TAGS: ['style'], // prevent loading of external fonts
+			FORBID_ATTR: ['class'] // remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 		});
 		return {"text": cleanHtml, "externalContent": this._externalContent};
 	}
