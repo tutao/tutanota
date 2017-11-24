@@ -5,15 +5,6 @@ import {Icons} from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
-export const MailFolderType = {
-	CUSTOM: '0',
-	INBOX: '1',
-	SENT: '2',
-	TRASH: '3',
-	ARCHIVE: '4',
-	SPAM: '5',
-	DRAFT: '6'
-}
 
 export class MailFolderViewModel {
 	folder: MailFolder;

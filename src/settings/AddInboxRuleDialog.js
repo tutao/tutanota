@@ -14,11 +14,11 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {MailBoxController} from "../mail/MailBoxController"
 import {logins} from "../api/main/LoginController"
 import {getFolderName, getInboxFolder, getArchiveFolder} from "../mail/MailUtils"
-import type {MailboxDetails} from "../mail/MailModel"
+import type {MailboxDetail} from "../mail/MailModel"
 
 assertMainOrNode()
 
-export function show(mailBoxDetails: MailboxDetails, preselectedInboxRuleType: string, preselectedValue: string) {
+export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: string, preselectedValue: string) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetails) {

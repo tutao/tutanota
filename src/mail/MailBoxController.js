@@ -10,12 +10,10 @@ import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {NavButton} from "../gui/base/NavButton"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {ExpanderButton} from "../gui/base/Expander"
 import {Button} from "../gui/base/Button"
-import {mailModel} from "./MailModel"
-import {isUserMailbox} from "./MailUtils"
 
 assertMainOrNode()
 
@@ -23,7 +21,6 @@ export class MailBoxController {
 	_mailbox: ?MailBox;
 	_mailGroup: ?Group;
 	mailGroupInfo: ?GroupInfo;
-	displayName: string;
 	_folders: MailFolderViewModel[];
 	mailGroupMembership: GroupMembership;
 	systemFolderButtons: NavButton[];
@@ -37,7 +34,6 @@ export class MailBoxController {
 		this.mailGroupInfo = null
 		this._mailGroup = null
 		this.mailboxExpander = null;
-		this.displayName = ""
 		this._folders = []
 		this.mailGroupMembership = mailGroupMembership
 
@@ -121,68 +117,6 @@ export class MailBoxController {
 			}
 		}
 		return Promise.resolve(false)
-	}
-
-	getSystemFolders(): MailFolderViewModel[] {
-		return this._folders.filter(f => {
-			if (f.folder.folderType == MailFolderType.CUSTOM) {
-				return false
-			} else if (f.folder.folderType == MailFolderType.SPAM && !logins.isInternalUserLoggedIn()) {
-				return false
-			} else if (logins.isEnabled(FeatureType.InternalCommunication) && f.folder.folderType === MailFolderType.SPAM) {
-				return false
-			} else {
-				return true
-			}
-		}).sort((folder1, folder2) => {
-			// insert the draft folder after inbox (use type number 1.5 which is after inbox)
-			if (folder1.folder.folderType == MailFolderType.DRAFT) {
-				return 1.5 - Number(folder2.folder.folderType);
-			} else if (folder2.folder.folderType == MailFolderType.DRAFT) {
-				return Number(folder1.folder.folderType) - 1.5;
-			}
-			return Number(folder1.folder.folderType) - Number(folder2.folder.folderType);
-		})
-	}
-
-	getTrashFolder(): MailFolderViewModel {
-		return (this._folders.find(vm => vm.folder.folderType === MailFolderType.TRASH):any)
-	}
-
-	getInboxFolder(): MailFolderViewModel {
-		return (this._folders.find(vm => vm.folder.folderType === MailFolderType.INBOX):any)
-	}
-
-	getArchiveFolder(): MailFolderViewModel {
-		return (this._folders.find(vm => vm.folder.folderType === MailFolderType.ARCHIVE):any)
-	}
-
-	getCustomFolders(): MailFolderViewModel[] {
-		return this._folders.filter(f => f.folder.folderType == MailFolderType.CUSTOM).sort((folder1, folder2) => {
-			return folder1.folder.name.localeCompare(folder2.folder.name)
-		});
-	}
-
-	getAllFolders(): MailFolderViewModel[] {
-		return this.getSystemFolders().concat(this.getCustomFolders())
-	}
-
-	updateNameFromGroupInfo(groupInfoId: IdTuple): Promise<boolean> {
-		let userMailbox = isUserMailbox(mailModel.getMailboxDetailsForGroupInfo(groupInfoId))
-		if (userMailbox && isSameId(logins.getUserController().userGroupInfo._id, groupInfoId)) {
-			return load(GroupInfoTypeRef, groupInfoId).then(groupInfo => {
-				this.displayName = getGroupInfoDisplayName(groupInfo)
-				return true
-			})
-		} else if (!userMailbox && isSameId(this.mailGroupMembership.groupInfo, groupInfoId)) {
-			return load(GroupInfoTypeRef, groupInfoId).then(groupInfo => {
-				this.mailGroupInfo = groupInfo
-				this.displayName = getGroupInfoDisplayName(groupInfo)
-				return true
-			})
-		} else {
-			return Promise.resolve(false)
-		}
 	}
 
 

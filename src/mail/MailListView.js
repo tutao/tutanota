@@ -9,11 +9,10 @@ import {ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder} from "./MailUtils"
+import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder, getTrashFolder} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
@@ -46,7 +45,7 @@ export class MailListView {
 			},
 			loadSingle: (elementId) => {
 				return load(MailTypeRef, [this.listId, elementId]).then((entity) => {
-					return findAndApplyMatchingRule(neverNull(this.mailView.selectedMailbox), entity).then(ruleFound => {
+					return findAndApplyMatchingRule(mailModel.getMailboxDetailsForMailListId(this.listId), entity).then(ruleFound => {
 						if (ruleFound) {
 							return null
 						} else {
@@ -85,9 +84,9 @@ export class MailListView {
 	}
 
 	targetInbox() {
-		const mailbox = this.mailView.selectedMailbox
-		if (mailbox) {
-			return this.mailView.selectedFolder == mailbox.getArchiveFolder() || this.mailView.selectedFolder == mailbox.getTrashFolder()
+		const mailboxDetail = this.mailView.selectedFolder ? mailModel.getMailboxDetailsForMailListId(this.mailView.selectedFolder.mails) : null
+		if (mailboxDetail) {
+			return this.mailView.selectedFolder == getArchiveFolder(mailboxDetail.folders) || this.mailView.selectedFolder == getTrashFolder(mailboxDetail.folders)
 		} else {
 			return false
 		}
@@ -96,10 +95,11 @@ export class MailListView {
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
 		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
-			if (isInboxList(neverNull(this.mailView.selectedMailbox), this.listId)) {
+			let mailboxDetail = mailModel.getMailboxDetailsForMailListId(this.listId)
+			if (isInboxList(mailboxDetail, this.listId)) {
 				// filter emails
 				return Promise.filter(mails, (mail) => {
-					return findAndApplyMatchingRule(neverNull(this.mailView.selectedMailbox), mail).then(ruleFound => !ruleFound)
+					return findAndApplyMatchingRule(mailboxDetail, mail).then(ruleFound => !ruleFound)
 				}).then(inboxMails => {
 					if (mails.length == count && inboxMails.length < mails.length) {
 						//console.log("load more because of matching inbox rules")

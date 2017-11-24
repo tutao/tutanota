@@ -3,12 +3,13 @@ import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientI
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
+import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ContactAddressType,
 	GroupType,
 	MailState,
-	MailFolderType,
-	EmailSignatureType as TutanotaConstants
+	EmailSignatureType as TutanotaConstants,
+	MailFolderType
 } from "../api/common/TutanotaConstants"
 import {neverNull, getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
@@ -25,9 +26,10 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {lang} from "../misc/LanguageViewModel"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {Icons} from "../gui/base/icons/Icons"
-import type {MailboxDetails} from "./MailModel"
+import type {MailboxDetail} from "./MailModel"
 
 assertMainOrNode()
+
 
 export function createRecipientInfo(mailAddress: string, name: string, contact: ?Contact): RecipientInfo {
 	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
@@ -216,15 +218,41 @@ export function getTrashFolder(folders: MailFolder[]): MailFolder {
 	return (folders.find(f => f.folderType === MailFolderType.TRASH):any)
 }
 
+
 export function getInboxFolder(folders: MailFolder[]): MailFolder {
-	return (folders.find(f => f.folderType === MailFolderType.INBOX):any)
+	return getFolder(folders, MailFolderType.INBOX)
 }
 
 export function getArchiveFolder(folders: MailFolder[]): MailFolder {
-	return (folders.find(f => f.folderType === MailFolderType.ARCHIVE):any)
+	return getFolder(folders, MailFolderType.ARCHIVE)
 }
 
-export function getEnabledMailAddresses(mailboxDetails: MailboxDetails): string[] {
+
+export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
+	return (folders.find(f => f.folderType === type):any)
+}
+
+
+export function getSystemFolders(folders: MailFolder[]): MailFolder[] {
+	return folders.filter(f => f.folderType !== MailFolderType.CUSTOM).sort((folder1, folder2) => {
+		// insert the draft folder after inbox (use type number 1.5 which is after inbox)
+		if (folder1.folderType == MailFolderType.DRAFT) {
+			return 1.5 - Number(folder2.folderType)
+		} else if (folder2.folderType == MailFolderType.DRAFT) {
+			return Number(folder1.folderType) - 1.5
+		}
+		return Number(folder1.folderType) - Number(folder2.folderType)
+	})
+}
+
+export function getCustomFolders(folders: MailFolder[]): MailFolder[] {
+	return folders.filter(f => f.folderType == MailFolderType.CUSTOM).sort((folder1, folder2) => {
+		return folder1.name.localeCompare(folder2.name)
+	})
+}
+
+
+export function getEnabledMailAddresses(mailboxDetails: MailboxDetail): string[] {
 	if (isUserMailbox(mailboxDetails)) {
 		return getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
 	} else {
@@ -232,12 +260,12 @@ export function getEnabledMailAddresses(mailboxDetails: MailboxDetails): string[
 	}
 }
 
-export function isUserMailbox(mailboxDetails: MailboxDetails) {
+export function isUserMailbox(mailboxDetails: MailboxDetail) {
 	return mailboxDetails.mailGroup.user != null
 }
 
 
-export function getDefaultSender(mailboxDetails: MailboxDetails): string {
+export function getDefaultSender(mailboxDetails: MailboxDetail): string {
 	if (isUserMailbox(mailboxDetails)) {
 		let props = logins.getUserController().props
 		return (props.defaultSender && contains(getEnabledMailAddresses(mailboxDetails), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
@@ -246,11 +274,11 @@ export function getDefaultSender(mailboxDetails: MailboxDetails): string {
 	}
 }
 
-export function isFinallyDeleteAllowed(folder: MailFolder): boolean {
-	return folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM
+export function isFinallyDeleteAllowed(folder: ?MailFolder): boolean {
+	return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
 }
 
-export function getSenderName(mailboxDetails: MailboxDetails): string {
+export function getSenderName(mailboxDetails: MailboxDetail): string {
 	let senderName = ""
 	if (isUserMailbox(mailboxDetails)) {
 		// external users do not have access to the user group info
@@ -273,7 +301,7 @@ export function getEmailSignature(): string {
 }
 
 
-export function getMailboxName(mailboxDetails: MailboxDetails): string {
+export function getMailboxName(mailboxDetails: MailboxDetail): string {
 	if (!logins.isInternalUserLoggedIn()) {
 		return lang.get("mailbox_label")
 	} else if (isUserMailbox(mailboxDetails)) {

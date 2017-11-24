@@ -62,7 +62,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {size, px} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {MailboxDetails} from "./MailModel"
+import type {MailboxDetail} from "./MailModel"
 
 
 assertMainOrNode()
@@ -90,7 +90,7 @@ export class MailEditor {
 	_previousMail: ?Mail;
 	_entityEventReceived: EntityEventReceived;
 	_attachFilesButton: Button;
-	_mailboxDetails: MailboxDetails;
+	_mailboxDetails: MailboxDetail;
 	_replyTos: RecipientInfo[];
 
 	/**
@@ -98,7 +98,7 @@ export class MailEditor {
 	 * to an existing message or edit an existing draft.
 	 *
 	 */
-	constructor(mailboxDetails: MailboxDetails) {
+	constructor(mailboxDetails: MailboxDetail) {
 		this.conversationType = ConversationType.NEW
 		this.toRecipients = new BubbleTextField("to_label", new MailBubbleHandler(this))
 		this.ccRecipients = new BubbleTextField("cc_label", new MailBubbleHandler(this))

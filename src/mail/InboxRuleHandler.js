@@ -7,10 +7,11 @@ import {isDomainName, isRegularExpression} from "../misc/Formatter"
 import {isSameId, HttpMethod} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
-import {MailBoxController} from "./MailBoxController"
 import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {logins} from "../api/main/LoginController"
+import {getInboxFolder} from "./MailUtils"
+import type {MailboxDetail} from "./MailModel"
 
 assertMainOrNode()
 
@@ -34,13 +35,16 @@ export function getInboxRuleTypeName(type: string): string {
  * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
  * @returns true if a rule matches otherwise false
  */
-export function findAndApplyMatchingRule(mailboxController: MailBoxController, mail: Mail): Promise<boolean> {
-	if (!mail.unread || !isInboxList(mailboxController, mail._id[0]) || !logins.getUserController().isPremiumAccount()) {
+export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
+	if (!mailboxDetail) {
+		console.log("sssss", mailboxDetail)
+	}
+	if (!mail.unread || !isInboxList(mailboxDetail, mail._id[0]) || !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(false)
 	}
 	return _findMatchingRule(mail).then(inboxRule => {
 		if (inboxRule) {
-			let targetFolder = mailboxController.getAllFolders().find(folder => isSameId(folder.folder._id, neverNull(inboxRule).targetFolder));
+			let targetFolder = mailboxDetail.folders.find(folder => isSameId(folder._id, neverNull(inboxRule).targetFolder));
 			if (targetFolder) {
 				let moveMailData = createMoveMailData()
 				moveMailData.targetFolder = inboxRule.targetFolder
@@ -132,6 +136,6 @@ function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule
 	}
 }
 
-export function isInboxList(mailboxController: MailBoxController, listId: Id) {
-	return isSameId(listId, mailboxController.getInboxFolder().folder.mails)
+export function isInboxList(mailboxDetail: MailboxDetail, listId: Id) {
+	return isSameId(listId, getInboxFolder(mailboxDetail.folders).mails)
 }

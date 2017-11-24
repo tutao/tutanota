@@ -1,10 +1,11 @@
 //@flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {neverNull} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {serviceRequestVoid, loadAll, load} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -16,11 +17,11 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {worker} from "../api/main/WorkerClient"
-import {OperationType} from "../api/common/TutanotaConstants"
+import {OperationType, MailFolderType, FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {module as replaced} from "@hot"
+import {UserTypeRef} from "../api/entities/sys/User"
 
-
-export type MailboxDetails ={
+export type MailboxDetail ={
 	mailbox: MailBox,
 	folders: MailFolder[],
 	mailGroupInfo: GroupInfo,
@@ -29,32 +30,41 @@ export type MailboxDetails ={
 
 class MailModel {
 
-	_mailboxes: MailboxDetails[]
+	_details: stream<MailboxDetail[]>
+	_initialization: ?Promise<void>
 
 	constructor() {
-		this._mailboxes = []
+		this._details = stream([])
+		this._initialization = null
 
 		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	init(): Promise<void> {
+		if (this._initialization) {
+			return this._initialization
+		}
+
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
-		return Promise.all(mailGroupMemberships.map(mailGroupMembership => {
+		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
 			return Promise.all([
 				load(MailboxGroupRootTypeRef, mailGroupMembership.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)),
 				load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
 				load(GroupTypeRef, mailGroupMembership.group)
 			]).spread((mailbox, mailGroupInfo, mailGroup) => {
 				return this._loadFolders(neverNull(mailbox.systemFolders).folders, true).then(folders => {
-					this._mailboxes.push({
+					return {
 						mailbox,
 						folders,
 						mailGroupInfo,
 						mailGroup
-					})
+					}
 				})
 			})
-		})).return()
+		})).then(details => {
+			this._details(details)
+		}).return()
+		return this._initialization
 	}
 
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
@@ -66,43 +76,53 @@ class MailModel {
 			} else {
 				return folders
 			}
+		}).then(folders => {
+			return folders.filter(f => {
+				if (f.folderType == MailFolderType.SPAM && !logins.isInternalUserLoggedIn()) {
+					return false
+				} else if (logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
+					return false
+				} else {
+					return true
+				}
+			})
 		})
 	}
 
-	getMailboxDetails(mail: Mail): MailboxDetails {
-		return neverNull(this._mailboxes.find((md) => md.folders.find(f => f.mails == mail._id[0]) != null))
+	getMailboxDetails(mail: Mail): MailboxDetail {
+		return this.getMailboxDetailsForMailListId(mail._id[0])
 	}
 
-	getMailboxDetailsForMembership(mailGroupMembership: GroupMembership): MailboxDetails {
-		return neverNull(this._mailboxes.find((md) => mailGroupMembership.group == md.mailbox._ownerGroup))
+	getMailboxDetailsForMailListId(mailListId: Id): MailboxDetail {
+		return neverNull(this._details().find((md) => md.folders.find(f => f.mails == mailListId) != null))
 	}
 
-	getMailboxDetailsForGroupInfo(mailGroupInfoId: IdTuple): MailboxDetails {
-		return neverNull(this._mailboxes.find((md) => isSameId(mailGroupInfoId, md.mailGroupInfo._id)))
+	getMailboxDetailsForMailGroup(mailGroupId: Id): MailboxDetail {
+		return neverNull(this._details().find((md) => mailGroupId == md.mailGroup._id))
 	}
 
-	getUserMailboxDetails(): MailboxDetails {
+	getUserMailboxDetails(): MailboxDetail {
 		let userMailGroupMembership = logins.getUserController().getUserMailGroupMembership()
-		return neverNull(this._mailboxes.find(md => md.mailGroup._id == userMailGroupMembership.group))
+		return neverNull(this._details().find(md => md.mailGroup._id == userMailGroupMembership.group))
 	}
 
 	getMailboxFolders(mail: Mail): MailFolder[] {
 		return this.getMailboxDetails(mail).folders
 	}
 
-	getMailFolder(mail: Mail): MailFolder {
-		for (let e of this._mailboxes) {
+	getMailFolder(mailListId: Id): ?MailFolder {
+		for (let e of this._details()) {
 			for (let f of e.folders) {
-				if (f.mails == mail._id[0]) {
+				if (f.mails == mailListId) {
 					return f
 				}
 			}
 		}
-		throw new Error("No folder found for mail " + JSON.stringify(mail._id))
+		return null
 	}
 
 	moveMails(mails: Mail[], target: MailFolder): Promise<void> {
-		let moveMails = mails.filter(m => m._id[0] != target.mails && target._ownerGroup != mails[0]._ownerGroup) // prevent moving mails between mail boxes.
+		let moveMails = mails.filter(m => m._id[0] != target.mails && target._ownerGroup == m._ownerGroup) // prevent moving mails between mail boxes.
 		if (moveMails.length > 0) {
 			let moveMailData = createMoveMailData()
 			moveMailData.targetFolder = target._id
@@ -115,7 +135,7 @@ class MailModel {
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		let groupedMails = mails.reduce((all, mail) => {
-			isFinallyDeleteAllowed(mailModel.getMailFolder(mail)) ? all.trash.push(mail) : all.move.push(mail)
+			isFinallyDeleteAllowed(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
 			return all
 		}, {trash: [], move: []})
 
@@ -133,11 +153,24 @@ class MailModel {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, MailFolderTypeRef) || isSameTypeRef(typeRef, GroupInfoTypeRef)) {
+		if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
+			this._initialization = null
 			this.init().then(() => m.redraw())
 		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef)) {
 			if (operation == OperationType.UPDATE) {
+				this._initialization = null
 				this.init().then(() => m.redraw())
+			}
+		} else if (isSameTypeRef(typeRef, UserTypeRef)) {
+			if (operation == OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
+				load(UserTypeRef, elementId).then(updatedUser => {
+					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType == GroupType.Mail)
+					let currentDetails = this._details()
+					if (newMemberships.length != currentDetails.length && newMemberships.find(membership => currentDetails.find(detail => membership.group == detail.mailGroup._id) == null)) {
+						this._initialization = null
+						this.init().then(() => m.redraw())
+					}
+				})
 			}
 		}
 	}

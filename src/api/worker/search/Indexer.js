@@ -364,7 +364,7 @@ export class Indexer {
 		})
 
 		promises = promises.concat(Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
-			return transaction.get(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
+			return transaction.getAsList(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
 				let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => arrayEquals(e[0], encInstanceId)) == null)
 				if (newEntries.length > 0) {
 					return transaction.put(SearchIndexOS, encWord, newEntries)

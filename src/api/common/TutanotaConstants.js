@@ -37,6 +37,7 @@ export const MailFolderType = {
 	SPAM: '5',
 	DRAFT: '6'
 }
+
 export type MailFolderTypeEnum = $Values<typeof MailFolderType>;
 
 export const ReplyType = {

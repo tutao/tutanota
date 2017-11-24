@@ -12,7 +12,7 @@ import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {getFolderName, getFolderIcon} from "./MailUtils"
-import type {MailboxDetails} from "./MailModel"
+import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 
 assertMainOrNode()
@@ -34,7 +34,7 @@ export class MultiMailViewer {
 					set.push(mailBox)
 				}
 				return set
-			}, ([]:MailboxDetails[]))
+			}, ([]:MailboxDetail[]))
 
 			if (sourceMailboxes.length != 1) {
 				return []
