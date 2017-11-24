@@ -488,7 +488,7 @@ export class Indexer {
 		let transaction = this._db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
 			if (!indexData) {
-				console.log("index data not available", encInstanceId)
+				console.log("index data not available (instance is not indexed)", encInstanceId)
 				return
 			}
 			let words = utf8Uint8ArrayToString(aes256Decrypt(this._db.key, indexData[1], true)).split(" ")

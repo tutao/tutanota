@@ -278,6 +278,10 @@ export class MailView {
 						delete this._mailboxExpanders[mailGroupId]
 					}
 				})
+
+				if (this.selectedFolder) {
+					this.selectedFolder = neverNull(mailModel.getMailFolder(this.selectedFolder.mails))
+				}
 			})
 		}
 		this.onbeforeremove = () => {

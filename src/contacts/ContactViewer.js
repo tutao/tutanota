@@ -14,11 +14,10 @@ import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {NotFoundError} from "../api/common/error/RestError"
-import {MailBoxController} from "../mail/MailBoxController"
-import {logins} from "../api/main/LoginController"
 import {MailEditor} from "../mail/MailEditor"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType} from "../api/common/TutanotaConstants"
+import {mailModel} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -190,11 +189,9 @@ export class ContactViewer {
 
 
 	_writeMail(mailAddress: string) {
-		new MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
-			let editor = new MailEditor(mc)
-			editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", "", null).then(() => {
-				editor.show()
-			})
+		let editor = new MailEditor(mailModel.getUserMailboxDetails())
+		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", "", null).then(() => {
+			editor.show()
 		})
 	}
 
