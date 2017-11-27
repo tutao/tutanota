@@ -128,20 +128,20 @@ export class Indexer {
 			})
 		})
 		return t.await().then(() => {
-			return Promise.each(groupIdToEventBatches, (groupIdToEventBatch) => {
+			return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
 					let startId = groupIdToEventBatch.eventBatchIds[0] // start from lowest id
 					return loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
-						return Promise.each(eventBatches, batch => {
+						return Promise.map(eventBatches, batch => {
 							if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
 								//return Promise.delay(0).then(() => {
 								return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
 								//})
 							}
-						})
+						}, {concurrency: 5})
 					})
 				}
-			})
+			}, {concurrency: 1})
 		}).return()
 	}
 
