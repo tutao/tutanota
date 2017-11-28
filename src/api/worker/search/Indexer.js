@@ -403,22 +403,25 @@ export class Indexer {
 			})
 			if (indexUpdate.batchId) {
 				let batchId = indexUpdate.batchId
-				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityEvents => {
-					// FIXME cancel transaction if batch has been written already
-					let events = lastEntityEvents ? lastEntityEvents : []
-					let newIndex = events.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
-					if (newIndex !== -1) {
-						events.splice(newIndex, 0, batchId[1])
+				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityBatchIds => {
+					if (lastEntityBatchIds.indexOf(batchId[1])) { // concurrent indexing (multiple tabs)
+						transaction.abort()
 					} else {
-						events.push(batchId[1]) // new batch is oldest of all stored batches
+						let events = lastEntityBatchIds ? lastEntityBatchIds : []
+						let newIndex = events.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
+						if (newIndex !== -1) {
+							events.splice(newIndex, 0, batchId[1])
+						} else {
+							events.push(batchId[1]) // new batch is oldest of all stored batches
+						}
+						if (events.length > 1000) {
+							events = events.slice(0, 1000)
+						}
+						transaction.put(GroupIdToBatchIdsOS, batchId[0], events)
 					}
-					if (events.length > 1000) {
-						events = events.slice(0, 1000)
-					}
-					transaction.put(GroupIdToBatchIdsOS, batchId[0], events)
 				})
 			}
-			if (indexUpdate.contactListId) {
+			if (indexUpdate.contactListId && !transaction.aborted) {
 				transaction.get(MetaDataOS, Metadata.indexedContactLists).then(contactLists => {
 					contactLists.push(indexUpdate.contactListId)
 					transaction.put(MetaDataOS, Metadata.indexedContactLists, contactLists)

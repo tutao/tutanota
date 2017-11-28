@@ -66,6 +66,7 @@ type DbRequest = {
 class DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
+	aborted: boolean;
 
 	constructor(transaction: IDBTransaction) {
 		this._transaction = transaction
@@ -77,7 +78,7 @@ class DbTransaction {
 				callback()
 			}
 			transaction.onabort = (event) => {
-				callback(new DbError("IDB transaction aborted!", event))
+				callback()
 			}
 		})
 	}
@@ -138,6 +139,11 @@ class DbTransaction {
 				callback(new DbError("IDB could not delete key", e))
 			}
 		})
+	}
+
+	abort() {
+		this.aborted = true
+		this._transaction.abort()
 	}
 
 	await(): Promise<void> {
