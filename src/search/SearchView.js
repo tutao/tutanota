@@ -9,15 +9,15 @@ import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {MultiContactViewer} from "../contacts/MultiContactViewer"
 import {NavButton} from "../gui/base/NavButton"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {SearchListView} from "./SearchListView"
-import {MultiMailViewer} from "../mail/MultiMailViewer"
+import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {size, px} from "../gui/size"
-import {getRestriction, searchModel} from "./SearchModel"
+import {searchModel} from "./SearchModel"
+import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
+import {setSearchUrl, getRestriction} from "./SearchUtils"
 
 assertMainOrNode()
 
@@ -25,7 +25,7 @@ export class SearchView {
 	resultListColumn: ViewColumn;
 	resultDetailsColumn: ViewColumn;
 	folderColumn: ViewColumn;
-	viewer: ?MultiContactViewer|MultiMailViewer;
+	_viewer: SearchResultDetailsViewer;
 	viewSlider: ViewSlider;
 	_searchList: SearchListView;
 	view: Function;
@@ -49,23 +49,18 @@ export class SearchView {
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
 
-		this._searchList = new SearchListView()
+		this._searchList = new SearchListView(this)
 		this.resultListColumn = new ViewColumn({
 			view: () => m(".list-column", [
 				m(this._searchList),
 			])
 		}, ColumnType.Background, 300, 500, () => lang.get("searchResult_label"))
 
-		this.viewer = null
-
-
-		// let multiContactViewer = new MultiContactViewer(this)
-		//let multiContactViewer = new MultiMailViewer(this)
-		
+		this._viewer = new SearchResultDetailsViewer(this._searchList)
 		this.resultDetailsColumn = new ViewColumn({
-			view: () => m(".contact", null)
+			view: () => m(".search", m(this._viewer))
 		}, ColumnType.Background, 600, 2400, () => {
-			return ""
+			return
 		})
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
@@ -73,7 +68,6 @@ export class SearchView {
 		this.view = (): VirtualElement => {
 			return m("#search.main-view", m(this.viewSlider))
 		}
-
 		this._setupShortcuts()
 
 		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
@@ -115,6 +109,19 @@ export class SearchView {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
+	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
+		this._viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
+
+		if (entries.length == 1) {
+			setSearchUrl(m.route.param()['category'], header.buttonBar.searchBar.value(), entries[0]._id[1])
+		}
+		if (!multiSelectOperation && elementClicked) {
+			this._searchList.list._loading.then(() => {
+				this.viewSlider.focus(this.resultDetailsColumn)
+			})
+		}
+	}
+
 
 	/**
 	 * Notifies the current view about changes of the url within its scope.
@@ -122,15 +129,18 @@ export class SearchView {
 	 * @param args Object containing the optional parts of the url which are listId and contactId for the contact view.
 	 */
 	updateUrl(args: Object, requestedPath: string) {
-		searchModel.search(header.buttonBar.searchBar.value(), getRestriction(requestedPath))
-	}
-
-	/**
-	 * Sets a new url for the contact button in the header bar and navigates to the url.
-	 */
-	_setUrl(url: string) {
-		header.contactsUrl = url
-		m.route.set(url)
+		if (args.query) {
+			header.buttonBar.searchBar.value(args.query)
+		}
+		if (searchModel.isNewSearch(header.buttonBar.searchBar.value(), getRestriction(requestedPath))) {
+			searchModel.search(header.buttonBar.searchBar.value(), getRestriction(requestedPath))
+		}
+		if (args.id && this._searchList.list && !this._searchList.list.isEntitySelected(args.id) && this._searchList.list._domList) {
+			// the mail list is visible already, just the selected mail is changed
+			this._searchList.list.scrollToIdAndSelect(args.id)
+		} else if (!args.id && this._searchList.list.getSelectedEntities().length > 0) {
+			this._searchList.list.selectNone()
+		}
 	}
 
 	_deleteSelected(): void {
@@ -147,19 +157,6 @@ export class SearchView {
 		 */
 	}
 
-	elementSelected(selection: Array<Mail|Contact>, elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (selection.length == 1) {
-			//this.contactViewer = new ContactViewer(contacts[0], this)
-			this._setUrl(`/search/${this.getCategory()}/${selection[0]._id.join("/")}`)
-			if (elementClicked) {
-				this.viewSlider.focus(this.resultDetailsColumn)
-			}
-		} else {
-			//this.contactViewer = null
-			this._setUrl(`/search/${this.getCategory()}`)
-		}
-		m.redraw()
-	}
 
 	getCategory() {
 		let route = m.route.get().split("/")

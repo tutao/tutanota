@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {List} from "../gui/base/List"
+import {List, sortCompareByReverseId} from "../gui/base/List"
 import {GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
@@ -11,33 +11,35 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {load} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
+import type {SearchView} from "./SearchView"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
-class SearchResultListEntry {
+export class SearchResultListEntry {
 	_id: IdTuple;
 	entry: Mail|Contact;
 
 	constructor(entry: Mail|Contact) {
 		this._id = entry._id
 		this.entry = entry
-
 	}
 }
-
 
 export class SearchListView {
 	list: List<SearchResultListEntry, SearchResultListRow>;
 	view: Function;
+	_searchView: SearchView;
 
-	constructor() {
+	constructor(searchView: SearchView) {
+		this._searchView = searchView
 		searchModel.result.map((result) => {
-			let mail = result.restriction && isSameTypeRef(result.restriction.type, MailTypeRef)
-			let contact = result.restriction && isSameTypeRef(result.restriction.type, ContactTypeRef)
-
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
+					let result = searchModel.result()
+					let mail = result.restriction && isSameTypeRef(result.restriction.type, MailTypeRef)
+					let contact = result.restriction && isSameTypeRef(result.restriction.type, ContactTypeRef)
 					if (mail || contact) {
 						let resultIds = result.mails.concat(result.contacts)
 						let startIndex = 0
@@ -47,9 +49,10 @@ export class SearchListView {
 						}
 						let toLoad = resultIds.slice(startIndex, count)
 
-						return Promise.map(toLoad, (m) => load(result.restriction.type, m).then(m => new SearchResultListEntry(m)), {concurrency: 5}).finally(() => m.redraw())
+						return Promise.map(toLoad, (m) => load(result.restriction.type, m).then(m => new SearchResultListEntry(m)).catch(NotFoundError, () => console.log("search result not found")), {concurrency: 5}).then(sr => sr.filter(r => r)).finally(() => m.redraw())
 					} else {
-						throw new Error("incompatible type")
+						console.log("no type selected")
+						return Promise.resolve([])
 					}
 				},
 				loadSingle: (elementId) => {
@@ -59,28 +62,29 @@ export class SearchListView {
 					return Promise.resolve()
 				},
 
-				sortCompare: () => 0,
+				sortCompare: sortCompareByReverseId,
 
 				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
-
-					//contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
+					this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 				},
-				createVirtualRow: () => new SearchResultListRow(mail ? new MailRow() : new ContactRow()),
+				createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
 				showStatus: false,
-				className: mail ? "mail-list" : "contact-list",
+				className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
 				swipe: ({
 					renderLeftSpacer: () => [],
 					renderRightSpacer: () => [],
 					swipeLeft: listElement => Promise.resolve(),
 					swipeRight: listElement => Promise.resolve(),
 				}:any),
-				elementsDraggable: true,
-				multiSelectionAllowed: true,
+				elementsDraggable: false,
+				multiSelectionAllowed: false,
 				emptyMessage: lang.get("searchNoResults_msg")
 			})
-			this.list.loadInitial(null)
-		})
+			this.list.loadInitial(null).then(() => {
+				window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
+			})
 
+		})
 		this.view = (): ?VirtualElement => {
 			return this.list ? m(this.list) : null
 		}

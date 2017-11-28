@@ -2,7 +2,6 @@
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
-import {ContactView} from "./ContactView"
 import {ContactEditor} from "./ContactEditor"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -38,7 +37,6 @@ function insertBetween(array: any[], spacer: Object) {
 export class ContactViewer {
 	view: Function;
 	contact: Contact;
-	contactView: ContactView;
 	mailAddresses: TextField[];
 	phones: TextField[];
 	addresses: TextField[];
@@ -46,9 +44,8 @@ export class ContactViewer {
 	oncreate: Function;
 	onbeforeremove: Function;
 
-	constructor(contact: Contact, contactView: ContactView) {
+	constructor(contact: Contact) {
 		this.contact = contact
-		this.contactView = contactView
 
 		let actions = new ActionBar()
 			.add(new Button('edit_action', () => this.edit(), () => Icons.Edit))

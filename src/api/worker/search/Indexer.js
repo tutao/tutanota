@@ -117,26 +117,18 @@ export class Indexer {
 			t.get(GroupIdToBatchIdsOS, groupId).then(lastEventBatchIds => {
 				groupIdToEventBatches.push({
 					groupId,
-					eventBatchIds: lastEventBatchIds.sort((e1, e2) => { // sort batch ids in ascending order
-						if (e1 == e2) {
-							return 0
-						} else {
-							return firstBiggerThanSecond(e1, e2) ? 1 : -1
-						}
-					})
+					eventBatchIds: lastEventBatchIds
 				})
 			})
 		})
 		return t.await().then(() => {
 			return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
-					let startId = groupIdToEventBatch.eventBatchIds[0] // start from lowest id
+					let startId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
 					return loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
 						return Promise.map(eventBatches, batch => {
 							if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
-								//return Promise.delay(0).then(() => {
 								return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
-								//})
 							}
 						}, {concurrency: 5})
 					})
@@ -412,10 +404,16 @@ export class Indexer {
 			if (indexUpdate.batchId) {
 				let batchId = indexUpdate.batchId
 				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityEvents => {
+					// FIXME cancel transaction if batch has been written already
 					let events = lastEntityEvents ? lastEntityEvents : []
-					events.push(batchId[1])
+					let newIndex = events.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
+					if (newIndex !== -1) {
+						events.splice(newIndex, 0, batchId[1])
+					} else {
+						events.push(batchId[1]) // new batch is oldest of all stored batches
+					}
 					if (events.length > 1000) {
-						events.shift()
+						events = events.slice(0, 1000)
 					}
 					transaction.put(GroupIdToBatchIdsOS, batchId[0], events)
 				})

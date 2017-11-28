@@ -928,5 +928,6 @@ module.exports = {
 		"search_label": "Search",
 		"searchResult_label" : "Results",
 		"searchNoResults_msg": "No results",
+		"noSelection_msg" : "Nothing selected"
 	}
 }

@@ -143,7 +143,7 @@ let initialized = lang.init(en).then(() => {
 		"/contact/:listId": contactViewResolver,
 		"/contact/:listId/:contactId": contactViewResolver,
 		"/search/:category": searchViewResolver,
-		"/search/:category/:listId/:id": searchViewResolver,
+		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
 		"/signup": registerViewResolver,

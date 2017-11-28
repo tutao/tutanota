@@ -317,6 +317,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	selectNext(shiftPressed: boolean) {
+		if (!this._config.multiSelectionAllowed) {
+			shiftPressed = false
+		}
 		if (shiftPressed && this._lastMultiSelectWasKeyUp == true && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the top
 			this._selectedEntities.splice(0, 1)
@@ -341,6 +344,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	selectPrevious(shiftPressed: boolean) {
+		if (!this._config.multiSelectionAllowed) {
+			shiftPressed = false
+		}
 		if (shiftPressed && this._lastMultiSelectWasKeyUp == false && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the bottom
 			this._selectedEntities.splice(-1, 1)

@@ -241,7 +241,7 @@ export class ContactView {
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (contacts.length == 1) {
-			this.contactViewer = new ContactViewer(contacts[0], this)
+			this.contactViewer = new ContactViewer(contacts[0])
 			this._setUrl(`/contact/${contacts[0]._id.join("/")}`)
 			if (elementClicked) {
 				this.viewSlider.focus(this.contactColumn)
@@ -258,7 +258,7 @@ export class ContactView {
 			this._contactList.list.entityEventReceived(elementId, operation).then(() => {
 				if (operation == OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id, [neverNull(listId), elementId])) {
 					load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
-						this.contactViewer = new ContactViewer(updatedContact, this)
+						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()
 					})
 				}
