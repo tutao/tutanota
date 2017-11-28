@@ -404,7 +404,7 @@ export class Indexer {
 			if (indexUpdate.batchId) {
 				let batchId = indexUpdate.batchId
 				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityBatchIds => {
-					if (lastEntityBatchIds.indexOf(batchId[1])) { // concurrent indexing (multiple tabs)
+					if (lastEntityBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
 						transaction.abort()
 					} else {
 						let events = lastEntityBatchIds ? lastEntityBatchIds : []

@@ -18,7 +18,11 @@ import {size, px} from "../gui/size"
 import {searchModel} from "./SearchModel"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {setSearchUrl, getRestriction} from "./SearchUtils"
-
+import {MailTypeRef} from "../api/entities/tutanota/Mail"
+import {Dialog} from "../gui/base/Dialog"
+import {NotFoundError} from "../api/common/error/RestError"
+import {erase} from "../api/main/Entity"
+import {mailModel} from "../mail/MailModel"
 assertMainOrNode()
 
 export class SearchView {
@@ -144,17 +148,22 @@ export class SearchView {
 	}
 
 	_deleteSelected(): void {
-		/*
-		 Dialog.confirm("deleteContacts_msg").then(confirmed => {
-		 if (confirmed) {
-		 this._contactList.list.getSelectedEntities().forEach(contact => {
-		 erase(contact).catch(NotFoundError, e => {
-		 // ignore because the delete key shortcut may be executed again while the contact is already deleted
-		 })
-		 })
-		 }
-		 })
-		 */
+		let selected = this._searchList.list.getSelectedEntities()
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMail = ((selected[0].entry:any):Mail)
+				mailModel.deleteMails([selectedMail]).then(() => this._searchList.list._deleteLoadedEntity(selected[0]._id[1]))
+			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
+				let selectedContact = ((selected[0].entry:any):Contact)
+				Dialog.confirm("deleteContacts_msg").then(confirmed => {
+					if (confirmed) {
+						erase(selectedContact).catch(NotFoundError, e => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}).then(() => this._searchList.list._deleteLoadedEntity(selected[0]._id[1]))
+					}
+				})
+			}
+		}
 	}
 
 
