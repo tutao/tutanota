@@ -45,6 +45,7 @@ import {
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -139,7 +140,7 @@ export class MailView {
 
 		this._setupShortcuts()
 
-		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	_setupShortcuts() {

@@ -926,8 +926,10 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"search_label": "Search",
-		"searchResult_label" : "Results",
+		"searchResult_label": "Results",
 		"searchNoResults_msg": "No results",
-		"noSelection_msg" : "Nothing selected"
+		"noSelection_msg": "Nothing selected",
+		"searchMailbox_label": "Search Mailbox",
+		"searchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
 	}
 }

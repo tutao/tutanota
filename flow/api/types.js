@@ -97,10 +97,13 @@ type WorkerRequestType = 'setup'
 	| 'generateTotpCode'
 	| 'generateTotpSecret'
 	| 'search'
+	|'enableMailIndexing'
+	|'disableMailIndexing'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
 	| 'progress'
+	| 'updateIndexState'
 type NativeRequestType =  'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -224,4 +227,9 @@ type SearchResult = {
 	restriction: ?SearchRestriction,
 	mails: IdTuple[];
 	contacts: IdTuple[];
+}
+
+type SearchIndexStateInfo = {
+	mailIndexEnabled:boolean;
+	progress:number;
 }

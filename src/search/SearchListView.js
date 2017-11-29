@@ -6,13 +6,13 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
-import {searchModel} from "./SearchModel"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {load} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -33,11 +33,11 @@ export class SearchListView {
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
-		searchModel.result.map((result) => {
+		locator.search.result.map((result) => {
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
-					let result = searchModel.result()
+					let result = locator.search.result()
 					let mail = result.restriction && isSameTypeRef(result.restriction.type, MailTypeRef)
 					let contact = result.restriction && isSameTypeRef(result.restriction.type, ContactTypeRef)
 					if (mail || contact) {

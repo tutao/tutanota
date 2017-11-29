@@ -42,16 +42,16 @@ o.spec("Indexer test", () => {
 		let update = _createNewIndexUpdate()
 		let c = createContact()
 		c._id = [GENERATED_MIN_ID, GENERATED_MAX_ID]
-		const indexer = new Indexer((null:any))
-		indexer._db = ({key: aes256RandomKey()}:any)
+		const indexer = new Indexer((null:any), (null:any))
+		indexer.db = ({key: aes256RandomKey()}:any)
 		indexer._createContactIndexEntries(c, update)
 		o(update.create.encInstanceIdToIndexData.size).equals(1)
 
 		// empty IndexData
-		let key = uint8ArrayToBase64(encryptIndexKey(indexer._db.key, GENERATED_MAX_ID))
+		let key = uint8ArrayToBase64(encryptIndexKey(indexer.db.key, GENERATED_MAX_ID))
 		let value: IndexData = (update.create.encInstanceIdToIndexData.get(key):any)
 		o(value[0]).equals(GENERATED_MIN_ID)
-		o(uint8ArrayToBase64(aes256Decrypt(indexer._db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
+		o(uint8ArrayToBase64(aes256Decrypt(indexer.db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
 	})
 
 
@@ -60,15 +60,15 @@ o.spec("Indexer test", () => {
 		let m = createMail()
 		let b = createMailBody()
 		m._id = [GENERATED_MIN_ID, GENERATED_MAX_ID]
-		const indexer = new Indexer((null:any))
-		indexer._db = ({key: aes256RandomKey()}:any)
+		const indexer = new Indexer((null:any), (null:any))
+		indexer.db = ({key: aes256RandomKey()}:any)
 		indexer._createMailIndexEntries(m, b, update)
 		o(update.create.encInstanceIdToIndexData.size).equals(1)
 
 		// empty IndexData
-		let key = uint8ArrayToBase64(encryptIndexKey(indexer._db.key, GENERATED_MAX_ID))
+		let key = uint8ArrayToBase64(encryptIndexKey(indexer.db.key, GENERATED_MAX_ID))
 		let value: IndexData = (update.create.encInstanceIdToIndexData.get(key):any)
 		o(value[0]).equals(GENERATED_MIN_ID)
-		o(uint8ArrayToBase64(aes256Decrypt(indexer._db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
+		o(uint8ArrayToBase64(aes256Decrypt(indexer.db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
 	})
 })

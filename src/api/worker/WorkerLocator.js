@@ -13,14 +13,28 @@ import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacade} from "./facades/CustomerFacade"
 import {EventBusClient} from "./EventBusClient"
+import {assertWorkerOrNode} from "../Env"
+assertWorkerOrNode()
+type WorkerLocatorType = {
+	login: LoginFacade;
+	indexer :Indexer;
+	cache :EntityRestCache;
+	search :SearchFacade;
+	groupManagement :GroupManagementFacade;
+	userManagement :UserManagementFacade;
+	customer :CustomerFacade;
+	file :FileFacade;
+	mail :MailFacade;
+	mailAddress :MailAddressFacade;
+}
 
-export const locator = ({}:any)
+export const locator: WorkerLocatorType = ({}:any)
 
 export function initLocator(worker: WorkerImpl) {
 	locator.login = new LoginFacade(worker)
-	locator.indexer = new Indexer(new EntityRestClient(locator.login))
+	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker)
 	locator.cache = new EntityRestCache(new EntityRestClient(locator.login))
-	locator.search = new SearchFacade(locator.indexer._db)
+	locator.search = new SearchFacade(locator.indexer)
 	locator.groupManagement = new GroupManagementFacade(locator.login)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement)

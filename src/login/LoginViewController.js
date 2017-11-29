@@ -27,6 +27,7 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -141,7 +142,7 @@ export class LoginViewController {
 		}).then(() => {
 			if (logins.getUserController().isInternalUser()) {
 				// run this async
-				worker.getContactController().lazyContacts.getAsync()
+				locator.contact.lazyContacts.getAsync()
 			}
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()

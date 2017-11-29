@@ -16,10 +16,10 @@ import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import {worker} from "../api/main/WorkerClient"
 import {OperationType, MailFolderType, FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {module as replaced} from "@hot"
 import {UserTypeRef} from "../api/entities/sys/User"
+import {locator} from "../api/main/MainLocator"
 
 export type MailboxDetail ={
 	mailbox: MailBox,
@@ -37,7 +37,7 @@ class MailModel {
 		this._details = stream([])
 		this._initialization = null
 
-		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	init(): Promise<void> {

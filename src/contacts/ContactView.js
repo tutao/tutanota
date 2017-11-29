@@ -30,6 +30,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -89,7 +90,7 @@ export class ContactView {
 
 		this._setupShortcuts()
 
-		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	createNewContact() {
@@ -171,7 +172,7 @@ export class ContactView {
 							return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 								let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
 								let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
-								return worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+								return locator.contact.lazyContactListId.getAsync().then(contactListId => {
 									let promises = []
 									contactList.forEach((contact) => {
 										promises.push(setup(contactListId, contact))
@@ -201,12 +202,12 @@ export class ContactView {
 	 */
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
-			worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+			locator.contact.lazyContactListId.getAsync().then(contactListId => {
 				this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
-			worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+			locator.contact.lazyContactListId.getAsync().then(contactListId => {
 				if (args.listId != contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {

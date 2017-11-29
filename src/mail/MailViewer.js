@@ -26,7 +26,6 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {exportAsEml} from "./Exporter"
-import {worker} from "../api/main/WorkerClient"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {contains, addAll} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -59,6 +58,7 @@ import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {animations, scroll} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -311,7 +311,7 @@ export class MailViewer {
 	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?string) {
 		let buttons = [address.address]
 		if (logins.getUserController().isInternalUser()) {
-			let contact = worker.getContactController().findContactByMailAddress(address.address)
+			let contact = locator.contact.findContactByMailAddress(address.address)
 			if (contact) {
 				buttons.push(new Button("showContact_action", () => {
 					header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
@@ -319,7 +319,7 @@ export class MailViewer {
 				}, null).setType(ButtonType.Secondary))
 			} else {
 				buttons.push(new Button("createContact_action", () => {
-					worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+					locator.contact.lazyContactListId.getAsync().then(contactListId => {
 						new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
 					})
 				}, null).setType(ButtonType.Secondary))

@@ -11,16 +11,16 @@ import type {
 	EncryptedSearchIndexEntry,
 	KeyToIndexEntries,
 	IndexData,
-	SearchIndexEntry,
-	Db
+	SearchIndexEntry
 } from "./SearchTypes"
 import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
+import type {Indexer} from "./Indexer"
 
 export class SearchFacade {
-	_db: Db;
+	_indexer: Indexer;
 
-	constructor(db: Db) {
-		this._db = db
+	constructor(indexer: Indexer) {
+		this._indexer = indexer
 	}
 
 	/****************************** SEARCH ******************************/
@@ -34,18 +34,19 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
-		return this._findIndexEntries(searchTokens)
-			.then(results => this._filterByEncryptedId(results))
-			.then(results => this._decryptSearchResult(results))
-			.then(results => this._filterByAttributeId(results, restriction))
-			.then(results => this._groupSearchResults(query, restriction, results))
-		// ranking ->all tokens are in correct order in the same attribute
+		return this._indexer.mailboxIndexingPromise.then(() => this._findIndexEntries(searchTokens)
+				.then(results => this._filterByEncryptedId(results))
+				.then(results => this._decryptSearchResult(results))
+				.then(results => this._filterByAttributeId(results, restriction))
+				.then(results => this._groupSearchResults(query, restriction, results))
+			// ranking ->all tokens are in correct order in the same attribute
+		)
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
-		let transaction = this._db.dbFacade.createTransaction(true, [SearchIndexOS])
+		let transaction = this._indexer.db.dbFacade.createTransaction(true, [SearchIndexOS])
 		return Promise.map(searchTokens, (token) => {
-			let indexKey = encryptIndexKey(this._db.key, token)
+			let indexKey = encryptIndexKey(this._indexer.db.key, token)
 			return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
 				return {indexKey, indexEntries}
 			})
@@ -79,7 +80,7 @@ export class SearchFacade {
 		return results.map(searchResult => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry))
+				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._indexer.db.key, entry))
 			}
 		})
 	}
@@ -126,7 +127,7 @@ export class SearchFacade {
 		let uniqueIds = {}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
 			//console.log(entry)
-			let transaction = this._db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 			return transaction.get(ElementIdToIndexDataOS, neverNull(entry.encId)).then((indexData: IndexData) => {
 				let safeSearchResult = neverNull(searchResult)
 				if (!uniqueIds[entry.id]) {

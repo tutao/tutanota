@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
-import {worker} from "../api/main/WorkerClient"
 import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
@@ -15,7 +14,6 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {size, px} from "../gui/size"
-import {searchModel} from "./SearchModel"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {setSearchUrl, getRestriction} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -23,6 +21,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import {erase} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
+import {locator} from "../api/main/MainLocator"
 assertMainOrNode()
 
 export class SearchView {
@@ -74,7 +73,7 @@ export class SearchView {
 		}
 		this._setupShortcuts()
 
-		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 
@@ -136,8 +135,8 @@ export class SearchView {
 		if (args.query) {
 			header.buttonBar.searchBar.value(args.query)
 		}
-		if (searchModel.isNewSearch(header.buttonBar.searchBar.value(), getRestriction(requestedPath))) {
-			searchModel.search(header.buttonBar.searchBar.value(), getRestriction(requestedPath))
+		if (locator.search.isNewSearch(header.buttonBar.searchBar.value(), getRestriction(requestedPath))) {
+			locator.search.search(header.buttonBar.searchBar.value(), getRestriction(requestedPath))
 		}
 		if (args.id && this._searchList.list && !this._searchList.list.isEntitySelected(args.id) && this._searchList.list._domList) {
 			// the mail list is visible already, just the selected mail is changed

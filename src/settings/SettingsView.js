@@ -11,7 +11,6 @@ import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {EmptyViewer} from "./EmptyViewer"
-import {worker} from "../api/main/WorkerClient"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -27,6 +26,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -101,7 +101,7 @@ export class SettingsView {
 				(this._currentViewer && this._currentViewer.addButtonClicked) ? m(newAction) : null
 			])
 		}
-		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {

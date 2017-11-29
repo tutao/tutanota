@@ -181,6 +181,12 @@ export class WorkerImpl {
 			search: (message: Request) => {
 				return locator.search.search.apply(locator.search, message.args)
 			},
+			enableMailIndexing: (message: Request) => {
+				return locator.indexer.enableMailIndexing()
+			},
+			disableMailIndexing: (message: Request) => {
+				return locator.indexer.disableMailIndexing()
+			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},
@@ -233,5 +239,11 @@ export class WorkerImpl {
 			})
 		})
 	}
+
+	sendIndexState(state: SearchIndexStateInfo) {
+		console.log("worker set new index state", state)
+		return this._queue.postMessage(new Request("updateIndexState", [state]))
+	}
+
 }
 

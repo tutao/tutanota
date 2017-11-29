@@ -7,10 +7,10 @@ import {ContactView} from "./ContactView"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {compareContacts} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
-import {worker} from "../api/main/WorkerClient"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -29,7 +29,7 @@ export class ContactListView {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
 				if (startId == GENERATED_MAX_ID) {
-					return worker.getContactController().lazyContacts.getAsync().then(allContacts => {
+					return locator.contact.lazyContacts.getAsync().then(allContacts => {
 						// we have to set loadedCompletely to make sure that fetch is never called again and  also that new received contacts are inserted into the list, even at the end
 						this._setLoadedCompletely();
 

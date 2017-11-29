@@ -32,6 +32,7 @@ import {worker} from "../api/main/WorkerClient"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -44,9 +45,13 @@ export class MailSettingsViewer {
 	_defaultUnconfidential: DropDownSelector<boolean>;
 	_sendPlaintext: DropDownSelector<boolean>;
 	_noAutomaticContacts: DropDownSelector<boolean>;
+	_enableMailIndexing: DropDownSelector<boolean>;
 	_aliases: EditAliasesForm;
 	_inboxRulesTable: Table;
 	_pushIdentifiersTable: Table;
+
+	oncreate: Function;
+	onbeforeremove: Function;
 
 	constructor() {
 		this._senderName = new TextField("mailName_label").setValue(logins.getUserController().userGroupInfo.name).setDisabled()
@@ -90,6 +95,17 @@ export class MailSettingsViewer {
 			update(logins.getUserController().props)
 		})
 
+		this._enableMailIndexing = new DropDownSelector("searchMailbox_label", () => lang.get("searchMailbox_msg"), [
+			{name: lang.get("activated_label"), value: true},
+			{name: lang.get("deactivated_label"), value: false}
+		], locator.search.indexState().mailIndexEnabled, 250).setSelectionChangedHandler(mailIndexEnabled => {
+			if (mailIndexEnabled) {
+				worker.enableMailIndexing()
+			} else {
+				worker.disableMailIndexing()
+			}
+		})
+
 		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name).setDisabled()
 		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(), () => Icons.Edit)
 		this._signature._injectionsRight = () => [m(changeSignatureButton)]
@@ -115,6 +131,7 @@ export class MailSettingsViewer {
 					m(this._defaultUnconfidential),
 					m(this._sendPlaintext),
 					m(this._noAutomaticContacts),
+					m(this._enableMailIndexing),
 					(logins.getUserController().isAdmin()) ? m(this._aliases) : null,
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('inboxRulesSettings_action')),
@@ -134,7 +151,21 @@ export class MailSettingsViewer {
 
 		this._updateInboxRules(logins.getUserController().props)
 		this._loadPushIdentifiers()
+
+		let indexStateWatch = null
+		this.oncreate = () => {
+			indexStateWatch = locator.search.indexState.map((newValue) => {
+				this._enableMailIndexing.selectedValue(newValue.mailIndexEnabled)
+				m.redraw()
+			})
+		}
+		this.onbeforeremove = () => {
+			if (indexStateWatch) {
+				indexStateWatch.end(true)
+			}
+		}
 	}
+
 
 	_updatePropertiesSettings(props: TutanotaProperties) {
 		if (props.defaultSender) {

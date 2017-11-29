@@ -1,5 +1,5 @@
 //@flow
-import {OperationType, MailState} from "../../common/TutanotaConstants"
+import {OperationType, MailState, MailFolderType} from "../../common/TutanotaConstants"
 import {load, loadAll, loadRoot, loadRange} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -15,9 +15,9 @@ import {
 	isSameTypeRef,
 	TypeRef,
 	GENERATED_MAX_ID,
-	_loadEntityRange,
 	_loadEntity,
-	firstBiggerThanSecond
+	firstBiggerThanSecond,
+	_loadEntityRange
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
@@ -36,18 +36,31 @@ import type {EntityRestClient} from "../rest/EntityRestClient"
 import {encryptIndexKey, encryptSearchIndexEntry} from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, Db} from "./SearchTypes"
 import {_createNewIndexUpdate} from "./SearchTypes"
+import type {WorkerImpl} from "../WorkerImpl"
 
 const Metadata = {
 	userEncDbKey: "userEncDbKey",
 	oldestIndexedMailId: "oldestIndexedMailId",
-	indexedContactLists: "indexedContactLists"
+	mailIndexingEnabled: "mailIndexingEnabled",
+	indexedContactLists: "indexedContactLists",
+	excludedListIds: "excludedListIds"
+}
+
+type InitParams = {
+	userId: Id;
+	groupKey: Aes128Key;
+	userGroupId: Id;
+	mailGroupIds: Id[];
+	contactGroupIds: Id[];
 }
 
 export class Indexer {
-	_db: Db;
+	db: Db;
 	_entityRestClient: EntityRestClient;
+	_worker: WorkerImpl;
 
-	_mailGroupIds: Id[];
+	_initParams: InitParams;
+
 	_indexingTime: number;
 	_storageTime: number;
 	_downloadingTime: number;
@@ -59,9 +72,19 @@ export class Indexer {
 	_words: number;
 	_indexedBytes: number;
 
-	constructor(entityRestClient: EntityRestClient) {
-		this._db = ({}:any) // correctly initialized during init()
+	// Metadata
+	_mailIndexingEnabled: boolean;
+	_excludedListIds: Id[];
+	//
+	mailboxIndexingPromise: Promise<void>;
+
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
+		this.db = ({}:any) // correctly initialized during init()
 		this._entityRestClient = entityRestClient
+		this._excludedListIds = []
+		this._mailIndexingEnabled = false
+		this._worker = worker
+		this.mailboxIndexingPromise = Promise.resolve()
 	}
 
 	/**
@@ -72,31 +95,49 @@ export class Indexer {
 	 * FIXME user added to group / removed from group
 	 */
 	init(userId: Id, groupKey: Aes128Key, userGroupId: Id, mailGroupIds: Id[], contactGroupIds: Id[]): Promise<void> {
-		this._mailGroupIds = mailGroupIds
+		this._initParams = {
+			userId,
+			groupKey,
+			userGroupId,
+			mailGroupIds,
+			contactGroupIds
+		}
 		return new DbFacade().open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(userId)))).then(facade => {
-			this._db.dbFacade = facade
+			this.db.dbFacade = facade
 			let dbInit = (): Promise<void> => {
-				let t = this._db.dbFacade.createTransaction(true, [MetaDataOS])
+				let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
 				return t.get(MetaDataOS, Metadata.userEncDbKey).then(value => {
 					if (!value) {
 						return this._loadLastBatchIds(mailGroupIds.concat(contactGroupIds)).then((groupBatches: {groupId: Id, lastBatchIds: Id[]}[]) => {
-							let t2 = this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupIdToBatchIdsOS])
-							this._db.key = aes256RandomKey()
-							t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(groupKey, this._db.key))
+							let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupIdToBatchIdsOS])
+							this.db.key = aes256RandomKey()
+							t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(groupKey, this.db.key))
 							t2.put(MetaDataOS, Metadata.oldestIndexedMailId, {}) // mailGroup:ID
 							t2.put(MetaDataOS, Metadata.indexedContactLists, []) // contact list ids
+							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mailIndexingEnabled)
+							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 							groupBatches.forEach(groupIdToLastBatchId => {
 								t2.put(GroupIdToBatchIdsOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.lastBatchIds)
 							})
 							return t2.await().then(() => this.indexFullContactList(userGroupId))
 						})
 					} else {
-						this._db.key = decrypt256Key(groupKey, value)
+						this.db.key = decrypt256Key(groupKey, value)
+						t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
+							this._mailIndexingEnabled = mailIndexingEnabled
+						})
+						t.get(MetaDataOS, Metadata.excludedListIds).then(mailIndexingEnabled => {
+							this._excludedListIds = mailIndexingEnabled
+						})
 						return t.await()
 					}
 				})
 			}
 			return dbInit().then(() => {
+				this._worker.sendIndexState({
+					mailIndexEnabled: this._mailIndexingEnabled,
+					progress: 0
+				})
 				return this._loadNewEntities(mailGroupIds.concat(contactGroupIds))
 			})
 		})
@@ -111,7 +152,7 @@ export class Indexer {
 	}
 
 	_loadNewEntities(groupIds: Id[]): Promise<void> {
-		let t = this._db.dbFacade.createTransaction(true, [GroupIdToBatchIdsOS])
+		let t = this.db.dbFacade.createTransaction(true, [GroupIdToBatchIdsOS])
 		let groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[] = []
 		groupIds.forEach(groupId => {
 			t.get(GroupIdToBatchIdsOS, groupId).then(lastEventBatchIds => {
@@ -139,7 +180,7 @@ export class Indexer {
 
 
 	_createContactIndexEntries(contact: Contact, indexUpdate: IndexUpdate): void {
-		let encryptedInstanceId = encryptIndexKey(this._db.key, contact._id[1])
+		let encryptedInstanceId = encryptIndexKey(this.db.key, contact._id[1])
 
 		let keyToIndexEntries = this.createIndexEntriesForAttributes(ContactModel, contact, [
 			{
@@ -182,7 +223,7 @@ export class Indexer {
 	}
 
 	_createMailIndexEntries(mail: Mail, mailBody: MailBody, indexUpdate: IndexUpdate): void {
-		let encryptedInstanceId = encryptIndexKey(this._db.key, mail._id[1])
+		let encryptedInstanceId = encryptIndexKey(this.db.key, mail._id[1])
 		let startTimeIndex = performance.now()
 		let keyToIndexEntries = this.createIndexEntriesForAttributes(MailModel, mail, [
 			{
@@ -240,24 +281,69 @@ export class Indexer {
 		let encryptionTimeStart = performance.now()
 		let words = []
 		keyToIndexEntries.forEach((value, indexKey) => {
-			let encIndexKey = encryptIndexKey(this._db.key, indexKey)
+			let encIndexKey = encryptIndexKey(this.db.key, indexKey)
 			let b64IndexKey = uint8ArrayToBase64(encIndexKey)
 			let indexEntries = indexUpdate.create.indexMap.get(b64IndexKey)
 			words.push(indexKey)
 			if (!indexEntries) {
 				indexEntries = []
 			}
-			indexUpdate.create.indexMap.set(b64IndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this._db.key, indexEntry, encryptedInstanceId))))
+			indexUpdate.create.indexMap.set(b64IndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encryptedInstanceId))))
 		})
 
 		indexUpdate.create.encInstanceIdToIndexData.set(b64InstanceId, [
 			listId,
-			aes256Encrypt(this._db.key, stringToUtf8Uint8Array(words.join(" ")), random.generateRandomData(IV_BYTE_LENGTH), true, false)
+			aes256Encrypt(this.db.key, stringToUtf8Uint8Array(words.join(" ")), random.generateRandomData(IV_BYTE_LENGTH), true, false)
 		])
 
 		this._encryptionTime += performance.now() - encryptionTimeStart
 	}
 
+	getSpamFolder(mailGroupId: Id): Promise<MailFolder> {
+		return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
+			return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
+		})
+	}
+
+	enableMailIndexing(): Promise<void> {
+		let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
+		return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
+			if (!enabled) {
+				return Promise.map(this._initParams.mailGroupIds, (mailGroup) => this.getSpamFolder(mailGroup)).then(spamFolders => {
+					this._excludedListIds = spamFolders.map(folder => folder.mails)
+					this._mailIndexingEnabled = true
+					let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS])
+					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
+					this.indexFullMailbox() // create index in background
+					return t2.await().then(() => {
+						return this._worker.sendIndexState({
+							mailIndexEnabled: this._mailIndexingEnabled,
+							progress: 0
+						})
+					})
+				})
+			} else {
+				return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
+					this._mailIndexingEnabled = true
+					this._excludedListIds = excludedListIds
+
+					return this._worker.sendIndexState({
+						mailIndexEnabled: this._mailIndexingEnabled,
+						progress: 0
+					})
+				})
+			}
+		})
+	}
+
+
+	disableMailIndexing(): Promise<void> {
+		this._mailIndexingEnabled = false
+		this._excludedListIds = []
+		this.db.dbFacade.deleteDatabase()
+		return this.init(this._initParams.userId, this._initParams.groupKey, this._initParams.userGroupId, this._initParams.mailGroupIds, this._initParams.contactGroupIds)
+	}
 
 	indexFullMailbox(): Promise<void> {
 		this._indexingTime = 0
@@ -270,17 +356,19 @@ export class Indexer {
 		this._largestColumn = 0
 		this._words = 0
 		this._indexedBytes = 0
-
-		return Promise.each(this._mailGroupIds, (mailGroupId) => {
+		this.mailboxIndexingPromise = Promise.each(this._initParams.mailGroupIds, (mailGroupId) => {
+			//return Promise.delay(10000).then(() => {
 			return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-				return this._loadFolders(neverNull(mbox.systemFolders).folders).each(mailListId => {
+				return this._loadMailListIds(neverNull(mbox.systemFolders).folders).each(mailListId => {
 					return this._indexMailList(mailListId, GENERATED_MAX_ID)
 				})
 			})
+			//})
 		}).then(() => {
 			this._printStatus()
 			console.log("finished indexing")
-		}).return()
+		})
+		return this.mailboxIndexingPromise.return()
 	}
 
 	_printStatus() {
@@ -314,7 +402,7 @@ export class Indexer {
 		})
 	}
 
-	_loadFolders(folderListId: Id): Promise < Id[] > {
+	_loadMailListIds(folderListId: Id): Promise < Id[] > {
 		let mailListIds = []
 		return loadAll(MailFolderTypeRef, folderListId).map(folder => {
 			mailListIds.push(folder.mails)
@@ -326,7 +414,7 @@ export class Indexer {
 
 	indexFullContactList(userGroupId: Id): Promise < void > {
 		return loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
-			let t = this._db.dbFacade.createTransaction(true, [MetaDataOS])
+			let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
 			let indexUpdate = _createNewIndexUpdate()
 			return t.get(MetaDataOS, Metadata.indexedContactLists).then(indexedContactLists => {
 				if (indexedContactLists.indexOf(contactList.contacts) === -1) {
@@ -346,7 +434,7 @@ export class Indexer {
 	_writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = performance.now()
 		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
-		let transaction = this._db.dbFacade.createTransaction(false, [SearchIndexOS, ElementIdToIndexDataOS, MetaDataOS, GroupIdToBatchIdsOS])
+		let transaction = this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementIdToIndexDataOS, MetaDataOS, GroupIdToBatchIdsOS])
 
 		let promises = indexUpdate.move.map(moveInstance => {
 			return transaction.get(ElementIdToIndexDataOS, moveInstance.encInstanceId).then(indexData => {
@@ -381,7 +469,7 @@ export class Indexer {
 
 		return Promise.all(promises).then(() => {
 			indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
-				let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])])
+				let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] == true)
 				let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 				if (filteredEncryptedEntries.length > 0) {
 					transaction.get(SearchIndexOS, encIndexKey).then((result) => {
@@ -403,21 +491,20 @@ export class Indexer {
 			})
 			if (indexUpdate.batchId) {
 				let batchId = indexUpdate.batchId
-				transaction.get(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityBatchIds => {
-					if (lastEntityBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
+				transaction.getAsList(GroupIdToBatchIdsOS, batchId[0]).then(lastEntityBatchIds => {
+					if (lastEntityBatchIds.length > 0 && lastEntityBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
 						transaction.abort()
 					} else {
-						let events = lastEntityBatchIds ? lastEntityBatchIds : []
-						let newIndex = events.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
+						let newIndex = lastEntityBatchIds.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
 						if (newIndex !== -1) {
-							events.splice(newIndex, 0, batchId[1])
+							lastEntityBatchIds.splice(newIndex, 0, batchId[1])
 						} else {
-							events.push(batchId[1]) // new batch is oldest of all stored batches
+							lastEntityBatchIds.push(batchId[1]) // new batch is oldest of all stored batches
 						}
-						if (events.length > 1000) {
-							events = events.slice(0, 1000)
+						if (lastEntityBatchIds.length > 1000) {
+							lastEntityBatchIds = lastEntityBatchIds.slice(0, 1000)
 						}
-						transaction.put(GroupIdToBatchIdsOS, batchId[0], events)
+						transaction.put(GroupIdToBatchIdsOS, batchId[0], lastEntityBatchIds)
 					}
 				})
 			}
@@ -437,37 +524,41 @@ export class Indexer {
 		let indexUpdate = _createNewIndexUpdate()
 		indexUpdate.batchId = [groupId, batchId]
 		return Promise.each(events, (event, index) => {
-			if (event.operation == OperationType.CREATE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
-				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
-					// move mail
-					return this._processMovedMail(event, indexUpdate)
-				} else {
-					// new mail
-					// FIXME ignore mails in trash folder and SPAM folder
-					return this._processNewMail(event, indexUpdate)
-				}
-			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
-				return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-					if (mail.state == MailState.DRAFT) {
-						return Promise.all([
-							this._processDeleted(event, indexUpdate),
-							this._processNewMail(event, indexUpdate)
-						])
+			if (isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef) && this._mailIndexingEnabled) {
+				if (event.operation == OperationType.CREATE) {
+					if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
+						// move mail
+						return this._processMovedMail(event, indexUpdate)
+					} else {
+						// new mail
+						// FIXME ignore mails in trash folder and SPAM folder
+						return this._processNewMail(event, indexUpdate)
 					}
-				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
-			} else if (event.operation == OperationType.DELETE && isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef)) {
-				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
+				} else if (event.operation == OperationType.UPDATE) {
+					return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+						if (mail.state == MailState.DRAFT) {
+							return Promise.all([
+								this._processDeleted(event, indexUpdate),
+								this._processNewMail(event, indexUpdate)
+							])
+						}
+					}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
+				} else if (event.operation == OperationType.DELETE) {
+					if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
+						return this._processDeleted(event, indexUpdate)
+					}
+				}
+			} else if (isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
+				if (event.operation == OperationType.CREATE) {
+					return this._processNewContact(event, indexUpdate)
+				} else if (event.operation == OperationType.UPDATE) {
+					return Promise.all([
+						this._processDeleted(event, indexUpdate),
+						this._processNewContact(event, indexUpdate)
+					])
+				} else if (event.operation == OperationType.DELETE) {
 					return this._processDeleted(event, indexUpdate)
 				}
-			} else if (event.operation == OperationType.CREATE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
-				return this._processNewContact(event, indexUpdate)
-			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
-				return Promise.all([
-					this._processDeleted(event, indexUpdate),
-					this._processNewContact(event, indexUpdate)
-				])
-			} else if (event.operation == OperationType.DELETE && isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
-				return this._processDeleted(event, indexUpdate)
 			}
 		}).then(() => {
 			//	if (indexUpdate.create.encInstanceIdToIndexData.size > 0 || indexUpdate.delete.encInstanceIds.length > 0 || indexUpdate.move.length > 0) {
@@ -485,15 +576,15 @@ export class Indexer {
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate) {
-		let encInstanceId = encryptIndexKey(this._db.key, event.instanceId)
-		let transaction = this._db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+		let encInstanceId = encryptIndexKey(this.db.key, event.instanceId)
+		let transaction = this.db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
 			if (!indexData) {
 				console.log("index data not available (instance is not indexed)", encInstanceId)
 				return
 			}
-			let words = utf8Uint8ArrayToString(aes256Decrypt(this._db.key, indexData[1], true)).split(" ")
-			let encWords = words.map(word => encryptIndexKey(this._db.key, word))
+			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, indexData[1], true)).split(" ")
+			let encWords = words.map(word => encryptIndexKey(this.db.key, word))
 			encWords.map(encWord => {
 				let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
 				if (ids == null) {
@@ -508,8 +599,8 @@ export class Indexer {
 
 	_processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
 		// FIXME handle moves to trash folder and SPAM folder as deletes
-		let encInstanceId = encryptIndexKey(this._db.key, event.instanceId)
-		let transaction = this._db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
+		let encInstanceId = encryptIndexKey(this.db.key, event.instanceId)
+		let transaction = this.db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 		return transaction.get(ElementIdToIndexDataOS, encInstanceId).then(indexData => {
 			if (indexData) {
 				indexUpdate.move.push({
@@ -713,4 +804,9 @@ function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 		})
 		return mergedMap
 	}, new Map())
+}
+
+
+export function getSpamFolder(folders: MailFolder[]): MailFolder {
+	return (folders.find(f => f.folderType === Mail):any)
 }

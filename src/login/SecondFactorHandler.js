@@ -17,6 +17,7 @@ import {NotAuthenticatedError, BadRequestError, AccessBlockedError} from "../api
 import {SecondFactorImage, Icons} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -42,7 +43,7 @@ export class SecondFactorHandler {
 	setupAcceptOtherClientLoginListener() {
 		if (!this._otherLoginListenerInitialized) {
 			this._otherLoginListenerInitialized = true
-			worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
+			locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
 				let sessionId = [neverNull(listId), elementId];
 				if (isSameTypeRef(typeRef, SessionTypeRef)) {
 					if (operation == OperationType.CREATE) {

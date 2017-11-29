@@ -6,12 +6,10 @@ import {EntityEventController} from "./EntityEventController"
 import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
-import {ContactController} from "./ContactController"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import {EntropyCollector} from "./EntropyCollector"
 import type {
 	OperationTypeEnum,
 	EntropySrcEnum,
@@ -19,6 +17,7 @@ import type {
 	AccountTypeEnum
 } from "../common/TutanotaConstants"
 import type {MediaTypeEnum} from "../worker/rest/RestClient"
+import {initLocator, locator} from "./MainLocator"
 
 assertMainOrNode()
 
@@ -31,15 +30,10 @@ export class WorkerClient {
 	initialized: Promise<void>;
 
 	_queue: Queue;
-	_contactController: ContactController;
-	_entityEventController: EntityEventController;
 	_progressUpdater: ?progressUpdater;
-	_entropyCollector: EntropyCollector;
 
 	constructor(entityEventController: EntityEventController) {
-		this._entityEventController = entityEventController;
-		this._contactController = new ContactController()
-		this._entropyCollector = new EntropyCollector()
+		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
 			this._initServices()
@@ -47,7 +41,7 @@ export class WorkerClient {
 		this._queue.setCommands({
 			execNative: (message: any) => nativeApp.invokeNative(new Request(message.args[0], message.args[1])),
 			entityEvent: (message: any) => {
-				this._entityEventController.notificationReceived(message.args[0])
+				locator.entityEvent.notificationReceived(message.args[0])
 				return Promise.resolve()
 			},
 			error: (message: any) => {
@@ -57,6 +51,10 @@ export class WorkerClient {
 				if (this._progressUpdater) {
 					this._progressUpdater(message.args[0])
 				}
+				return Promise.resolve()
+			},
+			updateIndexState: (message: any) => {
+				locator.search.indexState(message.args[0])
 				return Promise.resolve()
 			}
 		})
@@ -78,7 +76,7 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [window.env, this._entropyCollector.getInitialEntropy()]))
+			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy()]))
 				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -103,7 +101,7 @@ export class WorkerClient {
 
 	_initServices() {
 		if (isMain()) {
-			this._entropyCollector.start(this)
+			locator.entropyCollector.start()
 		}
 		nativeApp.init()
 	}
@@ -112,7 +110,7 @@ export class WorkerClient {
 		if (logins.isUserLoggedIn()) {
 			logins.getUserController().entityEventReceived(typeRef, listId, elementId, operation)
 		}
-		this._contactController.entityEventReceived(typeRef, listId, elementId, operation)
+		locator.contact.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 
 	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string): Promise<void> {
@@ -322,6 +320,14 @@ export class WorkerClient {
 		return this._postRequest(new Request('search', arguments))
 	}
 
+	enableMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('enableMailIndexing', arguments))
+	}
+
+	disableMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('disableMailIndexing', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
@@ -339,14 +345,6 @@ export class WorkerClient {
 			throw new Error("worker has not been initialized, request: " + JSON.stringify(msg))
 		}
 		return this._queue.postMessage(msg)
-	}
-
-	getEntityEventController() {
-		return this._entityEventController
-	}
-
-	getContactController(): ContactController {
-		return this._contactController
 	}
 
 	registerProgressUpdater(updater: ?progressUpdater) {

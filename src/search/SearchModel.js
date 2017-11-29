@@ -5,11 +5,16 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {arrayEquals} from "../api/common/utils/ArrayUtils"
 
 
-class SearchModel {
+export class SearchModel {
 	result: stream<SearchResult>;
+	indexState: stream<SearchIndexStateInfo>;
 
 	constructor() {
 		this.result = stream()
+		this.indexState = stream({
+			mailIndexEnabled: false,
+			progress: 0
+		})
 	}
 
 	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
@@ -37,6 +42,3 @@ class SearchModel {
 		return true
 	}
 }
-
-
-export const searchModel = new SearchModel()

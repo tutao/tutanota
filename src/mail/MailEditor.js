@@ -63,6 +63,7 @@ import {size, px} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
+import {locator} from "../api/main/MainLocator"
 
 
 assertMainOrNode()
@@ -426,14 +427,14 @@ export class MailEditor {
 			this.toRecipients.textField.setDisabled()
 		}
 
-		this.toRecipients.bubbles = toRecipients.map(r => this.createBubble(r.name, r.address, worker.getContactController().findContactByMailAddress(r.address)))
-		this.ccRecipients.bubbles = ccRecipients.map(r => this.createBubble(r.name, r.address, worker.getContactController().findContactByMailAddress(r.address)))
-		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, worker.getContactController().findContactByMailAddress(r.address)))
+		this.toRecipients.bubbles = toRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
+		this.ccRecipients.bubbles = ccRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
+		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
 		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null))
 	}
 
 	show() {
-		worker.getEntityEventController().addListener(this._entityEventReceived)
+		locator.entityEvent.addListener(this._entityEventReceived)
 		this.dialog.show()
 		windowFacade.checkWindowClosing(true)
 	}
@@ -441,7 +442,7 @@ export class MailEditor {
 
 	_close() {
 		windowFacade.checkWindowClosing(false)
-		worker.getEntityEventController().removeListener(this._entityEventReceived)
+		locator.entityEvent.removeListener(this._entityEventReceived)
 		this.dialog.close()
 	}
 
@@ -659,7 +660,7 @@ export class MailEditor {
 					if (isExternal(r) && this._confidentialButtonState) {
 						recipientContact.presharedPassword = this.getPasswordField(r).value().trim()
 					}
-					return worker.getContactController().lazyContactListId.getAsync().then(listId => {
+					return locator.contact.lazyContactListId.getAsync().then(listId => {
 						return setup(listId, r.contact)
 					})
 				} else if (recipientContact._id && isExternal(r) && this._confidentialButtonState && recipientContact.presharedPassword !== this.getPasswordField(r).value().trim()) {
@@ -708,7 +709,7 @@ export class MailEditor {
 				}, null).setType(ButtonType.Secondary))
 			} else {
 				buttons.push(new Button("createContact_action", () => {
-					worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+					locator.contact.lazyContactListId.getAsync().then(contactListId => {
 						new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
 							let bubbles = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles].find(b => contains(b, bubbleResolver()))
 							if (bubbles) {
@@ -807,7 +808,7 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
-		return Promise.resolve(worker.getContactController().getFilteredDuplicateContacts().map(contact => {
+		return Promise.resolve(locator.contact.getFilteredDuplicateContacts().map(contact => {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
 			if (name.toLowerCase().indexOf(query) !== -1) {
@@ -872,7 +873,7 @@ class MailBubbleHandler {
 		if (text === "") return null
 		const nameAndMailAddress = stringToNameAndMailAddress(text)
 		if (nameAndMailAddress) {
-			let contact = worker.getContactController().findContactByMailAddress(nameAndMailAddress.mailAddress)
+			let contact = locator.contact.findContactByMailAddress(nameAndMailAddress.mailAddress)
 			let name = nameAndMailAddress.name
 			if (name === "" && contact) {
 				name = `${contact.firstName} ${contact.lastName}`.trim()

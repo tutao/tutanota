@@ -21,11 +21,12 @@ import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {getSenderOrRecipientHeading} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
-import {searchModel} from "./SearchModel"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {setSearchUrl, getRestriction} from "./SearchUtils"
-
+import {locator} from "../api/main/MainLocator"
+import {Dialog} from "../gui/base/Dialog"
+import {worker} from "../api/main/WorkerClient"
 type ShowMoreAction = {
 	resultCount:number,
 	indexDate:Date
@@ -70,11 +71,13 @@ export class SearchBar {
 				}
 			}, [
 				m(".ml-negative-xs", {
-					onmousedown: e => this.skipNextBlur = true,
+					onmousedown: e => {
+						if (this.focused) {
+							this.skipNextBlur = true
+						}
+					},
 					onclick: (e) => {
 						this.handleSearchClick(e)
-						// reset skipNextBlur in case the text field is not focused currently (any blur has not been invoked for the textfield, which resets the skipNextBlur in all other cases)
-						this.skipNextBlur = false
 					}
 				}, m(Icon, {
 					icon: Icons.Search,
@@ -144,7 +147,7 @@ export class SearchBar {
 			if (this.value() == result.query) {
 				this._results = newResults
 				this._results.push({
-					resultCount: (searchModel.result().mails.length + searchModel.result().contacts.length),
+					resultCount: (locator.search.result().mails.length + locator.search.result().contacts.length),
 					indexDate: new Date()
 				}) // add SearchMoreAction
 				if (this._results.length > 0) {
@@ -248,31 +251,45 @@ export class SearchBar {
 
 	search() {
 		let value = this.value()
-		let result = searchModel.result()
+		let result = locator.search.result()
 		let restriction = getRestriction(m.route.get())
-		if (value.trim() == "" || !searchModel.isNewSearch(value, restriction)) {
-			return
-		}
-		this.busy = true
-		setTimeout(() => {
-			if (value == this.value()) {
-				if (this.value().trim() != "") {
-					searchModel.search(value, restriction).then(result => {
-						if (m.route.get().startsWith("/search")) {
-							this.busy = false
-							setSearchUrl(m.route.param()["category"], value)
-							return // instances will be displayed as part of the list of the search view, when the search view is displayed
-						}
-						this.showDropdown(result)
-					}).finally(() => this.busy = false)
-				} else {
+
+		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
+			this.expanded = false
+			Dialog.confirm("searchMailbox_msg", "search_label").then(confirmed => {
+				if (confirmed) {
+					worker.enableMailIndexing().then(() => {
+						this.search()
+						this.focus()
+					})
+				}
+			})
+
+		} else {
+			if (value.trim() == "" || !locator.search.isNewSearch(value, restriction)) {
+				return
+			}
+			this.busy = true
+			setTimeout(() => {
+				if (value == this.value()) {
+					if (this.value().trim() != "") {
+						locator.search.search(value, restriction).then(result => {
+							if (m.route.get().startsWith("/search")) {
+								this.busy = false
+								setSearchUrl(m.route.param()["category"], value)
+								return // instances will be displayed as part of the list of the search view, when the search view is displayed
+							}
+							this.showDropdown(result)
+						}).finally(() => this.busy = false)
+					} else {
+						this.busy = false
+					}
+				} else if (this.value().trim() == "") {
 					this.busy = false
 				}
-			} else if (this.value().trim() == "") {
-				this.busy = false
-			}
-			m.redraw()
-		}, 500)
+				m.redraw()
+			}, 500)
+		}
 	}
 
 	close() {
