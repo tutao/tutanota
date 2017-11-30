@@ -229,6 +229,7 @@ type SearchResult = {
 	mails: IdTuple[];
 	contacts: IdTuple[];
 	groupInfos: IdTuple[];
+	oldestIndexedId: Id;
 }
 
 type SearchIndexStateInfo = {

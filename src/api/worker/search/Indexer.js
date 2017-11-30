@@ -30,7 +30,8 @@ import {
 	uint8ArrayToBase64,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
-	base64ToUint8Array
+	base64ToUint8Array,
+	timestampToGeneratedId
 } from "../../common/utils/Encoding"
 import {aes256Decrypt, IV_BYTE_LENGTH, aes256Encrypt, aes256RandomKey} from "../crypto/Aes"
 import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
@@ -81,6 +82,7 @@ export class Indexer {
 	_excludedListIds: Id[];
 	//
 	mailboxIndexingPromise: Promise<void>;
+	oldestIndexedMailId: Id;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
 		this.db = ({}:any) // correctly initialized during init()
@@ -89,6 +91,7 @@ export class Indexer {
 		this._mailIndexingEnabled = false
 		this._worker = worker
 		this.mailboxIndexingPromise = Promise.resolve()
+		this.oldestIndexedMailId = GENERATED_MAX_ID
 	}
 
 	/**
@@ -111,8 +114,8 @@ export class Indexer {
 			this.db.dbFacade = facade
 			let dbInit = (): Promise<void> => {
 				let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
-				return t.get(MetaDataOS, Metadata.userEncDbKey).then(value => {
-					if (!value) {
+				return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
+					if (!userEncDbKey) {
 						return this._loadLastBatchIds(mailGroupIds.concat(contactGroupIds).concat(customerGroupId)).then((groupBatches: {groupId: Id, lastBatchIds: Id[]}[]) => {
 							let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 							this.db.key = aes256RandomKey()
@@ -129,14 +132,14 @@ export class Indexer {
 							return t2.await().then(() => this.indexFullContactList(userGroupId)).then(() => this.indexAllUserAndTeamGroupInfosForAdmin())
 						})
 					} else {
-						this.db.key = decrypt256Key(groupKey, value)
+						this.db.key = decrypt256Key(groupKey, userEncDbKey)
 						t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
 							this._mailIndexingEnabled = mailIndexingEnabled
 						})
 						t.get(MetaDataOS, Metadata.excludedListIds).then(mailIndexingEnabled => {
 							this._excludedListIds = mailIndexingEnabled
 						})
-						return t.await()
+						return this.updateOldestIndexedMailId()
 					}
 				})
 			}
@@ -148,6 +151,18 @@ export class Indexer {
 				return this._loadNewEntities(mailGroupIds.concat(contactGroupIds))
 			})
 		})
+	}
+
+	updateOldestIndexedMailId(): Promise<void> {
+		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
+		this.oldestIndexedMailId = GENERATED_MIN_ID
+		return Promise.map(this._initParams.mailGroupIds, (mailGroupId) => {
+			t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+				if (firstBiggerThanSecond(groupData.oldestIndexedId, this.oldestIndexedMailId)) {
+					this.oldestIndexedMailId = groupData.oldestIndexedId
+				}
+			})
+		}).return()
 	}
 
 	_loadLastBatchIds(groupIds: Id[]): Promise< {groupId: Id, lastBatchIds: Id[]}[]> {
@@ -323,7 +338,7 @@ export class Indexer {
 					let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-					this.indexFullMailbox() // create index in background
+					this.indexFullMailbox(timestampToGeneratedId(new Date().getTime() - 1000 * 60 * 60 * 24 * 1)) // create index in background
 					return t2.await().then(() => {
 						return this._worker.sendIndexState({
 							mailIndexEnabled: this._mailIndexingEnabled,
@@ -353,7 +368,7 @@ export class Indexer {
 		return this.init(this._initParams.user, this._initParams.groupKey, this._initParams.userGroupId, this._initParams.mailGroupIds, this._initParams.contactGroupIds, this._initParams.customerGroupId)
 	}
 
-	indexFullMailbox(): Promise<void> {
+	indexFullMailbox(oldestIndexedId: Id): Promise<void> {
 		this._indexingTime = 0
 		this._storageTime = 0
 		this._downloadingTime = 0
@@ -367,12 +382,23 @@ export class Indexer {
 		this.mailboxIndexingPromise = Promise.each(this._initParams.mailGroupIds, (mailGroupId) => {
 			//return Promise.delay(10000).then(() => {
 			return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-				return this._loadMailListIds(neverNull(mbox.systemFolders).folders).each(mailListId => {
-					return this._indexMailList(mailGroupId, mailListId, GENERATED_MAX_ID)
+				let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
+				return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+					return this._loadMailListIds(neverNull(mbox.systemFolders).folders).each(mailListId => {
+						return this._indexMailList(mailGroupId, mailListId, groupData.oldestIndexedId, oldestIndexedId)
+					}).then(() => {
+						let t2 = this.db.dbFacade.createTransaction(false, [GroupDataOS])
+						return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+							groupData.oldestIndexedId = oldestIndexedId
+							t2.put(GroupDataOS, mailGroupId, groupData)
+							return t2.await()
+						})
+					})
 				})
 			})
 			//})
 		}).then(() => {
+			this.updateOldestIndexedMailId()
 			this._printStatus()
 			console.log("finished indexing")
 		})
@@ -383,9 +409,9 @@ export class Indexer {
 		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime + this._storageTime + this._downloadingTime + this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
 	}
 
-	_indexMailList(mailGroupId: Id, mailListId: Id, startId: Id): Promise <void> {
+	_indexMailList(mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <void> {
 		let startTimeLoad = performance.now()
-		return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).then(mails => {
+		return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).filter(m => firstBiggerThanSecond(m._id[1], endId)).then(mails => {
 			return Promise.map(mails, mail => {
 				return _loadEntity(MailBodyTypeRef, mail.body, null, this._entityRestClient).then(body => {
 					return {mail, body}
@@ -400,9 +426,9 @@ export class Indexer {
 			}).return(mails)
 		}).then((mails) => {
 			if (mails.length === 500) {
-				console.log("completed indexing range from", startId, "of mail list id", mailListId)
+				console.log("completed indexing range from", endId, "of mail list id", mailListId)
 				this._printStatus()
-				return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1])
+				return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
 			} else {
 				console.log("completed indexing of mail list id", mailListId)
 				this._printStatus()

@@ -53,7 +53,7 @@ export class SearchFacade {
 			})
 		})
 	}
-
+ 
 	/**
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
@@ -143,7 +143,14 @@ export class SearchFacade {
 				}
 				return searchResult
 			})
-		}, {query, restriction, mails: [], contacts: [], groupInfos: []})
+		}, {
+			query,
+			restriction,
+			mails: [],
+			contacts: [],
+			groupInfos: [],
+			oldestIndexedId: this._indexer.oldestIndexedMailId
+		})
 	}
 
 }
