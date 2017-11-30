@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {List, sortCompareById} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {GENERATED_MAX_ID, TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
@@ -19,6 +20,7 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {header} from "../gui/base/Header"
 
 assertMainOrNode()
 
@@ -29,6 +31,7 @@ export class GroupListView {
 	view: Function;
 	_listId: LazyLoaded<Id>;
 	_settingsView: SettingsView;
+	_searchResultStreamDependency: stream;
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
@@ -86,6 +89,19 @@ export class GroupListView {
 		}
 
 		this.list.loadInitial()
+
+		this._listId.getAsync().then(listId => {
+			header.defaultButtonBar.searchBar.setRestrictionListId(listId)
+		})
+		this._searchResultStreamDependency = header.defaultButtonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
+			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {
+				this.list.scrollToIdAndSelect(groupInfo._id[1])
+			}
+		})
+	}
+
+	deactivate() {
+		this._searchResultStreamDependency.end()
 	}
 
 	_setLoadedCompletely() {

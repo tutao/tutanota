@@ -10,14 +10,16 @@ import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {MailTypeRef, _TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
+import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {DbFacade, SearchIndexOS, ElementIdToIndexDataOS, MetaDataOS, GroupIdToBatchIdsOS} from "./DbFacade"
 import {
 	isSameTypeRef,
 	TypeRef,
 	GENERATED_MAX_ID,
+	_loadEntityRange,
 	_loadEntity,
 	firstBiggerThanSecond,
-	_loadEntityRange
+	isSameId
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
@@ -37,6 +39,8 @@ import {encryptIndexKey, encryptSearchIndexEntry} from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, Db} from "./SearchTypes"
 import {_createNewIndexUpdate} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
+import {CustomerTypeRef} from "../../entities/sys/Customer"
+import {UserTypeRef} from "../../entities/sys/User"
 
 const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -47,7 +51,7 @@ const Metadata = {
 }
 
 type InitParams = {
-	userId: Id;
+	user: User;
 	groupKey: Aes128Key;
 	userGroupId: Id;
 	mailGroupIds: Id[];
@@ -94,15 +98,15 @@ export class Indexer {
 	 *
 	 * FIXME user added to group / removed from group
 	 */
-	init(userId: Id, groupKey: Aes128Key, userGroupId: Id, mailGroupIds: Id[], contactGroupIds: Id[]): Promise<void> {
+	init(user: User, groupKey: Aes128Key, userGroupId: Id, mailGroupIds: Id[], contactGroupIds: Id[]): Promise<void> {
 		this._initParams = {
-			userId,
+			user,
 			groupKey,
 			userGroupId,
 			mailGroupIds,
 			contactGroupIds
 		}
-		return new DbFacade().open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(userId)))).then(facade => {
+		return new DbFacade().open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(user._id)))).then(facade => {
 			this.db.dbFacade = facade
 			let dbInit = (): Promise<void> => {
 				let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
@@ -342,7 +346,7 @@ export class Indexer {
 		this._mailIndexingEnabled = false
 		this._excludedListIds = []
 		this.db.dbFacade.deleteDatabase()
-		return this.init(this._initParams.userId, this._initParams.groupKey, this._initParams.userGroupId, this._initParams.mailGroupIds, this._initParams.contactGroupIds)
+		return this.init(this._initParams.user, this._initParams.groupKey, this._initParams.userGroupId, this._initParams.mailGroupIds, this._initParams.contactGroupIds)
 	}
 
 	indexFullMailbox(): Promise<void> {
@@ -559,6 +563,30 @@ export class Indexer {
 				} else if (event.operation == OperationType.DELETE) {
 					return this._processDeleted(event, indexUpdate)
 				}
+			} else if (isSameTypeRef(new TypeRef(event.application, event.type), GroupInfoTypeRef) && this._userIsAdmin()) {
+				if (event.operation == OperationType.CREATE) {
+					return this._processNewGroupInfo(event, indexUpdate)
+				} else if (event.operation == OperationType.UPDATE) {
+					return Promise.all([
+						this._processDeleted(event, indexUpdate),
+						this._processNewGroupInfo(event, indexUpdate)
+					])
+				} else if (event.operation == OperationType.DELETE) {
+					return this._processDeleted(event, indexUpdate)
+				}
+			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), UserTypeRef) && isSameId(this._initParams.user._id, event.instanceId)) {
+				return load(UserTypeRef, event.instanceId).then(updatedUser => {
+					let updatedUserIsAdmin = updatedUser.memberships.find(m => m.admin) != null
+					if (this._userIsAdmin() && !updatedUserIsAdmin) {
+						this._initParams.user = updatedUser
+						return this._deleteGroupInfoIndex()
+					} else if (!this._userIsAdmin() && updatedUserIsAdmin) {
+						this._initParams.user = updatedUser
+						return this.indexAllUserAndTeamGroupInfosForAdmin()
+					} else {
+						this._initParams.user = updatedUser
+					}
+				})
 			}
 		}).then(() => {
 			//	if (indexUpdate.create.encInstanceIdToIndexData.size > 0 || indexUpdate.delete.encInstanceIds.length > 0 || indexUpdate.move.length > 0) {
@@ -572,6 +600,14 @@ export class Indexer {
 			this._createContactIndexEntries(contact, indexUpdate)
 		}).catch(NotFoundError, () => {
 			console.log("tried to index non existing contact")
+		})
+	}
+
+	_processNewGroupInfo(event: EntityUpdate, indexUpdate: IndexUpdate) {
+		return load(GroupInfoTypeRef, [event.instanceListId, event.instanceId]).then(groupInfo => {
+			this._createGroupInfoIndexEntries(groupInfo, indexUpdate)
+		}).catch(NotFoundError, () => {
+			console.log("tried to index non existing group info")
 		})
 	}
 
@@ -622,6 +658,48 @@ export class Indexer {
 		}).catch(NotFoundError, () => {
 			console.log("tried to index non existing mail")
 		})
+	}
+
+	_userIsAdmin(): boolean {
+		return this._initParams.user.memberships.find(m => m.admin) != null
+	}
+
+	indexAllUserAndTeamGroupInfosForAdmin(): Promise<void> {
+		if (this._userIsAdmin()) {
+			return load(CustomerTypeRef, neverNull(this._initParams.user.customer)).then(customer => {
+				return loadAll(GroupInfoTypeRef, customer.userGroups).then(allUserGroupInfos => {
+					return loadAll(GroupInfoTypeRef, customer.teamGroups).then(allTeamGroupInfos => {
+						let indexUpdate = _createNewIndexUpdate()
+						allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => this._createGroupInfoIndexEntries(groupInfo, indexUpdate))
+						return this._writeIndexUpdate(indexUpdate)
+					})
+				})
+			})
+		} else {
+			return Promise.resolve()
+		}
+	}
+
+	_deleteGroupInfoIndex(): Promise<void> {
+		//FIXME
+		return Promise.resolve()
+	}
+
+	_createGroupInfoIndexEntries(groupInfo: GroupInfo, indexUpdate: IndexUpdate): void {
+		let encryptedInstanceId = encryptIndexKey(this.db.key, groupInfo._id[1])
+
+		let keyToIndexEntries = this.createIndexEntriesForAttributes(GroupInfoModel, groupInfo, [
+			{
+				attribute: GroupInfoModel.values["name"],
+				value: () => groupInfo.name
+			}, {
+				attribute: GroupInfoModel.values["mailAddress"],
+				value: () => groupInfo.mailAddress,
+			}, {
+				attribute: GroupInfoModel.associations["mailAddressAliases"],
+				value: () => groupInfo.mailAddressAliases.map(maa => maa.mailAddress).join(","),
+			}])
+		this.encryptSearchIndexEntries(encryptedInstanceId, keyToIndexEntries, indexUpdate, groupInfo._id[0])
 	}
 }
 

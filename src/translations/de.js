@@ -923,6 +923,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"search_label":"Suche"
+		"search_label": "Suche"
+		"moreResultsFound_msg": "{1} weitere Ergebnisse gefunden.",
 	}
 }

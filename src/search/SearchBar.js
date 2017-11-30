@@ -27,9 +27,13 @@ import {setSearchUrl, getRestriction} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+
 type ShowMoreAction = {
 	resultCount:number,
-	indexDate:Date
+	shownCount:number,
+	indexDate:Date,
+	allowShowMore:boolean
 }
 
 export class SearchBar {
@@ -41,13 +45,17 @@ export class SearchBar {
 	expanded: boolean;
 	dropdown: Dropdown;
 	skipNextBlur: boolean;
-	_results: Array<Mail|Contact|ShowMoreAction>;
+	_results: Array<Mail|Contact|GroupInfo|ShowMoreAction>;
 	oncreate: Function;
 	onbeforeremove: Function;
 	busy: boolean;
-	_selected: ?Mail|Contact|ShowMoreAction;
+	_selected: ?Mail|Contact|GroupInfo|ShowMoreAction;
+	_restrictionListId: ?Id;
+	lastSelectedGroupInfoResult: stream<GroupInfo>;
 
 	constructor() {
+		this._restrictionListId = null
+		this.lastSelectedGroupInfoResult = stream()
 		this.expanded = false
 		this.focused = false
 		this.skipNextBlur = false
@@ -70,7 +78,7 @@ export class SearchBar {
 					'align-self': "center"
 				}
 			}, [
-				m(".ml-negative-xs", {
+				m(".ml-negative-xs.click", {
 					onmousedown: e => {
 						if (this.focused) {
 							this.skipNextBlur = true
@@ -134,6 +142,10 @@ export class SearchBar {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
+	setRestrictionListId(listId: Id) {
+		this._restrictionListId = listId
+	}
+
 	showDropdown(result: SearchResult) {
 		let newResults = []
 		Promise.all([
@@ -142,13 +154,19 @@ export class SearchBar {
 			}),
 			Promise.map(result.contacts.slice(0, 10), contactId => load(ContactTypeRef, contactId).catch(NotFoundError, () => console.log("contact from search index not found", contactId))).then(contacts => {
 				newResults = newResults.concat(contacts.filter(c => c))
+			}),
+			Promise.map(result.groupInfos.slice(0, 10), groupInfoId => load(GroupInfoTypeRef, groupInfoId).catch(NotFoundError, () => console.log("group info from search index not found", groupInfoId))).then(groupInfo => {
+				newResults = newResults.concat(groupInfo.filter(c => c))
 			})]
 		).then(() => {
 			if (this.value() == result.query) {
 				this._results = newResults
+				let resultCount = (result.mails.length + result.contacts.length + result.groupInfos.length)
 				this._results.push({
-					resultCount: (locator.search.result().mails.length + locator.search.result().contacts.length),
-					indexDate: new Date()
+					resultCount: resultCount,
+					shownCount: this._results.length,
+					indexDate: new Date(),
+					allowShowMore: !result.restriction || !result.restriction.type || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
 				}) // add SearchMoreAction
 				if (this._results.length > 0) {
 					this._selected = this._results[0]
@@ -182,17 +200,28 @@ export class SearchBar {
 		})
 	}
 
-	renderResult(result: Mail|Contact|ShowMoreAction) {
+	renderResult(result: Mail|Contact|GroupInfo|ShowMoreAction) {
 		let type: ?TypeRef = result._type ? result._type : null
 		if (!type) { // show more action
 			let showMoreAction = ((result:any):ShowMoreAction)
-			return m("ul.list.click.mail-list",
+			let infoText
+			if (showMoreAction.resultCount == 0) {
+				infoText = lang.get("searchNoResults_msg")
+			} else if (showMoreAction.allowShowMore) {
+				infoText = lang.get("showMore_action")
+			} else {
+				infoText = lang.get("moreResultsFound_msg", {"{1}": showMoreAction.resultCount - showMoreAction.shownCount})
+			}
+			return m("ul.list.mail-list",
+				{
+					style: "cursor: " + (showMoreAction.allowShowMore ? "pointer" : "auto")
+				},
 				m("li.plr-l.pt-s.pb-s.items-center.flex-center", {
 					style: {
 						'border-left': px(size.border_selection) + " solid transparent",
 					},
 
-				}, showMoreAction.resultCount == 0 ? lang.get("searchNoResults_msg") : lang.get("showMore_action")))
+				}, infoText))
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result:any):Mail)
 			return [m(".top.flex-space-between", [
@@ -220,26 +249,53 @@ export class SearchBar {
 					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length > 0) ? contact.mailAddresses[0].address : ""),
 				)
 			]
+		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
+			let groupInfo = ((result:any):GroupInfo)
+			return [
+				m(".top.flex-space-between",
+					m(".name", groupInfo.name),
+				),
+				m(".bottom.flex-space-between", [
+					m("small.mail-address", groupInfo.mailAddress),
+					m(".icons.flex", [
+						(groupInfo.deleted) ? m(Icon, {
+								icon: Icons.Trash,
+								class: "svg-list-accent-fg",
+							}) : null,
+						(!groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
+								icon: Icons.People,
+								class: "svg-list-accent-fg",
+							}) : null,
+						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
+								icon: BootIcons.Mail,
+								class: "svg-list-accent-fg",
+							}) : null
+					])
+				])
+			]
 		}
 	}
 
-	_selectResult(result: ?Mail|Contact|ShowMoreAction) {
+	_selectResult(result: ?Mail|Contact|GroupInfo|ShowMoreAction) {
 		if (result != null) {
 			closeOverlay()
 			this._domInput.blur()
 			let type: ?TypeRef = result._type ? result._type : null
 			if (!type) { // click on SHOW MORE button
-				setSearchUrl(m.route.get().split("/")[1], this.value())
+				if (result.allowShowMore) {
+					setSearchUrl(m.route.get().split("/")[1], this.value())
+				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
 				let mail = ((result:any):Mail)
 				setSearchUrl("mail", this.value(), mail._id[1])
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
 				let contact = ((result:any):Contact)
 				setSearchUrl("contact", this.value(), contact._id[1])
+			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
+				this.lastSelectedGroupInfoResult(result)
 			}
 		}
 	}
-
 
 	handleSearchClick(e: MouseEvent) {
 		if (!this.focused) {
@@ -251,8 +307,7 @@ export class SearchBar {
 
 	search() {
 		let value = this.value()
-		let result = locator.search.result()
-		let restriction = getRestriction(m.route.get())
+		let restriction = getRestriction(m.route.get(), this._restrictionListId)
 
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false

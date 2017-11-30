@@ -1,6 +1,7 @@
 //@flow
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
+import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementIdToIndexDataOS} from "./DbFacade"
 import {TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
@@ -38,7 +39,7 @@ export class SearchFacade {
 				.then(results => this._filterByEncryptedId(results))
 				.then(results => this._decryptSearchResult(results))
 				.then(results => this._filterByAttributeId(results, restriction))
-				.then(results => this._groupSearchResults(query, restriction, results))
+				.then(results => this._filterByListIdAndGroupSearchResults(query, restriction, results))
 			// ranking ->all tokens are in correct order in the same attribute
 		)
 	}
@@ -123,24 +124,26 @@ export class SearchFacade {
 		return true
 	}
 
-	_groupSearchResults(query: string, restriction: ?SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
+	_filterByListIdAndGroupSearchResults(query: string, restriction: ?SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
 		let uniqueIds = {}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
 			//console.log(entry)
 			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
 			return transaction.get(ElementIdToIndexDataOS, neverNull(entry.encId)).then((indexData: IndexData) => {
 				let safeSearchResult = neverNull(searchResult)
-				if (!uniqueIds[entry.id]) {
+				if (!uniqueIds[entry.id] && (!restriction || !restriction.listId || restriction.listId == indexData[0])) {
 					uniqueIds[entry.id] = true
 					if (entry.type == MailModel.id) {
 						safeSearchResult.mails.push([indexData[0], entry.id])
 					} else if (entry.type == ContactModel.id) {
 						safeSearchResult.contacts.push([indexData[0], entry.id])
+					} else if (entry.type == GroupInfoModel.id) {
+						safeSearchResult.groupInfos.push([indexData[0], entry.id])
 					}
 				}
 				return searchResult
 			})
-		}, {query, restriction, mails: [], contacts: []})
+		}, {query, restriction, mails: [], contacts: [], groupInfos: []})
 	}
 
 }
@@ -162,6 +165,11 @@ const typeInfos = {
 		appId: 1,
 		typeId: ContactModel.id,
 		attributeIds: getAttributeIds(ContactModel)
+	},
+	"sys|GroupInfo": {
+		appId: 0,
+		typeId: GroupInfoModel.id,
+		attributeIds: getAttributeIds(GroupInfoModel)
 	}
 }
 

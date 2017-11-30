@@ -219,7 +219,8 @@ type KeyListener = {
 }
 export type SearchRestriction = {
 	type: TypeRef<any>;
-	attributes:string[]
+	attributes:string[];
+	listId:?Id;
 }
 
 type SearchResult = {
@@ -227,6 +228,7 @@ type SearchResult = {
 	restriction: ?SearchRestriction,
 	mails: IdTuple[];
 	contacts: IdTuple[];
+	groupInfos: IdTuple[];
 }
 
 type SearchIndexStateInfo = {

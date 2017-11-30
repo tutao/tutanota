@@ -51,7 +51,7 @@ export class SearchListView {
 
 						return Promise.map(toLoad, (m) => load(result.restriction.type, m).then(m => new SearchResultListEntry(m)).catch(NotFoundError, () => console.log("search result not found")), {concurrency: 5}).then(sr => sr.filter(r => r)).finally(() => m.redraw())
 					} else {
-						console.log("no type selected")
+						// this type is not shown in the search view, e.g. group info
 						return Promise.resolve([])
 					}
 				},
