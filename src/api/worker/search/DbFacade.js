@@ -2,9 +2,9 @@
 import {DbError} from "../../common/error/DbError"
 
 export const SearchIndexOS = "SearchIndex"
-export const ElementIdToIndexDataOS = "ElementIdToIndexData"
+export const ElementDataOS = "ElementData"
 export const MetaDataOS = "MetaData"
-export const GroupIdToBatchIdsOS = "GroupIdToBatchIds"
+export const GroupDataOS = "GroupMetaData"
 
 
 export class DbFacade {
@@ -17,7 +17,6 @@ export class DbFacade {
 		if (this.db != null) return Promise.resolve()
 		return new Promise.fromCallback((callback) => {
 			let DBOpenRequest = indexedDB.open(id, 1);
-
 			DBOpenRequest.onerror = (event) => {
 				callback(new DbError(`could not open indexeddb ${id}`, event), null)
 			}
@@ -27,9 +26,9 @@ export class DbFacade {
 				let db = event.target.result
 				try {
 					db.createObjectStore(SearchIndexOS)
-					db.createObjectStore(ElementIdToIndexDataOS)
+					db.createObjectStore(ElementDataOS)
 					db.createObjectStore(MetaDataOS)
-					db.createObjectStore(GroupIdToBatchIdsOS)
+					db.createObjectStore(GroupDataOS)
 				} catch (e) {
 					callback(new DbError("could not create object store searchindex", e))
 				}

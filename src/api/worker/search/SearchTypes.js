@@ -1,6 +1,19 @@
 //@flow
 import type {DbFacade} from "./DbFacade"
 
+
+// db types
+export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
+
+export type ElementData = [Id, Uint8Array, Id] // first element of value is listId, second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
+
+export type GroupData = {
+	lastBatchIds:Id[],
+	oldestIndexedId:Id,
+	excludedListIds:Id[];
+}
+
+// runtime types
 type B64EncIndexKey = Base64;
 type EncIndexKey = Uint8Array
 type EncInstanceId = Uint8Array;
@@ -21,8 +34,6 @@ export type KeyToEncryptedIndexEntries = {
 	indexEntries: EncryptedSearchIndexEntry[];
 }
 
-export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
-
 export type SearchIndexEntry = {
 	id:Id;
 	app:number;
@@ -33,13 +44,13 @@ export type SearchIndexEntry = {
 	encId?: Uint8Array;
 	rank?: number;
 }
-export type IndexData = [Id, Uint8Array] // first element of value is listId, second is encrypted words of instance seperated by whitespace
 
 export type IndexUpdate = {
+	groupId:Id;
 	batchId: ?IdTuple;
-	contactListId:?Id;
+	oldestIndexedId:?Id;
 	create : {
-		encInstanceIdToIndexData: Map<B64EncInstanceId,IndexData>;
+		encInstanceIdToElementData: Map<B64EncInstanceId,ElementData>;
 		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
 	};
 	move: {
@@ -52,12 +63,13 @@ export type IndexUpdate = {
 	};
 }
 
-export function _createNewIndexUpdate(): IndexUpdate {
+export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
 	return {
+		groupId,
 		batchId: null,
-		contactListId: null,
+		oldestIndexedId: null,
 		create: {
-			encInstanceIdToIndexData: new Map(),
+			encInstanceIdToElementData: new Map(),
 			indexMap: new Map(),
 		},
 		move: [],
@@ -69,3 +81,5 @@ export type Db = {
 	key: Aes256Key;
 	dbFacade: DbFacade;
 }
+
+

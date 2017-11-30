@@ -210,7 +210,7 @@ export class LoginFacade {
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
 			.then(() => {
 				// index new items in background
-				this._indexer.init(neverNull(this._user), this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact))
+				this._indexer.init(neverNull(this._user), this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact), neverNull(neverNull(this._userGroupInfo)._ownerGroup))
 			})
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())

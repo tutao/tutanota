@@ -1,6 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
-import type {IndexData} from "../../../../src/api/worker/search/SearchTypes"
+import type {ElementData} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {htmlToText, Indexer} from "../../../../src/api/worker/search/Indexer"
 import {createContact} from "../../../../src/api/entities/tutanota/Contact"
@@ -28,10 +28,11 @@ o.spec("Indexer test", () => {
 	})
 
 	o("new index update", function () {
-		let indexUpdate = _createNewIndexUpdate()
+		let indexUpdate = _createNewIndexUpdate("groupId")
+		o(indexUpdate.groupId).equals("groupId")
 		o(indexUpdate.batchId).equals(null)
-		o(indexUpdate.contactListId).equals(null)
-		o(indexUpdate.create.encInstanceIdToIndexData instanceof Map).equals(true)
+		o(indexUpdate.oldestIndexedId).equals(null)
+		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
 		o(indexUpdate.create.indexMap instanceof Map).equals(true)
 		o(indexUpdate.move).deepEquals([])
 		o(indexUpdate.delete.encWordToEncInstanceIds instanceof Map).equals(true)
@@ -39,35 +40,35 @@ o.spec("Indexer test", () => {
 	})
 
 	o("createNoContactIndexData", function () {
-		let update = _createNewIndexUpdate()
+		let update = _createNewIndexUpdate("groupId")
 		let c = createContact()
 		c._id = [GENERATED_MIN_ID, GENERATED_MAX_ID]
 		const indexer = new Indexer((null:any), (null:any))
 		indexer.db = ({key: aes256RandomKey()}:any)
 		indexer._createContactIndexEntries(c, update)
-		o(update.create.encInstanceIdToIndexData.size).equals(1)
+		o(update.create.encInstanceIdToElementData.size).equals(1)
 
 		// empty IndexData
 		let key = uint8ArrayToBase64(encryptIndexKey(indexer.db.key, GENERATED_MAX_ID))
-		let value: IndexData = (update.create.encInstanceIdToIndexData.get(key):any)
+		let value: ElementData = (update.create.encInstanceIdToElementData.get(key):any)
 		o(value[0]).equals(GENERATED_MIN_ID)
 		o(uint8ArrayToBase64(aes256Decrypt(indexer.db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
 	})
 
 
 	o.only("createNoMailIndexData", function () {
-		let update = _createNewIndexUpdate()
+		let update = _createNewIndexUpdate("groupId")
 		let m = createMail()
 		let b = createMailBody()
 		m._id = [GENERATED_MIN_ID, GENERATED_MAX_ID]
 		const indexer = new Indexer((null:any), (null:any))
 		indexer.db = ({key: aes256RandomKey()}:any)
 		indexer._createMailIndexEntries(m, b, update)
-		o(update.create.encInstanceIdToIndexData.size).equals(1)
+		o(update.create.encInstanceIdToElementData.size).equals(1)
 
 		// empty IndexData
 		let key = uint8ArrayToBase64(encryptIndexKey(indexer.db.key, GENERATED_MAX_ID))
-		let value: IndexData = (update.create.encInstanceIdToIndexData.get(key):any)
+		let value: ElementData = (update.create.encInstanceIdToElementData.get(key):any)
 		o(value[0]).equals(GENERATED_MIN_ID)
 		o(uint8ArrayToBase64(aes256Decrypt(indexer.db.key, value[1], true))).equals(uint8ArrayToBase64(new Uint8Array(0)))
 	})

@@ -2,7 +2,7 @@
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
-import {SearchIndexOS, ElementIdToIndexDataOS} from "./DbFacade"
+import {SearchIndexOS, ElementDataOS} from "./DbFacade"
 import {TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
@@ -11,7 +11,7 @@ import type {
 	KeyToEncryptedIndexEntries,
 	EncryptedSearchIndexEntry,
 	KeyToIndexEntries,
-	IndexData,
+	ElementData,
 	SearchIndexEntry
 } from "./SearchTypes"
 import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
@@ -128,17 +128,17 @@ export class SearchFacade {
 		let uniqueIds = {}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
 			//console.log(entry)
-			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementIdToIndexDataOS])
-			return transaction.get(ElementIdToIndexDataOS, neverNull(entry.encId)).then((indexData: IndexData) => {
+			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
+			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
-				if (!uniqueIds[entry.id] && (!restriction || !restriction.listId || restriction.listId == indexData[0])) {
+				if (!uniqueIds[entry.id] && (!restriction || !restriction.listId || restriction.listId == elementData[0])) {
 					uniqueIds[entry.id] = true
 					if (entry.type == MailModel.id) {
-						safeSearchResult.mails.push([indexData[0], entry.id])
+						safeSearchResult.mails.push([elementData[0], entry.id])
 					} else if (entry.type == ContactModel.id) {
-						safeSearchResult.contacts.push([indexData[0], entry.id])
+						safeSearchResult.contacts.push([elementData[0], entry.id])
 					} else if (entry.type == GroupInfoModel.id) {
-						safeSearchResult.groupInfos.push([indexData[0], entry.id])
+						safeSearchResult.groupInfos.push([elementData[0], entry.id])
 					}
 				}
 				return searchResult

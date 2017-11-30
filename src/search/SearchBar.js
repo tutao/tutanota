@@ -321,7 +321,12 @@ export class SearchBar {
 			})
 
 		} else {
-			if (value.trim() == "" || !locator.search.isNewSearch(value, restriction)) {
+			if (value.trim() == "") {
+				this.busy = false
+				return
+			} else if (!locator.search.isNewSearch(value, restriction)) {
+				this.showDropdown(locator.search.result())
+				this.busy = false
 				return
 			}
 			this.busy = true
