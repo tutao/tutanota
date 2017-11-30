@@ -9,7 +9,7 @@ import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {isSameId, isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType} from "../api/common/TutanotaConstants"
@@ -23,7 +23,6 @@ import TableLine from "../gui/base/TableLine"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
@@ -125,6 +124,7 @@ export class GroupViewer {
 				return !userGroupInfo.deleted && (this._members.getLoaded().find(m => isSameId(m._id, userGroupInfo._id)) == null)
 			}).then(availableUserGroupInfos => {
 				if (availableUserGroupInfos.length > 0) {
+					availableUserGroupInfos.sort(compareGroupInfos)
 					let d = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
 						return {name: getGroupInfoDisplayName(g), value: g}
 					}), availableUserGroupInfos[0], 250)

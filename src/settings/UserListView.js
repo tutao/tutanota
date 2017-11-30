@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {List, sortCompareById} from "../gui/base/List"
+import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {GENERATED_MAX_ID, TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
@@ -10,7 +10,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, compareGroupInfos} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
 import {SettingsView} from "./SettingsView"
 import {GroupTypeRef} from "../api/entities/sys/Group"
@@ -76,7 +76,7 @@ export class UserListView {
 					})
 				})
 			},
-			sortCompare: sortCompareById,
+			sortCompare: compareGroupInfos,
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new UserRow(this),

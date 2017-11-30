@@ -7,7 +7,7 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {load, loadAll, update, setup} from "../api/main/Entity"
-import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
@@ -62,6 +62,7 @@ export class ContactFormEditor {
 		this._contactForm = c ? c : createContactForm()
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 		let allGroupInfos = userGroupInfos.concat(sharedMailGroupInfos)
+		allGroupInfos.sort(compareGroupInfos)
 
 		this._pageTitleField = new TextField("pageTitle_label").setValue(this._contactForm.pageTitle)
 		this._pathField = new TextField("urlPath_label", () => getContactFormUrl(brandingDomain, this._pathField.value())).setValue(this._contactForm.path)

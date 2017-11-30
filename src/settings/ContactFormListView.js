@@ -71,7 +71,7 @@ export class ContactFormListView {
 					})
 				})
 			},
-			sortCompare: sortCompareById,
+			sortCompare: (a:ContactForm, b: ContactForm) => a.pageTitle.localeCompare(b.pageTitle),
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactFormRow(this._customerInfo),

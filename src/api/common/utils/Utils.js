@@ -101,3 +101,7 @@ export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 		return ""
 	}
 }
+
+export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
+	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
+}

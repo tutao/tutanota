@@ -13,7 +13,7 @@ import {isSameId, isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFuncti
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
@@ -252,6 +252,7 @@ export class UserViewer {
 			// remove all groups the user is already member of
 			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null)
 			if (availableGroupInfos.length > 0) {
+				availableGroupInfos.sort(compareGroupInfos)
 				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
 				}), availableGroupInfos[0], 250)
