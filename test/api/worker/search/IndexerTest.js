@@ -63,7 +63,7 @@ o.spec("Indexer test", () => {
 		m._id = [GENERATED_MIN_ID, GENERATED_MAX_ID]
 		const indexer = new Indexer((null:any), (null:any))
 		indexer.db = ({key: aes256RandomKey()}:any)
-		indexer._createMailIndexEntries(m, b, update)
+		indexer._createMailIndexEntries(m, b, [], update)
 		o(update.create.encInstanceIdToElementData.size).equals(1)
 
 		// empty IndexData

@@ -7,6 +7,7 @@ import {
 	_loadEntity,
 	_loadMultipleEntities,
 	_loadEntityRange,
+	_loadReverseRangeBetween,
 	resolveTypeReference,
 	TypeRef,
 	getLetId,
@@ -59,6 +60,13 @@ function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
 			return Promise.resolve(elements)
 		}
 	})
+}
+
+/**
+ * Provides all entities with element ids between start (included) and end (excluded). This function may actually load more elements from the server, but just returns the requested ones.
+ */
+export function loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
+	return _loadReverseRangeBetween(typeRef, listId, start, end, locator.cache)
 }
 
 export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {

@@ -191,6 +191,21 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
+export function _loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+	return resolveTypeReference(typeRef).then(typeModel => {
+		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		return _loadEntityRange(typeRef, listId, start, 1000, true, target).filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end)).then(entities => {
+			if (entities.length === 1000) {
+				return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length - 1])[1], end, target).then(remainingEntities => {
+					return entities.concat(remainingEntities)
+				})
+			} else {
+				return entities
+			}
+		})
+	})
+}
+
 export function _verifyType(typeModel: TypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement) throw new Error("only Element and ListElement types are permitted, was: " + typeModel.type)
 }

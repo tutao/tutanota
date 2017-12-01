@@ -1,6 +1,6 @@
 //@flow
 import {OperationType, MailState, MailFolderType} from "../../common/TutanotaConstants"
-import {load, loadAll, loadRoot, loadRange} from "../EntityWorker"
+import {load, loadAll, loadRoot, loadRange, loadReverseRangeBetween} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {NotFoundError} from "../../common/error/RestError"
@@ -43,6 +43,7 @@ import {_createNewIndexUpdate} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {UserTypeRef} from "../../entities/sys/User"
+import {FileTypeRef} from "../../entities/tutanota/File"
 
 const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -244,7 +245,7 @@ export class Indexer {
 		this.encryptSearchIndexEntries(encryptedInstanceId, keyToIndexEntries, indexUpdate, contact._id[0], neverNull(contact._ownerGroup))
 	}
 
-	_createMailIndexEntries(mail: Mail, mailBody: MailBody, indexUpdate: IndexUpdate): void {
+	_createMailIndexEntries(mail: Mail, mailBody: MailBody, files: TutanotaFile[], indexUpdate: IndexUpdate): void {
 		let encryptedInstanceId = encryptIndexKey(this.db.key, mail._id[1])
 		let startTimeIndex = performance.now()
 		let keyToIndexEntries = this.createIndexEntriesForAttributes(MailModel, mail, [
@@ -266,6 +267,9 @@ export class Indexer {
 			}, {
 				attribute: MailModel.associations["body"],
 				value: () => htmlToText(mailBody.text)
+			}, {
+				attribute: MailModel.associations["attachments"],
+				value: () => files.map(file => file.name).join(" ")
 			}])
 		this._indexingTime += (performance.now() - startTimeIndex)
 
@@ -411,28 +415,39 @@ export class Indexer {
 
 	_indexMailList(mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <void> {
 		let startTimeLoad = performance.now()
-		return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).filter(m => firstBiggerThanSecond(m._id[1], endId)).then(mails => {
-			return Promise.map(mails, mail => {
-				return _loadEntity(MailBodyTypeRef, mail.body, null, this._entityRestClient).then(body => {
-					return {mail, body}
+		// load all attachments first so they are available from cache for each mail
+		return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mailbox => {
+			return Promise.all([
+				loadReverseRangeBetween(FileTypeRef, mailbox.sentAttachments, startId, endId),
+				loadReverseRangeBetween(FileTypeRef, mailbox.receivedAttachments, startId, endId)
+			]).then(() => {
+				return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).filter(m => firstBiggerThanSecond(m._id[1], endId)).then(mails => {
+					return Promise.map(mails, mail => {
+						return Promise.all([
+							Promise.map(mail.attachments, attachmentId => load(FileTypeRef, attachmentId)),
+							_loadEntity(MailBodyTypeRef, mail.body, null, this._entityRestClient)
+						]).spread((files, body) => {
+							return {mail, body, files}
+						})
+					}, {concurrency: 5}).then((mailsWithBodiesAndFiles: {mail:Mail, body:MailBody, files:TutanotaFile[]}[]) => {
+						let indexUpdate = _createNewIndexUpdate(mailGroupId)
+						this._downloadingTime += (performance.now() - startTimeLoad)
+						this._mailcount += mailsWithBodiesAndFiles.length
+						return Promise.each(mailsWithBodiesAndFiles, element => {
+							this._createMailIndexEntries(element.mail, element.body, element.files, indexUpdate)
+						}).then(() => this._writeIndexUpdate(indexUpdate))
+					}).return(mails)
+				}).then((mails) => {
+					if (mails.length === 500) {
+						console.log("completed indexing range from", endId, "of mail list id", mailListId)
+						this._printStatus()
+						return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
+					} else {
+						console.log("completed indexing of mail list id", mailListId)
+						this._printStatus()
+					}
 				})
-			}, {concurrency: 5}).then((mailAndBodies: {mail:Mail, body:MailBody}[]) => {
-				let indexUpdate = _createNewIndexUpdate(mailGroupId)
-				this._downloadingTime += (performance.now() - startTimeLoad)
-				this._mailcount += mailAndBodies.length
-				return Promise.each(mailAndBodies, element => {
-					this._createMailIndexEntries(element.mail, element.body, indexUpdate)
-				}).then(() => this._writeIndexUpdate(indexUpdate))
-			}).return(mails)
-		}).then((mails) => {
-			if (mails.length === 500) {
-				console.log("completed indexing range from", endId, "of mail list id", mailListId)
-				this._printStatus()
-				return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
-			} else {
-				console.log("completed indexing of mail list id", mailListId)
-				this._printStatus()
-			}
+			})
 		})
 	}
 
@@ -701,8 +716,11 @@ export class Indexer {
 			return Promise.resolve()
 		}
 		return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-			return load(MailBodyTypeRef, mail.body).then(body => {
-				this._createMailIndexEntries(mail, body, indexUpdate)
+			Promise.all([
+				Promise.map(mail.attachments, attachmentId => load(FileTypeRef, attachmentId)),
+				load(MailBodyTypeRef, mail.body)
+			]).spread((files, body) => {
+				this._createMailIndexEntries(mail, body, files, indexUpdate)
 			})
 		}).catch(NotFoundError, () => {
 			console.log("tried to index non existing mail")
