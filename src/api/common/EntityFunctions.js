@@ -24,7 +24,8 @@ export type HttpMethodEnum = $Values<typeof HttpMethod>;
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  */
-export const GENERATED_MAX_ID = "Uzzzzzzzzzzz"
+export const GENERATED_MAX_ID = "Uzzzzzzzzzzz" // FIXME change to "zzzzzzzzzzzz" after server release
+
 /**
  * The minimum ID for elements with generated id stored on the server
  */

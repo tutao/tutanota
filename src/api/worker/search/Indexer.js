@@ -1,5 +1,11 @@
 //@flow
-import {OperationType, MailState, MailFolderType} from "../../common/TutanotaConstants"
+import {
+	OperationType,
+	MailState,
+	MailFolderType,
+	INDEX_TIMESTAMP_MAX,
+	INDEX_TIMESTAMP_MIN
+} from "../../common/TutanotaConstants"
 import {load, loadAll, loadRoot, loadRange, loadReverseRangeBetween} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -19,8 +25,7 @@ import {
 	_loadEntityRange,
 	_loadEntity,
 	firstBiggerThanSecond,
-	isSameId,
-	GENERATED_MIN_ID
+	isSameId
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
@@ -60,6 +65,9 @@ type InitParams = {
 	customerGroupId:Id;
 }
 
+
+const INITIAL_MAIL_INDEX_INTERVAL = 1000 * 60 * 60 * 24 * 10
+
 export class Indexer {
 	db: Db;
 	_entityRestClient: EntityRestClient;
@@ -83,7 +91,8 @@ export class Indexer {
 	_excludedListIds: Id[];
 	//
 	mailboxIndexingPromise: Promise<void>;
-	oldestIndexedMailId: Id;
+	currentIndexTimestamp: number;
+
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
 		this.db = ({}:any) // correctly initialized during init()
@@ -92,7 +101,7 @@ export class Indexer {
 		this._mailIndexingEnabled = false
 		this._worker = worker
 		this.mailboxIndexingPromise = Promise.resolve()
-		this.oldestIndexedMailId = GENERATED_MAX_ID
+		this.currentIndexTimestamp = INDEX_TIMESTAMP_MAX
 	}
 
 	/**
@@ -126,7 +135,7 @@ export class Indexer {
 							groupBatches.forEach(groupIdToLastBatchId => {
 								t2.put(GroupDataOS, groupIdToLastBatchId.groupId, ({
 									lastBatchIds: groupIdToLastBatchId.lastBatchIds,
-									oldestIndexedId: GENERATED_MAX_ID,
+									indexTimestamp: INDEX_TIMESTAMP_MAX,
 									excludedListIds: [],
 								}:GroupData))
 							})
@@ -134,13 +143,15 @@ export class Indexer {
 						})
 					} else {
 						this.db.key = decrypt256Key(groupKey, userEncDbKey)
-						t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
-							this._mailIndexingEnabled = mailIndexingEnabled
-						})
-						t.get(MetaDataOS, Metadata.excludedListIds).then(mailIndexingEnabled => {
-							this._excludedListIds = mailIndexingEnabled
-						})
-						return this.updateOldestIndexedMailId()
+						return Promise.all([
+							t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
+								this._mailIndexingEnabled = mailIndexingEnabled
+							}),
+							t.get(MetaDataOS, Metadata.excludedListIds).then(mailIndexingEnabled => {
+								this._excludedListIds = mailIndexingEnabled
+							}),
+							this.updateCurrentIndexTimestamp()
+						]).return()
 					}
 				})
 			}
@@ -154,13 +165,13 @@ export class Indexer {
 		})
 	}
 
-	updateOldestIndexedMailId(): Promise<void> {
+	updateCurrentIndexTimestamp(): Promise<void> {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		this.oldestIndexedMailId = GENERATED_MIN_ID
+		this.currentIndexTimestamp = INDEX_TIMESTAMP_MIN
 		return Promise.map(this._initParams.mailGroupIds, (mailGroupId) => {
 			t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-				if (firstBiggerThanSecond(groupData.oldestIndexedId, this.oldestIndexedMailId)) {
-					this.oldestIndexedMailId = groupData.oldestIndexedId
+				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
+					this.currentIndexTimestamp = groupData.indexTimestamp
 				}
 			})
 		}).return()
@@ -342,7 +353,7 @@ export class Indexer {
 					let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-					this.indexFullMailbox(timestampToGeneratedId(new Date().getTime() - 1000 * 60 * 60 * 24 * 1)) // create index in background
+					this.indexFullMailbox(new Date().getTime() - INITIAL_MAIL_INDEX_INTERVAL) // create index in background
 					return t2.await().then(() => {
 						return this._worker.sendIndexState({
 							mailIndexEnabled: this._mailIndexingEnabled,
@@ -372,7 +383,7 @@ export class Indexer {
 		return this.init(this._initParams.user, this._initParams.groupKey, this._initParams.userGroupId, this._initParams.mailGroupIds, this._initParams.contactGroupIds, this._initParams.customerGroupId)
 	}
 
-	indexFullMailbox(oldestIndexedId: Id): Promise<void> {
+	indexFullMailbox(endIndexTimstamp: number): Promise<void> {
 		this._indexingTime = 0
 		this._storageTime = 0
 		this._downloadingTime = 0
@@ -388,12 +399,13 @@ export class Indexer {
 			return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
 				let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
 				return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-					return this._loadMailListIds(neverNull(mbox.systemFolders).folders).each(mailListId => {
-						return this._indexMailList(mailGroupId, mailListId, groupData.oldestIndexedId, oldestIndexedId)
-					}).then(() => {
+					return this._loadMailListIds(neverNull(mbox.systemFolders).folders).map(mailListId => {
+						let startId = groupData.indexTimestamp == INDEX_TIMESTAMP_MAX ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+						return this._indexMailList(mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp))
+					}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
 						let t2 = this.db.dbFacade.createTransaction(false, [GroupDataOS])
 						return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-							groupData.oldestIndexedId = oldestIndexedId
+							groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? INDEX_TIMESTAMP_MIN : endIndexTimstamp
 							t2.put(GroupDataOS, mailGroupId, groupData)
 							return t2.await()
 						})
@@ -402,7 +414,7 @@ export class Indexer {
 			})
 			//})
 		}).then(() => {
-			this.updateOldestIndexedMailId()
+			this.updateCurrentIndexTimestamp()
 			this._printStatus()
 			console.log("finished indexing")
 		})
@@ -413,7 +425,8 @@ export class Indexer {
 		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime + this._storageTime + this._downloadingTime + this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
 	}
 
-	_indexMailList(mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <void> {
+	/**@return returns true if the mail list has been fully indexed. */
+	_indexMailList(mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <boolean> {
 		let startTimeLoad = performance.now()
 		// load all attachments first so they are available from cache for each mail
 		return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mailbox => {
@@ -421,7 +434,8 @@ export class Indexer {
 				loadReverseRangeBetween(FileTypeRef, mailbox.sentAttachments, startId, endId),
 				loadReverseRangeBetween(FileTypeRef, mailbox.receivedAttachments, startId, endId)
 			]).then(() => {
-				return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).filter(m => firstBiggerThanSecond(m._id[1], endId)).then(mails => {
+				return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).then(mails => {
+					let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
 					return Promise.map(mails, mail => {
 						return Promise.all([
 							Promise.map(mail.attachments, attachmentId => load(FileTypeRef, attachmentId)),
@@ -429,29 +443,34 @@ export class Indexer {
 						]).spread((files, body) => {
 							return {mail, body, files}
 						})
-					}, {concurrency: 5}).then((mailsWithBodiesAndFiles: {mail:Mail, body:MailBody, files:TutanotaFile[]}[]) => {
+					}, {concurrency: 5}).then((mailWithBodyAndFiles: {mail:Mail, body:MailBody, files:TutanotaFile[]}[]) => {
 						let indexUpdate = _createNewIndexUpdate(mailGroupId)
 						this._downloadingTime += (performance.now() - startTimeLoad)
-						this._mailcount += mailsWithBodiesAndFiles.length
-						return Promise.each(mailsWithBodiesAndFiles, element => {
+						this._mailcount += mailWithBodyAndFiles.length
+						return Promise.each(mailWithBodyAndFiles, element => {
 							this._createMailIndexEntries(element.mail, element.body, element.files, indexUpdate)
 						}).then(() => this._writeIndexUpdate(indexUpdate))
-					}).return(mails)
-				}).then((mails) => {
-					if (mails.length === 500) {
-						console.log("completed indexing range from", endId, "of mail list id", mailListId)
-						this._printStatus()
-						return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
-					} else {
-						console.log("completed indexing of mail list id", mailListId)
-						this._printStatus()
-					}
+					}).return(mails).then((mails) => {
+						if (mails.length === 500) {
+							console.log("completed indexing range from", startId, "to", endId, "of mail list id", mailListId)
+							this._printStatus()
+							if (filteredMails.length == mails.length) {
+								return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
+							} else {
+								return false
+							}
+						} else {
+							console.log("completed indexing of mail list id", mailListId)
+							this._printStatus()
+							return true
+						}
+					})
 				})
 			})
 		})
 	}
 
-	_loadMailListIds(folderListId: Id): Promise < Id[] > {
+	_loadMailListIds(folderListId: Id): Promise<Id[]> {
 		let mailListIds = []
 		return loadAll(MailFolderTypeRef, folderListId).map(folder => {
 			mailListIds.push(folder.mails)
@@ -461,16 +480,16 @@ export class Indexer {
 		}).then(() => mailListIds)
 	}
 
-	indexFullContactList(userGroupId: Id): Promise < void > {
+	indexFullContactList(userGroupId: Id): Promise<void> {
 		return loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
 			let t = this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 			let groupId = neverNull(contactList._ownerGroup)
 			let indexUpdate = _createNewIndexUpdate(groupId)
 			return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-				if (groupData.oldestIndexedId == GENERATED_MAX_ID) {
+				if (groupData.indexTimestamp == INDEX_TIMESTAMP_MAX) {
 					return loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
 						contacts.forEach((contact) => this._createContactIndexEntries(contact, indexUpdate))
-						indexUpdate.oldestIndexedId = GENERATED_MIN_ID
+						indexUpdate.indexTimestamp = INDEX_TIMESTAMP_MIN
 						return this._writeIndexUpdate(indexUpdate)
 					})
 				}
@@ -540,11 +559,11 @@ export class Indexer {
 					})
 				}
 			})
-			if (indexUpdate.batchId || indexUpdate.oldestIndexedId) {
+			if (indexUpdate.batchId || indexUpdate.indexTimestamp) {
 				transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: GroupData) => {
 
-					if (indexUpdate.oldestIndexedId) {
-						groupData.oldestIndexedId = indexUpdate.oldestIndexedId
+					if (indexUpdate.indexTimestamp != null) {
+						groupData.indexTimestamp = indexUpdate.indexTimestamp
 					}
 
 					if (indexUpdate.batchId) {
@@ -738,6 +757,7 @@ export class Indexer {
 					return loadAll(GroupInfoTypeRef, customer.teamGroups).then(allTeamGroupInfos => {
 						let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
 						allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => this._createGroupInfoIndexEntries(groupInfo, indexUpdate))
+						indexUpdate.indexTimestamp = INDEX_TIMESTAMP_MIN
 						return this._writeIndexUpdate(indexUpdate)
 					})
 				})

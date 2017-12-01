@@ -9,7 +9,7 @@ export type ElementData = [Id, Uint8Array, Id] // first element of value is list
 
 export type GroupData = {
 	lastBatchIds:Id[],
-	oldestIndexedId:Id,
+	indexTimestamp:number,
 	excludedListIds:Id[];
 }
 
@@ -48,7 +48,7 @@ export type SearchIndexEntry = {
 export type IndexUpdate = {
 	groupId:Id;
 	batchId: ?IdTuple;
-	oldestIndexedId:?Id;
+	indexTimestamp:?number;
 	create : {
 		encInstanceIdToElementData: Map<B64EncInstanceId,ElementData>;
 		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
@@ -67,7 +67,7 @@ export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
 	return {
 		groupId,
 		batchId: null,
-		oldestIndexedId: null,
+		indexTimestamp: null,
 		create: {
 			encInstanceIdToElementData: new Map(),
 			indexMap: new Map(),

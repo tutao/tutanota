@@ -1,5 +1,6 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
+import {neverNull} from "../../common/utils/Utils"
 
 export const SearchIndexOS = "SearchIndex"
 export const ElementDataOS = "ElementData"
@@ -8,7 +9,7 @@ export const GroupDataOS = "GroupMetaData"
 
 
 export class DbFacade {
-	db: IDBDatabase;
+	db: ?IDBDatabase;
 
 	constructor() {
 	}
@@ -47,21 +48,26 @@ export class DbFacade {
 
 
 	deleteDatabase(): Promise<void> {
-		this.db.close()
-		return Promise.fromCallback(cb => {
-			let deleteRequest = indexedDB.deleteDatabase(this.db.name)
-			deleteRequest.onerror = (event) => {
-				cb(new DbError(`could not delete database ${this.db.name}`, event), null)
-			}
-			deleteRequest.onsuccess = (event) => {
-				cb()
-			}
-		})
+		if (this.db) {
+			this.db.close()
+			return Promise.fromCallback(cb => {
+				let deleteRequest = indexedDB.deleteDatabase(neverNull(this.db).name)
+				deleteRequest.onerror = (event) => {
+					cb(new DbError(`could not delete database ${neverNull(this.db).name}`, event), null)
+				}
+				deleteRequest.onsuccess = (event) => {
+					this.db = null
+					cb()
+				}
+			})
+		} else {
+			return Promise.resolve()
+		}
 	}
 
 
 	createTransaction(readOnly: boolean, objectStores: string[]): DbTransaction {
-		return new DbTransaction(this.db.transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+		return new DbTransaction(neverNull(this.db).transaction(objectStores, readOnly ? "readonly" : "readwrite"))
 	}
 
 }

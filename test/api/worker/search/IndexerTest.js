@@ -31,7 +31,7 @@ o.spec("Indexer test", () => {
 		let indexUpdate = _createNewIndexUpdate("groupId")
 		o(indexUpdate.groupId).equals("groupId")
 		o(indexUpdate.batchId).equals(null)
-		o(indexUpdate.oldestIndexedId).equals(null)
+		o(indexUpdate.indexTimestamp).equals(null)
 		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
 		o(indexUpdate.create.indexMap instanceof Map).equals(true)
 		o(indexUpdate.move).deepEquals([])

@@ -1,9 +1,9 @@
 //@flow
-import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
+import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
-import {TypeRef} from "../../common/EntityFunctions"
+import {TypeRef, isSameTypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
 import {neverNull} from "../../common/utils/Utils"
@@ -16,6 +16,7 @@ import type {
 } from "./SearchTypes"
 import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
 import type {Indexer} from "./Indexer"
+import {INDEX_TIMESTAMP_MAX, INDEX_TIMESTAMP_MIN} from "../../common/TutanotaConstants"
 
 export class SearchFacade {
 	_indexer: Indexer;
@@ -53,7 +54,7 @@ export class SearchFacade {
 			})
 		})
 	}
- 
+
 	/**
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
@@ -126,6 +127,10 @@ export class SearchFacade {
 
 	_filterByListIdAndGroupSearchResults(query: string, restriction: ?SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
 		let uniqueIds = {}
+		let searchIndexTimestamp = new Date().getTime()
+		if (this._indexer.currentIndexTimestamp == searchIndexTimestamp) {
+			searchIndexTimestamp = this._indexer.currentIndexTimestamp
+		}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
 			//console.log(entry)
 			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
@@ -149,10 +154,18 @@ export class SearchFacade {
 			mails: [],
 			contacts: [],
 			groupInfos: [],
-			oldestIndexedId: this._indexer.oldestIndexedMailId
+			currentIndexTimestamp: this._getSearchTimestamp(restriction)
 		})
 	}
 
+
+	_getSearchTimestamp(restriction: ?SearchRestriction): number {
+		if (!restriction || isSameTypeRef(MailTypeRef, restriction.type)) {
+			return this._indexer.currentIndexTimestamp == INDEX_TIMESTAMP_MAX ? new Date().getTime() : this._indexer.currentIndexTimestamp
+		} else {
+			return INDEX_TIMESTAMP_MIN
+		}
+	}
 }
 
 

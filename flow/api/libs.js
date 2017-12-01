@@ -63,7 +63,7 @@ declare class Promise<+R> {
 
 	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
-	map<T, U>(mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<Array<U>>;
+	map<T, U>(mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<Array<U>>;
 
 	filter<T>(iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 

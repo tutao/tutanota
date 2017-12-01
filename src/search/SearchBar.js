@@ -17,7 +17,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {load} from "../api/main/Entity"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
+import {formatDateTimeFromYesterdayOn, formatDateWithWeekday} from "../misc/Formatter"
 import {getSenderOrRecipientHeading} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
@@ -28,11 +28,12 @@ import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import {INDEX_TIMESTAMP_MIN} from "../api/common/TutanotaConstants"
 
 type ShowMoreAction = {
 	resultCount:number,
 	shownCount:number,
-	indexDate:Date,
+	indexTimestamp:number,
 	allowShowMore:boolean
 }
 
@@ -162,12 +163,14 @@ export class SearchBar {
 			if (this.value() == result.query) {
 				this._results = newResults
 				let resultCount = (result.mails.length + result.contacts.length + result.groupInfos.length)
-				this._results.push({
-					resultCount: resultCount,
-					shownCount: this._results.length,
-					indexDate: new Date(),
-					allowShowMore: !result.restriction || !result.restriction.type || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
-				}) // add SearchMoreAction
+				if (resultCount == 0 || resultCount > 10 || result.currentIndexTimestamp != INDEX_TIMESTAMP_MIN) {
+					this._results.push({
+						resultCount: resultCount,
+						shownCount: this._results.length,
+						indexTimestamp: result.currentIndexTimestamp,
+						allowShowMore: !result.restriction || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
+					}) // add SearchMoreAction
+				}
 				if (this._results.length > 0) {
 					this._selected = this._results[0]
 				} else {
@@ -212,16 +215,13 @@ export class SearchBar {
 			} else {
 				infoText = lang.get("moreResultsFound_msg", {"{1}": showMoreAction.resultCount - showMoreAction.shownCount})
 			}
-			return m("ul.list.mail-list",
-				{
-					style: "cursor: " + (showMoreAction.allowShowMore ? "pointer" : "auto")
-				},
-				m("li.plr-l.pt-s.pb-s.items-center.flex-center", {
-					style: {
-						'border-left': px(size.border_selection) + " solid transparent",
-					},
 
-				}, infoText))
+			let indexInfo
+			if (showMoreAction.indexTimestamp > INDEX_TIMESTAMP_MIN) {
+				indexInfo = lang.get("searchedUntil_msg") + " " + formatDateWithWeekday(new Date(showMoreAction.indexTimestamp))
+			}
+			return indexInfo ? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result:any):Mail)
 			return [m(".top.flex-space-between", [
@@ -325,7 +325,9 @@ export class SearchBar {
 				this.busy = false
 				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
-				this.showDropdown(locator.search.result())
+				if (!m.route.get().startsWith("/search")) {
+					this.showDropdown(locator.search.result())
+				}
 				this.busy = false
 				return
 			}

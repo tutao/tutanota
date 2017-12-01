@@ -235,3 +235,7 @@ export const FeatureType = {
 	// 3 and 4 are not used on clients
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
+
+export const INDEX_TIMESTAMP_MIN = 0
+export const INDEX_TIMESTAMP_MAX = Math.pow(2,42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+
