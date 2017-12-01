@@ -74,7 +74,10 @@ export class EditSecondFactorsForm {
 							}
 						})
 					}, () => Icons.Cancel)
-					let domainInfo = (differentDomainAppIds.length > 1) ? ( u2f && (f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId) : ""
+					let domainInfo = ""
+					if (u2f && differentDomainAppIds.length > 1) {
+						domainInfo = ((f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId)
+					}
 					return new TableLine([f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
 				})
 				this._2FATable.updateEntries(tableLines)
