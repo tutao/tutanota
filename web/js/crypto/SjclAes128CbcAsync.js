@@ -85,7 +85,7 @@ tutao.crypto.SjclAes128CbcAsync.prototype.decryptBytes = function (key, bytes, d
 		var macIncluded = bytes.byteLength % 2 == 1;
 		if (macIncluded) {
 			var hashedKey = new tutao.crypto.SjclSha256().hash(tutao.util.EncodingConverter.keyToUint8Array(key));
-			key = tutao.util.EncodingConverter.uint8ArrayToKey(hashedKey.slice(0, 16))
+			key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array(hashedKey.buffer.slice(0, 16))) // fix for IE11
 		}
 
 		var xor = sjcl.bitArray._xor4;
