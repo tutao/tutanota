@@ -689,7 +689,7 @@ export class Indexer {
 		let transaction = this.db.dbFacade.createTransaction(true, [ElementDataOS])
 		return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 			if (!elementData) {
-				console.log("index data not available (instance is not indexed)", encInstanceId)
+				console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
 				return
 			}
 			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true)).split(" ")
@@ -735,7 +735,7 @@ export class Indexer {
 			return Promise.resolve()
 		}
 		return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-			Promise.all([
+			return Promise.all([
 				Promise.map(mail.attachments, attachmentId => load(FileTypeRef, attachmentId)),
 				load(MailBodyTypeRef, mail.body)
 			]).spread((files, body) => {
