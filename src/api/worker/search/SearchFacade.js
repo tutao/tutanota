@@ -36,7 +36,11 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
-		return this._indexer.mailboxIndexingPromise.then(() => this._findIndexEntries(searchTokens)
+		let indexingPromise = Promise.resolve()
+		if (restriction && isSameTypeRef(MailTypeRef, restriction.type)) {
+			indexingPromise = this._indexer.mailboxIndexingPromise
+		}
+		return indexingPromise.then(() => this._findIndexEntries(searchTokens)
 				.then(results => this._filterByEncryptedId(results))
 				.then(results => this._decryptSearchResult(results))
 				.then(results => this._filterByAttributeId(results, restriction))

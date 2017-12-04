@@ -10,7 +10,7 @@ import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {displayOverlay, closeOverlay, isOverlayVisible} from "../gui/base/Overlay"
+import {displayOverlay, closeOverlay} from "../gui/base/Overlay"
 import {NavButton} from "../gui/base/NavButton"
 import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -21,6 +21,8 @@ import {formatDateTimeFromYesterdayOn, formatDateWithWeekday} from "../misc/Form
 import {getSenderOrRecipientHeading} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
+import type {RouteChangeEvent} from "../misc/RouteChange"
+import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {setSearchUrl, getRestriction} from "./SearchUtils"
@@ -29,6 +31,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {INDEX_TIMESTAMP_MIN} from "../api/common/TutanotaConstants"
+import {Button} from "../gui/base/Button"
 
 type ShowMoreAction = {
 	resultCount:number,
@@ -118,16 +121,60 @@ export class SearchBar {
 							fill: theme.header_button,
 							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
-					}))])
+					}))]),
 			])
 		}
 
-		this._setupShortcuts()
+		let shortcuts = this._setupShortcuts()
+		let indexStateStream
+		let routeChangeStream
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
+				this.showIndexingProgress(newState, m.route.get())
+			})
+			routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
+				if (e.requestedPath.startsWith("/search/mail")) {
+					let indexState = locator.search.indexState()
+					this.showIndexingProgress(indexState, e.requestedPath)
+				} else {
+					closeOverlay()
+				}
+			})
+		}
+		this.onbeforeremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			if (indexStateStream) {
+				indexStateStream.end(true)
+			}
+			if (routeChangeStream) {
+				routeChangeStream.end(true)
+			}
+			closeOverlay()
+		}
+	}
+
+	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
+		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail") ) || (route.startsWith("/search/mail") && newState.progress < 100))) {
+			let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
+			let cancelButton = new Button("cancel_action", () => {
+				worker.cancelMailIndexing()
+			}, () => Icons.Cancel)
+			displayOverlay(buttonRect, {
+				view: () => {
+					return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
+						style: {
+							height: px(52)
+						}
+					}, [m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})), newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null])
+				}
+			})
+		}
 	}
 
 
-	_setupShortcuts() {
-		let shortcuts = [
+	_setupShortcuts(): Shortcut[] {
+		return [
 			{
 				key: Keys.F,
 				enabled: () => logins.isInternalUserLoggedIn(),
@@ -139,8 +186,7 @@ export class SearchBar {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+
 	}
 
 	setRestrictionListId(listId: Id) {
@@ -177,7 +223,7 @@ export class SearchBar {
 					this._selected = null
 				}
 			}
-			if (!isOverlayVisible() && this._domWrapper != null && this.value().trim() != "" && this.focused) {
+			if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
 				let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
 				displayOverlay(buttonRect, {
 					view: () => {
@@ -325,7 +371,7 @@ export class SearchBar {
 				this.busy = false
 				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
-				if (!m.route.get().startsWith("/search")) {
+				if (!m.route.get().startsWith("/search") && locator.search.result()) {
 					this.showDropdown(locator.search.result())
 				}
 				this.busy = false
@@ -432,6 +478,7 @@ export class SearchBar {
 			this.expanded = true
 			this._domInput.focus()
 			this._domInput.select()
+			this.showIndexingProgress(locator.search.indexState(), m.route.get())
 			this.search()
 			//this._domWrapper.classList.add("active")
 		}

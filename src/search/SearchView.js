@@ -141,7 +141,7 @@ export class SearchView {
 		if (args.id && this._searchList.list && !this._searchList.list.isEntitySelected(args.id) && this._searchList.list._domList) {
 			// the mail list is visible already, just the selected mail is changed
 			this._searchList.list.scrollToIdAndSelect(args.id)
-		} else if (!args.id && this._searchList.list.getSelectedEntities().length > 0) {
+		} else if (!args.id && this._searchList.list && this._searchList.list.getSelectedEntities().length > 0) {
 			this._searchList.list.selectNone()
 		}
 	}

@@ -38,6 +38,9 @@ export class SearchListView {
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
 					let result = locator.search.result()
+					if (!result) {
+						return Promise.resolve([])
+					}
 					let mail = result.restriction && isSameTypeRef(result.restriction.type, MailTypeRef)
 					let contact = result.restriction && isSameTypeRef(result.restriction.type, ContactTypeRef)
 					if (mail || contact) {

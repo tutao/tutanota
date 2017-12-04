@@ -187,6 +187,9 @@ export class WorkerImpl {
 			disableMailIndexing: (message: Request) => {
 				return locator.indexer.disableMailIndexing()
 			},
+			cancelMailIndexing: (message: Request) => {
+				return locator.indexer.cancelMailIndexing()
+			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},

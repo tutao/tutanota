@@ -328,6 +328,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('disableMailIndexing', arguments))
 	}
 
+	cancelMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('cancelMailIndexing', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}

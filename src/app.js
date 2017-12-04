@@ -17,6 +17,7 @@ import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
 import {asyncImport} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
+import {routeChange} from "./misc/RouteChange"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -86,6 +87,7 @@ let initialized = lang.init(en).then(() => {
 					}
 					promise.then(view => {
 						view.updateUrl(args, requestedPath)
+						routeChange({args, requestedPath})
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})

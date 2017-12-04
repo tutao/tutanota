@@ -3,10 +3,11 @@ import stream from "mithril/stream/stream.js"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {arrayEquals} from "../api/common/utils/ArrayUtils"
+import {MailTypeRef} from "../api/entities/tutanota/Mail"
 
 
 export class SearchModel {
-	result: stream<SearchResult>;
+	result: stream<?SearchResult>;
 	indexState: stream<SearchIndexStateInfo>;
 
 	constructor() {
@@ -19,6 +20,12 @@ export class SearchModel {
 
 	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
 		let result = this.result()
+
+		if (result && restriction && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
+			this.result(null)
+		} else if (this.indexState().progress > 0 && result && isSameTypeRef(MailTypeRef, result.restriction.type)) {
+			this.result(null)
+		}
 		return worker.search(query, restriction).then(result => {
 			this.result(result)
 			return result

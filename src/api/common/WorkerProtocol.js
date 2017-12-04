@@ -37,6 +37,7 @@ import {OutOfSyncError} from "./error/OutOfSyncError"
 import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
 import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
 import {DbError} from "./error/DbError"
+import {CancelledError} from "./error/CancelledError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -200,6 +201,7 @@ const ErrorNameToType = {
 	SecondFactorPendingError,
 	ServiceUnavailableError,
 	DbError,
+	CancelledError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,

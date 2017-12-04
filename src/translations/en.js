@@ -933,5 +933,6 @@ module.exports = {
 		"searchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
 		"moreResultsFound_msg": "{1} more results found.",
 		"searchedUntil_msg": "Searched until",
+		"createSearchIndex_msg": "Creating search index {progress}%",
 	}
 }
