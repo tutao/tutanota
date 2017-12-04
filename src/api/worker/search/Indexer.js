@@ -433,7 +433,7 @@ export class Indexer {
 		return this.mailboxIndexingPromise.return()
 	}
 
-	cancelMailIndexing() {
+	cancelMailIndexing(): Promise<void> {
 		this._indexingCancelled = true
 		return Promise.resolve()
 	}
