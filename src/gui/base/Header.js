@@ -49,7 +49,7 @@ class Header {
 		this.defaultButtonBar = new NavBar()
 		//.addButton(searchViewButton, 0, true, false)
 			.addButton(new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false, true)
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => premiumUrl, premiumUrl)

@@ -65,63 +65,71 @@ export class SearchBar {
 		this.skipNextBlur = false
 		this.busy = false
 		this.value = stream("")
-		let b = new NavButton('emails_label', () => BootIcons.Mail, () => "/search", "/search")
+		let b = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
 		this.dropdown = new Dropdown(() => [b], 250)
 		this._results = []
 		this.view = (): VirtualElement => {
-			return m(".search-bar.flex-end.items-center", {
-				oncreate: (vnode) => {
-					this._domWrapper = vnode.dom
-				},
+			return m("", {
 				style: {
-					'min-height': px(inputLineHeight + 2), // 2 px border
-					'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
-					'padding-top': px(2), // center input field
-					'margin-right': px(15),
-					'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
-					'align-self': "center"
+					display: this.isVisible() ? "flex" : 'none'
 				}
 			}, [
-				m(".ml-negative-xs.click", {
-					onmousedown: e => {
-						if (this.focused) {
-							this.skipNextBlur = true
-						}
+				m(".search-bar.flex-end.items-center", {
+					oncreate: (vnode) => {
+						this._domWrapper = vnode.dom
 					},
-					onclick: (e) => {
-						this.handleSearchClick(e)
-					}
-				}, m(Icon, {
-					icon: Icons.Search,
-					class: "flex-center items-center icon-large",
 					style: {
-						fill: this.focused ? theme.header_button_selected : theme.header_button,
-						//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+						'min-height': px(inputLineHeight + 2), // 2 px border
+						'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
+						'padding-top': px(2), // center input field
+						'margin-right': px(15),
+						'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+						'align-self': "center"
 					}
-				})),
-				m(".searchInputWrapper.flex-end.items-center", {
-					style: {
-						"width": this.expanded ? px(200) : px(0),
-						"transition": `width ${DefaultAnimationTime}ms`,
-						'padding-left': this.expanded ? '10px' : '0px',
-						'padding-top': '3px',
-						'padding-bottom': '3px',
-						'overflow-x': 'hidden'
-					}
-
-				}, [this._getInputField(), m(".closeIconWrapper", {
-					onclick: (e) => this.close(),
-				}, this.busy ? m(Icon, {
-						icon: BootIcons.Progress,
-						class: 'flex-center items-center icon-progress-search icon-progress'
-					}) : m(Icon, {
-						icon: Icons.Close,
+				}, [
+					m(".ml-negative-xs.click", {
+						onmousedown: e => {
+							if (this.focused) {
+								this.skipNextBlur = true
+							}
+						},
+						onclick: (e) => {
+							this.handleSearchClick(e)
+						}
+					}, m(Icon, {
+						icon: Icons.Search,
 						class: "flex-center items-center icon-large",
 						style: {
-							fill: theme.header_button,
+							fill: this.focused ? theme.header_button_selected : theme.header_button,
 							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
-					}))]),
+					})),
+					m(".searchInputWrapper.flex-end.items-center", {
+						style: {
+							"width": this.expanded ? px(200) : px(0),
+							"transition": `width ${DefaultAnimationTime}ms`,
+							'padding-left': this.expanded ? '10px' : '0px',
+							'padding-top': '3px',
+							'padding-bottom': '3px',
+							'overflow-x': 'hidden'
+						}
+
+					}, [this._getInputField(), m(".closeIconWrapper", {
+						onclick: (e) => this.close(),
+					}, this.busy ? m(Icon, {
+							icon: BootIcons.Progress,
+							class: 'flex-center items-center icon-progress-search icon-progress'
+						}) : m(Icon, {
+							icon: Icons.Close,
+							class: "flex-center items-center icon-large",
+							style: {
+								fill: theme.header_button,
+								//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+							}
+						}))]),
+
+				]),
+				m(".nav-bar-spacer")
 			])
 		}
 
@@ -494,7 +502,8 @@ export class SearchBar {
 	}
 
 	isVisible() {
-		return styles.isDesktopLayout() && logins.isInternalUserLoggedIn() // || this.isSearchViewVisible
+		let route = m.route.get()
+		return styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
 	}
 
 }

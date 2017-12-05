@@ -52,7 +52,7 @@ export class NavBar {
 				return buttons
 			}),
 			prefixComponent: styles.isDesktopLayout() ? {
-					view: () => m(".nav-bar-spacer")
+					view: () => m(".nav-bar-spacer"),
 				} : undefined,
 			width: size.button_height + styles.isDesktopLayout() ? 4 : 0, // spacer width is 4px
 			hideLabelDefault: true
@@ -101,7 +101,7 @@ export class NavBar {
 	 * @param priority The higher the value the higher the priority. Values from 0 to MAX_PRIO are allowed.
 	 * @param moreOnly this button should only be visible, when the more button dropdown is visible
 	 */
-	addButton(button: NavButton, priority: number = 0, moreOnly: boolean = false, showSpacer: boolean = false): NavBar {
+	addButton(button: NavButton, priority: number = 0, moreOnly: boolean = false): NavBar {
 		if (priority > MAX_PRIO) {
 			throw new Error("prio > " + MAX_PRIO);
 		}
@@ -117,12 +117,6 @@ export class NavBar {
 			this.moreButtons.push(wrapper)
 		} else {
 			this.buttons.push(wrapper)
-		}
-
-		if (showSpacer) {
-			wrapper.prefixComponent = {
-				view: () => m(".nav-bar-spacer")
-			}
 		}
 		return this
 	}
