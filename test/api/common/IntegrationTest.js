@@ -62,7 +62,7 @@ o.spec("integration test", function () {
 						})
 					})
 				]))
-			.then(done)
+			.then(() => done())
 		/*
 
 		 */

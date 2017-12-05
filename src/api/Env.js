@@ -48,6 +48,10 @@ export function isWorker(): boolean {
 	return worker
 }
 
+export function isTest(): boolean {
+	return env.mode === Mode.Test
+}
+
 let boot = !isWorker()
 
 export function assertMainOrNode() {

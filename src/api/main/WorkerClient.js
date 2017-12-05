@@ -86,8 +86,8 @@ export class WorkerClient {
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			const workerImpl = requireNodeOnly('./../worker/WorkerImpl.js').workerImpl
-
+			const workerModule = requireNodeOnly('./../worker/WorkerImpl.js')
+			const workerImpl = new workerModule.WorkerImpl(this)
 			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
 			this._queue = new Queue(({
 				postMessage: function (msg) {

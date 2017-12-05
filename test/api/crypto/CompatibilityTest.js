@@ -94,7 +94,7 @@ o.spec("crypto compatibility", function () {
 					o(decrypted).deepEquals(td.plainTextBase64)
 				})
 			})
-		).then(done)
+		).then(() => done())
 	}))
 
 

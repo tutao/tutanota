@@ -56,7 +56,7 @@ o.spec("aes", function () {
 			runArrayRoundtrip(key, random.generateRandomData(16)),
 			runArrayRoundtrip(key, random.generateRandomData(17)),
 			runArrayRoundtrip(key, random.generateRandomData(12345))
-		]).then(done)
+		]).then(() => done())
 	}
 
 	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(aes128RandomKey, 24))
@@ -251,7 +251,7 @@ o.spec("aes", function () {
 		Promise.all([
 			aes256EncryptFile(aes256RandomKey(), stringToUtf8Uint8Array("1234567890abcde"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => o(encrypted.length).equals(48)), // check that 15 bytes fit into one block
 			aes256EncryptFile(aes256RandomKey(), stringToUtf8Uint8Array("1234567890abcdef"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => o(encrypted.length).equals(64)) // check that 16 bytes need two blocks (because of one byte padding length info)
-		]).then(done)
+		]).then(() => done())
 	}))
 
 })

@@ -26,7 +26,7 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {neverNull} from "../../common/utils/Utils"
 import {isSameTypeRef, TypeRef, isSameId, HttpMethod, GENERATED_ID_BYTES_LENGTH} from "../../common/EntityFunctions"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
@@ -209,8 +209,10 @@ export class LoginFacade {
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
 			.then(() => {
-				// index new items in background
-				this._indexer.init(neverNull(this._user), this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact), neverNull(neverNull(this._userGroupInfo)._ownerGroup))
+				if (!isTest()) {
+					// index new items in background
+					this._indexer.init(neverNull(this._user), this.getUserGroupKey(), this.getUserGroupId(), this.getGroupIds(GroupType.Mail), this.getGroupIds(GroupType.Contact), neverNull(neverNull(this._userGroupInfo)._ownerGroup))
+				}
 			})
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())

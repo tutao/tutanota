@@ -56,7 +56,7 @@ o.spec("Indexer test", () => {
 	})
 
 
-	o.only("createNoMailIndexData", function () {
+	o("createNoMailIndexData", function () {
 		let update = _createNewIndexUpdate("groupId")
 		let m = createMail()
 		let b = createMailBody()
