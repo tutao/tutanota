@@ -456,7 +456,7 @@ export class Indexer {
 				return _loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).then(mails => {
 					if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 					let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
-					return Promise.map(mails, mail => {
+					return Promise.map(filteredMails, mail => {
 						if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 						return Promise.all([
 							Promise.map(mail.attachments, attachmentId => load(FileTypeRef, attachmentId)),

@@ -20,10 +20,11 @@ export class SearchModel {
 
 	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
 		let result = this.result()
-
-		if (result && restriction && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
+		if (result && restriction && result.restriction && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
+			// reset the result in case only the search type has changed
 			this.result(null)
-		} else if (this.indexState().progress > 0 && result && isSameTypeRef(MailTypeRef, result.restriction.type)) {
+		} else if (this.indexState().progress > 0 && result && result.restriction && isSameTypeRef(MailTypeRef, result.restriction.type)) {
+			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
 		return worker.search(query, restriction).then(result => {
