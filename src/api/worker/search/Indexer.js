@@ -152,18 +152,17 @@ export class Indexer {
 							}),
 							t.get(MetaDataOS, Metadata.excludedListIds).then(mailIndexingEnabled => {
 								this._excludedListIds = mailIndexingEnabled
-							}),
-							this.updateCurrentIndexTimestamp()
+							})
 						]).return()
 					}
-				})
+				}).then(() => t.await())
 			}
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
 					mailIndexEnabled: this._mailIndexingEnabled,
 					progress: 0
 				})
-				return this._loadNewEntities(mailGroupIds.concat(contactGroupIds))
+				return this.updateCurrentIndexTimestamp().then(() => this._loadNewEntities(mailGroupIds.concat(contactGroupIds)))
 			})
 		})
 	}
@@ -171,13 +170,14 @@ export class Indexer {
 	updateCurrentIndexTimestamp(): Promise<void> {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		this.currentIndexTimestamp = INDEX_TIMESTAMP_MIN
-		return Promise.map(this._initParams.mailGroupIds, (mailGroupId) => {
+		this._initParams.mailGroupIds.map(mailGroupId => {
 			t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
 					this.currentIndexTimestamp = groupData.indexTimestamp
 				}
 			})
-		}).return()
+		})
+		return t.await()
 	}
 
 	_loadLastBatchIds(groupIds: Id[]): Promise< {groupId: Id, lastBatchIds: Id[]}[]> {
@@ -192,10 +192,10 @@ export class Indexer {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		let groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[] = []
 		groupIds.forEach(groupId => {
-			t.get(GroupDataOS, groupId).then(lastEventBatchIds => {
+			return t.get(GroupDataOS, groupId).then(groupData => {
 				groupIdToEventBatches.push({
 					groupId,
-					eventBatchIds: lastEventBatchIds
+					eventBatchIds: groupData.lastBatchIds
 				})
 			})
 		})

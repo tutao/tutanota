@@ -70,7 +70,8 @@ class ClientDetector {
 			this.blob() &&
 			this.history() &&
 			this.randomNumbers() &&
-			this.notIE()
+			this.notIE() &&
+			this.indexedDb()
 	}
 
 	isMobileDevice(): boolean {
@@ -159,6 +160,16 @@ class ClientDetector {
 	 */
 	xhr2(): boolean {
 		return 'XMLHttpRequest' in window && 'withCredentials' in new XMLHttpRequest()
+	}
+
+
+	indexedDb(): boolean {
+		try {
+			indexedDB
+			return true
+		} catch (e) {
+			return false
+		}
 	}
 
 	/**

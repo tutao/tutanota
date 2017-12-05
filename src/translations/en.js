@@ -934,5 +934,6 @@ module.exports = {
 		"moreResultsFound_msg": "{1} more results found.",
 		"searchedUntil_msg": "Searched until",
 		"createSearchIndex_msg": "Creating search index {progress}%",
+		"requiredFeatures_msg": "The following features must be enabled:"
 	}
 }

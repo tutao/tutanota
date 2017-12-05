@@ -35,7 +35,7 @@ window.tutao = {
 	keyManager,
 	logins,
 	currentView,
-	themeId,
+	themeId
 }
 
 function _asyncImport(path: string) {
@@ -58,6 +58,9 @@ let initialized = lang.init(en).then(() => {
 			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
 			m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)")),
+			m("p.pt", lang.get("requiredFeatures_msg")),
+			m("p", "IndexedDB")
+
 		]))))
 		return;
 	}

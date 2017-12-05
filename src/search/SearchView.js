@@ -115,7 +115,7 @@ export class SearchView {
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		this._viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
 
-		if (entries.length == 1) {
+		if (entries.length == 1 && m.route.get().startsWith("/search/")) {
 			setSearchUrl(m.route.param()['category'], header.buttonBar.searchBar.value(), entries[0]._id[1])
 		}
 		if (!multiSelectOperation && elementClicked) {

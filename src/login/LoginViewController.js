@@ -33,13 +33,16 @@ assertMainOrNode()
 
 export class LoginViewController {
 	view: LoginView;
+	_loginPromise: Promise<void>;
 
 	constructor(view: LoginView) {
 		this.view = view;
+		this._loginPromise = Promise.resolve()
 	}
 
 	_autologin(credentials: Credentials): void {
-		showProgressDialog("login_msg", worker.initialized.then(() => {
+		if (this._loginPromise.isPending()) return
+		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
 			})
@@ -47,6 +50,7 @@ export class LoginViewController {
 	}
 
 	_formLogin(): void {
+		if (this._loginPromise.isPending()) return
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
 		if (mailAddress == "" || pw == "") {
@@ -54,7 +58,7 @@ export class LoginViewController {
 		} else {
 			this.view.helpText = lang.get('login_msg')
 			let persistentSession = this.view.savePassword.checked()
-			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
+			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
 				.then(newCredentials => {
 					let storedCredentials = deviceConfig.get(mailAddress)
 					if (persistentSession) {
@@ -69,7 +73,7 @@ export class LoginViewController {
 							})
 					}
 				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
+			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
 	}

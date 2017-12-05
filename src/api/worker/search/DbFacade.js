@@ -1,6 +1,7 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
 import {neverNull} from "../../common/utils/Utils"
+import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 
 export const SearchIndexOS = "SearchIndex"
 export const ElementDataOS = "ElementData"
@@ -108,7 +109,7 @@ class DbTransaction {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data", e))
+				callback(new DbError("IDB could not get data os:" + objectStore + " key:" + (key instanceof Uint8Array ? uint8ArrayToBase64(((key:any):Uint8Array)) : key), e))
 			}
 		})
 	}

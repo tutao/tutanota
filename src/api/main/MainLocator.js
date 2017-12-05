@@ -17,7 +17,7 @@ type MainLocatorType = {
 
 export const locator: MainLocatorType = ({}:any)
 
-//tutao.locator = locator
+window.tutao.locator = locator
 
 export function initLocator(worker: WorkerClient) {
 	locator.contact = new ContactController()
