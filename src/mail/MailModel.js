@@ -166,7 +166,7 @@ class MailModel {
 				load(UserTypeRef, elementId).then(updatedUser => {
 					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType == GroupType.Mail)
 					let currentDetails = this._details()
-					if (newMemberships.length != currentDetails.length && newMemberships.find(membership => currentDetails.find(detail => membership.group == detail.mailGroup._id) == null)) {
+					if (newMemberships.length != currentDetails.length) {
 						this._initialization = null
 						this.init().then(() => m.redraw())
 					}

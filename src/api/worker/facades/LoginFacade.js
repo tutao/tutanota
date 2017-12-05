@@ -308,12 +308,12 @@ export class LoginFacade {
 	getGroupKey(groupId: Id): Aes128Key {
 		if (!this.groupKeys[groupId]) {
 			console.log("decrypting groupKey for group with id " + groupId + " with user group id " + this.getUserGroupId())
-			this.groupKeys[groupId] = decryptKey(this.groupKeys[this.getUserGroupId()], this._getMembership(groupId).symEncGKey)
+			this.groupKeys[groupId] = decryptKey(this.groupKeys[this.getUserGroupId()], this.getMembership(groupId).symEncGKey)
 		}
 		return this.groupKeys[groupId]
 	}
 
-	_getMembership(groupId: Id): GroupMembership {
+	getMembership(groupId: Id): GroupMembership {
 		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => g.group === groupId)
 		if (!membership) {
 			throw new Error(`No group with groupId ${groupId} found!`)

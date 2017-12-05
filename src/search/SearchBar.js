@@ -24,7 +24,7 @@ import {mod} from "../misc/MathUtils"
 import type {RouteChangeEvent} from "../misc/RouteChange"
 import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {setSearchUrl, getRestriction} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
@@ -204,10 +204,16 @@ export class SearchBar {
 	showDropdown(result: SearchResult) {
 		let newResults = []
 		Promise.all([
-			Promise.map(result.mails.slice(0, 10), mailId => load(MailTypeRef, mailId).catch(NotFoundError, () => console.log("mail from search index not found", mailId))).then(mails => {
+			Promise.map(result.mails.slice(0, 10), mailId => load(MailTypeRef, mailId)
+				.catch(NotFoundError, () => console.log("mail from search index not found", mailId))
+				.catch(NotAuthorizedError, () => console.log("no permission on mail from search index", mailId))
+			).then(mails => {
 				newResults = newResults.concat(mails.filter(m => m))
 			}),
-			Promise.map(result.contacts.slice(0, 10), contactId => load(ContactTypeRef, contactId).catch(NotFoundError, () => console.log("contact from search index not found", contactId))).then(contacts => {
+			Promise.map(result.contacts.slice(0, 10), contactId => load(ContactTypeRef, contactId)
+				.catch(NotFoundError, () => console.log("contact from search index not found", contactId))
+				.catch(NotAuthorizedError, () => console.log("no permission on contact from search index", contactId))
+			).then(contacts => {
 				newResults = newResults.concat(contacts.filter(c => c))
 			}),
 			Promise.map(result.groupInfos.slice(0, 10), groupInfoId => load(GroupInfoTypeRef, groupInfoId).catch(NotFoundError, () => console.log("group info from search index not found", groupInfoId))).then(groupInfo => {

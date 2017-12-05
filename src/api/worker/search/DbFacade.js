@@ -78,7 +78,7 @@ type DbRequest = {
 	objectStore:string;
 }
 
-class DbTransaction {
+export class DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
 	aborted: boolean;
@@ -94,6 +94,22 @@ class DbTransaction {
 			}
 			transaction.onabort = (event) => {
 				callback()
+			}
+		})
+	}
+
+	getAllKeys(objectStore: string): Promise<Array<string|Uint8Array>> {
+		return Promise.fromCallback((callback) => {
+			try {
+				let request = (this._transaction.objectStore(objectStore):any).getAllKeys() // IndexedDB 2.0
+				request.onerror = (event) => {
+					callback(new DbError("IDB Unable to retrieve data from database!", event))
+				}
+				request.onsuccess = (event) => {
+					callback(null, event.target.result)
+				}
+			} catch (e) {
+				callback(new DbError("IDB could not get data os:" + objectStore, e))
 			}
 		})
 	}

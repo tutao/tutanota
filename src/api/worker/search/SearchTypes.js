@@ -1,5 +1,6 @@
 //@flow
 import type {DbFacade} from "./DbFacade"
+import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 
 
 // db types
@@ -8,9 +9,9 @@ export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry 
 export type ElementData = [Id, Uint8Array, Id] // first element of value is listId, second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
 
 export type GroupData = {
-	lastBatchIds:Id[],
-	indexTimestamp:number,
-	excludedListIds:Id[];
+	lastBatchIds:Id[];
+	indexTimestamp:number;
+	groupType: GroupTypeEnum;
 }
 
 // runtime types

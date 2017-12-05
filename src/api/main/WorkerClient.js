@@ -32,7 +32,7 @@ export class WorkerClient {
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
 
-	constructor(entityEventController: EntityEventController) {
+	constructor() {
 		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
@@ -58,7 +58,6 @@ export class WorkerClient {
 				return Promise.resolve()
 			}
 		})
-		entityEventController.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	_initWorker() {
@@ -104,13 +103,6 @@ export class WorkerClient {
 			locator.entropyCollector.start()
 		}
 		nativeApp.init()
-	}
-
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (logins.isUserLoggedIn()) {
-			logins.getUserController().entityEventReceived(typeRef, listId, elementId, operation)
-		}
-		locator.contact.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 
 	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string): Promise<void> {
@@ -363,4 +355,4 @@ export class WorkerClient {
 	}
 }
 
-export const worker = new WorkerClient(new EntityEventController())
+export const worker = new WorkerClient()

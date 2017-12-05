@@ -80,7 +80,7 @@ export class UserController {
 		return this.getMailGroupMemberships()[0]
 	}
 
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) {
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void{
 		if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
 			load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser

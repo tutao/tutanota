@@ -11,6 +11,7 @@ import {findAndRemove} from "../common/utils/ArrayUtils"
 import {LazyLoaded} from "../common/utils/LazyLoaded"
 import {logins} from "./LoginController"
 import {NotFoundError} from "../common/error/RestError"
+import type {EntityEventController} from "./EntityEventController"
 
 assertMainOrNode()
 
@@ -19,7 +20,7 @@ export class ContactController {
 	lazyContacts: LazyLoaded<Contact[]>;
 	lazyContactListId: LazyLoaded<Id>;
 
-	constructor() {
+	constructor(entityEvent: EntityEventController) {
 		this.lazyContacts = new LazyLoaded(() => {
 			return this.lazyContactListId.getAsync().then(contactListId => {
 				if (contactListId != null) {
@@ -40,6 +41,7 @@ export class ContactController {
 				}
 			})
 		})
+		entityEvent.addListener((typeRef, listId, elementId, operation) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	getFilteredDuplicateContacts(): Contact[] {

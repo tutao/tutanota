@@ -32,6 +32,10 @@ export function neverNull<T>(object: ?T): T {
 	return (object:any)
 }
 
+export function string(object: any): string {
+	return (object:string)
+}
+
 export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
 		return instance.slice()

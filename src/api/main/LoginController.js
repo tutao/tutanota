@@ -5,7 +5,7 @@ import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
-class LoginController {
+export class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
 	customizations: ?NumberString[];
 
