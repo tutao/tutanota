@@ -18,7 +18,9 @@ type MainLocatorType = {
 
 export const locator: MainLocatorType = ({}:any)
 
-window.tutao.locator = locator
+if (typeof window !== "undefined") {
+	window.tutao.locator = locator
+}
 
 export function initLocator(worker: WorkerClient) {
 	locator.entityEvent = new EntityEventController(logins)

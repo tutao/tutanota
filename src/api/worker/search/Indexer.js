@@ -7,16 +7,15 @@ import {
 	FULL_INDEXED_TIMESTAMP,
 	GroupType
 } from "../../common/TutanotaConstants"
-import {load, loadAll, loadRoot, loadRange, loadReverseRangeBetween} from "../EntityWorker"
+import {load, loadAll, loadRange, loadReverseRangeBetween, EntityWorker} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
-import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {MailTypeRef, _TypeModel as MailModel} from "../../entities/tutanota/Mail"
-import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
+import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS} from "./DbFacade"
@@ -31,6 +30,7 @@ import {
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals} from "../../common/utils/ArrayUtils"
+import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull, string} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {
@@ -44,7 +44,7 @@ import {aes256Decrypt, IV_BYTE_LENGTH, aes256Encrypt, aes256RandomKey} from "../
 import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
 import {random} from "../crypto/Randomizer"
 import type {EntityRestClient} from "../rest/EntityRestClient"
-import {encryptIndexKey, encryptSearchIndexEntry} from "./IndexUtils"
+import {encryptIndexKey, encryptSearchIndexEntry, byteLength, htmlToText, getAppId} from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, Db, GroupData} from "./SearchTypes"
 import {_createNewIndexUpdate} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -52,6 +52,7 @@ import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {UserTypeRef} from "../../entities/sys/User"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
+import {ContactIndexer} from "./ContactIndexer"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 
 const Metadata = {
@@ -98,6 +99,8 @@ export class Indexer {
 	currentIndexTimestamp: number;
 	_indexingCancelled: boolean;
 
+	_contactIndexer: ContactIndexer;
+
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
 		this.db = ({}:any) // correctly initialized during init()
@@ -108,14 +111,13 @@ export class Indexer {
 		this.mailboxIndexingPromise = Promise.resolve()
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._indexingCancelled = false
+		this._contactIndexer = new ContactIndexer(this, this.db, new EntityWorker())
 	}
 
 	/**
 	 * FIXME Write noop ENTITY_EVENT_BATCH on the server every twenty days (not once a month because of months with 31 days) to prevent
 	 * OutOfSync errors one of the groups of a user has not received a single update (e.g. contacts not updated within last month).
 	 * The noop ENTITY_EVENT_BATCH must be written for each area group.
-	 *
-	 * FIXME user added to group / removed from group
 	 */
 	init(user: User, groupKey: Aes128Key, userGroupId: Id, mailGroupIds: Id[], contactGroupIds: Id[], customerGroupId: Id): Promise<void> {
 		this._initParams = {
@@ -137,7 +139,9 @@ export class Indexer {
 							this.db.key = aes256RandomKey()
 							t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(groupKey, this.db.key))
 							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mailIndexingEnabled)
-							return this._initGroupData(groupBatches, t2).then(() => this.indexFullContactList(userGroupId)).then(() => this.indexAllUserAndTeamGroupInfosForAdmin())
+							return this._initGroupData(groupBatches, t2)
+								.then(() => this._contactIndexer.indexFullContactList(userGroupId))
+								.then(() => this.indexAllUserAndTeamGroupInfosForAdmin())
 						})
 					} else {
 						this.db.key = decrypt256Key(groupKey, userEncDbKey)
@@ -269,49 +273,6 @@ export class Indexer {
 	}
 
 
-	_createContactIndexEntries(contact: Contact, indexUpdate: IndexUpdate): void {
-		let encryptedInstanceId = encryptIndexKey(this.db.key, contact._id[1])
-
-		let keyToIndexEntries = this.createIndexEntriesForAttributes(ContactModel, contact, [
-			{
-				attribute: ContactModel.values["firstName"],
-				value: () => contact.firstName
-			}, {
-				attribute: ContactModel.values["lastName"],
-				value: () => contact.lastName,
-			}, {
-				attribute: ContactModel.values["nickname"],
-				value: () => contact.nickname,
-			}, {
-				attribute: ContactModel.values["role"],
-				value: () => contact.role,
-			}, {
-				attribute: ContactModel.values["title"],
-				value: () => contact.title,
-			}, {
-				attribute: ContactModel.values["comment"],
-				value: () => contact.comment,
-			}, {
-				attribute: ContactModel.values["company"],
-				value: () => contact.company,
-			}, {
-				attribute: ContactModel.associations["addresses"],
-				value: () => contact.addresses.map((a) => a.address).join(","),
-			}, {
-				attribute: ContactModel.associations["mailAddresses"],
-				value: () => contact.mailAddresses.map(cma => cma.address).join(","),
-			}, {
-				attribute: ContactModel.associations["phoneNumbers"],
-				value: () => contact.phoneNumbers.map(pn => pn.number).join(","),
-			}, {
-				attribute: ContactModel.associations["socialIds"],
-				value: () => contact.socialIds.map(s => s.socialId).join(","),
-			}])
-
-
-		this.encryptSearchIndexEntries(encryptedInstanceId, keyToIndexEntries, indexUpdate, contact._id[0], neverNull(contact._ownerGroup))
-	}
-
 	_createMailIndexEntries(mail: Mail, mailBody: MailBody, files: TutanotaFile[], indexUpdate: IndexUpdate): void {
 		let encryptedInstanceId = encryptIndexKey(this.db.key, mail._id[1])
 		let startTimeIndex = performance.now()
@@ -340,7 +301,7 @@ export class Indexer {
 			}])
 		this._indexingTime += (performance.now() - startTimeIndex)
 
-		this.encryptSearchIndexEntries(encryptedInstanceId, keyToIndexEntries, indexUpdate, mail._id[0], neverNull(mail._ownerGroup))
+		this.encryptSearchIndexEntries(mail._id, neverNull(mail._ownerGroup), keyToIndexEntries, indexUpdate)
 	}
 
 	createIndexEntriesForAttributes(model: TypeModel, instance: Object, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
@@ -368,7 +329,9 @@ export class Indexer {
 		return mergeMaps(indexEntries)
 	}
 
-	encryptSearchIndexEntries(encryptedInstanceId: Uint8Array, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate, listId: Id, ownerGroup: Id): void {
+	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
+		let listId = id[0]
+		let encryptedInstanceId = encryptIndexKey(this.db.key, id[1])
 		let b64InstanceId = uint8ArrayToBase64(encryptedInstanceId)
 
 		let encryptionTimeStart = performance.now()
@@ -393,17 +356,11 @@ export class Indexer {
 		this._encryptionTime += performance.now() - encryptionTimeStart
 	}
 
-	getSpamFolder(mailGroupId: Id): Promise<MailFolder> {
-		return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-			return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
-		})
-	}
-
 	enableMailIndexing(): Promise<void> {
 		let t = this.db.dbFacade.createTransaction(true, [MetaDataOS])
 		return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
 			if (!enabled) {
-				return Promise.map(this._initParams.mailGroupIds, (mailGroup) => this.getSpamFolder(mailGroup)).then(spamFolders => {
+				return Promise.map(this._initParams.mailGroupIds, (mailGroup) => getSpamFolder(mailGroup)).then(spamFolders => {
 					this._excludedListIds = spamFolders.map(folder => folder.mails)
 					this._mailIndexingEnabled = true
 					let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
@@ -557,27 +514,6 @@ export class Indexer {
 		}).then(() => mailListIds)
 	}
 
-	indexFullContactList(userGroupId: Id): Promise<void> {
-		return loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
-			let t = this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
-			let groupId = neverNull(contactList._ownerGroup)
-			let indexUpdate = _createNewIndexUpdate(groupId)
-			return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-				if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
-					return loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
-						contacts.forEach((contact) => this._createContactIndexEntries(contact, indexUpdate))
-						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-						return this._writeIndexUpdate(indexUpdate)
-					})
-				}
-			})
-
-		}).catch(NotFoundError, e => {
-			// external users have no contact list.
-			return Promise.resolve()
-		})
-	}
-
 	_writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = performance.now()
 		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
@@ -587,7 +523,7 @@ export class Indexer {
 			return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
 				elementData[0] = moveInstance.newListId
 				transaction.put(ElementDataOS, moveInstance.encInstanceId, elementData)
-			});
+			})
 		})
 
 		promises = promises.concat(Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
@@ -702,11 +638,15 @@ export class Indexer {
 				}
 			} else if (isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
 				if (event.operation == OperationType.CREATE) {
-					return this._processNewContact(event, indexUpdate)
+					this._contactIndexer.processNewContact(event).then(result => {
+						if (result) this.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+					})
 				} else if (event.operation == OperationType.UPDATE) {
 					return Promise.all([
 						this._processDeleted(event, indexUpdate),
-						this._processNewContact(event, indexUpdate)
+						this._contactIndexer.processNewContact(event).then(result => {
+							if (result) this.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						})
 					])
 				} else if (event.operation == OperationType.DELETE) {
 					return this._processDeleted(event, indexUpdate)
@@ -744,14 +684,6 @@ export class Indexer {
 			} else {
 				console.log("not indexed group", groupId)
 			}
-		})
-	}
-
-	_processNewContact(event: EntityUpdate, indexUpdate: IndexUpdate) {
-		return load(ContactTypeRef, [event.instanceListId, event.instanceId]).then(contact => {
-			this._createContactIndexEntries(contact, indexUpdate)
-		}).catch(NotFoundError, () => {
-			console.log("tried to index non existing contact")
 		})
 	}
 
@@ -847,8 +779,6 @@ export class Indexer {
 	}
 
 	_createGroupInfoIndexEntries(groupInfo: GroupInfo, indexUpdate: IndexUpdate): void {
-		let encryptedInstanceId = encryptIndexKey(this.db.key, groupInfo._id[1])
-
 		let keyToIndexEntries = this.createIndexEntriesForAttributes(GroupInfoModel, groupInfo, [
 			{
 				attribute: GroupInfoModel.values["name"],
@@ -860,7 +790,7 @@ export class Indexer {
 				attribute: GroupInfoModel.associations["mailAddressAliases"],
 				value: () => groupInfo.mailAddressAliases.map(maa => maa.mailAddress).join(","),
 			}])
-		this.encryptSearchIndexEntries(encryptedInstanceId, keyToIndexEntries, indexUpdate, groupInfo._id[0], neverNull(groupInfo._ownerGroup))
+		this.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 	}
 }
 
@@ -868,184 +798,9 @@ function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, el
 	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0 ? true : false
 }
 
-function getAppId(typeRef: TypeRef<any>): number {
-	if (typeRef.app == "sys") {
-		return 0
-	} else if (typeRef.app == "tutanota") {
-		return 1
-	}
-	throw new Error("non indexed application " + typeRef.app)
-}
 
-function byteLength(str: ?string) {
-	if (str == null) return 0
-	// returns the byte length of an utf8 string
-	var s = str.length;
-	for (var i = str.length - 1; i >= 0; i--) {
-		var code = str.charCodeAt(i);
-		if (code > 0x7f && code <= 0x7ff) s++;
-		else if (code > 0x7ff && code <= 0xffff) s += 2;
-		if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
-	}
-	return s;
-}
-
-const HTML_ENTITIES = {
-	"&nbsp;": " ",
-	"&amp;": "&",
-	"&lt;": '<',
-	"&gt;": '>',
-	"&Agrave;": "À",
-	"&Aacute;": "Á",
-	"&Acirc;": "Â",
-	"&Atilde;": "Ã",
-	"&Auml;": "Ä",
-	"&Aring;": "Å",
-	"&AElig;": "Æ",
-	"&Ccedil;": "Ç",
-	"&Egrave;": "È",
-	"&Eacute;": "É",
-	"&Ecirc;": "Ê",
-	"&Euml;": "Ë",
-	"&Igrave;": "Ì",
-	"&Iacute;": "Í",
-	"&Icirc;": "Î",
-	"&Iuml;": "Ï",
-	"&ETH;": "Ð",
-	"&Ntilde;": "Ñ",
-	"&Ograve;": "Ò",
-	"&Oacute;": "Ó",
-	"&Ocirc;": "Ô",
-	"&Otilde;": "Õ",
-	"&Ouml;": "Ö",
-	"&Oslash;": "Ø",
-	"&Ugrave;": "Ù",
-	"&Uacute;": "Ú",
-	"&Ucirc;": "Û",
-	"&Uuml;": "Ü",
-	"&Yacute;": "Ý",
-	"&THORN;": "Þ",
-	"&szlig;": "ß",
-	"&agrave;": "à",
-	"&aacute;": "á",
-	"&acirc;": "â",
-	"&atilde;": "ã",
-	"&auml;": "ä",
-	"&aring;": "å",
-	"&aelig;": "æ",
-	"&ccedil;": "ç",
-	"&egrave;": "è",
-	"&eacute;": "é",
-	"&ecirc;": "ê",
-	"&euml;": "ë",
-	"&igrave;": "ì",
-	"&iacute;": "í",
-	"&icirc;": "î",
-	"&iuml;": "ï",
-	"&eth;": "ð",
-	"&ntilde;": "ñ",
-	"&ograve;": "ò",
-	"&oacute;": "ó",
-	"&ocirc;": "ô",
-	"&otilde;": "õ",
-	"&ouml;": "ö",
-	"&oslash;": "ø",
-	"&ugrave;": "ù",
-	"&uacute;": "ú",
-	"&ucirc;": "û",
-	"&uuml;": "ü",
-	"&yacute;": "ý",
-	"&thorn;": "þ",
-	"&yuml;": "ÿ",
-	"&Alpha;": "Α",
-	"&Beta;": "Β",
-	"&Gamma;": "Γ",
-	"&Delta;": "Δ",
-	"&Epsilon;": "Ε",
-	"&Zeta;": "Ζ",
-	"&Eta;": "Η",
-	"&Theta;": "Θ",
-	"&Iota;": "Ι",
-	"&Kappa;": "Κ",
-	"&Lambda;": "Λ",
-	"&Mu;": "Μ",
-	"&Nu;": "Ν",
-	"&Xi;": "Ξ",
-	"&Omicron;": "Ο",
-	"&Pi;": "Π",
-	"&Rho;": "Ρ",
-	"&Sigma;": "Σ",
-	"&Tau;": "Τ",
-	"&Upsilon;": "Υ",
-	"&Phi;": "Φ",
-	"&Chi;": "Χ",
-	"&Psi;": "Ψ",
-	"&Omega;": "Ω",
-	"&alpha;": "α",
-	"&beta;": "β",
-	"&gamma;": "γ",
-	"&delta;": "δ",
-	"&epsilon;": "ε",
-	"&zeta;": "ζ",
-	"&eta;": "η",
-	"&theta;": "θ",
-	"&iota;": "ι",
-	"&kappa;": "κ",
-	"&lambda;": "λ",
-	"&mu;": "μ",
-	"&nu;": "ν",
-	"&xi;": "ξ",
-	"&omicron;": "ο",
-	"&pi;": "π",
-	"&rho;": "ρ",
-	"&sigmaf;": "ς",
-	"&sigma;": "σ",
-	"&tau;": "τ",
-	"&upsilon;": "υ",
-	"&phi;": "φ",
-	"&chi;": "χ",
-	"&psi;": "ψ",
-	"&omega;": "ω",
-	"&thetasym;": "ϑ",
-	"&upsih;": "ϒ",
-	"&piv;": "ϖ",
-}
-
-export function htmlToText(html: ?string): string {
-	if (html == null) return ""
-	let text = html.replace(/<[^>]*>?/gm, " ")
-	return text.replace(/&[#,0-9,a-z,A-Z]{1,5};/g, (match) => {
-		let replacement
-		if (match.startsWith("&#")) {
-			let charCode = match.substring(2, match.length - 1) // remove &# and ;
-			if (!isNaN(charCode)) {
-				replacement = String.fromCharCode(Number(charCode))
-			}
-		} else {
-			replacement = HTML_ENTITIES[match]
-		}
-		return replacement ? replacement : match;
+function getSpamFolder(mailGroupId: Id): Promise<MailFolder> {
+	return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
+		return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
 	})
-}
-
-/**
- * Merges multiple maps into a single map with lists of values.
- * @param maps
- */
-function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
-	return maps.reduce((mergedMap: Map<string, T[]>, map: Map<string, T>) => { // merge same key of multiple attributes
-		map.forEach((value: T, key: string) => {
-			if (mergedMap.has(key)) {
-				neverNull(mergedMap.get(key)).push(value)
-			} else {
-				mergedMap.set(key, [value])
-			}
-		})
-		return mergedMap
-	}, new Map())
-}
-
-
-export function getSpamFolder(folders: MailFolder[]): MailFolder {
-	return (folders.find(f => f.folderType === Mail):any)
 }

@@ -86,3 +86,17 @@ export function serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|Mo
 export function serviceRequestVoid<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
 	return _service(service, method, requestEntity, null, queryParams, sk)
 }
+
+export class EntityWorker {
+	load<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params): Promise<T> {
+		return load(typeRef, id, queryParams)
+	}
+
+	loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
+		return loadRoot(typeRef, groupId)
+	}
+
+	loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
+		return loadAll(typeRef, listId, start)
+	}
+}
