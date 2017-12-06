@@ -16,8 +16,9 @@ import type {
 } from "./SearchTypes"
 import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
 import type {Indexer} from "./Indexer"
-import {INDEX_TIMESTAMP_MAX, INDEX_TIMESTAMP_MIN} from "../../common/TutanotaConstants"
+import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
+import {getStartOfDay} from "../../common/utils/DateUtils"
 
 export class SearchFacade {
 	_indexer: Indexer;
@@ -37,17 +38,26 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: SearchRestriction): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
-		let indexingPromise = Promise.resolve()
-		if (restriction && isSameTypeRef(MailTypeRef, restriction.type)) {
-			indexingPromise = this._indexer.mailboxIndexingPromise
-		}
-		return indexingPromise.then(() => this._findIndexEntries(searchTokens)
+		return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
 				.then(results => this._filterByEncryptedId(results))
 				.then(results => this._decryptSearchResult(results))
 				.then(results => this._filterByTypeAndAttributeAndTime(results, restriction))
 				.then(results => this._filterByListIdAndGroupSearchResults(query, restriction, results))
 			// ranking ->all tokens are in correct order in the same attribute
 		)
+	}
+
+	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
+		if (isSameTypeRef(MailTypeRef, restriction.type)) {
+			return this._indexer.mailboxIndexingPromise.then(() => {
+				if (this._indexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer.currentIndexTimestamp < restriction.end) {
+					this._indexer.indexMailbox(getStartOfDay(new Date(restriction.end)))
+					return this._indexer.mailboxIndexingPromise
+				}
+			})
+		} else {
+			return Promise.resolve()
+		}
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
@@ -59,7 +69,7 @@ export class SearchFacade {
 			})
 		})
 	}
- 
+
 	/**
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
@@ -115,15 +125,15 @@ export class SearchFacade {
 	}
 
 	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry): boolean {
-			let typeInfo = typeRefToTypeInfo(restriction.type)
-			if (typeInfo.appId != entry.app || typeInfo.typeId != entry.type) {
-				return false
-			}
+		let typeInfo = typeRefToTypeInfo(restriction.type)
+		if (typeInfo.appId != entry.app || typeInfo.typeId != entry.type) {
+			return false
+		}
 		if (restriction.attributeIds) {
 			if (!contains(restriction.attributeIds, entry.attribute)) {
-						return false
-					}
-				}
+				return false
+			}
+		}
 		if (restriction.start) {
 			// timestampToGeneratedId provides the lowest id with the given timestamp (server id and counter set to 0), so we add one millisecond to make sure all ids of the timestamp are covered
 			let maxExcluded = timestampToGeneratedId(restriction.start + 1)
@@ -147,7 +157,6 @@ export class SearchFacade {
 			searchIndexTimestamp = this._indexer.currentIndexTimestamp
 		}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
-			//console.log(entry)
 			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
 			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
@@ -176,9 +185,9 @@ export class SearchFacade {
 
 	_getSearchTimestamp(restriction: ?SearchRestriction): number {
 		if (!restriction || isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._indexer.currentIndexTimestamp == INDEX_TIMESTAMP_MAX ? new Date().getTime() : this._indexer.currentIndexTimestamp
+			return this._indexer.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._indexer.currentIndexTimestamp
 		} else {
-			return INDEX_TIMESTAMP_MIN
+			return FULL_INDEXED_TIMESTAMP
 		}
 	}
 }

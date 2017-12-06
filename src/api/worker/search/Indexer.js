@@ -3,8 +3,8 @@ import {
 	OperationType,
 	MailState,
 	MailFolderType,
-	INDEX_TIMESTAMP_MAX,
-	INDEX_TIMESTAMP_MIN,
+	NOTHING_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP,
 	GroupType
 } from "../../common/TutanotaConstants"
 import {load, loadAll, loadRoot, loadRange, loadReverseRangeBetween} from "../EntityWorker"
@@ -52,6 +52,7 @@ import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {UserTypeRef} from "../../entities/sys/User"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
+import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 
 const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -68,7 +69,7 @@ type InitParams = {
 	customerGroupId:Id;
 }
 
-const INITIAL_MAIL_INDEX_INTERVAL = 1000 * 60 * 60 * 24 * 10
+const INITIAL_MAIL_INDEX_INTERVAL = 1
 
 export class Indexer {
 	db: Db;
@@ -105,7 +106,7 @@ export class Indexer {
 		this._mailIndexingEnabled = false
 		this._worker = worker
 		this.mailboxIndexingPromise = Promise.resolve()
-		this.currentIndexTimestamp = INDEX_TIMESTAMP_MAX
+		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._indexingCancelled = false
 	}
 
@@ -155,7 +156,8 @@ export class Indexer {
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
 					mailIndexEnabled: this._mailIndexingEnabled,
-					progress: 0
+					progress: 0,
+					currentIndexTimestamp: this.currentIndexTimestamp
 				})
 				return this._loadNewEntities(mailGroupIds.concat(contactGroupIds))
 			})
@@ -200,7 +202,7 @@ export class Indexer {
 
 	updateCurrentIndexTimestamp(): Promise<void> {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		this.currentIndexTimestamp = INDEX_TIMESTAMP_MIN
+		this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
 		this._initParams.mailGroupIds.map(mailGroupId => {
 			t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
@@ -225,7 +227,7 @@ export class Indexer {
 					groupId,
 					groupData: {
 						lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
-						indexTimestamp: INDEX_TIMESTAMP_MAX,
+						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 						excludedListIds: [],
 						groupType: groupType
 					}
@@ -407,7 +409,7 @@ export class Indexer {
 					let t2 = this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-					this.indexMailbox(new Date().getTime() - INITIAL_MAIL_INDEX_INTERVAL) // create index in background
+					this.indexMailbox(getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL))) // create index in background
 					return t2.await()
 				})
 			} else {
@@ -442,7 +444,8 @@ export class Indexer {
 
 		this._worker.sendIndexState({
 			mailIndexEnabled: this._mailIndexingEnabled,
-			progress: 1
+			progress: 1,
+			currentIndexTimestamp: this.currentIndexTimestamp
 		})
 		this.mailboxIndexingPromise = Promise.each(this._initParams.mailGroupIds, (mailGroupId) => {
 			return load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
@@ -450,19 +453,20 @@ export class Indexer {
 				return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 					let progressCount = 1
 					return this._loadMailListIds(neverNull(mbox.systemFolders).folders).map((mailListId, i, count) => {
-						let startId = groupData.indexTimestamp == INDEX_TIMESTAMP_MAX ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+						let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
 						return this._indexMailList(mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
 
 							this._worker.sendIndexState({
 								mailIndexEnabled: this._mailIndexingEnabled,
-								progress: Math.round(100 * (progressCount++) / count)
+								progress: Math.round(100 * (progressCount++) / count),
+								currentIndexTimestamp: this.currentIndexTimestamp
 							})
 							return finishedMailList
 						})
 					}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
 						let t2 = this.db.dbFacade.createTransaction(false, [GroupDataOS])
 						return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-							groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? INDEX_TIMESTAMP_MIN : endIndexTimstamp
+							groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
 							t2.put(GroupDataOS, mailGroupId, groupData)
 							return t2.await()
 						})
@@ -478,7 +482,8 @@ export class Indexer {
 			this.updateCurrentIndexTimestamp()
 			this._worker.sendIndexState({
 				mailIndexEnabled: this._mailIndexingEnabled,
-				progress: 0
+				progress: 0,
+				currentIndexTimestamp: this.currentIndexTimestamp
 			})
 		})
 		return this.mailboxIndexingPromise.return()
@@ -558,10 +563,10 @@ export class Indexer {
 			let groupId = neverNull(contactList._ownerGroup)
 			let indexUpdate = _createNewIndexUpdate(groupId)
 			return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-				if (groupData.indexTimestamp == INDEX_TIMESTAMP_MAX) {
+				if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
 					return loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
 						contacts.forEach((contact) => this._createContactIndexEntries(contact, indexUpdate))
-						indexUpdate.indexTimestamp = INDEX_TIMESTAMP_MIN
+						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 						return this._writeIndexUpdate(indexUpdate)
 					})
 				}
@@ -831,7 +836,7 @@ export class Indexer {
 					return loadAll(GroupInfoTypeRef, customer.teamGroups).then(allTeamGroupInfos => {
 						let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
 						allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => this._createGroupInfoIndexEntries(groupInfo, indexUpdate))
-						indexUpdate.indexTimestamp = INDEX_TIMESTAMP_MIN
+						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 						return this._writeIndexUpdate(indexUpdate)
 					})
 				})

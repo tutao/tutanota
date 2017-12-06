@@ -931,9 +931,11 @@ module.exports = {
 		"attachmentName_label": "Anhang-Name",
 		"mailFolder_label": "E-Mail-Ordner",
 		"filter_label": "Filter",
-		"selectTime_label": "Zeit auswählen",
+		"selectPeriodOfTime_label": "Zeitraum auswählen",
 		"today_label": "Heute",
 		"startAfterEnd_label": "Das Start-Datum darf nicht nach dem End-Datum sein.",
 		"endAfterStart_label": "Das End-Datum darf nicht nach dem Start-Datum sein.",
+		"unlimited_label": "Unbegrenzt",
+		"periodOfTime_label": "Zeitraum"
 	}
 }

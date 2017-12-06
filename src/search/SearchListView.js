@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {List, sortCompareByReverseId} from "../gui/base/List"
 import {GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
@@ -30,10 +31,12 @@ export class SearchListView {
 	list: List<SearchResultListEntry, SearchResultListRow>;
 	view: Function;
 	_searchView: SearchView;
+	_resultStreamDependency: ?stream;
+	onbeforeremove: Function;
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
-		locator.search.result.map((result) => {
+		this._resultStreamDependency = locator.search.result.map((result) => {
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
@@ -91,11 +94,18 @@ export class SearchListView {
 		this.view = (): ?VirtualElement => {
 			return this.list ? m(this.list) : null
 		}
+		this.onbeforeremove = () => {
+			if (this._resultStreamDependency) {
+				this._resultStreamDependency.end(true)
+			}
+		}
 	}
 
 	_setLoadedCompletely() {
 		this.list.setLoadedCompletely();
 	}
+
+
 }
 
 export class SearchResultListRow {

@@ -239,4 +239,5 @@ type SearchResult = {
 type SearchIndexStateInfo = {
 	mailIndexEnabled:boolean;
 	progress:number;
+	currentIndexTimestamp:number;
 }

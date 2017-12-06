@@ -41,3 +41,9 @@ export function isToday(date: Date): boolean {
 export function isSameDay(date1: Date, date2: Date): boolean {
 	return date1.toDateString() == date2.toDateString()
 }
+
+export function getDayShifted(date: Date, days: number): Date {
+	let d = new Date(date.getTime())
+	d.setDate(date.getDate() + days);
+	return d
+}

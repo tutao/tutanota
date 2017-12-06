@@ -2,9 +2,9 @@
 import stream from "mithril/stream/stream.js"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {arrayEquals} from "../api/common/utils/ArrayUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
+import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -16,7 +16,8 @@ export class SearchModel {
 		this.result = stream()
 		this.indexState = stream({
 			mailIndexEnabled: false,
-			progress: 0
+			progress: 0,
+			currentIndexTimeStamp: NOTHING_INDEXED_TIMESTAMP
 		})
 	}
 

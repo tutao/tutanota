@@ -110,7 +110,7 @@ export class UserListView {
 	}
 
 	deactivate() {
-		this._searchResultStreamDependency.end()
+		this._searchResultStreamDependency.end(true)
 	}
 
 	_loadAdmins(): Promise<void> {

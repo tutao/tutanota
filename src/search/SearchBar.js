@@ -30,7 +30,7 @@ import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {INDEX_TIMESTAMP_MIN} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 
@@ -83,57 +83,57 @@ export class SearchBar {
 				}
 			}, [
 				m(".search-bar.flex-end.items-center", {
-				oncreate: (vnode) => {
-					this._domWrapper = vnode.dom
-				},
-				style: {
-					'min-height': px(inputLineHeight + 2), // 2 px border
-					'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
-					'padding-top': px(2), // center input field
-					'margin-right': px(15),
-					'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
-					'align-self': "center"
-				}
-			}, [
-				m(".ml-negative-xs.click", {
-					onmousedown: e => {
-						if (this.focused) {
-							this.skipNextBlur = true
-						}
+					oncreate: (vnode) => {
+						this._domWrapper = vnode.dom
 					},
-					onclick: (e) => {
-						this.handleSearchClick(e)
-					}
-				}, m(Icon, {
-					icon: Icons.Search,
-					class: "flex-center items-center icon-large",
 					style: {
-						fill: this.focused ? theme.header_button_selected : theme.header_button,
-						//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+						'min-height': px(inputLineHeight + 2), // 2 px border
+						'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
+						'padding-top': px(2), // center input field
+						'margin-right': px(15),
+						'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+						'align-self': "center"
 					}
-				})),
-				m(".searchInputWrapper.flex-end.items-center", {
-					style: {
-						"width": this.expanded ? px(200) : px(0),
-						"transition": `width ${DefaultAnimationTime}ms`,
-						'padding-left': this.expanded ? '10px' : '0px',
-						'padding-top': '3px',
-						'padding-bottom': '3px',
-						'overflow-x': 'hidden'
-					}
-
-				}, [this._getInputField(), m(".closeIconWrapper", {
-					onclick: (e) => this.close(),
-				}, this.busy ? m(Icon, {
-						icon: BootIcons.Progress,
-						class: 'flex-center items-center icon-progress-search icon-progress'
-					}) : m(Icon, {
-						icon: Icons.Close,
+				}, [
+					m(".ml-negative-xs.click", {
+						onmousedown: e => {
+							if (this.focused) {
+								this.skipNextBlur = true
+							}
+						},
+						onclick: (e) => {
+							this.handleSearchClick(e)
+						}
+					}, m(Icon, {
+						icon: Icons.Search,
 						class: "flex-center items-center icon-large",
 						style: {
-							fill: theme.header_button,
+							fill: this.focused ? theme.header_button_selected : theme.header_button,
 							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
+					})),
+					m(".searchInputWrapper.flex-end.items-center", {
+						style: {
+							"width": this.expanded ? px(200) : px(0),
+							"transition": `width ${DefaultAnimationTime}ms`,
+							'padding-left': this.expanded ? '10px' : '0px',
+							'padding-top': '3px',
+							'padding-bottom': '3px',
+							'overflow-x': 'hidden'
+						}
+
+					}, [this._getInputField(), m(".closeIconWrapper", {
+						onclick: (e) => this.close(),
+					}, this.busy ? m(Icon, {
+							icon: BootIcons.Progress,
+							class: 'flex-center items-center icon-progress-search icon-progress'
+						}) : m(Icon, {
+							icon: Icons.Close,
+							class: "flex-center items-center icon-large",
+							style: {
+								fill: theme.header_button,
+								//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+							}
 						}))]),
 
 				]),
@@ -171,7 +171,7 @@ export class SearchBar {
 	}
 
 	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
-		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail") ) || (route.startsWith("/search/mail") && newState.progress < 100))) {
+		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail") ) || (route.startsWith("/search/mail") && newState.progress <= 100))) {
 			let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
 			let cancelButton = new Button("cancel_action", () => {
 				worker.cancelMailIndexing()
@@ -182,9 +182,14 @@ export class SearchBar {
 						style: {
 							height: px(52)
 						}
-					}, [m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})), newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null])
+					}, [
+						m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
+						newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null
+					])
 				}
 			})
+		} else if ((route.startsWith("/search/mail") && newState.progress == 0)) {
+			closeOverlay()
 		}
 	}
 
@@ -232,13 +237,13 @@ export class SearchBar {
 			if (this.value() == result.query) {
 				this._results = newResults
 				let resultCount = (result.mails.length + result.contacts.length + result.groupInfos.length)
-				if (resultCount == 0 || resultCount > 10 || result.currentIndexTimestamp != INDEX_TIMESTAMP_MIN) {
-				this._results.push({
-					resultCount: resultCount,
-					shownCount: this._results.length,
+				if (resultCount == 0 || resultCount > 10 || result.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
+					this._results.push({
+						resultCount: resultCount,
+						shownCount: this._results.length,
 						indexTimestamp: result.currentIndexTimestamp,
 						allowShowMore: !result.restriction || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
-				}) // add SearchMoreAction
+					}) // add SearchMoreAction
 				}
 				if (this._results.length > 0) {
 					this._selected = this._results[0]
@@ -286,7 +291,7 @@ export class SearchBar {
 			}
 
 			let indexInfo
-			if (showMoreAction.indexTimestamp > INDEX_TIMESTAMP_MIN) {
+			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP) {
 				indexInfo = lang.get("searchedUntil_msg") + " " + formatDateWithWeekday(new Date(showMoreAction.indexTimestamp))
 			}
 			return indexInfo ? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
@@ -398,7 +403,7 @@ export class SearchBar {
 				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
 				if (!m.route.get().startsWith("/search") && locator.search.result()) {
-				this.showDropdown(locator.search.result())
+					this.showDropdown(locator.search.result())
 				}
 				this.busy = false
 				return

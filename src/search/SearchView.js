@@ -6,6 +6,7 @@ import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {NavButton} from "../gui/base/NavButton"
@@ -51,7 +52,7 @@ export class SearchView {
 	_contactFolder: NavButton;
 	_time: TextField;
 	_startDate: ?Date; // null = today
-	_endDate: ?Date; // null = current mail index date
+	_endDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
 	_mailFolderSelection: DropDownSelector<?string>;
 	_mailFieldSelection: DropDownSelector<?string>;
 
@@ -63,14 +64,15 @@ export class SearchView {
 
 		this._startDate = null
 		this._endDate = null
-		this._time = new TextField("time_label").setValue(this._getTimeText()).setDisabled()
-		let changeTimeButton = new Button("selectTime_label", () => showDatePickerDialog((this._startDate) ? this._startDate : new Date(), (this._endDate) ? this._endDate : this._getIndexedMailEndDate(), false).then(dates => {
+		this._time = new TextField("periodOfTime_label").setValue(this._getTimeText()).setDisabled()
+		let changeTimeButton = new Button("selectPeriodOfTime_label", () => showDatePickerDialog((this._startDate) ? this._startDate : new Date(), (this._endDate) ? this._endDate : this._getCurrentIndexDate(), false).then(dates => {
 			if (dates.start && isToday(dates.start)) {
 				this._startDate = null
 			} else {
 				this._startDate = dates.start
 			}
-			if (dates.end && isSameDay(this._getIndexedMailEndDate(), neverNull(dates.end))) {
+			let current = this._getCurrentIndexDate()
+			if (dates.end && current && isSameDay(current, neverNull(dates.end))) {
 				this._endDate = null
 			} else {
 				this._endDate = dates.end
@@ -162,12 +164,33 @@ export class SearchView {
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
-	_getIndexedMailEndDate(): Date {
-		return getStartOfDay(new Date(2017, 0, 1)) // FIXME set end of index
+	/**
+	 * @returns null if the complete mailbox is indexed
+	 */
+	_getCurrentIndexDate(): ?Date {
+		let timestamp = locator.search.indexState().currentIndexTimestamp
+		return (timestamp == FULL_INDEXED_TIMESTAMP) ? null : new Date(timestamp)
 	}
 
 	_getTimeText(): string {
-		return ((this._startDate) ? formatDateWithMonth(this._startDate) : lang.get("today_label")) + " - " + (formatDateWithMonth((this._endDate) ? this._endDate : this._getIndexedMailEndDate()))
+		let start
+		let end
+		if (this._startDate) {
+			start = formatDateWithMonth(this._startDate)
+		} else {
+			start = lang.get("today_label")
+		}
+		if (this._endDate) {
+			end = formatDateWithMonth(this._endDate)
+		} else {
+			let currentIndexDate = this._getCurrentIndexDate()
+			if (currentIndexDate) {
+				end = formatDateWithMonth(currentIndexDate)
+			} else {
+				end = lang.get("unlimited_label")
+			}
+		}
+		return start + " - " + end
 	}
 
 	_searchAgain(): void {

@@ -938,12 +938,14 @@ module.exports = {
 		"attachmentName_label": "Attachment name",
 		"mailFolder_label": "Email folder",
 		"filter_label": "Filter",
-		"selectTime_label": "Select time",
+		"selectPeriodOfTime_label": "Select period of time",
 		"today_label": "Today",
 		"startAfterEnd_label": "The start date must not be after the end date.",
 		"endAfterStart_label": "The end date must not be after the start date.",
 		"searchedUntil_msg": "Searched until",
 		"createSearchIndex_msg": "Creating search index {progress}%",
-		"requiredFeatures_msg": "The following features must be enabled:"
+		"requiredFeatures_msg": "The following features must be enabled:",
+		"unlimited_label": "Unlimited",
+		"periodOfTime_label" : "Period of time"
 	}
 }

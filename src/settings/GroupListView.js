@@ -101,7 +101,7 @@ export class GroupListView {
 	}
 
 	deactivate() {
-		this._searchResultStreamDependency.end()
+		this._searchResultStreamDependency.end(true)
 	}
 
 	_setLoadedCompletely() {

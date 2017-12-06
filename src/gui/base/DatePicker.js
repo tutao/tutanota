@@ -24,7 +24,7 @@ export class DatePicker {
 	date: stream<?Date>;
 	_domDateInput: HTMLInputElement;
 
-	constructor(labelTextIdOrTextFunction: string|lazy<string>) {
+	constructor(labelTextIdOrTextFunction: string|lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
 		this.date = stream(null)
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, e => {
@@ -39,7 +39,7 @@ export class DatePicker {
 			} else if (this.date() != null) {
 				return formatDateWithMonth(this.date())
 			} else {
-				return lang.get("emptyString_msg")
+				return lang.get(nullSelectionTextId)
 			}
 		})
 		this.input._injectionsRight = () => {
