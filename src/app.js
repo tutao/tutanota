@@ -182,7 +182,7 @@ function forceLogin(args: string[], requestedPath: string) {
 		if (requestedPath.trim() === '/') {
 			m.route.set(`/login`)
 		} else {
-			m.route.set(`/login?requestedPath=${requestedPath}`)
+			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}
 	}
 }

@@ -400,7 +400,7 @@ module.exports = {
 		"insufficientStorageWarning_msg": "Der verfügbare Speicher deines Postfaches ist fast verbraucht. Entferne Inhalte aus deinem Postfach um Speicherplatz freizugeben oder buche ein größeres Speicherpaket.",
 		"invalidAttachment_msg": "Diese E-Mail kann leider nicht mit Tutanota gesendet werden, da sie einen nicht unterstützten Anhang enthält.",
 		"invalidBirthday_msg": "Ungültiges Geburtsdatum. Bitte korrigiere den Wert im Feld 'Geburtstag'.",
-		"invalidDateFormat_msg": "Ungültiges Format. Bitte formatieren als {1}",
+		"invalidDateFormat_msg": "Ungültiges Format. Gültig: {1}",
 		"invalidInputFormat_msg": "Ungültiges Format.",
 		"invalidLink_msg": "Leider ist dieser Link ungültig.",
 		"invalidPageLoadUnsupported_msg": "Die Zahlungsmethode wird von diesem Browser nicht unterstützt.",
@@ -924,6 +924,16 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"search_label": "Suche",
-		"moreResultsFound_msg": "{1} weitere Ergebnisse gefunden."
+		"moreResultsFound_msg": "{1} weitere Ergebnisse gefunden.",
+		"field_label": "Feld",
+		"all_label": "Alle",
+		"mailBody_label": "E-Mail-Text",
+		"attachmentName_label": "Anhang-Name",
+		"mailFolder_label": "E-Mail-Ordner",
+		"filter_label": "Filter",
+		"selectTime_label": "Zeit auswählen",
+		"today_label": "Heute",
+		"startAfterEnd_label": "Das Start-Datum darf nicht nach dem End-Datum sein.",
+		"endAfterStart_label": "Das End-Datum darf nicht nach dem Start-Datum sein.",
 	}
 }

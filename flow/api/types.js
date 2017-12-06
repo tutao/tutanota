@@ -220,13 +220,16 @@ type KeyListener = {
 }
 export type SearchRestriction = {
 	type: TypeRef<any>;
-	attributes:string[];
+	start: ?number; // timestamp
+	end: ?number; // timestamp
+	field:?string; // must be kept in sync with attributeIds
+	attributeIds:?number[]; // must be kept in sync with field
 	listId:?Id;
 }
 
 type SearchResult = {
 	query: string,
-	restriction: ?SearchRestriction,
+	restriction: SearchRestriction,
 	mails: IdTuple[];
 	contacts: IdTuple[];
 	groupInfos: IdTuple[];

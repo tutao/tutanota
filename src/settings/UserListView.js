@@ -100,7 +100,7 @@ export class UserListView {
 		this.list.loadInitial()
 
 		this._listId.getAsync().then(listId => {
-			header.defaultButtonBar.searchBar.setRestrictionListId(listId)
+			header.defaultButtonBar.searchBar.setGroupInfoRestrictionListId(listId)
 		})
 		this._searchResultStreamDependency = header.defaultButtonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
 			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {

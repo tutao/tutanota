@@ -10,26 +10,23 @@ assertMainOrNode()
 
 export class DropDownSelector<T> {
 	view: Function;
-	selectedValue: stream<?T>;
+	selectedValue: stream<T>;
 	_changeHandler: handler<T>;
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<?T>|?T, dropdownWidth: ?number) {
+	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number) {
 		this.selectedValue = selectedValue instanceof Function ? selectedValue : stream(selectedValue)
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
 			.setDisabled()
 		this._field.value = this.selectedValue.map(value => {
-			if (value != null) {
-				let selectedItem = items.find(item => item.value == this.selectedValue())
-				if (selectedItem) {
-					return selectedItem.name
-				} else {
-					console.log(`Dropdown ${this._field.label instanceof Function ? this._field.label() : this._field.label} couldn't find element for value: ${value}`)
-				}
+			let selectedItem = items.find(item => item.value == this.selectedValue())
+			if (selectedItem) {
+				return selectedItem.name
+			} else {
+				console.log(`Dropdown ${this._field.label instanceof Function ? this._field.label() : this._field.label} couldn't find element for value: ${value}`)
 			}
-			return null
 		})
 		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
 				return items.map(item => new Button(() => item.name, () => {

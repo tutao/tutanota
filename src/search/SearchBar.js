@@ -25,13 +25,16 @@ import type {RouteChangeEvent} from "../misc/RouteChange"
 import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
-import {setSearchUrl, getRestriction} from "./SearchUtils"
+import {setSearchUrl, getRestriction, getSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {INDEX_TIMESTAMP_MIN} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
+import {assertMainOrNode} from "../api/Env"
+
+assertMainOrNode()
 
 type ShowMoreAction = {
 	resultCount:number,
@@ -54,17 +57,22 @@ export class SearchBar {
 	onbeforeremove: Function;
 	busy: boolean;
 	_selected: ?Mail|Contact|GroupInfo|ShowMoreAction;
-	_restrictionListId: ?Id;
+	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: stream<GroupInfo>;
 
 	constructor() {
-		this._restrictionListId = null
+		this._groupInfoRestrictionListId = null
 		this.lastSelectedGroupInfoResult = stream()
 		this.expanded = false
 		this.focused = false
 		this.skipNextBlur = false
 		this.busy = false
 		this.value = stream("")
+		this.value.map(v => {
+			if (v) {
+				this.expanded = true
+			}
+		})
 		let b = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
 		this.dropdown = new Dropdown(() => [b], 250)
 		this._results = []
@@ -75,57 +83,57 @@ export class SearchBar {
 				}
 			}, [
 				m(".search-bar.flex-end.items-center", {
-					oncreate: (vnode) => {
-						this._domWrapper = vnode.dom
-					},
-					style: {
-						'min-height': px(inputLineHeight + 2), // 2 px border
-						'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
-						'padding-top': px(2), // center input field
-						'margin-right': px(15),
-						'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
-						'align-self': "center"
-					}
-				}, [
-					m(".ml-negative-xs.click", {
-						onmousedown: e => {
-							if (this.focused) {
-								this.skipNextBlur = true
-							}
-						},
-						onclick: (e) => {
-							this.handleSearchClick(e)
+				oncreate: (vnode) => {
+					this._domWrapper = vnode.dom
+				},
+				style: {
+					'min-height': px(inputLineHeight + 2), // 2 px border
+					'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
+					'padding-top': px(2), // center input field
+					'margin-right': px(15),
+					'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+					'align-self': "center"
+				}
+			}, [
+				m(".ml-negative-xs.click", {
+					onmousedown: e => {
+						if (this.focused) {
+							this.skipNextBlur = true
 						}
-					}, m(Icon, {
-						icon: Icons.Search,
+					},
+					onclick: (e) => {
+						this.handleSearchClick(e)
+					}
+				}, m(Icon, {
+					icon: Icons.Search,
+					class: "flex-center items-center icon-large",
+					style: {
+						fill: this.focused ? theme.header_button_selected : theme.header_button,
+						//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+					}
+				})),
+				m(".searchInputWrapper.flex-end.items-center", {
+					style: {
+						"width": this.expanded ? px(200) : px(0),
+						"transition": `width ${DefaultAnimationTime}ms`,
+						'padding-left': this.expanded ? '10px' : '0px',
+						'padding-top': '3px',
+						'padding-bottom': '3px',
+						'overflow-x': 'hidden'
+					}
+
+				}, [this._getInputField(), m(".closeIconWrapper", {
+					onclick: (e) => this.close(),
+				}, this.busy ? m(Icon, {
+						icon: BootIcons.Progress,
+						class: 'flex-center items-center icon-progress-search icon-progress'
+					}) : m(Icon, {
+						icon: Icons.Close,
 						class: "flex-center items-center icon-large",
 						style: {
-							fill: this.focused ? theme.header_button_selected : theme.header_button,
+							fill: theme.header_button,
 							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
-					})),
-					m(".searchInputWrapper.flex-end.items-center", {
-						style: {
-							"width": this.expanded ? px(200) : px(0),
-							"transition": `width ${DefaultAnimationTime}ms`,
-							'padding-left': this.expanded ? '10px' : '0px',
-							'padding-top': '3px',
-							'padding-bottom': '3px',
-							'overflow-x': 'hidden'
-						}
-
-					}, [this._getInputField(), m(".closeIconWrapper", {
-						onclick: (e) => this.close(),
-					}, this.busy ? m(Icon, {
-							icon: BootIcons.Progress,
-							class: 'flex-center items-center icon-progress-search icon-progress'
-						}) : m(Icon, {
-							icon: Icons.Close,
-							class: "flex-center items-center icon-large",
-							style: {
-								fill: theme.header_button,
-								//"margin-top": (this._hideLabel) ? "0px" : "-2px"
-							}
 						}))]),
 
 				]),
@@ -197,8 +205,9 @@ export class SearchBar {
 
 	}
 
-	setRestrictionListId(listId: Id) {
-		this._restrictionListId = listId
+	// TODO: remove this and take the list id from the url as soon as the list id is included in user and group settings
+	setGroupInfoRestrictionListId(listId: Id) {
+		this._groupInfoRestrictionListId = listId
 	}
 
 	showDropdown(result: SearchResult) {
@@ -224,12 +233,12 @@ export class SearchBar {
 				this._results = newResults
 				let resultCount = (result.mails.length + result.contacts.length + result.groupInfos.length)
 				if (resultCount == 0 || resultCount > 10 || result.currentIndexTimestamp != INDEX_TIMESTAMP_MIN) {
-					this._results.push({
-						resultCount: resultCount,
-						shownCount: this._results.length,
+				this._results.push({
+					resultCount: resultCount,
+					shownCount: this._results.length,
 						indexTimestamp: result.currentIndexTimestamp,
 						allowShowMore: !result.restriction || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
-					}) // add SearchMoreAction
+				}) // add SearchMoreAction
 				}
 				if (this._results.length > 0) {
 					this._selected = this._results[0]
@@ -343,14 +352,14 @@ export class SearchBar {
 			let type: ?TypeRef = result._type ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
-					setSearchUrl(m.route.get().split("/")[1], this.value())
+					setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get())))
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
 				let mail = ((result:any):Mail)
-				setSearchUrl("mail", this.value(), mail._id[1])
+				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), mail._id[1]))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
 				let contact = ((result:any):Contact)
-				setSearchUrl("contact", this.value(), contact._id[1])
+				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), contact._id[1]))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
 				this.lastSelectedGroupInfoResult(result)
 			}
@@ -367,7 +376,10 @@ export class SearchBar {
 
 	search() {
 		let value = this.value()
-		let restriction = getRestriction(m.route.get(), this._restrictionListId)
+		let restriction = getRestriction(m.route.get())
+		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
+			restriction.listId = this._groupInfoRestrictionListId
+		}
 
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false
@@ -386,7 +398,7 @@ export class SearchBar {
 				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
 				if (!m.route.get().startsWith("/search") && locator.search.result()) {
-					this.showDropdown(locator.search.result())
+				this.showDropdown(locator.search.result())
 				}
 				this.busy = false
 				return
@@ -398,10 +410,11 @@ export class SearchBar {
 						locator.search.search(value, restriction).then(result => {
 							if (m.route.get().startsWith("/search")) {
 								this.busy = false
-								setSearchUrl(m.route.param()["category"], value)
+								setSearchUrl(getSearchUrl(value, restriction))
 								return // instances will be displayed as part of the list of the search view, when the search view is displayed
+							} else {
+								this.showDropdown(result)
 							}
-							this.showDropdown(result)
 						}).finally(() => this.busy = false)
 					} else {
 						this.busy = false

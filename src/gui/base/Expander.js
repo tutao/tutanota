@@ -42,7 +42,7 @@ export class ExpanderButton {
 					style: {fill: color},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
-						if (!this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
+						if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
 					},
 				}),
 			])),
@@ -51,7 +51,7 @@ export class ExpanderButton {
 
 	toggle() {
 		if (this._domIcon) {
-			let start = this.panel.expanded ? 0 : 180
+			let start = this.panel.expanded ? 180 : 0
 			animations.add(this._domIcon, transform('rotateZ', start, start + 180))
 		}
 		this.panel.setExpanded(!this.panel.expanded)

@@ -4,7 +4,9 @@ import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {arrayEquals} from "../api/common/utils/ArrayUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
+import {assertMainOrNode} from "../api/Env"
 
+assertMainOrNode()
 
 export class SearchModel {
 	result: stream<?SearchResult>;
@@ -18,12 +20,12 @@ export class SearchModel {
 		})
 	}
 
-	search(query: string, restriction: ?SearchRestriction): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction): Promise<SearchResult> {
 		let result = this.result()
-		if (result && restriction && result.restriction && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
+		if (result && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
 			// reset the result in case only the search type has changed
 			this.result(null)
-		} else if (this.indexState().progress > 0 && result && result.restriction && isSameTypeRef(MailTypeRef, result.restriction.type)) {
+		} else if (this.indexState().progress > 0 && result && isSameTypeRef(MailTypeRef, result.restriction.type)) {
 			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
@@ -33,7 +35,7 @@ export class SearchModel {
 		})
 	}
 
-	isNewSearch(query: string, restriction: ?SearchRestriction): boolean {
+	isNewSearch(query: string, restriction: SearchRestriction): boolean {
 		let result = this.result()
 		if (result == null) {
 			return true
@@ -41,12 +43,13 @@ export class SearchModel {
 		if (query != result.query) {
 			return true
 		}
-		if (result.restriction == restriction) { // both are null or same instance
+		if (result.restriction == restriction) { // both are the same instance
 			return false
 		}
-		if (restriction != null && result.restriction != null && isSameTypeRef(restriction.type, result.restriction.type)) {
-			return !arrayEquals(restriction.attributes, result.restriction.attributes)
-		}
-		return true
+		return !isSameTypeRef(restriction.type, result.restriction.type)
+			|| restriction.start != result.restriction.start
+			|| restriction.end != result.restriction.end
+			|| restriction.field != result.restriction.field
+			|| restriction.listId != result.restriction.listId
 	}
 }

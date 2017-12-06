@@ -131,7 +131,7 @@ styles.registerStyle('main', () => {
 		'.plr-nav-button': {'padding-left': px(size.hpad_nav_button), 'padding-right': px(size.hpad_nav_button)},
 		'.pl-button': {'padding-left': px(size.hpad_button)},
 
-
+		'.mt-negative': {'margin-top': px(-size.vpad)},
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
 		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
 		'.ml-negative-l': {'margin-left': px(-size.hpad_large)},

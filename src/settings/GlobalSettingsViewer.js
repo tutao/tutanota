@@ -92,7 +92,7 @@ export class GlobalSettingsViewer {
 		let contactFormReportTo = new DatePicker("dateTo_label")
 		contactFormReportFrom.setDate(new Date())
 		contactFormReportTo.setDate(new Date())
-		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom._date, contactFormReportTo._date), () => Icons.Download)
+		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Download)
 
 		this.view = () => {
 			return [

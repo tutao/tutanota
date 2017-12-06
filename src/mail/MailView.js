@@ -266,7 +266,7 @@ export class MailView {
 		let mailModelStream = null
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
-			mailModelStream = mailModel._details.map(mailboxDetails => {
+			mailModelStream = mailModel.mailboxDetails.map(mailboxDetails => {
 				mailboxDetails.forEach(newMailboxDetail => {
 					if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
 						this.createMailboxExpander(newMailboxDetail)
@@ -356,10 +356,10 @@ export class MailView {
 		} else if (!this.isInitialized()) {
 			mailModel.init().then(() => {
 				if (typeof args.listId === 'undefined') {
-					this._setUrl(this._folderToUrl[getInboxFolder(mailModel._details()[0].folders)._id[1]])
+					this._setUrl(this._folderToUrl[getInboxFolder(mailModel.mailboxDetails()[0].folders)._id[1]])
 				} else {
 					if (!this._showList(args.listId, args.mailId)) {
-						this._setUrl(this._folderToUrl[getInboxFolder(mailModel._details()[0].folders)._id[1]])
+						this._setUrl(this._folderToUrl[getInboxFolder(mailModel.mailboxDetails()[0].folders)._id[1]])
 					}
 				}
 				m.redraw()

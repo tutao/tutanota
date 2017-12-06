@@ -135,9 +135,12 @@ export class ContactFormRequestDialog {
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
 		return contactForm.statisticsFields.map(field => {
 			if (field.type === InputFieldType.ENUM) {
-				let f = new DropDownSelector(() => field.name, null, field.enumValues.map(t => {
+				let items = field.enumValues.map(t => {
 					return {name: t.name, value: t.name}
-				}), null, 250)
+				})
+				// add empty entry
+				items.splice(0, 0, {name: "", value: null})
+				let f = new DropDownSelector(() => field.name, null, items, null, 250)
 				return {component: f, name: field.name, value: f.selectedValue}
 			} else {
 				let f = new TextField(() => field.name)

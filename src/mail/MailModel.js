@@ -30,11 +30,11 @@ export type MailboxDetail ={
 
 class MailModel {
 
-	_details: stream<MailboxDetail[]>
+	mailboxDetails: stream<MailboxDetail[]>
 	_initialization: ?Promise<void>
 
 	constructor() {
-		this._details = stream([])
+		this.mailboxDetails = stream([])
 		this._initialization = null
 
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
@@ -62,7 +62,7 @@ class MailModel {
 				})
 			})
 		})).then(details => {
-			this._details(details)
+			this.mailboxDetails(details)
 		}).return()
 		return this._initialization
 	}
@@ -94,16 +94,16 @@ class MailModel {
 	}
 
 	getMailboxDetailsForMailListId(mailListId: Id): MailboxDetail {
-		return neverNull(this._details().find((md) => md.folders.find(f => f.mails == mailListId) != null))
+		return neverNull(this.mailboxDetails().find((md) => md.folders.find(f => f.mails == mailListId) != null))
 	}
 
 	getMailboxDetailsForMailGroup(mailGroupId: Id): MailboxDetail {
-		return neverNull(this._details().find((md) => mailGroupId == md.mailGroup._id))
+		return neverNull(this.mailboxDetails().find((md) => mailGroupId == md.mailGroup._id))
 	}
 
 	getUserMailboxDetails(): MailboxDetail {
 		let userMailGroupMembership = logins.getUserController().getUserMailGroupMembership()
-		return neverNull(this._details().find(md => md.mailGroup._id == userMailGroupMembership.group))
+		return neverNull(this.mailboxDetails().find(md => md.mailGroup._id == userMailGroupMembership.group))
 	}
 
 	getMailboxFolders(mail: Mail): MailFolder[] {
@@ -111,7 +111,7 @@ class MailModel {
 	}
 
 	getMailFolder(mailListId: Id): ?MailFolder {
-		for (let e of this._details()) {
+		for (let e of this.mailboxDetails()) {
 			for (let f of e.folders) {
 				if (f.mails == mailListId) {
 					return f
@@ -165,8 +165,8 @@ class MailModel {
 			if (operation == OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
 				load(UserTypeRef, elementId).then(updatedUser => {
 					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType == GroupType.Mail)
-					let currentDetails = this._details()
-					if (newMemberships.length != currentDetails.length) {
+					let currentDetails = this.mailboxDetails()
+										if (newMemberships.length != currentDetails.length) {
 						this._initialization = null
 						this.init().then(() => m.redraw())
 					}

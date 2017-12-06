@@ -10,7 +10,9 @@ import {MailViewer} from "../mail/MailViewer"
 import {ContactViewer} from "../contacts/ContactViewer"
 import MessageBox from "../gui/base/MessageBox"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
+import {assertMainOrNode} from "../api/Env"
 
+assertMainOrNode()
 
 export class SearchResultDetailsViewer {
 	_listView: SearchListView;
