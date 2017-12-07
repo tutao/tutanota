@@ -188,6 +188,7 @@ export class SearchBar {
 					])
 				}
 			})
+			m.redraw()
 		} else if ((route.startsWith("/search/mail") && newState.progress == 0)) {
 			closeOverlay()
 		}
