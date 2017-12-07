@@ -95,7 +95,7 @@ export class MailSettingsViewer {
 			update(logins.getUserController().props)
 		})
 
-		this._enableMailIndexing = new DropDownSelector("searchMailbox_label", () => lang.get("searchMailbox_msg"), [
+		this._enableMailIndexing = new DropDownSelector("searchMailbox_label", () => lang.get("enableSearchMailbox_msg"), [
 			{name: lang.get("activated_label"), value: true},
 			{name: lang.get("deactivated_label"), value: false}
 		], locator.search.indexState().mailIndexEnabled, 250).setSelectionChangedHandler(mailIndexEnabled => {

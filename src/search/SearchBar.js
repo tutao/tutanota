@@ -389,7 +389,7 @@ export class SearchBar {
 
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false
-			Dialog.confirm("searchMailbox_msg", "search_label").then(confirmed => {
+			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
 					worker.enableMailIndexing().then(() => {
 						this.search()

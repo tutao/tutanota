@@ -930,7 +930,7 @@ module.exports = {
 		"searchNoResults_msg": "No results",
 		"noSelection_msg": "Nothing selected",
 		"searchMailbox_label": "Search Mailbox",
-		"searchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
+		"enableSearchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
 		"moreResultsFound_msg": "{1} more results found.",
 		"field_label": "Field",
 		"all_label": "All",
@@ -946,6 +946,8 @@ module.exports = {
 		"createSearchIndex_msg": "Creating search index {progress}%",
 		"requiredFeatures_msg": "The following features must be enabled:",
 		"unlimited_label": "Unlimited",
-		"periodOfTime_label" : "Period of time"
+		"periodOfTime_label": "Period of time",
+		"continueSearchMailbox_msg": "To execute this search we have to download more emails from the server which may take some time.",
+
 	}
 }

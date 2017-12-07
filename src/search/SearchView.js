@@ -196,7 +196,15 @@ export class SearchView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+			if (this._endDate && this._endDate.getTime() < locator.search.indexState().currentIndexTimestamp) {
+				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
+					if (confirmed) {
+						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+					}
+				})
+			} else {
+				setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+			}
 		}
 	}
 
