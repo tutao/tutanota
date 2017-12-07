@@ -207,14 +207,13 @@ export class Indexer {
 	updateCurrentIndexTimestamp(): Promise<void> {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
-		this._initParams.mailGroupIds.map(mailGroupId => {
-			t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+		return Promise.map(this._initParams.mailGroupIds, (mailGroupId) => {
+			return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
 					this.currentIndexTimestamp = groupData.indexTimestamp
 				}
 			})
-		})
-		return t.await()
+		}).return()
 	}
 
 	_loadGroupData(mailGroupIds: Id[], contactGroupIds: Id[], customerGroupId: Id): Promise<{groupId: Id, groupData: GroupData}[]> {
@@ -436,11 +435,12 @@ export class Indexer {
 		}).catch(CancelledError, (e) => {
 			console.log("indexing cancelled")
 		}).finally(() => {
-			this.updateCurrentIndexTimestamp()
-			this._worker.sendIndexState({
-				mailIndexEnabled: this._mailIndexingEnabled,
-				progress: 0,
-				currentIndexTimestamp: this.currentIndexTimestamp
+			this.updateCurrentIndexTimestamp().then(() => {
+				this._worker.sendIndexState({
+					mailIndexEnabled: this._mailIndexingEnabled,
+					progress: 0,
+					currentIndexTimestamp: this.currentIndexTimestamp
+				})
 			})
 		})
 		return this.mailboxIndexingPromise.return()
@@ -484,19 +484,15 @@ export class Indexer {
 						return Promise.each(mailWithBodyAndFiles, element => {
 							this._createMailIndexEntries(element.mail, element.body, element.files, indexUpdate)
 						}).then(() => this._writeIndexUpdate(indexUpdate))
-					}).return(mails).then((mails) => {
-						if (mails.length === 500) {
+					}).then(() => {
+						if (filteredMails.length === 500) {
 							console.log("completed indexing range from", startId, "to", endId, "of mail list id", mailListId)
 							this._printStatus()
-							if (filteredMails.length == mails.length) {
-								return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
-							} else {
-								return false
-							}
+							return this._indexMailList(mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
 						} else {
 							console.log("completed indexing of mail list id", mailListId)
 							this._printStatus()
-							return true
+							return filteredMails.length === mails.length
 						}
 					})
 				})

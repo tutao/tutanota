@@ -50,7 +50,7 @@ export class SearchFacade {
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
 		if (isSameTypeRef(MailTypeRef, restriction.type)) {
 			return this._indexer.mailboxIndexingPromise.then(() => {
-				if (this._indexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer.currentIndexTimestamp < restriction.end) {
+				if (this._indexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer.currentIndexTimestamp > restriction.end) {
 					this._indexer.indexMailbox(getStartOfDay(new Date(restriction.end)))
 					return this._indexer.mailboxIndexingPromise
 				}
