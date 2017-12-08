@@ -440,6 +440,9 @@ export class SearchBar {
 			this._domInput.blur()
 			closeOverlay()
 		}
+		if (m.route.get().startsWith("/search")) {
+			locator.search.result(null)
+		}
 	}
 
 	_getInputField(): VirtualElement {
@@ -523,6 +526,9 @@ export class SearchBar {
 		closeOverlay()
 		if (this.value().trim() == "") {
 			this.expanded = false
+			if (m.route.get().startsWith("/search")) {
+				locator.search.result(null)
+			}
 		}
 	}
 
