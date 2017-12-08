@@ -6,8 +6,12 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {assertMainOrNode} from "../api/Env"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
+import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
+
+const FIXED_FREE_SEARCH_DAYS = 1
 
 export const SEARCH_CATEGORIES = [
 	{name: "mail", typeRef: MailTypeRef},
@@ -52,7 +56,20 @@ export function getSearchUrl(query: string, restriction: SearchRestriction, sele
 	return url
 }
 
+export function getFreeSearchEndDate(): Date {
+	return getStartOfDay(getDayShifted(new Date(), -FIXED_FREE_SEARCH_DAYS))
+}
+
+/**
+ * Adjusts the restriction according to the account type if necessary
+ */
 export function createRestriction(searchCategory: string, start: ?number, end: ?number, field: ?string, listId: ?string): SearchRestriction {
+	if (logins.getUserController().isFreeAccount() && searchCategory == "mail") {
+		start = null
+		end = getFreeSearchEndDate().getTime()
+		field = null
+		listId = null
+	}
 	let r: SearchRestriction = {
 		type: neverNull(SEARCH_CATEGORIES.find(c => c.name == searchCategory)).typeRef,
 		start: start,
@@ -71,6 +88,9 @@ export function createRestriction(searchCategory: string, start: ?number, end: ?
 	return r
 }
 
+/**
+ * Adjusts the restriction according to the account type if necessary
+ */
 export function getRestriction(route: string): SearchRestriction {
 	let category = "mail"
 	let start = null
