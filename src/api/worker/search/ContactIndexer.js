@@ -89,7 +89,6 @@ export class ContactIndexer {
 					})
 				}
 			})
-
 		}).catch(NotFoundError, e => {
 			// external users have no contact list.
 			return Promise.resolve()

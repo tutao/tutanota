@@ -195,6 +195,10 @@ o.spec("Indexer test", () => {
 		})
 	})
 
+	o("writeIndexUpdate move", function() {
+
+	})
+
 	o("createNoMailIndexData", function () {
 		let update = _createNewIndexUpdate("groupId")
 		let m = createMail()
