@@ -24,7 +24,6 @@ import {erase} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {SEARCH_MAIL_FIELDS, SEARCH_CATEGORIES} from "../search/SearchUtils"
 import {getFolderName} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
@@ -117,15 +116,6 @@ export class SearchView {
 			this._doNotUpdateQuery = false
 		})
 
-		let filterExpander = new ExpanderButton("filter_label", new ExpanderPanel({
-			view: () => this._mailFolder.isSelected() ? m(".mt-negative", [
-					m(this._time),
-					m(this._mailFieldSelection),
-					m(this._mailFolderSelection),
-				]) : m("")
-		}), false)
-		filterExpander.toggle()
-
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
 				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}}, lang.get("search_label").toLocaleUpperCase())]),
@@ -133,10 +123,14 @@ export class SearchView {
 					m(".folder-row.plr-l", {class: this._mailFolder.isSelected() ? "row-selected" : ""}, m(this._mailFolder)),
 					m(".folder-row.plr-l", {class: this._contactFolder.isSelected() ? "row-selected" : ""}, m(this._contactFolder)),
 				]),
-				m(".mlr-l", [
-					m(".mr-negative-s.flex-space-between", m(filterExpander)),
-					m(filterExpander.panel)
-				])
+				this._mailFolder.isSelected() ? m("", [
+						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}}, lang.get("filter_label").toLocaleUpperCase())]),
+						m(".plr-l.mt-negative-s", [
+							m(this._time),
+							m(this._mailFieldSelection),
+							m(this._mailFolderSelection),
+						])
+					]) : null
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
 

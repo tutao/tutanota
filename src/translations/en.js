@@ -929,7 +929,7 @@ module.exports = {
 		"searchResult_label": "Results",
 		"searchNoResults_msg": "No results",
 		"noSelection_msg": "Nothing selected",
-		"searchMailbox_label": "Search Mailbox",
+		"searchMailbox_label": "Search mailbox",
 		"enableSearchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
 		"moreResultsFound_msg": "{1} more results found.",
 		"field_label": "Field",
