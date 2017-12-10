@@ -25,14 +25,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {neverNull} from "../../common/utils/Utils"
-import {
-	isSameTypeRef,
-	TypeRef,
-	isSameId,
-	HttpMethod,
-	GENERATED_ID_BYTES_LENGTH,
-	MediaType
-} from "../../common/EntityFunctions"
+import {isSameTypeRef, TypeRef, isSameId, HttpMethod, GENERATED_ID_BYTES_LENGTH} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -41,7 +34,7 @@ import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {SessionTypeRef, _TypeModel as SessionModelType} from "../../entities/sys/Session"
 import {typeRefToPath} from "../rest/EntityRestClient"
-import {restClient} from "../rest/RestClient"
+import {restClient, MediaType} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"

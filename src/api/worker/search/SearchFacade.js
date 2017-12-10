@@ -38,11 +38,14 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: SearchRestriction): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
+		let matchWordOrder = searchTokens.length > 0 && query.startsWith("\"") && query.endsWith("\"")
 		return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
-				.then(results => this._filterByEncryptedId(results))
-				.then(results => this._decryptSearchResult(results))
-				.then(results => this._filterByTypeAndAttributeAndTime(results, restriction))
-				.then(results => this._filterByListIdAndGroupSearchResults(query, restriction, results))
+				.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
+				.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
+				.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
+				.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
+				.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
+				.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
 			// ranking ->all tokens are in correct order in the same attribute
 		)
 	}
@@ -103,25 +106,31 @@ export class SearchFacade {
 	}
 
 
-	_filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction): SearchIndexEntry[] {
-		let indexEntries = null
-		results.forEach(r => {
-			let currentIndexEntries = r.indexEntries.filter(entry => {
+	_filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction): KeyToIndexEntries[] {
+		// first filter each index entry by itself
+		results.forEach(result => {
+			result.indexEntries = result.indexEntries.filter(entry => {
 				return this._isValidTypeAndAttributeAndTime(restriction, entry)
 			})
-			if (indexEntries == null) {
-				indexEntries = currentIndexEntries
+		})
+
+		// now filter all ids that are in all of the search words
+		let matchingIds: ?Id[] = null
+		results.forEach(keyToIndexEntry => {
+			if (!matchingIds) {
+				matchingIds = keyToIndexEntry.indexEntries.map(entry => entry.id)
 			} else {
-				indexEntries = indexEntries.filter(e1 => {
-					return currentIndexEntries.find(e2 => e1.id == e2.id) != null
+				matchingIds = matchingIds.filter(id => {
+					return keyToIndexEntry.indexEntries.find(entry => entry.id == id)
 				})
 			}
 		})
-		if (indexEntries) {
-			return indexEntries
-		} else {
-			return []
+		return results.map(r => {
+			return {
+				indexKey: r.indexKey,
+				indexEntries: r.indexEntries.filter(entry => neverNull(matchingIds).find(id => entry.id == id))
 		}
+		})
 	}
 
 	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry): boolean {
@@ -150,18 +159,45 @@ export class SearchFacade {
 		return true
 	}
 
-	_filterByListIdAndGroupSearchResults(query: string, restriction: SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
-		let uniqueIds = {}
-		let searchIndexTimestamp = new Date().getTime()
-		if (this._indexer.currentIndexTimestamp == searchIndexTimestamp) {
-			searchIndexTimestamp = this._indexer._mail.currentIndexTimestamp
+	_reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): SearchIndexEntry[] {
+		if (matchWordOrder) {
+			return results[0].indexEntries.filter(firstWordEntry => {
+				let filteredPositions = firstWordEntry.positions.slice()
+				for (let i = 1; i < results.length; i++) {
+					let entry = results[i].indexEntries.find(e => e.id == firstWordEntry.id && e.attribute == firstWordEntry.attribute)
+					if (entry) {
+						filteredPositions = filteredPositions.filter(firstWordPosition => neverNull(entry).positions.find(position => position == firstWordPosition + i))
+					} else {
+						console.log("entry not in next word index")
+						filteredPositions = [] // should not happen, as the first
+					}
+				}
+				return filteredPositions.length > 0
+			})
+		} else {
+			// all ids must appear in all words now, so we can use any of the entries lists
+			return results[0].indexEntries
 		}
-		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
+	}
+
+	_reduceToUniqueElementIds(results: SearchIndexEntry[]): SearchIndexEntry[] {
+		let uniqueIds = {}
+		return results.filter(entry => {
+			if (!uniqueIds[entry.id]) {
+				uniqueIds[entry.id] = true
+				return true
+			} else {
+				return false
+		}
+		})
+	}
+
+	_filterByListIdAndGroupSearchResults(query: string, restriction: SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
+		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry) => {
 			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
 			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
-				if (!uniqueIds[entry.id] && (!restriction.listId || restriction.listId == elementData[0])) {
-					uniqueIds[entry.id] = true
+				if (!restriction.listId || restriction.listId == elementData[0]) {
 					if (entry.type == MailModel.id) {
 						safeSearchResult.mails.push([elementData[0], entry.id])
 					} else if (entry.type == ContactModel.id) {
