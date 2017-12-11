@@ -5,6 +5,8 @@ import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
 import type {SearchIndexEntry, EncryptedSearchIndexEntry} from "./SearchTypes"
 import {fixedIv} from "../crypto/CryptoFacade"
+import {GroupType} from "../../common/TutanotaConstants"
+import {neverNull} from "../../common/utils/Utils"
 
 export function encryptIndexKey(key: Aes256Key, indexKey: string): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length)
@@ -39,6 +41,19 @@ export function getAppId(typeRef: TypeRef<any>): number {
 	}
 	throw new Error("non indexed application " + typeRef.app)
 }
+
+export function userIsAdmin(user: User): boolean {
+	return user.memberships.find(m => m.admin) != null
+}
+
+export function filterIndexMemberships(user: User): GroupMembership[] {
+	return user.memberships.filter(m => m.groupType == GroupType.Mail || m.groupType == GroupType.Contact || m.groupType == GroupType.Customer)
+}
+
+export function filterMailMemberships(user: User): GroupMembership[] {
+	return user.memberships.filter(m => m.groupType == GroupType.Mail)
+}
+
 
 export function byteLength(str: ?string) {
 	if (str == null) return 0

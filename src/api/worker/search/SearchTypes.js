@@ -59,7 +59,7 @@ export type IndexUpdate = {
 		newListId: Id;
 	}[];
 	delete: {
-		encWordToEncInstanceIds: Map<Uint8Array, Uint8Array[]>;
+		encWordToEncInstanceIds: Map<Base64, Uint8Array[]>;
 		encInstanceIds: Uint8Array[];
 	};
 }

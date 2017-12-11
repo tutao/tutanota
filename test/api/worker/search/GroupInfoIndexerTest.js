@@ -1,12 +1,13 @@
 // @flow
 import o from "ospec/ospec.js"
-import {createContact, _TypeModel as ContactModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {createContact, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {
+	createGroupInfo,
+	_TypeModel as GroupInfoModel,
+	GroupInfoTypeRef
+} from "../../../../src/api/entities/sys/GroupInfo"
 import {ContactIndexer} from "../../../../src/api/worker/search/ContactIndexer"
-import {createContactAddress} from "../../../../src/api/entities/tutanota/ContactAddress"
-import {createContactMailAddress} from "../../../../src/api/entities/tutanota/ContactMailAddress"
-import {createContactPhoneNumber} from "../../../../src/api/entities/tutanota/ContactPhoneNumber"
-import {createContactSocialId} from "../../../../src/api/entities/tutanota/ContactSocialId"
-import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/error/RestError"
+import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import {createContactList, ContactListTypeRef} from "../../../../src/api/entities/tutanota/ContactList"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
@@ -15,100 +16,75 @@ import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
+import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddressAlias"
 
-o.spec("ContactIndexer test", () => {
-	o("createContactIndexEntries without entries", function () {
-		let c = createContact()
-		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any))
-		let keyToIndexEntries = contact.createContactIndexEntries(c)
+o.spec("GroupInfoIndexer test", () => {
+	o("createGroupInfoIndexEntries without entries", function () {
+		let g = createGroupInfo()
+		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
 		o(keyToIndexEntries.size).equals(0)
 	})
 
-	o("createContactIndexEntries with one entry", function () {
-		let c = createContact()
-		c.company = "test"
-		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any))
-		let keyToIndexEntries = contact.createContactIndexEntries(c)
+	o("createGroupInfoIndexEntries with one entry", function () {
+		let g = createGroupInfo()
+		g.name = "test"
+		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
 		o(keyToIndexEntries.size).equals(1)
 	})
 
-	o("createContactIndexEntries", function () {
+	o("createGroupInfoIndexEntries", function () {
 		let core = ({createIndexEntriesForAttributes: o.spy()}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), (null:any))
+		let indexer = new GroupInfoIndexer(core, (null:any), (null:any))
 
-		let addresses = [createContactAddress(), createContactAddress()]
-		addresses[0].address = "A0"
-		addresses[1].address = "A1"
+		let mailAddressAliases = [createMailAddressAlias(), createMailAddressAlias()]
+		mailAddressAliases[0].mailAddress = "MA0"
+		mailAddressAliases[1].mailAddress = "MA1"
 
-		let mailAddresses = [createContactMailAddress(), createContactMailAddress()]
-		mailAddresses[0].address = "MA0"
-		mailAddresses[1].address = "MA1"
+		let g = createGroupInfo()
+		g.name = "N"
+		g.mailAddress = "MA"
+		g.mailAddressAliases = mailAddressAliases
+		g.created = new Date()
+		g.deleted = undefined
 
-		let phoneNumbers = [createContactPhoneNumber(), createContactPhoneNumber()]
-		phoneNumbers[0].number = "PN0"
-		phoneNumbers[1].number = "PN1"
-
-
-		let socialIds = [createContactSocialId(), createContactSocialId()]
-		socialIds[0].socialId = "S0"
-		socialIds[1].socialId = "S1"
-
-		let c = createContact()
-		c.firstName = "FN"
-		c.lastName = "LN"
-		c.nickname = "NN"
-		c.role = "R"
-		c.title = "T"
-		c.comment = "C"
-		c.company = "co"
-		c.addresses = addresses
-		c.mailAddresses = mailAddresses
-		c.phoneNumbers = phoneNumbers
-		c.socialIds = []
-
-		contactIndexer.createContactIndexEntries(c)
+		indexer.createGroupInfoIndexEntries(g)
 
 		let args = core.createIndexEntriesForAttributes.args
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
-		o(args[0]).equals(ContactModel)
-		o(args[1]).equals(c)
+		o(args[0]).equals(GroupInfoModel)
+		o(args[1]).equals(g)
 		let attributes = attributeHandlers.map(h => {
 			return {attribute: h.attribute.name, value: h.value()}
 		})
-		o(attributes).deepEquals([
-			{attribute: "firstName", value: "FN"},
-			{attribute: "lastName", value: "LN"},
-			{attribute: "nickname", value: "NN"},
-			{attribute: "role", value: "R"},
-			{attribute: "title", value: "T"},
-			{attribute: "comment", value: "C"},
-			{attribute: "company", value: "co"},
-			{attribute: "addresses", value: "A0,A1"},
-			{attribute: "mailAddresses", value: "MA0,MA1"},
-			{attribute: "phoneNumbers", value: "PN0,PN1"},
-			{attribute: "socialIds", value: ""},
-		])
+		o(JSON.stringify(attributes)).deepEquals(JSON.stringify([
+			{attribute: "name", value: "N"},
+			{attribute: "mailAddress", value: "MA"},
+			{attribute: "mailAddressAliases", value: "MA0,MA1"},
+		]))
 	})
 
 
-	o("processNewContact", function (done) {
-		let contact = createContact()
+	o("processNewGroupInfo", function (done) {
+		let groupInfo = createGroupInfo()
 		let keyToIndexEntries = new Map()
 
-		let indexer = ({createIndexEntriesForAttributes: () => keyToIndexEntries}:any)
+		let core = ({createIndexEntriesForAttributes: () => keyToIndexEntries}:any)
 		let entity = ({
-			load: o.spy(() => Promise.resolve(contact))
+			load: o.spy(() => Promise.resolve(groupInfo))
 		}:any)
-		const contactIndexer = new ContactIndexer(indexer, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
-		contactIndexer.processNewContact(event).then(result => {
-			o(result).deepEquals({contact, keyToIndexEntries})
-			o(contactIndexer._entity.load.args[0]).equals(ContactTypeRef)
-			o(contactIndexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
+		indexer.processNewGroupInfo(event).then(result => {
+			o(result).deepEquals({groupInfo, keyToIndexEntries})
+			o(indexer._entity.load.args[0]).equals(GroupInfoTypeRef)
+			o(indexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
 		}).then(done)
 	})
 
-	o("processNewContact catches NotFoundError", function (done) {
+	o("processNewGroupInfo catches NotFoundError", function (done) {
 		let core = ({
 			createIndexEntriesForAttributes: () => {
 			}
@@ -116,29 +92,14 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new NotFoundError("blah"))
 		}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
-		contactIndexer.processNewContact(event).then(result => {
+		indexer.processNewGroupInfo(event).then(result => {
 			o(result).equals(null)
 		}).then(done)
 	})
 
-	o("processNewContact catches NotAuthorizedError", function (done) {
-		let indexer = ({
-			createIndexEntriesForAttributes: () => {
-			}
-		}:any)
-		let entity = ({
-			load: () => Promise.reject(new NotAuthorizedError("blah"))
-		}:any)
-		const contactIndexer = new ContactIndexer(indexer, (null:any), entity)
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
-		contactIndexer.processNewContact(event).then(result => {
-			o(result).equals(null)
-		}).then(done)
-	})
-
-	o("processNewContact passes other Errors", function (done) {
+	o("processNewGroupInfo passes other Errors", function (done) {
 		let core = ({
 			createIndexEntriesForAttributes: () => {
 			}
@@ -146,14 +107,16 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new Error("blah"))
 		}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
-		contactIndexer.processNewContact(event).catch(Error, e => {
+		indexer.processNewGroupInfo(event).catch(Error, e => {
 			done()
 		})
 	})
 
-	o("indexFullContactList", function (done) {
+	// TODO
+
+	o("indexAllUserAndTeamGroupInfosForAdmin", function (done) {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 		let core: any = new IndexerCore(db)
 		core.writeIndexUpdate = o.spy()
@@ -196,7 +159,7 @@ o.spec("ContactIndexer test", () => {
 		}).then(done)
 	})
 
-	o("indexFullContactList already indexed", function (done) {
+	o("indexAllUserAndTeamGroupInfosForAdmin already indexed", function (done) {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 		let core: any = new IndexerCore(db)
 		core.writeIndexUpdate = o.spy()

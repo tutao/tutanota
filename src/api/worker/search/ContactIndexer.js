@@ -4,25 +4,26 @@ import {ContactTypeRef, _TypeModel as ContactModel} from "../../entities/tutanot
 import {EntityWorker} from "../EntityWorker"
 import type {SearchIndexEntry, Db, GroupData} from "./SearchTypes"
 import {_createNewIndexUpdate} from "./SearchTypes"
-import {Indexer} from "./Indexer"
 import {neverNull} from "../../common/utils/Utils"
 import {GroupDataOS, MetaDataOS} from "./DbFacade"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
+import {IndexerCore} from "./IndexerCore"
 
 export class ContactIndexer {
-	_indexer: Indexer;
+	_core: IndexerCore;
 	_db: Db;
 	_entity: EntityWorker;
 
-	constructor(indexer: Indexer, db: Db, entity: EntityWorker) {
-		this._indexer = indexer
+	constructor(core: IndexerCore, db: Db, entity: EntityWorker) {
+		this._core = core
 		this._db = db
 		this._entity = entity
 	}
 
+
 	createContactIndexEntries(contact: Contact): Map<string, SearchIndexEntry[]> {
-		let keyToIndexEntries = this._indexer.createIndexEntriesForAttributes(ContactModel, contact, [
+		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(ContactModel, contact, [
 			{
 				attribute: ContactModel.values["firstName"],
 				value: () => contact.firstName
@@ -82,10 +83,10 @@ export class ContactIndexer {
 					return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
 						contacts.forEach((contact) => {
 							let keyToIndexEntries = this.createContactIndexEntries(contact)
-							this._indexer.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+							this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 						})
 						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-						return this._indexer._writeIndexUpdate(indexUpdate)
+						return this._core.writeIndexUpdate(indexUpdate)
 					})
 				}
 			})

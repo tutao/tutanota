@@ -49,10 +49,10 @@ export class SearchFacade {
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
 		if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._indexer.mailboxIndexingPromise.then(() => {
-				if (this._indexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer.currentIndexTimestamp > restriction.end) {
-					this._indexer.indexMailbox(getStartOfDay(new Date(restriction.end)))
-					return this._indexer.mailboxIndexingPromise
+			return this._indexer._mail.mailboxIndexingPromise.then(() => {
+				if (this._indexer._mail.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer._mail.currentIndexTimestamp > restriction.end) {
+					this._indexer._mail.indexMailbox(this._indexer._initParams.user, getStartOfDay(new Date(restriction.end)))
+					return this._indexer._mail.mailboxIndexingPromise
 				}
 			})
 		} else {
@@ -154,7 +154,7 @@ export class SearchFacade {
 		let uniqueIds = {}
 		let searchIndexTimestamp = new Date().getTime()
 		if (this._indexer.currentIndexTimestamp == searchIndexTimestamp) {
-			searchIndexTimestamp = this._indexer.currentIndexTimestamp
+			searchIndexTimestamp = this._indexer._mail.currentIndexTimestamp
 		}
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry, index) => {
 			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
@@ -185,7 +185,7 @@ export class SearchFacade {
 
 	_getSearchTimestamp(restriction: ?SearchRestriction): number {
 		if (!restriction || isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._indexer.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._indexer.currentIndexTimestamp
+			return this._indexer._mail.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._indexer._mail.currentIndexTimestamp
 		} else {
 			return FULL_INDEXED_TIMESTAMP
 		}

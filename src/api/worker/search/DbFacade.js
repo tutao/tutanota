@@ -98,7 +98,7 @@ export class DbTransaction {
 		})
 	}
 
-	getAllKeys(objectStore: string): Promise<Array<string|Uint8Array>> {
+	getAllKeys(objectStore: string): Promise<any[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = (this._transaction.objectStore(objectStore):any).getAllKeys() // IndexedDB 2.0
