@@ -392,6 +392,7 @@ export class SearchBar {
 		} else {
 			if (value.trim() == "") {
 				this.busy = false
+				locator.search.result(null)
 				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
 				if (!m.route.get().startsWith("/search") && locator.search.result()) {
@@ -461,6 +462,7 @@ export class SearchBar {
 					let value = this.value()
 					if (value.trim() === "") {
 						closeOverlay()
+						locator.search.result(null)
 					} else {
 						this.search()
 					}
