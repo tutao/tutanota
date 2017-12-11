@@ -49,8 +49,8 @@ styles.init()
 export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
 
 
-let initialized = lang.init(en).then(() => {
-	if (!client.isSupported()) {
+let initialized = lang.init(en).then(() => client.isSupported()).then(isSupported => {
+	if (!isSupported) {
 		m.render(document.body, m(root, m(new InfoView(() => "Tutanota", () => [
 			m("p", lang.get("unsupportedBrowser_msg")),
 			m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
