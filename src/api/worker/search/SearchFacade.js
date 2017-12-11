@@ -48,7 +48,11 @@ export class SearchFacade {
 					.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
 					.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
 				// ranking ->all tokens are in correct order in the same attribute
-			)
+			).then(searchResult => {
+				// default sort order for mails
+				searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
+				return searchResult
+			})
 		} else {
 			return Promise.resolve({
 				query,

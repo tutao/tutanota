@@ -14,6 +14,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
+import {compareContacts} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
@@ -40,23 +41,44 @@ export class SearchListView {
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
-//					console.log("fetch ", startId, count)
+					//console.log("fetch", startId, count)
 					let result = locator.search.result()
-					if (!result) {
+					if (!result || result.results.length == 0) {
 						return Promise.resolve([])
 					}
 					let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
 					let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
-					if (mail || contact) {
-						let resultIds = [].concat(result.results) //create copy
+					let resultIds = [].concat(result.results) //create copy
+					//console.log("found results: ", resultIds.length)
+					if (mail) {
 						let startIndex = 0
 						if (startId != GENERATED_MAX_ID) {
 							startIndex = resultIds.findIndex(id => id[1] == startId)
-							if (startIndex == -1) throw new Error("start index not found")
+							if (startIndex == -1) {
+								throw new Error("start index not found")
+							} else {
+								startIndex++ // the start index is already in the list of loaded elements load from the next element
+							}
 						}
-						let toLoad = resultIds.slice(startIndex, count)
-
-						return Promise.map(toLoad, (id) => load(result.restriction.type, id).then(instance => new SearchResultListEntry(instance)).catch(NotFoundError, () => console.log("search result not found")), {concurrency: 5}).then(sr => sr.filter(r => r)).finally(() => m.redraw())
+						let toLoad = resultIds.slice(startIndex, startIndex + count)
+						//console.log("load", toLoad.length, "first", (toLoad.length > 0 ? toLoad[0][1] : "emtpy"), "last", (toLoad.length > 0 ? toLoad[toLoad.length - 1][1] : "emtpy"))
+						return Promise.map(toLoad, (id) => load(result.restriction.type, id)
+								.then(instance => new SearchResultListEntry(instance))
+								.catch(NotFoundError, () => console.log("mail not found")),
+							{concurrency: 5})
+							.then(sr => sr.filter(r => r)) // filter not found instances
+							.finally(() => m.redraw())
+					} else if (contact) {
+						// load all contacts to sort them by name afterwards
+						return Promise.map(resultIds, (id) => load(result.restriction.type, id)
+								.then(instance => new SearchResultListEntry(instance))
+								.catch(NotFoundError, () => console.log("contact not found")),
+							{concurrency: 5})
+							.then(sr => sr.filter(r => r)) // filter not found instances
+							.finally(() => {
+								this.list.setLoadedCompletely()
+								m.redraw()
+							})
 					} else {
 						// this type is not shown in the search view, e.g. group info
 						return Promise.resolve([])
@@ -81,7 +103,13 @@ export class SearchListView {
 					}
 				},
 
-				sortCompare: sortCompareByReverseId,
+				sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
+					if (isSameTypeRef(o1.entry._type, ContactTypeRef)) {
+						return compareContacts((o1.entry:any), (o2.entry:any))
+					} else {
+						return sortCompareByReverseId(o1.entry, o2.entry)
+					}
+				},
 
 				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
 					this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
@@ -134,7 +162,6 @@ export class SearchResultListRow {
 		this.top = 0
 		this.entity = null
 	}
-
 
 	update(entry: SearchResultListEntry, selected: boolean): void {
 		this._delegate.domElement = this.domElement

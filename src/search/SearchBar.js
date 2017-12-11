@@ -33,6 +33,7 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
+import {compareContacts} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
@@ -223,7 +224,11 @@ export class SearchBar {
 				.catch(NotFoundError, () => console.log("mail from search index not found", r))
 				.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
 			).then(resultInstances => {
-				newResults = newResults.concat(resultInstances.filter(instance => instance)) // filter not found results
+				let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
+				if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
+					filteredInstances.sort((o1, o2) => compareContacts((o1:any), (o2:any)))
+				}
+				newResults = newResults.concat(filteredInstances)
 			})]
 		).then(() => {
 			if (this.value() == searchResult.query) {
@@ -256,7 +261,6 @@ export class SearchBar {
 									},
 									onmousedown: e => this.skipNextBlur = true,
 									onclick: e => this._selectResult(result),
-
 									class: this._selected === result ? "row-selected" : "",
 								}, this.renderResult(result))
 							}),
