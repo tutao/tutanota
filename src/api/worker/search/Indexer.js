@@ -136,17 +136,25 @@ export class Indexer {
 				if (event.operation == OperationType.CREATE) {
 					if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 						// move mail
-						return this._mail._processMovedMail(event, indexUpdate)
+						return this._mail.processMovedMail(event, indexUpdate)
 					} else {
 						// new mail
-						return this._mail._processNewMail(event, indexUpdate)
+						return this._mail.processNewMail(event).then((result) => {
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							}
+						})
 					}
 				} else if (event.operation == OperationType.UPDATE) {
 					return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 						if (mail.state == MailState.DRAFT) {
 							return Promise.all([
 								this._core._processDeleted(event, indexUpdate),
-								this._mail._processNewMail(event, indexUpdate)
+								this._mail.processNewMail(event).then(result => {
+									if (result) {
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+									}
+								})
 							])
 						}
 					}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))

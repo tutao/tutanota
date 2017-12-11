@@ -65,15 +65,13 @@ class ClientDetector {
 	/**
 	 * Browsers which support these features are fully supported
 	 */
-	isSupported(): Promise<boolean> {
-		return this.indexedDb2().then((indexedDb2) => {
-			return this.isAccepted() &&
-				this.blob() &&
-				this.history() &&
-				this.randomNumbers() &&
-				this.notIE() &&
-				indexedDb2
-		})
+	isSupported(): boolean {
+		return this.isAccepted() &&
+			this.blob() &&
+			this.history() &&
+			this.randomNumbers() &&
+			this.notIE() &&
+			this.indexedDb()
 	}
 
 	isMobileDevice(): boolean {
@@ -165,28 +163,13 @@ class ClientDetector {
 	}
 
 
-	indexedDb2(): Promise<boolean> {
-		return Promise.fromCallback(cb => {
-			const request = indexedDB.open('test', 1)
-			request.onupgradeneeded = function () {
-				this.result.createObjectStore('test')
-			}
-			request.onsuccess = function () {
-				const db = this.result
-				const store = db.transaction('test', 'readwrite').objectStore('test')
-				const binaryKey = new Uint8Array([1, 2, 3])
-				try {
-					let put = store.put('IndexedDB v2: Binary key test', binaryKey)
-					put.onsuccess = () => cb(null, true)
-					put.onerror = (e) => cb(e)
-				} catch (e) {
-					cb(e)
-				}
-			}
-		}).catch(e => {
-			console.log("indexeddb does not support binary keys", e)
+	indexedDb(): boolean {
+		try {
+			indexedDB
+			return true
+		} catch (e) {
 			return false
-		})
+		}
 	}
 
 	/**

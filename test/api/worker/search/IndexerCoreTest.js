@@ -231,7 +231,7 @@ o.spec("IndexerCore test", () => {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
 				o(key).deepEquals(encInstanceId)
-				return Promise.resolve()
+				return Promise.resolve(null)
 			},
 			put: (os, key, value) => {
 				throw new Error("instance does not exist, should not be moved!")
@@ -239,7 +239,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any))
-		Promise.all(core._moveIndexedInstance(indexUpdate, transaction)).then(done)
+		Promise.all(core._moveIndexedInstance(indexUpdate, transaction)).then(() => done())
 	})
 
 	o("writeIndexUpdate _deleteIndexedInstance", function (done) {

@@ -1,14 +1,11 @@
 // @flow
 import o from "ospec/ospec.js"
-import {createContact, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {
 	createGroupInfo,
 	_TypeModel as GroupInfoModel,
 	GroupInfoTypeRef
 } from "../../../../src/api/entities/sys/GroupInfo"
-import {ContactIndexer} from "../../../../src/api/worker/search/ContactIndexer"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
-import {createContactList, ContactListTypeRef} from "../../../../src/api/entities/tutanota/ContactList"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
@@ -18,6 +15,9 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
 import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddressAlias"
+import {createUser} from "../../../../src/api/entities/sys/User"
+import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
+import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 
 o.spec("GroupInfoIndexer test", () => {
 	o("createGroupInfoIndexEntries without entries", function () {
@@ -114,48 +114,81 @@ o.spec("GroupInfoIndexer test", () => {
 		})
 	})
 
-	// TODO
-
 	o("indexAllUserAndTeamGroupInfosForAdmin", function (done) {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 		let core: any = new IndexerCore(db)
 		core.writeIndexUpdate = o.spy()
 
 		let userGroupId = "userGroupId"
-		let contactList = createContactList()
-		contactList._ownerGroup = "ownerGroupId"
-		contactList.contacts = "contactListId"
+		let user = createUser()
+		user.memberships.push(createGroupMembership())
+		user.memberships[0].admin = true
+		user.customer = "customer-id"
+
+		let customer = createCustomer()
+		customer.customerGroup = "customerGroupId"
+		customer.userGroups = "userGroupsId"
+		customer.teamGroups = "teamGroupsId"
+
+		let userGroupInfo = createGroupInfo()
+		userGroupInfo._id = [customer.userGroups, "ug"]
+
+		let teamGroupInfo = createGroupInfo()
+		teamGroupInfo._id = [customer.teamGroups, "tg"]
+
+		let entity = ({
+			load: (type, customerId) => {
+				o(type).deepEquals(CustomerTypeRef)
+				o(customerId).equals(user.customer)
+				return Promise.resolve(customer)
+			},
+			loadAll: (type, listId) => {
+				o(type).equals(GroupInfoTypeRef)
+				if (listId == customer.userGroups) {
+					return Promise.resolve([userGroupInfo])
+				} else if (listId == customer.teamGroups) {
+					return Promise.resolve([teamGroupInfo])
+				}
+				return Promise.reject("Wrong unexpected listId")
+			}
+		}:any)
 
 		let groupData = {indexTimestamp: NOTHING_INDEXED_TIMESTAMP}
 		let transaction = {
 			get: (os, groupId) => {
-				if (os != GroupDataOS || groupId != contactList._ownerGroup) throw new Error("unexpected params " + os + " " + groupId)
+				o(os).equals(GroupDataOS)
+				o(groupId).equals(customer.customerGroup)
 				return Promise.resolve(groupData)
 			}
 		}
 
-		let contacts = [createContact(), createContact()]
-		contacts[0]._id = [contactList.contacts, "c0"]
-		contacts[0]._ownerGroup = "c0owner"
-		contacts[1]._id = [contactList.contacts, "c1"]
-		contacts[1]._ownerGroup = "c1owner"
-
-		let entity = ({
-			loadRoot: (type, groupId) => {
-				if (type != ContactListTypeRef || groupId != userGroupId) throw new Error("unexpected params " + type + " " + groupId)
-				return Promise.resolve(contactList)
-			},
-			loadAll: (type, listId) => {
-				if (type != ContactTypeRef || listId != contactList.contacts) throw new Error("unexpected params " + type + " " + listId)
-				return Promise.resolve(contacts)
-			}
-		}:any)
-		const contactIndexer = new ContactIndexer(core, db, entity)
-		contactIndexer.indexFullContactList(userGroupId).then(() => {
+		const indexer = new GroupInfoIndexer(core, db, entity)
+		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
+			o(core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
-			let expectedKeys = [uint8ArrayToBase64(encryptIndexKey(db.key, contacts[0]._id[1])), uint8ArrayToBase64(encryptIndexKey(db.key, contacts[1]._id[1]))]
+			o(indexUpdate.groupId).equals(customer.customerGroup)
+
+			let expectedKeys = [uint8ArrayToBase64(encryptIndexKey(db.key, userGroupInfo._id[1])), uint8ArrayToBase64(encryptIndexKey(db.key, teamGroupInfo._id[1]))]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
+		}).then(done)
+	})
+
+	o("indexAllUserAndTeamGroupInfosForAdmin not an admin", function (done) {
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {}}:any)
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+
+		let userGroupId = "userGroupId"
+		let user = createUser()
+		user.memberships.push(createGroupMembership())
+		user.memberships[0].admin = false
+		user.customer = "customer-id"
+
+
+		const indexer = new GroupInfoIndexer(core, db, (null:any))
+		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
+			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
 	})
 
@@ -165,35 +198,35 @@ o.spec("GroupInfoIndexer test", () => {
 		core.writeIndexUpdate = o.spy()
 
 		let userGroupId = "userGroupId"
-		let contactList = createContactList()
-		contactList._ownerGroup = "ownerGroupId"
-		contactList.contacts = "contactListId"
+		let user = createUser()
+		user.memberships.push(createGroupMembership())
+		user.memberships[0].admin = true
+		user.customer = "customer-id"
+
+		let customer = createCustomer()
+		customer.customerGroup = "customerGroupId"
+		customer.userGroups = "userGroupsId"
+		customer.teamGroups = "teamGroupsId"
+
+		let entity = ({
+			load: (type, customerId) => {
+				o(type).deepEquals(CustomerTypeRef)
+				o(customerId).equals(user.customer)
+				return Promise.resolve(customer)
+			},
+		}:any)
 
 		let groupData = {indexTimestamp: FULL_INDEXED_TIMESTAMP}
 		let transaction = {
 			get: (os, groupId) => {
-				if (os != GroupDataOS || groupId != contactList._ownerGroup) throw new Error("unexpected params " + os + " " + groupId)
+				o(os).equals(GroupDataOS)
+				o(groupId).equals(customer.customerGroup)
 				return Promise.resolve(groupData)
 			}
 		}
 
-		let contacts = [createContact(), createContact()]
-		contacts[0]._id = [contactList.contacts, "c0"]
-		contacts[0]._ownerGroup = "c0owner"
-		contacts[1]._id = [contactList.contacts, "c1"]
-		contacts[1]._ownerGroup = "c1owner"
-
-		let entity = ({
-			loadRoot: (type, groupId) => {
-				if (type != ContactListTypeRef || groupId != userGroupId) throw new Error("unexpected params " + type + " " + groupId)
-				return Promise.resolve(contactList)
-			},
-			loadAll: (type, listId) => {
-				throw new Error("should not be invoked as contacts are already indexed")
-			}
-		}:any)
-		const contactIndexer = new ContactIndexer(core, db, entity)
-		contactIndexer.indexFullContactList(userGroupId).then(() => {
+		const indexer = new GroupInfoIndexer(core, db, entity)
+		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
 	})
