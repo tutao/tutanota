@@ -6,7 +6,7 @@ import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {NavButton} from "../gui/base/NavButton"
@@ -20,7 +20,7 @@ import {getRestriction, getSearchUrl, createRestriction, setSearchUrl, getFreeSe
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
-import {erase} from "../api/main/Entity"
+import {erase, load} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -354,8 +354,20 @@ export class SearchView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && this._contactList && listId == this._contactList.listId) {
-			//FIXME
+		if (isSameTypeRef(typeRef, MailTypeRef) || isSameTypeRef(typeRef, ContactTypeRef)) {
+			let id = [neverNull(listId), elementId]
+			if (this._searchList.isInSearchResult(typeRef, id)) {
+				this._searchList.list.entityEventReceived(elementId, operation).then(() => {
+					// run the mail or contact update after the update on the list is finished to avoid parallel loading
+					if (operation == OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
+						load(typeRef, id).then(updatedEntity => {
+							this._viewer.showEntity(updatedEntity, false)
+						}).catch(() => {
+							// ignore. might happen if a mail was just sent
+						})
+					}
+				})
+			}
 		}
 	}
 }

@@ -2,7 +2,7 @@
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {SearchResultListEntry, SearchListView} from "./SearchListView"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
@@ -18,10 +18,12 @@ export class SearchResultDetailsViewer {
 	_listView: SearchListView;
 	_viewer: ?MailViewer|ContactViewer;
 	_messageBox: MessageBox;
+	_viewerEntityId: ?IdTuple;
 
 	constructor(list: SearchListView) {
 		this._listView = list
 		this._viewer = null
+		this._viewerEntityId = null
 		this._messageBox = new MessageBox(() => lang.get("noSelection_msg"))
 	}
 
@@ -34,27 +36,37 @@ export class SearchResultDetailsViewer {
 		}
 	}
 
-	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (entries.length == 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
-			// set or update the visible mail
-			if (isSameTypeRef(MailTypeRef, entries[0].entry._type)) {
-				let mail = ((entries[0].entry:any):Mail)
-				this._viewer = new MailViewer(mail)
-				if (mail.unread && !mail._errors) {
-					mail.unread = false
-					update(mail).catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
-				}
-				m.redraw()
-			}
-			if (isSameTypeRef(ContactTypeRef, entries[0].entry._type)) {
-				let contact = ((entries[0].entry:any):Contact)
-				this._viewer = new ContactViewer(contact)
-				m.redraw()
-			}
-		} else if (selectionChanged && (entries.length == 0 || multiSelectOperation) && this._viewer) {
+	isShownEntity(id: IdTuple): boolean {
+		return this._viewerEntityId != null && isSameId(id, this._viewerEntityId)
+	}
 
+	showEntity(entity: Object, entitySelected: boolean): void {
+		if (isSameTypeRef(MailTypeRef, entity._type)) {
+			let mail = ((entity:any):Mail)
+			this._viewer = new MailViewer(mail)
+			this._viewerEntityId = mail._id
+			if (entitySelected && mail.unread && !mail._errors) {
+				mail.unread = false
+				update(mail).catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
+			}
+			m.redraw()
+		}
+		if (isSameTypeRef(ContactTypeRef, entity._type)) {
+			let contact = ((entity:any):Contact)
+			this._viewer = new ContactViewer(contact)
+			this._viewerEntityId = contact._id
+			m.redraw()
+		}
+	}
+
+	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
+		if (entries.length == 1 && !multiSelectOperation && (selectionChanged || !this._viewer)) {
+			// set or update the visible mail
+			this.showEntity(entries[0].entry, true)
+		} else if (selectionChanged && (entries.length == 0 || multiSelectOperation) && this._viewer) {
 			// remove the visible mail
 			this._viewer = null
+			this._viewerEntityId = null
 			//let url = `/mail/${this.mailList.listId}`
 			//this._folderToUrl[this.selectedFolder._id[1]] = url
 			//this._setUrl(url)

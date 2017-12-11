@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {List, sortCompareByReverseId} from "../gui/base/List"
-import {GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
@@ -36,7 +36,7 @@ export class SearchListView {
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
-		this._resultStreamDependency = locator.search.result.map((result) => {
+		this._resultStreamDependency = locator.search.result.map(() => {
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
@@ -63,10 +63,22 @@ export class SearchListView {
 					}
 				},
 				loadSingle: (elementId) => {
-					//return load(ContactTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
-					// we return null if the entity does not exist
-					//})
-					return Promise.resolve()
+					let result = locator.search.result()
+					if (result) {
+						let id = result.results.find(r => r[1] == elementId)
+						if (id) {
+							return load(locator.search.result().restriction.type, id)
+								.then(entity => new SearchResultListEntry(entity))
+								.catch(NotFoundError, (e) => {
+									// we return null if the entity does not exist
+									return null
+								})
+						} else {
+							return Promise.resolve(null)
+						}
+					} else {
+						return Promise.resolve(null)
+					}
 				},
 
 				sortCompare: sortCompareByReverseId,
@@ -106,7 +118,9 @@ export class SearchListView {
 		this.list.setLoadedCompletely();
 	}
 
-
+	isInSearchResult(typeRef: TypeRef<any>, id: IdTuple): boolean {
+		return locator.search.result() && isSameTypeRef(typeRef, locator.search.result().restriction.type) && locator.search.result().results.find(r => isSameId(r, id))
+	}
 }
 
 export class SearchResultListRow {
