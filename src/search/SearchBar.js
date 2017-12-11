@@ -216,34 +216,25 @@ export class SearchBar {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	showDropdown(result: SearchResult) {
+	showDropdown(searchResult: SearchResult) {
 		let newResults = []
 		Promise.all([
-			Promise.map(result.mails.slice(0, 10), mailId => load(MailTypeRef, mailId)
-				.catch(NotFoundError, () => console.log("mail from search index not found", mailId))
-				.catch(NotAuthorizedError, () => console.log("no permission on mail from search index", mailId))
-			).then(mails => {
-				newResults = newResults.concat(mails.filter(m => m))
-			}),
-			Promise.map(result.contacts.slice(0, 10), contactId => load(ContactTypeRef, contactId)
-				.catch(NotFoundError, () => console.log("contact from search index not found", contactId))
-				.catch(NotAuthorizedError, () => console.log("no permission on contact from search index", contactId))
-			).then(contacts => {
-				newResults = newResults.concat(contacts.filter(c => c))
-			}),
-			Promise.map(result.groupInfos.slice(0, 10), groupInfoId => load(GroupInfoTypeRef, groupInfoId).catch(NotFoundError, () => console.log("group info from search index not found", groupInfoId))).then(groupInfo => {
-				newResults = newResults.concat(groupInfo.filter(c => c))
+			Promise.map(searchResult.results.slice(0, 10), r => load(searchResult.restriction.type, r)
+				.catch(NotFoundError, () => console.log("mail from search index not found", r))
+				.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
+			).then(resultInstances => {
+				newResults = newResults.concat(resultInstances.filter(instance => instance)) // filter not found results
 			})]
 		).then(() => {
-			if (this.value() == result.query) {
+			if (this.value() == searchResult.query) {
 				this._results = newResults
-				let resultCount = (result.mails.length + result.contacts.length + result.groupInfos.length)
-				if (resultCount == 0 || resultCount > 10 || result.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
+				let resultCount = (searchResult.results.length)
+				if (resultCount == 0 || resultCount > 10 || searchResult.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
 					this._results.push({
 						resultCount: resultCount,
 						shownCount: this._results.length,
-						indexTimestamp: result.currentIndexTimestamp,
-						allowShowMore: !result.restriction || !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
+						indexTimestamp: searchResult.currentIndexTimestamp,
+						allowShowMore: !searchResult.restriction || !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
 					}) // add SearchMoreAction
 				}
 				if (this._results.length > 0) {

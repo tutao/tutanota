@@ -41,9 +41,8 @@ export type SearchIndexEntry = {
 	type:number;
 	attribute: number;
 	positions:number[];
-	// encId and rank are only set for entries that are retrived from the db (see decryptSearchIndexEntry)
+	// encId and is only set for entries that are retrived from the db (see decryptSearchIndexEntry)
 	encId?: Uint8Array;
-	rank?: number;
 }
 
 export type IndexUpdate = {

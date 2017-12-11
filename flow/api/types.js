@@ -230,9 +230,7 @@ export type SearchRestriction = {
 type SearchResult = {
 	query: string,
 	restriction: SearchRestriction,
-	mails: IdTuple[];
-	contacts: IdTuple[];
-	groupInfos: IdTuple[];
+	results: IdTuple[];
 	currentIndexTimestamp: number;
 }
 

@@ -40,14 +40,15 @@ export class SearchListView {
 			this.list = new List({
 				rowHeight: size.list_row_height,
 				fetch: (startId, count) => {
+//					console.log("fetch ", startId, count)
 					let result = locator.search.result()
 					if (!result) {
 						return Promise.resolve([])
 					}
-					let mail = result.restriction && isSameTypeRef(result.restriction.type, MailTypeRef)
-					let contact = result.restriction && isSameTypeRef(result.restriction.type, ContactTypeRef)
+					let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
+					let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
 					if (mail || contact) {
-						let resultIds = result.mails.concat(result.contacts)
+						let resultIds = [].concat(result.results) //create copy
 						let startIndex = 0
 						if (startId != GENERATED_MAX_ID) {
 							startIndex = resultIds.findIndex(id => id[1] == startId)
@@ -55,7 +56,7 @@ export class SearchListView {
 						}
 						let toLoad = resultIds.slice(startIndex, count)
 
-						return Promise.map(toLoad, (m) => load(result.restriction.type, m).then(m => new SearchResultListEntry(m)).catch(NotFoundError, () => console.log("search result not found")), {concurrency: 5}).then(sr => sr.filter(r => r)).finally(() => m.redraw())
+						return Promise.map(toLoad, (id) => load(result.restriction.type, id).then(instance => new SearchResultListEntry(instance)).catch(NotFoundError, () => console.log("search result not found")), {concurrency: 5}).then(sr => sr.filter(r => r)).finally(() => m.redraw())
 					} else {
 						// this type is not shown in the search view, e.g. group info
 						return Promise.resolve([])

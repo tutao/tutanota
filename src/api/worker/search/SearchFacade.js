@@ -38,16 +38,25 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: SearchRestriction): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
-		let matchWordOrder = searchTokens.length > 0 && query.startsWith("\"") && query.endsWith("\"")
-		return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
-				.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
-				.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
-				.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
-				.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
-				.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
-				.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
-			// ranking ->all tokens are in correct order in the same attribute
-		)
+		if (searchTokens.length > 0) {
+			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
+			return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
+					.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
+					.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
+					.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
+					.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
+					.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
+					.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
+				// ranking ->all tokens are in correct order in the same attribute
+			)
+		} else {
+			return Promise.resolve({
+				query,
+				restriction,
+				results: [],
+				currentIndexTimestamp: this._getSearchTimestamp(restriction)
+			})
+		}
 	}
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
@@ -129,7 +138,7 @@ export class SearchFacade {
 			return {
 				indexKey: r.indexKey,
 				indexEntries: r.indexEntries.filter(entry => neverNull(matchingIds).find(id => entry.id == id))
-		}
+			}
 		})
 	}
 
@@ -188,7 +197,7 @@ export class SearchFacade {
 				return true
 			} else {
 				return false
-		}
+			}
 		})
 	}
 
@@ -198,22 +207,14 @@ export class SearchFacade {
 			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
 				if (!restriction.listId || restriction.listId == elementData[0]) {
-					if (entry.type == MailModel.id) {
-						safeSearchResult.mails.push([elementData[0], entry.id])
-					} else if (entry.type == ContactModel.id) {
-						safeSearchResult.contacts.push([elementData[0], entry.id])
-					} else if (entry.type == GroupInfoModel.id) {
-						safeSearchResult.groupInfos.push([elementData[0], entry.id])
-					}
+					safeSearchResult.results.push([elementData[0], entry.id])
 				}
 				return searchResult
 			})
 		}, {
 			query,
 			restriction,
-			mails: [],
-			contacts: [],
-			groupInfos: [],
+			results: [],
 			currentIndexTimestamp: this._getSearchTimestamp(restriction)
 		})
 	}
