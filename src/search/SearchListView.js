@@ -33,109 +33,137 @@ export class SearchListView {
 	view: Function;
 	_searchView: SearchView;
 	_resultStreamDependency: ?stream;
-	onbeforeremove: Function;
+	oncreate: Function;
+	onremove: Function;
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
-		this._resultStreamDependency = locator.search.result.map(() => {
-			this.list = new List({
-				rowHeight: size.list_row_height,
-				fetch: (startId, count) => {
-					//console.log("fetch", startId, count)
-					let result = locator.search.result()
-					if (!result || result.results.length == 0) {
-						return Promise.resolve([])
-					}
-					let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
-					let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
-					let resultIds = [].concat(result.results) //create copy
-					//console.log("found results: ", resultIds.length)
-					if (mail) {
-						let startIndex = 0
-						if (startId != GENERATED_MAX_ID) {
-							startIndex = resultIds.findIndex(id => id[1] == startId)
-							if (startIndex == -1) {
-								throw new Error("start index not found")
-							} else {
-								startIndex++ // the start index is already in the list of loaded elements load from the next element
-							}
+		this.list = new List({
+			rowHeight: size.list_row_height,
+			fetch: (startId, count) => Promise.resolve([]),
+			loadSingle: (elementId) => Promise.resolve(null),
+			sortCompare: sortCompareByReverseId,
+			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
+			},
+			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
+			showStatus: false,
+			className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
+			swipe: ({
+				renderLeftSpacer: () => [],
+				renderRightSpacer: () => [],
+				swipeLeft: listElement => Promise.resolve(),
+				swipeRight: listElement => Promise.resolve(),
+			}:any),
+			elementsDraggable: false,
+			multiSelectionAllowed: false,
+			emptyMessage: lang.get("searchNoResults_msg")
+		})
+		this.list.loadInitial(null).then(() => {
+			window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
+		})
+
+		this.oncreate = () => {
+			this._resultStreamDependency = locator.search.result.map(() => {
+				this.list = new List({
+					rowHeight: size.list_row_height,
+					fetch: (startId, count) => {
+						//console.log("fetch", startId, count)
+						let result = locator.search.result()
+						if (!result || result.results.length == 0) {
+							return Promise.resolve([])
 						}
-						let toLoad = resultIds.slice(startIndex, startIndex + count)
-						//console.log("load", toLoad.length, "first", (toLoad.length > 0 ? toLoad[0][1] : "emtpy"), "last", (toLoad.length > 0 ? toLoad[toLoad.length - 1][1] : "emtpy"))
-						return Promise.map(toLoad, (id) => load(result.restriction.type, id)
-								.then(instance => new SearchResultListEntry(instance))
-								.catch(NotFoundError, () => console.log("mail not found")),
-							{concurrency: 5})
-							.then(sr => sr.filter(r => r)) // filter not found instances
-							.finally(() => m.redraw())
-					} else if (contact) {
-						// load all contacts to sort them by name afterwards
-						return Promise.map(resultIds, (id) => load(result.restriction.type, id)
-								.then(instance => new SearchResultListEntry(instance))
-								.catch(NotFoundError, () => console.log("contact not found")),
-							{concurrency: 5})
-							.then(sr => sr.filter(r => r)) // filter not found instances
-							.finally(() => {
-								this.list.setLoadedCompletely()
-								m.redraw()
-							})
-					} else {
-						// this type is not shown in the search view, e.g. group info
-						return Promise.resolve([])
-					}
-				},
-				loadSingle: (elementId) => {
-					let result = locator.search.result()
-					if (result) {
-						let id = result.results.find(r => r[1] == elementId)
-						if (id) {
-							return load(locator.search.result().restriction.type, id)
-								.then(entity => new SearchResultListEntry(entity))
-								.catch(NotFoundError, (e) => {
-									// we return null if the entity does not exist
-									return null
+						let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
+						let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
+						let resultIds = [].concat(result.results) //create copy
+						//console.log("found results: ", resultIds.length)
+						if (mail) {
+							let startIndex = 0
+							if (startId != GENERATED_MAX_ID) {
+								startIndex = resultIds.findIndex(id => id[1] == startId)
+								if (startIndex == -1) {
+									throw new Error("start index not found")
+								} else {
+									startIndex++ // the start index is already in the list of loaded elements load from the next element
+								}
+							}
+							let toLoad = resultIds.slice(startIndex, startIndex + count)
+							//console.log("load", toLoad.length, "first", (toLoad.length > 0 ? toLoad[0][1] : "emtpy"), "last", (toLoad.length > 0 ? toLoad[toLoad.length - 1][1] : "emtpy"))
+							return Promise.map(toLoad, (id) => load(result.restriction.type, id)
+									.then(instance => new SearchResultListEntry(instance))
+									.catch(NotFoundError, () => console.log("mail not found")),
+								{concurrency: 5})
+								.then(sr => sr.filter(r => r)) // filter not found instances
+								.finally(() => m.redraw())
+						} else if (contact) {
+							// load all contacts to sort them by name afterwards
+							return Promise.map(resultIds, (id) => load(result.restriction.type, id)
+									.then(instance => new SearchResultListEntry(instance))
+									.catch(NotFoundError, () => console.log("contact not found")),
+								{concurrency: 5})
+								.then(sr => sr.filter(r => r)) // filter not found instances
+								.finally(() => {
+									this.list.setLoadedCompletely()
+									m.redraw()
 								})
+						} else {
+							// this type is not shown in the search view, e.g. group info
+							return Promise.resolve([])
+						}
+					},
+					loadSingle: (elementId) => {
+						let result = locator.search.result()
+						if (result) {
+							let id = result.results.find(r => r[1] == elementId)
+							if (id) {
+								return load(locator.search.result().restriction.type, id)
+									.then(entity => new SearchResultListEntry(entity))
+									.catch(NotFoundError, (e) => {
+										// we return null if the entity does not exist
+										return null
+									})
+							} else {
+								return Promise.resolve(null)
+							}
 						} else {
 							return Promise.resolve(null)
 						}
-					} else {
-						return Promise.resolve(null)
-					}
-				},
+					},
 
-				sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-					if (isSameTypeRef(o1.entry._type, ContactTypeRef)) {
-						return compareContacts((o1.entry:any), (o2.entry:any))
-					} else {
-						return sortCompareByReverseId(o1.entry, o2.entry)
-					}
-				},
+					sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
+						if (isSameTypeRef(o1.entry._type, ContactTypeRef)) {
+							return compareContacts((o1.entry:any), (o2.entry:any))
+						} else {
+							return sortCompareByReverseId(o1.entry, o2.entry)
+						}
+					},
 
-				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
-					this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
-				},
-				createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
-				showStatus: false,
-				className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
-				swipe: ({
-					renderLeftSpacer: () => [],
-					renderRightSpacer: () => [],
-					swipeLeft: listElement => Promise.resolve(),
-					swipeRight: listElement => Promise.resolve(),
-				}:any),
-				elementsDraggable: false,
-				multiSelectionAllowed: false,
-				emptyMessage: lang.get("searchNoResults_msg")
+					elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
+						this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
+					},
+					createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
+					showStatus: false,
+					className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
+					swipe: ({
+						renderLeftSpacer: () => [],
+						renderRightSpacer: () => [],
+						swipeLeft: listElement => Promise.resolve(),
+						swipeRight: listElement => Promise.resolve(),
+					}:any),
+					elementsDraggable: false,
+					multiSelectionAllowed: false,
+					emptyMessage: lang.get("searchNoResults_msg")
+				})
+				this.list.loadInitial(null).then(() => {
+					window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
+				})
 			})
-			this.list.loadInitial(null).then(() => {
-				window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
-			})
+		}
 
-		})
 		this.view = (): ?VirtualElement => {
 			return this.list ? m(this.list) : null
 		}
-		this.onbeforeremove = () => {
+
+		this.onremove = () => {
 			if (this._resultStreamDependency) {
 				this._resultStreamDependency.end(true)
 			}

@@ -274,7 +274,11 @@ export class SearchView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onbeforeremove = () => {
+			console.log("SearchView onbeforeremove")
+			keyManager.unregisterShortcuts(shortcuts)
+		}
+
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
