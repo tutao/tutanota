@@ -63,20 +63,6 @@ export type IndexUpdate = {
 	};
 }
 
-export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
-	return {
-		groupId,
-		batchId: null,
-		indexTimestamp: null,
-		create: {
-			encInstanceIdToElementData: new Map(),
-			indexMap: new Map(),
-		},
-		move: [],
-		delete: {encWordToEncInstanceIds: new Map(), encInstanceIds: []},
-	}
-}
-
 export type Db = {
 	key: Aes256Key;
 	dbFacade: DbFacade;

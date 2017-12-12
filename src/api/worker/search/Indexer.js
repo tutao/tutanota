@@ -1,7 +1,7 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {NOTHING_INDEXED_TIMESTAMP, GroupType, OperationType, MailState} from "../../common/TutanotaConstants"
-import {load, loadAll, loadRange, EntityWorker} from "../EntityWorker"
+import {load, loadAll, EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
@@ -12,9 +12,8 @@ import {hash} from "../crypto/Sha256"
 import {uint8ArrayToBase64, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import {aes256RandomKey} from "../crypto/Aes"
 import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
-import {userIsAdmin, filterMailMemberships, filterIndexMemberships} from "./IndexUtils"
+import {userIsAdmin, filterMailMemberships, filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
-import {_createNewIndexUpdate} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
@@ -54,15 +53,16 @@ export class Indexer {
 	_mail: MailIndexer;
 	_groupInfo: GroupInfoIndexer;
 	_core: IndexerCore;
+	_entity: EntityWorker;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
 		this.db = ({}:any) // correctly initialized during init()
 		this._worker = worker
 		this._core = new IndexerCore(this.db)
-		let entity = new EntityWorker()
-		this._contact = new ContactIndexer(this._core, this.db, entity)
-		this._mail = new MailIndexer(this._core, this.db, entity, worker, entityRestClient)
-		this._groupInfo = new GroupInfoIndexer(this._core, this.db, entity)
+		this._entity = new EntityWorker()
+		this._contact = new ContactIndexer(this._core, this.db, this._entity)
+		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
+		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity)
 	}
 
 	/**
@@ -109,7 +109,7 @@ export class Indexer {
 				})
 				return this._contact.indexFullContactList(user.userGroup.group)
 					.then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
-					.then(() => this._loadNewEntities(user))
+					.then(() => this._loadPersistentGroupData(user).then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
 			})
 		})
 	}
@@ -217,17 +217,6 @@ export class Indexer {
 		})
 	}
 
-
-	/**
-	 * creates the initial group data for all provided group ids
-	 */
-	_initGroupData(groupBatches: {groupId: Id, groupData: GroupData}[], t2: DbTransaction): Promise<void> {
-		groupBatches.forEach(groupIdToLastBatchId => {
-			t2.put(GroupDataOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.groupData)
-		})
-		return t2.await()
-	}
-
 	_groupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
 		let currentGroups = filterIndexMemberships(user).map(m => {
 			return {id: m.group, type: neverNull(m.groupType)}
@@ -253,7 +242,7 @@ export class Indexer {
 					let t = this.db.dbFacade.createTransaction(false, [GroupDataOS])
 					return this._initGroupData(groupBatches, t).then(() => {
 						let newMailGroups = groupDiff.newGroups.filter(g => g.type === GroupType.Mail)
-						if (newMailGroups.length > 0 && this._mail.mailIndexingEnabled) {
+						if (newMailGroups.length > 0) {
 							this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailbox(user, this._mail.currentIndexTimestamp)) // FIXME move to MailIndexer?
 						}
 					})
@@ -265,7 +254,7 @@ export class Indexer {
 	_loadGroupData(user: User): Promise<{groupId: Id, groupData: GroupData}[]> {
 		let memberships = filterIndexMemberships(user)
 		return Promise.map(memberships, (membership: GroupMembership) => {
-			return loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true).then(eventBatches => {
+			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true).then(eventBatches => {
 				return {
 					groupId: membership.group,
 					groupData: {
@@ -275,40 +264,54 @@ export class Indexer {
 						groupType: membership.groupType
 					}
 				}
+			}).catch(NotAuthorizedError, e => {
+				console.log("could not download entity updates => lost permission on list")
+				return null
 			})
-		}).catch(NotAuthorizedError, e => {
-			console.log("could not download entity updates => lost permission on list")
-			return []
-		})
+		}).filter(r => r != null)
 	}
 
-	_loadNewEntities(user: User): Promise<void> {
+	/**
+	 * creates the initial group data for all provided group ids
+	 */
+	_initGroupData(groupBatches: {groupId: Id, groupData: GroupData}[], t2: DbTransaction): Promise<void> {
+		groupBatches.forEach(groupIdToLastBatchId => {
+			t2.put(GroupDataOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.groupData)
+		})
+		return t2.await()
+	}
+
+	_loadNewEntities(groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[]): Promise<void> {
+		return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
+			if (groupIdToEventBatch.eventBatchIds.length > 0) {
+				let startId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
+				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
+					return Promise.map(eventBatches, batch => {
+						if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
+							return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
+						}
+					}, {concurrency: 5})
+				}).catch(NotAuthorizedError, e => {
+					console.log("could not download entity updates => lost permission on list")
+				})
+			}
+		}, {concurrency: 1}).return()
+	}
+
+	/**
+	 * @private a map from group id to event batches
+	 */
+	_loadPersistentGroupData(user: User): Promise<{groupId:Id, eventBatchIds:Id[]}[]> {
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		let groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[] = []
-		filterIndexMemberships(user).forEach(membership => {
-			return t.get(GroupDataOS, membership.group).then(groupData => {
-				groupIdToEventBatches.push({
+
+		return Promise.all(filterIndexMemberships(user).map(membership => {
+			return t.get(GroupDataOS, membership.group).then((groupData: GroupData) => {
+				return {
 					groupId: membership.group,
 					eventBatchIds: groupData.lastBatchIds
-				})
-			})
-		})
-		return t.await().then(() => {
-			return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
-				if (groupIdToEventBatch.eventBatchIds.length > 0) {
-					let startId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
-					return loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
-						return Promise.map(eventBatches, batch => {
-							if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
-								return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
-							}
-						}, {concurrency: 5})
-					}).catch(NotAuthorizedError, e => {
-						console.log("could not download entity updates => lost permission on list")
-					})
 				}
-			}, {concurrency: 1})
-		}).return()
+			})
+		}))
 	}
 
 }

@@ -7,7 +7,7 @@ import type {
 	GroupData,
 	B64EncInstanceId
 } from "../../../../src/api/worker/search/SearchTypes"
-import {_createNewIndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
+import {_createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {createContact, _TypeModel as ContactModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256RandomKey, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 import {

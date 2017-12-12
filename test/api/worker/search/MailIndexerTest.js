@@ -1,9 +1,8 @@
 // @flow
 import o from "ospec/ospec.js"
-import {createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, IndexUpdate, ElementData} from "../../../../src/api/worker/search/SearchTypes"
-import {_createNewIndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
+import {_createNewIndexUpdate, encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
 import {GroupDataOS, ElementDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {
 	NOTHING_INDEXED_TIMESTAMP,
@@ -11,12 +10,9 @@ import {
 	GroupType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
-import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
+import {timestampToGeneratedId, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
-import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL} from "../../../../src/api/worker/search/MailIndexer"
 import {createMail, _TypeModel as MailModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
@@ -24,10 +20,14 @@ import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tuta
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {isSameId} from "../../../../src/api/common/EntityFunctions"
+import {isSameId, GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {getStartOfDay, getDayShifted} from "../../../../src/api/common/utils/DateUtils"
+import type {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
+import {MailboxGroupRootTypeRef, createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
+import {createMailBox, MailBoxTypeRef} from "../../../../src/api/entities/tutanota/MailBox"
+
 
 o.spec("MailIndexer test", () => {
 	o("createMailIndexEntries without entries", function () {
@@ -323,125 +323,148 @@ o.spec("MailIndexer test", () => {
 		o(db.dbFacade.deleteDatabase.callCount).equals(1)
 	})
 
-	// TODO indexMailbox
-	// TODO _indexMailList
-	// TODO updateCurrentIndexTimestamp
-
-	o("indexAllUserAndTeamGroupInfosForAdmin", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-		let core: any = new IndexerCore(db)
-		core.writeIndexUpdate = o.spy()
-
-		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
-		user.customer = "customer-id"
-
-		let customer = createCustomer()
-		customer.customerGroup = "customerGroupId"
-		customer.userGroups = "userGroupsId"
-		customer.teamGroups = "teamGroupsId"
-
-		let userGroupInfo = createGroupInfo()
-		userGroupInfo._id = [customer.userGroups, "ug"]
-
-		let teamGroupInfo = createGroupInfo()
-		teamGroupInfo._id = [customer.teamGroups, "tg"]
-
-		let entity = ({
-			load: (type, customerId) => {
-				o(type).deepEquals(CustomerTypeRef)
-				o(customerId).equals(user.customer)
-				return Promise.resolve(customer)
-			},
-			loadAll: (type, listId) => {
-				o(type).equals(GroupInfoTypeRef)
-				if (listId == customer.userGroups) {
-					return Promise.resolve([userGroupInfo])
-				} else if (listId == customer.teamGroups) {
-					return Promise.resolve([teamGroupInfo])
-				}
-				return Promise.reject("Wrong unexpected listId")
-			}
-		}:any)
-
-		let groupData = {indexTimestamp: NOTHING_INDEXED_TIMESTAMP}
-		let transaction = {
-			get: (os, groupId) => {
-				o(os).equals(GroupDataOS)
-				o(groupId).equals(customer.customerGroup)
-				return Promise.resolve(groupData)
-			}
-		}
-
-		const indexer = new GroupInfoIndexer(core, db, entity)
-		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
-			o(core.writeIndexUpdate.callCount).equals(1)
-			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
-			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
-			o(indexUpdate.groupId).equals(customer.customerGroup)
-
-			let expectedKeys = [uint8ArrayToBase64(encryptIndexKey(db.key, userGroupInfo._id[1])), uint8ArrayToBase64(encryptIndexKey(db.key, teamGroupInfo._id[1]))]
-			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
-		}).then(done)
+	o("indexMailbox disabled", function (done) {
+		let entity: any = {}
+		const indexer: any = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
+		indexer.mailIndexingEnabled = false
+		indexer.indexMailbox(createUser(), 1512946800000).then(done)
 	})
 
-	o("indexAllUserAndTeamGroupInfosForAdmin not an admin", function (done) {
+	o("indexMailbox initial indexing", function (done) {
+		indexMailboxTest(NOTHING_INDEXED_TIMESTAMP, 1512946800000, true, done)
+	})
+
+	o("indexMailbox further indexing", function (done) {
+		indexMailboxTest(1513033200000, 1512946800000, false, done)
+	})
+
+	o("indexMailbox fully indexed", function (done) {
+		indexMailboxTest(FULL_INDEXED_TIMESTAMP, 1512946800000, true, done)
+	})
+
+	o("_indexMailList", function (done) {
+		let mailbox = createMailBox()
+		mailbox.sentAttachments = "sent-attachments-list"
+		mailbox.receivedAttachments = "received-attachments-list"
+		let mailListId = "mail-list-id"
+		let mailGroupId = "mail-group-id"
+		let startId = timestampToGeneratedId(1513033200000)
+		let endId = timestampToGeneratedId(1512946800000)
+		let loadedFileLists = []
+		let mails = [createMail(), createMail()]
+		mails[0]._id = [mailListId, timestampToGeneratedId(1512946800000 - 1)]// should be filtered out as id < endId
+		mails[1]._id = [mailListId, timestampToGeneratedId(1512946800000 + 1)]
+		mails[1].body = "body-id"
+		mails[1].attachments = [["attachment-listId", "attachment-element-id"]]
+		let file = createFile()
+		let body = createMailBody()
+
+		let entity = ({
+			loadReverseRangeBetween: (type, listId, start, end) => {
+				o(type).equals(FileTypeRef)
+				o(start).equals(startId)
+				o(end).equals(endId)
+				loadedFileLists.push(listId)
+			},
+			_loadEntityRange: (type, listId, start, count, reverse, target) => {
+				o(type).equals(MailTypeRef)
+				o(listId).equals(mailListId)
+				o(start).equals(startId)
+				o(count).equals(500)
+				o(reverse).equals(true)
+				o(target).equals(entityRestClient)
+				return Promise.resolve(mails)
+			},
+			load: (type, id) => {
+				o(type).equals(FileTypeRef)
+				o(id).deepEquals(mails[1].attachments[0])
+				return Promise.resolve(file)
+			},
+			_loadEntity: (type, id, queryParams, target) => {
+				o(type).equals(MailBodyTypeRef)
+				o(id).deepEquals(mails[1].body)
+				o(target).equals(entityRestClient)
+				return Promise.resolve(body)
+			},
+		}:any)
+
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {}}:any)
 		let core: any = new IndexerCore(db)
 		core.writeIndexUpdate = o.spy()
+		let entityRestClient: any = {}
+		const indexer: any = new MailIndexer(core, db, entity, (null:any), entityRestClient)
 
-		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = false
-		user.customer = "customer-id"
-
-
-		const indexer = new GroupInfoIndexer(core, db, (null:any))
-		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
-			o(core.writeIndexUpdate.callCount).equals(0)
-		}).then(done)
-	})
-
-	o("indexAllUserAndTeamGroupInfosForAdmin already indexed", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-		let core: any = new IndexerCore(db)
-		core.writeIndexUpdate = o.spy()
-
-		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
-		user.customer = "customer-id"
-
-		let customer = createCustomer()
-		customer.customerGroup = "customerGroupId"
-		customer.userGroups = "userGroupsId"
-		customer.teamGroups = "teamGroupsId"
-
-		let entity = ({
-			load: (type, customerId) => {
-				o(type).deepEquals(CustomerTypeRef)
-				o(customerId).equals(user.customer)
-				return Promise.resolve(customer)
-			},
-		}:any)
-
-		let groupData = {indexTimestamp: FULL_INDEXED_TIMESTAMP}
-		let transaction = {
-			get: (os, groupId) => {
-				o(os).equals(GroupDataOS)
-				o(groupId).equals(customer.customerGroup)
-				return Promise.resolve(groupData)
-			}
-		}
-
-		const indexer = new GroupInfoIndexer(core, db, entity)
-		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
-			o(core.writeIndexUpdate.callCount).equals(0)
-		}).then(done)
+		indexer._indexMailList(mailbox, mailGroupId, mailListId, startId, endId).then(fullyIndexed => {
+			o(loadedFileLists).deepEquals([mailbox.sentAttachments, mailbox.receivedAttachments])
+			o(core.writeIndexUpdate.callCount).equals(1)
+			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			let encInstanceId = uint8ArrayToBase64(encryptIndexKey(db.key, mails[1]._id[1]))
+			o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
+			o(fullyIndexed).equals(false)
+			done()
+		})
 	})
 
 })
+
+
+function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, fullyIndexed: boolean, done: Function) {
+	let user = createUser()
+	user.memberships.push(createGroupMembership())
+	user.memberships[0].groupType = GroupType.Mail
+	user.memberships[0].group = "mail-group-id"
+
+	let mailboxGroupRoot = createMailboxGroupRoot()
+	mailboxGroupRoot.mailbox = "mailbox-id"
+	let mailbox = createMailBox()
+	let mailListId = ["mail-list-id"]
+	let entity = ({
+		load: (type, id) => {
+			if (type == MailboxGroupRootTypeRef && id == user.memberships[0].group) {
+				return Promise.resolve(mailboxGroupRoot)
+			} else if (type == MailBoxTypeRef && id == mailboxGroupRoot.mailbox) {
+				return Promise.resolve(mailbox)
+			}
+			return Promise.reject("Wrong type / id")
+		},
+	}:any)
+	let groupData = {indexTimestamp: startTimestamp}
+	let transaction = {
+		get: (os, groupId) => {
+			o(os).equals(GroupDataOS)
+			o(groupId).equals(user.memberships[0].group)
+			return Promise.resolve(groupData)
+		},
+		put: o.spy((os, groupId, value) => {
+			o(os).equals(GroupDataOS)
+			o(groupId).equals(user.memberships[0].group)
+			o(value.indexTimestamp).equals(fullyIndexed ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp)
+			return Promise.resolve()
+		}),
+		await: () => Promise.resolve()
+	}
+	let core: any = {
+		printStatus: () => {
+		}
+	}
+	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+	let worker: WorkerImpl = ({sendIndexState: o.spy()}:any)
+	const indexer: any = new MailIndexer(core, db, entity, worker, (null:any))
+	indexer.mailIndexingEnabled = true
+	indexer._loadMailListIds = (mbox) => {
+		o(mbox).equals(mailbox)
+		return Promise.resolve([mailListId])
+	}
+	indexer._indexMailList = o.spy(() => Promise.resolve(fullyIndexed))
+
+	indexer.indexMailbox(user, endIndexTimstamp).then(() => {
+		o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
+
+		o(indexer._indexMailList.callCount).equals(1)
+		o(indexer._indexMailList.args).deepEquals([mailbox, user.memberships[0].group, mailListId, startTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(startTimestamp), timestampToGeneratedId(endIndexTimstamp)])
+
+		done()
+	})
+	o(indexer.mailboxIndexingPromise.isPending()).equals(true)
+}

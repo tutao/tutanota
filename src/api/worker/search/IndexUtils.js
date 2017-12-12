@@ -3,7 +3,7 @@ import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
-import type {SearchIndexEntry, EncryptedSearchIndexEntry} from "./SearchTypes"
+import type {SearchIndexEntry, EncryptedSearchIndexEntry, IndexUpdate} from "./SearchTypes"
 import {fixedIv} from "../crypto/CryptoFacade"
 import {GroupType} from "../../common/TutanotaConstants"
 
@@ -65,6 +65,20 @@ export function byteLength(str: ?string) {
 		if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
 	}
 	return s;
+}
+
+export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
+	return {
+		groupId,
+		batchId: null,
+		indexTimestamp: null,
+		create: {
+			encInstanceIdToElementData: new Map(),
+			indexMap: new Map(),
+		},
+		move: [],
+		delete: {encWordToEncInstanceIds: new Map(), encInstanceIds: []},
+	}
 }
 
 export function htmlToText(html: ?string): string {

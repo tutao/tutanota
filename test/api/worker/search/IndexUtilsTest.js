@@ -9,7 +9,8 @@ import {
 	decryptSearchIndexEntry,
 	userIsAdmin,
 	filterIndexMemberships,
-	filterMailMemberships
+	filterMailMemberships,
+	_createNewIndexUpdate
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {UserTypeRef, createUser} from "../../../../src/api/entities/sys/User"
@@ -105,6 +106,28 @@ o.spec("Index Utils", () => {
 		o(filterMailMemberships(user)).deepEquals([user.memberships[5], user.memberships[8]])
 	})
 
+	o("byteLength", function () {
+		o(byteLength("")).equals(0)
+		o(byteLength("A")).equals(1)
+		o(byteLength("A B")).equals(3)
+		o(byteLength("µ")).equals(2)
+		o(byteLength("€")).equals(3)
+		o(byteLength("💩")).equals(4)
+	})
+
+	o("new index update", function () {
+		let indexUpdate = _createNewIndexUpdate("groupId")
+		o(indexUpdate.groupId).equals("groupId")
+		o(indexUpdate.batchId).equals(null)
+		o(indexUpdate.indexTimestamp).equals(null)
+		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
+		o(indexUpdate.create.indexMap instanceof Map).equals(true)
+		o(indexUpdate.move).deepEquals([])
+		o(indexUpdate.delete.encWordToEncInstanceIds instanceof Map).equals(true)
+		o(indexUpdate.delete.encInstanceIds).deepEquals([])
+	})
+
+
 	o("htmlToPlainText", function () {
 		o(htmlToText("")).equals("")
 		o(htmlToText("test")).equals("test")
@@ -119,16 +142,5 @@ o.spec("Index Utils", () => {
 		o(htmlToText(null)).equals("")
 		o(htmlToText(undefined)).equals("")
 	})
-
-	o("byteLength", function () {
-		o(byteLength("")).equals(0)
-		o(byteLength("A")).equals(1)
-		o(byteLength("A B")).equals(3)
-		o(byteLength("µ")).equals(2)
-		o(byteLength("€")).equals(3)
-		o(byteLength("💩")).equals(4)
-	})
-
-
 })
 

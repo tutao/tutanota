@@ -99,4 +99,20 @@ export class EntityWorker {
 	loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 		return loadAll(typeRef, listId, start)
 	}
+
+	loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
+		return loadReverseRangeBetween(typeRef, listId, start, end)
+	}
+
+	_loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface): Promise<T[]> {
+		return _loadEntityRange(typeRef, listId, start, count, reverse, target)
+	}
+
+	_loadEntity<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
+		return _loadEntity(typeRef, id, queryParams, target)
+	}
+
+	loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		return loadRange(typeRef, listId, start, count, reverse)
+	}
 }
