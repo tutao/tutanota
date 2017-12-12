@@ -192,8 +192,8 @@ export function getFolderName(folder: MailFolder) {
 	}
 }
 
-export function getFolderIcon(folder: MailFolder) {
-	switch (folder.folderType) {
+export function getFolderIconByType(folderType: MailFolderTypeEnum) {
+	switch (folderType) {
 		case '0':
 			return () => Icons.Folder
 		case '1':
@@ -211,6 +211,10 @@ export function getFolderIcon(folder: MailFolder) {
 		default:
 			return () => Icons.Folder
 	}
+}
+
+export function getFolderIcon(folder: MailFolder): () => string {
+	return getFolderIconByType(folder.folderType)
 }
 
 

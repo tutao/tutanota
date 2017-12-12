@@ -948,6 +948,6 @@ module.exports = {
 		"unlimited_label": "Unlimited",
 		"periodOfTime_label": "Period of time",
 		"continueSearchMailbox_msg": "To execute this search we have to download more emails from the server which may take some time.",
-
+		"location_label": "Location",
 	}
 }

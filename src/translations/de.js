@@ -936,6 +936,7 @@ module.exports = {
 		"startAfterEnd_label": "Das Start-Datum darf nicht nach dem End-Datum sein.",
 		"endAfterStart_label": "Das End-Datum darf nicht nach dem Start-Datum sein.",
 		"unlimited_label": "Unbegrenzt",
-		"periodOfTime_label": "Zeitraum"
+		"periodOfTime_label": "Zeitraum",
+		"location_label": "Ort",
 	}
 }

@@ -5,11 +5,18 @@ import {lang} from "../misc/LanguageViewModel"
 import {List, sortCompareByReverseId} from "../gui/base/List"
 import {load, loadRange} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
-import {ReplyType} from "../api/common/TutanotaConstants"
+import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
+import {ReplyType, MailFolderType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder, getTrashFolder} from "./MailUtils"
+import {
+	getSenderOrRecipientHeading,
+	getInboxFolder,
+	getArchiveFolder,
+	getTrashFolder,
+	getFolderIconByType
+} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -58,7 +65,7 @@ export class MailListView {
 			},
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new MailRow(),
+			createVirtualRow: () => new MailRow(false),
 			showStatus: false,
 			className: className,
 			swipe: ({
@@ -130,10 +137,14 @@ export class MailRow {
 	_domAttachmentIcon: HTMLElement;
 	_domLockIcon: HTMLElement;
 	_domErrorIcon: HTMLElement;
+	_showFolderIcon: boolean;
+	_domFolderIcons: {[key:MailFolderTypeEnum]:HTMLElement};
 
-	constructor() {
+	constructor(showFolderIcon: boolean) {
 		this.top = 0
 		this.entity = null
+		this._showFolderIcon = showFolderIcon
+		this._domFolderIcons = {}
 	}
 
 	stringToPicto(s: string) {
@@ -189,6 +200,17 @@ export class MailRow {
 		} else {
 			this._domSubject.classList.remove("b")
 		}
+
+		if (this._showFolderIcon) {
+			let folder = mailModel.getMailFolder(mail._id[0])
+			Object.keys(this._domFolderIcons).forEach(folderType => {
+				if (folder && folderType == folder.folderType) {
+					this._domFolderIcons[folderType].style.display = ''
+				} else {
+					this._domFolderIcons[folderType].style.display = 'none'
+				}
+			})
+		}
 	}
 
 	/**
@@ -201,41 +223,50 @@ export class MailRow {
 				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
 			]),
 			m(".bottom.flex-space-between", [
-				m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-				m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
-					m(Icon, {
-						icon: Icons.Warning,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'},
-						title: lang.get("corrupted_msg"),
-						oncreate: (vnode) => this._domErrorIcon = vnode.dom,
-					}),
-					m(Icon, {
-						icon: Icons.Reply,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'},
-						oncreate: (vnode) => this._domReplyIcon = vnode.dom,
-					}),
-					m(Icon, {
-						icon: Icons.Forward,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'},
-						oncreate: (vnode) => this._domForwardIcon = vnode.dom,
-					}),
-					m(Icon, {
-						icon: Icons.Attachment,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'},
-						oncreate: (vnode) => this._domAttachmentIcon = vnode.dom,
-					}),
-					m(Icon, {
-						icon: Icons.Lock,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'},
-						oncreate: (vnode) => this._domLockIcon = vnode.dom,
-					}),
-				])
-			])
+					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
+					m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, // 3px to neutralize the svg icons internal border border
+						(this._showFolderIcon ? Object.keys(MailFolderType).map(folderTypeKey => {
+								return m(Icon, {
+									icon: getFolderIconByType(MailFolderType[folderTypeKey])(),
+									class: "svg-list-accent-fg",
+									style: {display: 'none'},
+									oncreate: (vnode) => this._domFolderIcons[MailFolderType[folderTypeKey]] = vnode.dom,
+								})
+							}) : []).concat([
+							m(Icon, {
+								icon: Icons.Warning,
+								class: "svg-list-accent-fg",
+								style: {display: 'none'},
+								title: lang.get("corrupted_msg"),
+								oncreate: (vnode) => this._domErrorIcon = vnode.dom,
+							}),
+							m(Icon, {
+								icon: Icons.Reply,
+								class: "svg-list-accent-fg",
+								style: {display: 'none'},
+								oncreate: (vnode) => this._domReplyIcon = vnode.dom,
+							}),
+							m(Icon, {
+								icon: Icons.Forward,
+								class: "svg-list-accent-fg",
+								style: {display: 'none'},
+								oncreate: (vnode) => this._domForwardIcon = vnode.dom,
+							}),
+							m(Icon, {
+								icon: Icons.Attachment,
+								class: "svg-list-accent-fg",
+								style: {display: 'none'},
+								oncreate: (vnode) => this._domAttachmentIcon = vnode.dom,
+							}),
+							m(Icon, {
+								icon: Icons.Lock,
+								class: "svg-list-accent-fg",
+								style: {display: 'none'},
+								oncreate: (vnode) => this._domLockIcon = vnode.dom,
+							}),
+						]))
+				]
+			)
 		]
 		return elements
 	}

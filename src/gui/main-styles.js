@@ -230,6 +230,7 @@ styles.registerStyle('main', () => {
 		'.flex-v-center': {display: 'flex', 'flex-direction': "column", 'justify-content': 'center'},
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
 		'.flex-column': {'flex-direction': "column"},
+		'.flex-column-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
 		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 auto'},

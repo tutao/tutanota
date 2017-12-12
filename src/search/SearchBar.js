@@ -18,7 +18,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {load} from "../api/main/Entity"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {formatDateTimeFromYesterdayOn, formatDateWithWeekday} from "../misc/Formatter"
-import {getSenderOrRecipientHeading} from "../mail/MailUtils"
+import {getSenderOrRecipientHeading, getFolderIcon} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import type {RouteChangeEvent} from "../misc/RouteChange"
@@ -34,6 +34,7 @@ import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
+import {mailModel} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -302,6 +303,10 @@ export class SearchBar {
 					m(".text-ellipsis", mail.subject),
 					m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
 						m(Icon, {
+							icon: this._getMailFolderIcon(mail),
+							class: this._selected === result ? "svg-content-accent-fg" : "svg-content-fg",
+						}),
+						m(Icon, {
 							icon: Icons.Attachment,
 							class: this._selected === result ? "svg-content-accent-fg" : "svg-content-fg",
 							style: {display: mail.attachments ? '' : 'none'},
@@ -343,6 +348,15 @@ export class SearchBar {
 					])
 				])
 			]
+		}
+	}
+
+	_getMailFolderIcon(mail: Mail): string {
+		let folder = mailModel.getMailFolder(mail._id[0])
+		if (folder) {
+			return getFolderIcon(folder)()
+		} else {
+			return Icons.Folder
 		}
 	}
 

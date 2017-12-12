@@ -487,7 +487,7 @@ export class MailView {
 	elementSelected(mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (mails.length == 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 			// set or update the visible mail
-			this.mailViewer = new MailViewer(mails[0])
+			this.mailViewer = new MailViewer(mails[0], false)
 			let url = `/mail/${mails[0]._id.join("/")}`
 			this._folderToUrl[this.selectedFolder._id[1]] = url
 			this._setUrl(url)
@@ -539,7 +539,7 @@ export class MailView {
 				// update the displayed or edited mail if necessary
 				if (operation == OperationType.UPDATE && this.mailViewer && isSameId(this.mailViewer.mail._id, [neverNull(listId), elementId])) {
 					load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail)
+						this.mailViewer = new MailViewer(updatedMail, false)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

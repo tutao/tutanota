@@ -45,7 +45,7 @@ export class SearchListView {
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
+			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow(true) : new ContactRow()),
 			showStatus: false,
 			className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
 			swipe: ({
@@ -67,7 +67,7 @@ export class SearchListView {
 				this.list = new List({
 					rowHeight: size.list_row_height,
 					fetch: (startId, count) => {
-						//console.log("fetch", startId, count)
+//					console.log("fetch ", startId, count)
 						let result = locator.search.result()
 						if (!result || result.results.length == 0) {
 							return Promise.resolve([])
@@ -140,7 +140,7 @@ export class SearchListView {
 					elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
 						this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 					},
-					createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow() : new ContactRow()),
+					createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow(true) : new ContactRow()),
 					showStatus: false,
 					className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
 					swipe: ({

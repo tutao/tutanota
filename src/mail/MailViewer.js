@@ -38,7 +38,8 @@ import {
 	getFolderIcon,
 	getArchiveFolder,
 	getEnabledMailAddresses,
-	getDefaultSender
+	getDefaultSender,
+	getMailboxName
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -59,6 +60,7 @@ import {animations, scroll} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -81,9 +83,17 @@ export class MailViewer {
 	oncreate: Function;
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
+	_folderText: ?string;
 
-	constructor(mail: Mail) {
+	constructor(mail: Mail, showFolder: boolean) {
 		this.mail = mail
+		this._folderText = null
+		if (showFolder) {
+			let folder = mailModel.getMailFolder(mail._id[0])
+			if (folder) {
+				this._folderText = (lang.get("location_label") + ": " + getMailboxName(mailModel.getMailboxDetails(mail)) + " / " + getFolderName(folder)).toUpperCase()
+			}
+		}
 		this._attachments = []
 		this._attachmentButtons = []
 		this._htmlBody = ""
@@ -224,9 +234,12 @@ export class MailViewer {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header", [
-							m(".sender-details.flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
-								m("small.flex.items-end.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
-								m(detailsExpander),
+							m(".flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
+								m(".flex.flex-column-reverse", [
+									m("small.flex.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
+									(this._folderText) ? m("small.b.flex.pt.pb-s", {style: {color: theme.navigation_button}}, this._folderText) : null,
+								]),
+								m(".flex.flex-column-reverse", [m(detailsExpander)]),
 							]),
 							m(detailsExpander.panel),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
