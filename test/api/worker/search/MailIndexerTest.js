@@ -4,8 +4,12 @@ import {createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sy
 import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, IndexUpdate, ElementData} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
-import {GroupDataOS, ElementDataOS} from "../../../../src/api/worker/search/DbFacade"
-import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
+import {GroupDataOS, ElementDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {
+	NOTHING_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP,
+	GroupType
+} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
@@ -14,13 +18,16 @@ import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndex
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {MailIndexer} from "../../../../src/api/worker/search/MailIndexer"
+import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL} from "../../../../src/api/worker/search/MailIndexer"
 import {createMail, _TypeModel as MailModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tutanota/MailBody"
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
+import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
+import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
+import {getStartOfDay, getDayShifted} from "../../../../src/api/common/utils/DateUtils"
 
 o.spec("MailIndexer test", () => {
 	o("createMailIndexEntries without entries", function () {
@@ -177,10 +184,9 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("processMovedMail", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
 		let elementData: ElementData = ["old-list-id", new Uint8Array(0), "owner-group-id"]
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 		let encInstanceId = encryptIndexKey(db.key, event.instanceId)
 
 		let transaction = {
@@ -203,11 +209,6 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("processMovedMail that does not exist", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-
-		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
-		let encInstanceId = encryptIndexKey(db.key, event.instanceId)
-
 		let transaction = {
 			get: (os, id) => {
 				o(os).equals(ElementDataOS)
@@ -215,6 +216,11 @@ o.spec("MailIndexer test", () => {
 				return Promise.resolve(null)
 			}
 		}
+
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+
+		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
+		let encInstanceId = encryptIndexKey(db.key, event.instanceId)
 
 		const core: any = {encryptSearchIndexEntries: o.spy()}
 		const indexer: any = new MailIndexer(core, db, (null:any), (null:any), (null:any))
@@ -231,7 +237,95 @@ o.spec("MailIndexer test", () => {
 		})
 	})
 
-	// TODO enableMailIndexing
+	o("enableMailIndexing", function (done) {
+		let metadata = {}
+		let transaction = {
+			get: (os, key) => {
+				o(os).equals(MetaDataOS)
+				o(key).equals(MetaData.mailIndexingEnabled)
+				return Promise.resolve(false)
+			},
+			put: (os, key, value) => {
+				o(os).equals(MetaDataOS)
+				metadata[key] = value
+			},
+			await: () => Promise.resolve()
+		}
+
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		indexer.indexMailbox = o.spy()
+		indexer.mailIndexingEnabled = false
+		indexer._excludedListIds = []
+
+		let user = createUser()
+		user.memberships.push(createGroupMembership())
+		user.memberships[0].groupType = GroupType.Mail
+
+		let spamFolder = createMailFolder()
+		spamFolder.mails = "mail-list-id"
+		indexer._getSpamFolder = (membership) => {
+			o(membership).deepEquals(user.memberships[0])
+			return spamFolder
+		}
+
+		indexer.enableMailIndexing(user).then(() => {
+			o(indexer.indexMailbox.callCount).equals(1)
+			o(indexer.indexMailbox.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL))])
+
+			o(indexer.mailIndexingEnabled).equals(true)
+			o(indexer._excludedListIds).deepEquals([spamFolder.mails])
+			o(JSON.stringify(metadata)).deepEquals(JSON.stringify({
+				[MetaData.mailIndexingEnabled]: true,
+				[MetaData.excludedListIds]: [spamFolder.mails]
+			}))
+			done()
+		})
+	})
+
+	o("enableMailIndexing already enabled", function (done) {
+		let transaction = {
+			get: (os, key) => {
+				o(os).equals(MetaDataOS)
+				if (key == MetaData.mailIndexingEnabled) {
+					return Promise.resolve(true)
+				} else if (key == MetaData.excludedListIds) {
+					return Promise.resolve([1, 2])
+				}
+				throw new Error("wrong key / os")
+			}
+		}
+
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		indexer.indexMailbox = o.spy()
+
+		indexer.mailIndexingEnabled = false
+		indexer._excludedListIds = []
+
+		let user = createUser()
+		indexer.enableMailIndexing(user).then(() => {
+			o(indexer.indexMailbox.callCount).equals(0)
+			o(indexer.mailIndexingEnabled).equals(true)
+			o(indexer._excludedListIds).deepEquals([1, 2])
+			done()
+		})
+	})
+
+	o("disableMailIndexing", function () {
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {deleteDatabase: o.spy()}}:any)
+		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		indexer.mailIndexingEnabled = true
+		indexer._excludedListIds = [1]
+		indexer.disableMailIndexing()
+		o(indexer.mailIndexingEnabled).equals(false)
+		o(indexer._excludedListIds).deepEquals([])
+		o(db.dbFacade.deleteDatabase.callCount).equals(1)
+	})
+
+	// TODO indexMailbox
+	// TODO _indexMailList
+	// TODO updateCurrentIndexTimestamp
 
 	o("indexAllUserAndTeamGroupInfosForAdmin", function (done) {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)

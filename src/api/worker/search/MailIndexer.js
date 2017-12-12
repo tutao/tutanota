@@ -22,7 +22,7 @@ import {getStartOfDay, getDayShifted} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 
-const INITIAL_MAIL_INDEX_INTERVAL = 1
+export const INITIAL_MAIL_INDEX_INTERVAL = 1
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -130,7 +130,7 @@ export class MailIndexer {
 		let t = this._db.dbFacade.createTransaction(true, [MetaDataOS])
 		return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
 			if (!enabled) {
-				return Promise.map(filterMailMemberships(user), (mailGroupMembership) => getSpamFolder(mailGroupMembership)).then(spamFolders => {
+				return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then(spamFolders => {
 					this._excludedListIds = spamFolders.map(folder => folder.mails)
 					this.mailIndexingEnabled = true
 					let t2 = this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
@@ -285,10 +285,11 @@ export class MailIndexer {
 			})
 		}).then(() => mailListIds)
 	}
+
+	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
+		return load(MailboxGroupRootTypeRef, mailGroup.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
+			return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
+		})
+	}
 }
 
-function getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
-	return load(MailboxGroupRootTypeRef, mailGroup.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-		return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
-	})
-}
