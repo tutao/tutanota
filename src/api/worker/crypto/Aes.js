@@ -1,7 +1,7 @@
 // @flow
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {random} from "./Randomizer"
-import {pad, unpad, uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
+import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {concat, arrayEquals} from "../../common/utils/ArrayUtils"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -13,60 +13,84 @@ assertWorkerOrNode()
 export const ENABLE_MAC = true
 
 export const IV_BYTE_LENGTH = 16
-const TAG_BYTE_LENGTH = 16
-const TAG_BIT_LENGTH = TAG_BYTE_LENGTH * 8
 
 const KEY_LENGTH_BYTES_AES_256 = 32
 const KEY_LENGTH_BITS_AES_256 = KEY_LENGTH_BYTES_AES_256 * 8
 const KEY_LENGTH_BYTES_AES_128 = 16
 const KEY_LENGTH_BITS_AES_128 = KEY_LENGTH_BYTES_AES_128 * 8
 const MAC_ENABLED_PREFIX = 1
+const MAC_LENGTH_BYTES = 32
 
 export function aes256RandomKey(): Aes256Key {
 	return uint8ArrayToBitArray(random.generateRandomData(KEY_LENGTH_BYTES_AES_256))
 }
 
 /**
- * Encrypts bytes with AES in GCM mode.
+ * Encrypts bytes with AES 256 in CBC mode.
  * @param key The key to use for the encryption.
  * @param bytes The plain text.
  * @param iv The initialization vector.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @param useMac Not used because gcm always contains a mac. Just exists for interface compatibility with AES 128
+ * @param useMac If true, a 256 bit HMAC is appended to the encrypted data.
  * @return The encrypted text as words (sjcl internal structure)..
  */
 export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
-	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-	if (usePadding) {
-		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.
+	if (useMac) {
+		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
 	}
+	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
-	let encryptedBits = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], TAG_BIT_LENGTH)
-	return concat(iv, bitArrayToUint8Array(encryptedBits))
+
+	let subKeys = getAes256SubKeys(key, useMac)
+
+	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding);
+
+	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
+
+	if (useMac) {
+		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
+		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
+		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
+	}
+	return data
 }
 
 /**
- * Decrypts the given words with AES in GCM mode.
+ * Decrypts the given words with AES 256 in CBC mode.
  * @param key The key to use for the decryption.
  * @param words The ciphertext encoded as words.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
+ * @param useMac If true, a 256 bit HMAC is assumed to be appended to the encrypted data and it is checked before decryption.
  * @return The decrypted bytes.
  */
-// TODO add mac validation for AES-256 before switching from AES-128
-export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
+export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
+	if (useMac) {
+		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
+	}
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-	// take the iv from the front of the encrypted data
-	let iv = encryptedBytes.slice(0, IV_BYTE_LENGTH)
-	let ciphertext = encryptedBytes.slice(IV_BYTE_LENGTH)
 
-	try {
-		let decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], TAG_BIT_LENGTH)
-		let decryptedBytes = new Uint8Array(bitArrayToUint8Array(decrypted)) // TODO (bdeterding) consider to implement padding for bit array
-		if (usePadding) {
-			decryptedBytes = unpad(decryptedBytes)
+	let subKeys = getAes256SubKeys(key, useMac)
+	let cipherTextWithoutMac
+	if (useMac) {
+		cipherTextWithoutMac = encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES)
+		let providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - MAC_LENGTH_BYTES)
+		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
+		let computedMacBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(cipherTextWithoutMac)))
+		if (!arrayEquals(providedMacBytes, computedMacBytes)) {
+			throw new CryptoError("invalid mac")
 		}
+	} else {
+		cipherTextWithoutMac = encryptedBytes
+	}
+
+	// take the iv from the front of the encrypted data
+	let iv = cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
+	try {
+		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
+		let decryptedBytes = new Uint8Array(bitArrayToUint8Array(decrypted))
 		return decryptedBytes
 	} catch (e) {
 		throw new CryptoError("aes decryption failed", e)
@@ -101,7 +125,7 @@ export function aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array,
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
 
-	let subKeys = getSubKeys(key, useMac)
+	let subKeys = getAes128SubKeys(key, useMac)
 
 	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding);
 
@@ -126,11 +150,11 @@ export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePad
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_128)
 
 	let useMac = encryptedBytes.length % 2 == 1
-	let subKeys = getSubKeys(key, useMac)
+	let subKeys = getAes128SubKeys(key, useMac)
 	let cipherTextWithoutMac
 	if (useMac) {
-		cipherTextWithoutMac = encryptedBytes.subarray(1, encryptedBytes.length - 32)
-		let providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - 32)
+		cipherTextWithoutMac = encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES)
+		let providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - MAC_LENGTH_BYTES)
 		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
 		let computedMacBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(cipherTextWithoutMac)))
 		if (!arrayEquals(providedMacBytes, computedMacBytes)) {
@@ -152,13 +176,29 @@ export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePad
 	}
 }
 
-function getSubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:Aes128Key} {
+function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:Aes128Key} {
 	if (mac) {
 		let hashedKey = hash(bitArrayToUint8Array(key));
 		return {
-			cKey: uint8ArrayToBitArray(hashedKey.subarray(0, 16)),
-			mKey: uint8ArrayToBitArray(hashedKey.subarray(16, 32))
+			cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_128)),
+			mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_128, KEY_LENGTH_BYTES_AES_128 * 2))
 		}
+	} else {
+		return {
+			cKey: key,
+			mKey: null
+		}
+	}
+}
+
+function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey:?Aes256Key, cKey:Aes256Key} {
+	if (mac) {
+		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
+		// let hashedKey = hash512(bitArrayToUint8Array(key));
+		// return {
+		// 	cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_256)),
+		// 	mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_256, KEY_LENGTH_BYTES_AES_256 * 2))
+		// }
 	} else {
 		return {
 			cKey: key,
@@ -179,30 +219,30 @@ function getSubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:Aes128
  * @param useMac Not used because gcm always contains a mac. Just exists for interface compatibility with AES 128
  * @return The encrypted text as words (sjcl internal structure)..
  */
-export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Promise<Uint8Array> {
-	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-	if (usePadding) {
-		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.
-	}
-	if (iv.length !== IV_BYTE_LENGTH) {
-		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
-	}
-	return importAesKey(key).then(cryptoKey => {
-		return crypto.subtle.encrypt(
-			{
-				name: "AES-GCM",
-				iv: iv,
-				tagLength: TAG_BIT_LENGTH
-			},
-			cryptoKey,
-			bytes
-		).then(function (encrypted) {
-			return concat(iv, new Uint8Array(encrypted))
-		})
-	}).catch(e => {
-		throw new CryptoError("aes encryption failed (webcrypto)", e)
-	})
-}
+// export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Promise<Uint8Array> {
+// 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
+// 	if (usePadding) {
+// 		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.
+// 	}
+// 	if (iv.length !== IV_BYTE_LENGTH) {
+// 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
+// 	}
+// 	return importAesKey(key).then(cryptoKey => {
+// 		return crypto.subtle.encrypt(
+// 			{
+// 				name: "AES-GCM",
+// 				iv: iv,
+// 				tagLength: TAG_BIT_LENGTH
+// 			},
+// 			cryptoKey,
+// 			bytes
+// 		).then(function (encrypted) {
+// 			return concat(iv, new Uint8Array(encrypted))
+// 		})
+// 	}).catch(e => {
+// 		throw new CryptoError("aes encryption failed (webcrypto)", e)
+// 	})
+// }
 
 /**
  * Decrypts the given words with AES in GCM mode using the webcrypto API.
@@ -211,41 +251,41 @@ export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Ar
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
-export function aes256DecryptFile(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Promise<Uint8Array> {
-	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-	// take the iv from the front of the encrypted data
-	let iv = encryptedBytes.slice(0, IV_BYTE_LENGTH)
-	let ciphertext = encryptedBytes.slice(IV_BYTE_LENGTH)
+// export function aes256DecryptFile(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Promise<Uint8Array> {
+// 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
+// 	// take the iv from the front of the encrypted data
+// 	let iv = encryptedBytes.slice(0, IV_BYTE_LENGTH)
+// 	let ciphertext = encryptedBytes.slice(IV_BYTE_LENGTH)
+//
+// 	return importAesKey(key).then(cryptoKey => {
+// 		return crypto.subtle.decrypt(
+// 			{
+// 				name: "AES-GCM",
+// 				iv: iv,
+// 				tagLength: TAG_BIT_LENGTH
+// 			},
+// 			cryptoKey,
+// 			ciphertext
+// 		).then(function (decrypted) {
+// 			let decryptedBytes = new Uint8Array(decrypted)
+// 			if (usePadding) {
+// 				decryptedBytes = unpad(decryptedBytes)
+// 			}
+// 			return decryptedBytes
+// 		})
+// 	}).catch(e => {
+// 		throw new CryptoError("aes decryption failed (webcrypto)", e)
+// 	})
+// }
 
-	return importAesKey(key).then(cryptoKey => {
-		return crypto.subtle.decrypt(
-			{
-				name: "AES-GCM",
-				iv: iv,
-				tagLength: TAG_BIT_LENGTH
-			},
-			cryptoKey,
-			ciphertext
-		).then(function (decrypted) {
-			let decryptedBytes = new Uint8Array(decrypted)
-			if (usePadding) {
-				decryptedBytes = unpad(decryptedBytes)
-			}
-			return decryptedBytes
-		})
-	}).catch(e => {
-		throw new CryptoError("aes decryption failed (webcrypto)", e)
-	})
-}
-
-function importAesKey(key: Aes128Key|Aes256Key): Promise<CryptoKey> {
-	// convert native promise into bluebird promise
-	var keyArray = bitArrayToUint8Array(key);
-	return Promise.resolve(crypto.subtle.importKey(
-		"raw",
-		keyArray,
-		keyArray.length === 128 ? "AES-CBC" : "AES-GCM",
-		false,
-		["encrypt", "decrypt"]
-	))
-}
+// function importAesKey(key: Aes128Key|Aes256Key): Promise<CryptoKey> {
+// 	// convert native promise into bluebird promise
+// 	var keyArray = bitArrayToUint8Array(key);
+// 	return Promise.resolve(crypto.subtle.importKey(
+// 		"raw",
+// 		keyArray,
+// 		keyArray.length === 128 ? "AES-CBC" : "AES-GCM",
+// 		false,
+// 		["encrypt", "decrypt"]
+// 	))
+// }

@@ -25,7 +25,7 @@ o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
 		let encryptedKey = encryptIndexKey(key, "blubb")
-		let decrypted = aes256Decrypt(key, concat(fixedIv, encryptedKey), true)
+		let decrypted = aes256Decrypt(key, concat(fixedIv, encryptedKey), true, false)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 
@@ -36,7 +36,7 @@ o.spec("Index Utils", () => {
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encryptedInstanceId)
 		o(encryptedEntry.length).equals(2)
 		o(encryptedEntry[0]).deepEquals(encryptedInstanceId)
-		let decrypted = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, encryptedEntry[1], true)))
+		let decrypted = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, encryptedEntry[1], true, false)))
 		o(decrypted.length).equals(4)
 		o(decrypted[0]).equals(entry.app)
 		o(decrypted[1]).equals(entry.type)

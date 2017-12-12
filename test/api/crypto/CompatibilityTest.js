@@ -72,10 +72,10 @@ o.spec("crypto compatibility", function () {
 	o("aes 256", function () {
 		compatibilityTestData.aes256Tests.forEach(td => {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
-			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true)
+			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).deepEquals(td.cipherTextBase64)
 
-			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes))
+			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true, false))
 			o(decryptedBytes).deepEquals(td.plainTextBase64)
 		})
 	})

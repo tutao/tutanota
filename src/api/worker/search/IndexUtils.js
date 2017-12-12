@@ -6,7 +6,6 @@ import {random} from "../crypto/Randomizer"
 import type {SearchIndexEntry, EncryptedSearchIndexEntry} from "./SearchTypes"
 import {fixedIv} from "../crypto/CryptoFacade"
 import {GroupType} from "../../common/TutanotaConstants"
-import {neverNull} from "../../common/utils/Utils"
 
 export function encryptIndexKey(key: Aes256Key, indexKey: string): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length)
@@ -21,8 +20,8 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 }
 
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry): SearchIndexEntry {
-	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(fixedIv, entry[0]), true))
-	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry[1], true)))
+	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(fixedIv, entry[0]), true, false))
+	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry[1], true, false)))
 	return {
 		id: id,
 		encId: entry[0],

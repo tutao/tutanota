@@ -115,7 +115,7 @@ o.spec("IndexerCore test", () => {
 		let elementData: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(uint8ArrayToBase64(encryptIndexKey(core.db.key, "2"))))
 		let listId = elementData[0]
 		o(listId).equals(id[0])
-		let words = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData[1], true))
+		let words = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData[1], true, false))
 		o(words).equals("a b")
 		o(ownerGroupId).equals(elementData[2])
 
@@ -163,7 +163,7 @@ o.spec("IndexerCore test", () => {
 		let elementData2: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(uint8ArrayToBase64(encryptIndexKey(core.db.key, "y"))))
 		let listId2 = elementData2[0]
 		o(listId2).equals(id2[0])
-		let words2 = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData2[1], true))
+		let words2 = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData2[1], true, false))
 		o(words2).equals("a")
 		o(ownerGroupId).equals(elementData2[2])
 

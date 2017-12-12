@@ -107,7 +107,7 @@ export class IndexerCore {
 				console.log("index data not available (instance is not indexed)", uint8ArrayToBase64(encInstanceId), event.instanceId)
 				return
 			}
-			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true)).split(" ")
+			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
 			let encWords = words.map(word => uint8ArrayToBase64(encryptIndexKey(this.db.key, word)))
 			encWords.map(encWord => {
 				let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
