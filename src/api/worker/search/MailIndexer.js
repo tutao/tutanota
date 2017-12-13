@@ -1,5 +1,11 @@
 //@flow
-import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP, MailFolderType} from "../../common/TutanotaConstants"
+import {
+	NOTHING_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP,
+	MailFolderType,
+	OperationType,
+	MailState
+} from "../../common/TutanotaConstants"
 import {load, loadAll, EntityWorker} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
@@ -11,7 +17,13 @@ import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {GENERATED_MAX_ID, firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
-import {encryptIndexKey, htmlToText, filterMailMemberships, _createNewIndexUpdate} from "./IndexUtils"
+import {
+	encryptIndexKey,
+	htmlToText,
+	filterMailMemberships,
+	_createNewIndexUpdate,
+	containsEventOfType
+} from "./IndexUtils"
 import type {IndexUpdate, GroupData, Db, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -288,6 +300,42 @@ export class MailIndexer {
 		return load(MailboxGroupRootTypeRef, mailGroup.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
 			return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
 		})
+	}
+
+	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		if (!this.mailIndexingEnabled) return Promise.resolve()
+		return Promise.each(events, (event, index) => {
+			if (event.operation == OperationType.CREATE) {
+				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
+					// move mail
+					return this.processMovedMail(event, indexUpdate)
+				} else {
+					// new mail
+					return this.processNewMail(event).then((result) => {
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						}
+					})
+				}
+			} else if (event.operation == OperationType.UPDATE) {
+				return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+					if (mail.state == MailState.DRAFT) {
+						return Promise.all([
+							this._core._processDeleted(event, indexUpdate),
+							this.processNewMail(event).then(result => {
+								if (result) {
+									this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+								}
+							})
+						])
+					}
+				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
+			} else if (event.operation == OperationType.DELETE) {
+				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
+					return this._core._processDeleted(event, indexUpdate)
+				}
+			}
+		}).return()
 	}
 }
 

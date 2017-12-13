@@ -5,6 +5,7 @@ import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
 import type {SearchIndexEntry, EncryptedSearchIndexEntry, IndexUpdate} from "./SearchTypes"
 import {fixedIv} from "../crypto/CryptoFacade"
+import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
 
 export function encryptIndexKey(key: Aes256Key, indexKey: string): Uint8Array {
@@ -53,6 +54,9 @@ export function filterMailMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(m => m.groupType == GroupType.Mail)
 }
 
+export function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
+	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0 ? true : false
+}
 
 export function byteLength(str: ?string) {
 	if (str == null) return 0

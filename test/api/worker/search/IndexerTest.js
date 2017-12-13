@@ -5,9 +5,10 @@ import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembe
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {GroupType, NOTHING_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer} from "../../../../src/api/worker/search/Indexer"
-import {EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
+import {EntityEventBatchTypeRef, createEntityEventBatch} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 
 o.spec("Indexer test", () => {
 
@@ -291,30 +292,58 @@ o.spec("Indexer test", () => {
 
 	})
 
+	o("_loadNewEntities", function (done) {
+		let groupIdToEventBatches = [{
+			groupId: "group-mail",
+			eventBatchIds: ["newest-batch-id", "last-batch-id"],
+		}]
 
-	// TODO
-	o("_loadNewEntities", function () {
-		/*
-		 let indexer = new Indexer((null:any), (null:any))
-		 indexer._entity = ({createTransaction: () => transaction}:any)
+		let batches = [createEntityEventBatch()]
+		batches[0]._id = ["group-mail", "batch-id"]
+		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
-		 indexer._loadPersistentGroupData(user).then(groupIdToEventBatches => {
-		 o(groupIdToEventBatches).deepEquals([
-		 {
-		 groupId: "group-mail",
-		 eventBatchIds: ["last-batch-id"],
-		 },
-		 {
-		 groupId: "group-contact",
-		 eventBatchIds: ["last-batch-id"],
-		 },
-		 {
-		 groupId: "group-customer",
-		 eventBatchIds: ["last-batch-id"],
-		 },
-		 ])
-		 done()
-		 })
-		 */
+		let indexer: any = new Indexer((null:any), (null:any))
+		indexer._entity = {
+			loadAll: (type, groupId, startId) => {
+				o(type).deepEquals(EntityEventBatchTypeRef)
+				o(groupId).equals("group-mail")
+				o(startId).equals("last-batch-id")
+				return Promise.resolve(batches)
+			}
+		}
+		indexer.processEntityEvents = o.spy()
+
+		indexer._loadNewEntities(groupIdToEventBatches).then(() => {
+			o(indexer.processEntityEvents.args).deepEquals([batches[0].events, groupIdToEventBatches[0].groupId, batches[0]._id[1]])
+			done()
+		})
 	})
+
+	o("_loadNewEntities batch already processed", function (done) {
+		let groupIdToEventBatches = [{
+			groupId: "group-mail",
+			eventBatchIds: ["newest-batch-id", "last-batch-id"],
+		}]
+
+		let batches = [createEntityEventBatch()]
+		batches[0]._id = ["group-mail", "last-batch-id"]
+		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+
+		let indexer: any = new Indexer((null:any), (null:any))
+		indexer._entity = {
+			loadAll: (type, groupId, startId) => {
+				o(type).deepEquals(EntityEventBatchTypeRef)
+				o(groupId).equals("group-mail")
+				o(startId).equals("last-batch-id")
+				return Promise.resolve(batches)
+			}
+		}
+		indexer.processEntityEvents = o.spy()
+
+		indexer._loadNewEntities(groupIdToEventBatches).then(() => {
+			o(indexer.processEntityEvents.callCount).equals(0)
+			done()
+		})
+	})
+
 })

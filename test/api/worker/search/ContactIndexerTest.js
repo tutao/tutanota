@@ -10,11 +10,18 @@ import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/erro
 import {createContactList, ContactListTypeRef} from "../../../../src/api/entities/tutanota/ContactList"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
-import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
+import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
+import {
+	NOTHING_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP,
+	OperationType
+} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
+import {encryptIndexKey, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/EntityFunctions"
 
 o.spec("ContactIndexer test", () => {
 	o("createContactIndexEntries without entries", function () {
@@ -235,4 +242,95 @@ o.spec("ContactIndexer test", () => {
 		}).then(done)
 	})
 
+	o("processEntityEvents new contact", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let contact = createContact()
+		contact._id = ["contact-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new ContactIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.CREATE, "contact-list", "1")]
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(0)
+			done()
+		})
+	})
+
+	o("processEntityEvents update contact", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let contact = createContact()
+		contact._id = ["contact-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new ContactIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.UPDATE, "contact-list", "1")]
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(1)
+			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+			done()
+		})
+	})
+
+	o("processEntityEvents delete contact", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let contact = createContact()
+		contact._id = ["contact-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new ContactIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.DELETE, "contact-list", "1")]
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(1)
+			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+			done()
+		})
+	})
+
 })
+
+function createUpdate(type: OperationTypeEnum, listId: Id, id: Id) {
+	let update = createEntityUpdate()
+	update.operation = type
+	update.instanceListId = listId
+	update.instanceId = id
+	return update
+}

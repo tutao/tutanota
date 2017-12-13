@@ -1,8 +1,8 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {NOTHING_INDEXED_TIMESTAMP, GroupType, OperationType, MailState} from "../../common/TutanotaConstants"
-import {load, loadAll, EntityWorker} from "../EntityWorker"
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {NOTHING_INDEXED_TIMESTAMP, GroupType, OperationType} from "../../common/TutanotaConstants"
+import {load, EntityWorker} from "../EntityWorker"
+import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
@@ -131,69 +131,35 @@ export class Indexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
 		let indexUpdate = _createNewIndexUpdate(groupId)
 		indexUpdate.batchId = [groupId, batchId]
-		return Promise.each(events, (event, index) => {
-			if (isSameTypeRef(new TypeRef(event.application, event.type), MailTypeRef) && this._mail.mailIndexingEnabled) {
-				if (event.operation == OperationType.CREATE) {
-					if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
-						// move mail
-						return this._mail.processMovedMail(event, indexUpdate)
-					} else {
-						// new mail
-						return this._mail.processNewMail(event).then((result) => {
-							if (result) {
-								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-							}
-						})
-					}
-				} else if (event.operation == OperationType.UPDATE) {
-					return load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-						if (mail.state == MailState.DRAFT) {
-							return Promise.all([
-								this._core._processDeleted(event, indexUpdate),
-								this._mail.processNewMail(event).then(result => {
-									if (result) {
-										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-									}
-								})
-							])
-						}
-					}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
-				} else if (event.operation == OperationType.DELETE) {
-					if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
-						return this._core._processDeleted(event, indexUpdate)
-					}
-				}
-			} else if (isSameTypeRef(new TypeRef(event.application, event.type), ContactTypeRef)) {
-				if (event.operation == OperationType.CREATE) {
-					this._contact.processNewContact(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
-					})
-				} else if (event.operation == OperationType.UPDATE) {
-					return Promise.all([
-						this._core._processDeleted(event, indexUpdate),
-						this._contact.processNewContact(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						})
-					])
-				} else if (event.operation == OperationType.DELETE) {
-					return this._core._processDeleted(event, indexUpdate)
-				}
-			} else if (isSameTypeRef(new TypeRef(event.application, event.type), GroupInfoTypeRef) && userIsAdmin(this._initParams.user)) {
-				if (event.operation == OperationType.CREATE) {
-					return this._groupInfo.processNewGroupInfo(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
-					})
-				} else if (event.operation == OperationType.UPDATE) {
-					return Promise.all([
-						this._core._processDeleted(event, indexUpdate),
-						this._groupInfo.processNewGroupInfo(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						})
-					])
-				} else if (event.operation == OperationType.DELETE) {
-					return this._core._processDeleted(event, indexUpdate)
-				}
-			} else if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), UserTypeRef) && isSameId(this._initParams.user._id, event.instanceId)) {
+		let groupedEvents: Map<TypeRef<any>,EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>,EntityUpdate[]>, update: EntityUpdate) => {
+			let type = new TypeRef(update.application, update.type)
+			if (isSameTypeRef(type, MailTypeRef)) {
+				neverNull(all.get(MailTypeRef)).push(update)
+			} else if (isSameTypeRef(type, ContactTypeRef)) {
+				neverNull(all.get(ContactTypeRef)).push(update)
+			} else if (isSameTypeRef(type, GroupInfoTypeRef)) {
+				neverNull(all.get(GroupInfoTypeRef)).push(update)
+			} else if (isSameTypeRef(type, UserTypeRef)) {
+				neverNull(all.get(UserTypeRef)).push(update)
+			}
+		}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
+		return Promise.all([
+			this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
+			this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
+			this._groupInfo.processEntityEvents(neverNull(groupedEvents.get(GroupInfoTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
+			this.processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
+		]).then(() => {
+			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) != -1) {
+				return this._core.writeIndexUpdate(indexUpdate)
+			} else {
+				console.log("not indexed group", groupId)
+			}
+		})
+	}
+
+	processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
+		return Promise.all(events.map(event => {
+			if (event.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(event.application, event.type), UserTypeRef) && isSameId(this._initParams.user._id, event.instanceId)) {
 				return load(UserTypeRef, event.instanceId).then(updatedUser => {
 					let promises = []
 					let oldMailGroupMemberships = filterMailMemberships(this._initParams.user)
@@ -208,13 +174,8 @@ export class Indexer {
 					return promises
 				})
 			}
-		}).then(() => {
-			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) != -1) {
-				return this._core.writeIndexUpdate(indexUpdate)
-			} else {
-				console.log("not indexed group", groupId)
-			}
-		})
+			return Promise.resolve()
+		})).return()
 	}
 
 	_groupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
@@ -316,8 +277,6 @@ export class Indexer {
 
 }
 
-function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0 ? true : false
-}
+
 
 

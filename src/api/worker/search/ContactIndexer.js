@@ -2,11 +2,11 @@
 import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
 import {ContactTypeRef, _TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {EntityWorker} from "../EntityWorker"
-import type {SearchIndexEntry, Db, GroupData} from "./SearchTypes"
+import type {SearchIndexEntry, Db, GroupData, IndexUpdate} from "./SearchTypes"
 import {_createNewIndexUpdate} from "./IndexUtils"
 import {neverNull} from "../../common/utils/Utils"
 import {GroupDataOS, MetaDataOS} from "./DbFacade"
-import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {IndexerCore} from "./IndexerCore"
 
@@ -94,5 +94,24 @@ export class ContactIndexer {
 			// external users have no contact list.
 			return Promise.resolve()
 		})
+	}
+
+	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		return Promise.each(events, (event, index) => {
+			if (event.operation == OperationType.CREATE) {
+				this.processNewContact(event).then(result => {
+					if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+				})
+			} else if (event.operation == OperationType.UPDATE) {
+				return Promise.all([
+					this._core._processDeleted(event, indexUpdate),
+					this.processNewContact(event).then(result => {
+						if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+					})
+				])
+			} else if (event.operation == OperationType.DELETE) {
+				return this._core._processDeleted(event, indexUpdate)
+			}
+		}).return()
 	}
 }

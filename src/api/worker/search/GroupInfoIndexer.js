@@ -1,13 +1,12 @@
 //@flow
-import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {neverNull} from "../../common/utils/Utils"
-import type {GroupData, Db, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate} from "./IndexUtils"
+import type {GroupData, Db, SearchIndexEntry, IndexUpdate} from "./SearchTypes"
+import {_createNewIndexUpdate, userIsAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
-import {userIsAdmin} from "./IndexUtils"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
 
@@ -69,5 +68,26 @@ export class GroupInfoIndexer {
 		} else {
 			return Promise.resolve()
 		}
+	}
+
+	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
+		return Promise.each(events, (event, index) => {
+			if (userIsAdmin(user)) {
+				if (event.operation == OperationType.CREATE) {
+					return this.processNewGroupInfo(event).then(result => {
+						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+					})
+				} else if (event.operation == OperationType.UPDATE) {
+					return Promise.all([
+						this._core._processDeleted(event, indexUpdate),
+						this.processNewGroupInfo(event).then(result => {
+							if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						})
+					])
+				} else if (event.operation == OperationType.DELETE) {
+					return this._core._processDeleted(event, indexUpdate)
+				}
+			}
+		}).return()
 	}
 }

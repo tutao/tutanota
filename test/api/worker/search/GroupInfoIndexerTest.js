@@ -8,9 +8,14 @@ import {
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
-import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
+import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
+import {
+	NOTHING_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP,
+	OperationType
+} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
+import {encryptIndexKey, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
@@ -18,6 +23,8 @@ import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddre
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/EntityFunctions"
 
 o.spec("GroupInfoIndexer test", () => {
 	o("createGroupInfoIndexEntries without entries", function () {
@@ -231,4 +238,130 @@ o.spec("GroupInfoIndexer test", () => {
 		}).then(done)
 	})
 
+	o("processEntityEvents do nothing if user is not an admin", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		const indexer = new GroupInfoIndexer(core, db, (null:any))
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1"), createUpdate(OperationType.UPDATE, "groupInfo-list", "2"), createUpdate(OperationType.DELETE, "groupInfo-list", "3")]
+		let user = createUser()
+		user.memberships = [createGroupMembership()]
+		user.memberships[0].admin = false
+
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(0)
+			done()
+		})
+	})
+
+	o("processEntityEvents new groupInfo", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let groupInfo = createGroupInfo()
+		groupInfo._id = ["groupInfo-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == GroupInfoTypeRef && isSameId(id, groupInfo._id)) return Promise.resolve(groupInfo)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new GroupInfoIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1")]
+		let user = createUser()
+		user.memberships = [createGroupMembership()]
+		user.memberships[0].admin = true
+
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(0)
+			done()
+		})
+	})
+
+	o("processEntityEvents update groupInfo", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let groupInfo = createGroupInfo()
+		groupInfo._id = ["groupInfo-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == GroupInfoTypeRef && isSameId(id, groupInfo._id)) return Promise.resolve(groupInfo)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new GroupInfoIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "1")]
+		let user = createUser()
+		user.memberships = [createGroupMembership()]
+		user.memberships[0].admin = true
+
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(1)
+			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+			done()
+		})
+	})
+
+	o("processEntityEvents delete groupInfo", function (done) {
+		let db: any = {key: aes256RandomKey()}
+		let core: any = new IndexerCore(db)
+		core.writeIndexUpdate = o.spy()
+		core._processDeleted = o.spy()
+
+		let groupInfo = createGroupInfo()
+		groupInfo._id = ["groupInfo-list", "1"]
+		let entity: any = {
+			load: (type, id) => {
+				if (type == GroupInfoTypeRef && isSameId(id, groupInfo._id)) return Promise.resolve(groupInfo)
+				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
+			}
+		}
+		const indexer = new GroupInfoIndexer(core, db, entity)
+
+		let indexUpdate = _createNewIndexUpdate("group-id")
+		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]
+		let user = createUser()
+		user.memberships = [createGroupMembership()]
+		user.memberships[0].admin = true
+
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
+			// nothing changed
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
+			o(indexUpdate.move.length).equals(0)
+			o(core._processDeleted.callCount).equals(1)
+			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+			done()
+		})
+	})
 })
+
+
+function createUpdate(type: OperationTypeEnum, listId: Id, id: Id) {
+	let update = createEntityUpdate()
+	update.operation = type
+	update.instanceListId = listId
+	update.instanceId = id
+	return update
+}

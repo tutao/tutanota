@@ -10,7 +10,8 @@ import {
 	userIsAdmin,
 	filterIndexMemberships,
 	filterMailMemberships,
-	_createNewIndexUpdate
+	_createNewIndexUpdate,
+	containsEventOfType
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {UserTypeRef, createUser} from "../../../../src/api/entities/sys/User"
@@ -20,7 +21,9 @@ import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import type {SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {GroupType} from "../../../../src/api/common/TutanotaConstants"
+import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
+import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
@@ -105,6 +108,21 @@ o.spec("Index Utils", () => {
 		user.memberships[8].groupType = GroupType.Mail
 		o(filterMailMemberships(user)).deepEquals([user.memberships[5], user.memberships[8]])
 	})
+
+	o("containsEventOfType", function () {
+		function createUpdate(type: OperationTypeEnum, id: Id) {
+			let update = createEntityUpdate()
+			update.operation = type
+			update.instanceId = id
+			return update
+		}
+
+		o(containsEventOfType([], OperationType.CREATE, "1")).equals(false)
+		o(containsEventOfType([createUpdate(OperationType.CREATE, "1")], OperationType.CREATE, "1")).equals(true)
+		o(containsEventOfType([createUpdate(OperationType.DELETE, "1")], OperationType.CREATE, "1")).equals(false)
+		o(containsEventOfType([createUpdate(OperationType.DELETE, "2")], OperationType.DELETE, "1")).equals(false)
+	})
+
 
 	o("byteLength", function () {
 		o(byteLength("")).equals(0)
