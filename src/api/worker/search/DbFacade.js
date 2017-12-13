@@ -15,7 +15,7 @@ export class DbFacade {
 	constructor() {
 	}
 
-	open(id: string): Promise<DbFacade> {
+	open(id: string): Promise<void> {
 		if (this.db != null) return Promise.resolve()
 		return new Promise.fromCallback((callback) => {
 			let DBOpenRequest = indexedDB.open(id, 1);
@@ -42,7 +42,7 @@ export class DbFacade {
 				this.db.onabort = (event) => console.log("db aborted", event)
 				this.db.onclose = (event) => console.log("db closed", event)
 				this.db.onerror = (event) => console.log("db error", event)
-				callback(null, this)
+				callback()
 			}
 		})
 	}

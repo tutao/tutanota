@@ -243,7 +243,7 @@ export class WorkerImpl {
 		})
 	}
 
-	sendIndexState(state: SearchIndexStateInfo) {
+	sendIndexState(state: SearchIndexStateInfo):Promise<void> {
 		console.log("worker set new index state", state)
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
 	}
