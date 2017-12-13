@@ -34,7 +34,7 @@ export function initLocator(worker: WorkerImpl) {
 	locator.login = new LoginFacade(worker)
 	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker)
 	locator.cache = new EntityRestCache(new EntityRestClient(locator.login))
-	locator.search = new SearchFacade(locator.indexer)
+	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail)
 	locator.groupManagement = new GroupManagementFacade(locator.login)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement)

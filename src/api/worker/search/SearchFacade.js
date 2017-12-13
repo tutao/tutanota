@@ -12,19 +12,25 @@ import type {
 	EncryptedSearchIndexEntry,
 	KeyToIndexEntries,
 	ElementData,
-	SearchIndexEntry
+	SearchIndexEntry,
+	Db
 } from "./SearchTypes"
 import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
-import type {Indexer} from "./Indexer"
 import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
+import {MailIndexer} from "./MailIndexer"
+import {LoginFacade} from "../facades/LoginFacade"
 import {getStartOfDay} from "../../common/utils/DateUtils"
 
 export class SearchFacade {
-	_indexer: Indexer;
+	_loginFacade: LoginFacade;
+	_db: Db;
+	_mailIndexer: MailIndexer;
 
-	constructor(indexer: Indexer) {
-		this._indexer = indexer
+	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer) {
+		this._loginFacade = loginFacade
+		this._db = db
+		this._mailIndexer = mailIndexer
 	}
 
 	/****************************** SEARCH ******************************/
@@ -65,10 +71,10 @@ export class SearchFacade {
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
 		if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._indexer._mail.mailboxIndexingPromise.then(() => {
-				if (this._indexer._mail.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._indexer._mail.currentIndexTimestamp > restriction.end) {
-					this._indexer._mail.indexMailbox(this._indexer._initParams.user, getStartOfDay(new Date(restriction.end)))
-					return this._indexer._mail.mailboxIndexingPromise
+			return this._mailIndexer.mailboxIndexingPromise.then(() => {
+				if (this._mailIndexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._mailIndexer.currentIndexTimestamp > restriction.end) {
+					this._mailIndexer.indexMailbox(this._loginFacade.getLoggedInUser(), getStartOfDay(new Date(neverNull(restriction.end))).getTime())
+					return this._mailIndexer.mailboxIndexingPromise
 				}
 			})
 		} else {
@@ -77,9 +83,9 @@ export class SearchFacade {
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
-		let transaction = this._indexer.db.dbFacade.createTransaction(true, [SearchIndexOS])
+		let transaction = this._db.dbFacade.createTransaction(true, [SearchIndexOS])
 		return Promise.map(searchTokens, (token) => {
-			let indexKey = encryptIndexKey(this._indexer.db.key, token)
+			let indexKey = encryptIndexKey(this._db.key, token)
 			return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
 				return {indexKey, indexEntries}
 			})
@@ -113,7 +119,7 @@ export class SearchFacade {
 		return results.map(searchResult => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._indexer.db.key, entry))
+				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry))
 			}
 		})
 	}
@@ -175,14 +181,15 @@ export class SearchFacade {
 	_reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): SearchIndexEntry[] {
 		if (matchWordOrder) {
 			return results[0].indexEntries.filter(firstWordEntry => {
+				// reduce the filtered positions for this first word entry and its attribute with each next word to those that are in order
 				let filteredPositions = firstWordEntry.positions.slice()
 				for (let i = 1; i < results.length; i++) {
 					let entry = results[i].indexEntries.find(e => e.id == firstWordEntry.id && e.attribute == firstWordEntry.attribute)
 					if (entry) {
 						filteredPositions = filteredPositions.filter(firstWordPosition => neverNull(entry).positions.find(position => position == firstWordPosition + i))
 					} else {
-						console.log("entry not in next word index")
-						filteredPositions = [] // should not happen, as the first
+						// the id was probably not found for the same attribute as the current filtered positions, so we could not find all words in order in the same attribute
+						filteredPositions = []
 					}
 				}
 				return filteredPositions.length > 0
@@ -207,7 +214,7 @@ export class SearchFacade {
 
 	_filterByListIdAndGroupSearchResults(query: string, restriction: SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry) => {
-			let transaction = this._indexer.db.dbFacade.createTransaction(true, [ElementDataOS])
+			let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
 			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
 				if (!restriction.listId || restriction.listId == elementData[0]) {
@@ -226,7 +233,7 @@ export class SearchFacade {
 
 	_getSearchTimestamp(restriction: ?SearchRestriction): number {
 		if (!restriction || isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._indexer._mail.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._indexer._mail.currentIndexTimestamp
+			return this._mailIndexer.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._mailIndexer.currentIndexTimestamp
 		} else {
 			return FULL_INDEXED_TIMESTAMP
 		}
