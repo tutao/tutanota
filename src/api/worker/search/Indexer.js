@@ -24,6 +24,7 @@ import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
 import {IndexerCore} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
+import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -36,12 +37,6 @@ export type InitParams = {
 	groupKey: Aes128Key;
 }
 
-
-/**
- * FIXME Write noop ENTITY_EVENT_BATCH on the server every twenty days (not once a month because of months with 31 days) to prevent
- * OutOfSync errors one of the groups of a user has not received a single update (e.g. contacts not updated within last month).
- * The noop ENTITY_EVENT_BATCH must be written for each area group.
- */
 export class Indexer {
 	db: Db;
 
@@ -110,6 +105,10 @@ export class Indexer {
 				return this._contact.indexFullContactList(user.userGroup.group)
 					.then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
 					.then(() => this._loadPersistentGroupData(user).then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
+					.catch(OutOfSyncError, e => {
+						console.log("out of sync - delete database and disable mail indexing")
+						return this.disableMailIndexing()
+					})
 			})
 		})
 	}
@@ -142,6 +141,7 @@ export class Indexer {
 			} else if (isSameTypeRef(type, UserTypeRef)) {
 				neverNull(all.get(UserTypeRef)).push(update)
 			}
+			return all
 		}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
 		return Promise.all([
 			this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
@@ -247,6 +247,10 @@ export class Indexer {
 			if (groupIdToEventBatch.eventBatchIds.length > 0) {
 				let startId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
 				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
+					let processedEntityEvents = eventBatches.filter((batch) => groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) !== -1)
+					if (processedEntityEvents.length == 0) {
+						throw new OutOfSyncError()
+					}
 					return Promise.map(eventBatches, batch => {
 						if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
 							return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
