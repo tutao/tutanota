@@ -2,7 +2,7 @@
 import o from "ospec/ospec.js"
 import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, IndexUpdate, ElementData} from "../../../../src/api/worker/search/SearchTypes"
-import {_createNewIndexUpdate, encryptIndexKey} from "../../../../src/api/worker/search/IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
 import {GroupDataOS, ElementDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {
@@ -14,7 +14,7 @@ import {
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {timestampToGeneratedId, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL} from "../../../../src/api/worker/search/MailIndexer"
@@ -191,7 +191,7 @@ o.spec("MailIndexer test", () => {
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
 		let elementData: ElementData = ["old-list-id", new Uint8Array(0), "owner-group-id"]
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-		let encInstanceId = encryptIndexKey(db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
 
 		let transaction = {
 			get: (os, id) => {
@@ -224,7 +224,7 @@ o.spec("MailIndexer test", () => {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
-		let encInstanceId = encryptIndexKey(db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
 
 		const core: any = {encryptSearchIndexEntries: o.spy()}
 		const indexer: any = new MailIndexer(core, db, (null:any), (null:any), (null:any))
@@ -403,7 +403,7 @@ o.spec("MailIndexer test", () => {
 			o(core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-			let encInstanceId = uint8ArrayToBase64(encryptIndexKey(db.key, mails[1]._id[1]))
+			let encInstanceId = encryptIndexKeyBase64(db.key, mails[1]._id[1])
 			o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
 			o(fullyIndexed).equals(false)
 			done()

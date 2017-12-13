@@ -1,5 +1,5 @@
 //@flow
-import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {utf8Uint8ArrayToString, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
@@ -8,7 +8,10 @@ import {fixedIv} from "../crypto/CryptoFacade"
 import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
 
-export function encryptIndexKey(key: Aes256Key, indexKey: string): Uint8Array {
+export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string): Base64 {
+	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length))
+}
+export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length)
 }
 

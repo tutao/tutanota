@@ -26,12 +26,12 @@ export type AttributeHandler ={
 }
 
 export type KeyToIndexEntries = {
-	indexKey: Uint8Array;
+	indexKey: Base64;
 	indexEntries: SearchIndexEntry[];
 }
 
 export type KeyToEncryptedIndexEntries = {
-	indexKey: Uint8Array;
+	indexKey: Base64;
 	indexEntries: EncryptedSearchIndexEntry[];
 }
 
@@ -54,12 +54,12 @@ export type IndexUpdate = {
 		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
 	};
 	move: {
-		encInstanceId: Uint8Array;
+		encInstanceId: B64EncInstanceId;
 		newListId: Id;
 	}[];
 	delete: {
-		encWordToEncInstanceIds: Map<Base64, Uint8Array[]>;
-		encInstanceIds: Uint8Array[];
+		encWordToEncInstanceIds: Map<Base64, B64EncInstanceId[]>;
+		encInstanceIds: B64EncInstanceId[];
 	};
 }
 

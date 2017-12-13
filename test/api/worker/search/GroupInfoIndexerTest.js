@@ -15,7 +15,7 @@ import {
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {encryptIndexKey, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
+import {encryptIndexKeyBase64, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
@@ -176,7 +176,7 @@ o.spec("GroupInfoIndexer test", () => {
 			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			o(indexUpdate.groupId).equals(customer.customerGroup)
 
-			let expectedKeys = [uint8ArrayToBase64(encryptIndexKey(db.key, userGroupInfo._id[1])), uint8ArrayToBase64(encryptIndexKey(db.key, teamGroupInfo._id[1]))]
+			let expectedKeys = [encryptIndexKeyBase64(db.key, userGroupInfo._id[1]), encryptIndexKeyBase64(db.key, teamGroupInfo._id[1])]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
 		}).then(done)
 	})

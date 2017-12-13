@@ -4,19 +4,20 @@ import {
 	htmlToText,
 	byteLength,
 	getAppId,
-	encryptIndexKey,
+	encryptIndexKeyBase64,
 	encryptSearchIndexEntry,
 	decryptSearchIndexEntry,
 	userIsAdmin,
 	filterIndexMemberships,
 	filterMailMemberships,
 	_createNewIndexUpdate,
-	containsEventOfType
+	containsEventOfType,
+	encryptIndexKeyUint8Array
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {UserTypeRef, createUser} from "../../../../src/api/entities/sys/User"
 import {aes256RandomKey, aes256Decrypt} from "../../../../src/api/worker/crypto/Aes"
-import {utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
+import {utf8Uint8ArrayToString, base64ToUint8Array} from "../../../../src/api/common/utils/Encoding"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import type {SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
@@ -28,15 +29,15 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
-		let encryptedKey = encryptIndexKey(key, "blubb")
-		let decrypted = aes256Decrypt(key, concat(fixedIv, encryptedKey), true, false)
+		let encryptedKey = encryptIndexKeyBase64(key, "blubb")
+		let decrypted = aes256Decrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true, false)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 
 	o("encryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
 		let entry: SearchIndexEntry = {id: "my-id", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encryptedInstanceId = encryptIndexKey(key, entry.id)
+		let encryptedInstanceId = encryptIndexKeyUint8Array(key, entry.id)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encryptedInstanceId)
 		o(encryptedEntry.length).equals(2)
 		o(encryptedEntry[0]).deepEquals(encryptedInstanceId)
@@ -51,7 +52,7 @@ o.spec("Index Utils", () => {
 	o("decryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
 		let entry: SearchIndexEntry = {id: "122", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encId = encryptIndexKey(key, entry.id)
+		let encId = encryptIndexKeyUint8Array(key, entry.id)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry)
 		o(decrypted.encId).deepEquals(encId)

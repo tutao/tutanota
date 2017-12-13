@@ -18,7 +18,7 @@ import {GENERATED_MAX_ID, firstBiggerThanSecond} from "../../common/EntityFuncti
 import {neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
-	encryptIndexKey,
+	encryptIndexKeyBase64,
 	htmlToText,
 	filterMailMemberships,
 	_createNewIndexUpdate,
@@ -114,7 +114,7 @@ export class MailIndexer {
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
-		let encInstanceId = encryptIndexKey(this._db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId)
 		let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
 		return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 			if (elementData) {

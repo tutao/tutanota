@@ -17,7 +17,7 @@ import {
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {encryptIndexKey, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
+import {encryptIndexKeyBase64, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
@@ -198,7 +198,7 @@ o.spec("ContactIndexer test", () => {
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
-			let expectedKeys = [uint8ArrayToBase64(encryptIndexKey(db.key, contacts[0]._id[1])), uint8ArrayToBase64(encryptIndexKey(db.key, contacts[1]._id[1]))]
+			let expectedKeys = [encryptIndexKeyBase64(db.key, contacts[0]._id[1]), encryptIndexKeyBase64(db.key, contacts[1]._id[1])]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
 		}).then(done)
 	})

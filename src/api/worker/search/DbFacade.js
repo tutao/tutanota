@@ -1,7 +1,6 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
 import {neverNull} from "../../common/utils/Utils"
-import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 
 export const SearchIndexOS = "SearchIndex"
 export const ElementDataOS = "ElementData"
@@ -98,7 +97,7 @@ export class DbTransaction {
 		})
 	}
 
-	getAllKeys(objectStore: string): Promise<any[]> {
+	getAllKeys(objectStore: string): Promise<string[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = (this._transaction.objectStore(objectStore):any).getAllKeys() // IndexedDB 2.0
@@ -114,7 +113,7 @@ export class DbTransaction {
 		})
 	}
 
-	get(objectStore: string, key: string|Uint8Array): Promise<any> {
+	get(objectStore: string, key: string): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).get(key)
@@ -125,12 +124,12 @@ export class DbTransaction {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data os:" + objectStore + " key:" + (key instanceof Uint8Array ? uint8ArrayToBase64(((key:any):Uint8Array)) : key), e))
+				callback(new DbError("IDB could not get data os:" + objectStore + " key:" + key, e))
 			}
 		})
 	}
 
-	getAsList(objectStore: string, key: string|Uint8Array): Promise<any[]> {
+	getAsList(objectStore: string, key: string): Promise<any[]> {
 		return this.get(objectStore, key).then(result => {
 			if (!result) {
 				return []
@@ -139,7 +138,7 @@ export class DbTransaction {
 		})
 	}
 
-	put(objectStore: string, key: string|Uint8Array, value: any): Promise<void> {
+	put(objectStore: string, key: string, value: any): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).put(value, key)
@@ -156,7 +155,7 @@ export class DbTransaction {
 	}
 
 
-	delete(objectStore: string, key: string|Uint8Array): Promise<void> {
+	delete(objectStore: string, key: string): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)

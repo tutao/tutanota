@@ -2,7 +2,6 @@
 import {SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS, DbTransaction} from "./DbFacade"
 import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
-import {arrayEquals} from "../../common/utils/ArrayUtils"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
 import {
@@ -13,7 +12,13 @@ import {
 } from "../../common/utils/Encoding"
 import {IV_BYTE_LENGTH, aes256Encrypt, aes256Decrypt} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {encryptIndexKey, encryptSearchIndexEntry, byteLength, getAppId} from "./IndexUtils"
+import {
+	encryptIndexKeyBase64,
+	encryptSearchIndexEntry,
+	byteLength,
+	getAppId,
+	encryptIndexKeyUint8Array
+} from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, GroupData, Db} from "./SearchTypes"
 
 export class IndexerCore {
@@ -74,20 +79,19 @@ export class IndexerCore {
 
 	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
 		let listId = id[0]
-		let encryptedInstanceId = encryptIndexKey(this.db.key, id[1])
+		let encryptedInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1])
 		let b64InstanceId = uint8ArrayToBase64(encryptedInstanceId)
 
 		let encryptionTimeStart = performance.now()
 		let words = []
 		keyToIndexEntries.forEach((value, indexKey) => {
-			let encIndexKey = encryptIndexKey(this.db.key, indexKey)
-			let b64IndexKey = uint8ArrayToBase64(encIndexKey)
-			let indexEntries = indexUpdate.create.indexMap.get(b64IndexKey)
+			let encIndexKey = encryptIndexKeyBase64(this.db.key, indexKey)
+			let indexEntries = indexUpdate.create.indexMap.get(encIndexKey)
 			words.push(indexKey)
 			if (!indexEntries) {
 				indexEntries = []
 			}
-			indexUpdate.create.indexMap.set(b64IndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encryptedInstanceId))))
+			indexUpdate.create.indexMap.set(encIndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encryptedInstanceId))))
 		})
 
 		indexUpdate.create.encInstanceIdToElementData.set(b64InstanceId, [
@@ -100,15 +104,15 @@ export class IndexerCore {
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		let encInstanceId = encryptIndexKey(this.db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(this.db.key, event.instanceId)
 		let transaction = this.db.dbFacade.createTransaction(true, [ElementDataOS])
 		return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 			if (!elementData) {
-				console.log("index data not available (instance is not indexed)", uint8ArrayToBase64(encInstanceId), event.instanceId)
+				console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
 				return
 			}
 			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
-			let encWords = words.map(word => uint8ArrayToBase64(encryptIndexKey(this.db.key, word)))
+			let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word))
 			encWords.map(encWord => {
 				let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
 				if (ids == null) {
@@ -162,11 +166,11 @@ export class IndexerCore {
 			return transaction.getAsList(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
 				if (encryptedSearchIndexEntries.length > 0) {
 					let promises = indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId))
-					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => arrayEquals(e[0], encInstanceId)) == null)
+					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) == encInstanceId) == null)
 					if (newEntries.length > 0) {
-						promises.push(transaction.put(SearchIndexOS, base64ToUint8Array(encWord), newEntries))
+						promises.push(transaction.put(SearchIndexOS, encWord, newEntries))
 					} else {
-						promises.push(transaction.delete(SearchIndexOS, base64ToUint8Array(encWord)))
+						promises.push(transaction.delete(SearchIndexOS, encWord))
 					}
 					return promises
 				}
@@ -182,12 +186,12 @@ export class IndexerCore {
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
-			promises.push(transaction.get(ElementDataOS, encInstanceId).then(result => {
+			promises.push(transaction.get(ElementDataOS, b64EncInstanceId).then(result => {
 				if (!result) { // only add the element to the index if it has not been indexed before
 					this._writeRequests += 1
 					this._storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
 					keysToUpdate[b64EncInstanceId] = true
-					transaction.put(ElementDataOS, encInstanceId, elementData)
+					transaction.put(ElementDataOS, b64EncInstanceId, elementData)
 				}
 			}))
 		}, {concurrency: 1})
@@ -200,7 +204,7 @@ export class IndexerCore {
 			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] == true)
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
-				promises.push(transaction.get(SearchIndexOS, encIndexKey).then((result) => {
+				promises.push(transaction.get(SearchIndexOS, b64EncIndexKey).then((result) => {
 					this._writeRequests += 1
 					let value
 					if (result && result.length > 0) {
@@ -213,7 +217,7 @@ export class IndexerCore {
 					value = value.concat(filteredEncryptedEntries)
 					this._largestColumn = value.length > this._largestColumn ? value.length : this._largestColumn
 					this._storedBytes += filteredEncryptedEntries.reduce((sum, e) => (sum + (e:any)[0].length + (e:any)[1].length), 0)
-					return transaction.put(SearchIndexOS, encIndexKey, value)
+					return transaction.put(SearchIndexOS, b64EncIndexKey, value)
 				}))
 			}
 		})

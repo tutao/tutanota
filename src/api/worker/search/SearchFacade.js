@@ -15,9 +15,9 @@ import type {
 	SearchIndexEntry,
 	Db
 } from "./SearchTypes"
-import {encryptIndexKey, decryptSearchIndexEntry} from "./IndexUtils"
+import {encryptIndexKeyBase64, decryptSearchIndexEntry} from "./IndexUtils"
 import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
-import {timestampToGeneratedId} from "../../common/utils/Encoding"
+import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {getStartOfDay} from "../../common/utils/DateUtils"
@@ -85,7 +85,7 @@ export class SearchFacade {
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
 		let transaction = this._db.dbFacade.createTransaction(true, [SearchIndexOS])
 		return Promise.map(searchTokens, (token) => {
-			let indexKey = encryptIndexKey(this._db.key, token)
+			let indexKey = encryptIndexKeyBase64(this._db.key, token)
 			return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
 				return {indexKey, indexEntries}
 			})
@@ -215,7 +215,7 @@ export class SearchFacade {
 	_filterByListIdAndGroupSearchResults(query: string, restriction: SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
 		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry) => {
 			let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
-			return transaction.get(ElementDataOS, neverNull(entry.encId)).then((elementData: ElementData) => {
+			return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
 				let safeSearchResult = neverNull(searchResult)
 				if (!restriction.listId || restriction.listId == elementData[0]) {
 					safeSearchResult.results.push([elementData[0], entry.id])

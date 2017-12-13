@@ -5,7 +5,12 @@ import {MailTypeRef, _TypeModel as MailTypeModel} from "../../../../src/api/enti
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {SearchIndexOS, ElementDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {createUser} from "../../../../src/api/entities/sys/User"
-import {encryptSearchIndexEntry, encryptIndexKey, getAppId} from "../../../../src/api/worker/search/IndexUtils"
+import {
+	encryptSearchIndexEntry,
+	encryptIndexKeyBase64,
+	getAppId,
+	encryptIndexKeyUint8Array
+} from "../../../../src/api/worker/search/IndexUtils"
 import type {
 	KeyToIndexEntries,
 	KeyToEncryptedIndexEntries,
@@ -27,7 +32,7 @@ o.spec("SearchFacade test", () => {
 	let createDbContent = (dbData: KeyToIndexEntries[]): KeyToEncryptedIndexEntries[] => {
 		return dbData.map(keyToIndexEntries => {
 			let encryptedSearchIndexEntries = keyToIndexEntries.indexEntries.map(entry => {
-				return encryptSearchIndexEntry(dbKey, entry, encryptIndexKey(dbKey, entry.id))
+				return encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id))
 			})
 			return {
 				indexKey: keyToIndexEntries.indexKey,
@@ -47,7 +52,7 @@ o.spec("SearchFacade test", () => {
 			get: (os, idKey): Promise<ElementData> => {
 				o(os).equals(ElementDataOS)
 				return Promise.resolve([neverNull(fullIds.find(id => {
-					let encId = encryptIndexKey(dbKey, id[1])
+					let encId = encryptIndexKeyBase64(dbKey, id[1])
 					return arrayEquals(encId, idKey)
 				}))[0], new Uint8Array(0), ""])
 			}
@@ -67,7 +72,7 @@ o.spec("SearchFacade test", () => {
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntry[]): KeyToIndexEntries => {
 		return {
-			indexKey: encryptIndexKey(dbKey, word),
+			indexKey: encryptIndexKeyBase64(dbKey, word),
 			indexEntries: entries
 		}
 	}
