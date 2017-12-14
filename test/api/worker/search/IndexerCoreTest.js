@@ -243,9 +243,9 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any))
-		Promise.all(core._moveIndexedInstance(indexUpdate, transaction)).then(() => done())
+		core._moveIndexedInstance(indexUpdate, transaction).then(() => done())
 	})
-
+	
 	o("writeIndexUpdate _deleteIndexedInstance", function (done) {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)

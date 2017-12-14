@@ -92,7 +92,10 @@ o.spec("Indexer test", () => {
 		indexer._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 
 		indexer._contact.indexFullContactList = o.spy(() => Promise.resolve())
+		indexer._contact._suggestionFacade.load = o.spy(() => Promise.resolve())
 		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
+		indexer._groupInfo._suggestionFacade.load = o.spy(() => Promise.resolve())
+
 		let persistentGroupData = [{persistentGroupData: "dummy"}]
 		indexer._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
 		indexer._loadNewEntities = o.spy()
@@ -111,6 +114,8 @@ o.spec("Indexer test", () => {
 			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
 			o(indexer._loadPersistentGroupData.args).deepEquals([user])
 			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
+			o(indexer._contact._suggestionFacade.load.callCount).equals(1)
+			o(indexer._groupInfo._suggestionFacade.load.callCount).equals(1)
 			done()
 		})
 	})

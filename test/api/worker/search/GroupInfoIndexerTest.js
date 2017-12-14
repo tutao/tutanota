@@ -17,7 +17,6 @@ import {
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {encryptIndexKeyBase64, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
 import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddressAlias"
 import {createUser} from "../../../../src/api/entities/sys/User"
@@ -27,24 +26,35 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
 
 o.spec("GroupInfoIndexer test", () => {
+
+	let suggestionFacadeMock
+	o.beforeEach(function () {
+		suggestionFacadeMock = ({}:any)
+		suggestionFacadeMock.addSuggestions = o.spy()
+		suggestionFacadeMock.store = o.spy(() => Promise.resolve())
+	})
+
+
 	o("createGroupInfoIndexEntries without entries", function () {
 		let g = createGroupInfo()
-		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(0)
 	})
 
 	o("createGroupInfoIndexEntries with one entry", function () {
 		let g = createGroupInfo()
 		g.name = "test"
-		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let indexer = new GroupInfoIndexer(new IndexerCore((null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("test")
 		o(keyToIndexEntries.size).equals(1)
 	})
 
 	o("createGroupInfoIndexEntries", function () {
 		let core = ({createIndexEntriesForAttributes: o.spy()}:any)
-		let indexer = new GroupInfoIndexer(core, (null:any), (null:any))
+		let indexer = new GroupInfoIndexer(core, (null:any), (null:any), suggestionFacadeMock)
 
 		let mailAddressAliases = [createMailAddressAlias(), createMailAddressAlias()]
 		mailAddressAliases[0].mailAddress = "MA0"
@@ -58,6 +68,8 @@ o.spec("GroupInfoIndexer test", () => {
 		g.deleted = undefined
 
 		indexer.createGroupInfoIndexEntries(g)
+
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("n,ma,ma0,ma1")
 
 		let args = core.createIndexEntriesForAttributes.args
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
@@ -82,7 +94,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let entity = ({
 			load: o.spy(() => Promise.resolve(groupInfo))
 		}:any)
-		const indexer = new GroupInfoIndexer(core, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		indexer.processNewGroupInfo(event).then(result => {
 			o(result).deepEquals({groupInfo, keyToIndexEntries})
@@ -99,7 +111,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new NotFoundError("blah"))
 		}:any)
-		const indexer = new GroupInfoIndexer(core, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		indexer.processNewGroupInfo(event).then(result => {
 			o(result).equals(null)
@@ -114,7 +126,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new Error("blah"))
 		}:any)
-		const indexer = new GroupInfoIndexer(core, (null:any), entity)
+		const indexer = new GroupInfoIndexer(core, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		indexer.processNewGroupInfo(event).catch(Error, e => {
 			done()
@@ -169,7 +181,7 @@ o.spec("GroupInfoIndexer test", () => {
 			}
 		}
 
-		const indexer = new GroupInfoIndexer(core, db, entity)
+		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
@@ -178,6 +190,7 @@ o.spec("GroupInfoIndexer test", () => {
 
 			let expectedKeys = [encryptIndexKeyBase64(db.key, userGroupInfo._id[1]), encryptIndexKeyBase64(db.key, teamGroupInfo._id[1])]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(2)
 		}).then(done)
 	})
 
@@ -193,7 +206,7 @@ o.spec("GroupInfoIndexer test", () => {
 		user.customer = "customer-id"
 
 
-		const indexer = new GroupInfoIndexer(core, db, (null:any))
+		const indexer = new GroupInfoIndexer(core, db, (null:any), suggestionFacadeMock)
 		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
@@ -232,7 +245,7 @@ o.spec("GroupInfoIndexer test", () => {
 			}
 		}
 
-		const indexer = new GroupInfoIndexer(core, db, entity)
+		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
@@ -244,7 +257,7 @@ o.spec("GroupInfoIndexer test", () => {
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
-		const indexer = new GroupInfoIndexer(core, db, (null:any))
+		const indexer = new GroupInfoIndexer(core, db, (null:any), suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1"), createUpdate(OperationType.UPDATE, "groupInfo-list", "2"), createUpdate(OperationType.DELETE, "groupInfo-list", "3")]
@@ -257,6 +270,7 @@ o.spec("GroupInfoIndexer test", () => {
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
 			o(core._processDeleted.callCount).equals(0)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 			done()
 		})
 	})
@@ -275,7 +289,7 @@ o.spec("GroupInfoIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new GroupInfoIndexer(core, db, entity)
+		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1")]
@@ -306,7 +320,7 @@ o.spec("GroupInfoIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new GroupInfoIndexer(core, db, entity)
+		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "1")]
@@ -320,6 +334,8 @@ o.spec("GroupInfoIndexer test", () => {
 			o(indexUpdate.move.length).equals(0)
 			o(core._processDeleted.callCount).equals(1)
 			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 			done()
 		})
 	})
@@ -338,7 +354,7 @@ o.spec("GroupInfoIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new GroupInfoIndexer(core, db, entity)
+		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]

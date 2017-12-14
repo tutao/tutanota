@@ -9,19 +9,24 @@ import {_createNewIndexUpdate, userIsAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
+import {SuggestionFacade} from "./SuggestionFacade"
+import {tokenize} from "./Tokenizer"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;
 	_db: Db;
 	_entity: EntityWorker;
+	_suggestionFacade: SuggestionFacade<GroupInfo>
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker) {
+	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<GroupInfo>) {
 		this._core = core
 		this._db = db
 		this._entity = entity
+		this._suggestionFacade = suggestionFacade
 	}
 
 	createGroupInfoIndexEntries(groupInfo: GroupInfo): Map<string, SearchIndexEntry[]> {
+		this._suggestionFacade.addSuggestions(this._getSuggestionWords(groupInfo))
 		return this._core.createIndexEntriesForAttributes(GroupInfoModel, groupInfo, [
 			{
 				attribute: GroupInfoModel.values["name"],
@@ -35,9 +40,17 @@ export class GroupInfoIndexer {
 			}])
 	}
 
+	_getSuggestionWords(groupInfo: GroupInfo): string[] {
+		return tokenize(groupInfo.name + " " + (groupInfo.mailAddress ? groupInfo.mailAddress : "") + " " + groupInfo.mailAddressAliases.map(alias => alias.mailAddress).join(" "))
+	}
+
+
 	processNewGroupInfo(event: EntityUpdate): Promise<?{groupInfo: GroupInfo, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
 		return this._entity.load(GroupInfoTypeRef, [event.instanceListId, event.instanceId]).then(groupInfo => {
-			return {groupInfo, keyToIndexEntries: this.createGroupInfoIndexEntries(groupInfo)}
+			let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
+			return this._suggestionFacade.store().then(() => {
+				return {groupInfo, keyToIndexEntries}
+			})
 		}).catch(NotFoundError, () => {
 			console.log("tried to index non existing group info")
 			return null
@@ -60,7 +73,7 @@ export class GroupInfoIndexer {
 								this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 							})
 							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-							return this._core.writeIndexUpdate(indexUpdate)
+							return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
 						})
 					}
 				})

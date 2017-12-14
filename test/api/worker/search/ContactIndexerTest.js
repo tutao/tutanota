@@ -19,29 +19,42 @@ import {
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {encryptIndexKeyBase64, _createNewIndexUpdate} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
 
 o.spec("ContactIndexer test", () => {
+
+
+	let suggestionFacadeMock
+	o.beforeEach(function () {
+		suggestionFacadeMock = ({}:any)
+		suggestionFacadeMock.addSuggestions = o.spy()
+		suggestionFacadeMock.store = o.spy(() => Promise.resolve())
+	})
+
+
 	o("createContactIndexEntries without entries", function () {
 		let c = createContact()
-		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
+		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(0)
 	})
 
 	o("createContactIndexEntries with one entry", function () {
 		let c = createContact()
 		c.company = "test"
-		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any))
+		let contact = new ContactIndexer(new IndexerCore((null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(1)
+
 	})
 
 	o("createContactIndexEntries", function () {
 		let core = ({createIndexEntriesForAttributes: o.spy()}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), (null:any))
+		const contactIndexer = new ContactIndexer(core, (null:any), (null:any), suggestionFacadeMock)
 
 		let addresses = [createContactAddress(), createContactAddress()]
 		addresses[0].address = "A0"
@@ -74,7 +87,7 @@ o.spec("ContactIndexer test", () => {
 		c.socialIds = []
 
 		contactIndexer.createContactIndexEntries(c)
-
+		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("fn,ln,ma0,ma1")
 		let args = core.createIndexEntriesForAttributes.args
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
 		o(args[0]).equals(ContactModel)
@@ -106,12 +119,18 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: o.spy(() => Promise.resolve(contact))
 		}:any)
-		const contactIndexer = new ContactIndexer(indexer, (null:any), entity)
+
+
+		const contactIndexer = new ContactIndexer(indexer, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		contactIndexer.processNewContact(event).then(result => {
 			o(result).deepEquals({contact, keyToIndexEntries})
 			o(contactIndexer._entity.load.args[0]).equals(ContactTypeRef)
 			o(contactIndexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
+			o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
+			o(suggestionFacadeMock.store.callCount).equals(1)
+
 		}).then(done)
 	})
 
@@ -123,10 +142,11 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new NotFoundError("blah"))
 		}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), entity)
+		const contactIndexer = new ContactIndexer(core, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		contactIndexer.processNewContact(event).then(result => {
 			o(result).equals(null)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		}).then(done)
 	})
 
@@ -138,10 +158,11 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new NotAuthorizedError("blah"))
 		}:any)
-		const contactIndexer = new ContactIndexer(indexer, (null:any), entity)
+		const contactIndexer = new ContactIndexer(indexer, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		contactIndexer.processNewContact(event).then(result => {
 			o(result).equals(null)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		}).then(done)
 	})
 
@@ -153,9 +174,10 @@ o.spec("ContactIndexer test", () => {
 		let entity = ({
 			load: () => Promise.reject(new Error("blah"))
 		}:any)
-		const contactIndexer = new ContactIndexer(core, (null:any), entity)
+		const contactIndexer = new ContactIndexer(core, (null:any), entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
 		contactIndexer.processNewContact(event).catch(Error, e => {
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 			done()
 		})
 	})
@@ -194,12 +216,14 @@ o.spec("ContactIndexer test", () => {
 				return Promise.resolve(contacts)
 			}
 		}:any)
-		const contactIndexer = new ContactIndexer(core, db, entity)
+		const contactIndexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			let expectedKeys = [encryptIndexKeyBase64(db.key, contacts[0]._id[1]), encryptIndexKeyBase64(db.key, contacts[1]._id[1])]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(contacts.length)
+			o(suggestionFacadeMock.store.callCount).equals(1)
 		}).then(done)
 	})
 
@@ -236,7 +260,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("should not be invoked as contacts are already indexed")
 			}
 		}:any)
-		const contactIndexer = new ContactIndexer(core, db, entity)
+		const contactIndexer = new ContactIndexer(core, db, entity, (null:any))
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
@@ -256,7 +280,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity)
+		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.CREATE, "contact-list", "1")]
@@ -283,7 +307,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity)
+		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.UPDATE, "contact-list", "1")]
@@ -311,7 +335,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity)
+		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.DELETE, "contact-list", "1")]

@@ -130,13 +130,10 @@ export class IndexerCore {
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = performance.now()
 		let transaction = this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS])
-
-		let promises = this._moveIndexedInstance(indexUpdate, transaction)
-
-		promises.concat(this._deleteIndexedInstance(indexUpdate, transaction))
-
-		return this._insertNewElementData(indexUpdate, transaction).then(keysToUpdate => {
-			return Promise.all(promises).then(() => {
+		return this._moveIndexedInstance(indexUpdate, transaction)
+			.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
+			.then(() => this._insertNewElementData(indexUpdate, transaction))
+			.then(keysToUpdate => {
 				return Promise.all([
 					this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction),
 					this._updateGroupData(indexUpdate, transaction)
@@ -145,20 +142,18 @@ export class IndexerCore {
 						this._storageTime += (performance.now() - startTimeStorage)
 					})
 				})
-
 			})
-		})
 	}
 
-	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void>[] {
-		return indexUpdate.move.map(moveInstance => {
+	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
+		return Promise.all(indexUpdate.move.map(moveInstance => {
 			return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
 				if (elementData) {
 					elementData[0] = moveInstance.newListId
 					transaction.put(ElementDataOS, moveInstance.encInstanceId, elementData)
 				}
 			})
-		})
+		})).return()
 	}
 
 	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
@@ -253,7 +248,6 @@ export class IndexerCore {
 				if (!transaction.aborted) {
 					return transaction.put(GroupDataOS, indexUpdate.groupId, groupData)
 				}
-
 			})
 		}
 		return Promise.resolve()

@@ -3,7 +3,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
-import {TypeRef, firstBiggerThanSecond, isSameTypeRef} from "../../common/EntityFunctions"
+import {TypeRef, firstBiggerThanSecond, isSameTypeRef, isSameId} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals, contains} from "../../common/utils/ArrayUtils"
 import {neverNull} from "../../common/utils/Utils"
@@ -21,16 +21,19 @@ import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Enc
 import {MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {getStartOfDay} from "../../common/utils/DateUtils"
+import {SuggestionFacade} from "./SuggestionFacade"
 
 export class SearchFacade {
 	_loginFacade: LoginFacade;
 	_db: Db;
 	_mailIndexer: MailIndexer;
+	_suggestionFacades: SuggestionFacade<any>[];
 
-	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer) {
+	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[]) {
 		this._loginFacade = loginFacade
 		this._db = db
 		this._mailIndexer = mailIndexer
+		this._suggestionFacades = suggestionFacades
 	}
 
 	/****************************** SEARCH ******************************/
@@ -42,7 +45,7 @@ export class SearchFacade {
 	 * @param attributes
 	 * @returns {Promise.<U>|Promise.<SearchResult>}
 	 */
-	search(query: string, restriction: SearchRestriction): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
 		if (searchTokens.length > 0) {
 			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
@@ -56,8 +59,13 @@ export class SearchFacade {
 				// ranking ->all tokens are in correct order in the same attribute
 			).then(searchResult => {
 				// default sort order for mails
-				searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
-				return searchResult
+				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
+				if (useSuggestions && searchTokens.length == 1 && suggestionFacade && searchResult.results.length < 10) {
+					return this._searchForSuggestions(searchTokens[0], suggestionFacade, restriction, searchResult)
+				} else {
+					searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
+					return searchResult
+				}
 			})
 		} else {
 			return Promise.resolve({
@@ -68,6 +76,29 @@ export class SearchFacade {
 			})
 		}
 	}
+
+	_searchForSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, initialResult: SearchResult): Promise<SearchResult> {
+		let suggestions = suggestionFacade.getSuggestions(searchToken)
+		return Promise.reduce(suggestions, (mergedResult, suggestion) => {
+			if (mergedResult.results.length < 10) {
+				return this.search(suggestion, restriction, false).then(suggestionResults => {
+					// add suggestion results to search result
+					suggestionResults.results.forEach(suggestionResult => {
+						if (mergedResult.results.findIndex(r => isSameId(r, suggestionResult)) == -1) {
+							mergedResult.results.push(suggestionResult)
+						}
+					})
+					return mergedResult
+				})
+			} else {
+				return mergedResult
+			}
+		}, initialResult).then((searchResult) => {
+			searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
+			return searchResult
+		})
+	}
+
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
 		if (isSameTypeRef(MailTypeRef, restriction.type)) {

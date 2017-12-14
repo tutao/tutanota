@@ -6,6 +6,7 @@ export const SearchIndexOS = "SearchIndex"
 export const ElementDataOS = "ElementData"
 export const MetaDataOS = "MetaData"
 export const GroupDataOS = "GroupMetaData"
+export const SearchTermSuggestionsOS = "SearchTermSuggestions"
 
 
 export class DbFacade {
@@ -30,6 +31,7 @@ export class DbFacade {
 					db.createObjectStore(ElementDataOS)
 					db.createObjectStore(MetaDataOS)
 					db.createObjectStore(GroupDataOS)
+					db.createObjectStore(SearchTermSuggestionsOS)
 				} catch (e) {
 					callback(new DbError("could not create object store searchindex", e))
 				}

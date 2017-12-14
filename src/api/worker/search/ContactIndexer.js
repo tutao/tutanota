@@ -9,16 +9,20 @@ import {GroupDataOS, MetaDataOS} from "./DbFacade"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {IndexerCore} from "./IndexerCore"
+import {SuggestionFacade} from "./SuggestionFacade"
+import {tokenize} from "./Tokenizer"
 
 export class ContactIndexer {
 	_core: IndexerCore;
 	_db: Db;
 	_entity: EntityWorker;
+	_suggestionFacade: SuggestionFacade<Contact>;
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker) {
+	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<Contact>) {
 		this._core = core
 		this._db = db
 		this._entity = entity
+		this._suggestionFacade = suggestionFacade
 	}
 
 
@@ -58,12 +62,20 @@ export class ContactIndexer {
 				attribute: ContactModel.associations["socialIds"],
 				value: () => contact.socialIds.map(s => s.socialId).join(","),
 			}])
+		this._suggestionFacade.addSuggestions(this._getSuggestionWords(contact))
 		return keyToIndexEntries
+	}
+
+	_getSuggestionWords(contact: Contact): string[] {
+		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address).join(" "))
 	}
 
 	processNewContact(event: EntityUpdate): Promise<?{contact: Contact, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
 		return this._entity.load(ContactTypeRef, [event.instanceListId, event.instanceId]).then(contact => {
-			return {contact, keyToIndexEntries: this.createContactIndexEntries(contact)}
+			let keyToIndexEntries = this.createContactIndexEntries(contact)
+			return this._suggestionFacade.store().then(() => {
+				return {contact, keyToIndexEntries}
+			})
 		}).catch(NotFoundError, () => {
 			console.log("tried to index non existing contact")
 			return null
@@ -86,7 +98,7 @@ export class ContactIndexer {
 							this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 						})
 						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-						return this._core.writeIndexUpdate(indexUpdate)
+						return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
 					})
 				}
 			})
@@ -99,14 +111,18 @@ export class ContactIndexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		return Promise.each(events, (event, index) => {
 			if (event.operation == OperationType.CREATE) {
-				this.processNewContact(event).then(result => {
-					if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+				return this.processNewContact(event).then(result => {
+					if (result) {
+						this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+					}
 				})
 			} else if (event.operation == OperationType.UPDATE) {
 				return Promise.all([
 					this._core._processDeleted(event, indexUpdate),
 					this.processNewContact(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						}
 					})
 				])
 			} else if (event.operation == OperationType.DELETE) {

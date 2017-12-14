@@ -30,6 +30,7 @@ import {MailIndexer} from "./MailIndexer"
 import {IndexerCore} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
+import {SuggestionFacade} from "./SuggestionFacade"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -67,9 +68,10 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db)
 		this._entity = new EntityWorker()
-		this._contact = new ContactIndexer(this._core, this.db, this._entity)
+		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
-		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity)
+		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
+
 	}
 
 	/**
@@ -103,6 +105,8 @@ export class Indexer {
 								this._mail._excludedListIds = excludedListIds
 							}),
 							this._groupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user)),
+							this._contact._suggestionFacade.load(),
+							this._groupInfo._suggestionFacade.load()
 						]).return()
 					}
 				})
@@ -246,7 +250,7 @@ export class Indexer {
 			this._eventQueue.push({events, groupId, batchId})
 			return Promise.resolve()
 		}
-		this._queueEvents = true
+
 		if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) == -1) {
 			console.log("not indexed group", groupId)
 			return Promise.resolve()
@@ -266,6 +270,8 @@ export class Indexer {
 			}
 			return all
 		}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
+
+		this._queueEvents = true
 		return Promise.all([
 			this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 			this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),

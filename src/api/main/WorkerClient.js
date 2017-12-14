@@ -2,7 +2,6 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
-import {EntityEventController} from "./EntityEventController"
 import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
@@ -10,12 +9,7 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {
-	OperationTypeEnum,
-	EntropySrcEnum,
-	ConversationTypeEnum,
-	AccountTypeEnum
-} from "../common/TutanotaConstants"
+import type {EntropySrcEnum, ConversationTypeEnum, AccountTypeEnum} from "../common/TutanotaConstants"
 import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
 
@@ -308,7 +302,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('generateTotpCode', arguments))
 	}
 
-	search(searchString: string, restriction: ?SearchRestriction): Promise<SearchResult> {
+	search(searchString: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
 		return this._postRequest(new Request('search', arguments))
 	}
 

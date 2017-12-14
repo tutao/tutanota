@@ -67,7 +67,7 @@ o.spec("SearchFacade test", () => {
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp,
 			indexMailbox: (user, endIndexTime) => indexMailBoxReceiver.indexMailbox(user, endIndexTime)
-		}:any))
+		}:any), [])
 	}
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntry[]): KeyToIndexEntries => {
@@ -298,9 +298,9 @@ o.spec("SearchFacade test", () => {
 		})
 	})
 
-	let testSearch = (dbData: KeyToIndexEntries[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0): Promise<void> => {
+	let testSearch = (dbData: KeyToIndexEntries[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, useSuggestions: boolean = false): Promise<void> => {
 		let s = createSearchFacade(dbData, listIds, currentIndexTimestamp)
-		return s.search(query, restriction).then(result => {
+		return s.search(query, restriction, useSuggestions).then(result => {
 			o(result.query).equals(query)
 			o(result.restriction).deepEquals(restriction)
 			o(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))
