@@ -46,17 +46,17 @@ export function base64ToBase64Url(base64: Base64): Base64Url {
 	return base64url
 }
 
+const base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
+
 /**
  * Converts a base64 string to a base64ext string. Base64ext uses another character set than base64 in order to make it sortable.
  *
  *
  * @param base64 The base64 string.
- * @return The base64url string.
+ * @return The base64Ext string.
  */
 export function base64ToBase64Ext(base64: Base64): Base64Ext {
-	let base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	let base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
-
 	base64 = base64.replace(/=/g, "")
 	let base64ext = new Array(base64.length)
 	for (let i = 0; i < base64.length; i++) {
@@ -64,6 +64,22 @@ export function base64ToBase64Ext(base64: Base64): Base64Ext {
 		base64ext[i] = base64extAlphabet[index]
 	}
 	return base64ext.join("")
+}
+/**
+ * Converts a Base64Ext string to a Base64 string and appends the padding if needed.
+ * @param base64ext The base64Ext string
+ * @returns The base64 string
+ */
+export function base64ExtToBase64(base64ext: Base64Ext): Base64 {
+	let base64 = new Array(base64ext.length)
+	for (let i = 0; i < base64.length; i++) {
+		let index = base64extAlphabet.indexOf(base64ext.charAt(i))
+		base64[i] = base64Alphabet[index]
+	}
+	let padding = ""
+	if (base64.length % 4 == 2) padding = "=="
+	if (base64.length % 4 == 3) padding = "="
+	return base64.join("") + padding
 }
 
 /**
@@ -83,14 +99,28 @@ export function timestampToHexGeneratedId(timestamp: number): Hex {
 }
 
 /**
- * Converts a timestamp number to a GeneratedId (the counter is set to zero).
+ * Converts a timestamp number to a GeneratedId (the counter and server bits are set to zero).
  *
  * @param timestamp The timestamp of the GeneratedId
  * @return The GeneratedId.
  */
-export function timestampToGeneratedId(timestamp: number): Base64Ext {
+export function timestampToGeneratedId(timestamp: number): Id {
 	let hex = timestampToHexGeneratedId(timestamp)
 	return base64ToBase64Ext(hexToBase64(hex))
+}
+
+/**
+ * Extracts the timestamp from a GeneratedId
+ * @param base64Ext The id as base64Ext
+ * @returns The timestamp of the GeneratedId
+ */
+export function generatedIdToTimestamp(base64Ext: Id) {
+	let long = base64ToHex(base64ExtToBase64(base64Ext)).substring(0, 16)
+	// js only supports 32bit shift operations. That is why we split our 8 byte value into two 4 byte values and join them after shifting
+	let upper = parseInt(long.substring(0, 8), 16)
+	let lower = parseInt(long.substring(8, 16), 16)
+	let lowerShifted = lower >>> 22
+	return upper * Math.pow(2, 10) + lowerShifted
 }
 
 /**

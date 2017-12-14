@@ -16,6 +16,7 @@ import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
+import {timestampToGeneratedId, generatedIdToTimestamp} from "../../../../src/api/common/utils/Encoding"
 
 o.spec("Indexer test", () => {
 
@@ -396,15 +397,16 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities", function (done) {
+		const lastBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [{
 			groupId: "group-mail",
-			eventBatchIds: ["newest-batch-id", "last-batch-id"],
+			eventBatchIds: ["newest-batch-id", lastBatchId],
 		}]
 
 		let batches = [createEntityEventBatch(), createEntityEventBatch()]
 		batches[0]._id = ["group-mail", "batch-id"]
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
-		batches[1]._id = ["group-mail", "last-batch-id"]
+		batches[1]._id = ["group-mail", lastBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer: any = new Indexer((null:any), (null:any))
@@ -412,7 +414,8 @@ o.spec("Indexer test", () => {
 			loadAll: (type, groupId, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
 				o(groupId).equals("group-mail")
-				o(startId).equals("last-batch-id")
+				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+				o(startId).equals(expectedStartId)
 				return Promise.resolve(batches)
 			}
 		}
@@ -425,13 +428,14 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities batch already processed", function (done) {
+		const lastBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [{
 			groupId: "group-mail",
-			eventBatchIds: ["newest-batch-id", "last-batch-id"],
+			eventBatchIds: ["newest-batch-id", lastBatchId],
 		}]
 
 		let batches = [createEntityEventBatch()]
-		batches[0]._id = ["group-mail", "last-batch-id"]
+		batches[0]._id = ["group-mail", lastBatchId]
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer: any = new Indexer((null:any), (null:any))
@@ -439,7 +443,8 @@ o.spec("Indexer test", () => {
 			loadAll: (type, groupId, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
 				o(groupId).equals("group-mail")
-				o(startId).equals("last-batch-id")
+				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+				o(startId).equals(expectedStartId)
 				return Promise.resolve(batches)
 			}
 		}
@@ -452,9 +457,10 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities out of sync", function (done) {
+		const lastBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [{
 			groupId: "group-mail",
-			eventBatchIds: ["newest-batch-id", "last-batch-id"],
+			eventBatchIds: ["newest-batch-id", lastBatchId],
 		}]
 
 		let batches = [createEntityEventBatch()]
@@ -466,7 +472,8 @@ o.spec("Indexer test", () => {
 			loadAll: (type, groupId, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
 				o(groupId).equals("group-mail")
-				o(startId).equals("last-batch-id")
+				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+				o(startId).equals(expectedStartId)
 				return Promise.resolve(batches)
 			}
 		}

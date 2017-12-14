@@ -9,7 +9,12 @@ import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
 import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
 import {neverNull} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
-import {uint8ArrayToBase64, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {
+	uint8ArrayToBase64,
+	stringToUtf8Uint8Array,
+	generatedIdToTimestamp,
+	timestampToGeneratedId
+} from "../../common/utils/Encoding"
 import {aes256RandomKey} from "../crypto/Aes"
 import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
 import {userIsAdmin, filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
@@ -198,7 +203,9 @@ export class Indexer {
 	_loadNewEntities(groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[]): Promise<void> {
 		return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
 			if (groupIdToEventBatch.eventBatchIds.length > 0) {
-				let startId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
+				let lastBatchId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
+				// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
+				let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
 				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
 					let processedEntityEvents = eventBatches.filter((batch) => groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) !== -1)
 					if (processedEntityEvents.length == 0) {
