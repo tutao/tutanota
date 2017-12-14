@@ -143,14 +143,16 @@ export class Indexer {
 			return {id: m.group, type: neverNull(m.groupType)}
 		})
 		let t = this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		return t.getAllKeys(GroupDataOS).then((oldGroupIds: Id[]) => {
-			let deletedGroupIds = oldGroupIds.filter(oldGroupId => currentGroups.find(m => m.id == oldGroupId) == null)
-			let newGroups = currentGroups.filter(m => oldGroupIds.find(oldGroupId => m.id == oldGroupId) == null)
-			return Promise.map(deletedGroupIds, groupId => t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-				return {id: groupId, type: groupData.groupType}
-			})).then(deletedGroups => {
-				return {deletedGroups, newGroups}
+		return t.getAll(GroupDataOS).then((loadedGroups: {key: Id, value: GroupData}[]) => {
+			let oldGroups = loadedGroups.map((group: {key: Id, value: GroupData}) => {
+				return {id: group.key, type: group.value.groupType}
 			})
+			let deletedGroups = oldGroups.filter(oldGroup => currentGroups.find(m => m.id == oldGroup.id) == null)
+			let newGroups = currentGroups.filter(m => oldGroups.find(oldGroup => m.id == oldGroup.id) == null)
+			return {
+				deletedGroups,
+				newGroups
+			}
 		})
 	}
 

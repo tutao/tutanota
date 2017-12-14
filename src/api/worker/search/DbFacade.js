@@ -97,15 +97,21 @@ export class DbTransaction {
 		})
 	}
 
-	getAllKeys(objectStore: string): Promise<string[]> {
+	getAll(objectStore: string): Promise<{key:string, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
-				let request = (this._transaction.objectStore(objectStore):any).getAllKeys() // IndexedDB 2.0
+				let keys = []
+				let request = (this._transaction.objectStore(objectStore):any).openCursor() // IndexedDB 2.0
 				request.onerror = (event) => {
 					callback(new DbError("IDB Unable to retrieve data from database!", event))
 				}
 				request.onsuccess = (event) => {
-					callback(null, event.target.result)
+					let cursor = event.target.result
+					if (cursor) {
+						keys.push({key: cursor.key, value: cursor.value})
+					} else {
+						callback(null, keys)
+					}
 				}
 			} catch (e) {
 				callback(new DbError("IDB could not get data os:" + objectStore, e))

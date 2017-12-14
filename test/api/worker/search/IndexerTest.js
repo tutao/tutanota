@@ -175,15 +175,13 @@ o.spec("Indexer test", () => {
 		let deletedGroupId = "deleted-group-id"
 		let groupData = {groupType: GroupType.Team}
 		let transaction = {
-			getAllKeys: (os) => {
+			getAll: (os) => {
 				o(os).equals(GroupDataOS)
-				return Promise.resolve([deletedGroupId, user.memberships[1].group])
-			},
-			get: (os, groupId) => {
-				o(os).equals(GroupDataOS)
-				o(groupId).equals(deletedGroupId)
-				return Promise.resolve(groupData)
-			},
+				return Promise.resolve([{key: deletedGroupId, value: groupData}, {
+					key: user.memberships[1].group,
+					value: {}
+				}])
+			}
 		}
 
 		let indexer = new Indexer((null:any), (null:any))
