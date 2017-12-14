@@ -112,111 +112,111 @@ o.spec("SearchFacade test", () => {
 		dbKey = aes256RandomKey()
 	})
 
-	o("empty db", done => {
-		testSearch([], [], "test", createMailRestriction(), []).then(() => done())
+	o("empty db", () => {
+		return testSearch([], [], "test", createMailRestriction(), [])
 	})
 
-	o("empty query", done => {
-		testSearch([], [], "", createMailRestriction(), []).then(() => done())
+	o("empty query", () => {
+		return testSearch([], [], "", createMailRestriction(), [])
 	})
 
-	o("no words in query", done => {
-		testSearch([], [], " %.,:", createMailRestriction(), []).then(() => done())
+	o("no words in query", () => {
+		return testSearch([], [], " %.,:", createMailRestriction(), [])
 	})
 
-	o("find single entry", done => {
-		testSearch(
+	o("find single entry", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0])])],
 			[["listId1", "id1"]],
 			"test",
 			createMailRestriction(),
 			[["listId1", "id1"]]
-		).then(() => done())
+		)
 	})
 
-	o("find two entries", done => {
-		testSearch(
+	o("find two entries", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])])],
 			[["listId1", "id1"], ["listId2", "id2"]],
 			"test",
 			createMailRestriction(),
 			[["listId1", "id1"], ["listId2", "id2"]]
-		).then(() => done())
+		)
 	})
 
-	o("find type", done => {
-		testSearch(
+	o("find type", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createContactEntry("id2", 0, [0])])],
 			[["listId1", "id1"], ["listId2", "id2"]],
 			"test",
 			createMailRestriction(),
 			[["listId1", "id1"]]
-		).then(() => done())
+		)
 	})
 
-	o("find attribute", done => {
-		testSearch(
+	o("find attribute", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 1, [0])])],
 			[["listId1", "id1"], ["listId2", "id2"]],
 			"test",
 			createMailRestriction([1]),
 			[["listId2", "id2"]]
-		).then(() => done())
+		)
 	})
 
-	o("find listId", done => {
-		testSearch(
+	o("find listId", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])])],
 			[["listId1", "id1"], ["listId2", "id2"]],
 			"test",
 			createMailRestriction(null, "listId2"),
 			[["listId2", "id2"]]
-		).then(() => done())
+		)
 	})
 
-	o("find with start time", done => {
+	o("find with start time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let start = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
-		testSearch(
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
 			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction(null, null, start, null),
 			[["listId1", id1]]
-		).then(() => done())
+		)
 	})
 
-	o("find with end time", done => {
+	o("find with end time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let end = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
-		testSearch(
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
 			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction(null, null, null, end),
 			[["listId2", id2]]
-		).then(() => done())
+		)
 	})
 
-	o("find with start and end time", done => {
+	o("find with start and end time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let end = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
 		let start = new Date(2017, 5, 11).getTime()
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
-		testSearch(
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0]), createMailEntry(id3, 0, [0])])],
 			[["listId1", id1], ["listId2", id2], ["listId3", id3]],
 			"test",
 			createMailRestriction(null, null, start, end),
 			[["listId2", id2]]
-		).then(() => done())
+		)
 	})
 
-	o("find two search words", done => {
-		testSearch(
+	o("find two search words", () => {
+		return testSearch(
 			[
 				createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])]),
 				createKeyToIndexEntries("ja", [createMailEntry("id1", 0, [0])])
@@ -225,11 +225,11 @@ o.spec("SearchFacade test", () => {
 			"ja,test",
 			createMailRestriction(),
 			[["listId1", "id1"]]
-		).then(() => done())
+		)
 	})
 
-	o("find two search words ordered", done => {
-		testSearch(
+	o("find two search words ordered", () => {
+		return testSearch(
 			[
 				// id1 must be found, id2 does not have the correct order, id3 has the order but in different attributes
 				createKeyToIndexEntries("test", [createMailEntry("id1", 0, [6]), createMailEntry("id2", 0, [6]), createMailEntry("id3", 1, [6])]),
@@ -239,20 +239,20 @@ o.spec("SearchFacade test", () => {
 			"\"ja,test\"",
 			createMailRestriction(),
 			[["listId1", "id1"]]
-		).then(() => done())
+		)
 	})
 
-	o("reduce ids", done => {
-		testSearch(
+	o("reduce ids", () => {
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id1", 1, [0])])],
 			[["listId1", "id1"]],
 			"test",
 			createMailRestriction(),
 			[["listId1", "id1"]]
-		).then(() => done())
+		)
 	})
 
-	o("index mailbox", done => {
+	o("index mailbox", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
 		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
 		let end = new Date(2017, 5, 7).getTime()
@@ -263,7 +263,7 @@ o.spec("SearchFacade test", () => {
 			o(endIndexTime).equals(end)
 			indexCalled = true
 		}
-		testSearch(
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
 			[["listId1", id1]],
 			"test",
@@ -273,11 +273,10 @@ o.spec("SearchFacade test", () => {
 		).then(() => {
 			o(indexCalled).equals(true)
 			indexMailBoxReceiver.indexMailbox = () => null
-			done()
 		})
 	})
 
-	o("do not index mailbox", done => {
+	o("do not index mailbox", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
 		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
 		let end = new Date(2017, 5, 8).getTime()
@@ -286,7 +285,7 @@ o.spec("SearchFacade test", () => {
 		indexMailBoxReceiver.indexMailbox = (user, endIndexTime) => {
 			indexCalled = true
 		}
-		testSearch(
+		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
 			[["listId1", id1]],
 			"test",
@@ -296,7 +295,6 @@ o.spec("SearchFacade test", () => {
 		).then(() => {
 			o(indexCalled).equals(false)
 			indexMailBoxReceiver.indexMailbox = () => null
-			done()
 		})
 	})
 
