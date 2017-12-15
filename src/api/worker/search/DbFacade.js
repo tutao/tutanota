@@ -103,7 +103,7 @@ export class DbTransaction {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
-				let request = (this._transaction.objectStore(objectStore):any).openCursor() // IndexedDB 2.0
+				let request = (this._transaction.objectStore(objectStore):any).openCursor()
 				request.onerror = (event) => {
 					callback(new DbError("IDB Unable to retrieve data from database!", event))
 				}
@@ -111,8 +111,9 @@ export class DbTransaction {
 					let cursor = event.target.result
 					if (cursor) {
 						keys.push({key: cursor.key, value: cursor.value})
+						cursor.continue() // onsuccess is called again
 					} else {
-						callback(null, keys)
+						callback(null, keys) // cursor has reached the end
 					}
 				}
 			} catch (e) {
