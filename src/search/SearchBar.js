@@ -45,6 +45,8 @@ type ShowMoreAction = {
 	allowShowMore:boolean
 }
 
+const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
+
 export class SearchBar {
 	view: Function;
 	_domInput: HTMLInputElement;
@@ -116,7 +118,7 @@ export class SearchBar {
 					})),
 					m(".searchInputWrapper.flex-end.items-center", {
 						style: {
-							"width": this.expanded ? px(200) : px(0),
+							"width": this.expanded ? px(SEARCH_INPUT_WIDTH) : px(0),
 							"transition": `width ${DefaultAnimationTime}ms`,
 							'padding-left': this.expanded ? '10px' : '0px',
 							'padding-top': '3px',
@@ -547,6 +549,11 @@ export class SearchBar {
 	isVisible() {
 		let route = m.route.get()
 		return styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
+	}
+
+
+	getMaxWidth(): number {
+		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
 	}
 
 }

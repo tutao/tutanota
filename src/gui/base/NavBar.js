@@ -142,7 +142,7 @@ export class NavBar {
 		let remainingSpace = this.maxWidth
 
 		if (this.searchBar && this.searchBar.isVisible()) {
-			remainingSpace = remainingSpace - 240 // reserve space for expanded search bar
+			remainingSpace = remainingSpace - this.searchBar.getMaxWidth() // reserve space for expanded search bar
 		}
 
 		let buttons: SortedButtons = {
