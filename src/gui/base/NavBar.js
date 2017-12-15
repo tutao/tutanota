@@ -141,6 +141,10 @@ export class NavBar {
 		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.button.isVisible())
 		let remainingSpace = this.maxWidth
 
+		if (this.searchBar && this.searchBar.isVisible()) {
+			remainingSpace = remainingSpace - 240 // reserve space for expanded search bar
+		}
+
 		let buttons: SortedButtons = {
 			visible,
 			hidden
