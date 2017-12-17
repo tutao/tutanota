@@ -289,12 +289,13 @@ export function createDropDownButton(labelTextIdOrTextFunction: string|lazy<stri
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazyAsync<Array<string|NavButton|Button>>, width: number = 200): Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
-		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
+		let resultPromise = buttonPromise
+		if (!resultPromise.isFulfilled()) {
+			resultPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
 				return module.showProgressDialog("loading_msg", buttonPromise)
 			})
 		}
-		buttonPromise.then(buttons => {
+		resultPromise.then(buttons => {
 			let dropdown = new Dropdown(() => buttons, width)
 			if (mainButton._domButton) {
 				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()

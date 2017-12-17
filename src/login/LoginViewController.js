@@ -27,7 +27,6 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
-import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -143,11 +142,6 @@ export class LoginViewController {
 			return this._showUpgradeReminder()
 		}).then(() => {
 			return this._checkStorageWarningLimit()
-		}).then(() => {
-			if (logins.getUserController().isInternalUser()) {
-				// run this async
-				locator.contact.lazyContacts.getAsync()
-			}
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
 		}).then(() => mailModel.init())

@@ -3,7 +3,13 @@ import m from "mithril"
 import {log, timer, Cat} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import {GENERATED_MAX_ID, firstBiggerThanSecond, getLetId} from "../../api/common/EntityFunctions"
+import {
+	GENERATED_MAX_ID,
+	firstBiggerThanSecond,
+	getLetId,
+	compareNewestFirst,
+	compareOldestFirst
+} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUtils"
@@ -1018,18 +1024,10 @@ class SwipeHandler {
 }
 
 
-export function sortCompareByReverseId(entity1: Object, entity2: Object) {
-	if (entity1._id[1] == entity2._id[1]) {
-		return 0
-	} else {
-		return firstBiggerThanSecond(entity1._id[1], entity2._id[1]) ? -1 : 1
-	}
+export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
+	return compareNewestFirst((entity1._id[1]:any), (entity2._id[1]:any))
 }
 
-export function sortCompareById(entity1: Object, entity2: Object) {
-	if (entity1._id[1] == entity2._id[1]) {
-		return 0
-	} else {
-		return firstBiggerThanSecond(entity1._id[1], entity2._id[1]) ? 1 : -1
-	}
+export function sortCompareById(entity1: Object, entity2: Object): number {
+	return compareOldestFirst((entity1._id[1]:any), (entity2._id[1]:any))
 }

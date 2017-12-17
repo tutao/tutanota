@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
-import {worker} from "../api/main/WorkerClient"
 import {ContactViewer} from "./ContactViewer"
 import {header} from "../gui/base/Header"
 import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/base/Button"
@@ -31,6 +30,7 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
+import {LazyContactListId} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
@@ -172,7 +172,7 @@ export class ContactView {
 							return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 								let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
 								let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
-								return locator.contact.lazyContactListId.getAsync().then(contactListId => {
+								return LazyContactListId.getAsync().then(contactListId => {
 									let promises = []
 									contactList.forEach((contact) => {
 										promises.push(setup(contactListId, contact))
@@ -202,12 +202,12 @@ export class ContactView {
 	 */
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
-			locator.contact.lazyContactListId.getAsync().then(contactListId => {
+			LazyContactListId.getAsync().then(contactListId => {
 				this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
-			locator.contact.lazyContactListId.getAsync().then(contactListId => {
+			LazyContactListId.getAsync().then(contactListId => {
 				if (args.listId != contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {

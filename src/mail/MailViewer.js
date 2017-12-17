@@ -59,8 +59,8 @@ import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {animations, scroll} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
-import {locator} from "../api/main/MainLocator"
 import {theme} from "../gui/theme"
+import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
@@ -106,12 +106,12 @@ export class MailViewer {
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
 
-		let senderBubble = createDropDownButton(() => getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null, () => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250).setType(ButtonType.Bubble)
+		let senderBubble = createAsyncDropDownButton(() => getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null, () => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250).setType(ButtonType.Bubble)
 		let differentSenderBubble = (this._isEnvelopeSenderVisible()) ? new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false), () => Dialog.error("envelopeSenderInfo_msg"), () => Icons.Warning).setType(ButtonType.Bubble) : null
-		let toRecipientBubbles = this.mail.toRecipients.map(recipient => createDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), 250).setType(ButtonType.Bubble))
-		let ccRecipientBubbles = this.mail.ccRecipients.map(recipient => createDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), 250).setType(ButtonType.Bubble))
-		let bccRecipientBubbles = this.mail.bccRecipients.map(recipient => createDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), 250).setType(ButtonType.Bubble))
-		let replyToBubbles = this.mail.replyTos.map(recipient => createDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, null), 250).setType(ButtonType.Bubble))
+		let toRecipientBubbles = this.mail.toRecipients.map(recipient => createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), 250).setType(ButtonType.Bubble))
+		let ccRecipientBubbles = this.mail.ccRecipients.map(recipient => createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), 250).setType(ButtonType.Bubble))
+		let bccRecipientBubbles = this.mail.bccRecipients.map(recipient => createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), 250).setType(ButtonType.Bubble))
+		let replyToBubbles = this.mail.replyTos.map(recipient => createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null, () => this._createBubbleContextButtons(recipient, null), 250).setType(ButtonType.Bubble))
 
 		let detailsExpander = new ExpanderButton("showMore_action", new ExpanderPanel({
 			view: () =>
@@ -321,29 +321,32 @@ export class MailViewer {
 		}
 	}
 
-	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?string) {
-		let buttons = [address.address]
+	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?string): Promise<(Button|string)[]> {
 		if (logins.getUserController().isInternalUser()) {
-			let contact = locator.contact.findContactByMailAddress(address.address)
-			if (contact) {
-				buttons.push(new Button("showContact_action", () => {
-					header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-					m.route.set(header.contactsUrl + location.hash)
-				}, null).setType(ButtonType.Secondary))
-			} else {
-				buttons.push(new Button("createContact_action", () => {
-					locator.contact.lazyContactListId.getAsync().then(contactListId => {
-						new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
-					})
-				}, null).setType(ButtonType.Secondary))
-			}
-			if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount() && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)) {
-				buttons.push(new Button("addRule_action", () => {
-					AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
-				}, null).setType(ButtonType.Secondary))
-			}
+			return searchForContactByMailAddress(address.address).then(contact => {
+				let buttons = [address.address]
+				if (contact) {
+					buttons.push(new Button("showContact_action", () => {
+						header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
+						m.route.set(header.contactsUrl + location.hash)
+					}, null).setType(ButtonType.Secondary))
+				} else {
+					buttons.push(new Button("createContact_action", () => {
+						LazyContactListId.getAsync().then(contactListId => {
+							new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
+						})
+					}, null).setType(ButtonType.Secondary))
+				}
+				if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount() && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)) {
+					buttons.push(new Button("addRule_action", () => {
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+					}, null).setType(ButtonType.Secondary))
+				}
+				return buttons
+			})
+		} else {
+			return Promise.resolve([address.address])
 		}
-		return buttons
 	}
 
 	_isEnvelopeSenderVisible(): boolean {

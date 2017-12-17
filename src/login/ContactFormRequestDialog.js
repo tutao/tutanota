@@ -265,7 +265,7 @@ export class ContactFormRequestDialog {
 							p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
 						}
 
-						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "")
+						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "", null, true)
 						return p.then(() => resolveRecipientInfo(recipientInfo).then(r => {
 							let recipientInfos = [r]
 							return worker.createMailDraft(this._subject.value(), this._editor.getValue(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {

@@ -28,6 +28,19 @@ export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayL
 	}, null)
 }
 
+export function asyncFindAndMap<T, R>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<?R>): Promise<?R> {
+	return Promise.reduce(array, (result, item, index, length) => {
+		if (result) {
+			// the item has been found already, so skip all remaining items in the array
+			return result
+		} else {
+			return finder(item, index, length).then(currentResult => {
+				return (currentResult) ? currentResult : null
+			})
+		}
+	}, null)
+}
+
 export function neverNull<T>(object: ?T): T {
 	return (object:any)
 }

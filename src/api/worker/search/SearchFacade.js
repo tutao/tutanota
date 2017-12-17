@@ -3,7 +3,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
-import {TypeRef, firstBiggerThanSecond, isSameTypeRef, isSameId} from "../../common/EntityFunctions"
+import {TypeRef, firstBiggerThanSecond, isSameTypeRef, isSameId, compareNewestFirst} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals, contains} from "../../common/utils/ArrayUtils"
 import {neverNull} from "../../common/utils/Utils"
@@ -41,29 +41,27 @@ export class SearchFacade {
 	/**
 	 * Invoke an AND-query.
 	 * @param query is tokenized. All tokens must be matched by the result (AND-query)
-	 * @param type
-	 * @param attributes
-	 * @returns {Promise.<U>|Promise.<SearchResult>}
+	 * @param useSuggestions If true does not match word order and returns suggestion results for the last word in the query
+	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	search(query: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
 		if (searchTokens.length > 0) {
 			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
 			return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
-					.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
-					.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
-					.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
-					.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
-					.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
-					.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
-				// ranking ->all tokens are in correct order in the same attribute
+				.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
+				.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
+				.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
+				.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
+				.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
+				.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
 			).then(searchResult => {
 				// default sort order for mails
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
 				if (useSuggestions && searchTokens.length == 1 && suggestionFacade && searchResult.results.length < 10) {
 					return this._searchForSuggestions(searchTokens[0], suggestionFacade, restriction, searchResult)
 				} else {
-					searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
+					searchResult.results.sort(compareNewestFirst)
 					return searchResult
 				}
 			})

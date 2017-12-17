@@ -17,7 +17,7 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL} from "../../../../src/api/worker/search/MailIndexer"
+import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL_DAYS} from "../../../../src/api/worker/search/MailIndexer"
 import {createMail, _TypeModel as MailModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tutanota/MailBody"
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
@@ -275,7 +275,7 @@ o.spec("MailIndexer test", () => {
 
 		indexer.enableMailIndexing(user).then(() => {
 			o(indexer.indexMailbox.callCount).equals(1)
-			o(indexer.indexMailbox.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL))])
+			o(indexer.indexMailbox.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))])
 
 			o(indexer.mailIndexingEnabled).equals(true)
 			o(indexer._excludedListIds).deepEquals([spamFolder.mails])

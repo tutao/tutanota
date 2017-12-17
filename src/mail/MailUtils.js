@@ -1,4 +1,5 @@
 // @flow
+import m from "mithril"
 import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientInfo"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
@@ -27,19 +28,52 @@ import {lang} from "../misc/LanguageViewModel"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {Icons} from "../gui/base/icons/Icons"
 import type {MailboxDetail} from "./MailModel"
+import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
-
-export function createRecipientInfo(mailAddress: string, name: string, contact: ?Contact): RecipientInfo {
+/**
+ *
+ * @param mailAddress
+ * @param name Null if the name shall be taken from the contact found with the email address.
+ * @param contact
+ * @param doNotResolveContact
+ * @returns {{_type: string, type: string, mailAddress: string, name: ?string, contact: *}}
+ */
+export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact, doNotResolveContact: boolean): RecipientInfo {
 	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
-	return {
+	let recipientInfo = {
 		_type: 'RecipientInfo',
 		type,
 		mailAddress,
-		name,
-		contact: (contact || !logins.getUserController() || !logins.getUserController().isInternalUser()) ? contact : createNewContact(mailAddress, name) // the user controller is not available for contact form users
+		name: (name) ? name : "", // "" will be replaced as soon as a contact is found
+		contact: contact,
+		resolveContactPromise: neverNull(null) // strangely, flow does not allow null here
 	}
+	if (!doNotResolveContact && !contact && logins.getUserController() && logins.getUserController().isInternalUser()) {
+		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
+			if (contact) {
+				if (!name) {
+					recipientInfo.name = getContactDisplayName(contact)
+				}
+				recipientInfo.contact = contact
+			} else {
+				recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+			}
+			recipientInfo.resolveContactPromise = null
+			m.redraw()
+			return recipientInfo.contact
+		}).catch(e => {
+			console.log("error resolving contact", e)
+			recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+			recipientInfo.resolveContactPromise = null
+			m.redraw()
+			return recipientInfo.contact
+		})
+	} else {
+		recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+	}
+	return recipientInfo
 }
 
 /**

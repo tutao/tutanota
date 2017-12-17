@@ -33,7 +33,7 @@ import {getStartOfDay, getDayShifted} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 
-export const INITIAL_MAIL_INDEX_INTERVAL = 1
+export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 5
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -147,7 +147,7 @@ export class MailIndexer {
 					let t2 = this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-					this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL))) // create index in background
+					this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
 					return t2.await()
 				})
 			} else {

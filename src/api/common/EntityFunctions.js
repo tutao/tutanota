@@ -242,6 +242,26 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id): boolean {
 	}
 }
 
+export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+	let firstId = (id1 instanceof Array) ? id1[1] : id1
+	let secondId = (id2 instanceof Array) ? id2[1] : id2
+	if (firstId == secondId) {
+		return 0
+	} else {
+		return firstBiggerThanSecond(firstId, secondId) ? -1 : 1
+	}
+}
+
+export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+	let firstId = (id1 instanceof Array) ? id1[1] : id1
+	let secondId = (id2 instanceof Array) ? id2[1] : id2
+	if (firstId == secondId) {
+		return 0
+	} else {
+		return firstBiggerThanSecond(firstId, secondId) ? 1 : -1
+	}
+}
+
 /**
  * Compares the ids of two elements.
  * @pre Both entities are either ElementTypes or ListElementTypes

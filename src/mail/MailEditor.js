@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton, createAsyncDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
@@ -49,7 +49,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {TypeRef, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
@@ -64,6 +64,7 @@ import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
+import {searchForContacts, LazyContactListId} from "../contacts/ContactUtils"
 
 
 assertMainOrNode()
@@ -427,10 +428,10 @@ export class MailEditor {
 			this.toRecipients.textField.setDisabled()
 		}
 
-		this.toRecipients.bubbles = toRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
-		this.ccRecipients.bubbles = ccRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
-		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, locator.contact.findContactByMailAddress(r.address)))
-		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null))
+		this.toRecipients.bubbles = toRecipients.map(r => this.createBubble(r.name, r.address, null))
+		this.ccRecipients.bubbles = ccRecipients.map(r => this.createBubble(r.name, r.address, null))
+		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, null))
+		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null, true))
 	}
 
 	show() {
@@ -576,7 +577,7 @@ export class MailEditor {
 				if (confirmed) {
 					let send = this.saveDraft(true, false)
 						.then(() => {
-							return this._resolveRecipients().then(resolvedRecipients => {
+							return this._waitForResolvedRecipients().then(resolvedRecipients => {
 								let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
 								if (this._confidentialButtonState && externalRecipients.length > 0 && externalRecipients.find(r => this.getPasswordField(r).value().trim() !== "") == null) {
 									throw new UserError("noPreSharedPassword_msg")
@@ -660,7 +661,7 @@ export class MailEditor {
 					if (isExternal(r) && this._confidentialButtonState) {
 						recipientContact.presharedPassword = this.getPasswordField(r).value().trim()
 					}
-					return locator.contact.lazyContactListId.getAsync().then(listId => {
+					return LazyContactListId.getAsync().then(listId => {
 						return setup(listId, r.contact)
 					})
 				} else if (recipientContact._id && isExternal(r) && this._confidentialButtonState && recipientContact.presharedPassword !== this.getPasswordField(r).value().trim()) {
@@ -681,16 +682,37 @@ export class MailEditor {
 			.concat(this.bccRecipients.bubbles.map(b => b.entity))
 	}
 
-	_resolveRecipients() {
-		return Promise.all(this._allRecipients().map(ri => resolveRecipientInfo(ri)))
+	/**
+	 * Makes sure the recipient type and contact are resolved.
+	 */
+	_waitForResolvedRecipients() {
+		return Promise.all(this._allRecipients().map(ri => {
+			return resolveRecipientInfo(ri).then(ri => {
+				if (ri.resolveContactPromise) {
+					return ri.resolveContactPromise.return(ri)
+				} else {
+					return ri
+				}
+			})
+		}))
 	}
 
-	createBubble(name: string, mailAddress: string, contact: ?Contact) {
+	/**
+	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
+	 */
+	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
+		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
-		bubbleWrapper.button = createDropDownButton(() => getDisplayText(name, mailAddress, false), null, () => this._createBubbleContextButtons(name, mailAddress, contact, () => bubbleWrapper.bubble), 250)
-			.setType(ButtonType.TextBubble)
+		bubbleWrapper.button = createAsyncDropDownButton(() => getDisplayText(recipientInfo.name, mailAddress, false), null, () => {
+			if (recipientInfo.resolveContactPromise) {
+				return recipientInfo.resolveContactPromise.then(contact => {
+					return this._createBubbleContextButtons(recipientInfo.name, mailAddress, contact, () => bubbleWrapper.bubble)
+				})
+			} else {
+				return Promise.resolve(this._createBubbleContextButtons(recipientInfo.name, mailAddress, contact, () => bubbleWrapper.bubble))
+			}
+		}, 250).setType(ButtonType.TextBubble)
 
-		let recipientInfo = createRecipientInfo(mailAddress, name, contact)
 		resolveRecipientInfo(recipientInfo)
 			.then(() => m.redraw())
 			.catch(ConnectionError, e => {
@@ -700,16 +722,16 @@ export class MailEditor {
 		return bubbleWrapper.bubble
 	}
 
-	_createBubbleContextButtons(name: string, mailAddress: string, contact: ?Contact, bubbleResolver: Function) {
+	_createBubbleContextButtons(name: string, mailAddress: string, contact: ?Contact, bubbleResolver: Function): (Button|string)[] {
 		let buttons = [mailAddress]
 		if (logins.getUserController().isInternalUser()) {
-			if (contact) {
+			if (contact && contact._id) { // the contact may be new contact, in this case do not edit it
 				buttons.push(new Button("editContact_label", () => {
 					new ContactEditor(contact).show()
 				}, null).setType(ButtonType.Secondary))
 			} else {
 				buttons.push(new Button("createContact_action", () => {
-					locator.contact.lazyContactListId.getAsync().then(contactListId => {
+					LazyContactListId.getAsync().then(contactListId => {
 						new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
 							let bubbles = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles].find(b => contains(b, bubbleResolver()))
 							if (bubbles) {
@@ -808,7 +830,7 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
-		return Promise.resolve(locator.contact.getFilteredDuplicateContacts().map(contact => {
+		return searchForContacts(query, "recipient", true).map(contact => {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
 			if (name.toLowerCase().indexOf(query) !== -1) {
@@ -819,7 +841,7 @@ class MailBubbleHandler {
 				})
 			}
 			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
-		}).reduce((a, b) => a.concat(b), []))
+		}).reduce((a, b) => a.concat(b), [])
 			.then(suggestions => {
 				if (env.mode == Mode.App) {
 					return contactApp.findRecipients(query, 10, suggestions).then(() => {
@@ -832,7 +854,6 @@ class MailBubbleHandler {
 			.then(suggestions => {
 				return suggestions.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
 			})
-
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
@@ -868,17 +889,13 @@ class MailBubbleHandler {
 	 * @param text The text to create a RecipientInfo from.
 	 * @return The recipient info or null if the text is not valid data.
 	 */
-	getBubbleFromText(text: string) {
+	getBubbleFromText(text: string): ?Bubble<RecipientInfo> {
 		text = text.trim()
 		if (text === "") return null
 		const nameAndMailAddress = stringToNameAndMailAddress(text)
 		if (nameAndMailAddress) {
-			let contact = locator.contact.findContactByMailAddress(nameAndMailAddress.mailAddress)
-			let name = nameAndMailAddress.name
-			if (name === "" && contact) {
-				name = `${contact.firstName} ${contact.lastName}`.trim()
-			}
-			return this._mailEditor.createBubble(name, nameAndMailAddress.mailAddress, contact)
+			let name = (nameAndMailAddress.name) ? nameAndMailAddress.name : null // name will be resolved with contact
+			return this._mailEditor.createBubble(name, nameAndMailAddress.mailAddress, null)
 		} else {
 			return null
 		}

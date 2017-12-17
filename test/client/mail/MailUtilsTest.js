@@ -19,7 +19,7 @@ o.spec("MailUtils", browser(function () {
 	})
 
 	o("create contact from recipient info", function () {
-		let r1 = neverNull(createRecipientInfo("schneier@secure.com", "B. Schneier", null))
+		let r1 = neverNull(createRecipientInfo("schneier@secure.com", "B. Schneier", null, true))
 		o(neverNull(r1.contact)).notEquals(null)
 		o(neverNull(r1.contact)._owner).equals('userId')
 		o(neverNull(r1.contact)._ownerGroup).equals('groupId')
@@ -29,27 +29,27 @@ o.spec("MailUtils", browser(function () {
 		o(neverNull(r1.contact).firstName).equals("B.")
 		o(neverNull(r1.contact).lastName).equals("Schneier")
 
-		let r2 = createRecipientInfo("schneier@secure.com", "Bruce", null)
+		let r2 = createRecipientInfo("schneier@secure.com", "Bruce", null, true)
 		o(neverNull(r2.contact).firstName).equals("Bruce")
 		o(neverNull(r2.contact).lastName).equals("")
 
-		var r3 = createRecipientInfo("schneier@secure.com", "B M A", null)
+		var r3 = createRecipientInfo("schneier@secure.com", "B M A", null, true)
 		o(neverNull(r3.contact).firstName).equals("B")
 		o(neverNull(r3.contact).lastName).equals("M A")
 
-		var r4 = createRecipientInfo("schneier@secure.com", "", null)
+		var r4 = createRecipientInfo("schneier@secure.com", "", null, true)
 		o(neverNull(r4.contact).firstName).equals("Schneier")
 		o(neverNull(r4.contact).lastName).equals("")
 
-		var r5 = createRecipientInfo("bruce.schneier@secure.com", "", null)
+		var r5 = createRecipientInfo("bruce.schneier@secure.com", "", null, true)
 		o(neverNull(r5.contact).firstName).equals("Bruce")
 		o(neverNull(r5.contact).lastName).equals("Schneier")
 
-		var r6 = createRecipientInfo("bruce_schneier_schneier@secure.com", "", null)
+		var r6 = createRecipientInfo("bruce_schneier_schneier@secure.com", "", null, true)
 		o(neverNull(r6.contact).firstName).equals("Bruce")
 		o(neverNull(r6.contact).lastName).equals("Schneier Schneier")
 
-		var r7 = createRecipientInfo("bruce-schneier@secure.com", "", null)
+		var r7 = createRecipientInfo("bruce-schneier@secure.com", "", null, true)
 		o(neverNull(r7.contact).firstName).equals("Bruce")
 		o(neverNull(r7.contact).lastName).equals("Schneier")
 	})

@@ -1,16 +1,15 @@
 // @flow
 import m from "mithril"
 import {List} from "../gui/base/List"
-import {load} from "../api/main/Entity"
+import {load, loadAll} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactView} from "./ContactView"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
-import {compareContacts} from "./ContactUtils"
+import {compareContacts, LazyContactListId} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -29,13 +28,12 @@ export class ContactListView {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
 				if (startId == GENERATED_MAX_ID) {
-					return locator.contact.lazyContacts.getAsync().then(allContacts => {
+					return LazyContactListId.getAsync().then(contactListId => {
+						// we have to load all contacts in order to sort them by name
+						let allContacts = loadAll(ContactTypeRef, contactListId)
 						// we have to set loadedCompletely to make sure that fetch is never called again and  also that new received contacts are inserted into the list, even at the end
 						this._setLoadedCompletely();
-
-						// we return all contacts because we have already loaded all contacts and the scroll bar shall have the complete size.
 						return Promise.resolve(allContacts);
-
 					})
 				} else {
 					throw new Error("fetch contact called for specific start id")

@@ -142,7 +142,7 @@ export class BubbleTextField<T> {
 		return true
 	}
 
-	createBubbles() {
+	createBubbles(): boolean {
 		let value = this.textField.value().trim()
 		if (value === "") return false
 
@@ -161,7 +161,7 @@ export class BubbleTextField<T> {
 			}
 		}
 		m.redraw()
-		return false
+		return false //TODO: explain
 	}
 
 	handleBackspace() {

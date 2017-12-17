@@ -147,7 +147,7 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 
 	message = message.split("\n").join("<br>")
 	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " " + type
-	var recipient = createRecipientInfo("support@tutao.de", "")
+	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
 	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, []).then(draft => {
 		return worker.sendMailDraft(draft, [recipient], "de")
 	})

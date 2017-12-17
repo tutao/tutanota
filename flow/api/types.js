@@ -193,8 +193,9 @@ type RecipientInfo = {
 	_type: RecipientInfoName,
 	type: RecipientInfoTypeEnum,
 	mailAddress:string,
-	name: string,
-	contact: ?Contact
+	name:string, // empty string if no name is available
+	contact: Contact, // The resolved contact or a new contact instance with the given email address and name. A new contact is used to store a shared password if applicable.
+	resolveContactPromise:?Promise<?Contact> // Null if resolving contact is finished
 }
 
 type DataFile = {

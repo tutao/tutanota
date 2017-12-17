@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {MailTypeRef, _TypeModel as MailModel} from "../api/entities/tutanota/Mail"
-import {ContactTypeRef} from "../api/entities/tutanota/Contact"
+import {_TypeModel as ContactModel, ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {assertMainOrNode} from "../api/Env"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
@@ -11,7 +11,7 @@ import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
-const FIXED_FREE_SEARCH_DAYS = 1
+const FIXED_FREE_SEARCH_DAYS = 5
 
 export const SEARCH_CATEGORIES = [
 	{name: "mail", typeRef: MailTypeRef},
@@ -83,6 +83,20 @@ export function createRestriction(searchCategory: string, start: ?number, end: ?
 		if (fieldData) {
 			r.field = field
 			r.attributeIds = fieldData.attributeIds
+		}
+	} else if (field && searchCategory == "contact") {
+		if (field == "recipient") {
+			r.field = field
+			r.attributeIds = [
+				ContactModel.values["firstName"].id,
+				ContactModel.values["lastName"].id,
+				ContactModel.associations["mailAddresses"].id,
+			]
+		} else if (field == "mailAddress") {
+			r.field = field
+			r.attributeIds = [
+				ContactModel.associations["mailAddresses"].id,
+			]
 		}
 	}
 	return r
