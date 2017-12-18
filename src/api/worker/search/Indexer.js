@@ -203,7 +203,7 @@ export class Indexer {
 		groupBatches.forEach(groupIdToLastBatchId => {
 			t2.put(GroupDataOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.groupData)
 		})
-		return t2.await()
+		return t2.wait()
 	}
 
 	_loadNewEntities(groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[]): Promise<void> {

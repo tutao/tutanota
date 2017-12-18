@@ -398,7 +398,8 @@ o.spec("crypto facade", function () {
 		return mail;
 	}
 
-	o("decrypt instance", function (done) {
+	o("decrypt instance", function (done, timeout) {
+		timeout(1000)
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"

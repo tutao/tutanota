@@ -67,6 +67,6 @@ export class SuggestionFacade<T> {
 		let t = this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS])
 		let encSuggestions = aes256Encrypt(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)), random.generateRandomData(IV_BYTE_LENGTH), true, false)
 		t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
-		return t.await()
+		return t.wait()
 	}
 }

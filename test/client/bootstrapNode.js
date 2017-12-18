@@ -84,6 +84,8 @@ process.on("unhandledRejection", function (e) {
 	console.log("Uncaught (in promise) " + e.stack)
 })
 
+window.tutao = {}
+
 require("../../src/api/Env").bootFinished()
 
 require('./Suite.js')

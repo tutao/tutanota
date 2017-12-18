@@ -6,8 +6,17 @@ import {mockFunction, unmockFunction} from "../../api/TestUtils"
 o.spec("EntropyCollector", function () {
 
 	let collector
+	let worker
 	o.beforeEach(browser(function () {
-		collector = new EntropyCollector()
+		worker = {
+			initialized: {
+				isFulfilled: () => true
+			},
+			entropy: o.spy((entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
+				o(entropyCache.length > 0).equals(true)
+			})
+		}
+		collector = new EntropyCollector(worker)
 	}))
 	o.afterEach(browser(function () {
 		collector.stop()
@@ -104,17 +113,10 @@ o.spec("EntropyCollector", function () {
 
 	o("Send", browser((done, timeout) => {
 		timeout(2000)
-		const worker = {
-			initialized: {
-				isFulfilled: () => true
-			},
-			entropy: o.spy((entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
-				o(entropyCache.length > 0).equals(true)
-			})
-		}
+
 
 		collector.SEND_INTERVAL = 1000
-		collector.start(worker)
+		collector.start()
 		collector._addEntropy(5, 1, EntropyType.mouse)
 		setTimeout(() => {
 			o(worker.entropy.callCount).equals(1)

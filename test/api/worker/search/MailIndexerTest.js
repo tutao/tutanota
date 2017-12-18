@@ -253,7 +253,7 @@ o.spec("MailIndexer test", () => {
 				o(os).equals(MetaDataOS)
 				metadata[key] = value
 			},
-			await: () => Promise.resolve()
+			wait: () => Promise.resolve()
 		}
 
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
@@ -633,7 +633,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 			o(value.indexTimestamp).equals(fullyIndexed ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp)
 			return Promise.resolve()
 		}),
-		await: () => Promise.resolve()
+		wait: () => Promise.resolve()
 	}
 	let core: any = {
 		printStatus: () => {

@@ -148,7 +148,7 @@ export class MailIndexer {
 					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 					this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
-					return t2.await()
+					return t2.wait()
 				})
 			} else {
 				return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
@@ -203,7 +203,7 @@ export class MailIndexer {
 						return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 							groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
 							t2.put(GroupDataOS, mailGroupId, groupData)
-							return t2.await()
+							return t2.wait()
 						})
 					})
 				})

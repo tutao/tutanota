@@ -32,7 +32,7 @@ o.spec("Indexer test", () => {
 				o(os).equals(MetaDataOS)
 				metadata[key] = value
 			},
-			await: () => Promise.resolve()
+			wait: () => Promise.resolve()
 		}
 
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
@@ -78,7 +78,7 @@ o.spec("Indexer test", () => {
 				if (os == MetaDataOS && key == Metadata.excludedListIds) return Promise.resolve(["excluded-list-id"])
 				return Promise.resolve(null)
 			},
-			await: () => Promise.resolve()
+			wait: () => Promise.resolve()
 		}
 
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
@@ -131,7 +131,7 @@ o.spec("Indexer test", () => {
 				if (os == MetaDataOS && key == Metadata.excludedListIds) return Promise.resolve(["excluded-list-id"])
 				return Promise.resolve(null)
 			},
-			await: () => Promise.resolve()
+			wait: () => Promise.resolve()
 		}
 
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
@@ -387,7 +387,7 @@ o.spec("Indexer test", () => {
 				stored = true
 				return Promise.resolve()
 			},
-			await: () => Promise.resolve()
+			wait: () => Promise.resolve()
 		}
 
 		let indexer: any = new Indexer((null:any), (null:any))

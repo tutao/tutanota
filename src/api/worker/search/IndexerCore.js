@@ -138,7 +138,7 @@ export class IndexerCore {
 					this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction),
 					this._updateGroupData(indexUpdate, transaction)
 				]).then(() => {
-					return transaction.await().then(() => {
+					return transaction.wait().then(() => {
 						this._storageTime += (performance.now() - startTimeStorage)
 					})
 				})

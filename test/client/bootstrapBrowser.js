@@ -17,5 +17,7 @@ window.node = function (func: Function) {
 	}
 }
 
+window.tutao = {}
+
 bootFinished()
 System.import('test/client/Suite.js')

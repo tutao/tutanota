@@ -185,7 +185,7 @@ export class DbTransaction {
 		this._transaction.abort()
 	}
 
-	await(): Promise<void> {
+	wait(): Promise<void> {
 		return this._promise
 	}
 }

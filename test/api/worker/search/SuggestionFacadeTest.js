@@ -63,7 +63,7 @@ o.spec("SuggestionFacade test", () => {
 	o("store and load", () => {
 		let transactionMock = {}
 		transactionMock.put = o.spy(() => Promise.resolve())
-		transactionMock.await = o.spy(() => Promise.resolve())
+		transactionMock.wait = o.spy(() => Promise.resolve())
 		db.dbFacade.createTransaction = o.spy(() => transactionMock)
 
 		facade.addSuggestions(["aaaa"])

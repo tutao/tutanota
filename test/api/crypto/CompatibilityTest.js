@@ -15,13 +15,7 @@ import {
 	utf8Uint8ArrayToString,
 	uint8ArrayToHex
 } from "../../../src/api/common/utils/Encoding"
-import {
-	aes256Encrypt,
-	aes256Decrypt,
-	aes128Encrypt,
-	aes128Decrypt,
-	aes256EncryptFile
-} from "../../../src/api/worker/crypto/Aes"
+import {aes256Encrypt, aes256Decrypt, aes128Encrypt, aes128Decrypt} from "../../../src/api/worker/crypto/Aes"
 import {generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
 import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
@@ -80,6 +74,7 @@ o.spec("crypto compatibility", function () {
 		})
 	})
 
+	/*
 	o("aes 256 webcrypto", browser((done, timeout) => {
 		timeout(2000)
 		Promise.all(
@@ -96,6 +91,7 @@ o.spec("crypto compatibility", function () {
 			})
 		).then(() => done())
 	}))
+	*/
 
 
 	o("aes 128", function () {

@@ -245,7 +245,7 @@ o.spec("IndexerCore test", () => {
 		const core = new IndexerCore((null:any))
 		core._moveIndexedInstance(indexUpdate, transaction).then(() => done())
 	})
-	
+
 	o("writeIndexUpdate _deleteIndexedInstance", function (done) {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)
@@ -527,7 +527,7 @@ o.spec("IndexerCore test", () => {
 
 		let waitForTransaction = false
 		let transaction: any = {
-			await: () => {
+			wait: () => {
 				waitForTransaction = true
 				return Promise.resolve()
 			},
@@ -539,7 +539,7 @@ o.spec("IndexerCore test", () => {
 			key: aes256RandomKey(),
 			dbFacade: ({createTransaction: () => transaction}:any)
 		})
-		core._moveIndexedInstance = o.spy(() => [])
+		core._moveIndexedInstance = o.spy(() => Promise.resolve())
 		core._deleteIndexedInstance = o.spy()
 		core._insertNewElementData = o.spy(() => Promise.resolve(keysToUpdate))
 		core._insertNewIndexEntries = o.spy()
