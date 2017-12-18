@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {List, sortCompareById} from "../gui/base/List"
+import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {GENERATED_MAX_ID, TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
@@ -17,11 +17,11 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -71,7 +71,7 @@ export class ContactFormListView {
 					})
 				})
 			},
-			sortCompare: (a:ContactForm, b: ContactForm) => a.pageTitle.localeCompare(b.pageTitle),
+			sortCompare: (a: ContactForm, b: ContactForm) => a.pageTitle.localeCompare(b.pageTitle),
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactFormRow(this._customerInfo),

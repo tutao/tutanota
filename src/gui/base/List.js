@@ -1024,10 +1024,3 @@ class SwipeHandler {
 }
 
 
-export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
-	return compareNewestFirst((entity1._id[1]:any), (entity2._id[1]:any))
-}
-
-export function sortCompareById(entity1: Object, entity2: Object): number {
-	return compareOldestFirst((entity1._id[1]:any), (entity2._id[1]:any))
-}

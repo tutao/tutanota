@@ -7,7 +7,6 @@ import type {
 } from "../api/common/TutanotaConstants"
 import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
-import {sortCompareByReverseId} from "../gui/base/List"
 import {createRestriction} from "../search/SearchUtils"
 import {loadMultiple, loadRoot, load} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -17,7 +16,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
-import {compareOldestFirst} from "../api/common/EntityFunctions"
+import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 

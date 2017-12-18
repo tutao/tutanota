@@ -262,6 +262,16 @@ export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 	}
 }
 
+
+export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
+	return compareNewestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+}
+
+export function sortCompareById(entity1: Object, entity2: Object): number {
+	return compareOldestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+}
+
+
 /**
  * Compares the ids of two elements.
  * @pre Both entities are either ElementTypes or ListElementTypes
@@ -302,3 +312,4 @@ export function stringToCustomId(string: string) {
 export function customIdToString(customId: string) {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
 }
+

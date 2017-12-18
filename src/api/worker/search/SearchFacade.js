@@ -3,7 +3,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
-import {TypeRef, firstBiggerThanSecond, isSameTypeRef, isSameId, compareNewestFirst} from "../../common/EntityFunctions"
+import {TypeRef, firstBiggerThanSecond, isSameTypeRef, compareNewestFirst, isSameId} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals, contains} from "../../common/utils/ArrayUtils"
 import {neverNull} from "../../common/utils/Utils"
@@ -45,56 +45,93 @@ export class SearchFacade {
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	search(query: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
+		console.log("!!! new search")
 		let searchTokens = tokenize(query)
+
+		let result = {
+			query,
+			restriction,
+			results: [],
+			currentIndexTimestamp: this._getSearchTimestamp(restriction)
+		}
 		if (searchTokens.length > 0) {
 			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
-			return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
-				.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
-				.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
-				.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
-				.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
-				.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries))
-				.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(query, restriction, searchIndexEntries))
-			).then(searchResult => {
-				// default sort order for mails
-				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
-				if (useSuggestions && searchTokens.length == 1 && suggestionFacade && searchResult.results.length < 10) {
-					return this._searchForSuggestions(searchTokens[0], suggestionFacade, restriction, searchResult)
-				} else {
-					searchResult.results.sort(compareNewestFirst)
-					return searchResult
-				}
+			let isFirstWordSearch = searchTokens.length == 1
+			let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
+			let searchPromise
+
+			if (useSuggestions && isFirstWordSearch && suggestionFacade) {
+				searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, restriction, result)
+			} else if (useSuggestions && !isFirstWordSearch && suggestionFacade) {
+				searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), searchTokens[searchTokens.length - 1], restriction, matchWordOrder, result).then(() => {
+					//return this._filterBySuggestions(searchTokens[searchTokens.length - 1], neverNull(suggestionFacade), restriction, result)
+				})
+			} else {
+				searchPromise = this._searchForTokens(searchTokens, null, restriction, matchWordOrder, result)
+			}
+
+			return searchPromise.then(() => {
+				result.results.sort(compareNewestFirst)
+				return result
 			})
 		} else {
-			return Promise.resolve({
-				query,
-				restriction,
-				results: [],
-				currentIndexTimestamp: this._getSearchTimestamp(restriction)
-			})
+			return Promise.resolve(result)
 		}
 	}
 
-	_searchForSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, initialResult: SearchResult): Promise<SearchResult> {
+	/**
+	 * Adds the found ids to the given search result
+	 */
+	_searchForTokens(searchTokens: string[], suggestionToken: ?string, restriction: SearchRestriction, matchWordOrder: boolean, searchResult: SearchResult): Promise<void> {
+		console.log("search for tokens", searchTokens)
+		return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
+			.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
+			.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
+			.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
+			.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
+			.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries, searchResult))
+			.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(suggestionToken, restriction, searchIndexEntries, searchResult))
+		)
+	}
+
+
+	_filterBySuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, initialResult: SearchResult): Promise<void> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		return Promise.reduce(suggestions, (mergedResult, suggestion) => {
-			if (mergedResult.results.length < 10) {
-				return this.search(suggestion, restriction, false).then(suggestionResults => {
-					// add suggestion results to search result
-					suggestionResults.results.forEach(suggestionResult => {
-						if (mergedResult.results.findIndex(r => isSameId(r, suggestionResult)) == -1) {
-							mergedResult.results.push(suggestionResult)
+		console.log("filter by suggestions", suggestions)
+		return Promise.reduce(suggestions, (collectedResults: IdTuple[], suggestion) => {
+			if (collectedResults.length < 10) {
+				let suggestionResult = {
+					query: suggestion,
+					restriction,
+					results: [],
+					currentIndexTimestamp: this._getSearchTimestamp(restriction)
+				}
+				return this._searchForTokens([suggestion], restriction, false, suggestionResult).then(() => {
+					let filteredResults = initialResult.results.filter(existing => suggestionResult.results.find(suggestionResult => isSameId(existing[1], suggestionResult[1])))
+
+					filteredResults.forEach(f => {
+						if (!collectedResults.find((c) => isSameId(c, f))) {
+							collectedResults.push(f)
 						}
 					})
-					return mergedResult
+					return collectedResults
 				})
 			} else {
-				return mergedResult
+				console.log("filter by suggestions limit reached")
 			}
-		}, initialResult).then((searchResult) => {
-			searchResult.results.sort((id1, id2) => firstBiggerThanSecond(id1[1], id2[1]) ? -1 : 1)
-			return searchResult
+		}, []).then((cr) => {
+			initialResult.results = cr
 		})
+	}
+
+	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, searchResult: SearchResult): Promise<void> {
+		let suggestions = suggestionFacade.getSuggestions(searchToken)
+		console.log("add suggestions")
+		return Promise.each(suggestions, suggestion => {
+			if (searchResult.results.length < 10) {
+				return this._searchForTokens([suggestion], restriction, false, searchResult)
+			}
+		}).return()
 	}
 
 
@@ -229,10 +266,10 @@ export class SearchFacade {
 		}
 	}
 
-	_reduceToUniqueElementIds(results: SearchIndexEntry[]): SearchIndexEntry[] {
+	_reduceToUniqueElementIds(results: SearchIndexEntry[], previousResult: SearchResult): SearchIndexEntry[] {
 		let uniqueIds = {}
 		return results.filter(entry => {
-			if (!uniqueIds[entry.id]) {
+			if (!uniqueIds[entry.id] && !previousResult.results.find(r => r[1] == entry.id)) {
 				uniqueIds[entry.id] = true
 				return true
 			} else {
@@ -241,22 +278,19 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(query: string, restriction: SearchRestriction, results: SearchIndexEntry[]): Promise<SearchResult> {
-		return Promise.reduce(results, (searchResult, entry: SearchIndexEntry) => {
+	_filterByListIdAndGroupSearchResults(suggestionToken: ?string, restriction: SearchRestriction, results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
+		return Promise.each(results, entry => {
 			let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
 			return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
-				let safeSearchResult = neverNull(searchResult)
 				if (!restriction.listId || restriction.listId == elementData[0]) {
-					safeSearchResult.results.push([elementData[0], entry.id])
+					//if (suggestionToken) {
+					//let words = utf8Uint8ArrayToString(aes256Decrypt(this._db.key, elementData[1], true, false)).split(" ")
+
+					searchResult.results.push([elementData[0], entry.id])
+					//}
 				}
-				return searchResult
 			})
-		}, {
-			query,
-			restriction,
-			results: [],
-			currentIndexTimestamp: this._getSearchTimestamp(restriction)
-		})
+		}).return()
 	}
 
 

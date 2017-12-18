@@ -1,7 +1,8 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {List, sortCompareByReverseId} from "../gui/base/List"
+import {List} from "../gui/base/List"
+import {sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
