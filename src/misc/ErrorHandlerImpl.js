@@ -194,6 +194,11 @@ export function showNotAvailableForFreeDialog() {
 		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing").then(confirmed => {
 			if (confirmed) {
+				Dialog.confirm(() => "The upgrade to premium is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
+					if (ok) {
+						window.open("https://app.tutanota.com/", null, null, false)
+					}
+				})
 				// TODO: Navigate to premium upgrade
 				//tutao.locator.navigator.settings();
 				//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
