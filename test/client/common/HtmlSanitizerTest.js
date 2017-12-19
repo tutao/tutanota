@@ -27,6 +27,12 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(htmlSanitizer.sanitize("<blockquote class=\"tutanota_quote\">test</blockquote>", true).text).equals('<blockquote class=\"tutanota_quote\">test</blockquote>')
 	})
 
+
+	o("custom classes", function () {
+		//var sanitizer = DOMPurify.sanitize("");
+		o(htmlSanitizer.sanitize("<div class=\"custom1 custom2\">test</div>", true).text).equals('<div class=\"\">test</div>')
+	})
+
 	o("leading text node", function () {
 		o(htmlSanitizer.sanitize("hello<blockquote>test</blockquote>", true).text).equals('hello<blockquote>test</blockquote>')
 	})
