@@ -60,7 +60,7 @@ export class SearchFacade {
 			query,
 			restriction,
 			results: [],
-			currentIndexTimestamp: this._getSearchTimestamp(restriction)
+			currentIndexTimestamp: this._getSearchEndTimestamp(restriction)
 		}
 		if (searchTokens.length > 0) {
 			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
@@ -295,11 +295,10 @@ export class SearchFacade {
 				return false
 			}
 		}
-		if (restriction.end) {
-			let minIncluded = timestampToGeneratedId(restriction.end)
-			if (firstBiggerThanSecond(minIncluded, entry.id)) {
-				return false
-			}
+		let endTimestamp = this._getSearchEndTimestamp(restriction)
+		let minIncluded = timestampToGeneratedId(endTimestamp)
+		if (firstBiggerThanSecond(minIncluded, entry.id)) {
+			return false
 		}
 		return true
 	}
@@ -350,8 +349,10 @@ export class SearchFacade {
 	}
 
 
-	_getSearchTimestamp(restriction: ?SearchRestriction): number {
-		if (!restriction || isSameTypeRef(MailTypeRef, restriction.type)) {
+	_getSearchEndTimestamp(restriction: SearchRestriction): number {
+		if (restriction.end) {
+			return restriction.end
+		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
 			return this._mailIndexer.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._mailIndexer.currentIndexTimestamp
 		} else {
 			return FULL_INDEXED_TIMESTAMP

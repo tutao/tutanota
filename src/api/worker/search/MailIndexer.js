@@ -33,7 +33,7 @@ import {getStartOfDay, getDayShifted} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 
-export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 5
+export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -179,7 +179,7 @@ export class MailIndexer {
 		this._worker.sendIndexState({
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
-			currentIndexTimestamp: this.currentIndexTimestamp
+			currentMailIndexTimestamp: this.currentIndexTimestamp
 		})
 		let memberships = filterMailMemberships(user)
 		this.mailboxIndexingPromise = Promise.each(Promise.resolve(memberships), (mailGroupMembership) => {
@@ -194,7 +194,7 @@ export class MailIndexer {
 							this._worker.sendIndexState({
 								mailIndexEnabled: this.mailIndexingEnabled,
 								progress: Math.round(100 * (progressCount++) / count),
-								currentIndexTimestamp: this.currentIndexTimestamp
+								currentMailIndexTimestamp: this.currentIndexTimestamp
 							})
 							return finishedMailList
 						})
@@ -218,7 +218,7 @@ export class MailIndexer {
 				this._worker.sendIndexState({
 					mailIndexEnabled: this.mailIndexingEnabled,
 					progress: 0,
-					currentIndexTimestamp: this.currentIndexTimestamp
+					currentMailIndexTimestamp: this.currentIndexTimestamp
 				})
 			})
 		})

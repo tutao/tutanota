@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2017-10-20T09:56:35Z",
+	"updated_at": "2017-12-19T13:44:45Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "На жаль ваш обліковий запис Tutanota було відключено. Будь ласка зв'яжіться із своїм адміністратором.",
@@ -106,7 +106,6 @@ module.exports = {
 		"chooseNumber_msg": "Для отримання свого паролю Tutanota, натисніть, будь-ласка, на одну з кнопок \"Надіслати текстове повідомлення\" нижче.",
 		"choosePhotos_action": "Фотографії",
 		"choose_label": "Обрати...",
-		"chromeAutofillBug_msg": "Через баг автозаповнення у браузері Tutanota не прийняла ваш пароль. Будь ласка, обновіть сторінку або введіть пароль ще раз.",
 		"claim_label": "Tutanota - пошта. зроблено. добре.",
 		"clickNumber_msg": "Для отримання свого паролю Tutanota, натисніть, будь-ласка, нижче на кнопку \"Надіслати текстове повідомлення\" .",
 		"closedSessions_label": "Завершені сесії",

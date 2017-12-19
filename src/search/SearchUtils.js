@@ -11,7 +11,7 @@ import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
-const FIXED_FREE_SEARCH_DAYS = 5
+const FIXED_FREE_SEARCH_DAYS = 28
 
 export const SEARCH_CATEGORIES = [
 	{name: "mail", typeRef: MailTypeRef},

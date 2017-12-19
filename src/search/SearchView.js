@@ -6,7 +6,7 @@ import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FULL_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {NavButton} from "../gui/base/NavButton"
@@ -70,13 +70,13 @@ export class SearchView {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
 			} else {
-				showDatePickerDialog((this._startDate) ? this._startDate : new Date(), (this._endDate) ? this._endDate : this._getCurrentIndexDate(), false).then(dates => {
+				showDatePickerDialog((this._startDate) ? this._startDate : new Date(), (this._endDate) ? this._endDate : this._getCurrentMailIndexDate(), false).then(dates => {
 					if (dates.start && isToday(dates.start)) {
 						this._startDate = null
 					} else {
 						this._startDate = dates.start
 					}
-					let current = this._getCurrentIndexDate()
+					let current = this._getCurrentMailIndexDate()
 					if (dates.end && current && isSameDay(current, neverNull(dates.end))) {
 						this._endDate = null
 					} else {
@@ -182,9 +182,15 @@ export class SearchView {
 	/**
 	 * @returns null if the complete mailbox is indexed
 	 */
-	_getCurrentIndexDate(): ?Date {
-		let timestamp = locator.search.indexState().currentIndexTimestamp
-		return (timestamp == FULL_INDEXED_TIMESTAMP) ? null : new Date(timestamp)
+	_getCurrentMailIndexDate(): ?Date {
+		let timestamp = locator.search.indexState().currentMailIndexTimestamp
+		if (timestamp == FULL_INDEXED_TIMESTAMP) {
+			return null
+		} else if (timestamp == NOTHING_INDEXED_TIMESTAMP) {
+			return getEndOfDay(new Date())
+		} else {
+			new Date(timestamp)
+		}
 	}
 
 	_getUpdatedTimeField(): TextField {
@@ -202,9 +208,13 @@ export class SearchView {
 			if (this._endDate) {
 				end = formatDateWithMonth(this._endDate)
 			} else {
-				let currentIndexDate = this._getCurrentIndexDate()
+				let currentIndexDate = this._getCurrentMailIndexDate()
 				if (currentIndexDate) {
-					end = formatDateWithMonth(currentIndexDate)
+					if (isSameDay(currentIndexDate, new Date())) {
+						end = lang.get("today_label")
+					} else {
+						end = formatDateWithMonth(currentIndexDate)
+					}
 				} else {
 					end = lang.get("unlimited_label")
 				}
@@ -219,7 +229,7 @@ export class SearchView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			if (this._endDate && this._endDate.getTime() < locator.search.indexState().currentIndexTimestamp) {
+			if (this._endDate && this._endDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
 						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))

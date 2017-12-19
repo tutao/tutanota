@@ -115,7 +115,7 @@ export class Indexer {
 				this._worker.sendIndexState({
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
-					currentIndexTimestamp: this._mail.currentIndexTimestamp
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
 				})
 				return this._contact.indexFullContactList(user.userGroup.group)
 					.then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
