@@ -2,7 +2,7 @@
 import {px, size} from "../gui/size"
 import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {load, update, loadMultiple} from "../api/main/Entity"
+import {load, update} from "../api/main/Entity"
 import {Button, ButtonType, createDropDownButton, createAsyncDropDownButton} from "../gui/base/Button"
 import {
 	formatDateWithWeekday,
@@ -50,7 +50,6 @@ import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
@@ -452,12 +451,6 @@ export class MailViewer {
 			return Promise.resolve([])
 		}
 	}
-
-
-	_test(): Promise<GroupInfo[]> {
-		return loadMultiple(GroupInfoTypeRef, "", [""]).then((groupInfos: GroupInfo[]) => groupInfos)
-	}
-
 
 	_assignMail(userGroupInfo: GroupInfo) {
 		const recipient = createMailAddress()

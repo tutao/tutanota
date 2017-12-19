@@ -8,11 +8,11 @@ import type {
 import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {createRestriction} from "../search/SearchUtils"
-import {loadMultiple, loadRoot, load} from "../api/main/Entity"
+import {loadRoot, load} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
@@ -134,13 +134,16 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 	}
 }
 
-export function searchForContacts(query: string, field: string, useSuggestions: boolean): Promise<Contact[]> {
-	return worker.search(query, createRestriction("contact", null, null, field, null), useSuggestions).then(result => {
-		if (result.results.length == 0) {
-			return []
-		} else {
-			return loadMultiple(ContactTypeRef, result.results[0][0], result.results.map(idTuple => idTuple[1]))
-		}
+export function searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount).then(result => {
+		// load one by one because they may be in different lists when we have different lists
+		return Promise.map(result.results, idTuple => {
+			return load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
+				return null
+			}).catch(NotAuthorizedError, e => {
+				return null
+			})
+		}).filter(contact => contact != null)
 	})
 }
 
@@ -149,13 +152,17 @@ export function searchForContacts(query: string, field: string, useSuggestions: 
  */
 export function searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
 	let cleanMailAddress = mailAddress.trim().toLowerCase()
-	return worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), false).then(result => {
+	return worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
 		// the result is sorted from newest to oldest, but we want to return the oldest first like before
 		result.results.sort(compareOldestFirst)
 		return asyncFindAndMap(result.results, contactId => {
 			return load(ContactTypeRef, contactId).then(contact => {
 				// look for the exact match in the contacts
 				return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress)) ? contact : null
+			}).catch(NotFoundError, e => {
+				return null
+			}).catch(NotAuthorizedError, e => {
+				return null
 			})
 		})
 	})

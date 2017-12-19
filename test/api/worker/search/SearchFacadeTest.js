@@ -298,9 +298,9 @@ o.spec("SearchFacade test", () => {
 		})
 	})
 
-	let testSearch = (dbData: KeyToIndexEntries[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, useSuggestions: boolean = false): Promise<void> => {
+	let testSearch = (dbData: KeyToIndexEntries[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, minSuggestionCount: number = 0): Promise<void> => {
 		let s = createSearchFacade(dbData, listIds, currentIndexTimestamp)
-		return s.search(query, restriction, useSuggestions).then(result => {
+		return s.search(query, restriction, minSuggestionCount).then(result => {
 			o(result.query).equals(query)
 			o(result.restriction).deepEquals(restriction)
 			o(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))

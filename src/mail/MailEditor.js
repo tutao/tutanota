@@ -830,7 +830,7 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
-		return searchForContacts(query, "recipient", true).map(contact => {
+		return searchForContacts(query, "recipient", 10).map(contact => {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
 			if (name.toLowerCase().indexOf(query) !== -1) {

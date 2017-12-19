@@ -426,7 +426,7 @@ export class SearchBar {
 				if (value == this.value()) {
 					if (this.value().trim() != "") {
 						let useSuggestions = m.route.get().startsWith("/settings")
-						locator.search.search(value, restriction, useSuggestions).then(result => {
+						locator.search.search(value, restriction, useSuggestions ? 10 : 0).then(result => {
 							if (m.route.get().startsWith("/search")) {
 								this.busy = false
 								setSearchUrl(getSearchUrl(value, restriction))

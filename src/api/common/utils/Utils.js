@@ -41,6 +41,22 @@ export function asyncFindAndMap<T, R>(array: T[], finder: (item: T, index: numbe
 	}, null)
 }
 
+/**
+ * Calls an executor function for slices of nbrOfElementsInGroup items of the given array until the executor function returns false.
+ */
+export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, executor: (items: T[]) => Promise<boolean>): Promise<void> {
+	if (array.length > 0) {
+		let nextSlice = Math.min(array.length, nbrOfElementsInGroup)
+		return executor(array.slice(0, nextSlice)).then(doContinue => {
+			if (doContinue) {
+				return executeInGroups(array.slice(nextSlice), nbrOfElementsInGroup, executor)
+			}
+		})
+	} else {
+		return Promise.resolve()
+	}
+}
+
 export function neverNull<T>(object: ?T): T {
 	return (object:any)
 }

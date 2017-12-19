@@ -3,10 +3,16 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
-import {TypeRef, firstBiggerThanSecond, isSameTypeRef, compareNewestFirst, isSameId} from "../../common/EntityFunctions"
+import {
+	TypeRef,
+	firstBiggerThanSecond,
+	isSameTypeRef,
+	compareNewestFirst,
+	resolveTypeReference
+} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayEquals, contains} from "../../common/utils/ArrayUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, asyncFind} from "../../common/utils/Utils"
 import type {
 	KeyToEncryptedIndexEntries,
 	EncryptedSearchIndexEntry,
@@ -22,6 +28,9 @@ import {MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {getStartOfDay} from "../../common/utils/DateUtils"
 import {SuggestionFacade} from "./SuggestionFacade"
+import {load} from "../EntityWorker"
+import {AssociationType, ValueType, Cardinality} from "../../common/EntityConstants"
+import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
 
 export class SearchFacade {
 	_loginFacade: LoginFacade;
@@ -41,11 +50,10 @@ export class SearchFacade {
 	/**
 	 * Invoke an AND-query.
 	 * @param query is tokenized. All tokens must be matched by the result (AND-query)
-	 * @param useSuggestions If true does not match word order and returns suggestion results for the last word in the query
+	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	search(query: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
-		console.log("!!! new search")
+	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
 
 		let result = {
@@ -60,14 +68,20 @@ export class SearchFacade {
 			let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
 			let searchPromise
 
-			if (useSuggestions && isFirstWordSearch && suggestionFacade) {
-				searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, restriction, result)
-			} else if (useSuggestions && !isFirstWordSearch && suggestionFacade) {
-				searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), searchTokens[searchTokens.length - 1], restriction, matchWordOrder, result).then(() => {
-					//return this._filterBySuggestions(searchTokens[searchTokens.length - 1], neverNull(suggestionFacade), restriction, result)
+			if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
+				searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
+			} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
+				let suggestionToken = searchTokens[searchTokens.length - 1]
+				searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), matchWordOrder, result).then(() => {
+					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
+					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
+					result.results.sort(compareNewestFirst)
+					return this._loadAndReduce(restriction, result.results, suggestionToken, minSuggestionCount).then(filteredResults => {
+						result.results = filteredResults
+					})
 				})
 			} else {
-				searchPromise = this._searchForTokens(searchTokens, null, restriction, matchWordOrder, result)
+				searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result)
 			}
 
 			return searchPromise.then(() => {
@@ -79,57 +93,103 @@ export class SearchFacade {
 		}
 	}
 
+	_loadAndReduce(restriction: SearchRestriction, results: IdTuple[], suggestionToken: string, minSuggestionCount: number): Promise<IdTuple[]> {
+		if (results.length > 0) {
+			return resolveTypeReference(restriction.type).then(model => {
+				// TODO enable when loadMultiple is supported by cache
+				// if (restriction.listId) {
+				// 	let result: IdTuple[] = []
+				// 	// we can load multiple at once because they have the same list id
+				// 	return executeInGroups(results, minSuggestionCount, idTuples => {
+				// 		return loadMultiple(restriction.type, idTuples[0][0], idTuples.map(t => t[1])).filter(entity => {
+				// 			return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionToken)
+				// 		}).then(filteredEntityGroup => {
+				// 			addAll(result, filteredEntityGroup.map(entity => entity._id))
+				// 			return result.length < minSuggestionCount
+				// 		})
+				// 	}).then(() => {
+				// 		return result
+				// 	})
+				// } else {
+				// load one by one
+				return Promise.reduce(results, (finalResults, result) => {
+					if (finalResults.length >= minSuggestionCount) {
+						return finalResults
+					} else {
+						return load(restriction.type, result).then(entity => {
+							return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionToken).then(found => {
+								if (found) {
+									finalResults.push(result)
+								}
+								return finalResults
+							})
+						}).catch(NotFoundError, e => {
+							return finalResults
+						}).catch(NotAuthorizedError, e => {
+							return finalResults
+						})
+					}
+				}, [])
+				// }
+			})
+		} else {
+			return Promise.resolve([])
+		}
+	}
+
+	/**
+	 * Looks for a word in any of the entities string values or aggregations string values that starts with suggestionToken.
+	 * @param attributeIds Only looks in these attribute ids (or all its string values if it is an aggregation attribute id. If null, looks in all string values and aggregations.
+	 */
+	_containsSuggestionToken(entity: Object, model: TypeModel, attributeIds: ?number[], suggestionToken: string): Promise<boolean> {
+		let attributeNames: string[]
+		if (!attributeIds) {
+			attributeNames = Object.keys(model.values).concat(Object.keys(model.associations))
+		} else {
+			attributeNames = attributeIds.map(id => neverNull(
+				Object.keys(model.values).find(valueName => model.values[valueName].id == id) ||
+				Object.keys(model.associations).find(associationName => model.associations[associationName].id == id)
+			))
+		}
+		return asyncFind(attributeNames, attributeName => {
+			if (model.values[attributeName] && model.values[attributeName].type == ValueType.String && entity[attributeName]) {
+				let words = tokenize(entity[attributeName])
+				return Promise.resolve((words.find(w => w.startsWith(suggestionToken))) != null)
+			} else if (model.associations[attributeName] && model.associations[attributeName].type == AssociationType.Aggregation && entity[attributeName]) {
+				let aggregates = (model.associations[attributeName].cardinality == Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
+				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType)).then(refModel => {
+					return asyncFind(aggregates, aggregate => {
+						return this._containsSuggestionToken(aggregate, refModel, null, suggestionToken)
+					}).then(found => found != null)
+				})
+			} else {
+				return Promise.resolve(false)
+			}
+		}).then(found => found != null)
+	}
+
 	/**
 	 * Adds the found ids to the given search result
 	 */
-	_searchForTokens(searchTokens: string[], suggestionToken: ?string, restriction: SearchRestriction, matchWordOrder: boolean, searchResult: SearchResult): Promise<void> {
-		console.log("search for tokens", searchTokens)
-		return this._tryExtendIndex(restriction).then(() => this._findIndexEntries(searchTokens)
+	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult): Promise<void> {
+		return this._tryExtendIndex(searchResult.restriction).then(() => this._findIndexEntries(searchTokens)
 			.then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
 			.then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
-			.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, restriction))
+			.then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction))
 			.then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
 			.then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries, searchResult))
-			.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(suggestionToken, restriction, searchIndexEntries, searchResult))
+			.then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult))
 		)
 	}
 
-
-	_filterBySuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, initialResult: SearchResult): Promise<void> {
+	/**
+	 * Adds suggestions for the given searchToken to the searchResult until at least minSuggestionCount results are existing
+	 */
+	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<void> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		console.log("filter by suggestions", suggestions)
-		return Promise.reduce(suggestions, (collectedResults: IdTuple[], suggestion) => {
-			if (collectedResults.length < 10) {
-				let suggestionResult = {
-					query: suggestion,
-					restriction,
-					results: [],
-					currentIndexTimestamp: this._getSearchTimestamp(restriction)
-				}
-				return this._searchForTokens([suggestion], restriction, false, suggestionResult).then(() => {
-					let filteredResults = initialResult.results.filter(existing => suggestionResult.results.find(suggestionResult => isSameId(existing[1], suggestionResult[1])))
-
-					filteredResults.forEach(f => {
-						if (!collectedResults.find((c) => isSameId(c, f))) {
-							collectedResults.push(f)
-						}
-					})
-					return collectedResults
-				})
-			} else {
-				console.log("filter by suggestions limit reached")
-			}
-		}, []).then((cr) => {
-			initialResult.results = cr
-		})
-	}
-
-	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, restriction: SearchRestriction, searchResult: SearchResult): Promise<void> {
-		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		console.log("add suggestions")
 		return Promise.each(suggestions, suggestion => {
-			if (searchResult.results.length < 10) {
-				return this._searchForTokens([suggestion], restriction, false, searchResult)
+			if (searchResult.results.length < minSuggestionCount) {
+				return this._searchForTokens([suggestion], false, searchResult)
 			}
 		}).return()
 	}
@@ -278,16 +338,12 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(suggestionToken: ?string, restriction: SearchRestriction, results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
+	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
 		return Promise.each(results, entry => {
 			let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
 			return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
-				if (!restriction.listId || restriction.listId == elementData[0]) {
-					//if (suggestionToken) {
-					//let words = utf8Uint8ArrayToString(aes256Decrypt(this._db.key, elementData[1], true, false)).split(" ")
-
+				if (!searchResult.restriction.listId || searchResult.restriction.listId == elementData[0]) {
 					searchResult.results.push([elementData[0], entry.id])
-					//}
 				}
 			})
 		}).return()

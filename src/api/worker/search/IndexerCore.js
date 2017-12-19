@@ -220,7 +220,7 @@ export class IndexerCore {
 	}
 
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
-		if (indexUpdate.batchId || indexUpdate.indexTimestamp) {
+		if (indexUpdate.batchId || indexUpdate.indexTimestamp != null) { // check timestamp for != null here because "0" is a valid value to write
 			// update group data
 			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: GroupData) => {
 

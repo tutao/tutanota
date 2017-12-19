@@ -17,11 +17,11 @@ export class SearchModel {
 		this.indexState = stream({
 			mailIndexEnabled: false,
 			progress: 0,
-			currentIndexTimeStamp: NOTHING_INDEXED_TIMESTAMP
+			currentMailIndexTimeStamp: NOTHING_INDEXED_TIMESTAMP
 		})
 	}
 
-	search(query: string, restriction: SearchRestriction, useSuggestions: boolean): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
 		let result = this.result()
 		if (result && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
 			// reset the result in case only the search type has changed
@@ -30,7 +30,7 @@ export class SearchModel {
 			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
-		return worker.search(query, restriction, useSuggestions).then(result => {
+		return worker.search(query, restriction, minSuggestionCount).then(result => {
 			this.result(result)
 			return result
 		})

@@ -367,7 +367,6 @@ class ContactAggregateEditor {
 					let tagDialogActionBar = new DialogHeaderBar()
 					let tagName = new TextField("customLabel_label")
 						.setValue(this.aggregate.customTypeName)
-						.onUpdate(onUpdate)
 
 					setTimeout(() => {
 						Dialog.smallDialog(lang.get("customLabel_label"), {

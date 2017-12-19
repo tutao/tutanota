@@ -312,7 +312,7 @@ export class SearchView {
 			return
 		}
 		if (locator.search.isNewSearch(header.buttonBar.searchBar.value(), restriction)) {
-			locator.search.search(header.buttonBar.searchBar.value(), restriction, false)
+			locator.search.search(header.buttonBar.searchBar.value(), restriction, 0)
 		}
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
