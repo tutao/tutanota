@@ -32,7 +32,7 @@ o.spec("integration test", function () {
 
 	o("login, read mails, update contact", function (done, timeout) {
 		initLocator((null:any))
-		timeout(5000)
+		timeout(20000)
 		env.staticUrl = 'http://localhost:9000'
 		locator.login.createSession("map-free@tutanota.de", "map", "Linux node", false)
 			.then(() => Promise.all(

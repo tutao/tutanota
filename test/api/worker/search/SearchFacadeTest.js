@@ -28,6 +28,9 @@ o.spec("SearchFacade test", () => {
 	let dbKey
 	let user = createUser()
 	let indexMailBoxReceiver = {indexMailbox: (user, endIndexTime) => null}
+	let id1 = "L0YED5d----1"
+	let id2 = "L0YED5d----2"
+	let id3 = "L0YED5d----3"
 
 	let createDbContent = (dbData: KeyToIndexEntries[]): KeyToEncryptedIndexEntries[] => {
 		return dbData.map(keyToIndexEntries => {
@@ -126,51 +129,51 @@ o.spec("SearchFacade test", () => {
 
 	o("find single entry", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0])])],
-			[["listId1", "id1"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
+			[["listId1", id1]],
 			"test",
 			createMailRestriction(),
-			[["listId1", "id1"]]
+			[["listId1", id1]]
 		)
 	})
 
 	o("find two entries", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])])],
-			[["listId1", "id1"], ["listId2", "id2"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
+			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction(),
-			[["listId1", "id1"], ["listId2", "id2"]]
+			[["listId1", id1], ["listId2", id2]]
 		)
 	})
 
 	o("find type", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createContactEntry("id2", 0, [0])])],
-			[["listId1", "id1"], ["listId2", "id2"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createContactEntry(id2, 0, [0])])],
+			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction(),
-			[["listId1", "id1"]]
+			[["listId1", id1]]
 		)
 	})
 
 	o("find attribute", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 1, [0])])],
-			[["listId1", "id1"], ["listId2", "id2"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 1, [0])])],
+			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction([1]),
-			[["listId2", "id2"]]
+			[["listId2", id2]]
 		)
 	})
 
 	o("find listId", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])])],
-			[["listId1", "id1"], ["listId2", "id2"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
+			[["listId1", id1], ["listId2", id2]],
 			"test",
 			createMailRestriction(null, "listId2"),
-			[["listId2", "id2"]]
+			[["listId2", id2]]
 		)
 	})
 
@@ -218,13 +221,13 @@ o.spec("SearchFacade test", () => {
 	o("find two search words", () => {
 		return testSearch(
 			[
-				createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id2", 0, [0])]),
-				createKeyToIndexEntries("ja", [createMailEntry("id1", 0, [0])])
+				createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])]),
+				createKeyToIndexEntries("ja", [createMailEntry(id1, 0, [0])])
 			],
-			[["listId1", "id1"], ["listId2", "id2"]],
+			[["listId1", id1], ["listId2", id2]],
 			"ja,test",
 			createMailRestriction(),
-			[["listId1", "id1"]]
+			[["listId1", id1]]
 		)
 	})
 
@@ -232,23 +235,23 @@ o.spec("SearchFacade test", () => {
 		return testSearch(
 			[
 				// id1 must be found, id2 does not have the correct order, id3 has the order but in different attributes
-				createKeyToIndexEntries("test", [createMailEntry("id1", 0, [6]), createMailEntry("id2", 0, [6]), createMailEntry("id3", 1, [6])]),
-				createKeyToIndexEntries("ja", [createMailEntry("id1", 0, [5]), createMailEntry("id2", 0, [4]), createMailEntry("id3", 0, [5])])
+				createKeyToIndexEntries("test", [createMailEntry(id1, 0, [6]), createMailEntry(id2, 0, [6]), createMailEntry(id3, 1, [6])]),
+				createKeyToIndexEntries("ja", [createMailEntry(id1, 0, [5]), createMailEntry(id2, 0, [4]), createMailEntry(id3, 0, [5])])
 			],
-			[["listId1", "id1"], ["listId2", "id2"], ["listId3", "id3"]],
+			[["listId1", id1], ["listId2", id2], ["listId3", id3]],
 			"\"ja,test\"",
 			createMailRestriction(),
-			[["listId1", "id1"]]
+			[["listId1", id1]]
 		)
 	})
 
 	o("reduce ids", () => {
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry("id1", 0, [0]), createMailEntry("id1", 1, [0])])],
-			[["listId1", "id1"]],
+			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id1, 1, [0])])],
+			[["listId1", id1]],
 			"test",
 			createMailRestriction(),
-			[["listId1", "id1"]]
+			[["listId1", id1]]
 		)
 	})
 
