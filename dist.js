@@ -50,7 +50,7 @@ clean()
 			builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
 			builder.trace('src/app.js + src/system-resolve.js'),
 			builder.trace('src/gui/theme.js - libs/stream.js'),
-			builder.trace(getAsyncImports('src/app.js').join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js"),
+			builder.trace(getAsyncImports('src/app.js').join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js + src/search/SearchBar.js"),
 		]).then(trees => {
 			let workerTree = trees[0]
 			let bootTree = trees[1]
