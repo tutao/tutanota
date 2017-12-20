@@ -32,7 +32,7 @@ export class RestClient {
 			var xhr = new XMLHttpRequest()
 			xhr.open(method, url)
 			this._setHeaders(xhr, headers, body, responseType);
-			xhr.responseType = responseType === MediaType.Json ? "" : 'arraybuffer'
+			xhr.responseType = responseType === MediaType.Json ? "text" : 'arraybuffer'
 
 			let timeout = setTimeout(() => xhr.abort(), env.timeout)
 			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
