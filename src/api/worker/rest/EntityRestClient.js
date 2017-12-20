@@ -63,10 +63,10 @@ export class EntityRestClient {
 				return restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
 					let data = JSON.parse((json:string))
 					if (data instanceof Array) {
-						return Promise.all(data.map(instance => resolveSessionKey(model, instance).catch(SessionKeyNotFoundError, e => {
+						return Promise.map(data, instance => resolveSessionKey(model, instance).catch(SessionKeyNotFoundError, e => {
 							console.log("could not resolve session key", e)
 							return null // will result in _errors being set on the instance
-						}).then(sk => decryptAndMapToInstance(model, instance, sk))))
+						}).then(sk => decryptAndMapToInstance(model, instance, sk)), {concurrency: 5})
 					} else {
 						return applyMigrations(typeRef, data).then(data => {
 							return resolveSessionKey(model, data).catch(SessionKeyNotFoundError, e => {
