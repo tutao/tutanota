@@ -559,6 +559,9 @@ styles.registerStyle('main', () => {
 			overflow: 'hidden',
 			color: theme.content_fg,
 		},
+		'.input-no-clear::-ms-clear': { // remove the clear (x) button from edge input fields
+			display: 'none'
+		},
 
 		// table
 

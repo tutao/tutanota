@@ -116,7 +116,7 @@ export class SearchBar {
 							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
 					})),
-					m(".searchInputWrapper.flex-end.items-center", {
+					m(".searchInputWrapper.flex.items-center", {
 						style: {
 							"width": this.expanded ? px(SEARCH_INPUT_WIDTH) : px(0),
 							"transition": `width ${DefaultAnimationTime}ms`,
@@ -461,7 +461,7 @@ export class SearchBar {
 	}
 
 	_getInputField(): VirtualElement {
-		return m("input.input", {
+		return m("input.input.input-no-clear", {
 			type: Type.Text,
 			value: this.value(),
 			oncreate: (vnode) => {
@@ -518,7 +518,7 @@ export class SearchBar {
 			},
 			style: {
 				"line-height": px(inputLineHeight),
-				//'min-height': px(inputLineHeight),
+				"max-width": '166px' // hack: field is too wide in edge, otherwise
 			}
 		})
 	}
