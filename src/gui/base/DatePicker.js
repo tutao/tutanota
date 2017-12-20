@@ -80,6 +80,7 @@ export class DatePicker {
 					oncreate: (vnode) => this._domDateInput = vnode.dom,
 					onchange: (e) => this.setDate(this._domDateInput.valueAsDate),
 					style: {
+						display: 'none', // clear (x) button is shown on edge, otherwise
 						visibility: 'hidden',
 						position: 'absolute',
 						z_index: -1,
