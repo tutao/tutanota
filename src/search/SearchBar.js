@@ -102,7 +102,7 @@ export class SearchBar {
 					m(".ml-negative-xs.click", {
 						onmousedown: e => {
 							if (this.focused) {
-								this.skipNextBlur = true
+								this.skipNextBlur = true // avoid closing of overlay when clicking search icon
 							}
 						},
 						onclick: (e) => {
@@ -188,7 +188,7 @@ export class SearchBar {
 						}
 					}, [
 						m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
-						newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null
+						newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
 					])
 				}
 			})
@@ -262,7 +262,7 @@ export class SearchBar {
 										height: px(52),
 										'border-left': px(size.border_selection) + " solid transparent",
 									},
-									onmousedown: e => this.skipNextBlur = true,
+									onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
 									onclick: e => this._selectResult(result),
 									class: this._selected === result ? "row-selected" : "",
 								}, this.renderResult(result))
@@ -413,36 +413,39 @@ export class SearchBar {
 			if (value.trim() == "") {
 				this.busy = false
 				locator.search.result(null)
-				return
 			} else if (!locator.search.isNewSearch(value, restriction)) {
 				if (!m.route.get().startsWith("/search") && locator.search.result()) {
 					this.showDropdown(locator.search.result())
 				}
 				this.busy = false
-				return
-			}
-			this.busy = true
-			setTimeout(() => {
-				if (value == this.value()) {
-					if (this.value().trim() != "") {
-						let useSuggestions = m.route.get().startsWith("/settings")
-						locator.search.search(value, restriction, useSuggestions ? 10 : 0).then(result => {
-							if (m.route.get().startsWith("/search")) {
+			} else {
+				this.busy = true
+				setTimeout(() => {
+					if (value == this.value()) {
+						if (this.value().trim() != "") {
+							let useSuggestions = m.route.get().startsWith("/settings")
+							locator.search.search(value, restriction, useSuggestions ? 10 : 0).then(result => {
+								if (m.route.get().startsWith("/search")) {
+									// instances will be displayed as part of the list of the search view, when the search view is displayed
+									this.busy = false
+									setSearchUrl(getSearchUrl(value, restriction))
+								} else {
+									this.showDropdown(result)
+								}
+							}).finally(() => {
 								this.busy = false
-								setSearchUrl(getSearchUrl(value, restriction))
-								return // instances will be displayed as part of the list of the search view, when the search view is displayed
-							} else {
-								this.showDropdown(result)
-							}
-						}).finally(() => this.busy = false)
-					} else {
+								m.redraw()
+							})
+						} else {
+							this.busy = false
+						}
+					} else if (this.value().trim() == "") {
 						this.busy = false
 					}
-				} else if (this.value().trim() == "") {
-					this.busy = false
-				}
-				m.redraw()
-			}, 500)
+					m.redraw()
+				}, 500)
+			}
+
 		}
 	}
 
@@ -450,7 +453,6 @@ export class SearchBar {
 		if (this.expanded) {
 			this.expanded = false
 			this.value("")
-			this._domInput.blur()
 			closeOverlay()
 		}
 		if (m.route.get().startsWith("/search")) {
@@ -468,7 +470,7 @@ export class SearchBar {
 			onfocus: (e) => this.focus(),
 			onblur: e => {
 				if (this.skipNextBlur) {
-					this._domInput.focus()
+					setTimeout(() => this._domInput.focus(), 0) // setTimeout needed in Firefox to keep focus
 				} else {
 					this.blur(e)
 				}
