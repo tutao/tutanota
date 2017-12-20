@@ -210,6 +210,7 @@ export class Indexer {
 	}
 
 	_loadNewEntities(groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[]): Promise<void> {
+		this._core.queue.queue()
 		return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
 			if (groupIdToEventBatch.eventBatchIds.length > 0) {
 				let lastBatchId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
@@ -229,7 +230,9 @@ export class Indexer {
 					console.log("could not download entity updates => lost permission on list")
 				})
 			}
-		}, {concurrency: 1}).return()
+		}, {concurrency: 1})
+			.finally(() => this._core.queue.processNext())
+			.return()
 	}
 
 	/**
@@ -277,7 +280,7 @@ export class Indexer {
 			return all
 		}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
 
-		this._core.queue.queueEvents = true
+		this._core.queue.queue()
 		return Promise.all([
 			this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 			this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
@@ -286,12 +289,11 @@ export class Indexer {
 		]).then(() => {
 			return this._core.writeIndexUpdate(indexUpdate)
 		}).finally(() => {
-			this.processEntityEventFromQueue()
+			this._core.queue.processNext()
 		})
 	}
 
 	processEntityEventFromQueue() {
-		this._core.queue.queueEvents = false
 		if (this._core.queue.eventQueue.length > 0) {
 			let next = this._core.queue.eventQueue.shift()
 			this.processEntityEvents(next.events, next.groupId, next.batchId)

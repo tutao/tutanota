@@ -631,7 +631,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	let core: any = {
 		printStatus: () => {
 		},
-		queue: {queueEvents: false, processNext: o.spy()}
+		queue: {queue: o.spy(), processNext: o.spy()}
 	}
 	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 	let worker: WorkerImpl = ({sendIndexState: o.spy()}:any)
@@ -643,9 +643,8 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	}
 	indexer._indexMailList = o.spy(() => Promise.resolve(fullyIndexed))
 
-	o(indexer._core.queue.queueEvents).equals(false)
 	let promise = indexer.indexMailbox(user, endIndexTimstamp)
-	o(indexer._core.queue.queueEvents).equals(true)
+	o(indexer._core.queue.queue.callCount).equals(1)
 	promise.then(() => {
 		o(indexer._core.queue.processNext.callCount).equals(1)
 

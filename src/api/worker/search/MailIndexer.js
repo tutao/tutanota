@@ -183,7 +183,7 @@ export class MailIndexer {
 			currentMailIndexTimestamp: this.currentIndexTimestamp
 		})
 		let memberships = filterMailMemberships(user)
-		this._core.queue.queueEvents = true
+		this._core.queue.queue()
 		this.mailboxIndexingPromise = Promise.each(Promise.resolve(memberships), (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
 			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
