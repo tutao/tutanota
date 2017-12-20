@@ -177,6 +177,7 @@ export class MailIndexer {
 		this._indexingCancelled = false
 
 		this._worker.sendIndexState({
+			indexingSupported: this._core.indexingSupported,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp
@@ -192,6 +193,7 @@ export class MailIndexer {
 						let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
 						return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
 							this._worker.sendIndexState({
+								indexingSupported: this._core.indexingSupported,
 								mailIndexEnabled: this.mailIndexingEnabled,
 								progress: Math.round(100 * (progressCount++) / count),
 								currentMailIndexTimestamp: this.currentIndexTimestamp
@@ -216,6 +218,7 @@ export class MailIndexer {
 		}).finally(() => {
 			this.updateCurrentIndexTimestamp(user).then(() => {
 				this._worker.sendIndexState({
+					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this.currentIndexTimestamp
@@ -272,13 +275,13 @@ export class MailIndexer {
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		let t = this._db.dbFacade.createTransaction(true, [GroupDataOS])
 		this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
-		return Promise.map(filterMailMemberships(user), (mailGroupMembership) => {
+		return Promise.all(filterMailMemberships(user).map(mailGroupMembership => {
 			return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
 				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
 					this.currentIndexTimestamp = groupData.indexTimestamp
 				}
 			})
-		}).return()
+		})).return()
 	}
 
 

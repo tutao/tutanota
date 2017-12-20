@@ -8,7 +8,7 @@ export class DbError extends TutanotaError {
 	 * @param error The original error that was thrown.
 	 */
 	constructor(message: string, error: ?Error) {
-		super("DbError", error ? message + "> " + (error.stack ? error.stack : error.message) : message)
+		super("DbError", error ? message + `: ${error.name}, ${error.message}> ` + (error.stack ? error.stack : error.message) : message)
 	}
 
 }

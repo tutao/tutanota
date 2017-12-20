@@ -948,6 +948,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"searchDisabled_msg": "Your browser does not support data storage. That is why we disabled search and recipient suggestions of the mail editor."
 	}
 }

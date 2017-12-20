@@ -5,6 +5,7 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -15,9 +16,15 @@ export class SearchModel {
 	constructor() {
 		this.result = stream()
 		this.indexState = stream({
+			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
 			currentMailIndexTimeStamp: NOTHING_INDEXED_TIMESTAMP
+		})
+		this.indexState.map(state => {
+			if (state && !state.indexingSupported) {
+				Dialog.error("searchDisabled_msg")
+			}
 		})
 	}
 

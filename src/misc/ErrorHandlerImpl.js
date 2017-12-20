@@ -125,6 +125,7 @@ export function handleUncaughtError(e: Error) {
 					}
 				})
 			} else {
+				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
 					unknownErrorDialogActive = false
 				})

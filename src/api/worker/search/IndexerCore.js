@@ -22,6 +22,7 @@ import {
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, GroupData, Db} from "./SearchTypes"
 
 export class IndexerCore {
+	indexingSupported: boolean;
 	db: Db;
 	_indexingTime: number;
 	_storageTime: number;
@@ -35,6 +36,7 @@ export class IndexerCore {
 	_indexedBytes: number;
 
 	constructor(db: Db) {
+		this.indexingSupported = true
 		this.db = db
 
 		this._indexingTime = 0

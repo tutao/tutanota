@@ -69,7 +69,11 @@ export class DbFacade {
 
 
 	createTransaction(readOnly: boolean, objectStores: string[]): DbTransaction {
-		return new DbTransaction(neverNull(this.db).transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+		try {
+			return new DbTransaction(neverNull(this.db).transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+		} catch (e) {
+			throw new DbError("could not create transaction", e)
+		}
 	}
 
 }

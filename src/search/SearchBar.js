@@ -203,7 +203,7 @@ export class SearchBar {
 		return [
 			{
 				key: Keys.F,
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => logins.isInternalUserLoggedIn() && locator.search.indexState().indexingSupported,
 				exec: key => {
 					this.focus()
 					m.redraw()
@@ -548,7 +548,7 @@ export class SearchBar {
 
 	isVisible() {
 		let route = m.route.get()
-		return styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
+		return locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
 	}
 
 

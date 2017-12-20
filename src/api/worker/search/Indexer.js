@@ -31,6 +31,7 @@ import {IndexerCore} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
+import {DbError} from "../../common/error/DbError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -71,7 +72,6 @@ export class Indexer {
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
-
 	}
 
 	/**
@@ -113,6 +113,7 @@ export class Indexer {
 			}
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
+					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
@@ -124,6 +125,15 @@ export class Indexer {
 						console.log("out of sync - delete database and disable mail indexing")
 						return this.disableMailIndexing()
 					})
+			})
+		}).catch(DbError, e => {
+			console.log("Indexing not supported", e)
+			this._core.indexingSupported = false
+			this._worker.sendIndexState({
+				indexingSupported: this._core.indexingSupported,
+				mailIndexEnabled: this._mail.mailIndexingEnabled,
+				progress: 0,
+				currentMailIndexTimestamp: this._mail.currentIndexTimestamp
 			})
 		})
 	}
@@ -246,6 +256,9 @@ export class Indexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
+		if (!this._indexingSupported) {
+			return Promise.resolve()
+		}
 		if (this._queueEvents) {
 			this._eventQueue.push({events, groupId, batchId})
 			return Promise.resolve()
