@@ -26,6 +26,7 @@ import stream from "mithril/stream/stream.js"
 import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -108,6 +109,8 @@ export function handleUncaughtError(e: Error) {
 		}
 	} else if (e instanceof ServiceUnavailableError) {
 		Dialog.error("serviceUnavailable_msg")
+	} else if (e instanceof IndexingNotSupportedError) {
+		Dialog.error("searchDisabled_msg")
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true

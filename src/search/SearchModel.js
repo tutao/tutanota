@@ -5,7 +5,7 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {Dialog} from "../gui/base/Dialog"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -23,7 +23,7 @@ export class SearchModel {
 		})
 		this.indexState.map(state => {
 			if (state && !state.indexingSupported) {
-				Dialog.error("searchDisabled_msg")
+				throw new IndexingNotSupportedError()
 			}
 		})
 	}
