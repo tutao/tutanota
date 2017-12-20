@@ -1,5 +1,5 @@
 // @flow
-import {size} from "../size"
+import {size, px} from "../size"
 import m from "mithril"
 import {TextField} from "./TextField"
 import {Button} from "./Button"

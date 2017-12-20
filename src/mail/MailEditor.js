@@ -790,6 +790,7 @@ export class MailEditor {
 	}
 }
 
+const ContactSuggestionHeight = 60
 
 export class ContactSuggestion {
 	name: string;
@@ -810,6 +811,7 @@ export class ContactSuggestion {
 			style: {
 				'padding-left': this.selected ? px(size.hpad_large - 3) : px(size.hpad_large),
 				'border-left': this.selected ? "3px solid" : null,
+				height: px(ContactSuggestionHeight),
 			}
 		}, [
 			m("small", this.name),
@@ -825,7 +827,7 @@ class MailBubbleHandler {
 
 	constructor(mailEditor: MailEditor) {
 		this._mailEditor = mailEditor
-		this.suggestionHeight = 60
+		this.suggestionHeight = ContactSuggestionHeight
 	}
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
