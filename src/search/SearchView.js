@@ -189,7 +189,7 @@ export class SearchView {
 		} else if (timestamp == NOTHING_INDEXED_TIMESTAMP) {
 			return getEndOfDay(new Date())
 		} else {
-			new Date(timestamp)
+			return new Date(timestamp)
 		}
 	}
 
