@@ -38,7 +38,7 @@ o.spec("MailIndexer test", () => {
 		let mail = createMail()
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore((null:any)), (null:any), (null:any), (null:any), (null:any))
+		let indexer = new MailIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), (null:any), (null:any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(0)
 	})
@@ -48,7 +48,7 @@ o.spec("MailIndexer test", () => {
 		mail.subject = "Hello"
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore((null:any)), (null:any), (null:any), (null:any), (null:any))
+		let indexer = new MailIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), (null:any), (null:any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(1)
 	})
@@ -364,12 +364,6 @@ o.spec("MailIndexer test", () => {
 		let body = createMailBody()
 
 		let entity = ({
-			loadReverseRangeBetween: (type, listId, start, end) => {
-				o(type).equals(FileTypeRef)
-				o(start).equals(startId)
-				o(end).equals(endId)
-				loadedFileLists.push(listId)
-			},
 			_loadEntityRange: (type, listId, start, count, reverse, target) => {
 				o(type).equals(MailTypeRef)
 				o(listId).equals(mailListId)
@@ -393,13 +387,12 @@ o.spec("MailIndexer test", () => {
 		}:any)
 
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {}}:any)
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		let entityRestClient: any = {}
 		const indexer: any = new MailIndexer(core, db, entity, (null:any), entityRestClient)
 
 		indexer._indexMailList(mailbox, mailGroupId, mailListId, startId, endId).then(fullyIndexed => {
-			o(loadedFileLists).deepEquals([mailbox.sentAttachments, mailbox.receivedAttachments])
 			o(core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
@@ -428,7 +421,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents new mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -460,7 +453,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents moved mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -494,7 +487,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents deleted mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -526,7 +519,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents update draft", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -559,7 +552,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents don't update non-drafts", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -637,7 +630,8 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	}
 	let core: any = {
 		printStatus: () => {
-		}
+		},
+		queue: {queueEvents: false, processNext: o.spy()}
 	}
 	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
 	let worker: WorkerImpl = ({sendIndexState: o.spy()}:any)
@@ -649,7 +643,12 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	}
 	indexer._indexMailList = o.spy(() => Promise.resolve(fullyIndexed))
 
-	indexer.indexMailbox(user, endIndexTimstamp).then(() => {
+	o(indexer._core.queue.queueEvents).equals(false)
+	let promise = indexer.indexMailbox(user, endIndexTimstamp)
+	o(indexer._core.queue.queueEvents).equals(true)
+	promise.then(() => {
+		o(indexer._core.queue.processNext.callCount).equals(1)
+
 		o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
 
 		o(indexer._indexMailList.callCount).equals(1)

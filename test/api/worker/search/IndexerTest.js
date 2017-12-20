@@ -17,6 +17,7 @@ import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {timestampToGeneratedId, generatedIdToTimestamp} from "../../../../src/api/common/utils/Encoding"
+import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 
 o.spec("Indexer test", () => {
 
@@ -625,19 +626,19 @@ o.spec("Indexer test", () => {
 		}
 
 		let events = [update(MailTypeRef)]
-		o(indexer._queueEvents).equals(false)
-		o(indexer._eventQueue.length).equals(0)
+		o(indexer._core.queue.queueEvents).equals(false)
+		o(indexer._core.queue.eventQueue.length).equals(0)
 		let first = indexer.processEntityEvents(events, "group-id", "batch-id-1")
-		o(indexer._queueEvents).equals(true)
-		o(indexer._eventQueue.length).equals(0)
+		o(indexer._core.queue.queueEvents).equals(true)
+		o(indexer._core.queue.eventQueue.length).equals(0)
 
 		let events2 = [update(MailTypeRef)]
 		indexer.processEntityEvents(events2, "group-id", "batch-id-2").then(() => {
-			o(indexer._queueEvents).equals(true)
-			o(indexer._eventQueue.length).equals(1)
+			o(indexer._core.queue.queueEvents).equals(true)
+			o(indexer._core.queue.eventQueue.length).equals(1)
 		})
 		let finalChecks = () => {
-			if (indexer.queueEvents == true || indexer._eventQueue.length > 0) {
+			if (indexer._core.queue.queueEvents == true || indexer._core.queue.eventQueue.length > 0) {
 				setTimeout(finalChecks, 1)
 			} else {
 				o(indexer._core.writeIndexUpdate.callCount).equals(2)
@@ -653,7 +654,7 @@ o.spec("Indexer test", () => {
 
 	o("_processUserEntityEvents user is no admin", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, new EventQueue(() => true))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -688,7 +689,7 @@ o.spec("Indexer test", () => {
 
 	o("_processUserEntityEvents user becomes admin", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db)
+		let core: any = new IndexerCore(db, new EventQueue(() => true))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 

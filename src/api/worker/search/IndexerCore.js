@@ -20,9 +20,11 @@ import {
 	encryptIndexKeyUint8Array
 } from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, GroupData, Db} from "./SearchTypes"
+import {EventQueue} from "./EventQueue"
 
 export class IndexerCore {
 	indexingSupported: boolean;
+	queue: EventQueue;
 	db: Db;
 	_indexingTime: number;
 	_storageTime: number;
@@ -35,8 +37,9 @@ export class IndexerCore {
 	_words: number;
 	_indexedBytes: number;
 
-	constructor(db: Db) {
+	constructor(db: Db, queue: EventQueue) {
 		this.indexingSupported = true
+		this.queue = queue
 		this.db = db
 
 		this._indexingTime = 0

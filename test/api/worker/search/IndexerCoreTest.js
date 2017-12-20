@@ -25,11 +25,12 @@ import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {ElementDataOS, SearchIndexOS, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
+import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 
 o.spec("IndexerCore test", () => {
 
 	o("createIndexEntriesForAttributes", function () {
-		let core = new IndexerCore((null:any))
+		let core = new IndexerCore((null:any), (null:any))
 
 		let contact = createContact()
 		contact._id = ["", "L-dNNLe----0"]
@@ -93,7 +94,7 @@ o.spec("IndexerCore test", () => {
 
 
 	o("encryptSearchIndexEntries", function () {
-		const core = new IndexerCore(({key: aes256RandomKey()}:any))
+		const core = new IndexerCore(({key: aes256RandomKey()}:any), (null:any))
 		let id = ["1", "2"]
 		let ownerGroupId = "ownerGroupId"
 		let keyToIndexEntries: Map<string,SearchIndexEntry[]> = new Map([
@@ -217,7 +218,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._moveIndexedInstance(indexUpdate, transaction)
 	})
 
@@ -242,7 +243,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._moveIndexedInstance(indexUpdate, transaction).then(() => done())
 	})
 
@@ -275,7 +276,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._deleteIndexedInstance(indexUpdate, transaction)
 	})
 
@@ -307,7 +308,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._deleteIndexedInstance(indexUpdate, transaction)
 	})
 
@@ -333,7 +334,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._deleteIndexedInstance(indexUpdate, transaction).then(done)
 	})
 
@@ -360,7 +361,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._insertNewElementData(indexUpdate, transaction).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({[encInstanceId]: true}))
 			if (insertedElementData) done()
@@ -390,7 +391,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._insertNewElementData(indexUpdate, transaction).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({}))
 			if (!insertedElementData) done()
@@ -420,7 +421,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 	})
 
@@ -448,7 +449,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 	})
 
@@ -469,7 +470,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._insertNewIndexEntries(indexUpdate, {}, transaction).then(done)
 	})
 
@@ -491,7 +492,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._updateGroupData(indexUpdate, transaction)
 	})
 
@@ -516,7 +517,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null:any))
+		const core = new IndexerCore((null:any), (null:any))
 		core._updateGroupData(indexUpdate, transaction)
 	})
 
@@ -538,7 +539,7 @@ o.spec("IndexerCore test", () => {
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
 			dbFacade: ({createTransaction: () => transaction}:any)
-		})
+		}, ({queueEvents: false}:any))
 		core._moveIndexedInstance = o.spy(() => Promise.resolve())
 		core._deleteIndexedInstance = o.spy()
 		core._insertNewElementData = o.spy(() => Promise.resolve(keysToUpdate))
@@ -574,7 +575,7 @@ o.spec("IndexerCore test", () => {
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
 			dbFacade: ({createTransaction: () => transaction}:any)
-		})
+		}, ({queueEvents: false}:any))
 
 		let listId = "list-id"
 		let encryptedWords = aes256Encrypt(core.db.key, stringToUtf8Uint8Array("one two"), random.generateRandomData(IV_BYTE_LENGTH), true, false)
@@ -627,7 +628,7 @@ o.spec("IndexerCore test", () => {
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
 			dbFacade: ({createTransaction: () => transaction}:any)
-		})
+		}, ({queueEvents: false}:any))
 
 		let transaction: any = {
 			get: (os, key) => {

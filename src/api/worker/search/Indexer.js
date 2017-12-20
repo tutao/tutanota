@@ -32,6 +32,7 @@ import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {DbError} from "../../common/error/DbError"
+import {EventQueue} from "./EventQueue"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -44,13 +45,7 @@ export type InitParams = {
 	groupKey: Aes128Key;
 }
 
-type QueuedBatch = {
-	events: EntityUpdate[], groupId: Id, batchId: Id
-}
-
 export class Indexer {
-	_queueEvents: boolean;
-	_eventQueue: QueuedBatch[];
 	db: Db;
 
 	_worker: WorkerImpl;
@@ -63,11 +58,9 @@ export class Indexer {
 	_entity: EntityWorker;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
-		this._queueEvents = false
-		this._eventQueue = []
 		this.db = ({dbFacade: new DbFacade()}:any) // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db)
+		this._core = new IndexerCore(this.db, new EventQueue(() => this.processEntityEventFromQueue()))
 		this._entity = new EntityWorker()
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
@@ -256,11 +249,11 @@ export class Indexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		if (!this._indexingSupported) {
+		if (!this._core.indexingSupported) {
 			return Promise.resolve()
 		}
-		if (this._queueEvents) {
-			this._eventQueue.push({events, groupId, batchId})
+		if (this._core.queue.queueEvents) {
+			this._core.queue.eventQueue.push({events, groupId, batchId})
 			return Promise.resolve()
 		}
 
@@ -284,7 +277,7 @@ export class Indexer {
 			return all
 		}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
 
-		this._queueEvents = true
+		this._core.queue.queueEvents = true
 		return Promise.all([
 			this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 			this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
@@ -293,12 +286,16 @@ export class Indexer {
 		]).then(() => {
 			return this._core.writeIndexUpdate(indexUpdate)
 		}).finally(() => {
-			this._queueEvents = false
-			if (this._eventQueue.length > 0) {
-				let next = this._eventQueue.shift()
-				this.processEntityEvents(next.events, next.groupId, next.batchId)
-			}
+			this.processEntityEventFromQueue()
 		})
+	}
+
+	processEntityEventFromQueue() {
+		this._core.queue.queueEvents = false
+		if (this._core.queue.eventQueue.length > 0) {
+			let next = this._core.queue.eventQueue.shift()
+			this.processEntityEvents(next.events, next.groupId, next.batchId)
+		}
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
