@@ -453,6 +453,7 @@ export class SearchBar {
 		if (this.expanded) {
 			this.expanded = false
 			this.value("")
+			this._domInput.blur() // remove focus from the input field in case ESC is pressed
 			closeOverlay()
 		}
 		if (m.route.get().startsWith("/search")) {
