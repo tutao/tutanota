@@ -100,9 +100,9 @@ export class MailSettingsViewer {
 			{name: lang.get("deactivated_label"), value: false}
 		], locator.search.indexState().mailIndexEnabled, 250).setSelectionChangedHandler(mailIndexEnabled => {
 			if (mailIndexEnabled) {
-				worker.enableMailIndexing()
+				showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
 			} else {
-				worker.disableMailIndexing()
+				showProgressDialog("pleaseWait_msg", worker.disableMailIndexing())
 			}
 		})
 
