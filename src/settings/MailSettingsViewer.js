@@ -179,13 +179,15 @@ export class MailSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties) {
-		this._inboxRulesTable.updateEntries(props.inboxRules.map((rule, index) => {
-			let actionButton = new Button("delete_action", () => {
-				props.inboxRules.splice(index, 1)
-				update(props)
-			}, () => Icons.Cancel)
-			return new TableLine([getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)], actionButton)
-		}))
+		mailModel.init().then(() => {
+			this._inboxRulesTable.updateEntries(props.inboxRules.map((rule, index) => {
+				let actionButton = new Button("delete_action", () => {
+					props.inboxRules.splice(index, 1)
+					update(props)
+				}, () => Icons.Cancel)
+				return new TableLine([getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)], actionButton)
+			}))
+		})
 	}
 
 	_getTextForTarget = function (targetFolderId: IdTuple) {
