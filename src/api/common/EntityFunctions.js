@@ -24,7 +24,7 @@ export type HttpMethodEnum = $Values<typeof HttpMethod>;
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  */
-export const GENERATED_MAX_ID = "Uzzzzzzzzzzz" // FIXME change to "zzzzzzzzzzzz" after server release
+export const GENERATED_MAX_ID = "zzzzzzzzzzzz"
 
 /**
  * The minimum ID for elements with generated id stored on the server
@@ -195,8 +195,8 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 export function _loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, 1000, true, target).filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end)).then(entities => {
-			if (entities.length === 1000) {
+		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target).filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end)).then(entities => {
+			if (entities.length === RANGE_ITEM_LIMIT) {
 				return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length - 1])[1], end, target).then(remainingEntities => {
 					return entities.concat(remainingEntities)
 				})

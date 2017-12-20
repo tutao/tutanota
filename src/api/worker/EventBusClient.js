@@ -33,7 +33,7 @@ export class EventBusClient {
 	_login: LoginFacade;
 
 	_socket: ?WebSocket;
-	_terminated: boolean; // if terminated, never reconnects
+	_terminated: boolean; // if terminated, only reconnects if explicitely connect() is called from outside, but never by automatic reconnects
 	_immediateReconnect: boolean; // if true tries to reconnect immediately after the websocket is closed
 	_lastEntityEventIds: {[key: Id]: Id[]}; // maps group id to last event ids (max. 1000). we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
 	_queueWebsocketEvents: boolean
@@ -48,15 +48,19 @@ export class EventBusClient {
 		this._login = login
 		this._socket = null
 		this._terminated = false
-		this._immediateReconnect = false
-		this._lastEntityEventIds = {}
-		this._queueWebsocketEvents = false
-		this._websocketWrapperQueue = []
+		this._reset()
 
 		// we store the last 1000 event ids per group, so we know if an event was already processed.
 		// it is not sufficient to check the last event id because a smaller event id may arrive later
 		// than a bigger one if the requests are processed in parallel on the server
 		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
+	}
+
+	_reset(): void {
+		this._immediateReconnect = false
+		this._lastEntityEventIds = {}
+		this._queueWebsocketEvents = false
+		this._websocketWrapperQueue = []
 	}
 
 	/**
@@ -114,15 +118,21 @@ export class EventBusClient {
 
 	/**
 	 * Sends a close event to the server and finally closes the connection.
+	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(reconnect: boolean = false) {
 		console.log("ws close: ", new Date(), "reconnect: ", reconnect);
 		if (!reconnect) {
-			this._terminated = true;
+			this._terminate()
 		}
 		if (this._socket && this._socket.close) { // close is undefined in node tests
 			this._socket.close();
 		}
+	}
+
+	_terminate(): void {
+		this._terminated = true
+		this._reset()
 	}
 
 	_error(error: any) {
@@ -159,7 +169,7 @@ export class EventBusClient {
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
 		if (event.code == 4401 || event.code == 4470 || event.code == 4472) {
-			this._terminated = true
+			this._terminate()
 			this._worker.sendError(handleRestError(event.code - 4000, "web socket error"))
 		}
 

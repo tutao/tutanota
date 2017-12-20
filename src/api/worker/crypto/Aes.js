@@ -52,7 +52,7 @@ export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array,
 	if (useMac) {
 		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
 		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
-		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
+		data = concat(data, macBytes)
 	}
 	return data
 }

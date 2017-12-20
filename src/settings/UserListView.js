@@ -38,6 +38,7 @@ export class UserListView {
 	_settingsView: SettingsView;
 	_adminUserGroupInfoIds: Id[];
 	_searchResultStreamDependency: stream;
+	onremove: Function;
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
@@ -107,10 +108,12 @@ export class UserListView {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
 		})
-	}
 
-	deactivate() {
-		this._searchResultStreamDependency.end(true)
+		this.onremove = () => {
+			if (this._searchResultStreamDependency) {
+				this._searchResultStreamDependency.end(true)
+			}
+		}
 	}
 
 	_loadAdmins(): Promise<void> {

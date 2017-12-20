@@ -145,9 +145,6 @@ export class SettingsView {
 				this._setUrl(this._userFolders[0].url)
 			} else {
 				this._selectedFolder = folder
-				if (this._currentViewer && this._currentViewer.deactivate instanceof Function) {
-					this._currentViewer.deactivate()
-				}
 				this._currentViewer = null
 				this.detailsViewer = null
 				header.settingsUrl = folder.url

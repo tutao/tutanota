@@ -32,6 +32,7 @@ export class GroupListView {
 	_listId: LazyLoaded<Id>;
 	_settingsView: SettingsView;
 	_searchResultStreamDependency: stream;
+	onremove: Function;
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
@@ -98,10 +99,12 @@ export class GroupListView {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
 		})
-	}
 
-	deactivate() {
-		this._searchResultStreamDependency.end(true)
+		this.onremove = () => {
+			if (this._searchResultStreamDependency) {
+				this._searchResultStreamDependency.end(true)
+			}
+		}
 	}
 
 	_setLoadedCompletely() {

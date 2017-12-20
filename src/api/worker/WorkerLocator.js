@@ -58,7 +58,10 @@ if (typeof self != "undefined") {
 if (replaced) {
 	if (replaced.locator.login) {
 		Object.assign(locator.login, replaced.locator.login)
-		locator.login._eventBusClient.close()
+		// close the websocket, but do not reset the state
+		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
+			locator.login._eventBusClient._socket.close();
+		}
 		if (locator.login.isLoggedIn()) {
 			locator.login._eventBusClient.connect(false)
 		}

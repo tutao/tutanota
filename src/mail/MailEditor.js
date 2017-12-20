@@ -685,13 +685,13 @@ export class MailEditor {
 	/**
 	 * Makes sure the recipient type and contact are resolved.
 	 */
-	_waitForResolvedRecipients() {
-		return Promise.all(this._allRecipients().map(ri => {
-			return resolveRecipientInfo(ri).then(ri => {
-				if (ri.resolveContactPromise) {
-					return ri.resolveContactPromise.return(ri)
+	_waitForResolvedRecipients(): Promise<RecipientInfo[]> {
+		return Promise.all(this._allRecipients().map(recipientInfo => {
+			return resolveRecipientInfo(recipientInfo).then(recipientInfo => {
+				if (recipientInfo.resolveContactPromise) {
+					return recipientInfo.resolveContactPromise.return(recipientInfo)
 				} else {
-					return ri
+					return recipientInfo
 				}
 			})
 		}))
