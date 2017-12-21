@@ -146,12 +146,13 @@ class Header {
 	}
 
 	_createMailEditor(): Promise<MailEditor> {
-		return Promise.join(asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailBoxController.js`), (mailEditorModule, mailBoxControllerModule) => {
-				return new mailBoxControllerModule.MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
-					return new mailEditorModule.MailEditor(mc)
-				})
-			})
+		return Promise.join(
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
+			(mailEditorModule, mailModelModule) => {
+				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+			}
+		)
 	}
 
 	_getColumnTitle() {
