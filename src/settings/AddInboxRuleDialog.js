@@ -42,7 +42,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 				let rule = createInboxRule()
 				rule.type = typeField.selectedValue()
 				rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
-				rule.targetFolder = targetFolderField.selectedValue().folder._id
+				rule.targetFolder = targetFolderField.selectedValue()._id
 				logins.getUserController().props.inboxRules.push(rule)
 				update(logins.getUserController().props)
 			}

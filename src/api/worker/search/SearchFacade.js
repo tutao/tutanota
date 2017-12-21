@@ -29,7 +29,7 @@ import {LoginFacade} from "../facades/LoginFacade"
 import {getStartOfDay} from "../../common/utils/DateUtils"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
-import {EC} from "../../common/EntityConstants"
+import EC from "../../common/EntityConstants"
 import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
