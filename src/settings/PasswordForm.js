@@ -13,6 +13,7 @@ import {worker} from "../api/main/WorkerClient"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -115,6 +116,7 @@ export class PasswordForm {
 				Dialog.error(error)
 			} else {
 				showProgressDialog("pleaseWait_msg", worker.changePassword(form.getOldPassword(), form.getNewPassword())).then(() => {
+					deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
 					Dialog.error("pwChangeValid_msg")
 					dialog.close()
 				}).catch(NotAuthenticatedError, e => {

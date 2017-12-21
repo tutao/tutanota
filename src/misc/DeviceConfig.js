@@ -57,6 +57,11 @@ class DeviceConfig {
 		this._store()
 	}
 
+	deleteByAccessToken(accessToken: string) {
+		this._credentials.splice(this._credentials.findIndex(c => c.accessToken === accessToken), 1)
+		this._store()
+	}
+
 	_store() {
 		try {
 			localStorage.setItem(LocalStorageKey, JSON.stringify(this))

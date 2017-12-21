@@ -60,6 +60,7 @@ interface IUserController {
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
 	sessionId: IdTuple;
+	accessToken: string;
 	isAdmin():boolean;
 	isFreeAccount(): boolean;
 	isPremiumAccount(): boolean;
