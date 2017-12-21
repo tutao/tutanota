@@ -34,7 +34,7 @@ export class SuggestionFacade<T> {
 
 	addSuggestions(words: string[]): void {
 		words.forEach(word => {
-			if (word.length > 1) {
+			if (word.length > 0) {
 				let key = word.charAt(0)
 				if (this._suggestions[key]) {
 					let existingValues = this._suggestions[key]

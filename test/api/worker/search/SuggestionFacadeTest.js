@@ -26,18 +26,18 @@ o.spec("SuggestionFacade test", () => {
 		o(facade.getSuggestions("a").join("")).equals("")
 		let words = ["a"]
 		facade.addSuggestions(words)
-		o(facade.getSuggestions("a").join(" ")).equals("")
+		o(facade.getSuggestions("a").join(" ")).equals("a")
 		words = ["anton", "arne"]
 		facade.addSuggestions(words)
-		o(facade.getSuggestions("a").join(" ")).equals("anton arne")
+		o(facade.getSuggestions("a").join(" ")).equals("a anton arne")
 
 		words = ["ab", "az", "arne"]
 		facade.addSuggestions(words)
-		o(facade.getSuggestions("a").join(" ")).equals("ab anton arne az")
+		o(facade.getSuggestions("a").join(" ")).equals("a ab anton arne az")
 
 		words = ["aa", "anne", "bernd"]
 		facade.addSuggestions(words)
-		o(facade.getSuggestions("a").join(" ")).equals("aa ab anne anton arne az")
+		o(facade.getSuggestions("a").join(" ")).equals("a aa ab anne anton arne az")
 		o(facade.getSuggestions("an").join(" ")).equals("anne anton")
 		o(facade.getSuggestions("ann").join(" ")).equals("anne")
 		o(facade.getSuggestions("anne").join(" ")).equals("anne")
