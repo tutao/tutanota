@@ -25,7 +25,6 @@ import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {ElementDataOS, SearchIndexOS, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
-import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 
 o.spec("IndexerCore test", () => {
 
@@ -244,7 +243,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any), (null:any))
-		core._moveIndexedInstance(indexUpdate, transaction).then(() => done())
+		neverNull(core._moveIndexedInstance(indexUpdate, transaction)).then(() => done())
 	})
 
 	o("writeIndexUpdate _deleteIndexedInstance", function (done) {
@@ -335,7 +334,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any), (null:any))
-		core._deleteIndexedInstance(indexUpdate, transaction).then(done)
+		neverNull(core._deleteIndexedInstance(indexUpdate, transaction)).then(done)
 	})
 
 	o("writeIndexUpdate _insertNewElementData", function (done) {
@@ -362,7 +361,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any), (null:any))
-		core._insertNewElementData(indexUpdate, transaction).then(keysToUpdate => {
+		neverNull(core._insertNewElementData(indexUpdate, transaction)).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({[encInstanceId]: true}))
 			if (insertedElementData) done()
 		})
@@ -392,7 +391,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any), (null:any))
-		core._insertNewElementData(indexUpdate, transaction).then(keysToUpdate => {
+		neverNull(core._insertNewElementData(indexUpdate, transaction)).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({}))
 			if (!insertedElementData) done()
 		})
@@ -453,7 +452,7 @@ o.spec("IndexerCore test", () => {
 		core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 	})
 
-	o("writeIndexUpdate _insertNewIndexEntries already indexed (keysToUpdate param empty)", function (done) {
+	o("writeIndexUpdate _insertNewIndexEntries already indexed (keysToUpdate param empty)", function () {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)
 		let encInstanceId = new Uint8Array([8])
@@ -471,7 +470,7 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null:any), (null:any))
-		core._insertNewIndexEntries(indexUpdate, {}, transaction).then(done)
+		o(core._insertNewIndexEntries(indexUpdate, {}, transaction)).equals(null)
 	})
 
 	o("writeIndexUpdate _updateGroupData abort in case batch has been indexed already", function (done) {

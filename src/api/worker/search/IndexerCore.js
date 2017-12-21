@@ -135,22 +135,22 @@ export class IndexerCore {
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = performance.now()
 		let transaction = this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS])
-		return this._moveIndexedInstance(indexUpdate, transaction)
+		return Promise.resolve()
+			.then(() => this._moveIndexedInstance(indexUpdate, transaction))
 			.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
 			.then(() => this._insertNewElementData(indexUpdate, transaction))
-			.then(keysToUpdate => {
-				return Promise.all([
-					this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction),
-					this._updateGroupData(indexUpdate, transaction)
-				]).then(() => {
-					return transaction.wait().then(() => {
-						this._storageTime += (performance.now() - startTimeStorage)
-					})
+			.then(keysToUpdate => keysToUpdate != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
+			.then(() => this._updateGroupData(indexUpdate, transaction))
+			.then(() => {
+				return transaction.wait().then(() => {
+					this._storageTime += (performance.now() - startTimeStorage)
 				})
 			})
 	}
 
-	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
+	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
+		if (indexUpdate.move.length == 0) return null // keep transaction context open (only for FF)
+
 		return Promise.all(indexUpdate.move.map(moveInstance => {
 			return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
 				if (elementData) {
@@ -161,7 +161,9 @@ export class IndexerCore {
 		})).return()
 	}
 
-	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
+	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
+		if (indexUpdate.delete.encWordToEncInstanceIds.size == 0) return null // keep transaction context open (only for FF)
+
 		return Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
 			return transaction.getAsList(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
 				if (encryptedSearchIndexEntries.length > 0) {
@@ -181,7 +183,9 @@ export class IndexerCore {
 	/**
 	 * @return a map that contains all new encrypted instance ids
 	 */
-	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<{[B64EncInstanceId]:boolean}> {
+	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]:boolean}> {
+		if (indexUpdate.create.encInstanceIdToElementData.size == 0) return null // keep transaction context open (only for FF)
+
 		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
@@ -198,7 +202,7 @@ export class IndexerCore {
 		return Promise.all(promises).return(keysToUpdate)
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]:boolean}, transaction: DbTransaction): Promise<void> {
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]:boolean}, transaction: DbTransaction): ?Promise<void> {
 		let promises = []
 		indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
 			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] == true)
@@ -221,10 +225,14 @@ export class IndexerCore {
 				}))
 			}
 		})
-		return Promise.all(promises).return()
+		if (promises.length == 0) {
+			return null
+		} else {
+			return Promise.all(promises).return()
+		}
 	}
 
-	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): Promise<void> {
+	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		if (indexUpdate.batchId || indexUpdate.indexTimestamp != null) { // check timestamp for != null here because "0" is a valid value to write
 			// update group data
 			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: GroupData) => {
@@ -254,8 +262,9 @@ export class IndexerCore {
 					return transaction.put(GroupDataOS, indexUpdate.groupId, groupData)
 				}
 			})
+		} else {
+			return null
 		}
-		return Promise.resolve()
 	}
 
 	printStatus() {

@@ -83,6 +83,11 @@ type DbRequest = {
 	objectStore:string;
 }
 
+/**
+ * A transaction is usually committed after all requests placed against the transaction have been executed and their
+ * returned results handled, and no new requests have been placed against the transaction.
+ * @see https://w3c.github.io/IndexedDB/#ref-for-transaction-finish
+ */
 export class DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
