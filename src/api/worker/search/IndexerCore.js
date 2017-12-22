@@ -244,6 +244,9 @@ export class IndexerCore {
 
 				if (indexUpdate.batchId) {
 					let batchId = indexUpdate.batchId
+					if (!groupData) {
+						throw new Error("GroupData not available for group " + indexUpdate.groupId)
+					}
 					if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
 						transaction.abort()
 					} else {
