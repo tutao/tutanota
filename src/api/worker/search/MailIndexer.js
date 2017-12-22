@@ -216,9 +216,13 @@ export class MailIndexer {
 			console.log("finished indexing")
 		}).catch(CancelledError, (e) => {
 			console.log("indexing cancelled")
+		}).catch(e => {
+			// avoid that a rejected promise is stored
+			this.mailboxIndexingPromise = Promise.resolve()
+			throw e
 		}).finally(() => {
 			this._core.queue.processNext()
-
+			// update our index timestamp and send the information to the main thread. this can be done async
 			this.updateCurrentIndexTimestamp(user).then(() => {
 				this._worker.sendIndexState({
 					indexingSupported: this._core.indexingSupported,
