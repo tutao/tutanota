@@ -6,7 +6,7 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 // db types
 export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry encrypted element id, second entry encrypted app, attribute, type and positions
 
-export type ElementData = [Id, Uint8Array, Id] // first element of value is listId, second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
+export type ElementData = [Id, Uint8Array, Id] // first element of value is listId (we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail), second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
 
 export type GroupData = {
 	lastBatchIds:Id[];
@@ -37,7 +37,7 @@ export type KeyToEncryptedIndexEntries = {
 
 export type SearchIndexEntry = {
 	id:Id;
-	app:number;
+	app:number; // we have app and type on SearchIndexEntry instead of ElementData to be able to filter them before loading ElementData for each found instance
 	type:number;
 	attribute: number;
 	positions:number[];

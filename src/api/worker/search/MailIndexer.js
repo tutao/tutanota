@@ -32,6 +32,7 @@ import {EntityRestClient} from "../rest/EntityRestClient"
 import {getStartOfDay, getDayShifted} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
+import {contains} from "../../common/utils/ArrayUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -291,9 +292,12 @@ export class MailIndexer {
 		return this._excludedListIds.indexOf(event.instanceListId) !== -1
 	}
 
+	/**
+	 * Provides all non-excluded mail list ids of the given mailbox
+	 */
 	_loadMailListIds(mailbox: MailBox): Promise<Id[]> {
 		let mailListIds = []
-		return loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders).map(folder => {
+		return loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders).filter(f => !contains(this._excludedListIds, f.mails)).map(folder => {
 			mailListIds.push(folder.mails)
 			return loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
 				mailListIds.push(folder.mails)

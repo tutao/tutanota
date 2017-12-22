@@ -37,7 +37,7 @@ import {EventQueue} from "./EventQueue"
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
 	mailIndexingEnabled: "mailIndexingEnabled",
-	excludedListIds: "excludedListIds"
+	excludedListIds: "excludedListIds" // stored in the database, so the mailbox does not need to be loaded when starting to index mails except spam folder after login
 }
 
 export type InitParams = {
