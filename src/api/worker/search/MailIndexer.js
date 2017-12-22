@@ -64,7 +64,7 @@ export class MailIndexer {
 
 
 	createMailIndexEntries(mail: Mail, mailBody: MailBody, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
-		let startTimeIndex = performance.now()
+		let startTimeIndex = getPerformanceTimestamp()
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(MailModel, mail, [
 			{
 				attribute: MailModel.values["subject"],
@@ -88,7 +88,7 @@ export class MailIndexer {
 				attribute: MailModel.associations["attachments"],
 				value: () => files.map(file => file.name).join(" ")
 			}])
-		this._core._indexingTime += (performance.now() - startTimeIndex)
+		this._core._indexingTime += (getPerformanceTimestamp() - startTimeIndex)
 		return keyToIndexEntries
 	}
 
@@ -237,7 +237,7 @@ export class MailIndexer {
 
 	/**@return returns true if the mail list has been fully indexed. */
 	_indexMailList(mailbox: MailBox, mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <boolean> {
-		let startTimeLoad = performance.now()
+		let startTimeLoad = getPerformanceTimestamp()
 		if (this._indexingCancelled) return Promise.reject(new CancelledError("cancelled indexing"))
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 
@@ -254,7 +254,7 @@ export class MailIndexer {
 				})
 			}, {concurrency: 5}).then((mailWithBodyAndFiles: {mail:Mail, body:MailBody, files:TutanotaFile[]}[]) => {
 				let indexUpdate = _createNewIndexUpdate(mailGroupId)
-				this._core._downloadingTime += (performance.now() - startTimeLoad)
+				this._core._downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
 				this._core._mailcount += mailWithBodyAndFiles.length
 				return Promise.each(mailWithBodyAndFiles, element => {
 					let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)

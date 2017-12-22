@@ -225,3 +225,8 @@ const HTML_ENTITIES = {
 	"&upsih;": "ϒ",
 	"&piv;": "ϖ",
 }
+
+
+export function getPerformanceTimestamp(): number {
+	return typeof performance === "undefined" ? Date.now() : performance.now()  // performance is not available in Safari 10 worker scope
+}

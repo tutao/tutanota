@@ -17,7 +17,8 @@ import {
 	encryptSearchIndexEntry,
 	byteLength,
 	getAppId,
-	encryptIndexKeyUint8Array
+	encryptIndexKeyUint8Array,
+	getPerformanceTimestamp
 } from "./IndexUtils"
 import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, GroupData, Db} from "./SearchTypes"
 import {EventQueue} from "./EventQueue"
@@ -87,7 +88,7 @@ export class IndexerCore {
 		let encryptedInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1])
 		let b64InstanceId = uint8ArrayToBase64(encryptedInstanceId)
 
-		let encryptionTimeStart = performance.now()
+		let encryptionTimeStart = getPerformanceTimestamp()
 		let words = []
 		keyToIndexEntries.forEach((value, indexKey) => {
 			let encIndexKey = encryptIndexKeyBase64(this.db.key, indexKey)
@@ -105,7 +106,7 @@ export class IndexerCore {
 			ownerGroup
 		])
 
-		this._encryptionTime += performance.now() - encryptionTimeStart
+		this._encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
@@ -133,7 +134,7 @@ export class IndexerCore {
 	/*********************************************** Write index update ***********************************************/
 
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
-		let startTimeStorage = performance.now()
+		let startTimeStorage = getPerformanceTimestamp()
 		let transaction = this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS])
 		return Promise.resolve()
 			.then(() => this._moveIndexedInstance(indexUpdate, transaction))
@@ -143,7 +144,7 @@ export class IndexerCore {
 			.then(() => this._updateGroupData(indexUpdate, transaction))
 			.then(() => {
 				return transaction.wait().then(() => {
-					this._storageTime += (performance.now() - startTimeStorage)
+					this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
 				})
 			})
 	}
