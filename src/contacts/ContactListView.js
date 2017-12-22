@@ -30,10 +30,11 @@ export class ContactListView {
 				if (startId == GENERATED_MAX_ID) {
 					return LazyContactListId.getAsync().then(contactListId => {
 						// we have to load all contacts in order to sort them by name
-						let allContacts = loadAll(ContactTypeRef, contactListId)
-						// we have to set loadedCompletely to make sure that fetch is never called again and  also that new received contacts are inserted into the list, even at the end
-						this._setLoadedCompletely();
-						return Promise.resolve(allContacts);
+						return loadAll(ContactTypeRef, contactListId).then(allContacts => {
+							// we have to set loadedCompletely to make sure that fetch is never called again and also that new received contacts are inserted into the list, even at the end
+							this._setLoadedCompletely();
+							return allContacts
+						})
 					})
 				} else {
 					throw new Error("fetch contact called for specific start id")
