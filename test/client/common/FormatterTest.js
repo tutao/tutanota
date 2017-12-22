@@ -13,11 +13,11 @@ import {
 	isRegularExpression
 } from "../../../src/misc/Formatter"
 
-o.spec("FormatterTests", function () {
+o.spec("FormatterTest", function () {
 
 	o("Intl and parse support for all supported locales", browser(function () {
 		let referenceDate = new Date(2017, 5, 23)
-		languages.forEach(l => {
+		languages.concat([{code: 'en_gb', textId: ''}]).forEach(l => {
 			let code = l.code.replace("_", "-")
 			lang._setLanguageTag(code)
 			let formattedDate = formatDate(referenceDate)

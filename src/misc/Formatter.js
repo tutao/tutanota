@@ -58,18 +58,20 @@ export function formatSortableDateTime(date: Date): string {
 }
 
 export function parseDate(dateString: string) {
-	if (lang.languageTag === 'bg-bg') {
+	let languageTag = lang.languageTag.toLowerCase()
+
+	if (languageTag === 'bg-bg') {
 		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
 	}
 	dateString = dateString.replace(/ /g, "")
-	if (["hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr", "bg-bg", "cs-cz", "da-dk", "et-ee", "id", "sk-sk", "ta-in", "uk-ua", "vi", "ca-es"].find(t => lang.languageTag.indexOf(t) === 0) != null) {
+	if (["no", "hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr", "bg-bg", "cs-cz", "da-dk", "en-gb", "et-ee", "id", "sk-sk", "ta-in", "uk-ua", "vi", "ca-es"].find(t => languageTag.indexOf(t) === 0) != null) {
 		// switch month and date for allowing Date.parse to parse the date
 		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
 		if (parts.length === 3) {
 			dateString = `${parts[2]}-${parts[1]}-${parts[0]}`
 		}
 	}
-	if ("fil-ph" === lang.languageTag) {
+	if ("fil-ph" === languageTag) {
 		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
 		if (parts.length === 3) {
 			dateString = `${parts[0]}-${parts[2]}-${parts[1]}`
@@ -77,7 +79,7 @@ export function parseDate(dateString: string) {
 	}
 	let parsed = Date.parse(dateString)
 	if (isNaN(parsed) || parsed < 0) {
-		throw new Error(`could not parse date '${dateString}' for locale ${lang.languageTag}`)
+		throw new Error(`could not parse date '${dateString}' for locale ${languageTag}`)
 	}
 	return parsed
 }
