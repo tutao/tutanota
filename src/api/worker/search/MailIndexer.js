@@ -22,7 +22,8 @@ import {
 	htmlToText,
 	filterMailMemberships,
 	_createNewIndexUpdate,
-	containsEventOfType
+	containsEventOfType,
+	getPerformanceTimestamp
 } from "./IndexUtils"
 import type {IndexUpdate, GroupData, Db, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"

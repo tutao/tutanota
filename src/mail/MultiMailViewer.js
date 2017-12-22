@@ -11,7 +11,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {getFolderName, getFolderIcon} from "./MailUtils"
+import {getFolderName, getFolderIcon, getSortedSystemFolders, getSortedCustomFolders} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 
@@ -39,7 +39,7 @@ export class MultiMailViewer {
 			if (sourceMailboxes.length != 1) {
 				return []
 			} else {
-				return sourceMailboxes[0].folders.map(f => {
+				return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
 					return new Button(() => getFolderName(f), () => mailModel.moveMails(mails, f), getFolderIcon(f))
 						.setType(ButtonType.Dropdown)
 				})

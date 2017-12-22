@@ -39,8 +39,8 @@ import {
 	isFinallyDeleteAllowed,
 	getMailboxName,
 	getInboxFolder,
-	getSystemFolders,
-	getCustomFolders,
+	getSortedSystemFolders,
+	getSortedCustomFolders,
 	getFolder
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -271,7 +271,7 @@ export class MailView {
 					if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
 						this.createMailboxExpander(newMailboxDetail)
 					} else {
-						this._mailboxExpanders[newMailboxDetail.mailGroup._id].customFolderButtons = this.createFolderButtons(getCustomFolders(newMailboxDetail.folders))
+						this._mailboxExpanders[newMailboxDetail.mailGroup._id].customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
 					}
 				})
 				Object.keys(this._mailboxExpanders).forEach(mailGroupId => {
@@ -301,8 +301,8 @@ export class MailView {
 		this._mailboxExpanders[mailboxDetail.mailGroup._id] = {
 			details: mailboxDetail,
 			expanderButton: this.createMailBoxExpanderButton(mailboxDetail.mailGroup._id),
-			systemFolderButtons: this.createFolderButtons(getSystemFolders(mailboxDetail.folders)),
-			customFolderButtons: this.createFolderButtons(getCustomFolders(mailboxDetail.folders)),
+			systemFolderButtons: this.createFolderButtons(getSortedSystemFolders(mailboxDetail.folders)),
+			customFolderButtons: this.createFolderButtons(getSortedCustomFolders(mailboxDetail.folders)),
 			folderAddButton: this.createFolderAddButton(mailboxDetail.mailGroup._id),
 		}
 	}

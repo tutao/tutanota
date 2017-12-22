@@ -39,7 +39,9 @@ import {
 	getArchiveFolder,
 	getEnabledMailAddresses,
 	getDefaultSender,
-	getMailboxName
+	getMailboxName,
+	getSortedSystemFolders,
+	getSortedCustomFolders
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -171,7 +173,9 @@ export class MailViewer {
 				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
 			}
 			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-				return mailModel.getMailboxFolders(this.mail).filter(f => f.mails != this.mail._id[0]).map(f => {
+				let targetFolders = mailModel.getMailboxFolders(this.mail).filter(f => f.mails != this.mail._id[0])
+				targetFolders = (getSortedSystemFolders(targetFolders).concat(getSortedCustomFolders(targetFolders)))
+				return targetFolders.map(f => {
 					return new Button(() => getFolderName(f), () => mailModel.moveMails([mail], f), getFolderIcon(f))
 						.setType(ButtonType.Dropdown)
 				})

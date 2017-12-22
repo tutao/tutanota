@@ -271,7 +271,7 @@ export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): Mail
 }
 
 
-export function getSystemFolders(folders: MailFolder[]): MailFolder[] {
+export function getSortedSystemFolders(folders: MailFolder[]): MailFolder[] {
 	return folders.filter(f => f.folderType !== MailFolderType.CUSTOM).sort((folder1, folder2) => {
 		// insert the draft folder after inbox (use type number 1.5 which is after inbox)
 		if (folder1.folderType == MailFolderType.DRAFT) {
@@ -283,7 +283,7 @@ export function getSystemFolders(folders: MailFolder[]): MailFolder[] {
 	})
 }
 
-export function getCustomFolders(folders: MailFolder[]): MailFolder[] {
+export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
 	return folders.filter(f => f.folderType == MailFolderType.CUSTOM).sort((folder1, folder2) => {
 		return folder1.name.localeCompare(folder2.name)
 	})

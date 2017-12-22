@@ -6,7 +6,12 @@ import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
+import {
+	MailFolderType,
+	FULL_INDEXED_TIMESTAMP,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {NavButton} from "../gui/base/NavButton"
@@ -25,7 +30,7 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_MAIL_FIELDS, SEARCH_CATEGORIES} from "../search/SearchUtils"
-import {getFolderName} from "../mail/MailUtils"
+import {getFolderName, getSortedSystemFolders, getSortedCustomFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
@@ -111,11 +116,13 @@ export class SearchView {
 				{name: lang.get("all_label"), value: null}
 			]
 			mailboxes.forEach((mailbox, mailboxIndex) => {
-				mailbox.folders.forEach(folder => {
-					mailFolders.push({
-						name: getFolderName(folder) + ((mailboxIndex == 0) ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
-						value: folder.mails
-					})
+				(getSortedSystemFolders(mailbox.folders).concat(getSortedCustomFolders(mailbox.folders))).forEach(folder => {
+					if (folder.folderType != MailFolderType.SPAM) {
+						mailFolders.push({
+							name: getFolderName(folder) + ((mailboxIndex == 0) ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							value: folder.mails
+						})
+					}
 				})
 			})
 			let newSelection = this._mailFolderSelection ? this._mailFolderSelection.selectedValue() : mailFolders[0].value
