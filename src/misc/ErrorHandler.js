@@ -9,7 +9,7 @@ export function handleUncaughtError(e: Error) {
 	if (e instanceof SecondFactorPendingError) {
 		// ignore
 	} else if (e.stack) {
-		console.log("error", e.stack)
+		console.log("error", e, e.stack)
 	} else {
 		console.log("error", e)
 	}

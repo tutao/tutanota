@@ -65,7 +65,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {searchForContacts, LazyContactListId} from "../contacts/ContactUtils"
-
+import {ActionBar} from '../gui/base/ActionBar.js'
 
 assertMainOrNode()
 
@@ -186,6 +186,50 @@ export class MailEditor {
 				])
 		}), false)
 
+    const actions = [
+      {
+        title: "B",
+        format: "b",
+        add: () => this.editor.squire.bold(),
+        remove: () => this.editor.squire.removeBold()
+      },
+      {
+        title: "I",
+        format: "i",
+        add: () => this.editor.squire.italic(),
+        remove: () => this.editor.squire.removeItalic()
+      },
+      {
+        title: "U",
+        format: "u",
+        add: () => this.editor.squire.underline(),
+        remove: () => this.editor.squire.removeUniderline()
+      }
+    ]
+    const editorBar = new ActionBar();
+    for (let description of actions) {
+      editorBar.add(new Button(() => description.title,
+                               () => {
+                                 if (this.editor.squire.hasFormat(description.format)) {
+                                   description.remove()
+                                 } else {
+                                   description.add()
+                                 }
+                               }, null).setType(ButtonType.Secondary))
+    }
+    editorBar.add(new Button(() => "em",
+                             () => {
+                               this.editor.squire.setFontSize("1.5em")
+                             }, null).setType(ButtonType.Secondary))
+
+    const alignButtons = [["l", "left"], ["c", "center"],  ["r", "right"],
+                          ["j", "justify"]];
+    for (let [name, value] of alignButtons) {
+      editorBar.add(new Button(() => name,
+                               () => {
+                                 this.editor.squire.setTextAlignment(value)
+                               }, null).setType(ButtonType.Secondary))
+    }
 
 		this.view = () => {
 			return m("#mail-editor.full-height.text", {
@@ -229,6 +273,7 @@ export class MailEditor {
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
 				this._attachmentButtons.length > 0 ? m("hr.hr") : null,
+        m(editorBar),
 				m(".pt-l.text", {onclick: () => this.editor.squire.focus()}, m(this.editor)),
 				m(".pb")
 			])
