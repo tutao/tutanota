@@ -311,7 +311,7 @@ export class SearchBar {
 						m(Icon, {
 							icon: Icons.Attachment,
 							class: this._selected === result ? "svg-content-accent-fg" : "svg-content-fg",
-							style: {display: mail.attachments ? '' : 'none'},
+							style: {display: mail.attachments.length > 0 ? '' : 'none'},
 						}),
 					])
 				])
