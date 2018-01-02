@@ -15,7 +15,7 @@ import {
 	OperationType
 } from "../api/common/TutanotaConstants"
 import {animations, opacity, height} from "../gui/animation/Animations"
-import {load, setup, update} from "../api/main/Entity"
+import {load, setup, update, loadAll} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {BubbleTextField, Bubble} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
@@ -832,7 +832,8 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
-		return searchForContacts(query, "recipient", 10).map(contact => {
+		let contactsPromise = (locator.search.indexState().indexingSupported) ? searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+		return contactsPromise.map(contact => {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
 			if (name.toLowerCase().indexOf(query) !== -1) {

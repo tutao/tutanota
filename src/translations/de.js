@@ -949,6 +949,6 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"searchDisabled_msg": "Dein Browser unterstützt nicht das Speichern von Daten. Darum haben wir die Suche und Empfänger-Vorschläge im Mail-Editor deaktiviert."
+		"searchDisabled_msg": "Dein Browser unterstützt nicht das Speichern von Daten. Darum haben wir die Suche deaktiviert."
 	}
 }
