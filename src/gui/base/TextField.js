@@ -61,7 +61,7 @@ export class TextField {
 		this.value = stream("")
 		this.value.map(v => {
 			if (this._domInput) {
-				if (this.type == Type.Area && this.value != this._domInput.value) {
+				if (this.value != this._domInput.value) {
 					this._domInput.value = this.value()
 				}
 			}
@@ -130,10 +130,8 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			let value = this.type !== Type.Password ? this.value() : undefined // chrome autofill does not work on password fields if the value has been set before
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
-				value,
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					if (this.type != Type.Area) {
@@ -147,12 +145,21 @@ export class TextField {
 							}
 						})
 					}
+					if (this.type !== Type.Password) {
+						this._domInput.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+					}
 				},
 				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
+					if (this._domInput.value != this.value()) {
+						this.value(this._domInput.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
+						if (this._domInput.value !== "" && !this.active) {
+							this.animate()
+						}
+					}
 					return this._keyHandler != null ? this._keyHandler(key) : true
 				},
 				onremove: e => {
