@@ -8,7 +8,7 @@ import type {
 import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {createRestriction} from "../search/SearchUtils"
-import {loadRoot, load} from "../api/main/Entity"
+import {loadRoot, load, loadAll} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
@@ -17,6 +17,7 @@ import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -134,6 +135,9 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 	}
 }
 
+/**
+ * @pre locator.search.indexState().indexingSupported
+ */
 export function searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
 	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount).then(result => {
 		// load one by one because they may be in different lists when we have different lists
@@ -148,24 +152,30 @@ export function searchForContacts(query: string, field: string, minSuggestionCou
 }
 
 /**
- * Provides the first contact (starting with oldest contact) that contains the given email address.
+ * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
  */
 export function searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
 	let cleanMailAddress = mailAddress.trim().toLowerCase()
-	return worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
-		// the result is sorted from newest to oldest, but we want to return the oldest first like before
-		result.results.sort(compareOldestFirst)
-		return asyncFindAndMap(result.results, contactId => {
-			return load(ContactTypeRef, contactId).then(contact => {
-				// look for the exact match in the contacts
-				return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress)) ? contact : null
-			}).catch(NotFoundError, e => {
-				return null
-			}).catch(NotAuthorizedError, e => {
-				return null
+	if (locator.search.indexState().indexingSupported) {
+		return worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
+			// the result is sorted from newest to oldest, but we want to return the oldest first like before
+			result.results.sort(compareOldestFirst)
+			return asyncFindAndMap(result.results, contactId => {
+				return load(ContactTypeRef, contactId).then(contact => {
+					// look for the exact match in the contacts
+					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress)) ? contact : null
+				}).catch(NotFoundError, e => {
+					return null
+				}).catch(NotAuthorizedError, e => {
+					return null
+				})
 			})
 		})
-	})
+	} else {
+		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId)).then(contacts => {
+			return contacts.find(contact => contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress) != null)
+		})
+	}
 }
 
 export function getContactDisplayName(contact: Contact): string {
