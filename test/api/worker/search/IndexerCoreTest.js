@@ -537,7 +537,8 @@ o.spec("IndexerCore test", () => {
 
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
-			dbFacade: ({createTransaction: () => transaction}:any)
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}:any),
+			initialized: Promise.resolve()
 		}, ({queueEvents: false}:any))
 		core._moveIndexedInstance = o.spy(() => Promise.resolve())
 		core._deleteIndexedInstance = o.spy()
@@ -573,7 +574,8 @@ o.spec("IndexerCore test", () => {
 
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
-			dbFacade: ({createTransaction: () => transaction}:any)
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}:any),
+			initialized: Promise.resolve()
 		}, ({queueEvents: false}:any))
 
 		let listId = "list-id"
@@ -626,7 +628,8 @@ o.spec("IndexerCore test", () => {
 
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
-			dbFacade: ({createTransaction: () => transaction}:any)
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}:any),
+			initialized: Promise.resolve()
 		}, ({queueEvents: false}:any))
 
 		let transaction: any = {

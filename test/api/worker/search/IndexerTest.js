@@ -42,7 +42,7 @@ o.spec("Indexer test", () => {
 		indexer._initGroupData = o.spy(batches => Promise.resolve())
 		indexer.db.dbFacade = {
 			open: o.spy(() => Promise.resolve()),
-			createTransaction: () => transaction
+			createTransaction: () => Promise.resolve(transaction)
 		}
 		indexer._contact.indexFullContactList = o.spy(() => Promise.resolve())
 		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
@@ -85,7 +85,7 @@ o.spec("Indexer test", () => {
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
 		indexer.db.dbFacade = {
 			open: o.spy(() => Promise.resolve()),
-			createTransaction: () => transaction
+			createTransaction: () => Promise.resolve(transaction)
 		}
 		let groupDiff = [{groupDiff: "dummy"}]
 		indexer._groupDiff = o.spy(() => Promise.resolve(groupDiff))
@@ -136,9 +136,10 @@ o.spec("Indexer test", () => {
 		}
 
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
+		indexer.db.initialized = Promise.resolve()
 		indexer.db.dbFacade = {
 			open: o.spy(() => Promise.resolve()),
-			createTransaction: () => transaction,
+			createTransaction: () => Promise.resolve(transaction),
 		}
 		let groupDiff = [{groupDiff: "dummy"}]
 		indexer._groupDiff = o.spy(() => Promise.resolve(groupDiff))
@@ -191,7 +192,7 @@ o.spec("Indexer test", () => {
 		}
 
 		let indexer = new Indexer((null:any), (null:any))
-		indexer.db.dbFacade = ({createTransaction: () => transaction}:any)
+		indexer.db.dbFacade = ({createTransaction: () => Promise.resolve(transaction)}:any)
 
 		indexer._groupDiff(user).then(result => {
 			o(result).deepEquals({
@@ -245,7 +246,7 @@ o.spec("Indexer test", () => {
 		let indexer: any = new Indexer((null:any), (null:any))
 		indexer._loadGroupData = o.spy(() => Promise.resolve(groupBatches))
 		indexer._initGroupData = o.spy(() => Promise.resolve())
-		indexer.db.dbFacade = ({createTransaction: () => transaction}:any)
+		indexer.db.dbFacade = ({createTransaction: () => Promise.resolve(transaction)}:any)
 		indexer._mail.indexMailbox = o.spy()
 		indexer._mail.currentIndexTimestamp = new Date().getTime()
 
@@ -271,7 +272,7 @@ o.spec("Indexer test", () => {
 		let indexer: any = new Indexer((null:any), (null:any))
 		indexer._loadGroupData = o.spy(() => Promise.resolve(groupBatches))
 		indexer._initGroupData = o.spy(() => Promise.resolve())
-		indexer.db.dbFacade = ({createTransaction: () => transaction}:any)
+		indexer.db.dbFacade = ({createTransaction: () => Promise.resolve(transaction)}:any)
 		indexer._mail.indexMailbox = o.spy()
 
 		let user = createUser()
@@ -510,7 +511,7 @@ o.spec("Indexer test", () => {
 		user.memberships[3].group = "group-customer"
 
 		let indexer = new Indexer((null:any), (null:any))
-		indexer.db.dbFacade = ({createTransaction: () => transaction}:any)
+		indexer.db.dbFacade = ({createTransaction: () => Promise.resolve(transaction)}:any)
 
 		indexer._loadPersistentGroupData(user).then(groupIdToEventBatches => {
 			o(groupIdToEventBatches).deepEquals([
@@ -533,6 +534,7 @@ o.spec("Indexer test", () => {
 
 	o("processEntityEvents", function (done) {
 		const indexer: any = new Indexer((null:any), (null:any))
+		indexer.db.initialized = Promise.resolve()
 		indexer._mail = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._contact = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._groupInfo = {processEntityEvents: o.spy(() => Promise.resolve())}
@@ -574,6 +576,7 @@ o.spec("Indexer test", () => {
 
 	o("processEntityEvents non indexed group", function (done) {
 		const indexer: any = new Indexer((null:any), (null:any))
+		indexer.db.initialized = Promise.resolve()
 		indexer._mail = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._contact = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._groupInfo = {processEntityEvents: o.spy(() => Promise.resolve())}
@@ -606,6 +609,7 @@ o.spec("Indexer test", () => {
 
 	o("processEntityEvents queue", function (done) {
 		const indexer: any = new Indexer((null:any), (null:any))
+		indexer.db.initialized = Promise.resolve()
 		indexer._mail = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._contact = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._groupInfo = {processEntityEvents: o.spy(() => Promise.resolve())}
@@ -628,9 +632,10 @@ o.spec("Indexer test", () => {
 		let events = [update(MailTypeRef)]
 		o(indexer._core.queue.queueEvents).equals(false)
 		o(indexer._core.queue.eventQueue.length).equals(0)
-		let first = indexer.processEntityEvents(events, "group-id", "batch-id-1")
-		o(indexer._core.queue.queueEvents).equals(true)
-		o(indexer._core.queue.eventQueue.length).equals(0)
+		indexer.processEntityEvents(events, "group-id", "batch-id-1").then(() => {
+			o(indexer._core.queue.queueEvents).equals(true)
+			o(indexer._core.queue.eventQueue.length).equals(0)
+		})
 
 		let events2 = [update(MailTypeRef)]
 		indexer.processEntityEvents(events2, "group-id", "batch-id-2").then(() => {

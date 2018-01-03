@@ -1,6 +1,6 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
-import {neverNull} from "../../common/utils/Utils"
+import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
 export const SearchIndexOS = "SearchIndex"
 export const ElementDataOS = "ElementData"
@@ -10,55 +10,60 @@ export const SearchTermSuggestionsOS = "SearchTermSuggestions"
 
 
 export class DbFacade {
-	db: ?IDBDatabase;
+	_id: string;
+	_db: LazyLoaded<IDBDatabase>;
 
 	constructor() {
-	}
-
-	open(id: string): Promise<void> {
-		if (this.db != null) return Promise.resolve()
-		return new Promise.fromCallback((callback) => {
-			let DBOpenRequest = indexedDB.open(id, 1);
-			DBOpenRequest.onerror = (event) => {
-				callback(new DbError(`could not open indexeddb ${id}`, event), null)
-			}
-
-			DBOpenRequest.onupgradeneeded = (event) => {
-				//console.log("upgrade db", event)
-				let db = event.target.result
-				try {
-					db.createObjectStore(SearchIndexOS)
-					db.createObjectStore(ElementDataOS)
-					db.createObjectStore(MetaDataOS)
-					db.createObjectStore(GroupDataOS)
-					db.createObjectStore(SearchTermSuggestionsOS)
-				} catch (e) {
-					callback(new DbError("could not create object store searchindex", e))
+		this._db = new LazyLoaded(() => {
+			return new Promise.fromCallback(callback => {
+				let DBOpenRequest = indexedDB.open(this._id, 1);
+				DBOpenRequest.onerror = (event) => {
+					callback(new DbError(`could not open indexeddb ${this._id}`, event), null)
 				}
-			}
 
-			DBOpenRequest.onsuccess = (event) => {
-				//console.log("opened db", event)
-				this.db = DBOpenRequest.result;
-				this.db.onabort = (event) => console.log("db aborted", event)
-				this.db.onclose = (event) => console.log("db closed", event)
-				this.db.onerror = (event) => console.log("db error", event)
-				callback()
-			}
+				DBOpenRequest.onupgradeneeded = (event) => {
+					//console.log("upgrade db", event)
+					let db = event.target.result
+					try {
+						db.createObjectStore(SearchIndexOS)
+						db.createObjectStore(ElementDataOS)
+						db.createObjectStore(MetaDataOS)
+						db.createObjectStore(GroupDataOS)
+						db.createObjectStore(SearchTermSuggestionsOS)
+					} catch (e) {
+						callback(new DbError("could not create object store searchindex", e))
+					}
+				}
+
+				DBOpenRequest.onsuccess = (event) => {
+					//console.log("opened db", event)
+					DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
+					DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
+					DBOpenRequest.result.onerror = (event) => console.log("db error", event)
+					callback(null, DBOpenRequest.result)
+				}
+			})
 		})
 	}
 
+	open(id: string): Promise<void> {
+		this._id = id
+		return this._db.getAsync().return()
+	}
 
+	/**
+	 * Deletes the database if it has been opened.
+	 */
 	deleteDatabase(): Promise<void> {
-		if (this.db) {
-			this.db.close()
+		if (this._db.isLoaded()) {
+			this._db.getLoaded().close()
 			return Promise.fromCallback(cb => {
-				let deleteRequest = indexedDB.deleteDatabase(neverNull(this.db).name)
+				let deleteRequest = indexedDB.deleteDatabase(this._db.getLoaded().name)
 				deleteRequest.onerror = (event) => {
-					cb(new DbError(`could not delete database ${neverNull(this.db).name}`, event), null)
+					cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event), null)
 				}
 				deleteRequest.onsuccess = (event) => {
-					this.db = null
+					this._db.reset()
 					cb()
 				}
 			})
@@ -67,13 +72,17 @@ export class DbFacade {
 		}
 	}
 
-
-	createTransaction(readOnly: boolean, objectStores: string[]): DbTransaction {
-		try {
-			return new DbTransaction(neverNull(this.db).transaction(objectStores, readOnly ? "readonly" : "readwrite"))
-		} catch (e) {
-			throw new DbError("could not create transaction", e)
-		}
+	/**
+	 * @pre open() must have been called before, but the promise does not need to have returned.
+	 */
+	createTransaction(readOnly: boolean, objectStores: string[]): Promise<DbTransaction> {
+		return this._db.getAsync().then(db => {
+			try {
+				return new DbTransaction(db.transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+			} catch (e) {
+				throw new DbError("could not create transaction", e)
+			}
+		})
 	}
 
 }

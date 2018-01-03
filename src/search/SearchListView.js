@@ -2,8 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {List} from "../gui/base/List"
-import {sortCompareByReverseId} from "../api/common/EntityFunctions"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../api/common/EntityFunctions"
+import {sortCompareByReverseId, GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
@@ -16,6 +15,7 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
+import {defer} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -41,7 +41,7 @@ export class SearchListView {
 		this._searchView = searchView
 		this.list = new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => Promise.resolve([]),
+			fetch: (startId, count) => defer().promise, // show spinner until the actual search result is available
 			loadSingle: (elementId) => Promise.resolve(null),
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => {
@@ -70,6 +70,10 @@ export class SearchListView {
 					fetch: (startId, count) => {
 //					console.log("fetch ", startId, count)
 						let result = locator.search.result()
+						if (result && result.initializing) {
+							// show spinner until the actual search result is available
+							return defer().promise
+						}
 						if (!result || result.results.length == 0) {
 							return Promise.resolve([])
 						}

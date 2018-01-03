@@ -134,7 +134,7 @@ o.spec("GroupInfoIndexer test", () => {
 	})
 
 	o("indexAllUserAndTeamGroupInfosForAdmin", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 
@@ -213,7 +213,7 @@ o.spec("GroupInfoIndexer test", () => {
 	})
 
 	o("indexAllUserAndTeamGroupInfosForAdmin already indexed", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
 		core.writeIndexUpdate = o.spy()
 

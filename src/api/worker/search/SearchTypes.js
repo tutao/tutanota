@@ -64,8 +64,9 @@ export type IndexUpdate = {
 }
 
 export type Db = {
-	key: Aes256Key;
+	key: Aes256Key; // @pre: must not be accessed before initialized promise is resolved.
 	dbFacade: DbFacade;
+	initialized:Promise<void>;
 }
 
 

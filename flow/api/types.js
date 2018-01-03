@@ -236,6 +236,7 @@ type SearchResult = {
 }
 
 type SearchIndexStateInfo = {
+	initializing:boolean;
 	indexingSupported:boolean;
 	mailIndexEnabled:boolean;
 	progress:number;

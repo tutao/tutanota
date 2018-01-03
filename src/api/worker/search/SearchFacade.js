@@ -57,43 +57,45 @@ export class SearchFacade {
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
-		let searchTokens = tokenize(query)
+		return this._db.initialized.then(() => {
+			let searchTokens = tokenize(query)
 
-		let result = {
-			query,
-			restriction,
-			results: [],
-			currentIndexTimestamp: this._getSearchEndTimestamp(restriction)
-		}
-		if (searchTokens.length > 0) {
-			let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
-			let isFirstWordSearch = searchTokens.length == 1
-			let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
-			let searchPromise
+			let result = {
+				query,
+				restriction,
+				results: [],
+				currentIndexTimestamp: this._getSearchEndTimestamp(restriction)
+			}
+			if (searchTokens.length > 0) {
+				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
+				let isFirstWordSearch = searchTokens.length == 1
+				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
+				let searchPromise
 
-			if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
-				searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
-			} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
-				let suggestionToken = searchTokens[searchTokens.length - 1]
-				searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), matchWordOrder, result).then(() => {
-					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
-					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-					result.results.sort(compareNewestFirst)
-					return this._loadAndReduce(restriction, result.results, suggestionToken, minSuggestionCount).then(filteredResults => {
-						result.results = filteredResults
+				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
+					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
+				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
+					let suggestionToken = searchTokens[searchTokens.length - 1]
+					searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), matchWordOrder, result).then(() => {
+						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
+						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
+						result.results.sort(compareNewestFirst)
+						return this._loadAndReduce(restriction, result.results, suggestionToken, minSuggestionCount).then(filteredResults => {
+							result.results = filteredResults
+						})
 					})
+				} else {
+					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result)
+				}
+
+				return searchPromise.then(() => {
+					result.results.sort(compareNewestFirst)
+					return result
 				})
 			} else {
-				searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result)
+				return Promise.resolve(result)
 			}
-
-			return searchPromise.then(() => {
-				result.results.sort(compareNewestFirst)
-				return result
-			})
-		} else {
-			return Promise.resolve(result)
-		}
+		})
 	}
 
 	_loadAndReduce(restriction: SearchRestriction, results: IdTuple[], suggestionToken: string, minSuggestionCount: number): Promise<IdTuple[]> {
@@ -212,11 +214,12 @@ export class SearchFacade {
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
-		let transaction = this._db.dbFacade.createTransaction(true, [SearchIndexOS])
-		return Promise.map(searchTokens, (token) => {
-			let indexKey = encryptIndexKeyBase64(this._db.key, token)
-			return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
-				return {indexKey, indexEntries}
+		return this._db.dbFacade.createTransaction(true, [SearchIndexOS]).then(transaction => {
+			return Promise.map(searchTokens, (token) => {
+				let indexKey = encryptIndexKeyBase64(this._db.key, token)
+				return transaction.getAsList(SearchIndexOS, indexKey).then((indexEntries: EncryptedSearchIndexEntry[]) => {
+					return {indexKey, indexEntries}
+				})
 			})
 		})
 	}
@@ -342,11 +345,12 @@ export class SearchFacade {
 
 	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
 		return Promise.each(results, entry => {
-			let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
-			return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
-				if (!searchResult.restriction.listId || searchResult.restriction.listId == elementData[0]) {
-					searchResult.results.push([elementData[0], entry.id])
-				}
+			return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
+				return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
+					if (!searchResult.restriction.listId || searchResult.restriction.listId == elementData[0]) {
+						searchResult.results.push([elementData[0], entry.id])
+					}
+				})
 			})
 		}).return()
 	}

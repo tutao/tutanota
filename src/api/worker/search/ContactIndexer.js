@@ -87,20 +87,21 @@ export class ContactIndexer {
 
 	indexFullContactList(userGroupId: Id): Promise<void> {
 		return this._entity.loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
-			let t = this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
-			let groupId = neverNull(contactList._ownerGroup)
-			let indexUpdate = _createNewIndexUpdate(groupId)
-			return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-				if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
-					return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
-						contacts.forEach((contact) => {
-							let keyToIndexEntries = this.createContactIndexEntries(contact)
-							this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+			return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
+				let groupId = neverNull(contactList._ownerGroup)
+				let indexUpdate = _createNewIndexUpdate(groupId)
+				return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
+					if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
+						return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
+							contacts.forEach((contact) => {
+								let keyToIndexEntries = this.createContactIndexEntries(contact)
+								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+							})
+							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
+							return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
 						})
-						indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-						return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
-					})
-				}
+					}
+				})
 			})
 		}).catch(NotFoundError, e => {
 			// external users have no contact list.

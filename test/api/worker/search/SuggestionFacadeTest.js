@@ -17,7 +17,8 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(function () {
 		db = {
 			key: aes256RandomKey(),
-			dbFacade: ({}:any)
+			dbFacade: ({}:any),
+			initialized: Promise.resolve()
 		}
 		facade = new SuggestionFacade(ContactTypeRef, db)
 	})
@@ -50,7 +51,7 @@ o.spec("SuggestionFacade test", () => {
 	o("load empty", () => {
 		let transactionMock = {}
 		transactionMock.get = o.spy(() => Promise.resolve(null))
-		db.dbFacade.createTransaction = o.spy(() => transactionMock)
+		db.dbFacade.createTransaction = o.spy(() => Promise.resolve(transactionMock))
 		facade.addSuggestions(["aaaaaaa"])
 		return facade.load().then(() => {
 			o(transactionMock.get.callCount).equals(1)
@@ -64,7 +65,7 @@ o.spec("SuggestionFacade test", () => {
 		let transactionMock = {}
 		transactionMock.put = o.spy(() => Promise.resolve())
 		transactionMock.wait = o.spy(() => Promise.resolve())
-		db.dbFacade.createTransaction = o.spy(() => transactionMock)
+		db.dbFacade.createTransaction = o.spy(() => Promise.resolve(transactionMock))
 
 		facade.addSuggestions(["aaaa"])
 		return facade.store().then(() => {
@@ -77,7 +78,7 @@ o.spec("SuggestionFacade test", () => {
 			o(facade.getSuggestions("b").join(" ")).equals("bbbb")
 
 			let transactionLoadMock = {}
-			db.dbFacade.createTransaction = o.spy(() => transactionLoadMock)
+			db.dbFacade.createTransaction = o.spy(() => Promise.resolve(transactionLoadMock))
 			transactionLoadMock.get = o.spy(() => Promise.resolve(encSuggestions))
 			return facade.load().then(() => {
 				// restored

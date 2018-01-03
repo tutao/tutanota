@@ -35,7 +35,7 @@ o.spec("ContactIndexer test", () => {
 
 	o("createContactIndexEntries without entries", function () {
 		let c = createContact()
-		let contact = new ContactIndexer(new IndexerCore((null:any),(null:any)), (null:any), (null:any), suggestionFacadeMock)
+		let contact = new ContactIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
@@ -45,7 +45,7 @@ o.spec("ContactIndexer test", () => {
 	o("createContactIndexEntries with one entry", function () {
 		let c = createContact()
 		c.company = "test"
-		let contact = new ContactIndexer(new IndexerCore((null:any),(null:any)), (null:any), (null:any), suggestionFacadeMock)
+		let contact = new ContactIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(1)
@@ -183,8 +183,8 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("indexFullContactList", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-		let core: any = new IndexerCore(db,(null:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
+		let core: any = new IndexerCore(db, (null:any))
 		core.writeIndexUpdate = o.spy()
 
 		let userGroupId = "userGroupId"
@@ -228,8 +228,8 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("indexFullContactList already indexed", function (done) {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
-		let core: any = new IndexerCore(db,(null:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
+		let core: any = new IndexerCore(db, (null:any))
 		core.writeIndexUpdate = o.spy()
 
 		let userGroupId = "userGroupId"
@@ -268,7 +268,7 @@ o.spec("ContactIndexer test", () => {
 
 	o("processEntityEvents new contact", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db,(null:any))
+		let core: any = new IndexerCore(db, (null:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -295,7 +295,7 @@ o.spec("ContactIndexer test", () => {
 
 	o("processEntityEvents update contact", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db,(null:any))
+		let core: any = new IndexerCore(db, (null:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -323,7 +323,7 @@ o.spec("ContactIndexer test", () => {
 
 	o("processEntityEvents delete contact", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db,(null:any))
+		let core: any = new IndexerCore(db, (null:any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 

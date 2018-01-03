@@ -22,13 +22,16 @@ export class SuggestionFacade<T> {
 	}
 
 	load(): Promise<void> {
-		let t = this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS])
-		return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then(encSuggestions => {
-			if (encSuggestions) {
-				this._suggestions = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(this._db.key, encSuggestions, true, false)))
-			} else {
-				this._suggestions = {}
-			}
+		return this._db.initialized.then(() => {
+			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then(t => {
+				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then(encSuggestions => {
+					if (encSuggestions) {
+						this._suggestions = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(this._db.key, encSuggestions, true, false)))
+					} else {
+						this._suggestions = {}
+					}
+				})
+			})
 		})
 	}
 
@@ -64,9 +67,12 @@ export class SuggestionFacade<T> {
 	}
 
 	store(): Promise<void> {
-		let t = this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS])
-		let encSuggestions = aes256Encrypt(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)), random.generateRandomData(IV_BYTE_LENGTH), true, false)
-		t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
-		return t.wait()
+		return this._db.initialized.then(() => {
+			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then(t => {
+				let encSuggestions = aes256Encrypt(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)), random.generateRandomData(IV_BYTE_LENGTH), true, false)
+				t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
+				return t.wait()
+			})
+		})
 	}
 }

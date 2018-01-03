@@ -65,7 +65,8 @@ o.spec("SearchFacade test", () => {
 			getLoggedInUser: () => user
 		}:any), {
 			key: dbKey,
-			dbFacade: ({createTransaction: () => transaction}:any)
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}:any),
+			initialized: Promise.resolve()
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp,

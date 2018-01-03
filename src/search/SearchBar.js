@@ -152,6 +152,7 @@ export class SearchBar {
 			keyManager.registerShortcuts(shortcuts)
 			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
 				this.showIndexingProgress(newState, m.route.get())
+				m.redraw() // redraw in any case, especially to show the search bar after the db is initialized
 			})
 			routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
 				if (e.requestedPath.startsWith("/search/mail")) {
@@ -192,7 +193,6 @@ export class SearchBar {
 					])
 				}
 			})
-			m.redraw()
 		} else if ((route.startsWith("/search/mail") && newState.progress == 0)) {
 			closeOverlay()
 		}
@@ -203,7 +203,7 @@ export class SearchBar {
 		return [
 			{
 				key: Keys.F,
-				enabled: () => logins.isInternalUserLoggedIn() && locator.search.indexState().indexingSupported,
+				enabled: () => logins.isInternalUserLoggedIn() && !locator.search.indexState().initializing && locator.search.indexState().indexingSupported,
 				exec: key => {
 					this.focus()
 					m.redraw()
@@ -551,7 +551,7 @@ export class SearchBar {
 
 	isVisible() {
 		let route = m.route.get()
-		return locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
+		return !locator.search.indexState().initializing && locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
 	}
 
 

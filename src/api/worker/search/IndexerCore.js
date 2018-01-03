@@ -111,23 +111,24 @@ export class IndexerCore {
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		let encInstanceId = encryptIndexKeyBase64(this.db.key, event.instanceId)
-		let transaction = this.db.dbFacade.createTransaction(true, [ElementDataOS])
-		return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
-			if (!elementData) {
-				console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
-				return
-			}
-			let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
-			let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word))
-			encWords.map(encWord => {
-				let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
-				if (ids == null) {
-					ids = []
+		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
+			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
+				if (!elementData) {
+					console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
+					return
 				}
-				ids.push(encInstanceId)
-				indexUpdate.delete.encWordToEncInstanceIds.set(encWord, ids)
+				let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
+				let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word))
+				encWords.map(encWord => {
+					let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
+					if (ids == null) {
+						ids = []
+					}
+					ids.push(encInstanceId)
+					indexUpdate.delete.encWordToEncInstanceIds.set(encWord, ids)
+				})
+				indexUpdate.delete.encInstanceIds.push(encInstanceId)
 			})
-			indexUpdate.delete.encInstanceIds.push(encInstanceId)
 		})
 	}
 
@@ -135,18 +136,19 @@ export class IndexerCore {
 
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = getPerformanceTimestamp()
-		let transaction = this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS])
-		return Promise.resolve()
-			.then(() => this._moveIndexedInstance(indexUpdate, transaction))
-			.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
-			.then(() => this._insertNewElementData(indexUpdate, transaction))
-			.then(keysToUpdate => keysToUpdate != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
-			.then(() => this._updateGroupData(indexUpdate, transaction))
-			.then(() => {
-				return transaction.wait().then(() => {
-					this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
+		return this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS]).then(transaction => {
+			return Promise.resolve()
+				.then(() => this._moveIndexedInstance(indexUpdate, transaction))
+				.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
+				.then(() => this._insertNewElementData(indexUpdate, transaction))
+				.then(keysToUpdate => keysToUpdate != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
+				.then(() => this._updateGroupData(indexUpdate, transaction))
+				.then(() => {
+					return transaction.wait().then(() => {
+						this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
+					})
 				})
-			})
+		})
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {

@@ -60,22 +60,23 @@ export class GroupInfoIndexer {
 	indexAllUserAndTeamGroupInfosForAdmin(user: User): Promise<void> {
 		if (userIsAdmin(user)) {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
-				let t = this._db.dbFacade.createTransaction(true, [GroupDataOS])
-				return t.get(GroupDataOS, customer.customerGroup).then((groupData: GroupData) => {
-					if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
-						return Promise.all([
-							this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
-							this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
-						]).spread((allUserGroupInfos, allTeamGroupInfos) => {
-							let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
-							allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
-								let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
-								this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
+				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+					return t.get(GroupDataOS, customer.customerGroup).then((groupData: GroupData) => {
+						if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
+							return Promise.all([
+								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
+								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
+							]).spread((allUserGroupInfos, allTeamGroupInfos) => {
+								let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
+								allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
+									let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
+									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
+								})
+								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
+								return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
 							})
-							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-							return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
-						})
-					}
+						}
+					})
 				})
 			})
 		} else {

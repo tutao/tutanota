@@ -190,7 +190,7 @@ o.spec("MailIndexer test", () => {
 	o("processMovedMail", function (done) {
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
 		let elementData: ElementData = ["old-list-id", new Uint8Array(0), "owner-group-id"]
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
 
 		let transaction = {
@@ -221,7 +221,7 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
@@ -256,7 +256,7 @@ o.spec("MailIndexer test", () => {
 			wait: () => Promise.resolve()
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
 		indexer.indexMailbox = o.spy()
 		indexer.mailIndexingEnabled = false
@@ -300,7 +300,7 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
 		indexer.indexMailbox = o.spy()
 
@@ -633,7 +633,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 		},
 		queue: {queue: o.spy(), processNext: o.spy()}
 	}
-	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => transaction}}:any)
+	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 	let worker: WorkerImpl = ({sendIndexState: o.spy()}:any)
 	const indexer: any = new MailIndexer(core, db, entity, worker, (null:any))
 	indexer.mailIndexingEnabled = true

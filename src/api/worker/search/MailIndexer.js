@@ -117,47 +117,50 @@ export class MailIndexer {
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
 		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId)
-		let transaction = this._db.dbFacade.createTransaction(true, [ElementDataOS])
-		return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
-			if (elementData) {
-				if (this._isExcluded(event)) {
-					return this._core._processDeleted(event, indexUpdate) // move to spam folder
+		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
+			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
+				if (elementData) {
+					if (this._isExcluded(event)) {
+						return this._core._processDeleted(event, indexUpdate) // move to spam folder
+					} else {
+						indexUpdate.move.push({
+							encInstanceId,
+							newListId: event.instanceListId
+						})
+					}
 				} else {
-					indexUpdate.move.push({
-						encInstanceId,
-						newListId: event.instanceListId
+					// instance is moved but not yet indexed: handle as new
+					return this.processNewMail(event).then(result => {
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						}
 					})
 				}
-			} else {
-				// instance is moved but not yet indexed: handle as new
-				return this.processNewMail(event).then(result => {
-					if (result) {
-						this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-					}
-				})
-			}
+			})
 		})
 	}
 
 	enableMailIndexing(user: User): Promise<void> {
-		let t = this._db.dbFacade.createTransaction(true, [MetaDataOS])
-		return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
-			if (!enabled) {
-				return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then(spamFolders => {
-					this._excludedListIds = spamFolders.map(folder => folder.mails)
-					this.mailIndexingEnabled = true
-					let t2 = this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
-					t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-					t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-					this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
-					return t2.wait()
-				})
-			} else {
-				return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
-					this.mailIndexingEnabled = true
-					this._excludedListIds = excludedListIds
-				})
-			}
+		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
+			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
+				if (!enabled) {
+					return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then(spamFolders => {
+						this._excludedListIds = spamFolders.map(folder => folder.mails)
+						this.mailIndexingEnabled = true
+						return this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS]).then(t2 => {
+							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
+							this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
+							return t2.wait()
+						})
+					})
+				} else {
+					return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
+						this.mailIndexingEnabled = true
+						this._excludedListIds = excludedListIds
+					})
+				}
+			})
 		})
 	}
 
@@ -179,6 +182,7 @@ export class MailIndexer {
 		this._indexingCancelled = false
 
 		this._worker.sendIndexState({
+			initializing: false,
 			indexingSupported: this._core.indexingSupported,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
@@ -189,26 +193,29 @@ export class MailIndexer {
 		this.mailboxIndexingPromise = Promise.each(Promise.resolve(memberships), (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
 			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-				let t = this._db.dbFacade.createTransaction(true, [GroupDataOS])
-				return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-					let progressCount = 1
-					return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-						let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
-						return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
-							this._worker.sendIndexState({
-								indexingSupported: this._core.indexingSupported,
-								mailIndexEnabled: this.mailIndexingEnabled,
-								progress: Math.round(100 * (progressCount++) / count),
-								currentMailIndexTimestamp: this.currentIndexTimestamp
+				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+					return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+						let progressCount = 1
+						return this._loadMailListIds(mbox).map((mailListId, i, count) => {
+							let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+							return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
+								this._worker.sendIndexState({
+									initializing: false,
+									indexingSupported: this._core.indexingSupported,
+									mailIndexEnabled: this.mailIndexingEnabled,
+									progress: Math.round(100 * (progressCount++) / count),
+									currentMailIndexTimestamp: this.currentIndexTimestamp
+								})
+								return finishedMailList
 							})
-							return finishedMailList
-						})
-					}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
-						let t2 = this._db.dbFacade.createTransaction(false, [GroupDataOS])
-						return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-							groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
-							t2.put(GroupDataOS, mailGroupId, groupData)
-							return t2.wait()
+						}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
+							return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
+								return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+									groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
+									t2.put(GroupDataOS, mailGroupId, groupData)
+									return t2.wait()
+								})
+							})
 						})
 					})
 				})
@@ -227,6 +234,7 @@ export class MailIndexer {
 			// update our index timestamp and send the information to the main thread. this can be done async
 			this.updateCurrentIndexTimestamp(user).then(() => {
 				this._worker.sendIndexState({
+					initializing: false,
 					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this.mailIndexingEnabled,
 					progress: 0,
@@ -277,15 +285,16 @@ export class MailIndexer {
 	}
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
-		let t = this._db.dbFacade.createTransaction(true, [GroupDataOS])
-		this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
-		return Promise.all(filterMailMemberships(user).map(mailGroupMembership => {
-			return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
-				if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
-					this.currentIndexTimestamp = groupData.indexTimestamp
-				}
-			})
-		})).return()
+		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+			this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
+			return Promise.all(filterMailMemberships(user).map(mailGroupMembership => {
+				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
+					if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
+						this.currentIndexTimestamp = groupData.indexTimestamp
+					}
+				})
+			})).return()
+		})
 	}
 
 

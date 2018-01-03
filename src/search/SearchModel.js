@@ -16,6 +16,7 @@ export class SearchModel {
 	constructor() {
 		this.result = stream()
 		this.indexState = stream({
+			initializing: true,
 			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
