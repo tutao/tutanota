@@ -50,28 +50,30 @@ export function createRecipientInfo(mailAddress: string, name: ?string, contact:
 		contact: contact,
 		resolveContactPromise: neverNull(null) // strangely, flow does not allow null here
 	}
-	if (!doNotResolveContact && !contact && logins.getUserController() && logins.getUserController().isInternalUser()) {
-		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
-			if (contact) {
-				if (!name) {
-					recipientInfo.name = getContactDisplayName(contact)
+	if (!contact) {
+		if (!doNotResolveContact && logins.getUserController() && logins.getUserController().isInternalUser()) {
+			recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
+				if (contact) {
+					if (!name) {
+						recipientInfo.name = getContactDisplayName(contact)
+					}
+					recipientInfo.contact = contact
+				} else {
+					recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
 				}
-				recipientInfo.contact = contact
-			} else {
+				recipientInfo.resolveContactPromise = null
+				m.redraw()
+				return recipientInfo.contact
+			}).catch(e => {
+				console.log("error resolving contact", e)
 				recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
-			}
-			recipientInfo.resolveContactPromise = null
-			m.redraw()
-			return recipientInfo.contact
-		}).catch(e => {
-			console.log("error resolving contact", e)
+				recipientInfo.resolveContactPromise = null
+				m.redraw()
+				return recipientInfo.contact
+			})
+		} else {
 			recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
-			recipientInfo.resolveContactPromise = null
-			m.redraw()
-			return recipientInfo.contact
-		})
-	} else {
-		recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+		}
 	}
 	return recipientInfo
 }

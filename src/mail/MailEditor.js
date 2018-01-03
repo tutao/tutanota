@@ -221,7 +221,7 @@ export class MailEditor {
 						oncreate: vnode => this.animate(vnode.dom, true),
 						onbeforeremove: vnode => this.animate(vnode.dom, false)
 					}, this._allRecipients()
-						.filter(r => r.type === recipientInfoType.external)
+						.filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
 						.map(r => m(this.getPasswordField(r), {
 							oncreate: vnode => this.animate(vnode.dom, true),
 							onbeforeremove: vnode => this.animate(vnode.dom, false)
