@@ -40,15 +40,44 @@ o.spec("FormatterTest", function () {
 		} catch (e) {
 			o(e.message.indexOf("could not parse date")).equals(0)
 		}
-
-		o(formatDate(new Date(parseDate("2015")))).equals("1.1.2015")
-		o(formatDate(new Date(parseDate("05.05.")))).equals("5.5.2001")
+		try {
+			o(formatDate(new Date(parseDate("2015"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("05.05."))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
 
 		lang._setLanguageTag("en")
-		o(formatDate(new Date(parseDate("2015/01")))).equals("1/1/2015")
-		o(formatDate(new Date(parseDate("2015/05/")))).equals("5/1/2015")
-		o(formatDate(new Date(parseDate("2015")))).equals("1/1/2015")
-		o(formatDate(new Date(parseDate("05/05/")))).equals("5/5/2001")
+		try {
+			o(formatDate(new Date(parseDate("2015/01"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("2015/05/"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("2015"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("05/05/"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
 	}))
 
 

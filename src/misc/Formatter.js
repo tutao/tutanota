@@ -57,31 +57,73 @@ export function formatSortableDateTime(date: Date): string {
 	return `${formatSortableDate(date)} ${hours}h${minutes}m${seconds}s`
 }
 
+const referenceDate = new Date(2017, 5, 23)
+/**
+ * parses the following formats:
+ *
+ * sq 		23.6.2017
+ * hr 		23. 06. 2017.
+ * zh-hant 	2017/6/23
+ * en 		6/23/2017
+ * nl 		23-6-2017
+ * de 		23.6.2017
+ * el 		23/6/2017
+ * fr 		23/06/2017
+ * it 		23/6/2017
+ * pl 		23.06.2017
+ * pt-pt 	23/06/2017
+ * pt-br 	23/06/2017
+ * ro 		23.06.2017
+ * ru 		23.06.2017
+ * es 		23/6/2017
+ * tr 		23.06.2017
+ * fi 		23.6.2017
+ * lt-lt 	2017-06-23
+ * mk 		23.6.2017
+ * sr 		23.6.2017.
+ * bg-bg 	23.06.2017 г.
+ * cs-cz 	23. 6. 2017
+ * da-dk 	23/6/2017
+ * et-ee 	23.6.2017
+ * fil-ph 	6/23/2017
+ * hu 		2017. 06. 23.
+ * id 		23/6/2017
+ * no 		6/23/2017
+ *
+ * @param dateString
+ * @returns {number}
+ */
 export function parseDate(dateString: string) {
+	let languageTag = lang.languageTag.toLowerCase()
+
+	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+	let dayPos = referenceParts.findIndex(e => e == 23)
+	let monthPos = referenceParts.findIndex(e => e == 6)
+	let yearPos = referenceParts.findIndex(e => e == 2017)
+
+	let parts = _cleanupAndSplit(dateString)
+	if (parts.length != 3) {
+		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+	}
+	// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
+	let day = parts[dayPos]
+	let month = parts[monthPos] - 1
+	let year = parts[yearPos]
+
+	let parsed = new Date(year, month, day).getTime()
+	if (isNaN(parsed)) {
+		throw new Error(`could not parse date '${dateString}' for locale ${languageTag}`)
+	}
+	return parsed
+}
+function _cleanupAndSplit(dateString:string):string[] {
 	let languageTag = lang.languageTag.toLowerCase()
 
 	if (languageTag === 'bg-bg') {
 		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
 	}
 	dateString = dateString.replace(/ /g, "")
-	if (["no", "hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr", "bg-bg", "cs-cz", "da-dk", "en-gb", "et-ee", "id", "sk-sk", "ta-in", "uk-ua", "vi", "ca-es"].find(t => languageTag.indexOf(t) === 0) != null) {
-		// switch month and date for allowing Date.parse to parse the date
-		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
-		if (parts.length === 3) {
-			dateString = `${parts[2]}-${parts[1]}-${parts[0]}`
-		}
-	}
-	if ("fil-ph" === languageTag) {
-		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
-		if (parts.length === 3) {
-			dateString = `${parts[0]}-${parts[2]}-${parts[1]}`
-		}
-	}
-	let parsed = Date.parse(dateString)
-	if (isNaN(parsed) || parsed < 0) {
-		throw new Error(`could not parse date '${dateString}' for locale ${languageTag}`)
-	}
-	return parsed
+	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
 }
 
 export function formatPrice(value: number, includeCurrency: boolean): string {
