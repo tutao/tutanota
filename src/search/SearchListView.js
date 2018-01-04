@@ -161,6 +161,7 @@ export class SearchListView {
 				this.list.loadInitial(null).then(() => {
 					window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
 				})
+				m.redraw()
 			})
 		}
 
