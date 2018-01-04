@@ -130,8 +130,10 @@ export class LoginView {
 	}
 
 	loginForm() {
-		return m("form",{
-			onsubmit: () => false, // do not post the form, the form is just here to enable browser auto-fill (FF and chrome do not work in dist mode otherwise)
+		return m("form", {
+			onsubmit: (e) => {
+				e.preventDefault() // do not post the form, the form is just here to enable browser auto-fill (FF and chrome do not work in dist mode otherwise)
+			},
 		}, [
 			m(this.mailAddress),
 			m(this.password),
