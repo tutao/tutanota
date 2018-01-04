@@ -413,6 +413,9 @@ export class SearchBar {
 			if (value.trim() == "") {
 				this.busy = false
 				locator.search.result(null)
+				if (m.route.get().startsWith("/search")) {
+					setSearchUrl(getSearchUrl("", restriction))
+				}
 			} else if (!locator.search.isNewSearch(value, restriction)) {
 				if (!m.route.get().startsWith("/search") && locator.search.result()) {
 					this.showDropdown(locator.search.result())
@@ -458,6 +461,7 @@ export class SearchBar {
 		}
 		if (m.route.get().startsWith("/search")) {
 			locator.search.result(null)
+			setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
 		}
 	}
 
@@ -487,6 +491,9 @@ export class SearchBar {
 					if (value.trim() === "") {
 						closeOverlay()
 						locator.search.result(null)
+						if (m.route.get().startsWith("/search")) {
+							setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
+						}
 					} else {
 						this.search()
 					}
@@ -545,6 +552,7 @@ export class SearchBar {
 			this.expanded = false
 			if (m.route.get().startsWith("/search")) {
 				locator.search.result(null)
+				setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
 			}
 		}
 	}
