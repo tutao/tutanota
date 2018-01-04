@@ -130,14 +130,14 @@ export class LoginView {
 	}
 
 	loginForm() {
-		return [
+		return m("form", [
 			m(this.mailAddress),
 			m(this.password),
 			m(this.savePassword),
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			m(".flex-center.pt-l", this.appButtons.map(button => m(button))),
-		]
+		])
 	}
 
 	credentialsSelector() {
