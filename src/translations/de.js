@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-12-19T14:12:20Z",
+	"updated_at": "2018-01-04T11:08:33Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -775,6 +775,7 @@ module.exports = {
 		"scrollToBottom_action": "Zum Ende scrollen",
 		"scrollToTop_action": "Zum Anfang scrollen",
 		"scrollUp_action": "Nach oben scrollen",
+		"searchDisabled_msg": "Dein Browser unterstützt nicht das Speichern von Daten. Darum haben wir die Suche deaktiviert.",
 		"searchedUntil_msg": "Gesucht bis",
 		"searchMailbox_label": "Suche in Mailbox",
 		"searchNoResults_msg": "Keine Ergebnisse",
@@ -884,9 +885,12 @@ module.exports = {
 		"tooManyAttempts_msg": "Anzahl erlaubter Versuche überschritten. Bitte versuch es es später erneut.",
 		"tooManyMails_msg": "Die maximale Anzahl erlaubter E-Mails wurde überschritten. Bitte versuche es später erneut.",
 		"totpAuthenticator_label": "Authenticator (TOTP)",
+		"totpCodeConfirmed_msg": "Der TOTP-Code ist gültig. Du kannst jetzt speichern.",
+		"totpCodeEnter_msg": "Bitte gib den vom Authenticator generierten Code ein, um die erfolgreiche Einrichtung zu bestätigen.",
+		"totpCodeWrong_msg": "Der von Dir eingegebene TOTP-Code ist ungültig. Bitte korrigiere ihn.",
 		"totpCode_label": "Authenticator Code",
-		"totpCurrentCode_label": "Aktueller Code: {code}",
 		"totpSecret_label": "Geheimnis",
+		"totpTransferSecret_msg": "Bitte aktualisiere deine Authenticator-App durch das Scannen des QR-Codes oder die manuelle Eingabe des Geheimnisses.",
 		"to_label": "An",
 		"trashedMails_alt": "Gelöschte E-Mails",
 		"trashedMail_alt": "Gelöschte E-Mail",
@@ -948,7 +952,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"searchDisabled_msg": "Dein Browser unterstützt nicht das Speichern von Daten. Darum haben wir die Suche deaktiviert."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

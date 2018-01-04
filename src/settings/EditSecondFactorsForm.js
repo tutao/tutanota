@@ -31,6 +31,12 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
+const VerificationStatus = {
+	Progress: "Progress",
+	Failed: "Failed",
+	Success: "Success",
+}
+
 export class EditSecondFactorsForm {
 	view: Function;
 	_2FATable: Table;
@@ -110,36 +116,86 @@ export class EditSecondFactorsForm {
 			}), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
 			let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
 			let u2fRegistrationData = stream(null)
-			let u2fInfoMessage = u2fRegistrationData.map(registrationData => registrationData ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg"))
-			u2fInfoMessage.map(() => m.redraw())
 
-			let totpCode = stream();
-			let totpSecret = new TextField("totpSecret_label", totpCode).setDisabled()
+			let totpSecret = new TextField("totpSecret_label", () => lang.get("totpTransferSecret_msg")).setDisabled()
 			totpSecret.value(totpKeys.readableKey)
+			let totpCode = new TextField("totpCode_label")
+
+			let verificationStatus = stream(VerificationStatus.Progress)
+			verificationStatus.map(() => m.redraw())
+			u2fRegistrationData.map(registrationData => {
+				if (registrationData) {
+					verificationStatus(VerificationStatus.Success)
+				} else {
+					verificationStatus(VerificationStatus.Progress)
+				}
+			})
+			totpCode.value.map(v => {
+				if (v.trim().length == 6) {
+					worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key).then(number => {
+						if (number == v) {
+							verificationStatus(VerificationStatus.Success)
+						} else {
+							verificationStatus(VerificationStatus.Failed)
+						}
+					})
+				} else {
+					verificationStatus(VerificationStatus.Progress)
+				}
+			})
 
 			let totpSvg
 			this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
-				let grcodeGenerator = new QRCode({
+				let qrcodeGenerator = new QRCode({
 					height: 150,
 					width: 150,
 					content: optAuthUrl
 				})
-				totpSvg = grcodeGenerator.svg()
+				totpSvg = qrcodeGenerator.svg()
 			})
+
+			function statusIcon() {
+				if (verificationStatus() == VerificationStatus.Progress) {
+					return progressIcon()
+				} else if (verificationStatus() == VerificationStatus.Success) {
+					return m(Icon, {
+						icon: Icons.Checkmark,
+						large: true,
+						style: {fill: theme.content_accent}
+					})
+				} else {
+					return m(Icon, {
+						icon: Icons.Cancel,
+						large: true,
+						style: {fill: theme.content_accent}
+					})
+				}
+			}
+
+			function statusMessage() {
+				if (type.selectedValue() === SecondFactorType.u2f) {
+					return verificationStatus() == VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
+				} else {
+					if (verificationStatus() == VerificationStatus.Success) {
+						return lang.get("totpCodeConfirmed_msg")
+					} else if (verificationStatus() == VerificationStatus.Failed) {
+						return lang.get("totpCodeWrong_msg")
+					} else {
+						return lang.get("totpCodeEnter_msg")
+					}
+				}
+			}
 
 			let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
 				view: () => m("", [
 					m(type),
 					m(name),
-					type.selectedValue() === SecondFactorType.u2f ? m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
-								icon: Icons.Checkmark,
-								large: true,
-								style: {fill: theme.content_accent}
-							}) : progressIcon()), m("", u2fInfoMessage())]) : null,
 					type.selectedValue() === SecondFactorType.totp ? m(".mb", [
 							m(totpSecret),
-							m(".flex-center", m.trust(totpSvg))
+							m(".flex-center", m.trust(totpSvg)),
+							m(totpCode)
 						]) : null,
+					m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
 					m(".small", lang.get("secondFactorInfoOldClient_msg"))
 				])
 			}, () => {
@@ -148,34 +204,23 @@ export class EditSecondFactorsForm {
 				sf.name = name.value()
 				sf.type = type.selectedValue()
 				if (type.selectedValue() === SecondFactorType.u2f) {
-					if (u2fRegistrationData() == null) {
+					if (verificationStatus != VerificationStatus.Success) {
 						Dialog.error("unrecognizedU2fDevice_msg")
 						return
 					} else {
 						sf.u2f = u2fRegistrationData()
 					}
 				} else if (type.selectedValue() === SecondFactorType.totp) {
-					sf.otpSecret = totpKeys.key
+					if (verificationStatus != VerificationStatus.Success) {
+						Dialog.error("totpCodeEnter_msg")
+						return
+					} else {
+						sf.otpSecret = totpKeys.key
+					}
 				}
 				showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
 
 			}, true, "save_action")
-
-			function updateTotpCode() {
-				if (totpKeys != null) {
-					worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key).then(number => {
-						totpCode(lang.get("totpCurrentCode_label", {"{code}": number}))
-						m.redraw()
-					})
-				}
-				setTimeout(() => {
-					if (dialog.visible) {
-						updateTotpCode()
-					}
-				}, 1000)
-			}
-
-			updateTotpCode()
 
 			function registerResumeOnTimeout() {
 				u2f.register()

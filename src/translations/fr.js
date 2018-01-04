@@ -860,7 +860,6 @@ module.exports = {
 		"tooManyMails_msg": "Il semble que vous ayez dépassé le nombre maximal d'emails. Veuillez essayer plus tard.",
 		"totpAuthenticator_label": "Authentifiant (TOTP)",
 		"totpCode_label": "Code d'authentification",
-		"totpCurrentCode_label": "Code actuel : {code}",
 		"totpSecret_label": "Secret",
 		"to_label": "À",
 		"trashedMails_alt": "Messages supprimés",
