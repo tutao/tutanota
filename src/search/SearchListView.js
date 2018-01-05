@@ -158,10 +158,16 @@ export class SearchListView {
 					multiSelectionAllowed: false,
 					emptyMessage: lang.get("searchNoResults_msg")
 				})
-				this.list.loadInitial(null).then(() => {
-					window.requestAnimationFrame(() => this.list.scrollToIdAndSelect(m.route.param()["id"]))
+				window.requestAnimationFrame(() => {
+					// m.redraw() must not be called immediately in the stream.map function because it would lead to errors for the initial call. therefore use requestAnimationFrame
+					m.redraw()
+					this.list.loadInitial(null).then(() => {
+						let selectedId = m.route.param()["id"]
+						if (selectedId) {
+							this.list.scrollToIdAndSelect(selectedId)
+						}
+					})
 				})
-				m.redraw()
 			})
 		}
 
