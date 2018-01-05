@@ -194,7 +194,7 @@ type RecipientInfo = {
 	type: RecipientInfoTypeEnum,
 	mailAddress:string,
 	name:string, // empty string if no name is available
-	contact: Contact, // The resolved contact or a new contact instance with the given email address and name. A new contact is used to store a shared password if applicable.
+	contact: ?Contact, // The resolved contact or a new contact instance with the given email address and name. A new contact is used to store a shared password if applicable. Null if no contact shall be resolved.
 	resolveContactPromise:?Promise<?Contact> // Null if resolving contact is finished
 }
 
