@@ -131,9 +131,10 @@ export class EditSecondFactorsForm {
 				}
 			})
 			totpCode.value.map(v => {
-				if (v.trim().length == 6) {
+				let cleanedValue = v.replace(/ /g, "")
+				if (cleanedValue.length == 6) {
 					worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key).then(number => {
-						if (number == v) {
+						if (number == cleanedValue) {
 							verificationStatus(VerificationStatus.Success)
 						} else {
 							verificationStatus(VerificationStatus.Failed)

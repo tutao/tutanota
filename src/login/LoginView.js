@@ -130,14 +130,18 @@ export class LoginView {
 	}
 
 	loginForm() {
-		return [
+		return m("form", {
+			onsubmit: (e) => {
+				e.preventDefault() // do not post the form, the form is just here to enable browser auto-fill (FF and chrome do not work in dist mode otherwise)
+			},
+		}, [
 			m(this.mailAddress),
 			m(this.password),
 			m(this.savePassword),
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			m(".flex-center.pt-l", this.appButtons.map(button => m(button))),
-		]
+		])
 	}
 
 	credentialsSelector() {

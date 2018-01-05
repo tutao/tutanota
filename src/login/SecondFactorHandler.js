@@ -113,7 +113,7 @@ export class SecondFactorHandler {
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
-				auth.otpCode = otpCode.value()
+				auth.otpCode = otpCode.value().replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
