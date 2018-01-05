@@ -34,7 +34,7 @@ o.spec("integration test", function () {
 		initLocator((null:any))
 		timeout(20000)
 		env.staticUrl = 'http://localhost:9000'
-		locator.login.createSession("map-free@tutanota.de", "map", "Linux node", false)
+		locator.login.createSession("map-free@tutanota.de", "map", "Linux node", false, false)
 			.then(() => Promise.all(
 				[
 					loadMailboxSystemFolders().then(folders => {

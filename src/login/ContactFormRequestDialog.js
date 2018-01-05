@@ -252,7 +252,7 @@ export class ContactFormRequestDialog {
 				}))
 				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields).then(contactFormResult => {
 					let userEmailAddress = contactFormResult.responseMailAddress
-					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false).then(() => {
+					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false).then(() => {
 						let p = Promise.resolve()
 						if (cleanedNotificationMailAddress) {
 							let pushIdentifier = createPushIdentifier()
@@ -282,7 +282,7 @@ export class ContactFormRequestDialog {
 				return showProgressDialog("sending_msg", sendRequest).then(result => {
 					let requestId = new TextField("mailAddress_label").setValue(result.userEmailAddress).setDisabled()
 					return Dialog.save(() => lang.get("loginCredentials_label"), () => {
-						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {
+						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true, false).then(credentials => {
 							deviceConfig.set(neverNull(credentials))
 						}).then(e => {
 							return worker.logout(false)

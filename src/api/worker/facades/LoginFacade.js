@@ -81,8 +81,7 @@ export class LoginFacade {
 		return Promise.resolve()
 	}
 
-
-	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
 			console.log("session already exists, reuse data")
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
@@ -109,7 +108,7 @@ export class LoginFacade {
 					p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken)
 				}
 				return p.then(() => {
-					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey).then(() => {
+					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, connectEventBus).then(() => {
 						return {
 							user: neverNull(this._user),
 							userGroupInfo: neverNull(this._userGroupInfo),
@@ -158,7 +157,7 @@ export class LoginFacade {
 		}
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).then(createSessionReturn => {
 			let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
-			return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey).then(() => {
+			return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, true).then(() => {
 				return {
 					user: neverNull(this._user),
 					userGroupInfo: neverNull(this._userGroupInfo),
@@ -187,7 +186,7 @@ export class LoginFacade {
 				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.mailAddress, passphrase)
 			}
 			return passphraseKeyPromise.then(userPassphraseKey => {
-				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey).then(() => {
+				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, true).then(() => {
 					return {
 						user: neverNull(this._user),
 						userGroupInfo: neverNull(this._userGroupInfo),
@@ -198,7 +197,7 @@ export class LoginFacade {
 		})
 	}
 
-	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key): Promise<void> {
+	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, connectEventBus: boolean): Promise<void> {
 		if (this._user && userId != this._user._id) {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
@@ -216,7 +215,11 @@ export class LoginFacade {
 			})
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
-			.then(() => this._eventBusClient.connect(false))
+			.then(() => {
+				if (connectEventBus) {
+					this._eventBusClient.connect(false)
+				}
+			})
 			.then(() => this.storeEntropy())
 			.catch(e => {
 				this.reset()

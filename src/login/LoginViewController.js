@@ -57,7 +57,7 @@ export class LoginViewController {
 		} else {
 			this.view.helpText = lang.get('login_msg')
 			let persistentSession = this.view.savePassword.checked()
-			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
+			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 				.then(newCredentials => {
 					let storedCredentials = deviceConfig.get(mailAddress)
 					if (persistentSession) {
