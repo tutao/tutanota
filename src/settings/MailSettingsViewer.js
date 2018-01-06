@@ -7,7 +7,7 @@ import {Table, ColumnWidth} from "../gui/base/Table"
 import {isSameTypeRef, isSameId, HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, InboxRuleType, PushServiceType} from "../api/common/TutanotaConstants"
+import {OperationType, InboxRuleType, PushServiceType, FeatureType} from "../api/common/TutanotaConstants"
 import {load, update, loadAll, erase} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
 import {neverNull, getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
@@ -132,17 +132,19 @@ export class MailSettingsViewer {
 					m(this._defaultSender),
 					m(this._senderName),
 					m(this._signature),
-					m(this._defaultUnconfidential),
-					m(this._sendPlaintext),
-					m(this._noAutomaticContacts),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(this._defaultUnconfidential),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(this._sendPlaintext),
+					logins.isEnabled(FeatureType.DisableContacts) ? null : m(this._noAutomaticContacts),
 					m(this._enableMailIndexing),
 					(logins.getUserController().isAdmin()) ? m(this._aliases) : null,
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get('inboxRulesSettings_action')),
-						m(inboxRulesExpander)
-					]),
-					m(inboxRulesExpander.panel),
-					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : [
+							m(".flex-space-between.items-center.mt-l.mb-s", [
+								m(".h4", lang.get('inboxRulesSettings_action')),
+								m(inboxRulesExpander)
+							]),
+							m(inboxRulesExpander.panel),
+							m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
+						],
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('notificationSettings_action')),
 						m(pushIdentifiersExpander)
