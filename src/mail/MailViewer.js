@@ -153,12 +153,15 @@ export class MailViewer {
 
 			actions.add(loadExternalContentButton)
 			actions.add(new Button('reply_action', () => this._reply(false), () => Icons.Reply))
-			if (logins.getUserController().isInternalUser() && (mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1) && !restrictedParticipants) {
+			let userController = logins.getUserController()
+			if (userController.isInternalUser() && (mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1) && !restrictedParticipants) {
 				actions.add(new Button('replyAll_action', () => this._reply(true), () => Icons.ReplyAll))
 			}
-			if (logins.getUserController().isInternalUser() && !restrictedParticipants) {
+			if (userController.isInternalUser() && !restrictedParticipants) {
 				actions.add(new Button('forward_action', () => this._forward(), () => Icons.Forward))
-			} else if (logins.getUserController().isInternalUser() && restrictedParticipants) {
+			} else if (userController.isInternalUser()
+				&& restrictedParticipants
+				&& userController.getUserMailGroupMembership().group != this.mail._ownerGroup) { // do not allow re-assigning from personal mailbox
 				// remove the current mailbox/owner from the recipients list.
 				const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
 					if (logins.getUserController().getUserMailGroupMembership().group == this.mail._ownerGroup) {

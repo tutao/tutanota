@@ -320,7 +320,7 @@ export function getSenderName(mailboxDetails: MailboxDetail): string {
 		// external users do not have access to the user group info
 		return logins.getUserController().userGroupInfo.name
 	} else {
-		return this.mailGroupInfo ? this.mailGroupInfo.name : ""
+		return mailboxDetails.mailGroupInfo ? mailboxDetails.mailGroupInfo.name : ""
 	}
 }
 
