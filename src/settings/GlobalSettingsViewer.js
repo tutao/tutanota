@@ -105,7 +105,7 @@ export class GlobalSettingsViewer {
 					m("small", lang.get("adminSpamRuleInfo_msg")),
 					m("small.text-break", [m(`a[href=${this._getSpamRulesInfoLink()}][target=_blank]`, this._getSpamRulesInfoLink())]),
 					m(".flex-space-between.items-center.mb-s.mt-l", [
-						m(".h4", lang.get('customDomains_label')),
+						m(".h4", lang.get('customEmailDomains_label')),
 						m(domainsExpander)
 					]),
 					m(domainsExpander.panel),
@@ -213,7 +213,8 @@ export class GlobalSettingsViewer {
 
 	_updateDomains() {
 		this._customerInfo.getAsync().then(customerInfo => {
-			Promise.map(customerInfo.domainInfos, domainInfo => {
+			let customDomainInfos = customerInfo.domainInfos.filter(domainInfo => domainInfo.certificate == null)
+			Promise.map(customDomainInfos, domainInfo => {
 				let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"))
 				if (domainInfo.catchAllMailGroup) {
 					p = loadGroupDisplayName(domainInfo.catchAllMailGroup)

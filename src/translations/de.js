@@ -89,7 +89,7 @@ module.exports = {
 		"bookingPrice_label": "Preis",
 		"bookingSummary_label": "Buchungsübersicht",
 		"bookingTotalPrice_label": "Gesamtpreis",
-		"brandingDomainLinkInfo_msg": "Wenn du das Branding-Paket gebucht hast, kannst du den Tutanota-Login auf deiner eigenen Domain aktivieren, das Aussehen von Tutanota an deine eigenen Wünsche (z.B. Corporate Identity) anpassen und Kontaktformulare für deine Kunden anlegen. Siehe ",
+		"brandingDomainLinkInfo_msg": "Wenn du das Branding-Paket gebucht hast, kannst du den Tutanota-Login auf deiner eigenen Domain (Subdomain) aktivieren, das Aussehen von Tutanota an deine eigenen Wünsche (z.B. Corporate Identity) anpassen und Kontaktformulare für deine Kunden anlegen. Siehe ",
 		"brandingDomain_label": "Branding-Domain",
 		"brandingSettings_label": "Branding",
 		"browserNoKeygen_msg": "Lieber Interessent von Tutanota, während der Registrierung werden Schlüssel erzeugt. Die Erzeugung dieser Schlüssel benötigt mehr Rechenleistung als das momentan verwendete Gerät bereitstellt. Bitte registriere dich am besten auf einem Desktoprechner oder Laptop und verwende dabei einen der folgenden Browser:",
@@ -732,7 +732,6 @@ module.exports = {
 		"receivingMailbox_label": "Empfangende Mailbox",
 		"recipients_label": "Empfänger",
 		"regDisabledFree_msg": "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte folge uns hier, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
-		"registerDomainFirst_msg": "Bitte registriere zuerste deine Domain in den Globalen Einstellungen.",
 		"registeredU2fDevice_msg": "Dein Sicherheitsschlüssel wurde erkannt. Du kannst ihn nun speichern.",
 		"registerU2fDevice_msg": "Verbinde deinen Sicherheitsschlüssel und aktiviere ihn.",
 		"register_alt": "Registrieren",
@@ -952,6 +951,9 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"customEmailDomains_label": "Eigene E-Mail-Domains",
+		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
+		"notASubdomain_msg": "Diese Domain ist keine Subdomain."
 	}
 }

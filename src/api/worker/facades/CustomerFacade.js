@@ -76,7 +76,7 @@ export class CustomerFacade {
 	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				let updateCertificate = neverNull(customerInfo.domainInfos.find(info => info.domain == domainName)).certificate != null
+				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain == domainName && info.certificate)
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
 					let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 					let sessionKey = aes128RandomKey()
@@ -86,7 +86,7 @@ export class CustomerFacade {
 						data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
 						data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
 						data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
-						return serviceRequestVoid(SysService.BrandingDomainService, (updateCertificate) ? HttpMethod.PUT : HttpMethod.POST, data)
+						return serviceRequestVoid(SysService.BrandingDomainService, (existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)
 					})
 				})
 			})

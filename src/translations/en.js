@@ -89,7 +89,7 @@ module.exports = {
 		"bookingPrice_label": "Price",
 		"bookingSummary_label": "Booking summary",
 		"bookingTotalPrice_label": "Total price",
-		"brandingDomainLinkInfo_msg": "If you have ordered the branding package you can activate the Tutanota login on your own domain, change the look of Tutanota according to your needs (e.g. corporate identity) and create contact forms for your clients. Please see",
+		"brandingDomainLinkInfo_msg": "If you have ordered the branding package you can activate the Tutanota login on your own domain (a subdomain), change the look of Tutanota according to your needs (e.g. corporate identity) and create contact forms for your clients. Please see",
 		"brandingDomain_label": "Branding domain",
 		"brandingSettings_label": "Branding",
 		"browserNoKeygen_msg": "Thank you for choosing Tutanota as your future mail client. During the registration process secure keys are being generated. Unfortunately the key generation needs more performance than your currently used browser or device may provide. Please use one of the following browsers on a desktop or laptop computer:",
@@ -732,7 +732,6 @@ module.exports = {
 		"receivingMailbox_label": "Receiving mailbox",
 		"recipients_label": "Recipients",
 		"regDisabledFree_msg": "The number of Tutanota Free users is limited and registration currently disabled. Please follow us here, to get notified as soon as registration is possible again:",
-		"registerDomainFirst_msg": "Please register your domain in the global settings first.",
 		"registeredU2fDevice_msg": "Your security key has been recognized. You can save it now.",
 		"registerU2fDevice_msg": "Connect your security key and press its button to register it with your account.",
 		"register_alt": "Sign up",
@@ -952,6 +951,9 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"customEmailDomains_label": "Custom email domains",
+		"invalidCnameRecord_msg": "The CNAME record for this domain is not set correctly.",
+		"notASubdomain_msg": "This domain is not a subdomain."
 	}
 }

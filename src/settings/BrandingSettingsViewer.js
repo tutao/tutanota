@@ -26,6 +26,7 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -65,7 +66,7 @@ export class BrandingSettingsViewer {
 	}
 
 	_getBrandingLink(): string {
-		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318	"
+		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
 	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?BrandingTheme> {
@@ -95,17 +96,13 @@ export class BrandingSettingsViewer {
 					deactivateAction = new Button("deactivate_action", () => {
 						Dialog.confirm("confirmDeactivateBrandingDomain_msg").then(ok => {
 							if (ok) {
-								worker.deleteCertificate(neverNull(brandingDomainInfo).domain)
+								showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
 							}
 						})
 					}, () => Icons.Cancel)
 				}
 				let editAction = new Button("edit_action", () => {
-					if (customerInfo.domainInfos.length == 0) {
-						Dialog.error("registerDomainFirst_msg")
-					} else {
-						SetCustomDomainCertificateDialog.show(customerInfo)
-					}
+					SetCustomDomainCertificateDialog.show(customerInfo)
 				}, () => Icons.Edit)
 				this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
 
