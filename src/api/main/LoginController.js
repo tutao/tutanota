@@ -22,7 +22,6 @@ export class LoginController {
 		return this.isUserLoggedIn() && this.getUserController().isAdmin()
 	}
 
-
 	getUserController(): IUserController {
 		return neverNull(this._userController) // only to be used after login (when user is defined)
 	}

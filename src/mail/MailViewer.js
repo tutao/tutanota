@@ -449,7 +449,7 @@ export class MailViewer {
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return loadGroupInfos(participantGroupInfos.filter(groupInfoId => {
 					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
-				}))
+				})).filter(groupInfo => groupInfo.deleted == null)
 			})
 		} else {
 			return Promise.resolve([])

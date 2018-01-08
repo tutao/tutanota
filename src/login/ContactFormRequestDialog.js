@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
@@ -17,7 +17,6 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {worker} from "../api/main/WorkerClient"
 import {progressIcon} from "../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../mail/MailUtils"
-import {deviceConfig} from "../misc/DeviceConfig"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
@@ -252,7 +251,7 @@ export class ContactFormRequestDialog {
 				}))
 				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields).then(contactFormResult => {
 					let userEmailAddress = contactFormResult.responseMailAddress
-					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false).then(() => {
+					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false).then(() => {
 						let p = Promise.resolve()
 						if (cleanedNotificationMailAddress) {
 							let pushIdentifier = createPushIdentifier()
@@ -280,20 +279,27 @@ export class ContactFormRequestDialog {
 				})
 
 				return showProgressDialog("sending_msg", sendRequest).then(result => {
-					let requestId = new TextField("mailAddress_label").setValue(result.userEmailAddress).setDisabled()
-					return Dialog.save(() => lang.get("loginCredentials_label"), () => {
-						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {
-							deviceConfig.set(neverNull(credentials))
-						}).then(e => {
-							return worker.logout(false)
-						})
-					}, {
-						view: () => {
-							return [m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)]
-						}
-					})
+					return showConfirmDialog(result.userEmailAddress)
 				}).then(() => this._close()).catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
 			}
 		})
 	}
+}
+
+function showConfirmDialog(userEmailAddress: string): Promise<void> {
+	return Promise.fromCallback(cb => {
+		let confirm = new Button("contactFormSubmitConfirm_action", () => {
+			dialog.close()
+			cb()
+		}).setType(ButtonType.Login)
+		let requestId = new TextField("mailAddress_label").setValue(userEmailAddress).setDisabled()
+		let dialog = new Dialog(DialogType.EditMedium, {
+			view: () => m("", [
+				m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
+				m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)),
+				m(confirm)
+			])
+		})
+		dialog.show()
+	})
 }

@@ -53,7 +53,7 @@ interface ProgressListener {
 }
 
 interface LoginInterface {
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean): Promise<?Credentials|{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<?Credentials|{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<?Credentials|{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple}|void>;
 	changePassword(oldPassword: string, newPassword: string): Promise<void>;

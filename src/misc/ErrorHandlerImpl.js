@@ -75,7 +75,7 @@ export function handleUncaughtError(e: Error) {
 			let pwInput = new TextField("password_label", errorMessage)
 				.setType(Type.Password)
 			let dialog = Dialog.smallActionDialog(lang.get("login_label"), pwInput, () => {
-				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false).then(() => {
+				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false, true).then(() => {
 					dialog.close()
 					loginDialogActive = false
 				}).catch(AccessBlockedError, e => {
