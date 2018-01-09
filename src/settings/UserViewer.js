@@ -34,6 +34,8 @@ import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
+import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 
 assertMainOrNode()
 
@@ -52,6 +54,7 @@ export class UserViewer {
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
+	_notificationViewer: MailSettingNotificationViewer;
 
 	constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
 		this.userGroupInfo = userGroupInfo
@@ -127,6 +130,10 @@ export class UserViewer {
 			})
 		})
 
+		this._notificationViewer = new MailSettingNotificationViewer()
+		this._user.getAsync().then(user => this._notificationViewer.loadPushIdentifiers(user))
+
+
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -148,8 +155,11 @@ export class UserViewer {
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(this._aliases),
-					logins.getUserController().isPremiumAccount() ? m(".h4.mt-l", lang.get('mailSettings_label')) : null,
-					logins.getUserController().isPremiumAccount() && !logins.isProdDisabled() && (this._whitelistProtection) ? m(this._whitelistProtection) : null,
+					!logins.getUserController().isPremiumAccount() ? null : [
+							m(".h4.mt-l", lang.get('mailSettings_label')),
+							!logins.isProdDisabled() && (this._whitelistProtection) ? m(this._whitelistProtection) : null,
+							m(this._notificationViewer),
+						]
 				]),
 			]
 		}
@@ -351,6 +361,8 @@ export class UserViewer {
 			this._createOrUpdateWhitelistProtectionField()
 		} else if (isSameTypeRef(typeRef, MailboxGroupRootTypeRef)) {
 			this._updateContactForms()
+		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && this._user.isLoaded()) {
+			this._notificationViewer.loadPushIdentifiers(this._user.getLoaded())
 		}
 		this._secondFactorsForm.entityEventReceived(typeRef, listId, elementId, operation)
 		this._aliases.entityEventReceived(typeRef, listId, elementId, operation)
