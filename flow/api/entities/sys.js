@@ -72,6 +72,8 @@ type Customer = {
 	contactFormUserGroups:?UserAreaGroups;
 	customizations:Feature[];
 	userAreaGroups:?UserAreaGroups;
+	whitelabelChildren:?WhitelabelChildrenRef;
+	whitelabelParent:?WhitelabelParent;
 	adminGroup:Id;
 	adminGroups:Id;
 	customerGroup:Id;
@@ -856,6 +858,7 @@ type DomainInfo = {
 	certificateExpiryDate:?Date;
 	domain:string;
 	validatedMxRecord:boolean;
+	whitelabelCode:string;
 
 	catchAllMailGroup:?Id;
 	certificate:?Id;
@@ -1203,6 +1206,7 @@ type BrandingTheme = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	jsonTheme:string;
+	metaTags:string;
 
 	disabledFeatures:DisabledFeature[];
 }
@@ -1364,4 +1368,35 @@ type Feature = {
 	_id:Id;
 	feature:NumberString;
 
+}
+
+type WhitelabelChild = {
+	_type: TypeRef<WhitelabelChild>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	comment:string;
+	createdDate:Date;
+	deletedDate:?Date;
+	mailAddress:string;
+
+	customer:Id;
+}
+
+type WhitelabelChildrenRef = {
+	_type: TypeRef<WhitelabelChildrenRef>;
+	_id:Id;
+
+	items:Id;
+}
+
+type WhitelabelParent = {
+	_type: TypeRef<WhitelabelParent>;
+	_id:Id;
+
+	customer:Id;
+	whitelabelChildInParent:IdTuple;
 }

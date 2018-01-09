@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 export const _TypeModel: TypeModel = {
@@ -122,6 +121,24 @@ export const _TypeModel: TypeModel = {
 			"refType": "UserAreaGroups",
 			"final": true
 		},
+		"whitelabelChildren": {
+			"name": "whitelabelChildren",
+			"id": 1277,
+			"since": 26,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "WhitelabelChildrenRef",
+			"final": true
+		},
+		"whitelabelParent": {
+			"name": "whitelabelParent",
+			"id": 1276,
+			"since": 26,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "WhitelabelParent",
+			"final": true
+		},
 		"adminGroup": {
 			"name": "adminGroup",
 			"id": 37,
@@ -214,7 +231,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "26"
 }
 
 export function createCustomer(): Customer {

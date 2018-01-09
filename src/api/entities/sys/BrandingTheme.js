@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const BrandingThemeTypeRef: TypeRef<BrandingTheme> = new TypeRef("sys", "BrandingTheme")
 export const _TypeModel: TypeModel = {
@@ -56,6 +55,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"metaTags": {
+			"name": "metaTags",
+			"id": 1279,
+			"since": 26,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -70,7 +78,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "26"
 }
 
 export function createBrandingTheme(): BrandingTheme {

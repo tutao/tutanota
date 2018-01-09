@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const CreateTeamGroupDataTypeRef: TypeRef<CreateTeamGroupData> = new TypeRef("tutanota", "CreateTeamGroupData")
 export const _TypeModel: TypeModel = {
