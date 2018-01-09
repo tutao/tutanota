@@ -108,6 +108,6 @@ function _getDefaultColorLine(field: TextField): VirtualElement {
 			})
 		])
 	} else {
-		return m("", lang.get("invalidInputFormat_msg"))
+		return m(".small", lang.get("invalidInputFormat_msg"))
 	}
 }
