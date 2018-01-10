@@ -13,7 +13,7 @@ import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {TextField} from "../gui/base/TextField"
+import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {worker} from "../api/main/WorkerClient"
@@ -39,6 +39,7 @@ export class BrandingSettingsViewer {
 	_brandingDomainField: TextField;
 	_customLogoField: TextField;
 	_customColorsField: TextField;
+	_customMetaTagsField: TextField;
 
 	_customerInfo: LazyLoaded<CustomerInfo>;
 
@@ -58,6 +59,7 @@ export class BrandingSettingsViewer {
 						m(this._brandingDomainField),
 						m(this._customLogoField),
 						m(this._customColorsField),
+						m(this._customMetaTagsField),
 					] : [
 						m(".flex-center.items-center.button-height.mt-l", progressIcon())
 					])
@@ -168,6 +170,26 @@ export class BrandingSettingsViewer {
 					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => Icons.Edit)
 
 					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
+				}
+
+				let customMetaTagsDefined = brandingTheme ? brandingTheme.metaTags.length > 0 : false
+				this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
+				if (brandingTheme) {
+					let editCustomMetaTagsButton = new Button("edit_action", () => {
+						let metaTags = new TextField("customMetaTags_label")
+							.setValue(neverNull(brandingTheme).metaTags)
+							.setType(Type.Area)
+						let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
+							view: () => m(metaTags)
+						}, (ok) => {
+							if (ok) {
+								neverNull(brandingTheme).metaTags = metaTags.value()
+								update(brandingTheme)
+								dialog.close()
+							}
+						})
+					}, () => Icons.Edit)
+					this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
 				}
 
 				m.redraw()

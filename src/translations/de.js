@@ -955,6 +955,7 @@ module.exports = {
 		"yourMessage_label": "Deine Nachricht",
 		"customEmailDomains_label": "Eigene E-Mail-Domains",
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
-		"notASubdomain_msg": "Diese Domain ist keine Subdomain."
+		"notASubdomain_msg": "Diese Domain ist keine Subdomain.",
+		"customMetaTags_label": "Eigene Meta-Tags",
 	}
 }
