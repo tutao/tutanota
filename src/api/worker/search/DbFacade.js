@@ -16,31 +16,36 @@ export class DbFacade {
 	constructor() {
 		this._db = new LazyLoaded(() => {
 			return new Promise.fromCallback(callback => {
-				let DBOpenRequest = indexedDB.open(this._id, 1);
-				DBOpenRequest.onerror = (event) => {
-					callback(new DbError(`could not open indexeddb ${this._id}`, event), null)
-				}
-
-				DBOpenRequest.onupgradeneeded = (event) => {
-					//console.log("upgrade db", event)
-					let db = event.target.result
-					try {
-						db.createObjectStore(SearchIndexOS)
-						db.createObjectStore(ElementDataOS)
-						db.createObjectStore(MetaDataOS)
-						db.createObjectStore(GroupDataOS)
-						db.createObjectStore(SearchTermSuggestionsOS)
-					} catch (e) {
-						callback(new DbError("could not create object store searchindex", e))
+				let DBOpenRequest
+				try {
+					DBOpenRequest = indexedDB.open(this._id, 1);
+					DBOpenRequest.onerror = (error) => {
+						callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
 					}
-				}
 
-				DBOpenRequest.onsuccess = (event) => {
-					//console.log("opened db", event)
-					DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
-					DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
-					DBOpenRequest.result.onerror = (event) => console.log("db error", event)
-					callback(null, DBOpenRequest.result)
+					DBOpenRequest.onupgradeneeded = (event) => {
+						//console.log("upgrade db", event)
+						let db = event.target.result
+						try {
+							db.createObjectStore(SearchIndexOS)
+							db.createObjectStore(ElementDataOS)
+							db.createObjectStore(MetaDataOS)
+							db.createObjectStore(GroupDataOS)
+							db.createObjectStore(SearchTermSuggestionsOS)
+						} catch (e) {
+							callback(new DbError("could not create object store searchindex", e))
+						}
+					}
+
+					DBOpenRequest.onsuccess = (event) => {
+						//console.log("opened db", event)
+						DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
+						DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
+						DBOpenRequest.result.onerror = (event) => console.log("db error", event)
+						callback(null, DBOpenRequest.result)
+					}
+				} catch (e) {
+					callback(new DbError(`exception when accessing indexeddb ${this._id}`, e), null)
 				}
 			})
 		})

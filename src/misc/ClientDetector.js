@@ -51,27 +51,18 @@ class ClientDetector {
 	}
 
 	/**
-	 * Browsers that provide these features are allowed to use Tutanota but certain
-	 * features are not active and a warning will be displayed.
+	 * Browsers which support these features are supported
 	 */
-	isAccepted(): boolean {
+	isSupported(): boolean {
 		return this.flexbox() &&
 			this.websockets() &&
 			this.xhr2() &&
 			this.randomNumbers() &&
-			this.dateFormat()
-	}
-
-	/**
-	 * Browsers which support these features are fully supported
-	 */
-	isSupported(): boolean {
-		return this.isAccepted() &&
+			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
 			this.randomNumbers() &&
-			this.notIE() &&
-			this.indexedDb()
+			this.notIE()
 	}
 
 	isMobileDevice(): boolean {
@@ -128,7 +119,12 @@ class ClientDetector {
 	}
 
 	localStorage(): boolean {
-		return localStorage ? true : false
+		try {
+			return localStorage ? true : false
+		} catch (e) {
+			return false
+		}
+
 	}
 
 	/**
