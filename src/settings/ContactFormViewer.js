@@ -17,6 +17,7 @@ import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "./BuyDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
@@ -52,12 +53,13 @@ export class ContactFormViewer {
 			m.redraw()
 		})
 
-		let pageTitleField = new TextField("pageTitle_label").setValue(contactForm.pageTitle).setDisabled()
+		let language = getDefaultContactFormLanguage(this.contactForm.languages)
+		let pageTitleField = new TextField("pageTitle_label").setValue(language.pageTitle).setDisabled()
 
 		let statisticsFieldsTable = null
-		if (contactForm.statisticsFields.length > 0) {
+		if (language.statisticsFields.length > 0) {
 			statisticsFieldsTable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], false)
-			statisticsFieldsTable.updateEntries(contactForm.statisticsFields.map(f => new TableLine([f.name, statisticsFieldTypeToString(f)])))
+			statisticsFieldsTable.updateEntries(language.statisticsFields.map(f => new TableLine([f.name, statisticsFieldTypeToString(f)])))
 		}
 
 		this.view = () => {
@@ -88,11 +90,7 @@ export class ContactFormViewer {
 		newForm.targetGroupInfo = this.contactForm.targetGroupInfo
 		newForm.participantGroupInfos = this.contactForm.participantGroupInfos.slice()
 		newForm.path = "" // do not copy the path
-		newForm.pageTitle = this.contactForm.pageTitle
-		newForm.headerHtml = this.contactForm.headerHtml
-		newForm.footerHtml = this.contactForm.footerHtml
-		newForm.helpHtml = this.contactForm.helpHtml
-		newForm.statisticsFields = this.contactForm.statisticsFields.slice()
+		newForm.languages = this.contactForm.languages.map(l => Object.assign({}, l))
 		ContactFormEditor.show(newForm, true, brandingDomain, this._newContactFormIdReceiver)
 	}
 

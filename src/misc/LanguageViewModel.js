@@ -84,7 +84,7 @@ class LanguageViewModel {
 		this.fallback = en // always load english as fallback
 		this.code = 'en'
 
-		return this.setLanguage(this._getDefaultLanguage())
+		return this.setLanguage(this.getLanguage())
 	}
 
 	addStaticTranslation(key: string, text: string) {
@@ -170,8 +170,9 @@ class LanguageViewModel {
 
 	/**
 	 * Gets the default language derived from the browser language.
+	 * @param restrictions An array of language codes the selection should be restricted to
 	 */
-	_getDefaultLanguage(): {code: string, languageTag: string} {
+	getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
 		// navigator.languages can be an empty array on android 5.x devices
 		let languageTags
 		if (typeof navigator != 'undefined') {
@@ -184,10 +185,16 @@ class LanguageViewModel {
 				if (language == null) {
 					language = languages.find(l => startsWith(l.code, code.substring(0, 2)))
 				}
-				if (language) return {code: language.code, languageTag: tag}
+				if (language && (restrictions == null || restrictions.indexOf(language.code) != -1)) {
+					return {code: language.code, languageTag: tag}
+				}
 			}
 		}
-		return {code: 'en', languageTag: 'en-US'}
+		if (restrictions == null || restrictions.indexOf("en") != -1) {
+			return {code: 'en', languageTag: 'en-US'}
+		} else {
+			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
+		}
 	}
 
 }

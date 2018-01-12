@@ -47,42 +47,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"footerHtml": {
-			"name": "footerHtml",
-			"id": 742,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"headerHtml": {
-			"name": "headerHtml",
-			"id": 741,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"helpHtml": {
-			"name": "helpHtml",
-			"id": 743,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"pageTitle": {
-			"name": "pageTitle",
-			"id": 740,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"path": {
 			"name": "path",
 			"id": 739,
@@ -94,8 +58,17 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"statisticsFields": {
-			"name": "statisticsFields",
+		"languages": {
+			"name": "languages",
+			"id": 865,
+			"since": 24,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "ContactFormLanguage",
+			"final": false
+		},
+		"statisticsFields_removed": {
+			"name": "statisticsFields_removed",
 			"id": 745,
 			"since": 19,
 			"type": "AGGREGATION",
@@ -145,7 +118,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "23"
+	"version": "24"
 }
 
 export function createContactForm(): ContactForm {

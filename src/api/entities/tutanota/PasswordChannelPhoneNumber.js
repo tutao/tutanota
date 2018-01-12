@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "23"
+	"version": "24"
 }
 
 export function createPasswordChannelPhoneNumber(): PasswordChannelPhoneNumber {

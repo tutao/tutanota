@@ -22,6 +22,7 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -71,7 +72,7 @@ export class ContactFormListView {
 					})
 				})
 			},
-			sortCompare: (a: ContactForm, b: ContactForm) => a.pageTitle.localeCompare(b.pageTitle),
+			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactFormRow(this._customerInfo),
@@ -184,7 +185,7 @@ export class ContactFormRow {
 			this.domElement.classList.remove("row-selected")
 		}
 
-		this._domPageTitle.textContent = contactForm.pageTitle
+		this._domPageTitle.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle
 		if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())) {
 			this._domUrl.textContent = getContactFormUrl(neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactForm.path)
 		}

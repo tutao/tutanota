@@ -14,6 +14,7 @@ import {NavBar} from "../gui/base/NavBar"
 import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -41,7 +42,10 @@ export class ContactFormView {
 			.addRight(new Button('ok_action', () => this._moreInformationDialog.close()).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("moreInformation_action"))
 		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBar, {
-			view: () => m(".pb", m.trust(neverNull(this._contactForm).helpHtml))
+			view: () => {
+				let language = getDefaultContactFormLanguage(neverNull(this._contactForm).languages)
+				return m(".pb", m.trust(language.helpHtml))
+			}
 		}).addShortcut({
 			key: Keys.ESC,
 			exec: () => this._moreInformationDialog.close(),
@@ -62,11 +66,12 @@ export class ContactFormView {
 				onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 			}, progressIcon())
 		} else if (this._contactForm) {
+			let language = getDefaultContactFormLanguage(this._contactForm.languages)
 			return m("", {
 				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
 			}, [
-				(this._contactForm && this._contactForm.pageTitle) ? m("h1.center", neverNull(this._contactForm).pageTitle) : null,
-				neverNull(this._contactForm).headerHtml ? m("", m.trust(neverNull(this._contactForm).headerHtml)) : null, // header
+				(language.pageTitle) ? m("h1.center", language.pageTitle) : null,
+				language.headerHtml ? m("", m.trust(language.headerHtml)) : null, // header
 				m(".flex.justify-center", [
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(this._createRequestButton)),
@@ -74,7 +79,7 @@ export class ContactFormView {
 						m(".pt-l.flex-center", m(this._moreInformationButton)),
 					])
 				]),
-				m(".pt-l", m.trust(neverNull(this._contactForm).footerHtml)), // footer
+				m(".pt-l", m.trust(language.footerHtml)), // footer
 				m(".pb")
 			])
 		} else {
@@ -91,10 +96,13 @@ export class ContactFormView {
 			this._formId = args.formId
 			this._loading = true
 			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {
-				document.title = contactForm.pageTitle
 				this._contactForm = contactForm
-				this._loading = false
-				m.redraw()
+				lang.setLanguage(lang.getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
+					let language = getDefaultContactFormLanguage(contactForm.languages)
+					document.title = language.pageTitle
+					this._loading = false
+					m.redraw()
+				})
 			}).catch(NotFoundError, e => {
 				this._loading = false
 				this._contactForm = null

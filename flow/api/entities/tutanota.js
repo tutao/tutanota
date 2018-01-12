@@ -847,13 +847,10 @@ type ContactForm = {
 	_id:IdTuple;
 	_ownerGroup:?Id;
 	_permissions:Id;
-	footerHtml:string;
-	headerHtml:string;
-	helpHtml:string;
-	pageTitle:string;
 	path:string;
 
-	statisticsFields:InputField[];
+	languages:ContactFormLanguage[];
+	statisticsFields_removed:InputField[];
 	delegationGroups_removed:Id[];
 	participantGroupInfos:IdTuple[];
 	targetGroupInfo:?IdTuple;
@@ -976,4 +973,16 @@ type PhotosRef = {
 	_id:Id;
 
 	files:Id;
+}
+
+type ContactFormLanguage = {
+	_type: TypeRef<ContactFormLanguage>;
+	_id:Id;
+	code:string;
+	footerHtml:string;
+	headerHtml:string;
+	helpHtml:string;
+	pageTitle:string;
+
+	statisticsFields:InputField[];
 }

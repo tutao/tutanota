@@ -27,6 +27,7 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {Icons} from "../gui/base/icons/Icons"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -132,7 +133,8 @@ export class ContactFormRequestDialog {
 	}
 
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
-		return contactForm.statisticsFields.map(field => {
+		let language = getDefaultContactFormLanguage(contactForm.languages)
+		return language.statisticsFields.map(field => {
 			if (field.type === InputFieldType.ENUM) {
 				let items = field.enumValues.map(t => {
 					return {name: t.name, value: t.name}

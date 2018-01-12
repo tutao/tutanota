@@ -253,7 +253,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "23"
+	"version": "24"
 }
 
 export function createMail(): Mail {

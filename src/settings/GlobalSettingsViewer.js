@@ -298,7 +298,7 @@ export class GlobalSettingsViewer {
 					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
 					let titleRow = `contact form,path,date,${columns.join(",")}`
 					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
-						let row = [escape(contactForm.pageTitle), contactForm.path, formatSortableDate(entry.date)]
+						let row = [escape(getContactFormTitle(contactForm)), contactForm.path, formatSortableDate(entry.date)]
 						row.length = 3 + columns.length
 						for (let v of entry.values) {
 							row[3 + columns.indexOf(v.name)] = escape(v.value)
@@ -333,4 +333,15 @@ function escape(s: string) {
 	} else {
 		return s
 	}
+}
+
+function getContactFormTitle(contactForm: ContactForm) {
+	let pageTitle = ""
+	let language = contactForm.languages.find(l => l.code == lang.code)
+	if (language) {
+		pageTitle = language.pageTitle
+	} else if (contactForm.languages.length > 0) {
+		pageTitle = contactForm.languages[0].pageTitle
+	}
+	return pageTitle
 }

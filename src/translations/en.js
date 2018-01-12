@@ -963,5 +963,7 @@ module.exports = {
 		"cancelSharedMailbox_label": "Cancel shared mailbox",
 		"bookingItemUsersIncludingBranding_label": "User accounts incl. branding upgrade",
 		"customMetaTags_label": "Custom meta tags",
+		"language_label": "Language",
+		"addLanguage_action": "Add Language"
 	}
 }

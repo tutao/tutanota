@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, languages} from "../misc/LanguageViewModel"
 import {GroupType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {load, loadAll, update, setup} from "../api/main/Entity"
 import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
@@ -29,6 +29,10 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import stream from "mithril/stream/stream.js"
+import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
+import {DefaultAnimationTime} from "../gui/animation/Animations"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "./BuyDialog"
 
 assertMainOrNode()
@@ -54,6 +58,9 @@ export class ContactFormEditor {
 	_helpField: HtmlEditor;
 	_statisticsFields: InputField[];
 	_statisticsFieldsTable: Table;
+	_language: stream<ContactFormLanguage>;
+	_languages: ContactFormLanguage[];
+	_languageField: TextField;
 
 	/**
 	 * This constructor is only used internally. See show() for the external interface.
@@ -64,9 +71,6 @@ export class ContactFormEditor {
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 		let allGroupInfos = userGroupInfos.concat(sharedMailGroupInfos)
 		allGroupInfos.sort(compareGroupInfos)
-
-		this._pageTitleField = new TextField("pageTitle_label").setValue(this._contactForm.pageTitle)
-		this._pathField = new TextField("urlPath_label", () => getContactFormUrl(brandingDomain, this._pathField.value())).setValue(this._contactForm.path)
 
 		let selectedTargetGroupInfo = allGroupInfos[0]
 		if (this._contactForm.targetGroupInfo) {
@@ -100,11 +104,57 @@ export class ContactFormEditor {
 		this._participantGroupInfosTable = new Table(["participants_label"], [ColumnWidth.Largest], true, addParticipantMailGroupButton)
 		this._updateParticipantGroupInfosTable()
 
-		this._headerField = new HtmlEditor().setModeSwitcher("header_label").setMinHeight(200).showBorders().setValue(this._contactForm.headerHtml)
-		this._footerField = new HtmlEditor().setModeSwitcher("footer_label").setMinHeight(200).showBorders().setValue(this._contactForm.footerHtml)
-		this._helpField = new HtmlEditor().setModeSwitcher("helpPage_label").setMinHeight(200).showBorders().setValue(this._contactForm.helpHtml)
+		this._pathField = new TextField("urlPath_label", () => getContactFormUrl(brandingDomain, this._pathField.value())).setValue(this._contactForm.path)
 
-		this._statisticsFields = this._contactForm.statisticsFields.slice()
+		this._languages = this._contactForm.languages.map(l => Object.assign({}, l))
+		if (this._languages.length == 0) {
+			let l = createContactFormLanguage()
+			l.code = lang.code
+			this._languages.push(l)
+		}
+		let previousLanguage: ?ContactFormLanguage = null
+		let language = getDefaultContactFormLanguage(this._languages)
+		this._language = stream(language)
+		this._languageField = new TextField("language_label").setDisabled()
+		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
+			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code), e => this._language(l)).setType(ButtonType.Dropdown)).sort((a,b) => a.getLabel().localeCompare(b.getLabel()))
+			buttons.push(new Button("addLanguage_action", e => {
+				let allLanguages = languages.filter(t => this._languages.find(l => l.code == t.code) == null).map(l => {
+					return {name: lang.get(l.textId), value: l.code}
+				}).sort((a,b) => a.name.localeCompare(b.name))
+				let newLanguageCode = stream(allLanguages[0].value)
+				let tagName = new DropDownSelector("addLanguage_action", null, allLanguages, newLanguageCode)
+
+				setTimeout(() => {
+					Dialog.smallDialog(lang.get("addLanguage_action"), {
+						view: () => m(tagName)
+					}).then(ok => {
+						if (ok) {
+							let newLang = createContactFormLanguage()
+							newLang.code = newLanguageCode()
+							this._languages.push(newLang)
+							this._language(newLang)
+						}
+					})
+				}, DefaultAnimationTime)// wait till the dropdown is hidden
+			}).setType(ButtonType.Dropdown))
+			return buttons
+		})
+		let deleteLanguageButton = new Button('delete_action', () => {
+			remove(this._languages, this._language())
+			this._language(this._languages[0])
+		}, () => Icons.Cancel)
+		this._languageField._injectionsRight = () => [
+			m(selectLanguageButton),
+			this._languages.length > 1 ? m(deleteLanguageButton) : null
+		]
+
+		this._pageTitleField = new TextField("pageTitle_label")
+
+		this._headerField = new HtmlEditor().setModeSwitcher("header_label").setMinHeight(200).showBorders()
+		this._footerField = new HtmlEditor().setModeSwitcher("footer_label").setMinHeight(200).showBorders()
+		this._helpField = new HtmlEditor().setModeSwitcher("helpPage_label").setMinHeight(200).showBorders()
+
 		let addStatisticsFieldButton = new Button("addStatisticsField_action", () => AddStatisticsFieldDialog.show().then(inputField => {
 			if (inputField) {
 				this._statisticsFields.push(inputField)
@@ -112,7 +162,21 @@ export class ContactFormEditor {
 			}
 		}), () => Icons.Add)
 		this._statisticsFieldsTable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addStatisticsFieldButton)
-		this._updateStatisticsFieldTable()
+
+		this._language.map((l: ContactFormLanguage) => {
+			if (previousLanguage && l != previousLanguage) {
+				this.updateLanguageFromFields(previousLanguage)
+			}
+			previousLanguage = l
+			this._languageField.setValue(getLanguageName(l.code))
+			this._pageTitleField.setValue(l.pageTitle)
+			this._headerField.setValue(l.headerHtml)
+			this._footerField.setValue(l.footerHtml)
+			this._helpField.setValue(l.helpHtml)
+			this._statisticsFields = l.statisticsFields.slice()
+			this._updateStatisticsFieldTable()
+		})
+
 
 		let headerBar = new DialogHeaderBar()
 			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))
@@ -127,6 +191,7 @@ export class ContactFormEditor {
 			]),
 			m(".h4.mt-l", lang.get("display_action")),
 			m(this._pathField),
+			m(this._languageField),
 			m(this._pageTitleField),
 			m(this._headerField),
 			m(this._footerField),
@@ -135,6 +200,14 @@ export class ContactFormEditor {
 			m(this._statisticsFieldsTable)
 		])
 		this.dialog = Dialog.largeDialog(headerBar, this)
+	}
+
+	updateLanguageFromFields(language: ContactFormLanguage) {
+		language.pageTitle = this._pageTitleField.value()
+		language.headerHtml = this._headerField.getValue()
+		language.footerHtml = this._footerField.getValue()
+		language.helpHtml = this._helpField.getValue()
+		language.statisticsFields = this._statisticsFields
 	}
 
 	_updateStatisticsFieldTable() {
@@ -200,11 +273,8 @@ export class ContactFormEditor {
 											this._contactForm.targetGroupInfo = this._mailGroupField.selectedValue()._id
 											this._contactForm.participantGroupInfos = this._participantGroupInfoList.map(groupInfo => groupInfo._id)
 											this._contactForm.path = this._pathField.value()
-											this._contactForm.pageTitle = this._pageTitleField.value()
-											this._contactForm.headerHtml = this._headerField.getValue()
-											this._contactForm.footerHtml = this._footerField.getValue()
-											this._contactForm.helpHtml = this._helpField.getValue()
-											this._contactForm.statisticsFields = this._statisticsFields
+											this.updateLanguageFromFields(this._language())
+											this._contactForm.languages = this._languages
 											this._contactForm.targetMailGroup_removed = GENERATED_MIN_ID; // legacy, should be removed in future
 
 											let p
@@ -255,4 +325,8 @@ export function show(c: ?ContactForm, createNew: boolean, brandingDomain: string
 			})
 		})
 	}))
+}
+
+function getLanguageName(code: string): string {
+	return lang.get(neverNull(languages.find(t => t.code == code)).textId)
 }
