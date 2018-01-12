@@ -11,7 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -27,6 +27,7 @@ import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as BuyDialog from "./BuyDialog"
 
 assertMainOrNode()
 
@@ -98,7 +99,11 @@ export class BrandingSettingsViewer {
 					deactivateAction = new Button("deactivate_action", () => {
 						Dialog.confirm("confirmDeactivateBrandingDomain_msg").then(ok => {
 							if (ok) {
-								showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
+								showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, 0, 0, false)).then(accepted => {
+									if (accepted) {
+										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
+									}
+								})
 							}
 						})
 					}, () => Icons.Cancel)

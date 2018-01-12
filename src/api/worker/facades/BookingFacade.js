@@ -20,17 +20,19 @@ export class BookingFacade {
 	 * Provides the price for a given feature type and count.
 	 * @param  type The booking feature type, one of tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_*.
 	 * @param  count Number of items, may be negative.
+	 * @param  reactivate  If true a user or group is reactivated instead of created - not used for aliases, storage or branding
 	 * @param  paymentInterval. If not provided the customers payment interval is used.
 	 * @param  accountType The account type, one of tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_*. If not provided, the customers account type is used.
 	 * @param  business Business or private.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getPrice(type: NumberString, count: number, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		let serviceData = createPriceServiceData()
 		serviceData.date = Const.CURRENT_DATE;
 		let priceRequestData = createPriceRequestData()
 		priceRequestData.featureType = type
 		priceRequestData.count = String(count)
+		priceRequestData.reactivate = reactivate
 		priceRequestData.paymentInterval = paymentInterval ? String(paymentInterval) : null
 		priceRequestData.accountType = accountType ? accountType : null
 		priceRequestData.business = business == undefined ? null : business;

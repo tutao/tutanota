@@ -330,13 +330,13 @@ export class UserViewer {
 			let availablePromise = (restore) ? worker.isMailAddressAvailable(neverNull(this.userGroupInfo.mailAddress)) : Promise.resolve(true)
 			return availablePromise.then(available => {
 				if (available) {
-					return BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0).then(confirmed => {
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
 						if (confirmed) {
 							return this._user.getAsync().then(user => {
 								return worker.deleteUser(user, restore)
 							})
 						}
-					})
+					}))
 				} else {
 					Dialog.error("emailAddressInUse_msg")
 				}

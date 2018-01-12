@@ -955,6 +955,9 @@ type InvoiceInfo = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	publishInvoices:boolean;
+	specialPriceBrandingPerUser:?NumberString;
+	specialPriceContactFormSingle:?NumberString;
+	specialPriceSharedGroupSingle:?NumberString;
 	specialPriceUserSingle:?NumberString;
 	specialPriceUserTotal:?NumberString;
 
@@ -1032,6 +1035,7 @@ type PriceRequestData = {
 	count:NumberString;
 	featureType:NumberString;
 	paymentInterval:?NumberString;
+	reactivate:boolean;
 
 }
 

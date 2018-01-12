@@ -202,7 +202,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('createTeamGroup', arguments))
 	}
 
-	getPrice(type: NumberString, count: number, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 

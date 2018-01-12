@@ -956,6 +956,12 @@ module.exports = {
 		"customEmailDomains_label": "Custom email domains",
 		"invalidCnameRecord_msg": "The CNAME record for this domain is not set correctly.",
 		"notASubdomain_msg": "This domain is not a subdomain.",
+		"brandingBooking_label": "Branding upgrade for {1} users",
+		"cancelBrandingBooking_label": "Cancel branding upgrade for {1} users",
+		"cancelContactForm_label": "Cancel contact form",
+		"sharedMailbox_label": "Shared mailbox",
+		"cancelSharedMailbox_label": "Cancel shared mailbox",
+		"bookingItemUsersIncludingBranding_label": "User accounts incl. branding upgrade",
 		"customMetaTags_label": "Custom meta tags",
 	}
 }

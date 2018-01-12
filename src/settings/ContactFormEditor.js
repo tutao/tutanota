@@ -5,7 +5,7 @@ import {Button, ButtonType} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {GroupType} from "../api/common/TutanotaConstants"
+import {GroupType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {load, loadAll, update, setup} from "../api/main/Entity"
 import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
@@ -29,6 +29,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as BuyDialog from "./BuyDialog"
 
 assertMainOrNode()
 
@@ -166,8 +167,8 @@ export class ContactFormEditor {
 			Dialog.error("pleaseEnterValidPath_msg")
 		} else {
 			// check that the path is unique
-			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-					load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
+			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+					return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
 						let contactFormsListId = root.contactForms
 						let customElementIdFromPath = stringToCustomId(this._pathField.value())
 						let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath]
@@ -176,12 +177,12 @@ export class ContactFormEditor {
 						if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
 							samePathFormCheck = load(ContactFormTypeRef, contactFormIdFromPath).then(cf => true).catch(NotFoundError, e => false)
 						}
-						samePathFormCheck.then(samePathForm => {
+						return samePathFormCheck.then(samePathForm => {
 							if (samePathForm) {
 								return Dialog.error("pathAlreadyExists_msg")
 							} else {
 								// check if the target mail group is already referenced by a different contact form
-								load(GroupTypeRef, this._mailGroupField.selectedValue().group).then(group => {
+								return load(GroupTypeRef, this._mailGroupField.selectedValue().group).then(group => {
 									if (group.user) {
 										return load(UserTypeRef, group.user).then(user => {
 											return neverNull(user.memberships.find(m => m.groupType == GroupType.Mail)).group
@@ -190,7 +191,7 @@ export class ContactFormEditor {
 										return group._id
 									}
 								}).then(mailGroupId => {
-									load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
+									return load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
 										let contactFormIdToCheck = (this._createNew) ? contactFormIdFromPath : this._contactForm._id
 										if (mailboxGroupRoot.targetMailGroupContactForm && !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
 											return Dialog.error("receivingMailboxAlreadyUsed_msg")
@@ -209,8 +210,12 @@ export class ContactFormEditor {
 											let p
 											if (this._createNew) {
 												this._contactForm._id = contactFormIdFromPath
-												p = setup(contactFormsListId, this._contactForm).then(contactFormId => {
-													this._newContactFormIdReceiver(customElementIdFromPath)
+												p = BuyDialog.show(BookingItemFeatureType.ContactForm, 1, 0, false).then(accepted => {
+													if (accepted) {
+														return setup(contactFormsListId, this._contactForm).then(contactFormId => {
+															this._newContactFormIdReceiver(customElementIdFromPath)
+														})
+													}
 												})
 											} else {
 												p = update(this._contactForm).then(() => {
@@ -225,7 +230,7 @@ export class ContactFormEditor {
 						})
 					})
 				}
-			)
+			))
 		}
 	}
 }

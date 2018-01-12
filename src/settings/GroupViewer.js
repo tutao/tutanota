@@ -12,7 +12,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError} from "../api/common/error/RestError"
@@ -25,6 +25,7 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as BuyDialog from "./BuyDialog"
 
 assertMainOrNode()
 
@@ -81,7 +82,11 @@ export class GroupViewer {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
 				} else {
-					showProgressDialog("pleaseWait_msg", this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate)))
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
+						if (confirmed) {
+							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate))
+						}
+					}))
 				}
 			})
 		})
@@ -193,9 +198,7 @@ export class GroupViewer {
 
 export function getGroupTypeName(groupType: NumberString): string {
 	if (groupType == GroupType.Mail) {
-		return lang.get("mailGroup_label")
-	} else if (groupType == GroupType.Team) {
-		return lang.get("teamGroup_label")
+		return lang.get("sharedMailbox_label")
 	} else {
 		return groupType // just for testing
 	}

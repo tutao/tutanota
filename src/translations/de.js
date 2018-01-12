@@ -956,6 +956,12 @@ module.exports = {
 		"customEmailDomains_label": "Eigene E-Mail-Domains",
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
 		"notASubdomain_msg": "Diese Domain ist keine Subdomain.",
+		"brandingBooking_label": "Branding-Upgrade für {1} Benutzer",
+		"cancelBrandingBooking_label": "Abbestellung von Branding-Upgrade für {1} Benutzer",
+		"cancelContactForm_label": "Abbestellung von Kontaktformular",
+		"sharedMailbox_label": "Geteilte Mailbox",
+		"cancelSharedMailbox_label": "Abbestellung von geteilter Mailbox",
+		"bookingItemUsersIncludingBranding_label": "Benutzer-Accounts inkl. Branding-Upgrade",
 		"customMetaTags_label": "Eigene Meta-Tags",
 	}
 }

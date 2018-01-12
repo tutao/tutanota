@@ -3,7 +3,7 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
-import {GroupType} from "../api/common/TutanotaConstants"
+import {GroupType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {worker} from "../api/main/WorkerClient"
@@ -11,6 +11,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getGroupTypeName} from "./GroupViewer"
 import * as AddUserDialog from "./AddUserDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as BuyDialog from "./BuyDialog"
 
 assertMainOrNode()
 
@@ -44,9 +45,11 @@ export function show(): Promise<void> {
 		}).then(okClicked => {
 			if (okClicked) {
 				if (typeField.selectedValue() == GroupType.Mail) {
-					return showProgressDialog("pleaseWait_msg", worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress()))
-				} else {
-					return showProgressDialog("pleaseWait_msg", worker.createTeamGroup(nameField.value()))
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
+						if (accepted) {
+							return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
+						}
+					}))
 				}
 			}
 		})

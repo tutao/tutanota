@@ -21,8 +21,8 @@ assertMainOrNode()
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export function show(featureType: NumberString, count: number, freeAmount: number): Promise<boolean> {
-	return worker.getPrice(featureType, count).then(price => {
+export function show(featureType: NumberString, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+	return worker.getPrice(featureType, count, reactivate).then(price => {
 		if (!_isPriceChange(price, featureType)) {
 			return Promise.resolve(true)
 		} else {
@@ -67,11 +67,40 @@ export function show(featureType: NumberString, count: number, freeAmount: numbe
 }
 
 function _getBookingText(price: PriceServiceReturn, featureType: NumberString, count: number, freeAmount: number): string {
-	if (_isSinglePriceType(price.futurePriceNextPeriod, featureType)) {
-		if (count > 0) {
-			return count + " " + lang.get("bookingItemUsers_label")
+	if (_isSinglePriceType(price.currentPriceThisPeriod, price.futurePriceNextPeriod, featureType)) {
+		if (featureType == BookingItemFeatureType.Users) {
+			if (count > 0) {
+				let brandingPrice = _getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)
+				if (brandingPrice > 0) {
+					return count + " " + lang.get("bookingItemUsersIncludingBranding_label")
+				} else {
+					return count + " " + lang.get("bookingItemUsers_label")
+				}
+			} else {
+				return lang.get("cancelUserAccounts_label", {"{1}": Math.abs(count)})
+			}
+
+
+		} else if (featureType == BookingItemFeatureType.Branding) {
+			if (count > 0) {
+				return lang.get("brandingBooking_label", {"{1}": neverNull(_getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
+			} else {
+				return lang.get("cancelBrandingBooking_label", {"{1}": neverNull(_getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
+			}
+		} else if (featureType == BookingItemFeatureType.ContactForm) {
+			if (count > 0) {
+				return count + " " + lang.get("contactForm_label")
+			} else {
+				return lang.get("cancelContactForm_label")
+			}
+		} else if (featureType == BookingItemFeatureType.SharedMailGroup) {
+			if (count > 0) {
+				return count + " " + lang.get("sharedMailbox_label")
+			} else {
+				return lang.get("cancelSharedMailbox_label")
+			}
 		} else {
-			return lang.get("cancelUserAccounts_label", {"{1}": Math.abs(count)})
+			return ""
 		}
 	} else {
 		let item = _getPriceItem(price.futurePriceNextPeriod, featureType)
@@ -115,22 +144,22 @@ function _getSubscriptionInfoText(price: PriceServiceReturn): string {
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
 	let netGrossText = neverNull(price.futurePriceNextPeriod).taxIncluded ? lang.get("gross_label") : lang.get("net_label")
 	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval == "12") ? lang.get('perYear_label') : lang.get('perMonth_label')
-	let futurePrice = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
+	let futurePriceNextPeriod = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 	let currentPriceNextPeriod = _getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 
-	if (_isSinglePriceType(price.futurePriceNextPeriod, featureType)) {
-		let priceDiff = futurePrice - currentPriceNextPeriod
+	if (_isSinglePriceType(price.currentPriceThisPeriod, price.futurePriceNextPeriod, featureType)) {
+		let priceDiff = futurePriceNextPeriod - currentPriceNextPeriod
 		return formatPrice(priceDiff, true) + " " + periodText + " (" + netGrossText + ")"
 	} else {
-		return formatPrice(futurePrice, true) + " " + periodText + " (" + netGrossText + ")"
+		return formatPrice(futurePriceNextPeriod, true) + " " + periodText + " (" + netGrossText + ")"
 	}
 }
 
 function _getPriceInfoText(price: PriceServiceReturn, featureType: NumberString): string {
-	if (price.currentPeriodAddedPrice && Number(price.currentPeriodAddedPrice) > 0) {
-		return lang.get("priceForCurrentAccountingPeriod_label", {"{1}": formatPrice(Number(price.currentPeriodAddedPrice), true)})
-	} else if (_isUnbuy(price, featureType)) {
+	if (_isUnbuy(price, featureType)) {
 		return lang.get("priceChangeValidFrom_label", {"{1}": formatDate(price.periodEndDate)})
+	} else if (price.currentPeriodAddedPrice && Number(price.currentPeriodAddedPrice) >= 0) {
+		return lang.get("priceForCurrentAccountingPeriod_label", {"{1}": formatPrice(Number(price.currentPeriodAddedPrice), true)})
 	} else {
 		return ""
 	}
@@ -170,14 +199,9 @@ function _isUnbuy(price: PriceServiceReturn, featureType: NumberString): boolean
 	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) > _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
 
-function _isSinglePriceType(priceData: ?PriceData, featureType: NumberString): boolean {
-	let item = _getPriceItem(priceData, featureType)
-	if (item != null) {
-		return item.singleType
-	} else {
-		// special case for zero price.
-		return featureType == BookingItemFeatureType.Users
-	}
+function _isSinglePriceType(currentPriceData: ?PriceData, futurePriceData: ?PriceData, featureType: NumberString): boolean {
+	let item = _getPriceItem(futurePriceData, featureType) || _getPriceItem(currentPriceData, featureType)
+	return neverNull(item).singleType
 }
 
 /**
@@ -198,9 +222,9 @@ function _getPriceItem(priceData: ?PriceData, featureType: NumberString): ?Price
  */
 function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
 	let item = _getPriceItem(priceData, featureType)
-	if (item) {
-		return Number(item.price)
-	} else {
-		return 0
+	let itemPrice = item ? Number(item.price) : 0
+	if (featureType == BookingItemFeatureType.Users) {
+		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)
 	}
+	return itemPrice
 }

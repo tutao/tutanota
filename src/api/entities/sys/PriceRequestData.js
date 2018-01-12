@@ -64,6 +64,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
+		},
+		"reactivate": {
+			"name": "reactivate",
+			"id": 1283,
+			"since": 26,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},

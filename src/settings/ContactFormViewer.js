@@ -6,7 +6,7 @@ import {TextField} from "../gui/base/TextField"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {erase, load} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {InputFieldType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Button} from "../gui/base/Button"
 import * as ContactFormEditor from "./ContactFormEditor"
@@ -17,6 +17,8 @@ import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import * as BuyDialog from "./BuyDialog"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -97,7 +99,11 @@ export class ContactFormViewer {
 	_delete() {
 		Dialog.confirm("confirmDeleteContactForm_msg").then(confirmed => {
 			if (confirmed) {
-				erase(this.contactForm)
+				showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.ContactForm, -1, 0, false).then(accepted => {
+					if (accepted) {
+						return erase(this.contactForm)
+					}
+				}))
 			}
 		})
 	}

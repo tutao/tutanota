@@ -56,6 +56,33 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"specialPriceBrandingPerUser": {
+			"name": "specialPriceBrandingPerUser",
+			"id": 1280,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"specialPriceContactFormSingle": {
+			"name": "specialPriceContactFormSingle",
+			"id": 1282,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"specialPriceSharedGroupSingle": {
+			"name": "specialPriceSharedGroupSingle",
+			"id": 1281,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"specialPriceUserSingle": {
 			"name": "specialPriceUserSingle",
 			"id": 758,

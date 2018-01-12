@@ -103,7 +103,10 @@ export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 export const BookingItemFeatureType = {
 	Users: '0',
 	Storage: '1',
-	Alias: '2'
+	Alias: '2',
+	SharedMailGroup: '3',
+	Branding: '4',
+	ContactForm: '5'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
