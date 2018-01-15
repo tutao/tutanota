@@ -964,6 +964,8 @@ module.exports = {
 		"bookingItemUsersIncludingBranding_label": "Benutzer-Accounts inkl. Branding-Upgrade",
 		"customMetaTags_label": "Eigene Meta-Tags",
 		"language_label": "Sprache",
-		"addLanguage_action": "Sprache hinzufügen"
+		"addLanguage_action": "Sprache hinzufügen",
+		"unsubscribeFailed_msg": "Der Newsletter bzw. die Mailing-Liste konnte nicht abbestellt werden. Bitte versuche es zu einem späteren Zeitpunkt nochmal.",
+		"unsubscribeSuccessful_msg": "Der Newsletter bzw. die Mailing-List wurde erfolgreich abbestellt!"
 	}
 }

@@ -169,6 +169,7 @@ type Mail = {
 	_permissions:Id;
 	confidential:boolean;
 	differentEnvelopeSender:?string;
+	listUnsubscribe:?boolean;
 	receivedDate:Date;
 	replyType:NumberString;
 	sentDate:Date;
@@ -985,4 +986,13 @@ type ContactFormLanguage = {
 	pageTitle:string;
 
 	statisticsFields:InputField[];
+}
+
+type ListUnsubscribeData = {
+	_type: TypeRef<ListUnsubscribeData>;
+	_format:NumberString;
+	headers:string;
+	recipient:string;
+
+	mail:IdTuple;
 }

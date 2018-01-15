@@ -29,13 +29,13 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import EC from "../../common/EntityConstants"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
-import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
+import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality

@@ -964,6 +964,8 @@ module.exports = {
 		"bookingItemUsersIncludingBranding_label": "User accounts incl. branding upgrade",
 		"customMetaTags_label": "Custom meta tags",
 		"language_label": "Language",
-		"addLanguage_action": "Add Language"
+		"addLanguage_action": "Add Language",
+		"unsubscribeFailed_msg": "Could not cancel newsletter or mailing list. Please try again at a later time.",
+		"unsubscribeSuccessful_msg": "The newsletter or mailing list has been cancelled successfully!"
 	}
 }

@@ -92,6 +92,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
+		"listUnsubscribe": {
+			"name": "listUnsubscribe",
+			"id": 866,
+			"since": 24,
+			"type": "Boolean",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		},
 		"receivedDate": {
 			"name": "receivedDate",
 			"id": 107,
