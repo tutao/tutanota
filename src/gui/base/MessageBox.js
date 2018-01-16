@@ -17,7 +17,7 @@ export default class MessageBox {
 		this._visible = true
 
 		this.view = (): VirtualElement => {
-			return m(".fill-absolute.justify-center.items-start", {
+			return m("#error-dialog.justify-center.items-start", {
 				oncreate: (vnode) => this._messageNode = vnode.dom,
 				style: {display: (this._visible) ? 'flex' : 'none'}
 			}, [

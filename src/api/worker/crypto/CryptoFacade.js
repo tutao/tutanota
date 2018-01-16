@@ -36,6 +36,7 @@ import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {CryptoError} from "../../common/error/CryptoError"
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -234,6 +235,9 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 			mailBodySessionKeyCache[instance.body] = sessionKey
 		}
 		return sessionKey
+	}).catch(CryptoError, e => {
+		console.log("failed to resolve session key", e)
+		throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
 	})
 }
 
