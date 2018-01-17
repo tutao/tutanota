@@ -485,7 +485,7 @@ module.exports = {
 		"userSettings_label": "Utilizator",
 		"version_label": "Versiune:",
 		"waitingForApproval_msg": "",
-		"weekDays_label": ["Du", "Lu", "Ma", "Mi", "Jo", "Vi", "Sa"],
+		"weekDays_label": "---\n- Du\n- Lu\n- Ma\n- Mi\n- Jo\n- Vi\n- Sa",
 		"welcomeMailBody1_msg": "Suntem bucurosi ca v-ati abonat la Tutanota, si va felicitam pentru casuta dv. postala criptata. Doar dv. puteti decripta e-mail-urile si contactele dv., cu parola dv. Asigurați-vă că nu pierdeti parola, nu o putem reseta.",
 		"welcomeMailBody2_msg": "Invitati-va prietenii la Tutanota si puteti sa trimiteti e-mail-uri criptate de la un capat la altul, cu o simpla atingere cu degetul. Puteti si sa criptati e-mail-uri catre destinatari externi, pe baza unei parole. Tutanota cripteaza automat subiectul, continutul si atasamentele. Chiar e-mail-urile necriptate sunt stocate criptat pe serverele noastre.",
 		"welcomeMailBody4_msg": "Echipa dv. Tutanota",

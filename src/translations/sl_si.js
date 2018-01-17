@@ -165,7 +165,7 @@ module.exports = {
 		"meNominative_label": "Jaz",
 		"messageNotStored_msg": "Zaupno sporočilo je bilo prejeto s Tutanoto, vendar je ni bilo mogoče shraniti na vašem poštnem strežniku. Želite poslati dnevniške datoteke v Tutao GmbH na analizo?",
 		"mobile_label": "Telefon",
-		"monthNames_label": ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec"],
+		"monthNames_label": "---\n- jan\n- feb\n- mar\n- apr\n- maj\n- jun\n- jul\n- avg\n- sep\n- okt\n- nov\n- dec\n",
 		"move_action": "Premakni",
 		"newContact_action": "Nov stik",
 		"newMails_msg": "Prejeli ste novo Tutanota sporočilo.",

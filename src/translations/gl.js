@@ -186,7 +186,7 @@ module.exports = {
 		"meNominative_label": "Eu",
 		"mobileNumberValidFormat_msg": "Formato ok.",
 		"monthly_label": "Mensual",
-		"monthNames_label": ["Xan", "Feb", "Mar", "Abr", "Mai", "Xuñ", "Xul", "Ago", "Set", "Out", "Nov", "Nad"],
+		"monthNames_label": "---\n- Xan\n- Feb\n- Mar\n- Abr\n- Mai\n- Xuñ\n- Xul\n- Ago\n- Set\n- Out\n- Nov\n- Nad\n",
 		"move_action": "Mover",
 		"nbrOfMailsSelected_msg": "{1} correos selecionados.",
 		"newContact_action": "Novo contacto",

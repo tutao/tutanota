@@ -16,6 +16,7 @@ export const languages: Language[] = [
 	{code: 'en', textId: 'languageEnglish_label'},
 	{code: 'nl', textId: 'languageDutch_label'},
 	{code: 'de', textId: 'languageGerman_label'},
+	{code: 'de_sie', textId: 'languageGermanSie_label'},
 	// { code: 'ar, textId: 'languageArabic_label' },
 	{code: 'el', textId: 'languageGreek_label'},
 	{code: 'fr', textId: 'languageFrench_label'},
@@ -181,11 +182,11 @@ class LanguageViewModel {
 		if (languageTags) {
 			for (let tag of languageTags) {
 				let code = tag.toLowerCase().replace("-", "_")
-				let language = languages.find(l => l.code == code)
+				let language = languages.find(l => l.code == code && (restrictions == null || restrictions.indexOf(l.code) != -1))
 				if (language == null) {
-					language = languages.find(l => startsWith(l.code, code.substring(0, 2)))
+					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) != -1))
 				}
-				if (language && (restrictions == null || restrictions.indexOf(language.code) != -1)) {
+				if (language) {
 					return {code: language.code, languageTag: tag}
 				}
 			}
@@ -193,7 +194,7 @@ class LanguageViewModel {
 		if (restrictions == null || restrictions.indexOf("en") != -1) {
 			return {code: 'en', languageTag: 'en-US'}
 		} else {
-			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
+			return {code: restrictions[0], languageTag: restrictions[0].replace("_sie", "").replace("/_/g", "-")}
 		}
 	}
 

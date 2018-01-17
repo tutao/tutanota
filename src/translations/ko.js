@@ -57,7 +57,7 @@ module.exports = {
 		"mailNameInfo_msg": "메일 수신자에게 표시되는 이름입니다. User management에서 변경 가능합니다.",
 		"mailSendFailureSubject_msg": "이메일이 발송되지 않았습니다",
 		"meNominative_label": "나",
-		"monthNames_label": ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"],
+		"monthNames_label": "---\n- 1월\n- 2월\n- 3월\n- 4월\n- 5월\n- 6월\n- 7월\n- 8월\n- 9월\n- 10월\n- 11월\n- 12월\n",
 		"newMails_msg": "새로운 Tutanota 메일 도착.",
 		"notePassword_msg": "비밀번호를 반드시 기억하시고 사용자에게 제공하시기 바랍니다.",
 		"notificationMailLanguage_label": "알림 이메일 언어:",

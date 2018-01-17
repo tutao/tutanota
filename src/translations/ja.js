@@ -184,7 +184,7 @@ module.exports = {
 		"mobileNumberNotValid_msg": "無効な形式。",
 		"mobileNumberValidFormat_msg": "フォーマット OK.",
 		"monitor_label": "モニター",
-		"monthNames_label": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+		"monthNames_label": "---\n- 1月\n- 2月\n- 3月\n- 4月\n- 5月\n- 6月\n- 7月\n- 8月\n- 9月\n- 10月\n- 11月\n- 12月\n",
 		"more_label": "詳細設定",
 		"move_action": "移動する",
 		"name_label": "名前",
@@ -287,7 +287,7 @@ module.exports = {
 		"unsubscribePremium_label": "プレミアム登録を解除する",
 		"unsupportedBrowser_msg": "申し訳ありませんが、ご利用のブラウザは対応していません。以下のいずれかのブラウザをご利用下さい。",
 		"userManagementAddAlias_msg": "ユーザー名をクリックするとメールのエイリアスを追加できます。",
-		"weekDays_label": ["日", "月", "火", "水", "木", "金", "土"],
+		"weekDays_label": "---\n- 日\n- 月\n- 火\n- 水\n- 木\n- 金\n- 土\n",
 		"welcomeMailSubject_msg": "安心して下さい: あなたのデータのプライバシーは保たれています。",
 		"work_label": "仕事",
 		"xing_label": "XING"

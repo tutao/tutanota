@@ -432,7 +432,7 @@ module.exports = {
 		"userSettings_label": "Lietotājs",
 		"validInputFormat_msg": "Formāts apstiprināts.",
 		"version_label": "Versija:",
-		"weekDays_label": ["Sv", "Pr", "Ot", "Tr", "Ce", "Pk", "Se"],
+		"weekDays_label": "---\n- Sv\n- Pr\n- Ot\n- Tr\n- Ce\n- Pk\n- Se\n",
 		"welcomeMailBody4_msg": "Ar laba vēlējumiem, jūsu Tutanota komanda",
 		"welcomeMailSubject_msg": "Jūties kā mājās: Tavi dati ir drošībā.",
 		"yearly_label": "Ikgadēji",
