@@ -8,28 +8,27 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull, compareGroupInfos} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
-import {GroupViewer} from "./GroupViewer"
-import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
+import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
+import {formatDateWithMonth} from "../misc/Formatter"
+import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 
 assertMainOrNode()
 
-const className = "group-list"
+const className = "whitelabelchildren-list"
 
-export class GroupListView {
-	list: List<GroupInfo, GroupRow>;
+export class WhitelabelChildrenListView {
+	list: List<WhitelabelChild, WhitelabelChildRow>;
 	view: Function;
-	_listId: LazyLoaded<Id>;
+	_listId: LazyLoaded<?Id>;
 	_settingsView: SettingsView;
 	_searchResultStreamDependency: stream;
 	onremove: Function;
@@ -39,7 +38,7 @@ export class GroupListView {
 
 		this._listId = new LazyLoaded(() => {
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return customer.teamGroups
+				return (customer.whitelabelChildren) ? customer.whitelabelChildren.items : null
 			})
 		})
 
@@ -48,30 +47,38 @@ export class GroupListView {
 			fetch: (startId, count) => {
 				if (startId == GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
-						return loadAll(GroupInfoTypeRef, listId).then(allGroupInfos => {
-							// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
-							this._setLoadedCompletely();
+						if (listId) {
+							return loadAll(WhitelabelChildTypeRef, listId).then(allChildren => {
+								// we have to set loadedCompletely to make sure that fetch is never called again and also that new whitelabel children are inserted into the list, even at the end
+								this._setLoadedCompletely();
 
-							// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-							return allGroupInfos
-
-						})
+								// we return all whitelabel children because we have already loaded all children and the scroll bar shall have the complete size.
+								return allChildren
+							})
+						} else {
+							this._setLoadedCompletely()
+							return []
+						}
 					})
 				} else {
-					throw new Error("fetch user group infos called for specific start id")
+					throw new Error("fetch whitelabel children called for specific start id")
 				}
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(GroupInfoTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
-						// we return null if the entity does not exist
-					})
+					if (listId) {
+						return load(WhitelabelChildTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
+							// we return null if the entity does not exist
+						})
+					} else {
+						return null
+					}
 				})
 			},
-			sortCompare: compareGroupInfos,
+			sortCompare: (a: WhitelabelChild, b: WhitelabelChild) => a.mailAddress.localeCompare(b.mailAddress),
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new GroupRow(),
+			createVirtualRow: () => new WhitelabelChildRow(this),
 			showStatus: false,
 			className: className,
 			swipe: ({
@@ -85,18 +92,15 @@ export class GroupListView {
 			emptyMessage: lang.get("noEntries_msg")
 		})
 
-		this.view = (): VirtualElement => {
+		this.view = (): Vnode<any> => {
 			return m(this.list)
 		}
 
 		this.list.loadInitial()
 
-		this._listId.getAsync().then(listId => {
-			header.defaultButtonBar.searchBar.setGroupInfoRestrictionListId(listId)
-		})
-		this._searchResultStreamDependency = header.defaultButtonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
-			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {
-				this.list.scrollToIdAndSelect(groupInfo._id[1])
+		this._searchResultStreamDependency = header.defaultButtonBar.searchBar.lastSelectedWhitelabelChildrenInfoResult.map(whitelabelChild => {
+			if (this._listId.isLoaded() && this._listId.getSync() == whitelabelChild._id[0]) {
+				this.list.scrollToIdAndSelect(whitelabelChild._id[1])
 			}
 		})
 
@@ -111,12 +115,12 @@ export class GroupListView {
 		this.list.setLoadedCompletely();
 	}
 
-	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (groupInfos.length == 0 && this._settingsView.detailsViewer) {
+	elementSelected(whitelabelChildren: WhitelabelChild[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
+		if (whitelabelChildren.length == 0 && this._settingsView.detailsViewer) {
 			this._settingsView.detailsViewer = null
 			m.redraw()
-		} else if (groupInfos.length == 1 && selectionChanged) {
-			this._settingsView.detailsViewer = new GroupViewer(groupInfos[0])
+		} else if (whitelabelChildren.length == 1 && selectionChanged) {
+			this._settingsView.detailsViewer = new WhitelabelChildViewer(whitelabelChildren[0])
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()
 			}
@@ -124,53 +128,41 @@ export class GroupListView {
 		}
 	}
 
-
-	addButtonClicked() {
-		AddGroupDialog.show()
-	}
-
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
+		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && this._listId.getSync() == listId) {
 			this.list.entityEventReceived(elementId, operation)
 		}
 	}
 }
 
-export class GroupRow {
+export class WhitelabelChildRow {
 	top: number;
 	domElement: HTMLElement; // set from List
-	entity: ?GroupInfo;
-	_domName: HTMLElement;
-	_domAddress: HTMLElement;
+	entity: ?WhitelabelChild;
+	_domMailAddress: HTMLElement;
 	_domDeletedIcon: HTMLElement;
-	_domTeamIcon: HTMLElement;
-	_domMailIcon: HTMLElement;
+	_domCreatedDate: HTMLElement;
+	_whitelabelChildrenListView: WhitelabelChildrenListView;
 
-	constructor() {
+	constructor(whitelabelChildrenListView: WhitelabelChildrenListView) {
+		this._whitelabelChildrenListView = whitelabelChildrenListView
 		this.top = 0
 		this.entity = null
 	}
 
-	update(groupInfo: GroupInfo, selected: boolean): void {
+	update(whitelabelChild: WhitelabelChild, selected: boolean): void {
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 		} else {
 			this.domElement.classList.remove("row-selected")
 		}
 
-		this._domName.textContent = groupInfo.name
-		this._domAddress.textContent = (groupInfo.mailAddress) ? groupInfo.mailAddress : ""
-		if (groupInfo.deleted) {
+		this._domMailAddress.textContent = whitelabelChild.mailAddress
+		this._domCreatedDate.textContent = formatDateWithMonth(whitelabelChild.createdDate)
+		if (whitelabelChild.deletedDate) {
 			this._domDeletedIcon.style.display = ''
 		} else {
 			this._domDeletedIcon.style.display = 'none'
-		}
-		if (groupInfo.mailAddress) {
-			this._domTeamIcon.style.display = 'none'
-			this._domMailIcon.style.display = ''
-		} else {
-			this._domTeamIcon.style.display = ''
-			this._domMailIcon.style.display = 'none'
 		}
 	}
 
@@ -181,28 +173,16 @@ export class GroupRow {
 	render(): any {
 		let elements = [
 			m(".top", [
-				m(".name", {oncreate: (vnode) => this._domName = vnode.dom}),
+				m(".name", {oncreate: (vnode) => this._domMailAddress = vnode.dom}),
 			]),
 			m(".bottom.flex-space-between", [
-				m("small.mail-address", {oncreate: (vnode) => this._domAddress = vnode.dom}),
+				m("small", {oncreate: (vnode) => this._domCreatedDate = vnode.dom}),
 				m(".icons.flex", [
 					m(Icon, {
 						icon: Icons.Trash,
 						oncreate: (vnode) => this._domDeletedIcon = vnode.dom,
 						class: "svg-list-accent-fg",
 						style: {display: 'none'},
-					}),
-					m(Icon, {
-						icon: Icons.People,
-						oncreate: (vnode) => this._domTeamIcon = vnode.dom,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'}
-					}),
-					m(Icon, {
-						icon: BootIcons.Mail,
-						oncreate: (vnode) => this._domMailIcon = vnode.dom,
-						class: "svg-list-accent-fg",
-						style: {display: 'none'}
 					}),
 				])
 			])

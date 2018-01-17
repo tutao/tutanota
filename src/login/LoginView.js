@@ -83,7 +83,7 @@ export class LoginView {
 						m(new Button(this._isDeleteCredentials ? "cancel_action" : "deleteCredentials_action", () => this._switchDeleteCredentialsState()).setType(ButtonType.Secondary))
 					]),
 				] : []).concat(m(".flex-center.flex-column", [
-				isTutanotaDomain() ? m(signup) : null,
+				(isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0) ? m(signup) : null,
 				themeId() != 'custom' ? m(themeSwitch) : null,
 			]))
 		}
@@ -204,6 +204,16 @@ export class LoginView {
 		m.redraw();
 	}
 
+}
+
+export function getWhitelabelRegistrationDomains(): string[] {
+	let metas = document.getElementsByTagName('meta');
+	for (let i = 0; i < metas.length; i++) {
+		if (metas[i].getAttribute("name") == "whitelabel-registration-domains") {
+			return neverNull(metas[i].getAttribute("content")).split(",");
+		}
+	}
+	return [];
 }
 
 export const login: LoginView = new LoginView()

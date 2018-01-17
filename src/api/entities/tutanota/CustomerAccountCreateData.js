@@ -47,6 +47,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"code": {
+			"name": "code",
+			"id": 873,
+			"since": 24,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"date": {
 			"name": "date",
 			"id": 651,

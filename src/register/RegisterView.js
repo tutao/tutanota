@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button, ButtonType} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
@@ -23,6 +23,7 @@ import {themeId} from "../gui/theme"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 
 assertMainOrNode()
 
@@ -31,8 +32,9 @@ export class RegisterView {
 	isRegisterView: boolean; // just a static value to let app.js notice this view as the register view
 
 	constructor() {
-		let mailAddressForm = new SelectMailAddressForm(TUTANOTA_MAIL_ADDRESS_DOMAINS)
+		let mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())
 		let passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
+		let codeField = new TextField("whitelabelRegistrationCode_label")
 
 		let confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
@@ -56,7 +58,7 @@ export class RegisterView {
 
 			let authToken = m.route.param()['authToken']
 			if (!authToken) {
-				this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword())
+				this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
 			} else {
 				// FIXME
 			}
@@ -89,6 +91,7 @@ export class RegisterView {
 					m("div", [
 						m(mailAddressForm),
 						m(passwordForm),
+						(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
 						m(confirm),
 						m(".mt-l.mb-l", m(signupButton)),
 						m(".flex-center", [
@@ -115,7 +118,7 @@ export class RegisterView {
 	/**
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
-	_signup(mailAddress: string, pw: string): Promise<void> {
+	_signup(mailAddress: string, pw: string, registrationCode: string): Promise<void> {
 		return this._requestCaptcha().then(captchaReturn => {
 			let authToken = captchaReturn.token
 			if (captchaReturn.challenge) {
@@ -127,11 +130,12 @@ export class RegisterView {
 			}
 		}).then(authToken => {
 			if (authToken) {
-				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, lang.code), true).then(() => {
+				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true).then(() => {
 					m.route.set("/login?loginWith=" + mailAddress)
 				})
 			}
 		}).catch(AccessDeactivatedError, e => Dialog.error("createAccountAccessDeactivated_msg"))
+			.catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
 	}
 
 	_requestCaptcha(): Promise<RegistrationCaptchaServiceReturn> {

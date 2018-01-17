@@ -106,7 +106,8 @@ export const BookingItemFeatureType = {
 	Alias: '2',
 	SharedMailGroup: '3',
 	Branding: '4',
-	ContactForm: '5'
+	ContactForm: '5',
+	WhitelabelChild: '6'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
@@ -235,6 +236,9 @@ export const FeatureType = {
 	DisableContacts: "0",
 	DisableMailExport: "1",
 	InternalCommunication: "2",
+	DeleteMailsOnPasswordReset: "3",
+	WhitelabelParent: "4",
+	WhitelabelChild: "5"
 	// 3 and 4 are not used on clients
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;

@@ -22,6 +22,8 @@ assertMainOrNode()
  * Returns true if the order is accepted by the user, false otherwise.
  */
 export function show(featureType: NumberString, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+
+
 	return worker.getPrice(featureType, count, reactivate).then(price => {
 		if (!_isPriceChange(price, featureType)) {
 			return Promise.resolve(true)
@@ -29,36 +31,50 @@ export function show(featureType: NumberString, count: number, freeAmount: numbe
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 					return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-						let buy = _isBuy(price, featureType)
-						let orderField = new TextField("bookingOrder_label").setValue(_getBookingText(price, featureType, count, freeAmount)).setDisabled()
-						let buyField = (buy) ? new TextField("subscription_label", () => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price)).setDisabled() : null
-						let priceField = new TextField("price_label", () => _getPriceInfoText(price, featureType)).setValue(_getPriceText(price, featureType)).setDisabled()
-						let paymentField = (buy) ? new TextField("paymentMethod_label").setValue(_getPaymentMethodInfoText(accountingInfo)).setDisabled() : null
-						return Promise.fromCallback(cb => {
-							let actionBar = new DialogHeaderBar()
-							actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-							actionBar.addLeft(new Button("cancel_action", () => {
-								dialog.close()
-								cb(null, false)
-							}).setType(ButtonType.Secondary))
-							actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
-								dialog.close()
-								cb(null, true)
-							}).setType(ButtonType.Primary))
-
-							let dialog = new Dialog(DialogType.EditSmall, {
-								view: (): Children => [
-									m(".dialog-header.plr-l", m(actionBar)),
-									m(".dialog-contentButtonsTop.plr-l.pb", m("", [
-										m(orderField),
-										buyField ? m(buyField) : null,
-										m(priceField),
-										paymentField ? m(paymentField) : null,
-									]))
-								]
+						if (!accountingInfo.invoiceCountry) {
+							return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
+								if (confirm) {
+									return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
+										if (ok) {
+											window.open("https://app.tutanota.com/", null, null, false)
+										}
+										return false
+									})
+								}
+								return false
 							})
-							dialog.show()
-						})
+						} else {
+							let buy = _isBuy(price, featureType)
+							let orderField = new TextField("bookingOrder_label").setValue(_getBookingText(price, featureType, count, freeAmount)).setDisabled()
+							let buyField = (buy) ? new TextField("subscription_label", () => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price)).setDisabled() : null
+							let priceField = new TextField("price_label", () => _getPriceInfoText(price, featureType)).setValue(_getPriceText(price, featureType)).setDisabled()
+							let paymentField = (buy) ? new TextField("paymentMethod_label").setValue(_getPaymentMethodInfoText(accountingInfo)).setDisabled() : null
+							return Promise.fromCallback(cb => {
+								let actionBar = new DialogHeaderBar()
+								actionBar.setMiddle(() => lang.get("bookingSummary_label"))
+								actionBar.addLeft(new Button("cancel_action", () => {
+									dialog.close()
+									cb(null, false)
+								}).setType(ButtonType.Secondary))
+								actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
+									dialog.close()
+									cb(null, true)
+								}).setType(ButtonType.Primary))
+
+								let dialog = new Dialog(DialogType.EditSmall, {
+									view: (): Children => [
+										m(".dialog-header.plr-l", m(actionBar)),
+										m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+											m(orderField),
+											buyField ? m(buyField) : null,
+											m(priceField),
+											paymentField ? m(paymentField) : null,
+										]))
+									]
+								})
+								dialog.show()
+							})
+						}
 					})
 				})
 			})

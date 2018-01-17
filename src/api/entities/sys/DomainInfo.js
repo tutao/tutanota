@@ -46,15 +46,6 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
-		},
-		"whitelabelCode": {
-			"name": "whitelabelCode",
-			"id": 1278,
-			"since": 26,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
 		}
 	},
 	"associations": {

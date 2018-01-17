@@ -64,6 +64,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"whitelabelCode": {
+			"name": "whitelabelCode",
+			"id": 1278,
+			"since": 26,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -74,6 +83,15 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "EmailSenderListElement",
+			"final": false
+		},
+		"whitelabelRegistrationDomains": {
+			"name": "whitelabelRegistrationDomains",
+			"id": 1279,
+			"since": 26,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "StringWrapper",
 			"final": false
 		},
 		"whitelistedDomains": {

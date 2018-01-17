@@ -61,7 +61,7 @@ export class UserListView {
 								this._setLoadedCompletely();
 
 								// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-								return Promise.resolve(allUserGroupInfos);
+								return allUserGroupInfos
 
 							})
 						})

@@ -62,7 +62,7 @@ export const _TypeModel: TypeModel = {
 			"since": 26,
 			"type": "String",
 			"cardinality": "One",
-			"final": true,
+			"final": false,
 			"encrypted": true
 		},
 		"createdDate": {
@@ -80,7 +80,7 @@ export const _TypeModel: TypeModel = {
 			"since": 26,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
-			"final": true,
+			"final": false,
 			"encrypted": false
 		},
 		"mailAddress": {

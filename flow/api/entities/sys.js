@@ -858,7 +858,6 @@ type DomainInfo = {
 	certificateExpiryDate:?Date;
 	domain:string;
 	validatedMxRecord:boolean;
-	whitelabelCode:string;
 
 	catchAllMailGroup:?Id;
 	certificate:?Id;
@@ -1113,8 +1112,10 @@ type CustomerServerProperties = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	requirePasswordUpdateAfterReset:boolean;
+	whitelabelCode:string;
 
 	emailSenderList:EmailSenderListElement[];
+	whitelabelRegistrationDomains:StringWrapper[];
 	whitelistedDomains:?DomainsRef;
 }
 

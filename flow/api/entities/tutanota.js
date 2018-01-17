@@ -746,6 +746,7 @@ type CustomerAccountCreateData = {
 	adminEncAccountingInfoSessionKey:Uint8Array;
 	adminEncCustomerServerPropertiesSessionKey:Uint8Array;
 	authToken:string;
+	code:string;
 	date:?Date;
 	lang:string;
 	systemAdminPubEncAccountingInfoSessionKey:Uint8Array;

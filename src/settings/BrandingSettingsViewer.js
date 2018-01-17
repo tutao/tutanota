@@ -11,7 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -28,6 +28,9 @@ import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "./BuyDialog"
+import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
+import {DropDownSelector} from "../gui/base/DropDownSelector"
+import {createStringWrapper} from "../api/entities/sys/StringWrapper"
 
 assertMainOrNode()
 
@@ -41,15 +44,29 @@ export class BrandingSettingsViewer {
 	_customLogoField: TextField;
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
+	_whitelabelCodeField: TextField;
+	_whitelabelRegistrationDomains: DropDownSelector<?string>;
 
+	_props: LazyLoaded<CustomerServerProperties>;
+	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
 
 	constructor() {
+		this._customer = new LazyLoaded(() => {
+			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		})
+
 		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return this._customer.getAsync().then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+		})
+
+		this._props = new LazyLoaded(() => {
+			return worker.loadCustomerServerProperties()
 		})
 
 		this._updateFields()
+
+		this._updateWhitelabelFields()
 
 		this.view = () => {
 			return [
@@ -61,11 +78,25 @@ export class BrandingSettingsViewer {
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
+						(this._isWhitelabelVisible()) ? m("", [
+								m(".h4.mt-l", lang.get('whitelabel_label')),
+								m(this._whitelabelRegistrationDomains),
+								m(this._whitelabelCodeField),
+							]) : null
 					] : [
 						m(".flex-center.items-center.button-height.mt-l", progressIcon())
 					])
 			]
 		}
+	}
+
+	_isWhitelabelVisible() {
+		return this._customer.isLoaded() &&
+			this._customer.getLoaded().customizations.find(c => c.feature == FeatureType.WhitelabelParent) &&
+			this._customerInfo.isLoaded() &&
+			this._customerInfo.getLoaded().domainInfos.find(info => info.certificate) &&
+			this._whitelabelCodeField &&
+			this._whitelabelRegistrationDomains
 	}
 
 	_getBrandingLink(): string {
@@ -78,6 +109,37 @@ export class BrandingSettingsViewer {
 		} else {
 			return Promise.resolve(null)
 		}
+	}
+
+	_updateWhitelabelFields() {
+		this._props.getAsync().then(props => {
+			this._customerInfo.getAsync().then(customerInfo => {
+				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode).setDisabled()
+				let editButton = new Button("edit_action", () => {
+					Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value()).then(newCode => {
+						props.whitelabelCode = newCode
+						update(props)
+					})
+				}, () => Icons.Edit)
+				this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
+
+				let items = [{name: lang.get("deactivated_label"), value: null}]
+				items = items.concat(customerInfo.domainInfos.filter(d => !d.certificate).map(d => {
+					return {name: d.domain, value: d.domain}
+				}))
+				let initialValue = (props.whitelabelRegistrationDomains.length == 0) ? null : props.whitelabelRegistrationDomains[0].value
+				this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, initialValue, 250).setSelectionChangedHandler(v => {
+					props.whitelabelRegistrationDomains.length = 0
+					if (v) {
+						let domain = createStringWrapper()
+						domain.value = v
+						props.whitelabelRegistrationDomains.push(domain)
+					}
+					update(props)
+				})
+				m.redraw()
+			})
+		})
 	}
 
 	_updateFields() {
@@ -211,11 +273,18 @@ export class BrandingSettingsViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation == OperationType.UPDATE) {
+			this._customer.reset()
+			this._customer.getAsync()
+			this._updateWhitelabelFields()
+		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
 		} else if (isSameTypeRef(typeRef, BrandingThemeTypeRef) && operation == OperationType.UPDATE) {
 			this._updateFields()
+		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
+			this._props.reset()
+			this._updateWhitelabelFields()
 		}
 	}
 }

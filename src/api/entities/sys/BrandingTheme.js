@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"metaTags": {
 			"name": "metaTags",
-			"id": 1279,
+			"id": 1281,
 			"since": 26,
 			"type": "String",
 			"cardinality": "One",

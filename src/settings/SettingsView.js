@@ -25,8 +25,10 @@ import {BrandingSettingsViewer} from "./BrandingSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {FeatureType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
+import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 
 assertMainOrNode()
 
@@ -59,6 +61,9 @@ export class SettingsView {
 		if (!logins.isProdDisabled()) {
 			this._adminFolders.push(new SettingsFolder("brandingSettings_label", () => Icons.Wand, "branding", () => new BrandingSettingsViewer()))
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
+			if (logins.isEnabled(FeatureType.WhitelabelParent)) {
+				this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
+			}
 		}
 		this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
 

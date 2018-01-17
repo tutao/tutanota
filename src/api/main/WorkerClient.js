@@ -99,7 +99,7 @@ export class WorkerClient {
 		nativeApp.init()
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string): Promise<void> {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<void> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 

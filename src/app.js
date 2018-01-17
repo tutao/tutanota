@@ -62,7 +62,7 @@ let initialized = lang.init(en).then(() => {
 		return;
 	}
 
-	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true) {
+	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true, doNotCache: boolean = false) {
 		let cache = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
@@ -79,7 +79,9 @@ let initialized = lang.init(en).then(() => {
 					let promise
 					if (cache.view == null) {
 						promise = getView().then(view => {
-							cache.view = view
+							if (!doNotCache) {
+								cache.view = view
+							}
 							return view
 						})
 					} else {
@@ -106,7 +108,7 @@ let initialized = lang.init(en).then(() => {
 	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js").then(module => new module.LoginView()), false)
 	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js").then(module => new module.SettingsView()))
 	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js").then(module => new module.SearchView()))
-	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false)
+	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false, true)
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js").then(module => new module.ContactFormView()), false)
 
 	let start = "/"

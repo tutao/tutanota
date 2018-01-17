@@ -35,6 +35,7 @@ import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
+import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 
@@ -63,10 +64,12 @@ export class SearchBar {
 	_selected: ?Mail|Contact|GroupInfo|ShowMoreAction;
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: stream<GroupInfo>;
+	lastSelectedWhitelabelChildrenInfoResult: stream<WhitelabelChild>;
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
 		this.lastSelectedGroupInfoResult = stream()
+		this.lastSelectedWhitelabelChildrenInfoResult = stream()
 		this.expanded = false
 		this.focused = false
 		this.skipNextBlur = false
@@ -362,7 +365,7 @@ export class SearchBar {
 		}
 	}
 
-	_selectResult(result: ?Mail|Contact|GroupInfo|ShowMoreAction) {
+	_selectResult(result: ?Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction) {
 		if (result != null) {
 			closeOverlay()
 			this._domInput.blur()
@@ -379,6 +382,8 @@ export class SearchBar {
 				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), contact._id[1]))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
 				this.lastSelectedGroupInfoResult(result)
+			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
+				this.lastSelectedWhitelabelChildrenInfoResult(result)
 			}
 		}
 	}

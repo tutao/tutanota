@@ -160,6 +160,11 @@ export class LoginViewController {
 									// TODO: Navigate to premium upgrade
 									//tutao.locator.navigator.settings();
 									//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+									return Dialog.confirm(() => "The premium upgrade is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
+										if (ok) {
+											window.open("https://app.tutanota.com/", null, null, false)
+										}
+									})
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()

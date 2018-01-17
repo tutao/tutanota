@@ -67,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"reactivate": {
 			"name": "reactivate",
-			"id": 1283,
+			"id": 1285,
 			"since": 26,
 			"type": "Boolean",
 			"cardinality": "One",

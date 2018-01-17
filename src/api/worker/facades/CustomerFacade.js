@@ -164,7 +164,7 @@ export class CustomerFacade {
 		})
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string) {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string) {
 		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
 			let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 			let userGroupKey = aes128RandomKey()
@@ -189,6 +189,7 @@ export class CustomerFacade {
 											data.authToken = authToken
 											data.date = Const.CURRENT_DATE
 											data.lang = currentLanguage
+											data.code = registrationCode
 											data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
 											data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
 											data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))

@@ -7,7 +7,7 @@ import {animations, opacity, alpha, DefaultAnimationTime, transform} from "../an
 import {ease} from "../animation/Easing"
 import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
-import {TextField} from "./TextField"
+import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
@@ -411,6 +411,30 @@ export class Dialog {
 			})
 		})
 	}
+
+
+	/**
+	 * Shows a dialog with a text area input and ok/cancel buttons.
+	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
+	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
+	 */
+	static showTextAreaInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+		return Promise.fromCallback(cb => {
+			let textField = new TextField(labelIdOrLabelFunction, () => {
+				return (infoMsgId) ? lang.get(infoMsgId) : ""
+			}).setType(Type.Area)
+			textField.value(value)
+			let inputValidatorWrapper = (inputValidator) ? (() => neverNull(inputValidator)(textField.value())) : null
+			return Dialog.smallDialog(lang.get(titleId), {
+				view: () => m(textField)
+			}, inputValidatorWrapper).then(ok => {
+				if (ok) {
+					cb(null, textField.value())
+				}
+			})
+		})
+	}
+
 
 	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {

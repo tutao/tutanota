@@ -256,16 +256,8 @@ export class GlobalSettingsViewer {
 							})
 						}).setType(ButtonType.Dropdown))
 						buttons.push(new Button("delete_action", () => {
-							let promise = Promise.resolve(true)
-							if (domainInfo.certificate) {
-								promise = Dialog.confirm("confirmDeactivateBrandingDomain_msg")
-							}
-							promise.then(ok => {
-								if (ok) {
-									worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
-										Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
-									})
-								}
+							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
+								Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
 							})
 						}).setType(ButtonType.Dropdown))
 						return buttons
