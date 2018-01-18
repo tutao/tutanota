@@ -94,7 +94,7 @@ export class HtmlEditor {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
-					m(".wysiwyg", {
+					m(".wysiwyg.rel.overflow-hidden", {
 						style: {display: this._mode() === Mode.WYSIWYG ? '' : 'none'}
 					}, m(this._editor)),
 					m(".html", {
