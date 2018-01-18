@@ -88,7 +88,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			if (count > 0) {
 				let brandingPrice = _getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)
 				if (brandingPrice > 0) {
-					return count + " " + lang.get("bookingItemUsersIncludingBranding_label")
+					return count + " " + lang.get("bookingItemUsersIncludingWhitelabel_label")
 				} else {
 					return count + " " + lang.get("bookingItemUsers_label")
 				}
@@ -99,9 +99,9 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 		} else if (featureType == BookingItemFeatureType.Branding) {
 			if (count > 0) {
-				return lang.get("brandingBooking_label", {"{1}": neverNull(_getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("whitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			} else {
-				return lang.get("cancelBrandingBooking_label", {"{1}": neverNull(_getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			}
 		} else if (featureType == BookingItemFeatureType.ContactForm) {
 			if (count > 0) {

@@ -24,9 +24,9 @@ export function show(customerInfo: CustomerInfo): void {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
 			let domainField
 			if (brandingDomainInfo) {
-				domainField = new TextField("brandingDomain_label").setValue(brandingDomainInfo.domain).setDisabled()
+				domainField = new TextField("whitelabelDomain_label").setValue(brandingDomainInfo.domain).setDisabled()
 			} else {
-				domainField = new TextField("brandingDomain_label")
+				domainField = new TextField("whitelabelDomain_label")
 			}
 
 			let certChainFile: ?DataFile = null
@@ -60,7 +60,7 @@ export function show(customerInfo: CustomerInfo): void {
 					]
 				}
 			}
-			let dialog = Dialog.smallActionDialog(lang.get("brandingDomain_label"), form, () => {
+			let dialog = Dialog.smallActionDialog(lang.get("whitelabelDomain_label"), form, () => {
 				let domain = domainField.value().trim().toLowerCase()
 				if (!certChainFile) {
 					Dialog.error("certificateChainInfo_msg")

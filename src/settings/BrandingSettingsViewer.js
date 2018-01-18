@@ -71,15 +71,14 @@ export class BrandingSettingsViewer {
 		this.view = () => {
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", (this._brandingDomainField) ? [
-						m(".h4.mt-l", lang.get('brandingSettings_label')),
-						m("small", lang.get("brandingDomainLinkInfo_msg") + " "),
+						m(".h4.mt-l", lang.get('whitelabel_label')),
+						m("small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
 						m("small.text-break", [m(`a[href=${this._getBrandingLink()}][target=_blank]`, this._getBrandingLink())]),
 						m(this._brandingDomainField),
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
 						(this._isWhitelabelVisible()) ? m("", [
-								m(".h4.mt-l", lang.get('whitelabel_label')),
 								m(this._whitelabelRegistrationDomains),
 								m(this._whitelabelCodeField),
 							]) : null
@@ -149,7 +148,7 @@ export class BrandingSettingsViewer {
 				let customJsonTheme = (brandingTheme) ? JSON.parse(brandingTheme.jsonTheme) : null
 				// customJsonTheme is defined when brandingDomainInfo is defined
 
-				this._brandingDomainField = new TextField("brandingDomain_label", () => {
+				this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
 					if (brandingDomainInfo) {
 						return lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
 					} else {
@@ -159,7 +158,7 @@ export class BrandingSettingsViewer {
 				let deactivateAction = null
 				if (brandingDomainInfo) {
 					deactivateAction = new Button("deactivate_action", () => {
-						Dialog.confirm("confirmDeactivateBrandingDomain_msg").then(ok => {
+						Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 							if (ok) {
 								showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, 0, 0, false)).then(accepted => {
 									if (accepted) {

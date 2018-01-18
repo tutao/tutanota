@@ -118,7 +118,7 @@ export class ContactFormListView {
 					}
 					m.redraw()
 				} else {
-					Dialog.error("customDomainNeeded_msg")
+					Dialog.error("whitelabelDomainNeeded_msg")
 				}
 			})
 		}
@@ -130,7 +130,7 @@ export class ContactFormListView {
 			if (brandingDomain) {
 				ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 			} else {
-				Dialog.error("customDomainNeeded_msg")
+				Dialog.error("whitelabelDomainNeeded_msg")
 			}
 		})
 	}

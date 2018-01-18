@@ -47,7 +47,7 @@ export class NavButton {
 		this.isSelected = () => {
 			if (this._isSelectedPrefix) {
 				let current = m.route.get()
-				return this._isSelectedPrefix && (current == this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix) === 0))
+				return this._isSelectedPrefix && (current == this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix + "/") === 0))
 			}
 			return false
 		}

@@ -67,7 +67,6 @@ module.exports = {
 		"bookingPrice_label": "Գինը",
 		"bookingSummary_label": "Պատվերների գումարը",
 		"bookingTotalPrice_label": "Ամբողջ գումարը",
-		"brandingDomain_label": "Տիրույթի բրենդինգ",
 		"businessOrPrivateUsage_label": "Օգտագործում",
 		"businessUse_label": "Բիզնես",
 		"buy_action": "Գնել",
