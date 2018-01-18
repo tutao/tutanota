@@ -2,6 +2,7 @@
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
+import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
 import {SearchIndexOS, ElementDataOS} from "./DbFacade"
 import {
 	TypeRef,
@@ -31,6 +32,7 @@ import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
+
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
 const AssociationType = EC.AssociationType
@@ -73,7 +75,13 @@ export class SearchFacade {
 				let searchPromise
 
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
-					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
+					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result).then(() => {
+						if (result.results.length < minSuggestionCount) {
+							// there may be fields that are not indexed with suggestions but which we can find with the normal search
+							// TODO: let suggestion facade and search facade know which fields are indexed with suggestions, so that we 1) know if we also have to search normally and 1) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+							return this._searchForTokens(searchTokens, matchWordOrder, result)
+						}
+					})
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
 					let suggestionToken = searchTokens[searchTokens.length - 1]
 					searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1), matchWordOrder, result).then(() => {
@@ -204,7 +212,7 @@ export class SearchFacade {
 		if (isSameTypeRef(MailTypeRef, restriction.type)) {
 			return this._mailIndexer.mailboxIndexingPromise.then(() => {
 				if (this._mailIndexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end && this._mailIndexer.currentIndexTimestamp > restriction.end) {
-					this._mailIndexer.indexMailbox(this._loginFacade.getLoggedInUser(), getStartOfDay(new Date(neverNull(restriction.end))).getTime())
+					this._mailIndexer.indexMailboxes(this._loginFacade.getLoggedInUser(), getStartOfDay(new Date(neverNull(restriction.end))).getTime())
 					return this._mailIndexer.mailboxIndexingPromise
 				}
 			})
@@ -389,6 +397,11 @@ const typeInfos = {
 		appId: 0,
 		typeId: GroupInfoModel.id,
 		attributeIds: getAttributeIds(GroupInfoModel)
+	},
+	"sys|WhitelabelChild": {
+		appId: 0,
+		typeId: WhitelabelChildModel.id,
+		attributeIds: getAttributeIds(WhitelabelChildModel)
 	}
 }
 

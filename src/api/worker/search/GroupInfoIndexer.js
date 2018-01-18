@@ -16,17 +16,17 @@ export class GroupInfoIndexer {
 	_core: IndexerCore;
 	_db: Db;
 	_entity: EntityWorker;
-	_suggestionFacade: SuggestionFacade<GroupInfo>
+	suggestionFacade: SuggestionFacade<GroupInfo>
 
 	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<GroupInfo>) {
 		this._core = core
 		this._db = db
 		this._entity = entity
-		this._suggestionFacade = suggestionFacade
+		this.suggestionFacade = suggestionFacade
 	}
 
 	createGroupInfoIndexEntries(groupInfo: GroupInfo): Map<string, SearchIndexEntry[]> {
-		this._suggestionFacade.addSuggestions(this._getSuggestionWords(groupInfo))
+		this.suggestionFacade.addSuggestions(this._getSuggestionWords(groupInfo))
 		return this._core.createIndexEntriesForAttributes(GroupInfoModel, groupInfo, [
 			{
 				attribute: GroupInfoModel.values["name"],
@@ -48,7 +48,7 @@ export class GroupInfoIndexer {
 	processNewGroupInfo(event: EntityUpdate): Promise<?{groupInfo: GroupInfo, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
 		return this._entity.load(GroupInfoTypeRef, [event.instanceListId, event.instanceId]).then(groupInfo => {
 			let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
-			return this._suggestionFacade.store().then(() => {
+			return this.suggestionFacade.store().then(() => {
 				return {groupInfo, keyToIndexEntries}
 			})
 		}).catch(NotFoundError, () => {
@@ -57,6 +57,9 @@ export class GroupInfoIndexer {
 		})
 	}
 
+	/**
+	 * Indexes the group infos if they are not yet indexed.
+	 */
 	indexAllUserAndTeamGroupInfosForAdmin(user: User): Promise<void> {
 		if (userIsAdmin(user)) {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
@@ -73,7 +76,7 @@ export class GroupInfoIndexer {
 									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
 								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-								return Promise.all([this._core.writeIndexUpdate(indexUpdate), this._suggestionFacade.store()])
+								return Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
 							})
 						}
 					})

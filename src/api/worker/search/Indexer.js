@@ -1,12 +1,12 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {NOTHING_INDEXED_TIMESTAMP, GroupType, OperationType} from "../../common/TutanotaConstants"
+import {NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
 import {neverNull, defer} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {
@@ -17,7 +17,7 @@ import {
 } from "../../common/utils/Encoding"
 import {aes256RandomKey} from "../crypto/Aes"
 import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
-import {userIsAdmin, filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
+import {filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -33,6 +33,9 @@ import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {DbError} from "../../common/error/DbError"
 import {EventQueue} from "./EventQueue"
+import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
+import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
+import {contains} from "../../common/utils/ArrayUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -55,6 +58,8 @@ export class Indexer {
 	_contact: ContactIndexer;
 	_mail: MailIndexer;
 	_groupInfo: GroupInfoIndexer;
+	_whitelabelChildIndexer: WhitelabelChildIndexer;
+
 	_core: IndexerCore;
 	_entity: EntityWorker;
 
@@ -66,6 +71,7 @@ export class Indexer {
 		this._core = new IndexerCore(this.db, new EventQueue(() => this._processEntityEventFromQueue()))
 		this._entity = new EntityWorker()
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
+		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 	}
@@ -104,13 +110,14 @@ export class Indexer {
 								t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 									this._mail._excludedListIds = excludedListIds
 								}),
-								this._groupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user))
+								this._loadGroupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user))
 							]).then(() => {
 								this._dbInitializedCallback()
 							}).then(() => {
 								return Promise.all([
-									this._contact._suggestionFacade.load(),
-									this._groupInfo._suggestionFacade.load()
+									this._contact.suggestionFacade.load(),
+									this._groupInfo.suggestionFacade.load(),
+									this._whitelabelChildIndexer.suggestionFacade.load()
 								])
 							}).return()
 						}
@@ -128,6 +135,8 @@ export class Indexer {
 				})
 				return this._contact.indexFullContactList(user.userGroup.group)
 					.then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
+					.then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
+					.then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)))
 					.then(() => this._loadPersistentGroupData(user).then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
 					.catch(OutOfSyncError, e => {
 						console.log("out of sync - delete database and disable mail indexing")
@@ -165,7 +174,7 @@ export class Indexer {
 		return this._mail.cancelMailIndexing()
 	}
 
-	_groupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
+	_loadGroupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
 		let currentGroups = filterIndexMemberships(user).map(m => {
 			return {id: m.group, type: neverNull(m.groupType)}
 		})
@@ -184,26 +193,31 @@ export class Indexer {
 		})
 	}
 
+	/**
+	 * Deletes the whole index if the user was removed from a contact or mail group.
+	 * Initializes the index db for new groups of the user, but does not start the actual indexing for those groups.
+	 */
 	_updateGroups(user: User, groupDiff: {deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}): Promise<void> {
 		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
 			return this.disableMailIndexing()
 		} else if (groupDiff.newGroups.length > 0) {
-			return this._loadGroupData(user).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
+			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id)).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
 				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then(t => {
-					return this._initGroupData(groupBatches, t).then(() => {
-						let newMailGroups = groupDiff.newGroups.filter(g => g.type === GroupType.Mail)
-						if (newMailGroups.length > 0) {
-							this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailbox(user, this._mail.currentIndexTimestamp)) // FIXME move to MailIndexer?
-						}
-					})
+					return this._initGroupData(groupBatches, t)
 				})
 			})
 		}
 		return Promise.resolve()
 	}
 
-	_loadGroupData(user: User): Promise<{groupId: Id, groupData: GroupData}[]> {
+	/**
+	 * Provides a GroupData object including the last 100 event batch ids for all indexed membership groups of the given user.
+	 */
+	_loadGroupData(user: User, restrictToTheseGroups: ?Id[]): Promise<{groupId: Id, groupData: GroupData}[]> {
 		let memberships = filterIndexMemberships(user)
+		if (restrictToTheseGroups) {
+			memberships = memberships.filter(membership => contains(restrictToTheseGroups, membership.group))
+		}
 		return Promise.map(memberships, (membership: GroupMembership) => {
 			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true).then(eventBatches => {
 				return {
@@ -299,16 +313,18 @@ export class Indexer {
 					neverNull(all.get(GroupInfoTypeRef)).push(update)
 				} else if (isSameTypeRef(type, UserTypeRef)) {
 					neverNull(all.get(UserTypeRef)).push(update)
+				} else if (isSameTypeRef(type, WhitelabelChildTypeRef)) {
+					neverNull(all.get(WhitelabelChildTypeRef)).push(update)
 				}
 				return all
-			}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []]]))
+			}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []], [WhitelabelChildTypeRef, []]]))
 
 			this._core.queue.queue()
 			return Promise.all([
 				this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 				this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
 				this._groupInfo.processEntityEvents(neverNull(groupedEvents.get(GroupInfoTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
-				this._processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
+				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user)
 			]).then(() => {
 				return this._core.writeIndexUpdate(indexUpdate)
 			}).then(() => {
@@ -323,29 +339,6 @@ export class Indexer {
 			this.processEntityEvents(next.events, next.groupId, next.batchId)
 		}
 	}
-
-	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
-		return Promise.all(events.map(event => {
-			if (event.operation == OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId)) {
-				return this._entity.load(UserTypeRef, event.instanceId).then(updatedUser => {
-					return this._groupDiff(updatedUser).then(groupDiff => {
-						let promises = []
-						if (groupDiff.deletedGroups.length == 0 && groupDiff.newGroups.filter(g => g.type == GroupType.Mail).length > 0) {
-							promises.push(this._updateGroups(updatedUser, groupDiff))
-						}
-						if (!userIsAdmin(this._initParams.user) && userIsAdmin(updatedUser)) {
-							promises.push(this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(updatedUser))
-						}
-						this._initParams.user = updatedUser
-						return promises
-					})
-
-				})
-			}
-			return Promise.resolve()
-		})).return()
-	}
-
 }
 
 

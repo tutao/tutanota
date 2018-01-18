@@ -50,7 +50,7 @@ export function userIsAdmin(user: User): boolean {
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType == GroupType.Mail || m.groupType == GroupType.Contact || m.groupType == GroupType.Customer)
+	return user.memberships.filter(m => m.groupType == GroupType.Mail || m.groupType == GroupType.Contact || m.groupType == GroupType.Customer || m.groupType == GroupType.Admin)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {
@@ -58,7 +58,7 @@ export function filterMailMemberships(user: User): GroupMembership[] {
 }
 
 export function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0 ? true : false
+	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0
 }
 
 export function byteLength(str: ?string) {

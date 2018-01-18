@@ -93,9 +93,9 @@ o.spec("Indexer test", () => {
 		indexer._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 
 		indexer._contact.indexFullContactList = o.spy(() => Promise.resolve())
-		indexer._contact._suggestionFacade.load = o.spy(() => Promise.resolve())
+		indexer._contact.suggestionFacade.load = o.spy(() => Promise.resolve())
 		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
-		indexer._groupInfo._suggestionFacade.load = o.spy(() => Promise.resolve())
+		indexer._groupInfo.suggestionFacade.load = o.spy(() => Promise.resolve())
 
 		let persistentGroupData = [{persistentGroupData: "dummy"}]
 		indexer._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
@@ -115,8 +115,8 @@ o.spec("Indexer test", () => {
 			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
 			o(indexer._loadPersistentGroupData.args).deepEquals([user])
 			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
-			o(indexer._contact._suggestionFacade.load.callCount).equals(1)
-			o(indexer._groupInfo._suggestionFacade.load.callCount).equals(1)
+			o(indexer._contact.suggestionFacade.load.callCount).equals(1)
+			o(indexer._groupInfo.suggestionFacade.load.callCount).equals(1)
 			done()
 		})
 	})
@@ -194,7 +194,7 @@ o.spec("Indexer test", () => {
 		let indexer = new Indexer((null:any), (null:any))
 		indexer.db.dbFacade = ({createTransaction: () => Promise.resolve(transaction)}:any)
 
-		indexer._groupDiff(user).then(result => {
+		indexer._loadGroupDiff(user).then(result => {
 			o(result).deepEquals({
 				deletedGroups: [{id: 'deleted-group-id', type: GroupType.Team}],
 				newGroups: [{id: 'new-group-id', type: GroupType.Mail}]

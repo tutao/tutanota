@@ -17,7 +17,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {load} from "../api/main/Entity"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {formatDateTimeFromYesterdayOn, formatDateWithWeekday} from "../misc/Formatter"
+import {formatDateTimeFromYesterdayOn, formatDateWithWeekday, formatDateWithMonth} from "../misc/Formatter"
 import {getSenderOrRecipientHeading, getFolderIcon} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
@@ -57,11 +57,11 @@ export class SearchBar {
 	expanded: boolean;
 	dropdown: Dropdown;
 	skipNextBlur: boolean;
-	_results: Array<Mail|Contact|GroupInfo|ShowMoreAction>;
+	_results: Array<Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction>;
 	oncreate: Function;
 	onbeforeremove: Function;
 	busy: boolean;
-	_selected: ?Mail|Contact|GroupInfo|ShowMoreAction;
+	_selected: ?Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction;
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: stream<WhitelabelChild>;
@@ -245,7 +245,7 @@ export class SearchBar {
 						resultCount: resultCount,
 						shownCount: this._results.length,
 						indexTimestamp: searchResult.currentIndexTimestamp,
-						allowShowMore: !searchResult.restriction || !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
+						allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
 					}) // add SearchMoreAction
 				}
 				if (this._results.length > 0) {
@@ -279,7 +279,7 @@ export class SearchBar {
 		})
 	}
 
-	renderResult(result: Mail|Contact|GroupInfo|ShowMoreAction) {
+	renderResult(result: Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction) {
 		let type: ?TypeRef = result._type ? result._type : null
 		if (!type) { // show more action
 			let showMoreAction = ((result:any):ShowMoreAction)
@@ -348,6 +348,22 @@ export class SearchBar {
 							}) : null,
 						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
 								icon: BootIcons.Mail,
+								class: "svg-list-accent-fg",
+							}) : null
+					])
+				])
+			]
+		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
+			let whitelabelChild = ((result:any):WhitelabelChild)
+			return [
+				m(".top.flex-space-between",
+					m(".name", whitelabelChild.mailAddress),
+				),
+				m(".bottom.flex-space-between", [
+					m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
+					m(".icons.flex", [
+						(whitelabelChild.deletedDate) ? m(Icon, {
+								icon: Icons.Trash,
 								class: "svg-list-accent-fg",
 							}) : null
 					])
@@ -564,7 +580,7 @@ export class SearchBar {
 
 	isVisible() {
 		let route = m.route.get()
-		return !locator.search.indexState().initializing && locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups"))
+		return !locator.search.indexState().initializing && locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups") || route.startsWith("/settings/whitelabelaccounts"))
 	}
 
 

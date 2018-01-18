@@ -150,7 +150,7 @@ export class MailIndexer {
 						return this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS]).then(t2 => {
 							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-							this.indexMailbox(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
+							this.indexMailboxes(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
 							return t2.wait()
 						})
 					})
@@ -175,7 +175,10 @@ export class MailIndexer {
 		return Promise.resolve()
 	}
 
-	indexMailbox(user: User, endIndexTimstamp: number): Promise<void> {
+	/**
+	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
+	 */
+	indexMailboxes(user: User, endIndexTimstamp: number): Promise<void> {
 		if (!this.mailIndexingEnabled) {
 			return Promise.resolve()
 		}

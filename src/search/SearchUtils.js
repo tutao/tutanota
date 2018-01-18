@@ -8,6 +8,7 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
+import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 
@@ -17,6 +18,7 @@ export const SEARCH_CATEGORIES = [
 	{name: "mail", typeRef: MailTypeRef},
 	{name: "contact", typeRef: ContactTypeRef},
 	{name: "groupinfo", typeRef: GroupInfoTypeRef},
+	{name: "whitelabelchild", typeRef: WhitelabelChildTypeRef},
 ]
 
 export const SEARCH_MAIL_FIELDS = [
@@ -140,6 +142,8 @@ export function getRestriction(route: string): SearchRestriction {
 		category = "contact"
 	} else if (route.startsWith('/settings/users') || route.startsWith('/settings/groups')) {
 		category = "groupinfo"
+	} else if (route.startsWith('/settings/whitelabelaccounts')) {
+		category = "whitelabelchild"
 	} else {
 		throw new Error("invalid type")
 	}
