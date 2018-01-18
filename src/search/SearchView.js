@@ -317,7 +317,8 @@ export class SearchView {
 	 * @param args Object containing the optional parts of the url which are listId and contactId for the contact view.
 	 */
 	updateUrl(args: Object, requestedPath: string) {
-		if (args.query) {
+		// only update the query if the search bar is not focused. if it is focused the user may just have changed the query
+		if (args.query && !header.buttonBar.searchBar.focused) {
 			header.buttonBar.searchBar.value(args.query)
 		}
 		let restriction
