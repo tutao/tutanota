@@ -13,6 +13,7 @@ import "./mail/MailUtilsTest"
 import "./misc/U2fClientTest"
 import "./misc/VCardImporterTest"
 import "./contact/ContactUtilsTest"
+import "./misc/GetMergableContactsTest"
 import o from "ospec/ospec.js"
 
 o.run()

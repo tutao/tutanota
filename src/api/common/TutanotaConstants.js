@@ -246,3 +246,9 @@ export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 
+export const ContactComparisonResult = {
+	Unique: "unique",
+	Similar: "similar",
+	Equal: "equal",
+}
+export type ContactComparisonResultEnum = $Values<typeof ContactComparisonResult>;

@@ -972,6 +972,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"mergeContact_action": "Merge",
+		"next_action": "Weiter"
 	}
 }

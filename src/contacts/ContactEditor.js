@@ -364,7 +364,7 @@ class ContactAggregateEditor {
 		let typeButton = createDropDownButton("more_label", () => Icons.More, () => Object.keys(TypeToLabelMap).map(key => {
 			return new Button((TypeToLabelMap:any)[key], e => {
 				if (isCustom(key)) {
-					let tagDialogActionBar = new DialogHeaderBar()
+					let tagDialogActionBar = new DialogHeaderBar()/* Unused Variable*/
 					let tagName = new TextField("customLabel_label")
 						.setValue(this.aggregate.customTypeName)
 

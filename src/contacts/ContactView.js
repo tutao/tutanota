@@ -11,7 +11,7 @@ import {ContactListView} from "./ContactListView"
 import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
-import {load, setup, erase} from "../api/main/Entity"
+import {load, setup, erase, loadAll} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
@@ -31,6 +31,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
+import {MergeView} from "./MergeView"
+
 
 assertMainOrNode()
 
@@ -95,6 +97,9 @@ export class ContactView {
 
 	createNewContact() {
 		return new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
+	}
+	createNewMergeView(){
+
 	}
 
 
@@ -191,6 +196,14 @@ export class ContactView {
 					}
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
+			new Button("mergeContact_action", () => {
+				LazyContactListId.getAsync().then(contactListId => {
+					 loadAll(ContactTypeRef, contactListId).then(allContacts => {
+						let mergeView = new MergeView(allContacts)
+						 mergeView.show()
+					})
+				})
+			}, () => Icons.People).setType(ButtonType.Dropdown),
 
 		], 250).setColors(ButtonColors.Nav)
 	}

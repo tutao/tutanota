@@ -56,6 +56,7 @@ export function vCardReescapingArray(details: string[]): string[] {
 		a = a.replace(/\-\-dPunktdPunkt\+\+/g, ":")
 		a = a.replace(/\\n/g, "\n")
 		a = a.replace(/\\,/g, ",")
+
 		return a
 	})
 }
@@ -148,6 +149,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 				case "TEL":
 				case "ITEM1.TEL":// necessary for apple vcards
+					tagValue = tagValue.replace(/[\u2000-\u206F]/g, "")
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
 						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.PRIVATE)
 					} else if (tagAndTypeString.indexOf("WORK") > (-1)) {
