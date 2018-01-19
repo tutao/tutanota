@@ -31,6 +31,7 @@ import * as BuyDialog from "./BuyDialog"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -170,7 +171,11 @@ export class BrandingSettingsViewer {
 					}, () => Icons.Cancel)
 				}
 				let editAction = new Button("edit_action", () => {
-					SetCustomDomainCertificateDialog.show(customerInfo)
+					if (logins.getUserController().isFreeAccount()) {
+						showNotAvailableForFreeDialog()
+					} else {
+						SetCustomDomainCertificateDialog.show(customerInfo)
+					}
 				}, () => Icons.Edit)
 				this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
 

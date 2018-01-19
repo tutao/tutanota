@@ -957,7 +957,7 @@ module.exports = {
 		"whitelabelAccounts_label": "Whitelabel-Accounts",
 		"whitelabelAccount_label": "Whitelabel-Account",
 		"whitelabelBooking_label": "Whitelabel-Upgrade für {1} Benutzer",
-		"whitelabelDomainLinkInfo_msg": "Wenn du das Whitelabel-Upgrade gebucht hast, kannst du den Tutanota-Login auf deiner eigenen Domain (Subdomain) aktivieren, das Aussehen von Tutanota an deine eigenen Wünsche (z.B. Corporate Identity) anpassen und Kontaktformulare für deine Kunden anlegen. Siehe ",
+		"whitelabelDomainLinkInfo_msg": "Wenn du das Whitelabel-Upgrade buchst, kannst du den Tutanota-Login auf deiner eigenen Domain (Subdomain) aktivieren, das Aussehen von Tutanota an deine eigenen Wünsche (z.B. Corporate Identity) anpassen und Kontaktformulare für deine Kunden anlegen. Siehe ",
 		"whitelabelDomainNeeded_msg": "Bitte konfiguriere zuerst deine Whitelabel-Domain.",
 		"whitelabelDomain_label": "Whitelabel-Domain",
 		"whitelabelRegistrationCode_label": "Registrierungs-Code",
