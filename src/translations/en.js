@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-01-18T14:21:07Z",
+	"updated_at": "2018-01-19T09:40:59Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -962,7 +962,6 @@ module.exports = {
 		"whitelabelDomain_label": "Whitelabel domain",
 		"whitelabelRegistrationCode_label": "Registration code",
 		"whitelabelRegistrationEmailDomain_label": "Registration email domain",
-		"whitelabelSettings_label": "Whitelabel",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "This option moves all emails received from external senders into the spam folder by default. The senders get a confirmation email with a link to whitelist the sender's domain. Whitelisted domain's emails won't go into your users spam folders any more.",
 		"whitelistProtection_label": "Whitelist protection",

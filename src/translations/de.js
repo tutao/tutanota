@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2018-01-18T14:21:22Z",
+	"updated_at": "2018-01-19T09:40:59Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Der Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -962,7 +962,6 @@ module.exports = {
 		"whitelabelDomain_label": "Whitelabel-Domain",
 		"whitelabelRegistrationCode_label": "Registrierungs-Code",
 		"whitelabelRegistrationEmailDomain_label": "E-Mail-Domain für Registrierung",
-		"whitelabelSettings_label": "Whitelabel",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "Diese Option verschiebt automatisch alle über SMTP empfangenen E-Mails in den Spam-Ordner. Der Absender erhält einen Link per E-Mail, mit dem er die Absender-Domain der Whitelist hinzufügen kann. E-Mails von Domains, die sich auf der Whitelist befinden, werden nicht in den Spam-Ordner verschoben.",
 		"whitelistProtection_label": "Whitelist-Schutz",
