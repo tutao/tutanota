@@ -103,7 +103,7 @@ export class SettingsView {
 		this.view = (): Vnode<any> => {
 			return m("#settings.main-view", [
 				m(this.viewSlider),
-				(this._currentViewer && this._currentViewer.addButtonClicked) ? m(newAction) : null
+				(this._currentViewer && this._currentViewer.addButtonClicked && !(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path == "users")) ? m(newAction) : null
 			])
 		}
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))

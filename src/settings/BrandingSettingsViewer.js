@@ -67,7 +67,7 @@ export class BrandingSettingsViewer {
 
 		this._updateFields()
 
-		this._updateWhitelabelFields()
+		this._updateWhitelabelRegistrationFields()
 
 		this.view = () => {
 			return [
@@ -79,7 +79,7 @@ export class BrandingSettingsViewer {
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
-						(this._isWhitelabelVisible()) ? m("", [
+						(this._isWhitelabelRegistrationVisible()) ? m("", [
 								m(this._whitelabelRegistrationDomains),
 								m(this._whitelabelCodeField),
 							]) : null
@@ -90,7 +90,7 @@ export class BrandingSettingsViewer {
 		}
 	}
 
-	_isWhitelabelVisible() {
+	_isWhitelabelRegistrationVisible() {
 		return this._customer.isLoaded() &&
 			this._customer.getLoaded().customizations.find(c => c.feature == FeatureType.WhitelabelParent) &&
 			this._customerInfo.isLoaded() &&
@@ -111,7 +111,7 @@ export class BrandingSettingsViewer {
 		}
 	}
 
-	_updateWhitelabelFields() {
+	_updateWhitelabelRegistrationFields() {
 		this._props.getAsync().then(props => {
 			this._customerInfo.getAsync().then(customerInfo => {
 				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode).setDisabled()
@@ -279,8 +279,8 @@ export class BrandingSettingsViewer {
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation == OperationType.UPDATE) {
 			this._customer.reset()
-			this._customer.getAsync()
-			this._updateWhitelabelFields()
+			this._customer.getAsync().then(() => m.redraw())
+			this._updateWhitelabelRegistrationFields()
 		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
@@ -288,7 +288,7 @@ export class BrandingSettingsViewer {
 			this._updateFields()
 		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
 			this._props.reset()
-			this._updateWhitelabelFields()
+			this._updateWhitelabelRegistrationFields()
 		}
 	}
 }
