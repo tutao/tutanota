@@ -1,6 +1,9 @@
 {
   "name": "tutanota",
   "version": "3.25.11",
+  "directories": {
+    "test": "./test"
+  },
   "scripts": {
     "pretest": "npm run-script flow",
     "test": "npm run-script testapi && npm run-script testclient",
