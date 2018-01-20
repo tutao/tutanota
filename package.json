@@ -2,6 +2,13 @@
   "name": "tutanota",
   "version": "3.25.11",
   "scripts": {
+    "pretest": "npm run-script flow",
+    "test": "npm run-script testapi && npm run-script testclient",
+    "pretestapi": "mkdir -p build/src/api/worker && test/api.sh server spawn \"$(pwd)/server.js\"",
+    "testapi": "( cd test && node test.js api; )",
+    "posttestapi": "test/api.sh server stop \"$(pwd)/server.js\"",
+    "pretestclient": "mkdir -p build/src/api/worker",
+    "testclient": "( cd test && node test.js client; )",
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "devDependencies": {
