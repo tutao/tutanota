@@ -52,8 +52,16 @@ function runTest() {
 	if (testRunner != null) {
 		console.log("> skipping test run as test are already executed")
 	} else {
+		console.log("> spawn child process")
 		let testRunner = child_process.fork(`../build/test/${project}/bootstrapNode.js`)
-		testRunner.on('exit', () => {
+		console.log(`> spawned child process ${testRunner.pid}`)
+		testRunner.on('error', (err) => {
+			console.log(`> child process errored: ${err}`);
+			process.exit(1)
+		})
+		testRunner.on('exit', (code) => {
+			console.log(`> child process exited with code ${code}`);
+			if (code !== 0) process.exit(1)
 			testRunner = null
 		})
 	}
