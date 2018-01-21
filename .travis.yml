@@ -1,0 +1,24 @@
+language: node_js
+node_js:
+  - "8"
+install:
+  - echo 'No `npm install` run - in order not to switch an additional time on the job names (as not all jobs may require it).'
+script:
+  - |
+    case "${JOB:?}" in
+      test-server-api) npm install && npm run-script testapi ;;
+      test-web-client) npm install && npm run-script testclient ;;
+      npm-test) npm install-test ;;
+    esac
+after_failure:
+  - tail -n 100 npm-debug.log
+env:
+  - JOB=test-server-api
+  - JOB=test-web-client
+  - JOB=npm-test
+  ## TODO - JOB=test-android-client
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: JOB=test-server-api ## TODO Fix tests then remove from allowed failures.
+    - env: JOB=npm-test ## Fix server API tests then remove from allowed failures.

@@ -1,4 +1,4 @@
-# Tutanota makes encryption easy
+# Tutanota makes encryption easy [![Build Status](https://travis-ci.org/tutao/tutanota.svg?branch=master)](https://travis-ci.org/tutao/tutanota)
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
