@@ -258,7 +258,7 @@ o.spec("MailIndexer test", () => {
 
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
-		indexer.indexMailbox = o.spy()
+		indexer.indexMailboxes = o.spy()
 		indexer.mailIndexingEnabled = false
 		indexer._excludedListIds = []
 
@@ -274,8 +274,8 @@ o.spec("MailIndexer test", () => {
 		}
 
 		indexer.enableMailIndexing(user).then(() => {
-			o(indexer.indexMailbox.callCount).equals(1)
-			o(indexer.indexMailbox.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))])
+			o(indexer.indexMailboxes.callCount).equals(1)
+			o(indexer.indexMailboxes.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))])
 
 			o(indexer.mailIndexingEnabled).equals(true)
 			o(indexer._excludedListIds).deepEquals([spamFolder.mails])
@@ -302,14 +302,14 @@ o.spec("MailIndexer test", () => {
 
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
 		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
-		indexer.indexMailbox = o.spy()
+		indexer.indexMailboxes = o.spy()
 
 		indexer.mailIndexingEnabled = false
 		indexer._excludedListIds = []
 
 		let user = createUser()
 		indexer.enableMailIndexing(user).then(() => {
-			o(indexer.indexMailbox.callCount).equals(0)
+			o(indexer.indexMailboxes.callCount).equals(0)
 			o(indexer.mailIndexingEnabled).equals(true)
 			o(indexer._excludedListIds).deepEquals([1, 2])
 			done()
@@ -327,22 +327,22 @@ o.spec("MailIndexer test", () => {
 		o(db.dbFacade.deleteDatabase.callCount).equals(1)
 	})
 
-	o("indexMailbox disabled", function (done) {
+	o("indexMailboxes disabled", function (done) {
 		let entity: any = {}
 		const indexer: any = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
 		indexer.mailIndexingEnabled = false
-		indexer.indexMailbox(createUser(), 1512946800000).then(done)
+		indexer.indexMailboxes(createUser(), 1512946800000).then(done)
 	})
 
-	o("indexMailbox initial indexing", function (done) {
+	o("indexMailboxes initial indexing", function (done) {
 		indexMailboxTest(NOTHING_INDEXED_TIMESTAMP, 1512946800000, true, done)
 	})
 
-	o("indexMailbox further indexing", function (done) {
+	o("indexMailboxes further indexing", function (done) {
 		indexMailboxTest(1513033200000, 1512946800000, false, done)
 	})
 
-	o("indexMailbox fully indexed", function (done) {
+	o("indexMailboxes fully indexed", function (done) {
 		indexMailboxTest(FULL_INDEXED_TIMESTAMP, 1512946800000, true, done)
 	})
 
@@ -643,7 +643,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	}
 	indexer._indexMailList = o.spy(() => Promise.resolve(fullyIndexed))
 
-	let promise = indexer.indexMailbox(user, endIndexTimstamp)
+	let promise = indexer.indexMailboxes(user, endIndexTimstamp)
 	o(indexer._core.queue.queue.callCount).equals(1)
 	promise.then(() => {
 		o(indexer._core.queue.processNext.callCount).equals(1)

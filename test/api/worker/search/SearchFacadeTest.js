@@ -27,7 +27,7 @@ import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 o.spec("SearchFacade test", () => {
 	let dbKey
 	let user = createUser()
-	let indexMailBoxReceiver = {indexMailbox: (user, endIndexTime) => null}
+	let indexMailBoxReceiver = {indexMailboxes: (user, endIndexTime) => null}
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
@@ -70,7 +70,7 @@ o.spec("SearchFacade test", () => {
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp,
-			indexMailbox: (user, endIndexTime) => indexMailBoxReceiver.indexMailbox(user, endIndexTime)
+			indexMailboxes: (user, endIndexTime) => indexMailBoxReceiver.indexMailboxes(user, endIndexTime)
 		}:any), [])
 	}
 
@@ -262,7 +262,7 @@ o.spec("SearchFacade test", () => {
 		let end = new Date(2017, 5, 7).getTime()
 
 		let indexCalled = false
-		indexMailBoxReceiver.indexMailbox = (user, endIndexTime) => {
+		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
 			o(user).deepEquals(user)
 			o(endIndexTime).equals(end)
 			indexCalled = true
@@ -276,7 +276,7 @@ o.spec("SearchFacade test", () => {
 			currentIndexTimestamp
 		).then(() => {
 			o(indexCalled).equals(true)
-			indexMailBoxReceiver.indexMailbox = () => null
+			indexMailBoxReceiver.indexMailboxes = () => null
 		})
 	})
 
@@ -286,7 +286,7 @@ o.spec("SearchFacade test", () => {
 		let end = new Date(2017, 5, 8).getTime()
 
 		let indexCalled = false
-		indexMailBoxReceiver.indexMailbox = (user, endIndexTime) => {
+		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
 			indexCalled = true
 		}
 		return testSearch(
@@ -298,7 +298,7 @@ o.spec("SearchFacade test", () => {
 			currentIndexTimestamp
 		).then(() => {
 			o(indexCalled).equals(false)
-			indexMailBoxReceiver.indexMailbox = () => null
+			indexMailBoxReceiver.indexMailboxes = () => null
 		})
 	})
 
