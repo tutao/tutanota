@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {Table, ColumnWidth} from "../gui/base/Table"
-import {update, loadRange, load, loadAll} from "../api/main/Entity"
+import {update, loadRange, load} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
 import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
@@ -18,7 +18,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {AuditLogEntryTypeRef} from "../api/entities/sys/AuditLogEntry"
-import {formatDateTimeFromYesterdayOn, formatDateTime, formatSortableDate} from "../misc/Formatter"
+import {formatDateTimeFromYesterdayOn, formatDateTime} from "../misc/Formatter"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -31,19 +31,9 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
-import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
-import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {createDataFile} from "../api/common/DataFile"
-import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
-import {createFile} from "../api/entities/tutanota/File"
-import {fileController} from "../file/FileController"
-import {DatePicker} from "../gui/base/DatePicker"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
-
-const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
 export class GlobalSettingsViewer {
 	view: Function;
@@ -88,12 +78,6 @@ export class GlobalSettingsViewer {
 		this._auditLogTable = new Table(["action_label", "modified_label", "time_label"], [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small], true)
 		let auditLogExpander = new ExpanderButton("show_action", new ExpanderPanel(this._auditLogTable), false)
 
-		let contactFormReportFrom = new DatePicker("dateFrom_label")
-		let contactFormReportTo = new DatePicker("dateTo_label")
-		contactFormReportFrom.setDate(new Date())
-		contactFormReportTo.setDate(new Date())
-		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Download)
-
 		this.view = () => {
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", [
@@ -122,16 +106,7 @@ export class GlobalSettingsViewer {
 									]),
 									m(auditLogExpander.panel),
 									m("small", lang.get("auditLogInfo_msg")),
-								]) : null,
-							!logins.isProdDisabled() ? m(".mt-l", [
-									m(".h4", lang.get("contactFormReport_label")),
-									m(".small", lang.get("contactFormReportInfo_msg")),
-									m(".flex-space-between.items-center.mb-s", [
-										m(contactFormReportFrom),
-										m(contactFormReportTo),
-										m(contactFormReportButton)
-									]),
-								]) : null,
+								]) : null
 						]) : null,
 				]),
 			]
@@ -278,37 +253,6 @@ export class GlobalSettingsViewer {
 			this._updateDomains()
 		}
 	}
-
-	_contactFormReport(from: ?Date, to: ?Date) {
-		if ((from == null || to == null) || from.getTime() > to.getTime()) {
-			Dialog.error("dateInvalidRange_msg")
-		} else {
-			showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
-				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
-				.then(logEntries => {
-					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
-					let titleRow = `contact form,path,date,${columns.join(",")}`
-					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
-						let row = [escape(getContactFormTitle(contactForm)), contactForm.path, formatSortableDate(entry.date)]
-						row.length = 3 + columns.length
-						for (let v of entry.values) {
-							row[3 + columns.indexOf(v.name)] = escape(v.value)
-						}
-						return row.join(",")
-					}))).then(rows => {
-						let csv = [titleRow].concat(rows).join("\n")
-
-						let data = stringToUtf8Uint8Array(csv)
-						let tmpFile = createFile()
-						tmpFile.name = "report.csv"
-						tmpFile.mimeType = "text/csv"
-						tmpFile.size = String(data.byteLength)
-						return fileController.open(createDataFile(tmpFile, data))
-					})
-				}))
-		}
-	}
 }
 
 export function getSpamRuleTypeNameMapping(): {value:string, name: string}[] {
@@ -325,15 +269,4 @@ function escape(s: string) {
 	} else {
 		return s
 	}
-}
-
-function getContactFormTitle(contactForm: ContactForm) {
-	let pageTitle = ""
-	let language = contactForm.languages.find(l => l.code == lang.code)
-	if (language) {
-		pageTitle = language.pageTitle
-	} else if (contactForm.languages.length > 0) {
-		pageTitle = contactForm.languages[0].pageTitle
-	}
-	return pageTitle
 }
