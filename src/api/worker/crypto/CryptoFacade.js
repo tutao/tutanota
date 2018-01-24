@@ -31,7 +31,7 @@ import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermission
 import {SysService} from "../../entities/sys/Services"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
-import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
+import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"

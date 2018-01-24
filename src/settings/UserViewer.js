@@ -19,7 +19,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError, NotFoundError} from "../api/common/error/RestError"
+import {BadRequestError} from "../api/common/error/RestError"
 import * as BuyDialog from "./BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
@@ -157,7 +157,7 @@ export class UserViewer {
 					m(this._aliases),
 					!logins.getUserController().isPremiumAccount() ? null : [
 							m(".h4.mt-l", lang.get('mailSettings_label')),
-							!logins.isProdDisabled() && (this._whitelistProtection) ? m(this._whitelistProtection) : null,
+							(this._whitelistProtection) ? m(this._whitelistProtection) : null,
 							m(this._notificationViewer),
 						]
 				]),
@@ -169,27 +169,28 @@ export class UserViewer {
 	}
 
 	_createOrUpdateWhitelistProtectionField() {
-		this._user.getAsync().then(user => {
-			let userMailGroupId = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
-			return load(MailboxGroupRootTypeRef, userMailGroupId).then(mailboxGroupRoot => {
-				return load(MailboxServerPropertiesTypeRef, mailboxGroupRoot.serverProperties).then(props => {
-					if (!this._whitelistProtection) {
-						this._whitelistProtection = new DropDownSelector("whitelistProtection_label", () => lang.get("whitelistProtectionInfo_label"), [
-							{name: lang.get("activated_label"), value: true},
-							{name: lang.get("deactivated_label"), value: false}
-						], props.whitelistProtectionEnabled).setSelectionChangedHandler(v => {
-							props.whitelistProtectionEnabled = v
-							update(props)
-						})
-						m.redraw()
-					} else {
-						this._whitelistProtection.selectedValue(props.whitelistProtectionEnabled)
-					}
-				})
-			}).catch(NotFoundError, e => {
-				// not migrated yet
-			})
-		})
+		// currently not available
+		// this._user.getAsync().then(user => {
+		// 	let userMailGroupId = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
+		// 	return load(MailboxGroupRootTypeRef, userMailGroupId).then(mailboxGroupRoot => {
+		// 		return load(MailboxServerPropertiesTypeRef, mailboxGroupRoot.serverProperties).then(props => {
+		// 			if (!this._whitelistProtection) {
+		// 				this._whitelistProtection = new DropDownSelector("whitelistProtection_label", () => lang.get("whitelistProtectionInfo_label"), [
+		// 					{name: lang.get("activated_label"), value: true},
+		// 					{name: lang.get("deactivated_label"), value: false}
+		// 				], props.whitelistProtectionEnabled).setSelectionChangedHandler(v => {
+		// 					props.whitelistProtectionEnabled = v
+		// 					update(props)
+		// 				})
+		// 				m.redraw()
+		// 			} else {
+		// 				this._whitelistProtection.selectedValue(props.whitelistProtectionEnabled)
+		// 			}
+		// 		})
+		// 	}).catch(NotFoundError, e => {
+		// 		// not migrated yet
+		// 	})
+		// })
 	}
 
 	_isItMe(): boolean {

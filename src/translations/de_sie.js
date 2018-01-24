@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2018-01-17T10:50:17Z",
+	"updated_at": "2018-01-19T12:43:41Z",
 	"source_locale": {"id": "2001c6fdcc9cd338c1d600cb2636918b", "name": "de", "code": "de"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
@@ -951,6 +951,8 @@ module.exports = {
 		"welcomeMailBody6_msg": "PPS: Wenn Ihnen wichtige Funktionen fehlen, können Sie hier dafür stimmen:",
 		"welcomeMailBodyTweetText_msg": "Habe mir gerade eine Tutanota-Mailbox angelegt. So können meine Mails nicht mitgelesen werden. Mach mit: ",
 		"welcomeMailSubject_msg": "Fühlen Sie sich wie zuhause: Hier sind Ihre Daten sicher.",
+		"whitelabelDomainLinkInfo_msg": "Wenn Sie das Whitelabel-Upgrade buchen, können Sie den Tutanota-Login auf Ihrer eigenen Domain (Subdomain) aktivieren, das Aussehen von Tutanota an Ihre eigenen Wünsche (z.B. Corporate Identity) anpassen und Kontaktformulare für Ihre Kunden anlegen. Siehe ",
+		"whitelabelDomainNeeded_msg": "Bitte konfigurieren Sie zuerst Ihre Whitelabel-Domain.",
 		"whitelistProtectionInfo_label": "Diese Option verschiebt automatisch alle über SMTP empfangenen E-Mails in den Spam-Ordner. Der Absender erhält einen Link per E-Mail, mit dem er die Absender-Domain der Whitelist hinzufügen kann. E-Mails von Domains, die sich auf der Whitelist befinden, werden nicht in den Spam-Ordner verschoben.",
 		"whitelistProtection_label": "Whitelist-Schutz",
 		"work_label": "Arbeit",

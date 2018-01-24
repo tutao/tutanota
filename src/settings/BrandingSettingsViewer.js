@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {load, update} from "../api/main/Entity"
+import {load, update, loadAll, loadRange} from "../api/main/Entity"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -12,7 +12,7 @@ import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -21,9 +21,9 @@ import {fileController} from "../file/FileController"
 import {BrandingThemeTypeRef} from "../api/entities/sys/BrandingTheme"
 import type {Theme} from "../gui/theme"
 import {updateCustomTheme} from "../gui/theme"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {uint8ArrayToBase64, stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
 import {contains} from "../api/common/utils/ArrayUtils"
-import {formatDateTime} from "../misc/Formatter"
+import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -31,11 +31,19 @@ import * as BuyDialog from "./BuyDialog"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {DatePicker} from "../gui/base/DatePicker"
+import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
+import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
+import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
+import {createDataFile} from "../api/common/DataFile"
+import {createFile} from "../api/entities/tutanota/File"
 
 assertMainOrNode()
 
-let MAX_LOGO_SIZE = 1024 * 100
-let ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
+const MAX_LOGO_SIZE = 1024 * 100
+const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
+const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
 export class BrandingSettingsViewer {
 	view: Function;
@@ -50,6 +58,8 @@ export class BrandingSettingsViewer {
 	_props: LazyLoaded<CustomerServerProperties>;
 	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
+
+	_contactFormsExist: ?boolean;
 
 	constructor() {
 		this._customer = new LazyLoaded(() => {
@@ -66,7 +76,23 @@ export class BrandingSettingsViewer {
 
 		this._updateFields()
 
-		this._updateWhitelabelFields()
+		this._updateWhitelabelRegistrationFields()
+
+		this._contactFormsExist = null
+		this._customer.getAsync().then(customer => {
+			load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
+				loadRange(ContactFormTypeRef, root.contactForms, GENERATED_MIN_ID, 1, false).then(contactForms => {
+					this._contactFormsExist = contactForms.length > 0
+					m.redraw()
+				})
+			})
+		})
+
+		let contactFormReportFrom = new DatePicker("dateFrom_label")
+		let contactFormReportTo = new DatePicker("dateTo_label")
+		contactFormReportFrom.setDate(new Date())
+		contactFormReportTo.setDate(new Date())
+		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Download)
 
 		this.view = () => {
 			return [
@@ -78,10 +104,19 @@ export class BrandingSettingsViewer {
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
-						(this._isWhitelabelVisible()) ? m("", [
+						(this._isWhitelabelRegistrationVisible()) ? m("", [
 								m(this._whitelabelRegistrationDomains),
 								m(this._whitelabelCodeField),
-							]) : null
+							]) : null,
+						this._contactFormsExist ? m(".mt-l", [
+								m(".h4", lang.get("contactFormReport_label")),
+								m(".small", lang.get("contactFormReportInfo_msg")),
+								m(".flex-space-between.items-center.mb-s", [
+									m(contactFormReportFrom),
+									m(contactFormReportTo),
+									m(contactFormReportButton)
+								]),
+							]) : null,
 					] : [
 						m(".flex-center.items-center.button-height.mt-l", progressIcon())
 					])
@@ -89,7 +124,7 @@ export class BrandingSettingsViewer {
 		}
 	}
 
-	_isWhitelabelVisible() {
+	_isWhitelabelRegistrationVisible() {
 		return this._customer.isLoaded() &&
 			this._customer.getLoaded().customizations.find(c => c.feature == FeatureType.WhitelabelParent) &&
 			this._customerInfo.isLoaded() &&
@@ -110,7 +145,7 @@ export class BrandingSettingsViewer {
 		}
 	}
 
-	_updateWhitelabelFields() {
+	_updateWhitelabelRegistrationFields() {
 		this._props.getAsync().then(props => {
 			this._customerInfo.getAsync().then(customerInfo => {
 				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode).setDisabled()
@@ -170,7 +205,11 @@ export class BrandingSettingsViewer {
 					}, () => Icons.Cancel)
 				}
 				let editAction = new Button("edit_action", () => {
-					SetCustomDomainCertificateDialog.show(customerInfo)
+					if (logins.getUserController().isFreeAccount()) {
+						showNotAvailableForFreeDialog()
+					} else {
+						SetCustomDomainCertificateDialog.show(customerInfo)
+					}
 				}, () => Icons.Edit)
 				this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
 
@@ -271,11 +310,54 @@ export class BrandingSettingsViewer {
 		}
 	}
 
+
+	_contactFormReport(from: ?Date, to: ?Date) {
+		if ((from == null || to == null) || from.getTime() > to.getTime()) {
+			Dialog.error("dateInvalidRange_msg")
+		} else {
+			showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
+				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
+				.then(logEntries => {
+					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
+					let titleRow = `contact form,path,date,${columns.join(",")}`
+					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
+						let row = [escape(this._getContactFormTitle(contactForm)), contactForm.path, formatSortableDate(entry.date)]
+						row.length = 3 + columns.length
+						for (let v of entry.values) {
+							row[3 + columns.indexOf(v.name)] = escape(v.value)
+						}
+						return row.join(",")
+					}))).then(rows => {
+						let csv = [titleRow].concat(rows).join("\n")
+
+						let data = stringToUtf8Uint8Array(csv)
+						let tmpFile = createFile()
+						tmpFile.name = "report.csv"
+						tmpFile.mimeType = "text/csv"
+						tmpFile.size = String(data.byteLength)
+						return fileController.open(createDataFile(tmpFile, data))
+					})
+				}))
+		}
+	}
+
+	_getContactFormTitle(contactForm: ContactForm) {
+		let pageTitle = ""
+		let language = contactForm.languages.find(l => l.code == lang.code)
+		if (language) {
+			pageTitle = language.pageTitle
+		} else if (contactForm.languages.length > 0) {
+			pageTitle = contactForm.languages[0].pageTitle
+		}
+		return pageTitle
+	}
+
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation == OperationType.UPDATE) {
 			this._customer.reset()
-			this._customer.getAsync()
-			this._updateWhitelabelFields()
+			this._customer.getAsync().then(() => m.redraw())
+			this._updateWhitelabelRegistrationFields()
 		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
@@ -283,7 +365,7 @@ export class BrandingSettingsViewer {
 			this._updateFields()
 		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
 			this._props.reset()
-			this._updateWhitelabelFields()
+			this._updateWhitelabelRegistrationFields()
 		}
 	}
 }

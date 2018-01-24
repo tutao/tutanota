@@ -169,7 +169,7 @@ type Mail = {
 	_permissions:Id;
 	confidential:boolean;
 	differentEnvelopeSender:?string;
-	listUnsubscribe:?boolean;
+	listUnsubscribe:boolean;
 	receivedDate:Date;
 	replyType:NumberString;
 	sentDate:Date;
