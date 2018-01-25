@@ -54,16 +54,18 @@ export class SettingsView {
 
 
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => Icons.People, "users", () => new UserListView(this)))
-		if (!logins.isProdDisabled()) {
+		if (!logins.isProdDisabled() && !logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
 		}
 		this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
-		this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new BrandingSettingsViewer()))
-		if (logins.isEnabled(FeatureType.WhitelabelParent)) {
-			this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
+		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
+			this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new BrandingSettingsViewer()))
+			if (logins.isEnabled(FeatureType.WhitelabelParent)) {
+				this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
+			}
+			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
+			this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
 		}
-		this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
-		this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
 
 		this._selectedFolder = this._userFolders[0]
 
