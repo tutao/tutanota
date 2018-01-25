@@ -12,7 +12,7 @@ import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFunctions"
+import {isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -81,7 +81,7 @@ export class BrandingSettingsViewer {
 		this._contactFormsExist = null
 		this._customer.getAsync().then(customer => {
 			load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
-				loadRange(ContactFormTypeRef, root.contactForms, GENERATED_MIN_ID, 1, false).then(contactForms => {
+				loadRange(ContactFormTypeRef, root.contactForms, CUSTOM_MIN_ID, 1, false).then(contactForms => {
 					this._contactFormsExist = contactForms.length > 0
 					m.redraw()
 				})
