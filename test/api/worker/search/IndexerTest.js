@@ -3,21 +3,19 @@ import o from "ospec/ospec.js"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
-import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
+import {GroupType, NOTHING_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {EntityEventBatchTypeRef, createEntityEventBatch} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {aes256RandomKey, aes128RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {timestampToGeneratedId, generatedIdToTimestamp} from "../../../../src/api/common/utils/Encoding"
-import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 
 o.spec("Indexer test", () => {
 
@@ -28,6 +26,9 @@ o.spec("Indexer test", () => {
 				o(os).equals(MetaDataOS)
 				o(key).equals(Metadata.userEncDbKey)
 				return Promise.resolve(null)
+			},
+			getAll: (os) => {
+				return Promise.resolve([])
 			},
 			put: (os, key, value) => {
 				o(os).equals(MetaDataOS)
@@ -46,6 +47,9 @@ o.spec("Indexer test", () => {
 		}
 		indexer._contact.indexFullContactList = o.spy(() => Promise.resolve())
 		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
+		indexer._mail.indexMailboxes = o.spy(() => Promise.resolve())
+		indexer._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin = o.spy(() => Promise.resolve())
+
 		let persistentGroupData = [{persistentGroupData: "dummy"}]
 		indexer._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
 		indexer._loadNewEntities = o.spy()
@@ -62,6 +66,9 @@ o.spec("Indexer test", () => {
 
 			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
 			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
+			o(indexer._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin.callCount).equals(1)
+			o(indexer._mail.indexMailboxes.callCount).equals(1)
+
 			o(indexer._loadPersistentGroupData.args).deepEquals([user])
 			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 			done()
@@ -79,6 +86,9 @@ o.spec("Indexer test", () => {
 				if (os == MetaDataOS && key == Metadata.excludedListIds) return Promise.resolve(["excluded-list-id"])
 				return Promise.resolve(null)
 			},
+			getAll: (os) => {
+				return Promise.resolve([])
+			},
 			wait: () => Promise.resolve()
 		}
 
@@ -88,7 +98,7 @@ o.spec("Indexer test", () => {
 			createTransaction: () => Promise.resolve(transaction)
 		}
 		let groupDiff = [{groupDiff: "dummy"}]
-		indexer._groupDiff = o.spy(() => Promise.resolve(groupDiff))
+		indexer._loadGroupDiff = o.spy(() => Promise.resolve(groupDiff))
 		indexer._updateGroups = o.spy(() => Promise.resolve())
 		indexer._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 
@@ -96,6 +106,9 @@ o.spec("Indexer test", () => {
 		indexer._contact.suggestionFacade.load = o.spy(() => Promise.resolve())
 		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
 		indexer._groupInfo.suggestionFacade.load = o.spy(() => Promise.resolve())
+
+		indexer._whitelabelChildIndexer.suggestionFacade.load = o.spy(() => Promise.resolve())
+		indexer.indexAllWhitelabelChildrenForAdmin = o.spy(() => Promise.resolve())
 
 		let persistentGroupData = [{persistentGroupData: "dummy"}]
 		indexer._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
@@ -108,7 +121,7 @@ o.spec("Indexer test", () => {
 		indexer.init(user, userGroupKey).then(() => {
 			o(indexer.db.key).deepEquals(dbKey)
 
-			o(indexer._groupDiff.args).deepEquals([user])
+			o(indexer._loadGroupDiff.args).deepEquals([user])
 			o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 
 			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
@@ -142,7 +155,7 @@ o.spec("Indexer test", () => {
 			createTransaction: () => Promise.resolve(transaction),
 		}
 		let groupDiff = [{groupDiff: "dummy"}]
-		indexer._groupDiff = o.spy(() => Promise.resolve(groupDiff))
+		indexer._loadGroupDiff = o.spy(() => Promise.resolve(groupDiff))
 		indexer._updateGroups = o.spy(() => Promise.resolve())
 		indexer._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 
@@ -160,7 +173,7 @@ o.spec("Indexer test", () => {
 		indexer.init(user, userGroupKey).then(() => {
 			o(indexer.db.key).deepEquals(dbKey)
 
-			o(indexer._groupDiff.args).deepEquals([user])
+			o(indexer._loadGroupDiff.args).deepEquals([user])
 			o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 
 			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
@@ -171,7 +184,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_groupDiff", function (done) {
+	o("_loadGroupDiff", function (done) {
 		let user = createUser()
 		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Mail
@@ -239,7 +252,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_updateGroups index new mail groups", function (done) {
+	o("_updateGroups do not index new mail groups", function (done) {
 		let transaction = "transaction"
 		let groupBatches = "groupBatches"
 
@@ -259,8 +272,7 @@ o.spec("Indexer test", () => {
 			o(indexer._initGroupData.callCount).equals(1)
 			o(indexer._initGroupData.args).deepEquals([groupBatches, transaction])
 
-			o(indexer._mail.indexMailbox.callCount).equals(1)
-			o(indexer._mail.indexMailbox.args).deepEquals([user, indexer._mail.currentIndexTimestamp])
+			o(indexer._mail.indexMailbox.callCount).equals(0)
 			done()
 		})
 	})
@@ -538,6 +550,7 @@ o.spec("Indexer test", () => {
 		indexer._mail = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._contact = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._groupInfo = {processEntityEvents: o.spy(() => Promise.resolve())}
+		indexer._whitelabelChildIndexer = {processEntityEvents: o.spy(() => Promise.resolve())}
 		indexer._processUserEntityEvents = o.spy(() => Promise.resolve())
 		indexer._initParams = {user: createUser()}
 		indexer._core.writeIndexUpdate = o.spy(() => Promise.resolve())
@@ -568,8 +581,9 @@ o.spec("Indexer test", () => {
 			o(indexer._groupInfo.processEntityEvents.callCount).equals(1)
 			o(indexer._groupInfo.processEntityEvents.args).deepEquals([[events[2]], "group-id", "batch-id", indexUpdate, user])
 
-			o(indexer._processUserEntityEvents.callCount).equals(1)
-			o(indexer._processUserEntityEvents.args).deepEquals([[events[3]]])
+			o(indexer._whitelabelChildIndexer.processEntityEvents.callCount).equals(1)
+
+			o(indexer._processUserEntityEvents.callCount).equals(0)
 			done()
 		})
 	})
@@ -632,13 +646,15 @@ o.spec("Indexer test", () => {
 		let events = [update(MailTypeRef)]
 		o(indexer._core.queue.queueEvents).equals(false)
 		o(indexer._core.queue.eventQueue.length).equals(0)
-		indexer.processEntityEvents(events, "group-id", "batch-id-1").then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id-1")
+		indexer.db.initialized.then(() => {
 			o(indexer._core.queue.queueEvents).equals(true)
 			o(indexer._core.queue.eventQueue.length).equals(0)
 		})
 
 		let events2 = [update(MailTypeRef)]
-		indexer.processEntityEvents(events2, "group-id", "batch-id-2").then(() => {
+		indexer.processEntityEvents(events2, "group-id", "batch-id-2")
+		indexer.db.initialized.then(() => {
 			o(indexer._core.queue.queueEvents).equals(true)
 			o(indexer._core.queue.eventQueue.length).equals(1)
 		})
@@ -650,85 +666,13 @@ o.spec("Indexer test", () => {
 				o(indexer._mail.processEntityEvents.callCount).equals(2)
 				o(indexer._contact.processEntityEvents.callCount).equals(2)
 				o(indexer._groupInfo.processEntityEvents.callCount).equals(2)
-				o(indexer._processUserEntityEvents.callCount).equals(2)
 				done()
 			}
 		}
-		setTimeout(finalChecks, 1)
-	})
-
-	o("_processUserEntityEvents user is no admin", function (done) {
-		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, new EventQueue(() => true))
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
-
-		let oldUser = createUser()
-		oldUser._id = "1"
-		let newUser = createUser()
-		newUser._id = "1"
-		let entity: any = {
-			load: (type, id) => {
-				o(type).equals(UserTypeRef)
-				o(id).equals(newUser._id)
-				return Promise.resolve(newUser)
-			}
-		}
-		const indexer: any = new Indexer((null:any), (null:any))
-		indexer._entity = entity
-		indexer._groupDiff = () => {
-			return Promise.resolve({deletedGroups: [], newGroups: []})
-		}
-		indexer._updateGroups = o.spy()
-		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy()
-		indexer._initParams = {user: oldUser}
-
-		let events = [createUpdate(OperationType.UPDATE, "1")]
-		indexer._processUserEntityEvents(events).then(() => {
-			o(indexer._updateGroups.callCount).equals(0)
-			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.callCount).equals(0)
-			done()
+		indexer.db.initialized.then(() => {
+			setTimeout(finalChecks, 1)
 		})
 	})
-
-
-	o("_processUserEntityEvents user becomes admin", function (done) {
-		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, new EventQueue(() => true))
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
-
-		let oldUser = createUser()
-		oldUser._id = "1"
-		let newUser = createUser()
-		newUser._id = "1"
-		newUser.memberships = [createGroupMembership()]
-		newUser.memberships[0].admin = true
-		let entity: any = {
-			load: (type, id) => {
-				o(type).equals(UserTypeRef)
-				o(id).equals(newUser._id)
-				return Promise.resolve(newUser)
-			}
-		}
-		const indexer: any = new Indexer((null:any), (null:any))
-		indexer._entity = entity
-		indexer._groupDiff = () => {
-			return Promise.resolve({deletedGroups: [], newGroups: []})
-		}
-		indexer._updateGroups = o.spy()
-		indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy()
-		indexer._initParams = {user: oldUser}
-
-		let events = [createUpdate(OperationType.UPDATE, "1")]
-		indexer._processUserEntityEvents(events).then(() => {
-			o(indexer._updateGroups.callCount).equals(0)
-			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.callCount).equals(1)
-			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([newUser])
-			done()
-		})
-	})
-
 })
 
 function createUpdate(type: OperationTypeEnum, id: Id) {

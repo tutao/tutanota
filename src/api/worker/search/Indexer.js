@@ -327,7 +327,7 @@ export class Indexer {
 				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user)
 			]).then(() => {
 				return this._core.writeIndexUpdate(indexUpdate)
-			}).then(() => {
+			}).finally(() => {
 				this._core.queue.processNext()
 			})
 		})

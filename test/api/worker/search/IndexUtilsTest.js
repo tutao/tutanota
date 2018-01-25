@@ -92,7 +92,7 @@ o.spec("Index Utils", () => {
 		user.memberships[5].groupType = GroupType.Mail
 		user.memberships[6].groupType = GroupType.Team
 		user.memberships[7].groupType = GroupType.User
-		o(filterIndexMemberships(user)).deepEquals([user.memberships[1], user.memberships[2], user.memberships[5]])
+		o(filterIndexMemberships(user)).deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
 	})
 
 	o("filterMailMemberships", function () {
