@@ -110,7 +110,10 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof ServiceUnavailableError) {
 		Dialog.error("serviceUnavailable_msg")
 	} else if (e instanceof IndexingNotSupportedError) {
-		Dialog.error("searchDisabled_msg")
+		// external users do not search anyway
+		if (logins.isInternalUserLoggedIn()) {
+			Dialog.error("searchDisabled_msg")
+		}
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
