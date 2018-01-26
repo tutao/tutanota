@@ -198,9 +198,6 @@ export class LoginFacade {
 	}
 
 	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, connectEventBus: boolean): Promise<void> {
-		if (this._user && userId != this._user._id) {
-			throw new Error("different user is tried to login in existing other user's session")
-		}
 		this._accessToken = accessToken
 		return load(UserTypeRef, userId).then(user => {
 			this._user = user

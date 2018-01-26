@@ -225,6 +225,10 @@ export class CustomerFacade {
 	 */
 	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
+		// if an error occurs during sending the contact form mail, the user group data might have been deleted already, so create it again
+		if (!this.contactFormUserGroupData) {
+			this.createContactFormUserGroupData()
+		}
 		return neverNull(this.contactFormUserGroupData).then(contactFormUserGroupData => {
 			let {userGroupKey, userGroupData} = contactFormUserGroupData
 			return this._worker.sendProgress(35).then(() => {
