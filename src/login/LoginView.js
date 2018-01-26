@@ -156,7 +156,6 @@ export class LoginView {
 	}
 
 	updateUrl(args: Object) {
-		document.title = "Tutanota"
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
 		} else {

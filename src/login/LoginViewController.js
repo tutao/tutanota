@@ -120,7 +120,7 @@ export class LoginViewController {
 	}
 
 	_postLoginActions() {
-		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - Tutanota"
+		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
 
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend")

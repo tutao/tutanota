@@ -91,7 +91,6 @@ export class ContactFormView {
 	}
 
 	updateUrl(args: Object) {
-		document.title = "Tutanota"
 		if (this._formId != args.formId) {
 			this._formId = args.formId
 			this._loading = true
