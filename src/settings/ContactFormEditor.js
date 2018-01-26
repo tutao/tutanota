@@ -117,13 +117,13 @@ export class ContactFormEditor {
 		this._language = stream(language)
 		this._languageField = new TextField("language_label").setDisabled()
 		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
-			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code), e => this._language(l)).setType(ButtonType.Dropdown)).sort((a,b) => a.getLabel().localeCompare(b.getLabel()))
+			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code), e => this._language(l)).setType(ButtonType.Dropdown)).sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
 			buttons.push(new Button("addLanguage_action", e => {
 				let allLanguages = languages.filter(t => this._languages.find(l => l.code == t.code) == null).map(l => {
 					return {name: lang.get(l.textId), value: l.code}
-				}).sort((a,b) => a.name.localeCompare(b.name))
+				}).sort((a, b) => a.name.localeCompare(b.name))
 				let newLanguageCode = stream(allLanguages[0].value)
-				let tagName = new DropDownSelector("addLanguage_action", null, allLanguages, newLanguageCode)
+				let tagName = new DropDownSelector("addLanguage_action", null, allLanguages, newLanguageCode, 250)
 
 				setTimeout(() => {
 					Dialog.smallDialog(lang.get("addLanguage_action"), {
@@ -139,7 +139,7 @@ export class ContactFormEditor {
 				}, DefaultAnimationTime)// wait till the dropdown is hidden
 			}).setType(ButtonType.Dropdown))
 			return buttons
-		})
+		}, 250)
 		let deleteLanguageButton = new Button('delete_action', () => {
 			remove(this._languages, this._language())
 			this._language(this._languages[0])
