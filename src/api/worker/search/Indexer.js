@@ -1,12 +1,12 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
+import {OperationType, NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
 import {neverNull, defer} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {
@@ -63,6 +63,7 @@ export class Indexer {
 
 	_core: IndexerCore;
 	_entity: EntityWorker;
+	_indexedGroupIds: Array<Id>;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
 		let deferred = defer()
@@ -75,6 +76,7 @@ export class Indexer {
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
+		this._indexedGroupIds = []
 	}
 
 	/**
@@ -100,6 +102,8 @@ export class Indexer {
 									return this._initGroupData(groupBatches, t2)
 								})
 							}).then(() => {
+								return this._updateIndexedGroups()
+							}).then(() => {
 								this._dbInitializedCallback()
 							})
 						} else {
@@ -113,6 +117,8 @@ export class Indexer {
 								}),
 								this._loadGroupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user))
 							]).then(() => {
+								return this._updateIndexedGroups()
+							}).then(() => {
 								this._dbInitializedCallback()
 							}).then(() => {
 								return Promise.all([
@@ -188,6 +194,16 @@ export class Indexer {
 	cancelMailIndexing(): Promise<void> {
 		return this._mail.cancelMailIndexing()
 	}
+
+
+	_updateIndexedGroups(): Promise<void> {
+		return this.db.dbFacade.createTransaction(true, [GroupDataOS])
+			.then(t => t.getAll(GroupDataOS).map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
+			.then(indexedGroupIds => {
+				this._indexedGroupIds = indexedGroupIds
+			})
+	}
+
 
 	_loadGroupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
 		let currentGroups = filterIndexMemberships(user).map(m => {
@@ -314,6 +330,10 @@ export class Indexer {
 			}
 
 			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) == -1) {
+				console.log("not member of group", groupId)
+				return Promise.resolve()
+			}
+			if (this._indexedGroupIds.indexOf(groupId) == -1) {
 				console.log("not indexed group", groupId)
 				return Promise.resolve()
 			}
@@ -340,7 +360,8 @@ export class Indexer {
 				this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 				this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
 				this._groupInfo.processEntityEvents(neverNull(groupedEvents.get(GroupInfoTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
-				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user)
+				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
+				this._processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
 			]).then(() => {
 				return this._core.writeIndexUpdate(indexUpdate)
 			}).finally(() => {
@@ -355,6 +376,19 @@ export class Indexer {
 			this.processEntityEvents(next.events, next.groupId, next.batchId)
 		}
 	}
+
+
+	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
+		return Promise.all(events.map(event => {
+			if (event.operation == OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId)) {
+				return this._entity.load(UserTypeRef, event.instanceId).then(updatedUser => {
+					this._initParams.user = updatedUser
+				})
+			}
+			return Promise.resolve()
+		})).return()
+	}
+
 }
 
 
