@@ -524,11 +524,13 @@ export class MailViewer {
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
-				let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
+				if (logins.getUserController().isInternalUser()) { // disable new mails for external users.
+					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
+					return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
+						mailEditor.show()
+					})
+				}
 				event.preventDefault()
-				return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
-					mailEditor.show()
-				})
 			}
 		}
 	}
