@@ -36,6 +36,7 @@ import {EventQueue} from "./EventQueue"
 import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
 import {contains} from "../../common/utils/ArrayUtils"
+import {CancelledError} from "../../common/error/CancelledError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -142,6 +143,20 @@ export class Indexer {
 						console.log("out of sync - delete database and disable mail indexing")
 						return this.disableMailIndexing()
 					})
+			}).catch(CancelledError, e => {
+				// mail or contact group has been removed from user, disable mail indexing and init index again
+				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
+				// initialized promise will be resolved in this.init later.
+				console.log("cancelled init, disable mail indexing and init again")
+				let mailIndexingEnabled = this._mail.mailIndexingEnabled;
+				return this._mail.disableMailIndexing().then(() => {
+					return this.init(this._initParams.user, this._initParams.groupKey).then(() => {
+						if (mailIndexingEnabled) {
+							return this.enableMailIndexing()
+						}
+					})
+
+				})
 			})
 		}).catch(DbError, e => {
 			console.log("Indexing not supported", e)
@@ -194,12 +209,13 @@ export class Indexer {
 	}
 
 	/**
-	 * Deletes the whole index if the user was removed from a contact or mail group.
+	 *
 	 * Initializes the index db for new groups of the user, but does not start the actual indexing for those groups.
+	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 */
 	_updateGroups(user: User, groupDiff: {deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}): Promise<void> {
 		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
-			return this.disableMailIndexing()
+			return Promise.reject(new CancelledError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
 			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id)).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
 				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then(t => {

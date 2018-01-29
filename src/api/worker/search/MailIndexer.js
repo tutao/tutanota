@@ -289,10 +289,18 @@ export class MailIndexer {
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
-			return Promise.all(filterMailMemberships(user).map(mailGroupMembership => {
+			this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
+			return Promise.all(filterMailMemberships(user).map((mailGroupMembership, index) => {
 				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
-					if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
+					if (index == 0) {
+						this.currentIndexTimestamp = groupData.indexTimestamp
+					} else if (groupData.indexTimestamp == FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
+						// skip full index timestamp if this is not the first mail group
+					} else if (this.currentIndexTimestamp == FULL_INDEXED_TIMESTAMP && groupData.indexTimestamp != this.currentIndexTimestamp) { // find the oldest timestamp
+						// mail index ist not fully indexed if one of the mailboxes is not fully indexed
+						this.currentIndexTimestamp = groupData.indexTimestamp
+					} else if (groupData.indexTimestamp < this.currentIndexTimestamp) {
+						// set the oldest index timestamp as current timestamp so all mailboxes can index to this timestamp during log in.
 						this.currentIndexTimestamp = groupData.indexTimestamp
 					}
 				})
