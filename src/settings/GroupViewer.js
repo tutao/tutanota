@@ -55,7 +55,7 @@ export class GroupViewer {
 			})
 		})
 
-		this._name = new TextField("name_label").setValue(groupInfo.name).setDisabled()
+		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
 		let editNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
 				if (this._group.isLoaded() && this._group.getLoaded().type == GroupType.Team && newName.trim() == "") {
@@ -64,14 +64,14 @@ export class GroupViewer {
 					return null
 				}
 			}).then(newName => {
-				groupInfo.name = newName
-				update(groupInfo)
+				this.groupInfo.name = newName
+				update(this.groupInfo)
 			})
 		}, () => Icons.Edit)
 		this._name._injectionsRight = () => [m(editNameButton)]
 
-		let mailAddress = new TextField("mailAddress_label").setValue(groupInfo.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(groupInfo.created)).setDisabled()
+		let mailAddress = new TextField("mailAddress_label").setValue(this.groupInfo.mailAddress).setDisabled()
+		let created = new TextField("created_label").setValue(formatDateWithMonth(this.groupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._deactivated = new DropDownSelector("state_label", null, [

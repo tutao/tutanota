@@ -65,17 +65,17 @@ export class UserViewer {
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync().then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
-		this._senderName = new TextField("mailName_label").setValue(userGroupInfo.name).setDisabled()
+		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value()).then(newName => {
-				userGroupInfo.name = newName
-				update(userGroupInfo)
+				this.userGroupInfo.name = newName
+				update(this.userGroupInfo)
 			})
 		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
-		let mailAddress = new TextField("mailAddress_label").setValue(userGroupInfo.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(userGroupInfo.created)).setDisabled()
+		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
+		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._admin = new DropDownSelector("administrator_label", null, [{
@@ -107,7 +107,7 @@ export class UserViewer {
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
-		this._aliases = new EditAliasesForm(userGroupInfo)
+		this._aliases = new EditAliasesForm(this.userGroupInfo)
 
 		this._teamGroupInfos.getAsync().then(availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {
