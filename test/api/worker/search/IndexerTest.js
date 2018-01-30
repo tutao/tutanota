@@ -16,6 +16,7 @@ import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {timestampToGeneratedId, generatedIdToTimestamp} from "../../../../src/api/common/utils/Encoding"
+import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 
 o.spec("Indexer test", () => {
 
@@ -145,7 +146,8 @@ o.spec("Indexer test", () => {
 				if (os == MetaDataOS && key == Metadata.excludedListIds) return Promise.resolve(["excluded-list-id"])
 				return Promise.resolve(null)
 			},
-			wait: () => Promise.resolve()
+			wait: () => Promise.resolve(),
+			getAll: () => Promise.resolve([])
 		}
 
 		const indexer: any = new Indexer((null:any), ({sendIndexState: () => Promise.resolve()}:any))
@@ -223,7 +225,8 @@ o.spec("Indexer test", () => {
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Mail}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
-			o(indexer.disableMailIndexing.callCount).equals(1)
+			o(true).equals(false)
+		}).catch(CancelledError, (e) => {
 			done()
 		})
 	})
@@ -235,7 +238,8 @@ o.spec("Indexer test", () => {
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Contact}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
-			o(indexer.disableMailIndexing.callCount).equals(1)
+			o(true).equals(false)
+		}).catch(CancelledError, (e) => {
 			done()
 		})
 	})
@@ -247,7 +251,6 @@ o.spec("Indexer test", () => {
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Team}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
-			o(indexer.disableMailIndexing.callCount).equals(0)
 			done()
 		})
 	})
@@ -568,6 +571,7 @@ o.spec("Indexer test", () => {
 		}
 
 		let events = [update(MailTypeRef), update(ContactTypeRef), update(GroupInfoTypeRef), update(UserTypeRef)]
+		indexer._indexedGroupIds = ["group-id"]
 		indexer.processEntityEvents(events, "group-id", "batch-id").then(() => {
 			o(indexer._core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate = indexer._core.writeIndexUpdate.args[0]
@@ -583,7 +587,7 @@ o.spec("Indexer test", () => {
 
 			o(indexer._whitelabelChildIndexer.processEntityEvents.callCount).equals(1)
 
-			o(indexer._processUserEntityEvents.callCount).equals(0)
+			o(indexer._processUserEntityEvents.callCount).equals(1)
 			done()
 		})
 	})
@@ -611,6 +615,7 @@ o.spec("Indexer test", () => {
 		}
 
 		let events = [update(MailTypeRef), update(ContactTypeRef), update(GroupInfoTypeRef), update(UserTypeRef)]
+		indexer._indexedGroupIds = ["group-id"]
 		indexer.processEntityEvents(events, "group-id", "batch-id").then(() => {
 			o(indexer._core.writeIndexUpdate.callCount).equals(0)
 			o(indexer._mail.processEntityEvents.callCount).equals(0)
@@ -646,6 +651,7 @@ o.spec("Indexer test", () => {
 		let events = [update(MailTypeRef)]
 		o(indexer._core.queue.queueEvents).equals(false)
 		o(indexer._core.queue.eventQueue.length).equals(0)
+		indexer._indexedGroupIds = ["group-id"]
 		indexer.processEntityEvents(events, "group-id", "batch-id-1")
 		indexer.db.initialized.then(() => {
 			o(indexer._core.queue.queueEvents).equals(true)
@@ -653,6 +659,7 @@ o.spec("Indexer test", () => {
 		})
 
 		let events2 = [update(MailTypeRef)]
+		indexer._indexedGroupIds = ["group-id"]
 		indexer.processEntityEvents(events2, "group-id", "batch-id-2")
 		indexer.db.initialized.then(() => {
 			o(indexer._core.queue.queueEvents).equals(true)

@@ -971,6 +971,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"premiumCancelledMessage_msg": "Diese Buchung kann nicht ausgeführt werden, da dein Premium-Account gekündigt ist. Bitte wende dich an den Support um deinen Premium-Account wieder zu aktivieren.",
 	}
 }

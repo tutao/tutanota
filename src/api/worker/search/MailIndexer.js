@@ -289,25 +289,15 @@ export class MailIndexer {
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 			return Promise.all(filterMailMemberships(user).map((mailGroupMembership, index) => {
 				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
-					if (index == 0) {
-						this.currentIndexTimestamp = groupData.indexTimestamp
-					} else if (groupData.indexTimestamp == FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
-						// skip full index timestamp if this is not the first mail group
-					} else if (this.currentIndexTimestamp == FULL_INDEXED_TIMESTAMP && groupData.indexTimestamp != this.currentIndexTimestamp) { // find the oldest timestamp
-						// mail index ist not fully indexed if one of the mailboxes is not fully indexed
-						this.currentIndexTimestamp = groupData.indexTimestamp
-					} else if (groupData.indexTimestamp < this.currentIndexTimestamp) {
-						// set the oldest index timestamp as current timestamp so all mailboxes can index to this timestamp during log in.
-						this.currentIndexTimestamp = groupData.indexTimestamp
-					}
+					return groupData.indexTimestamp
 				})
-			})).return()
+			})).then(groupIndexTimestamps => {
+				this.currentIndexTimestamp = _getCurrentIndexTimestamp(groupIndexTimestamps)
+			})
 		})
 	}
-
 
 	_isExcluded(event: EntityUpdate) {
 		return this._excludedListIds.indexOf(event.instanceListId) !== -1
@@ -367,5 +357,26 @@ export class MailIndexer {
 			}
 		}).return()
 	}
+}
+
+// export just for testing
+export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
+	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
+	groupIndexTimestamps.forEach((t, index) => {
+		if (index == 0) {
+			currentIndexTimestamp = t
+		} else if (t == NOTHING_INDEXED_TIMESTAMP) {
+			// skip new group memberships
+		} else if (t == FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != NOTHING_INDEXED_TIMESTAMP) {
+			// skip full index timestamp if this is not the first mail group
+		} else if (currentIndexTimestamp == FULL_INDEXED_TIMESTAMP && t != currentIndexTimestamp) { // find the oldest timestamp
+			// mail index ist not fully indexed if one of the mailboxes is not fully indexed
+			currentIndexTimestamp = t
+		} else if (t < currentIndexTimestamp) {
+			// set the oldest index timestamp as current timestamp so all mailboxes can index to this timestamp during log in.
+			currentIndexTimestamp = t
+		}
+	})
+	return currentIndexTimestamp
 }
 

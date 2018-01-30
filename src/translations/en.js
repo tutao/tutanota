@@ -971,6 +971,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"premiumCancelledMessage_msg": "This order cannot be processed because your Premium account is cancelled. Please contact the support to reactivate your Premium account.",
 	}
 }
