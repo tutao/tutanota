@@ -2,7 +2,6 @@
 import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButton, NavButtonColors} from "./NavButton"
-import stream from "mithril/stream/stream.js"
 import {styles} from "../styles"
 import {neverNull, asyncImport} from "../../api/common/utils/Utils"
 import {keyManager, Keys} from "../../misc/KeyManager"
@@ -23,10 +22,10 @@ class Header {
 	buttonBar: NavBar;
 	defaultButtonBar: NavBar;
 	view: Function;
-	contactsUrl: stream<string>;
-	mailsUrl: stream<string>;
-	settingsUrl: stream<string>;
-	searchUrl: stream<string>;
+	contactsUrl: string;
+	mailsUrl: string;
+	settingsUrl: string;
+	searchUrl: string;
 	_viewSlider: ?IViewSlider;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;

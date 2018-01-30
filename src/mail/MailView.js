@@ -4,7 +4,7 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/base/Button"
-import {NavButton} from "../gui/base/NavButton"
+import {NavButton, isSelectedPrefix} from "../gui/base/NavButton"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {update, serviceRequestVoid, load} from "../api/main/Entity"
 import {MailViewer} from "./MailViewer"
@@ -263,33 +263,41 @@ export class MailView {
 			},
 		]
 
-		let mailModelStream = null
-		this.oncreate = () => {
-			keyManager.registerShortcuts(shortcuts)
-			mailModelStream = mailModel.mailboxDetails.map(mailboxDetails => {
-				mailboxDetails.forEach(newMailboxDetail => {
-					if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
-						this.createMailboxExpander(newMailboxDetail)
-					} else {
-						this._mailboxExpanders[newMailboxDetail.mailGroup._id].customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
-					}
-				})
-				Object.keys(this._mailboxExpanders).forEach(mailGroupId => {
-					if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id == mailGroupId) == null) {
-						delete this._mailboxExpanders[mailGroupId]
-					}
-				})
-
-				if (this.selectedFolder) {
-					this.selectedFolder = neverNull(mailModel.getMailFolder(this.selectedFolder.mails))
+		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
+		let mailModelStream = mailModel.mailboxDetails.map(mailboxDetails => {
+			mailboxDetails.forEach(newMailboxDetail => {
+				if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
+					this.createMailboxExpander(newMailboxDetail)
+				} else {
+					this._mailboxExpanders[newMailboxDetail.mailGroup._id].customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
 				}
 			})
+			Object.keys(this._mailboxExpanders).forEach(mailGroupId => {
+				if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id == mailGroupId) == null) {
+					delete this._mailboxExpanders[mailGroupId]
+				}
+			})
+
+			if (this.selectedFolder) {
+				let currentlySelectedFolder = mailModel.getMailFolder(this.selectedFolder.mails)
+				if (currentlySelectedFolder) {
+					this.selectedFolder = currentlySelectedFolder
+				} else {
+					let url = this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]]
+					if (isSelectedPrefix("/mail")) {
+						this._setUrl(url)
+					} else {
+						header.mailsUrl = url
+					}
+				}
+			}
+		})
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+
 		}
 		this.onbeforeremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
-			if (mailModelStream) {
-				mailModelStream.end(true)
-			}
 		}
 	}
 
