@@ -962,6 +962,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"premiumCancelledMessage_msg": "Diese Buchung kann nicht ausgeführt werden, da Ihr Premium-Account gekündigt ist. Bitte wenden Sie sich an den Support um Ihren Premium-Account wieder zu aktivieren."
+		"premiumCancelledMessage_msg": "Diese Buchung kann nicht ausgeführt werden, da Ihr Premium-Account gekündigt ist. Bitte wenden Sie sich an den Support um Ihren Premium-Account wieder zu aktivieren.",
+		"customDomainDeletePreconditionWhitelabelFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Aliasse mit der Domain: {domainName} und entfernen Sie die Domain als Registrierungs-Domain."
 	}
 }

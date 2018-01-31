@@ -973,5 +973,6 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"premiumCancelledMessage_msg": "This order cannot be processed because your Premium account is cancelled. Please contact the support to reactivate your Premium account.",
+		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.",
 	}
 }

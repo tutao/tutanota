@@ -232,7 +232,12 @@ export class GlobalSettingsViewer {
 						}).setType(ButtonType.Dropdown))
 						buttons.push(new Button("delete_action", () => {
 							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
-								Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+								let registrationDomains = this._props() != null ? this._props().whitelabelRegistrationDomains.map(domainWrapper => domainWrapper.value) : []
+								if (registrationDomains.indexOf(domainInfo.domain) != -1) {
+									Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+								} else {
+									Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+								}
 							})
 						}).setType(ButtonType.Dropdown))
 						return buttons
