@@ -519,7 +519,7 @@ export class MailViewer {
 		}
 	}
 
-	_handleMailto(event: Event) {
+	_handleMailto(event: Event): void {
 		let target = (event.target:any)
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
@@ -527,7 +527,7 @@ export class MailViewer {
 				event.preventDefault()
 				if (logins.getUserController().isInternalUser()) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-					return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
+					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
 						mailEditor.show()
 					})
 				}
