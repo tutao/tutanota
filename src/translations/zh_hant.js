@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-01-28T10:48:06Z",
-	"updated_at": "2017-10-30T23:35:48Z",
+	"updated_at": "2018-01-26T10:23:08Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "抱歉，你的Tutanota帳戶已被停用。請與管理員聯繫。",
@@ -24,8 +24,8 @@ module.exports = {
 		"addInboxRule_action": "新增收件夾規則",
 		"addinInfoText_msg": "在這裡下載Tutanota的Outlook擴展。當Outlook開啟時將會自動安裝更新。",
 		"addNext_action": "新增下一個選定項目",
-		"addParticipant_label": "新增參與者",
 		"addPrevious_action": "新增前次選定項目",
+		"addResponsiblePerson_label": "新增參與者",
 		"address_label": "地址",
 		"addRule_action": "新增規則",
 		"addSpamRule_action": "新增垃圾郵件規則",

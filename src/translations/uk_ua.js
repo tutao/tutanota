@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2018-01-16T13:31:52Z",
+	"updated_at": "2018-02-01T11:16:24Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "На жаль ваш обліковий запис Tutanota було відключено. Будь ласка зв'яжіться із своїм адміністратором.",
@@ -31,8 +31,8 @@ module.exports = {
 		"addInboxRule_action": "Додати правило для теки Вхідні ",
 		"addinInfoText_msg": "Завантажити додаток Tutanota для Outlook тут. Оновлення встановлюються автоматично при запуску Outlook.",
 		"addNext_action": "Додати наступний елемент до обраного",
-		"addParticipant_label": "Додати учасника",
 		"addPrevious_action": "Додати попередній елемент до обраного",
+		"addResponsiblePerson_label": "Додати учасника",
 		"address_label": "Адреса",
 		"addRule_action": "Додати правило",
 		"addSecondFactor_action": "Додати другий фактор",

@@ -26,7 +26,7 @@ export const TutanotaService = {
 	CustomerAccountService: "customeraccountservice",
 	UserAccountService: "useraccountservice",
 	MailGroupService: "mailgroupservice",
-	TeamGroupService: "teamgroupservice",
+	LocalAdminGroupService: "localadmingroupservice",
 	ContactFormAccountService: "contactformaccountservice",
 	DeleteNotAccessibleMailsService: "deletenotaccessiblemailsservice",
 	DeleteContactFormConversationService: "deletecontactformconversationservice",

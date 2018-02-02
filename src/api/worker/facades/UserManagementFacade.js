@@ -2,7 +2,6 @@
 import {assertWorkerOrNode} from "../../Env"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {Const, GroupType, AccountType} from "../../common/TutanotaConstants"
-import type {CustomerFacade} from "./CustomerFacade"
 import {load, serviceRequestVoid} from "../EntityWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
@@ -25,6 +24,8 @@ import {createContactFormUserData} from "../../entities/tutanota/ContactFormUser
 import type {LoginFacade} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {readCounterValue} from "./CounterFacade"
+import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
+import {SysService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
@@ -41,20 +42,21 @@ export class UserManagementFacade {
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
-		let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			let salt = generateRandomSalt()
-			let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-			let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
-			let passwordVerifier = createAuthVerifier(passwordKey)
+			this._groupManagement.getAdminGroupKey(userGroup).then(adminGroupKey => {
+				let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
+				let salt = generateRandomSalt()
+				let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+				let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+				let passwordVerifier = createAuthVerifier(passwordKey)
 
-			let data = createResetPasswordData()
-			data.user = neverNull(userGroup.user)
-			data.salt = salt
-			data.verifier = passwordVerifier
-			data.pwEncUserGroupKey = pwEncUserGroupKey
-			return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
+				let data = createResetPasswordData()
+				data.user = neverNull(userGroup.user)
+				data.salt = salt
+				data.verifier = passwordVerifier
+				data.pwEncUserGroupKey = pwEncUserGroupKey
+				return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
+			})
 		})
 	}
 
@@ -93,6 +95,36 @@ export class UserManagementFacade {
 		})
 	}
 
+	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
+		let adminGroupId = this._login.getGroupId(GroupType.Admin)
+		return load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
+			return load(GroupTypeRef, groupId).then(group => {
+				return load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
+					let data = createUpdateAdminshipData()
+					data.group = group._id
+					data.newAdminGroup = newAdminGroup._id
+
+					let adminGroupKey = this._login.getGroupKey(adminGroupId)
+					let groupKey
+					if (oldAdminGroup._id == adminGroupId) {
+						groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+					} else {
+						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
+						groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
+					}
+					if (newAdminGroup._id == adminGroupId) {
+						data.newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
+					} else {
+						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
+						data.newAdminGroupEncGKey = encryptKey(localAdminGroupKey, groupKey)
+					}
+
+					return serviceRequestVoid(SysService.UpdateAdminshipService, HttpMethod.POST, data)
+				})
+			})
+		});
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
 		return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
 			return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then(contactStorage => {
@@ -124,12 +156,17 @@ export class UserManagementFacade {
 	}
 
 	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {
-		let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
+		if (adminGroupIds.length == 0) {
+			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
+		}
+		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
+
 		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
+		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey).then(userGroupData => {
 			return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100).then(() => {
 				let data = createUserAccountCreateData()
 				data.date = Const.CURRENT_DATE

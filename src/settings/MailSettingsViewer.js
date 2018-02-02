@@ -60,7 +60,7 @@ export class MailSettingsViewer {
 			})
 		}, () => Icons.Edit)
 
-		this._senderName._injectionsRight = () => logins.getUserController().isAdmin() ? [m(editSenderNameButton)] : []
+		this._senderName._injectionsRight = () => logins.getUserController().isGlobalAdmin() ? [m(editSenderNameButton)] : []
 
 		this._defaultSender = new DropDownSelector("defaultSenderMailAddress_label", () => lang.get("defaultSenderMailAddressInfo_msg"), getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo).map(a => {
 			return {name: a, value: a}
@@ -131,7 +131,7 @@ export class MailSettingsViewer {
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(this._sendPlaintext),
 					logins.isEnabled(FeatureType.DisableContacts) ? null : m(this._noAutomaticContacts),
 					m(this._enableMailIndexing),
-					(logins.getUserController().isAdmin()) ? m(this._aliases) : null,
+					(logins.getUserController().isGlobalAdmin()) ? m(this._aliases) : null,
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : [
 							m(".flex-space-between.items-center.mt-l.mb-s", [
 								m(".h4", lang.get('inboxRulesSettings_action')),

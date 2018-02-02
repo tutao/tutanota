@@ -8,7 +8,8 @@ export const GroupType = {
 	External: "4",
 	Mail: "5",
 	Contact: "6",
-	File: "7"
+	File: "7",
+	LocalAdmin: "8"
 }
 export type GroupTypeEnum = $Values<typeof GroupType>;
 
@@ -239,7 +240,6 @@ export const FeatureType = {
 	DeleteMailsOnPasswordReset: "3",
 	WhitelabelParent: "4",
 	WhitelabelChild: "5"
-	// 3 and 4 are not used on clients
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 

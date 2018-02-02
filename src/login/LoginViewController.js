@@ -184,7 +184,7 @@ export class LoginViewController {
 		if (logins.getUserController().isOutlookAccount()) {
 			return Promise.resolve();
 		}
-		if (logins.getUserController().isAdmin()) {
+		if (logins.getUserController().isGlobalAdmin()) {
 			return worker.readUsedCustomerStorage().then(usedStorage => {
 				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
 					return worker.readAvailableCustomerStorage().then(availableStorage => {

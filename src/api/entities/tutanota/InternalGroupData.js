@@ -29,18 +29,18 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"ownerEncGroupInfoSessionKey": {
-			"name": "ownerEncGroupInfoSessionKey",
-			"id": 647,
+		"groupEncPrivateKey": {
+			"name": "groupEncPrivateKey",
+			"id": 645,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"groupEncPrivateKey": {
-			"name": "groupEncPrivateKey",
-			"id": 645,
+		"ownerEncGroupInfoSessionKey": {
+			"name": "ownerEncGroupInfoSessionKey",
+			"id": 647,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -57,9 +57,20 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		}
 	},
-	"associations": {},
+	"associations": {
+		"adminGroup": {
+			"name": "adminGroup",
+			"id": 874,
+			"since": 25,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Group",
+			"final": true,
+			"external": true
+		}
+	},
 	"app": "tutanota",
-	"version": "24"
+	"version": "25"
 }
 
 export function createInternalGroupData(): InternalGroupData {

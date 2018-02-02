@@ -18,8 +18,8 @@ export class LoginController {
 		return this.isUserLoggedIn() && this.getUserController().isInternalUser()
 	}
 
-	isAdminUserLoggedIn() {
-		return this.isUserLoggedIn() && this.getUserController().isAdmin()
+	isGlobalAdminUserLoggedIn() {
+		return this.isUserLoggedIn() && this.getUserController().isGlobalAdmin()
 	}
 
 	getUserController(): IUserController {

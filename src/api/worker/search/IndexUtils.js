@@ -46,7 +46,7 @@ export function getAppId(typeRef: TypeRef<any>): number {
 }
 
 export function userIsAdmin(user: User): boolean {
-	return user.memberships.find(m => m.admin) != null
+	return user.memberships.find(m => m.groupType == GroupType.Admin) != null
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {

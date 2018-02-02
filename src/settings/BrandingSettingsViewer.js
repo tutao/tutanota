@@ -34,16 +34,16 @@ import {createStringWrapper} from "../api/entities/sys/StringWrapper"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DatePicker} from "../gui/base/DatePicker"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {createDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
+import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
+import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 
 assertMainOrNode()
 
 const MAX_LOGO_SIZE = 1024 * 100
 const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
-const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
 export class BrandingSettingsViewer {
 	view: Function;
@@ -317,40 +317,22 @@ export class BrandingSettingsViewer {
 		} else {
 			showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
-				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
+				.then(root => loadAll(UnencryptedStatisticLogEntryTypeRef, neverNull(root.statisticsLog).items, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
 				.then(logEntries => {
-					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
-					let titleRow = `contact form,path,date,${columns.join(",")}`
-					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
-						let row = [escape(this._getContactFormTitle(contactForm)), contactForm.path, formatSortableDate(entry.date)]
-						row.length = 3 + columns.length
-						for (let v of entry.values) {
-							row[3 + columns.indexOf(v.name)] = escape(v.value)
-						}
-						return row.join(",")
-					}))).then(rows => {
-						let csv = [titleRow].concat(rows).join("\n")
-
-						let data = stringToUtf8Uint8Array(csv)
-						let tmpFile = createFile()
-						tmpFile.name = "report.csv"
-						tmpFile.mimeType = "text/csv"
-						tmpFile.size = String(data.byteLength)
-						return fileController.open(createDataFile(tmpFile, data))
+					let titleRow = `path,date`
+					let rows = logEntries.map(entry => {
+						return '"' + entry.contactFormPath + '",' + formatSortableDate(entry.date)
 					})
+					let csv = [titleRow].concat(rows).join("\n")
+
+					let data = stringToUtf8Uint8Array(csv)
+					let tmpFile = createFile()
+					tmpFile.name = "report.csv"
+					tmpFile.mimeType = "text/csv"
+					tmpFile.size = String(data.byteLength)
+					return fileController.open(createDataFile(tmpFile, data))
 				}))
 		}
-	}
-
-	_getContactFormTitle(contactForm: ContactForm) {
-		let pageTitle = ""
-		let language = contactForm.languages.find(l => l.code == lang.code)
-		if (language) {
-			pageTitle = language.pageTitle
-		} else if (contactForm.languages.length > 0) {
-			pageTitle = contactForm.languages[0].pageTitle
-		}
-		return pageTitle
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {

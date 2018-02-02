@@ -95,7 +95,7 @@ export class GlobalSettingsViewer {
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
 					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
-					logins.getUserController().isAdmin() && logins.getUserController().isPremiumAccount() ? m(".mt-l", [
+					logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount() ? m(".mt-l", [
 							m(".h4", lang.get('security_title')),
 							m(requirePasswordUpdateAfterResetDropdown),
 							this._customer() ?

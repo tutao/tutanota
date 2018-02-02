@@ -13,19 +13,18 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull, compareGroupInfos} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
 import {SettingsView} from "./SettingsView"
-import {GroupTypeRef} from "../api/entities/sys/Group"
-import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
-import {contains} from "../api/common/utils/ArrayUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType} from "../api/common/TutanotaConstants"
-import {UserTypeRef} from "../api/entities/sys/User"
+import {OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
+import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
+import {UserTypeRef} from "../api/entities/sys/User"
+import {contains} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -36,14 +35,13 @@ export class UserListView {
 	view: Function;
 	_listId: LazyLoaded<Id>;
 	_settingsView: SettingsView;
-	_adminUserGroupInfoIds: Id[];
 	_searchResultStreamDependency: stream;
+	_adminUserGroupInfoIds: Id[];
 	onremove: Function;
 
 	constructor(settingsView: SettingsView) {
-		this._settingsView = settingsView
 		this._adminUserGroupInfoIds = []
-
+		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return customer.userGroups
@@ -61,8 +59,12 @@ export class UserListView {
 								this._setLoadedCompletely();
 
 								// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-								return allUserGroupInfos
-
+								if (logins.getUserController().isGlobalAdmin()) {
+									return allUserGroupInfos
+								} else {
+									let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1);
+								}
 							})
 						})
 					})
@@ -117,14 +119,12 @@ export class UserListView {
 	}
 
 	_loadAdmins(): Promise<void> {
-		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			return load(GroupTypeRef, customer.adminGroup).then(adminGroup => {
-				return loadAll(GroupMemberTypeRef, adminGroup.members).map(adminGroupMember => {
-					return adminGroupMember.userGroupInfo[1]
-				}).then(ids => {
-					this._adminUserGroupInfoIds = ids
-				})
-			})
+		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)
+		if (adminGroupMembership == null) return Promise.resolve()
+		return loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0]).map(adminGroupMember => {
+			return adminGroupMember.userGroupInfo[1]
+		}).then(userGroupInfoIds => {
+			this._adminUserGroupInfoIds = userGroupInfoIds
 		})
 	}
 
@@ -155,7 +155,25 @@ export class UserListView {
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
-			this.list.entityEventReceived(elementId, operation)
+			if (!logins.getUserController().isGlobalAdmin()) {
+				let listEntity = this.list.getEntity(elementId)
+				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					if (listEntity) {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) == -1) {
+							this.list.entityEventReceived(elementId, OperationType.DELETE)
+						} else {
+							this.list.entityEventReceived(elementId, operation)
+						}
+					} else {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+							this.list.entityEventReceived(elementId, OperationType.CREATE)
+						}
+					}
+				})
+			} else {
+				this.list.entityEventReceived(elementId, operation)
+			}
 		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE) {
 			this._loadAdmins().then(() => {
 				this.list.redraw()

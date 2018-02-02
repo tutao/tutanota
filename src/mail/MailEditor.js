@@ -607,7 +607,7 @@ export class MailEditor {
 										if (customer.approvalStatus === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
 											return Dialog.error("tooManyMails_msg")
 										} else if (customer.approvalStatus === ApprovalState.INVOICE_NOT_PAID) {
-											if (logins.getUserController().isAdmin()) {
+											if (logins.getUserController().isGlobalAdmin()) {
 												// TODO display payment dialog
 												return Dialog.error(() => lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
 											} else {

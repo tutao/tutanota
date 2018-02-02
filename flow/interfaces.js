@@ -61,7 +61,8 @@ interface IUserController {
 	props: TutanotaProperties;
 	sessionId: IdTuple;
 	accessToken: string;
-	isAdmin():boolean;
+	isGlobalAdmin():boolean;
+	isGlobalOrLocalAdmin():boolean;
 	isFreeAccount(): boolean;
 	isPremiumAccount(): boolean;
 	isOutlookAccount(): boolean;
@@ -69,6 +70,7 @@ interface IUserController {
 	loadCustomer(): Promise<Customer>;
 	getMailGroupMemberships(): GroupMembership[];
 	getUserMailGroupMembership(): GroupMembership;
+	getLocalAdminGroupMemberships():GroupMembership[];
 	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void;
 	deleteSession(sync: boolean):Promise<void>;
 }

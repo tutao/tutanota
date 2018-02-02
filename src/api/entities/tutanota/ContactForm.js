@@ -76,6 +76,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "InputField",
 			"final": false
 		},
+		"statisticsLog": {
+			"name": "statisticsLog",
+			"id": 878,
+			"since": 25,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "StatisticLogRef",
+			"final": true
+		},
 		"delegationGroups_removed": {
 			"name": "delegationGroups_removed",
 			"id": 747,
@@ -96,6 +105,16 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"external": true
 		},
+		"targetGroup": {
+			"name": "targetGroup",
+			"id": 746,
+			"since": 19,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "Group",
+			"final": false,
+			"external": true
+		},
 		"targetGroupInfo": {
 			"name": "targetGroupInfo",
 			"id": 821,
@@ -105,20 +124,10 @@ export const _TypeModel: TypeModel = {
 			"refType": "GroupInfo",
 			"final": false,
 			"external": true
-		},
-		"targetMailGroup_removed": {
-			"name": "targetMailGroup_removed",
-			"id": 746,
-			"since": 19,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"refType": "Group",
-			"final": false,
-			"external": true
 		}
 	},
 	"app": "tutanota",
-	"version": "24"
+	"version": "25"
 }
 
 export function createContactForm(): ContactForm {

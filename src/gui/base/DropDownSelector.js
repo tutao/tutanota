@@ -15,7 +15,7 @@ export class DropDownSelector<T> {
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number) {
+	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number, icon: ?string) {
 		this.selectedValue = selectedValue instanceof Function ? selectedValue : stream(selectedValue)
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
@@ -28,19 +28,18 @@ export class DropDownSelector<T> {
 				console.log(`Dropdown ${this._field.label instanceof Function ? this._field.label() : this._field.label} couldn't find element for value: ${value}`)
 			}
 		})
-		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
-				return items.map(item => new Button(() => item.name, () => {
-					if (this.selectedValue() != item.value) {
-						if (this._changeHandler) {
-							this._changeHandler(item.value)
-						} else {
-							this.selectedValue(item.value)
-							m.redraw()
-						}
+		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => icon ? icon : Icons.Edit, () => {
+			return items.map(item => new Button(() => item.name, () => {
+				if (this.selectedValue() != item.value) {
+					if (this._changeHandler) {
+						this._changeHandler(item.value)
+					} else {
+						this.selectedValue(item.value)
+						m.redraw()
 					}
-				}).setType(ButtonType.Dropdown).setSelected(() => this.selectedValue() === item.value))
-			},
-			(dropdownWidth) ? dropdownWidth : undefined)
+				}
+			}).setType(ButtonType.Dropdown).setSelected(() => this.selectedValue() === item.value))
+		}, (dropdownWidth) ? dropdownWidth : undefined)
 		this._field._injectionsRight = () => [m(itemChooser)]
 
 		this.view = () => {

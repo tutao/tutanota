@@ -19,6 +19,7 @@ import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
 
@@ -53,8 +54,12 @@ export class GroupListView {
 							this._setLoadedCompletely();
 
 							// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-							return allGroupInfos
-
+							if (logins.getUserController().isGlobalAdmin()) {
+								return allGroupInfos
+							} else {
+								let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+								return allGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1)
+							}
 						})
 					})
 				} else {
@@ -131,7 +136,25 @@ export class GroupListView {
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
-			this.list.entityEventReceived(elementId, operation)
+			if (!logins.getUserController().isGlobalAdmin()) {
+				let listEntity = this.list.getEntity(elementId)
+				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					if (listEntity) {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) == -1) {
+							this.list.entityEventReceived(elementId, OperationType.DELETE)
+						} else {
+							this.list.entityEventReceived(elementId, operation)
+						}
+					} else {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+							this.list.entityEventReceived(elementId, OperationType.CREATE)
+						}
+					}
+				})
+			} else {
+				this.list.entityEventReceived(elementId, operation)
+			}
 		}
 	}
 }

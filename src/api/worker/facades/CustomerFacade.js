@@ -179,11 +179,11 @@ export class CustomerFacade {
 			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
 			return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
 				return this._worker.sendProgress(5).then(() => {
-					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
+					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(userGroupData => {
 						return this._worker.sendProgress(35).then(() => {
-							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(adminGroupData => {
+							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(adminGroupData => {
 								return this._worker.sendProgress(65).then(() => {
-									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
+									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(customerGroupData => {
 										return this._worker.sendProgress(95).then(() => {
 											let data = createCustomerAccountCreateData()
 											data.authToken = authToken
@@ -214,7 +214,7 @@ export class CustomerFacade {
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
+		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey).then(userGroupData => {
 			return {userGroupKey, userGroupData}
 		})
 		return Promise.resolve()

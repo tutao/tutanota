@@ -113,7 +113,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "26"
+	"version": "27"
 }
 
 export function createPaymentDataServicePutData(): PaymentDataServicePutData {

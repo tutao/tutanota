@@ -85,6 +85,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"administratedGroups": {
+			"name": "administratedGroups",
+			"id": 1306,
+			"since": 27,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "AdministratedGroupsRef",
+			"final": true
+		},
 		"keys": {
 			"name": "keys",
 			"id": 13,
@@ -156,7 +165,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "26"
+	"version": "27"
 }
 
 export function createGroup(): Group {

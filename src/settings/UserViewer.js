@@ -51,6 +51,7 @@ export class UserViewer {
 	_aliases: EditAliasesForm;
 	_usedStorage: TextField;
 	_admin: DropDownSelector<boolean>;
+	_administratedBy: DropDownSelector<?Id>;
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
@@ -78,10 +79,10 @@ export class UserViewer {
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
-		this._admin = new DropDownSelector("administrator_label", null, [{
-			name: lang.get("no_label"),
-			value: false
-		}, {name: lang.get("yes_label"), value: true}], isAdmin).setSelectionChangedHandler(makeAdmin => {
+		this._admin = new DropDownSelector("administrator_label", null, [
+			{name: lang.get("no_label"), value: false},
+			{name: lang.get("yes_label"), value: true}
+		], isAdmin).setSelectionChangedHandler(makeAdmin => {
 			if (this.userGroupInfo.deleted) {
 				Dialog.error("userAccountDeactivated_msg")
 			} else if (this._isItMe()) {
@@ -90,6 +91,7 @@ export class UserViewer {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
+
 
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
@@ -114,6 +116,32 @@ export class UserViewer {
 				let addGroupButton = new Button("addGroup_label", () => this._showAddUserToGroupDialog(), () => Icons.Add)
 				this._groupsTable = new Table(["name_label", "groupType_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, addGroupButton)
 				this._updateGroups()
+
+				let adminGroupIdToName: {name: string, value: ?Id}[] = [{
+					name: lang.get("administrator_label"),
+					value: null
+				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType == GroupType.LocalAdmin).map(gi => {
+					return {
+						name: getGroupInfoDisplayName(gi),
+						value: gi.group
+					}
+				}))
+				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.userGroupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
+					if (localAdminId == this.userGroupInfo.localAdmin) {
+						return
+					} else if (this.userGroupInfo.deleted) {
+						Dialog.error("userAccountDeactivated_msg")
+					} else if (this._isItMe()) {
+						Dialog.error("updateOwnAdminship_msg")
+					} else if (this.userGroupInfo.groupType == GroupType.Admin) {
+						Dialog.error("updateAdminshipGlobalAdmin_msg")
+					} else {
+						showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+							let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+							return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
+						}))
+					}
+				})
 			}
 		})
 
@@ -146,7 +174,10 @@ export class UserViewer {
 					m("", [
 						m(this._senderName),
 						m(password),
-						m(this._admin),
+						!logins.getUserController().isGlobalAdmin() ? null : [
+								m(this._admin),
+								this._administratedBy ? m(this._administratedBy) : null,
+							],
 						m(this._deactivated)
 					]),
 					(logins.getUserController().isPremiumAccount() || logins.getUserController().isFreeAccount()) ? m(this._secondFactorsForm) : null,
@@ -170,6 +201,9 @@ export class UserViewer {
 
 	_createOrUpdateWhitelistProtectionField() {
 		// currently not available
+		// if (!logins.getUserController().isGlobalAdmin()) {
+		// 	return
+		// }
 		// this._user.getAsync().then(user => {
 		// 	let userMailGroupId = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
 		// 	return load(MailboxGroupRootTypeRef, userMailGroupId).then(mailboxGroupRoot => {
@@ -215,9 +249,12 @@ export class UserViewer {
 				this._customer.getAsync().then(customer => {
 					Promise.map(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
-							let removeButton = new Button("remove_action", () => {
-								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
-							}, () => Icons.Cancel)
+							let removeButton
+							if (logins.getUserController().isGlobalAdmin() || (logins.getUserController().user.memberships.find(gm => gm.group == groupInfo.localAdmin) != null)) {
+								removeButton = new Button("remove_action", () => {
+									showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
+								}, () => Icons.Cancel)
+							}
 							return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
 						})
 					}).then(tableLines => {
@@ -261,7 +298,15 @@ export class UserViewer {
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			// remove all groups the user is already member of
-			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null)
+			let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+			let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => {
+				if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) == -1) {
+					return false
+				} else {
+					return !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null
+				}
+			})
 			if (availableGroupInfos.length > 0) {
 				availableGroupInfos.sort(compareGroupInfos)
 				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
@@ -323,7 +368,7 @@ export class UserViewer {
 	}
 
 	_isAdmin(user: User): boolean {
-		return user.memberships.find(m => m.admin) != null
+		return user.memberships.find(m => m.groupType == GroupType.Admin) != null
 	}
 
 	_deleteUser(restore: boolean): Promise<void> {
@@ -352,6 +397,9 @@ export class UserViewer {
 				this._senderName.setValue(updatedUserGroupInfo.name)
 				this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
 				this._updateUsedStorageAndAdminFlag()
+				if (this._administratedBy) {
+					this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
+				}
 				m.redraw()
 			})
 		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE && this._user.isLoaded() && isSameId(this._user.getLoaded()._id, elementId)) {

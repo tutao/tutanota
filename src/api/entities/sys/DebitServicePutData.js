@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "26"
+	"version": "27"
 }
 
 export function createDebitServicePutData(): DebitServicePutData {

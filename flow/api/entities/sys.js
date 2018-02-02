@@ -18,6 +18,7 @@ type Group = {
 	external:boolean;
 	type:NumberString;
 
+	administratedGroups:?AdministratedGroupsRef;
 	keys:KeyPair[];
 	admin:?Id;
 	customer:?Id;
@@ -38,11 +39,13 @@ type GroupInfo = {
 	_permissions:Id;
 	created:Date;
 	deleted:?Date;
+	groupType:?NumberString;
 	mailAddress:?string;
 	name:string;
 
 	mailAddressAliases:MailAddressAlias[];
 	group:Id;
+	localAdmin:?Id;
 }
 
 type GroupMembership = {
@@ -1404,4 +1407,32 @@ type WhitelabelParent = {
 
 	customer:Id;
 	whitelabelChildInParent:IdTuple;
+}
+
+type UpdateAdminshipData = {
+	_type: TypeRef<UpdateAdminshipData>;
+	_format:NumberString;
+	newAdminGroupEncGKey:Uint8Array;
+
+	group:Id;
+	newAdminGroup:Id;
+}
+
+type AdministratedGroup = {
+	_type: TypeRef<AdministratedGroup>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	groupType:NumberString;
+
+	groupInfo:IdTuple;
+	localAdminGroup:Id;
+}
+
+type AdministratedGroupsRef = {
+	_type: TypeRef<AdministratedGroupsRef>;
+	_id:Id;
+
+	items:Id;
 }

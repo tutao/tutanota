@@ -182,6 +182,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('changeAdminFlag', arguments))
 	}
 
+	updateAdminship(groupId: Id, newAdminGroupId: Id) {
+		return this._postRequest(new Request('updateAdminship', arguments))
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
 		return this._postRequest(new Request('readUsedUserStorage', arguments))
 	}
@@ -198,8 +202,8 @@ export class WorkerClient {
 		return this._postRequest(new Request('createMailGroup', arguments))
 	}
 
-	createTeamGroup(name: string): Promise<void> {
-		return this._postRequest(new Request('createTeamGroup', arguments))
+	createLocalAdminGroup(name: string): Promise<void> {
+		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
 	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {

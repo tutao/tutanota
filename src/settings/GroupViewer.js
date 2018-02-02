@@ -7,7 +7,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {update, load, loadRange, loadAll} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId, isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef, GENERATED_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
@@ -26,6 +26,8 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "./BuyDialog"
+import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
+import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 
 assertMainOrNode()
 
@@ -35,9 +37,12 @@ export class GroupViewer {
 	_group: LazyLoaded<Group>;
 	_name: TextField;
 	_usedStorage: TextField;
+	_administratedBy: DropDownSelector<?Id>;
 	_deactivated: DropDownSelector<boolean>;
 	_members: LazyLoaded<GroupInfo[]>;
 	_membersTable: Table;
+	_administratedGroups: LazyLoaded<GroupInfo[]>;
+	_administratedGroupsTable: Table;
 
 	constructor(groupInfo: GroupInfo) {
 		this.groupInfo = groupInfo
@@ -64,8 +69,9 @@ export class GroupViewer {
 					return null
 				}
 			}).then(newName => {
-				this.groupInfo.name = newName
-				update(this.groupInfo)
+				let newGroupInfo = Object.assign({}, this.groupInfo)
+				newGroupInfo.name = newName
+				update(newGroupInfo)
 			})
 		}, () => Icons.Edit)
 		this._name._injectionsRight = () => [m(editNameButton)]
@@ -73,6 +79,32 @@ export class GroupViewer {
 		let mailAddress = new TextField("mailAddress_label").setValue(this.groupInfo.mailAddress).setDisabled()
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.groupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
+
+		localAdminGroupInfoModel.init().then(localAdminGroupInfos => {
+			let adminGroupIdToName: {name: string, value: ?Id}[] = [{
+				name: lang.get("administrator_label"),
+				value: null
+			}].concat(localAdminGroupInfos.map(gi => {
+				return {
+					name: getGroupInfoDisplayName(gi),
+					value: gi.group
+				}
+			}))
+			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.groupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
+				if (localAdminId == this.groupInfo.localAdmin) {
+					return
+				} else if (this.groupInfo.deleted) {
+					Dialog.error("groupDeactivated_msg")
+				} else {
+					showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+						let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+						return worker.updateAdminship(this.groupInfo.group, newAdminGroupId)
+					}))
+				}
+			})
+			m.redraw()
+		})
+
 
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
@@ -95,6 +127,21 @@ export class GroupViewer {
 		this._membersTable = new Table(["name_label", "mailAddress_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addUserButton)
 		this._updateMembers()
 
+		if (this.groupInfo.groupType == GroupType.LocalAdmin) {
+			this._administratedGroups = new LazyLoaded(() => {
+				return this._group.getAsync().then(group => {
+					// load only up to 200 members to avoid too long loading, like for account groups
+					return loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true).map(administratedGroup => {
+						return load(GroupInfoTypeRef, administratedGroup.groupInfo)
+					})
+				})
+			})
+
+			let addAdminshipButton = new Button("addUserToGroup_label", () => this._showAddAdminship(), () => Icons.Add)
+			this._administratedGroupsTable = new Table(["name_label", "mailAddress_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addAdminshipButton)
+			this._updateAdministratedGroups()
+		}
+
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l", [
@@ -105,6 +152,7 @@ export class GroupViewer {
 					]),
 					m("", [
 						m(this._name),
+						(logins.getUserController().isGlobalAdmin() && this._administratedBy) ? m(this._administratedBy) : null,
 						m(this._deactivated)
 					]),
 					(!this.groupInfo.deleted) ? m(".h4.mt-l.mb-s", lang.get('groupMembers_label')) : null,
@@ -114,7 +162,11 @@ export class GroupViewer {
 							m("", [
 								m(mailAddress),
 							])
-						]) : null
+						]) : null,
+					this.groupInfo.groupType != GroupType.LocalAdmin ? null : [
+							m(".h4.mt-l.mb-s", lang.get('administratedGroups_label')),
+							m(this._administratedGroupsTable)
+						]
 				]),
 			]
 		}
@@ -161,6 +213,23 @@ export class GroupViewer {
 		})
 	}
 
+	_updateAdministratedGroups(): void {
+		this._administratedGroups.reset()
+		this._administratedGroups.getAsync().map(groupInfo => {
+			let removeButton = new Button("remove_action", () => {
+				console.log("remove adminship")
+				//showProgressDialog("pleaseWait_msg", load(GroupTypeRef, groupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
+			}, () => Icons.Cancel)
+			return new TableLine([groupInfo.name, neverNull(groupInfo.mailAddress)], removeButton)
+		}).then(tableLines => {
+			this._administratedGroupsTable.updateEntries(tableLines)
+		})
+	}
+
+	_showAddAdminship(): void {
+		console.log("add adminship")
+	}
+
 	_isMailGroup() {
 		return (this._group.isLoaded() && this._group.getLoaded().type == GroupType.Mail)
 	}
@@ -181,6 +250,9 @@ export class GroupViewer {
 					this.groupInfo = updatedUserGroupInfo
 					this._name.setValue(updatedUserGroupInfo.name)
 					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
+					if (this._administratedBy) {
+						this._administratedBy.selectedValue(this.groupInfo.localAdmin)
+					}
 					this._updateUsedStorage()
 					m.redraw()
 				} else {
@@ -199,6 +271,8 @@ export class GroupViewer {
 export function getGroupTypeName(groupType: NumberString): string {
 	if (groupType == GroupType.Mail) {
 		return lang.get("sharedMailbox_label")
+	} else if (groupType == GroupType.LocalAdmin) {
+		return lang.get("localAdmin_label")
 	} else {
 		return groupType // just for testing
 	}

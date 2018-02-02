@@ -84,7 +84,7 @@ export class EditSecondFactorsForm {
 					if (u2f && differentDomainAppIds.length > 1) {
 						domainInfo = ((f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId)
 					}
-					return new TableLine([f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
+					return new TableLine([f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])], logins.getUserController().isGlobalOrLocalAdmin() ? removeButton : null)
 				})
 				this._2FATable.updateEntries(tableLines)
 			})

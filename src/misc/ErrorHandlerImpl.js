@@ -99,7 +99,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof OutOfSyncError) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
-		if (logins.getUserController().isAdmin()) {
+		if (logins.getUserController().isGlobalAdmin()) {
 			Dialog.error("insufficientStorageAdmin_msg").then(() => {
 				// tutao.locator.navigator.settings()
 				// tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE)
@@ -173,7 +173,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 		if (customer.approvalStatus == ApprovalStatus.RegistrationApprovalNeeded) {
 			return Dialog.error("waitingForApproval_msg").return(false)
 		} else if (customer.approvalStatus == ApprovalStatus.InvoiceNotPaid) {
-			if (logins.getUserController().isAdmin()) {
+			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
 						return lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()})

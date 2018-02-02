@@ -118,6 +118,9 @@ export class WorkerImpl {
 			changeAdminFlag: (message: Request) => {
 				return locator.userManagement.changeAdminFlag.apply(locator.userManagement, message.args)
 			},
+			updateAdminship: (message: Request) => {
+				return locator.userManagement.updateAdminship.apply(locator.userManagement, message.args)
+			},
 			readUsedUserStorage: (message: Request) => {
 				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
 			},
@@ -142,8 +145,8 @@ export class WorkerImpl {
 			createMailGroup: (message: Request) => {
 				return locator.groupManagement.createMailGroup.apply(locator.groupManagement, message.args)
 			},
-			createTeamGroup: (message: Request) => {
-				return locator.groupManagement.createTeamGroup.apply(locator.groupManagement, message.args)
+			createLocalAdminGroup: (message: Request) => {
+				return locator.groupManagement.createLocalAdminGroup.apply(locator.groupManagement, message.args)
 			},
 			addUserToGroup: (message: Request) => {
 				return locator.groupManagement.addUserToGroup.apply(locator.groupManagement, message.args)

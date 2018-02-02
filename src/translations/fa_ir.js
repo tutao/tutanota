@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2017-12-19T13:44:44Z",
+	"updated_at": "2018-01-26T10:23:08Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",
@@ -28,8 +28,8 @@ module.exports = {
 		"addInboxRule_action": "افزودن قانون صندوق ورودی",
 		"addinInfoText_msg": "در اینجا شما می توانید Outlook-Addin برای استارت Tutanota دانلود کنید. نسخه جدید به صورت خودکار نصب خواهد شد وقتی Outlook  را روشن کنید.",
 		"addNext_action": "افزودن آیتم بعدی به انتخاب",
-		"addParticipant_label": "افزودن مشارکت‌کننده",
 		"addPrevious_action": "افزودن آیتم قبلی به انتخاب",
+		"addResponsiblePerson_label": "افزودن مشارکت‌کننده",
 		"address_label": "نشانی",
 		"addRule_action": "افزودن کردن قانون",
 		"addSecondFactor_action": "افزودن فاکتور دوم",
