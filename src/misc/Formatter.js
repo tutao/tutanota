@@ -91,9 +91,9 @@ const referenceDate = new Date(2017, 5, 23)
  * no        6/23/2017
  *
  * @param dateString
- * @returns {number}
+ * @returns The timestamp from the given date string
  */
-export function parseDate(dateString: string) {
+export function parseDate(dateString: string): number {
 	let languageTag = lang.languageTag.toLowerCase()
 
 	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
@@ -122,6 +122,7 @@ function _cleanupAndSplit(dateString: string): number[] {
 		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
 	}
 	dateString = dateString.replace(/ /g, "")
+	dateString = dateString.replace(/‎/g, "") // remove left-to-right character (included on Edge)
 	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
 }
 

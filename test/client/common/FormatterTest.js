@@ -26,6 +26,11 @@ o.spec("FormatterTest", function () {
 		})
 	}))
 
+	o("parse date edge case :-)", browser(function () {
+		lang._setLanguageTag("de")
+		o(parseDate("‎03/‎05/‎2015")).equals(1430604000000) // contains left-to-right characters
+	}))
+
 	o("parse date edge cases", browser(function () {
 		lang._setLanguageTag("de")
 		try {
