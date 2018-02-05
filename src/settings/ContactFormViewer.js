@@ -51,7 +51,7 @@ export class ContactFormViewer {
 			mailGroupField.setValue(getGroupInfoDisplayName(groupInfo))
 			m.redraw()
 		})
-		let participantMailGroupsField = new TextField("participants_label").setValue(lang.get("loading_msg")).setDisabled()
+		let participantMailGroupsField = new TextField("addResponsiblePerson_label").setValue(lang.get("loading_msg")).setDisabled()
 		let mailGroupNames = loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
 			if (mailGroupNames.length == 0) {
 				participantMailGroupsField.setValue(lang.get("noEntries_msg"))
