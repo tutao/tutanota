@@ -279,6 +279,7 @@ export class MailView {
 			})
 
 			if (this.selectedFolder) {
+				// find the folder in the new folder list that was previously selected
 				let currentlySelectedFolder = mailModel.getMailFolder(this.selectedFolder.mails)
 				if (currentlySelectedFolder) {
 					this.selectedFolder = currentlySelectedFolder
@@ -378,7 +379,7 @@ export class MailView {
 
 
 	isInitialized(): boolean {
-		return Object.keys(this._mailboxExpanders).length > 0
+		return Object.keys(this._mailboxExpanders).length > 0 && this.selectedFolder != null
 	}
 
 	_setUrl(url: string) {
