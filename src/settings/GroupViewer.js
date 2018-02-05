@@ -177,10 +177,17 @@ export class GroupViewer {
 
 	_showAddMember(): void {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			return loadAll(GroupInfoTypeRef, customer.userGroups).filter(userGroupInfo => {
+			return loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
 				// remove all users that are already member
-				return !userGroupInfo.deleted && (this._members.getLoaded().find(m => isSameId(m._id, userGroupInfo._id)) == null)
-			}).then(availableUserGroupInfos => {
+				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+				let availableUserGroupInfos = userGroupInfos.filter(g => {
+					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) == -1) {
+						return false
+					} else {
+						return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
+					}
+				})
 				if (availableUserGroupInfos.length > 0) {
 					availableUserGroupInfos.sort(compareGroupInfos)
 					let d = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
