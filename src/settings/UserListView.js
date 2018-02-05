@@ -93,7 +93,7 @@ export class UserListView {
 			}:any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
-			emptyMessage: lang.get("emptyString_msg") // is never shown because there is always at least one user
+			emptyMessage: lang.get("noEntries_msg") // is never shown because there is always at least one user
 		})
 
 		this.view = (): Vnode<any> => {
