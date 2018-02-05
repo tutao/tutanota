@@ -82,7 +82,7 @@ export class GroupViewer {
 
 		localAdminGroupInfoModel.init().then(localAdminGroupInfos => {
 			let adminGroupIdToName: {name: string, value: ?Id}[] = [{
-				name: lang.get("administrator_label"),
+				name: lang.get("globalAdmin_label"),
 				value: null
 			}].concat(localAdminGroupInfos.map(gi => {
 				return {

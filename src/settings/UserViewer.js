@@ -118,7 +118,7 @@ export class UserViewer {
 				this._updateGroups()
 
 				let adminGroupIdToName: {name: string, value: ?Id}[] = [{
-					name: lang.get("administrator_label"),
+					name: lang.get("globalAdmin_label"),
 					value: null
 				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType == GroupType.LocalAdmin).map(gi => {
 					return {

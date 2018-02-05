@@ -170,7 +170,7 @@ export class GlobalSettingsViewer {
 									]),
 									groupInfo() ? m("tr", [
 											m("td", lang.get("group_label")),
-											m("td.pl", getGroupInfoDisplayName(groupInfo())),
+											m("td.pl", customer.adminGroup == groupInfo().group ? lang.get("globalAdmin_label") : getGroupInfoDisplayName(groupInfo())),
 										]) : null,
 									m("tr", [
 										m("td", lang.get("time_label")),

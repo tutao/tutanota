@@ -985,5 +985,6 @@ module.exports = {
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Aliasse mit der Domain: {domainName} und entfernen Sie die Domain als Registrierungs-Domain.",
 		"localAdminGroup_label": "Lokale Admin-Gruppe",
 		"cancelLocalAdminGroup_label": "Abbestellung von lokaler Admin-Gruppe",
+		"globalAdmin_label": "Globaler Admin",
 	}
 }
