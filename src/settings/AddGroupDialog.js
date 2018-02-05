@@ -53,11 +53,11 @@ export function show(): Promise<void> {
 						}
 					}))
 				} else if (typeField.selectedValue() == GroupType.LocalAdmin) {
-					//return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
-					//	if (accepted) {
-					return worker.createLocalAdminGroup(nameField.value())
-					//	}
-					//}))
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false).then(accepted => {
+						if (accepted) {
+							return worker.createLocalAdminGroup(nameField.value())
+						}
+					}))
 				}
 			}
 		})

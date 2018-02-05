@@ -983,5 +983,7 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"premiumCancelledMessage_msg": "This order cannot be processed because your Premium account is cancelled. Please contact the support to reactivate your Premium account.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.",
+		"localAdminGroup_label": "Local admin group",
+		"cancelLocalAdminGroup_label": "Cancel local admin group",
 	}
 }

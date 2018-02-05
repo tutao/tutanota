@@ -114,7 +114,8 @@ export class GroupViewer {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
 				} else {
-					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
+					let bookingItemType = (this.groupInfo.groupType == GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
 						if (confirmed) {
 							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate))
 						}
