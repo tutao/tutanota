@@ -79,7 +79,7 @@ export class UserViewer {
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
-		this._admin = new DropDownSelector("administrator_label", null, [
+		this._admin = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
 			{name: lang.get("yes_label"), value: true}
 		], isAdmin).setSelectionChangedHandler(makeAdmin => {
