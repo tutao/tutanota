@@ -5,7 +5,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {neverNull} from "../../common/utils/Utils"
 import type {GroupData, Db, SearchIndexEntry, IndexUpdate} from "./SearchTypes"
-import {_createNewIndexUpdate, userIsAdmin} from "./IndexUtils"
+import {_createNewIndexUpdate, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
@@ -61,7 +61,7 @@ export class GroupInfoIndexer {
 	 * Indexes the group infos if they are not yet indexed.
 	 */
 	indexAllUserAndTeamGroupInfosForAdmin(user: User): Promise<void> {
-		if (userIsAdmin(user)) {
+		if (userIsLocalOrGlobalAdmin(user)) {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					return t.get(GroupDataOS, customer.customerGroup).then((groupData: GroupData) => {
@@ -89,7 +89,7 @@ export class GroupInfoIndexer {
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
 		return Promise.each(events, (event, index) => {
-			if (userIsAdmin(user)) {
+			if (userIsLocalOrGlobalAdmin(user)) {
 				if (event.operation == OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {
 						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)

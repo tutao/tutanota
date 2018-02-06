@@ -45,7 +45,11 @@ export function getAppId(typeRef: TypeRef<any>): number {
 	throw new Error("non indexed application " + typeRef.app)
 }
 
-export function userIsAdmin(user: User): boolean {
+export function userIsLocalOrGlobalAdmin(user: User): boolean {
+	return user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
+}
+
+export function userIsGlobalAdmin(user: User): boolean {
 	return user.memberships.find(m => m.groupType == GroupType.Admin) != null
 }
 
