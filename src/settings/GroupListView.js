@@ -58,7 +58,7 @@ export class GroupListView {
 								return allGroupInfos
 							} else {
 								let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-								return allGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1)
+								return allGroupInfos.filter((gi: GroupInfo) => _isAdministratedGroup(localAdminGroupIds, gi))
 							}
 						})
 					})
@@ -141,13 +141,13 @@ export class GroupListView {
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 					if (listEntity) {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) == -1) {
+						if (!_isAdministratedGroup(localAdminGroupIds, gi)) {
 							this.list.entityEventReceived(elementId, OperationType.DELETE)
 						} else {
 							this.list.entityEventReceived(elementId, operation)
 						}
 					} else {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+						if (_isAdministratedGroup(localAdminGroupIds, gi)) {
 							this.list.entityEventReceived(elementId, OperationType.CREATE)
 						}
 					}
@@ -157,6 +157,17 @@ export class GroupListView {
 			}
 		}
 	}
+}
+
+function _isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo) {
+	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+		return true // group is administrated by local admin group of this user
+	} else if (localAdminGroupIds.indexOf(gi.group) != -1) {
+		return true // group is one of the local admin groups of this user
+	} else {
+		return false
+	}
+
 }
 
 export class GroupRow {
