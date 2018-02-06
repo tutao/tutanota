@@ -74,10 +74,10 @@ o.spec("Index Utils", () => {
 	o("userIsAdmin", function () {
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 		o(userIsAdmin(user)).equals(true)
 
-		user.memberships[0].admin = false
+		user.memberships[0].groupType = GroupType.LocalAdmin
 		o(userIsAdmin(user)).equals(false)
 	})
 
