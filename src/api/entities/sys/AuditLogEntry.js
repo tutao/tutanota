@@ -112,6 +112,16 @@ export const _TypeModel: TypeModel = {
 			"refType": "GroupInfo",
 			"final": true,
 			"external": false
+		},
+		"modifiedGroupInfo": {
+			"name": "modifiedGroupInfo",
+			"id": 1307,
+			"since": 27,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "GroupInfo",
+			"final": true,
+			"external": false
 		}
 	},
 	"app": "sys",

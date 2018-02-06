@@ -1198,6 +1198,7 @@ type AuditLogEntry = {
 	modifiedEntity:string;
 
 	groupInfo:?IdTuple;
+	modifiedGroupInfo:?IdTuple;
 }
 
 type AuditLogRef = {

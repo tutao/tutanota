@@ -10,7 +10,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SpamRuleType, OperationType, GroupType} from "../api/common/TutanotaConstants"
-import {neverNull, getGroupInfoDisplayName, getUserGroupMemberships} from "../api/common/utils/Utils"
+import {neverNull, getUserGroupMemberships} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
@@ -140,16 +140,24 @@ export class GlobalSettingsViewer {
 			loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then(auditLog => {
 				this._auditLogTable.updateEntries(auditLog.map(line => {
 					let showDetails = new Button("showMore_action", () => {
+						let modifiedGroupInfo = stream()
 						let groupInfo = stream()
-						let promise = Promise.resolve()
+						let groupInfoLoadingPromises = []
+						if (line.modifiedGroupInfo) {
+							groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.modifiedGroupInfo).then(gi => {
+								modifiedGroupInfo(gi)
+							}).catch(NotAuthorizedError, e => {
+								// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+							}))
+						}
 						if (line.groupInfo) {
-							promise = load(GroupInfoTypeRef, line.groupInfo).then(gi => {
+							groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.groupInfo).then(gi => {
 								groupInfo(gi)
 							}).catch(NotAuthorizedError, e => {
 								// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-							})
+							}))
 						}
-						promise.then(() => {
+						Promise.all(groupInfoLoadingPromises).then(() => {
 							let dialog = Dialog.smallActionDialog(lang.get("auditLog_title"), {
 								view: () => m("table.pt", [
 									m("tr", [
@@ -166,11 +174,11 @@ export class GlobalSettingsViewer {
 									]),
 									m("tr", [
 										m("td", lang.get("modified_label")),
-										m("td.pl", line.modifiedEntity),
+										m("td.pl", (modifiedGroupInfo() && this._getGroupInfoDisplayText(modifiedGroupInfo())) ? this._getGroupInfoDisplayText(modifiedGroupInfo()) : line.modifiedEntity),
 									]),
 									groupInfo() ? m("tr", [
 											m("td", lang.get("group_label")),
-											m("td.pl", customer.adminGroup == groupInfo().group ? lang.get("globalAdmin_label") : getGroupInfoDisplayName(groupInfo())),
+											m("td.pl", customer.adminGroup == groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
 										]) : null,
 									m("tr", [
 										m("td", lang.get("time_label")),
@@ -184,6 +192,16 @@ export class GlobalSettingsViewer {
 				}))
 			})
 		})
+	}
+
+	_getGroupInfoDisplayText(groupInfo: GroupInfo) {
+		if (groupInfo.name && groupInfo.mailAddress) {
+			return groupInfo.name + " <" + groupInfo.mailAddress + ">"
+		} else if (groupInfo.mailAddress) {
+			return groupInfo.mailAddress
+		} else {
+			return groupInfo.name
+		}
 	}
 
 	_updateDomains() {
