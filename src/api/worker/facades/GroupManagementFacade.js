@@ -87,7 +87,7 @@ export class GroupManagementFacade {
 			this.getAdminGroupKey(userGroup).then(adminGroupKeyForUserGroup => {
 				let userGroupKey = decryptKey(adminGroupKeyForUserGroup, neverNull(userGroup.adminGroupEncGKey))
 				return load(GroupTypeRef, groupId).then(group => {
-					this.getAdminGroupKey(userGroup).then(adminGroupKey => {
+					this.getAdminGroupKey(group).then(adminGroupKey => {
 						let groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
 						let data = createMembershipAddData()
 						data.user = user._id
