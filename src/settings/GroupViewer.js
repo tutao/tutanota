@@ -91,8 +91,8 @@ export class GroupViewer {
 				}
 			}))
 			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.groupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
-				if (localAdminId == this.groupInfo.localAdmin) {
-					return
+				if (this.groupInfo.groupType == GroupType.LocalAdmin) {
+					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
 				} else if (this.groupInfo.deleted) {
 					Dialog.error("groupDeactivated_msg")
 				} else {

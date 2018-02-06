@@ -87,6 +87,8 @@ export class UserViewer {
 				Dialog.error("userAccountDeactivated_msg")
 			} else if (this._isItMe()) {
 				Dialog.error("removeOwnAdminFlagInfo_msg")
+			} else if (this.userGroupInfo.localAdmin != null) {
+				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
@@ -127,20 +129,20 @@ export class UserViewer {
 					}
 				}))
 				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.userGroupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
-					if (localAdminId == this.userGroupInfo.localAdmin) {
-						return
-					} else if (this.userGroupInfo.deleted) {
-						Dialog.error("userAccountDeactivated_msg")
-					} else if (this._isItMe()) {
-						Dialog.error("updateOwnAdminship_msg")
-					} else if (this.userGroupInfo.groupType == GroupType.Admin) {
-						Dialog.error("updateAdminshipGlobalAdmin_msg")
-					} else {
-						showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-							let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
-							return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
-						}))
-					}
+					return this._user.getAsync().then(user => {
+						if (this.userGroupInfo.deleted) {
+							Dialog.error("userAccountDeactivated_msg")
+						} else if (this._isItMe()) {
+							Dialog.error("updateOwnAdminship_msg")
+						} else if (this._isAdmin(user)) {
+							Dialog.error("updateAdminshipGlobalAdmin_msg")
+						} else {
+							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
+							}))
+						}
+					})
 				})
 			}
 		})
