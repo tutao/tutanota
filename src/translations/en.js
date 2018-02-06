@@ -988,7 +988,7 @@ module.exports = {
 		"globalAdmin_label": "Global admin",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"updateAdminshipLocalAdminGroupError_msg": "You can't change the adminship of a local admin group.",
-		
-
+		"removeUserFromGroupNotAdministratedError_msg": "You cannot remove a user you do not administrate from a group.",
+		"removeUserFromGroupNotAdministratedUserError_msg": "You cannot remove a user from a group you do not administrate.",
 	}
 }

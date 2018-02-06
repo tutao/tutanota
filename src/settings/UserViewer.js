@@ -19,7 +19,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError} from "../api/common/error/RestError"
+import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
 import * as BuyDialog from "./BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
@@ -252,11 +252,11 @@ export class UserViewer {
 					Promise.map(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
-							if (logins.getUserController().isGlobalAdmin() || (logins.getUserController().user.memberships.find(gm => gm.group == groupInfo.localAdmin) != null)) {
-								removeButton = new Button("remove_action", () => {
-									showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
-								}, () => Icons.Cancel)
-							}
+							removeButton = new Button("remove_action", () => {
+								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group)).catch(NotAuthorizedError, e => {
+									Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
+								})
+							}, () => Icons.Cancel)
 							return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
 						})
 					}).then(tableLines => {

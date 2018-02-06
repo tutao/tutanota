@@ -987,6 +987,8 @@ module.exports = {
 		"cancelLocalAdminGroup_label": "Abbestellung von lokaler Admin-Gruppe",
 		"globalAdmin_label": "Globaler Admin",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Sie können einen lokal administrierten Benutzer nicht zum globalen Admin machen.",
-		"updateAdminshipLocalAdminGroupError_msg": "Sie können den Admin einer lokalen Admin-Gruppe nicht ändern."
+		"updateAdminshipLocalAdminGroupError_msg": "Sie können den Admin einer lokalen Admin-Gruppe nicht ändern.",
+		"removeUserFromGroupNotAdministratedError_msg": "Sie können einen Benutzer, den Sie nicht administrieren, nicht aus einer Gruppe entfernen.",
+		"removeUserFromGroupNotAdministratedUserError_msg": "Sie können einen Benutzer nicht aus einer Gruppe entfernen, die Sie nicht administrieren.",
 	}
 }

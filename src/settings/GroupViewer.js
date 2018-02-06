@@ -15,7 +15,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError} from "../api/common/error/RestError"
+import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
@@ -213,7 +213,9 @@ export class GroupViewer {
 		this._members.reset()
 		this._members.getAsync().map(userGroupInfo => {
 			let removeButton = new Button("remove_action", () => {
-				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
+				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group))).catch(NotAuthorizedError, e => {
+					Dialog.error("removeUserFromGroupNotAdministratedError_msg")
+				})
 			}, () => Icons.Cancel)
 			return new TableLine([userGroupInfo.name, neverNull(userGroupInfo.mailAddress)], removeButton)
 		}).then(tableLines => {
