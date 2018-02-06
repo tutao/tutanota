@@ -79,7 +79,7 @@ export class UserViewer {
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
-		this._admin = new DropDownSelector("administrator_label", null, [
+		this._admin = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
 			{name: lang.get("yes_label"), value: true}
 		], isAdmin).setSelectionChangedHandler(makeAdmin => {
@@ -150,7 +150,7 @@ export class UserViewer {
 			return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
 				loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
-						let contactFormsAddButton = new Button("addParticipant_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
+						let contactFormsAddButton = new Button("addResponsiblePerson_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
 						this._contactFormsTable = new Table(["contactForms_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, contactFormsAddButton)
 						this._updateContactForms()
 					}
@@ -332,7 +332,7 @@ export class UserViewer {
 						let d = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
 							return {name: cf.path, value: cf}
 						}), contactForms[0], 250)
-						return Dialog.smallDialog(lang.get("addParticipant_label"), {
+						return Dialog.smallDialog(lang.get("responsiblePersons_label"), {
 							view: () => m(d)
 						}, null).then(ok => {
 							if (ok) {

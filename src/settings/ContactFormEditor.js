@@ -116,7 +116,7 @@ export class ContactFormEditor {
 				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
 				}), availableGroupInfos[0], 250)
-				return Dialog.smallDialog(lang.get("addResponsiblePerson_label"), {
+				return Dialog.smallDialog(lang.get("responsiblePersons_label"), {
 					view: () => m(d)
 				}, null).then(ok => {
 					if (ok) {
