@@ -51,14 +51,12 @@ export class ContactFormViewer {
 			mailGroupField.setValue(getGroupInfoDisplayName(groupInfo))
 			m.redraw()
 		})
-		let participantMailGroupsField = new TextField("responsiblePersons_label").setValue(lang.get("loading_msg")).setDisabled()
-		let mailGroupNames = loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
-			if (mailGroupNames.length == 0) {
-				participantMailGroupsField.setValue(lang.get("noEntries_msg"))
-			} else {
-				participantMailGroupsField.setValue(mailGroupNames.join("; "))
+		let participantMailGroupsField = null
+		loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
+			if (mailGroupNames.length > 0) {
+				participantMailGroupsField = new TextField("responsiblePersons_label").setValue(mailGroupNames.join("; ")).setDisabled()
+				m.redraw()
 			}
-			m.redraw()
 		})
 
 		let language = getDefaultContactFormLanguage(this.contactForm.languages)
@@ -84,9 +82,9 @@ export class ContactFormViewer {
 						m(actions),
 					]),
 					m(mailGroupField),
-					m(".mt-l", [
-						m(participantMailGroupsField),
-					]),
+					participantMailGroupsField ? m(".mt-l", [
+							m(participantMailGroupsField),
+						]) : null,
 					m(".h4.mt-l", lang.get("display_action")),
 					m(urlField),
 					m(pageTitleField),

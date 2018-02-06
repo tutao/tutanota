@@ -97,16 +97,22 @@ export class ContactFormEditor {
 			this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
 		})
 		let userDropdown = createDropDownButton("account_label", () => BootIcons.Contacts, () => {
-			return allUserGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => this._receivingMailbox(gi))
-				.setType(ButtonType.Dropdown)
+			return allUserGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => {
+				this._participantGroupInfoList.length = 0
+				this._updateParticipantGroupInfosTable()
+				this._receivingMailbox(gi)
+			}).setType(ButtonType.Dropdown)
 				.setSelected(() => this._receivingMailbox() === gi))
 		}, 250)
-		let groupsDropdown = createDropDownButton("groups_label", () => Icons.People, () => {
-			return allSharedMailboxGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => this._receivingMailbox(gi))
-				.setType(ButtonType.Dropdown)
-				.setSelected(() => this._receivingMailbox() === gi))
-		}, 250)
-		this._receivingMailboxField._injectionsRight = () => [m(userDropdown), m(groupsDropdown)]
+		let groupsDropdown = null
+		if (allSharedMailboxGroupInfos.length > 0) {
+			groupsDropdown = createDropDownButton("groups_label", () => Icons.People, () => {
+				return allSharedMailboxGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => this._receivingMailbox(gi))
+					.setType(ButtonType.Dropdown)
+					.setSelected(() => this._receivingMailbox() === gi))
+			}, 250)
+		}
+		this._receivingMailboxField._injectionsRight = () => (groupsDropdown) ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]
 
 		// remove all groups that do not exist any more
 		this._participantGroupInfoList = mapAndFilterNull(this._contactForm.participantGroupInfos, groupInfoId => allUserGroupInfos.find(g => isSameId(g._id, groupInfoId)))
