@@ -15,7 +15,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
+import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
@@ -117,7 +117,9 @@ export class GroupViewer {
 					let bookingItemType = (this.groupInfo.groupType == GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
 					return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
 						if (confirmed) {
-							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate))
+							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate).catch(PreconditionFailedError, e => {
+								Dialog.error("localAdminGroupAssigned_msg")
+							}))
 						}
 					}))
 				}

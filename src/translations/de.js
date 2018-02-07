@@ -990,5 +990,6 @@ module.exports = {
 		"updateAdminshipLocalAdminGroupError_msg": "Du kannst den Admin einer lokalen Admin-Gruppe nicht ändern.",
 		"removeUserFromGroupNotAdministratedError_msg": "Du kannst einen Benutzer, den du nicht administrierst, nicht aus einer Gruppe entfernen.",
 		"removeUserFromGroupNotAdministratedUserError_msg": "Du kannst einen Benutzer nicht aus einer Gruppe entfernen, die du nicht administrierst.",
+		"localAdminGroupAssigned_msg": "User oder Gruppen sind dieser lokalen Admin-Gruppe noch zugeordnet. Sie kann nicht deaktiviert werden.",
 	}
 }
