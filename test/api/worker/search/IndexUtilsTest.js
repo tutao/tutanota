@@ -85,7 +85,7 @@ o.spec("Index Utils", () => {
 		o(userIsLocalOrGlobalAdmin(user)).equals(false)
 	})
 
-	o.only("userIsGlobalAdmin", function () {
+	o("userIsGlobalAdmin", function () {
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
 		user.memberships[0].groupType = GroupType.Admin
