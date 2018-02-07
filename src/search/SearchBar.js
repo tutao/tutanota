@@ -233,7 +233,7 @@ export class SearchBar {
 				let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
 
 				// filter group infos for local admins
-				if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type)) {
+				if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController().isGlobalAdmin()) {
 					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 					filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
 				}
