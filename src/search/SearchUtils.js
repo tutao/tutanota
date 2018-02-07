@@ -162,3 +162,13 @@ function getValueFromRoute(route: string, name: string): ?string {
 		return null
 	}
 }
+
+export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo) {
+	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+		return true // group is administrated by local admin group of this user
+	} else if (localAdminGroupIds.indexOf(gi.group) != -1) {
+		return true // group is one of the local admin groups of this user
+	} else {
+		return false
+	}
+}

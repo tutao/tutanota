@@ -330,11 +330,9 @@ export class Indexer {
 			}
 
 			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) == -1) {
-				console.log("not member of group", groupId)
 				return Promise.resolve()
 			}
 			if (this._indexedGroupIds.indexOf(groupId) == -1) {
-				console.log("not indexed group", groupId)
 				return Promise.resolve()
 			}
 			let indexUpdate = _createNewIndexUpdate(groupId)

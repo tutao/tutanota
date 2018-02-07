@@ -33,7 +33,7 @@ export class GroupInfoIndexer {
 				value: () => groupInfo.name
 			}, {
 				attribute: GroupInfoModel.values["mailAddress"],
-				value: () => groupInfo.mailAddress,
+				value: () => (groupInfo.mailAddress) ? groupInfo.mailAddress : "",
 			}, {
 				attribute: GroupInfoModel.associations["mailAddressAliases"],
 				value: () => groupInfo.mailAddressAliases.map(maa => maa.mailAddress).join(","),

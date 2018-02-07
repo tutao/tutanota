@@ -22,6 +22,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
+import {isAdministratedGroup} from "../search/SearchUtils"
 
 assertMainOrNode()
 
@@ -58,7 +59,7 @@ export class GroupListView {
 								return allGroupInfos
 							} else {
 								let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-								return allGroupInfos.filter((gi: GroupInfo) => _isAdministratedGroup(localAdminGroupIds, gi))
+								return allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
 							}
 						})
 					})
@@ -141,13 +142,13 @@ export class GroupListView {
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 					if (listEntity) {
-						if (!_isAdministratedGroup(localAdminGroupIds, gi)) {
+						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
 							this.list.entityEventReceived(elementId, OperationType.DELETE)
 						} else {
 							this.list.entityEventReceived(elementId, operation)
 						}
 					} else {
-						if (_isAdministratedGroup(localAdminGroupIds, gi)) {
+						if (isAdministratedGroup(localAdminGroupIds, gi)) {
 							this.list.entityEventReceived(elementId, OperationType.CREATE)
 						}
 					}
@@ -159,17 +160,6 @@ export class GroupListView {
 	}
 }
 
-function _isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo) {
-	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
-		return true // group is administrated by local admin group of this user
-	} else if (localAdminGroupIds.indexOf(gi.group) != -1) {
-		return true // group is one of the local admin groups of this user
-	} else {
-		return false
-	}
-
-}
-
 export class GroupRow {
 	top: number;
 	domElement: HTMLElement; // set from List
@@ -177,7 +167,7 @@ export class GroupRow {
 	_domName: HTMLElement;
 	_domAddress: HTMLElement;
 	_domDeletedIcon: HTMLElement;
-	_domTeamIcon: HTMLElement;
+	_domLocalAdminIcon: HTMLElement;
 	_domMailIcon: HTMLElement;
 
 	constructor() {
@@ -200,10 +190,10 @@ export class GroupRow {
 			this._domDeletedIcon.style.display = 'none'
 		}
 		if (groupInfo.mailAddress) {
-			this._domTeamIcon.style.display = 'none'
+			this._domLocalAdminIcon.style.display = 'none'
 			this._domMailIcon.style.display = ''
 		} else {
-			this._domTeamIcon.style.display = ''
+			this._domLocalAdminIcon.style.display = ''
 			this._domMailIcon.style.display = 'none'
 		}
 	}
@@ -227,8 +217,8 @@ export class GroupRow {
 						style: {display: 'none'},
 					}),
 					m(Icon, {
-						icon: Icons.People,
-						oncreate: (vnode) => this._domTeamIcon = vnode.dom,
+						icon: BootIcons.Settings,
+						oncreate: (vnode) => this._domLocalAdminIcon = vnode.dom,
 						class: "svg-list-accent-fg",
 						style: {display: 'none'}
 					}),

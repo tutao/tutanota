@@ -25,7 +25,7 @@ import type {RouteChangeEvent} from "../misc/RouteChange"
 import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
-import {setSearchUrl, getRestriction, getSearchUrl} from "./SearchUtils"
+import {setSearchUrl, getRestriction, getSearchUrl, isAdministratedGroup} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
@@ -231,6 +231,12 @@ export class SearchBar {
 				.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
 			).then(resultInstances => {
 				let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
+
+				// filter group infos for local admins
+				if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type)) {
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
+				}
 				if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
 					filteredInstances.sort((o1, o2) => compareContacts((o1:any), (o2:any)))
 				}
@@ -343,7 +349,7 @@ export class SearchBar {
 								class: "svg-list-accent-fg",
 							}) : null,
 						(!groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-								icon: Icons.People,
+								icon: BootIcons.Settings,
 								class: "svg-list-accent-fg",
 							}) : null,
 						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
