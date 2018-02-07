@@ -122,7 +122,7 @@ export class GroupManagementFacade {
 
 	getAdminGroupKey(group: Group): Promise<Aes128Key> {
 		try {
-			let adminGroupKey = this._login.getGroupKey(neverNull(group.admin))
+			let adminGroupKey = group.type == GroupType.Admin ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
 			return Promise.resolve(adminGroupKey)
 		} catch (e) {
 			let globalAdminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
