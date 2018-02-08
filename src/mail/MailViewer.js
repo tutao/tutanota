@@ -408,7 +408,7 @@ export class MailViewer {
 				let toRecipients = []
 				let ccRecipients = []
 				let bccRecipients = []
-				if (!logins.getUserController().isInternalUser()) {
+				if (!logins.getUserController().isInternalUser() && this.mail.state != MailState.SENT) {
 					toRecipients.push(this.mail.sender)
 				} else if (this.mail.state == MailState.RECEIVED) {
 					if (this.mail.replyTos.length > 0) {
