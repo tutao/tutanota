@@ -118,7 +118,7 @@ export class GroupViewer {
 					return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
 						if (confirmed) {
 							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate).catch(PreconditionFailedError, e => {
-								Dialog.error("localAdminGroupAssigned_msg")
+								Dialog.error("localAdminGroupAssignedError_msg")
 							}))
 						}
 					}))
