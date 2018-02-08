@@ -65,7 +65,7 @@ export class UserManagementFacade {
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
 			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			return this._getAccountGroupMembership().then(accountGroupMembership => {
+			return this._getAccountGroupMembership().then(accountGroupMembership => { // accountGroupMembership is the membership in a premium, starter or free group
 				if (admin) {
 					return this._groupManagement.addUserToGroup(user, adminGroupId).then(() => {
 						// we can not use addUserToGroup here because the admin is not admin of the account group
