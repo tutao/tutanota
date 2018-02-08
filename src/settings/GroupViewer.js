@@ -150,7 +150,7 @@ export class GroupViewer {
 					m(".h4.mt-l", (this._group.isLoaded()) ? getGroupTypeName(this._group.getLoaded().type) : lang.get("emptyString_msg")),
 					m("", [
 						m(created),
-						m(this._usedStorage),
+						(this._isMailGroup()) ? m(this._usedStorage) : null,
 					]),
 					m("", [
 						m(this._name),
@@ -243,16 +243,20 @@ export class GroupViewer {
 	}
 
 	_isMailGroup() {
-		return (this._group.isLoaded() && this._group.getLoaded().type == GroupType.Mail)
+		return this.groupInfo.groupType == GroupType.Mail
 	}
 
 	_updateUsedStorage(): void {
-		worker.readUsedGroupStorage(this.groupInfo.group).then(usedStorage => {
-			this._usedStorage.setValue(formatStorageSize(usedStorage))
-			m.redraw()
-		}).catch(BadRequestError, e => {
-			// may happen if the user gets the admin flag removed
-		})
+		if (this._isMailGroup()) {
+			worker.readUsedGroupStorage(this.groupInfo.group).then(usedStorage => {
+				this._usedStorage.setValue(formatStorageSize(usedStorage))
+				m.redraw()
+			}).catch(BadRequestError, e => {
+				// may happen if the user gets the admin flag removed
+			})
+		} else {
+			this._usedStorage.setValue(formatStorageSize(0))
+		}
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
