@@ -23,6 +23,7 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
 import {isAdministratedGroup} from "../search/SearchUtils"
+import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 
 assertMainOrNode()
 
@@ -35,6 +36,7 @@ export class GroupListView {
 	_settingsView: SettingsView;
 	_searchResultStreamDependency: stream;
 	onremove: Function;
+	_localAdminGroupMemberships: GroupMembership[];
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
@@ -44,6 +46,8 @@ export class GroupListView {
 				return customer.teamGroups
 			})
 		})
+
+		this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
 
 		this.list = new List({
 			rowHeight: size.list_row_height,
@@ -156,6 +160,15 @@ export class GroupListView {
 			} else {
 				this.list.entityEventReceived(elementId, operation)
 			}
+		} else if (!logins.getUserController().isGlobalAdmin() && isSameTypeRef(typeRef, GroupMemberTypeRef)) {
+			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] == elementId)
+			let newLocalAdminGroupMembership = logins.getUserController().getLocalAdminGroupMemberships().find(gm => gm.groupMember[1] == elementId)
+			if (operation == OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
+				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
+			} else if (operation == OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
+				this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
+			}
+			this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
 		}
 	}
 }

@@ -92,20 +92,21 @@ export class UserController {
 		return this.user.memberships.filter(membership => membership.groupType == GroupType.LocalAdmin)
 	}
 
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
 		if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
-			load(UserTypeRef, this.user._id).then(updatedUser => {
+			return load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser
 			})
 		} else if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
-			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 			})
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
-			loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
+			return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 				this.props = props
 			})
 		}
+		return Promise.resolve()
 	}
 
 	deleteSession(sync: boolean): Promise<void> {
