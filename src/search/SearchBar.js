@@ -206,7 +206,7 @@ export class SearchBar {
 		return [
 			{
 				key: Keys.F,
-				enabled: () => logins.isInternalUserLoggedIn() && !locator.search.indexState().initializing && locator.search.indexState().indexingSupported,
+				enabled: () => this.isVisible(),
 				exec: key => {
 					this.focus()
 					m.redraw()
