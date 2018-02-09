@@ -80,7 +80,7 @@ export class GroupViewer {
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.groupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
-		localAdminGroupInfoModel.init().then(localAdminGroupInfos => {
+		localAdminGroupInfoModel.init().filter(groupInfo => !groupInfo.deleted).then(localAdminGroupInfos => {
 			let adminGroupIdToName: {name: string, value: ?Id}[] = [{
 				name: lang.get("globalAdmin_label"),
 				value: null
@@ -93,8 +93,6 @@ export class GroupViewer {
 			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.groupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
 				if (this.groupInfo.groupType == GroupType.LocalAdmin) {
 					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
-				} else if (this.groupInfo.deleted) {
-					Dialog.error("groupDeactivated_msg")
 				} else {
 					showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 						let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
