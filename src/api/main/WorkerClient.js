@@ -111,12 +111,12 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 
-	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<Credentials> {
-		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, connectEventBus).then(loginData => {
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
+		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin).then(loginData => {
 			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		})
 	}

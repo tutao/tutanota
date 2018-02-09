@@ -4,7 +4,7 @@ import {CryptoError} from "../common/error/CryptoError"
 import {bookingFacade} from "./facades/BookingFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
-import {resetEntityRestCache, locator, initLocator} from "./WorkerLocator"
+import {locator, initLocator, resetLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
 import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode} from "../Env"
@@ -58,7 +58,7 @@ export class WorkerImpl {
 				return locator.login.createExternalSession.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
-				return locator.login.reset().then(() => resetEntityRestCache())
+				return resetLocator()
 			},
 			resumeSession: (message: Request) => {
 				return locator.login.resumeSession.apply(locator.login, message.args)
@@ -246,7 +246,7 @@ export class WorkerImpl {
 		})
 	}
 
-	sendIndexState(state: SearchIndexStateInfo):Promise<void> {
+	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
 		console.log("worker set new index state", state)
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
 	}

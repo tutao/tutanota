@@ -41,15 +41,12 @@ export function initLocator(worker: WorkerImpl) {
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
 	locator.mailAddress = new MailAddressFacade(locator.login)
-
 	locator.login.init(locator.indexer, new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login))
 }
 
-export function resetEntityRestCache(): void {
-	// create a new instance instead of resetting the db because old server requests might be running when resetting and the result would be put into the new cache
-	locator.cache = new EntityRestCache(new EntityRestClient(locator.login))
+export function resetLocator(): Promise<void> {
+	return locator.login.reset().then(() => initLocator(locator.login._worker))
 }
-
 
 if (typeof self != "undefined") {
 	self.locator = locator // export in worker scope

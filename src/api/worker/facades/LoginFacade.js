@@ -81,7 +81,10 @@ export class LoginFacade {
 		return Promise.resolve()
 	}
 
-	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	/**
+	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
+	 */
+	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
 			console.log("session already exists, reuse data")
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
@@ -108,7 +111,7 @@ export class LoginFacade {
 					p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken)
 				}
 				return p.then(() => {
-					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, connectEventBus).then(() => {
+					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, permanentLogin).then(() => {
 						return {
 							user: neverNull(this._user),
 							userGroupInfo: neverNull(this._userGroupInfo),
@@ -197,7 +200,11 @@ export class LoginFacade {
 		})
 	}
 
-	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, connectEventBus: boolean): Promise<void> {
+	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, permanentLogin: boolean): Promise<void> {
+		let userIdFromFormerLogin = (this._user) ? this._user._id : null
+		if (userIdFromFormerLogin && userId != userIdFromFormerLogin) {
+			throw new Error("different user is tried to login in existing other user's session")
+		}
 		this._accessToken = accessToken
 		return load(UserTypeRef, userId).then(user => {
 			this._user = user
@@ -205,7 +212,7 @@ export class LoginFacade {
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
 			.then(() => {
-				if (!isTest()) {
+				if (!isTest() && permanentLogin) {
 					// index new items in background
 					this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 				}
@@ -213,8 +220,14 @@ export class LoginFacade {
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
 			.then(() => {
-				if (connectEventBus) {
-					this._eventBusClient.connect(false)
+				if (permanentLogin) {
+					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
+					// close the event bus and reconnect to make sure we get all missed events
+					if (userIdFromFormerLogin) {
+						this._eventBusClient.tryReconnect(true)
+					} else {
+						this._eventBusClient.connect(false)
+					}
 				}
 			})
 			.then(() => this.storeEntropy())
