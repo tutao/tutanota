@@ -45,7 +45,7 @@ assertMainOrNode()
 const MAX_LOGO_SIZE = 1024 * 100
 const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
 
-export class BrandingSettingsViewer {
+export class WhitelabelSettingsViewer {
 	view: Function;
 
 	_brandingDomainField: TextField;

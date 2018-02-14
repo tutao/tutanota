@@ -21,7 +21,7 @@ import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {ContactFormListView} from "./ContactFormListView"
-import {BrandingSettingsViewer} from "./BrandingSettingsViewer"
+import {WhitelabelSettingsViewer} from "./WhitelabelSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
@@ -60,7 +60,7 @@ export class SettingsView {
 		if (logins.getUserController().isGlobalAdmin()) {
 			this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
 			if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
-				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new BrandingSettingsViewer()))
+				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new WhitelabelSettingsViewer()))
 				if (logins.isEnabled(FeatureType.WhitelabelParent)) {
 					this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
 				}
