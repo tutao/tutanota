@@ -991,5 +991,6 @@ module.exports = {
 		"removeUserFromGroupNotAdministratedError_msg": "Du kannst einen Benutzer, den du nicht administrierst, nicht aus einer Gruppe entfernen.",
 		"removeUserFromGroupNotAdministratedUserError_msg": "Du kannst einen Benutzer nicht aus einer Gruppe entfernen, die du nicht administrierst.",
 		"localAdminGroupAssignedError_msg": "User oder Gruppen sind dieser lokalen Admin-Gruppe noch zugeordnet. Sie kann nicht deaktiviert werden.",
+		"selectionNotAvailable_msg": "Keine Auswahl verfügbar."
 	}
 }

@@ -52,7 +52,7 @@ export class ContactFormEditor {
 	_pageTitleField: TextField;
 	_pathField: TextField;
 	_receivingMailboxField: TextField;
-	_receivingMailbox: stream<GroupInfo>;
+	_receivingMailbox: stream<?GroupInfo>;
 	_participantGroupInfoList: GroupInfo[];
 	_participantGroupInfosTable: Table;
 	_headerField: HtmlEditor;
@@ -93,8 +93,10 @@ export class ContactFormEditor {
 		this._receivingMailboxField = new TextField("receivingMailbox_label").setDisabled()
 		this._receivingMailbox = stream(selectedTargetGroupInfo)
 		this._receivingMailbox.map(groupInfo => {
-			let prefix = (groupInfo.groupType == GroupType.User ? lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
-			this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
+			if (groupInfo) {
+				let prefix = (groupInfo.groupType == GroupType.User ? lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
+				this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
+			}
 		})
 		let userDropdown = createDropDownButton("account_label", () => BootIcons.Contacts, () => {
 			return allUserGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => {
@@ -216,7 +218,7 @@ export class ContactFormEditor {
 		this.view = () => m("#contact-editor.pb", [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
-			this._receivingMailbox().groupType == GroupType.User ? null : m(".mt-l", [
+			(this._receivingMailbox() && this._receivingMailbox().groupType == GroupType.User) ? null : m(".mt-l", [
 					m(this._participantGroupInfosTable),
 					m(".small", lang.get("responsiblePersonsInfo_msg"))
 				]),
