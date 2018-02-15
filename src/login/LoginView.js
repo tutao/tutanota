@@ -12,6 +12,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -137,7 +138,7 @@ export class LoginView {
 		}, [
 			m(this.mailAddress),
 			m(this.password),
-			m(this.savePassword),
+			(!whitelabelConfig || whitelabelConfig.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1) ? m(this.savePassword) : null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			m(".flex-center.pt-l", this.appButtons.map(button => m(button))),
@@ -206,13 +207,7 @@ export class LoginView {
 }
 
 export function getWhitelabelRegistrationDomains(): string[] {
-	let metas = document.getElementsByTagName('meta');
-	for (let i = 0; i < metas.length; i++) {
-		if (metas[i].getAttribute("name") == "whitelabel-registration-domains") {
-			return neverNull(metas[i].getAttribute("content")).split(",");
-		}
-	}
-	return [];
+	return (whitelabelConfig && whitelabelConfig.registrationDomains) ? whitelabelConfig.registrationDomains : []
 }
 
 export const login: LoginView = new LoginView()

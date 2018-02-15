@@ -1,9 +1,9 @@
 // @flow
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const DisabledFeatureTypeRef: TypeRef<DisabledFeature> = new TypeRef("sys", "DisabledFeature")
+export const BootstrapFeatureTypeRef: TypeRef<BootstrapFeature> = new TypeRef("sys", "BootstrapFeature")
 export const _TypeModel: TypeModel = {
-	"name": "DisabledFeature",
+	"name": "BootstrapFeature",
 	"since": 24,
 	"type": "AGGREGATED_TYPE",
 	"id": 1249,
@@ -22,9 +22,9 @@ export const _TypeModel: TypeModel = {
 		},
 		"feature": {
 			"name": "feature",
-			"id": 1251,
-			"since": 24,
-			"type": "String",
+			"id": 1309,
+			"since": 28,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -32,9 +32,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "27"
+	"version": "28"
 }
 
-export function createDisabledFeature(): DisabledFeature {
+export function createBootstrapFeature(): BootstrapFeature {
 	return create(_TypeModel)
 }

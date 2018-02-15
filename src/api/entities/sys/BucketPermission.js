@@ -106,7 +106,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "27"
+	"version": "28"
 }
 
 export function createBucketPermission(): BucketPermission {

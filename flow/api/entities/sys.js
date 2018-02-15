@@ -864,7 +864,7 @@ type DomainInfo = {
 
 	catchAllMailGroup:?Id;
 	certificate:?Id;
-	theme:?Id;
+	whitelabelConfig:?Id;
 }
 
 type BookingItem = {
@@ -1208,16 +1208,17 @@ type AuditLogRef = {
 	items:Id;
 }
 
-type BrandingTheme = {
-	_type: TypeRef<BrandingTheme>;
+type WhitelabelConfig = {
+	_type: TypeRef<WhitelabelConfig>;
 	_format:NumberString;
 	_id:Id;
 	_ownerGroup:?Id;
 	_permissions:Id;
+	germanLanguageCode:?string;
 	jsonTheme:string;
 	metaTags:string;
 
-	disabledFeatures:DisabledFeature[];
+	bootstrapCustomizations:BootstrapFeature[];
 }
 
 type BrandingDomainData = {
@@ -1365,10 +1366,10 @@ type OtpChallenge = {
 	secondFactors:IdTuple[];
 }
 
-type DisabledFeature = {
-	_type: TypeRef<DisabledFeature>;
+type BootstrapFeature = {
+	_type: TypeRef<BootstrapFeature>;
 	_id:Id;
-	feature:string;
+	feature:NumberString;
 
 }
 

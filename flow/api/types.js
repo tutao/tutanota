@@ -178,6 +178,15 @@ type EnvType = {
 
 declare var env: EnvType
 
+type WhitelabelConfigType = {
+	theme: ?Theme,
+	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
+	germanLanguageCode: string,
+	registrationDomains: ?String[],
+}
+
+declare var whitelabelConfig: ?WhitelabelConfigType
+
 type Credentials = {
 	mailAddress:string,
 	encryptedPassword: ?Base64, // only set for persistent sessions

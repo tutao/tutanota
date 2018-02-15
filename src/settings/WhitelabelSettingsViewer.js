@@ -18,7 +18,7 @@ import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
-import {BrandingThemeTypeRef} from "../api/entities/sys/BrandingTheme"
+import {WhitelabelConfigTypeRef} from "../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../gui/theme"
 import {updateCustomTheme} from "../gui/theme"
 import {uint8ArrayToBase64, stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
@@ -52,6 +52,7 @@ export class WhitelabelSettingsViewer {
 	_customLogoField: TextField;
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
+	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
 
@@ -104,6 +105,7 @@ export class WhitelabelSettingsViewer {
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
+						this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
 						(this._isWhitelabelRegistrationVisible()) ? m("", [
 								m(this._whitelabelRegistrationDomains),
 								m(this._whitelabelCodeField),
@@ -137,9 +139,9 @@ export class WhitelabelSettingsViewer {
 		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
-	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?BrandingTheme> {
-		if (domainInfo && domainInfo.theme) {
-			return load(BrandingThemeTypeRef, domainInfo.theme)
+	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
+		if (domainInfo && domainInfo.whitelabelConfig) {
+			return load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig)
 		} else {
 			return Promise.resolve(null)
 		}
@@ -179,8 +181,8 @@ export class WhitelabelSettingsViewer {
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
-			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(brandingTheme => {
-				let customJsonTheme = (brandingTheme) ? JSON.parse(brandingTheme.jsonTheme) : null
+			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
+				let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 				// customJsonTheme is defined when brandingDomainInfo is defined
 
 				this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
@@ -223,8 +225,8 @@ export class WhitelabelSettingsViewer {
 							Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
 								if (ok) {
 									delete neverNull(customJsonTheme).logo
-									neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-									update(brandingTheme)
+									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+									update(whitelabelConfig)
 									updateCustomTheme(customJsonTheme)
 								}
 							})
@@ -239,8 +241,8 @@ export class WhitelabelSettingsViewer {
 							} else {
 								let imageData = "<img src=\"data:image/" + ((extension == "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
 								neverNull(customJsonTheme).logo = imageData
-								neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-								update(brandingTheme)
+								neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+								update(whitelabelConfig)
 								updateCustomTheme(customJsonTheme)
 								this._customLogoField.setValue(lang.get("activated_label"))
 								m.redraw()
@@ -264,37 +266,52 @@ export class WhitelabelSettingsViewer {
 											delete neverNull(customJsonTheme)[key]
 										}
 									})
-									neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-									update(brandingTheme)
+									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+									update(whitelabelConfig)
 									updateCustomTheme(customJsonTheme)
 								}
 							})
 						}, () => Icons.Cancel)
 					}
 
-					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => Icons.Edit)
+					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme),), () => Icons.Edit)
 
 					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
 				}
 
-				let customMetaTagsDefined = brandingTheme ? brandingTheme.metaTags.length > 0 : false
+				let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
 				this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
-				if (brandingTheme) {
+				if (whitelabelConfig) {
 					let editCustomMetaTagsButton = new Button("edit_action", () => {
 						let metaTags = new TextField("customMetaTags_label")
-							.setValue(neverNull(brandingTheme).metaTags)
+							.setValue(neverNull(whitelabelConfig).metaTags)
 							.setType(Type.Area)
 						let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
 							view: () => m(metaTags)
 						}, (ok) => {
 							if (ok) {
-								neverNull(brandingTheme).metaTags = metaTags.value()
-								update(brandingTheme)
+								neverNull(whitelabelConfig).metaTags = metaTags.value()
+								update(whitelabelConfig)
 								dialog.close()
 							}
 						})
 					}, () => Icons.Edit)
 					this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+				}
+
+				let customGermanLanguageFileDefined = whitelabelConfig && whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
+				let items = [
+					{name: lang.get("languageGerman_label"), value: "de"},
+					{name: lang.get("languageGermanSie_label"), value: "de_sie"}
+				]
+				if (whitelabelConfig && lang.code == 'de' || lang.code == 'de_sie') {
+					this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
+						if (v) {
+							neverNull(whitelabelConfig).germanLanguageCode = v
+							update(whitelabelConfig)
+							lang.setLanguage({code: v, languageTag: lang.languageTag})
+						}
+					})
 				}
 
 				m.redraw()
@@ -343,7 +360,7 @@ export class WhitelabelSettingsViewer {
 		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
-		} else if (isSameTypeRef(typeRef, BrandingThemeTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, WhitelabelConfigTypeRef) && operation == OperationType.UPDATE) {
 			this._updateFields()
 		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
 			this._props.reset()
