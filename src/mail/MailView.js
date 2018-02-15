@@ -253,6 +253,7 @@ export class MailView {
 			{
 				key: Keys.FIVE,
 				exec: () => this.switchToFolder(MailFolderType.ARCHIVE),
+				enabled: () => logins.isInternalUserLoggedIn(),
 				help: "switchArchive_action"
 			},
 			{

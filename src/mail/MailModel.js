@@ -78,7 +78,7 @@ class MailModel {
 			}
 		}).then(folders => {
 			return folders.filter(f => {
-				if (f.folderType == MailFolderType.SPAM && !logins.isInternalUserLoggedIn()) {
+				if ((f.folderType == MailFolderType.SPAM || f.folderType == MailFolderType.ARCHIVE) && !logins.isInternalUserLoggedIn()) {
 					return false
 				} else if (logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
 					return false
