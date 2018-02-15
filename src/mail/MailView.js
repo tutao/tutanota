@@ -121,7 +121,7 @@ export class MailView {
 		this.view = (): VirtualElement => {
 			return m("#mail.main-view", [
 				m(this.viewSlider),
-				(this.selectedFolder && logins.isInternalUserLoggedIn()) ? m(this.newAction) : null
+				(this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)) ? m(this.newAction) : null
 			])
 		}
 
@@ -198,7 +198,7 @@ export class MailView {
 			{
 				key: Keys.N,
 				exec: () => (this._newMail():any),
-				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn(),
+				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action"
 			},
 			{

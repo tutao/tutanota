@@ -240,7 +240,8 @@ export const FeatureType = {
 	InternalCommunication: "2",
 	DeleteMailsOnPasswordReset: "3",
 	WhitelabelParent: "4",
-	WhitelabelChild: "5"
+	WhitelabelChild: "5",
+	ReplyOnly: "6"
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 
