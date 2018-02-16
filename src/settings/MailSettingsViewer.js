@@ -109,7 +109,7 @@ export class MailSettingsViewer {
 		})
 
 		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name).setDisabled()
-		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(), () => Icons.Edit)
+		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(logins.getUserController().props), () => Icons.Edit)
 		this._signature._injectionsRight = () => [m(changeSignatureButton)]
 
 		this._aliases = new EditAliasesForm(logins.getUserController().userGroupInfo)

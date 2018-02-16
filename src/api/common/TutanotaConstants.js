@@ -241,7 +241,8 @@ export const FeatureType = {
 	DeleteMailsOnPasswordReset: "3",
 	WhitelabelParent: "4",
 	WhitelabelChild: "5",
-	ReplyOnly: "6"
+	ReplyOnly: "6",
+	DisableDefaultSignature: "7"
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 
