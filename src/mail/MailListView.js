@@ -24,6 +24,7 @@ import {size} from "../gui/size"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -70,13 +71,15 @@ export class MailListView {
 			showStatus: false,
 			className: className,
 			swipe: ({
-				renderLeftSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
+				renderLeftSpacer: () => !logins.isInternalUserLoggedIn() ? [] : [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
 				swipeLeft: (listElement: Mail) => mailModel.deleteMails([listElement]),
 				swipeRight: (listElement: Mail) => {
-					if (this.targetInbox()) {
+					if (!logins.isInternalUserLoggedIn()) {
+						return Promise.resolve()
+					} else if (this.targetInbox()) {
 						return mailModel.moveMails([listElement], getInboxFolder(mailModel.getMailboxFolders(listElement)))
-					} else {
+					} else { // externals don't have an archive folder
 						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
