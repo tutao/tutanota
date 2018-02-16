@@ -58,7 +58,7 @@ function createHtml(env) {
 	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}.js`])
 	return Promise.all([
 		_writeFile(`./build/${filenamePrefix}.js`, [
-			`window.whitelabelConfig = null`,
+			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/bootstrapHotReload.js') })`

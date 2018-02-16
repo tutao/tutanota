@@ -178,14 +178,14 @@ type EnvType = {
 
 declare var env: EnvType
 
-type WhitelabelConfigType = {
+type WhitelabelCustomizations = {
 	theme: ?Theme,
 	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
 	germanLanguageCode: string,
 	registrationDomains: ?String[],
 }
 
-declare var whitelabelConfig: ?WhitelabelConfigType
+declare var whitelabelCustomizations: ?WhitelabelCustomizations
 
 type Credentials = {
 	mailAddress:string,

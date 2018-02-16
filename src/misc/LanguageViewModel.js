@@ -187,8 +187,8 @@ class LanguageViewModel {
 					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) != -1))
 				}
 				if (language) {
-					if (language.code == 'de' && whitelabelConfig && whitelabelConfig.germanLanguageCode) {
-						language.code = whitelabelConfig.germanLanguageCode
+					if (language.code == 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+						language.code = whitelabelCustomizations.germanLanguageCode
 					}
 					return {code: language.code, languageTag: tag}
 				}

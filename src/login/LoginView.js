@@ -138,7 +138,7 @@ export class LoginView {
 		}, [
 			m(this.mailAddress),
 			m(this.password),
-			(!whitelabelConfig || whitelabelConfig.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1) ? m(this.savePassword) : null,
+			(!whitelabelCustomizations || whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1) ? m(this.savePassword) : null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			m(".flex-center.pt-l", this.appButtons.map(button => m(button))),
@@ -207,7 +207,7 @@ export class LoginView {
 }
 
 export function getWhitelabelRegistrationDomains(): string[] {
-	return (whitelabelConfig && whitelabelConfig.registrationDomains) ? whitelabelConfig.registrationDomains : []
+	return (whitelabelCustomizations && whitelabelCustomizations.registrationDomains) ? whitelabelCustomizations.registrationDomains : []
 }
 
 export const login: LoginView = new LoginView()
