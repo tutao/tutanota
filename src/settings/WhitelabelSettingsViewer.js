@@ -301,8 +301,8 @@ export class WhitelabelSettingsViewer {
 
 				let customGermanLanguageFileDefined = whitelabelConfig && whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
 				let items = [
-					{name: lang.get("languageGerman_label"), value: "de"},
-					{name: lang.get("languageGermanSie_label"), value: "de_sie"}
+					{name: "Deutsch (Du)", value: "de"},
+					{name: "Deutsch (Sie)", value: "de_sie"}
 				]
 				if (whitelabelConfig && lang.code == 'de' || lang.code == 'de_sie') {
 					this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {

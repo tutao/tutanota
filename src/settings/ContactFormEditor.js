@@ -152,11 +152,18 @@ export class ContactFormEditor {
 		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
 			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code), e => this._language(l)).setType(ButtonType.Dropdown)).sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
 			buttons.push(new Button("addLanguage_action", e => {
-				let allLanguages = languages.filter(t => this._languages.find(l => l.code == t.code) == null).map(l => {
+				let additionalLanguages = languages.filter(t => {
+					if (t.code.endsWith('_sie')) {
+						return false
+					} else if (this._languages.find(l => l.code == t.code) == null) {
+						return true
+					}
+					return false
+				}).map(l => {
 					return {name: lang.get(l.textId), value: l.code}
 				}).sort((a, b) => a.name.localeCompare(b.name))
-				let newLanguageCode = stream(allLanguages[0].value)
-				let tagName = new DropDownSelector("addLanguage_action", null, allLanguages, newLanguageCode, 250)
+				let newLanguageCode = stream(additionalLanguages[0].value)
+				let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 
 				setTimeout(() => {
 					Dialog.smallDialog(lang.get("addLanguage_action"), {
