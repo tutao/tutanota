@@ -118,7 +118,7 @@ export class GlobalSettingsViewer {
 	}
 
 	_getSpamRulesInfoLink(): string {
-		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
+		return (lang.code == "de" || lang.code == "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
 	}
 
 	_updateCustomerServerProperties(): void {

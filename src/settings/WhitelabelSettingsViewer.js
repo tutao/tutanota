@@ -136,7 +136,7 @@ export class WhitelabelSettingsViewer {
 	}
 
 	_getBrandingLink(): string {
-		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
+		return (lang.code == "de" || lang.code == "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
 	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
@@ -304,7 +304,7 @@ export class WhitelabelSettingsViewer {
 					{name: "Deutsch (Du)", value: "de"},
 					{name: "Deutsch (Sie)", value: "de_sie"}
 				]
-				if (whitelabelConfig && lang.code == 'de' || lang.code == 'de_sie') {
+				if (whitelabelConfig && (lang.code == 'de' || lang.code == 'de_sie')) {
 					this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
 						if (v) {
 							neverNull(whitelabelConfig).germanLanguageCode = v

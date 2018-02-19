@@ -142,7 +142,7 @@ export class ContactFormEditor {
 		this._languages = this._contactForm.languages.map(l => Object.assign({}, l))
 		if (this._languages.length == 0) {
 			let l = createContactFormLanguage()
-			l.code = lang.code
+			l.code = (lang.code == "de_sie") ? "de" : lang.code
 			this._languages.push(l)
 		}
 		let previousLanguage: ?ContactFormLanguage = null

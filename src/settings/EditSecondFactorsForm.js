@@ -58,7 +58,7 @@ export class EditSecondFactorsForm {
 	}
 
 	_get2FAInfoLink(): string {
-		return lang.code == "de" ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
 	}
 
 	_updateSecondFactors(): void {
