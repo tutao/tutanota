@@ -188,16 +188,17 @@ class LanguageViewModel {
 				}
 				if (language) {
 					if (language.code == 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
-						language.code = whitelabelCustomizations.germanLanguageCode
+						return {code: whitelabelCustomizations.germanLanguageCode, languageTag: tag}
+					} else {
+						return {code: language.code, languageTag: tag}
 					}
-					return {code: language.code, languageTag: tag}
 				}
 			}
 		}
 		if (restrictions == null || restrictions.indexOf("en") != -1) {
 			return {code: 'en', languageTag: 'en-US'}
 		} else {
-			return {code: restrictions[0], languageTag: restrictions[0].replace("_sie", "").replace("/_/g", "-")}
+			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
 		}
 	}
 
