@@ -76,10 +76,10 @@ export class MailListView {
 				swipeLeft: (listElement: Mail) => mailModel.deleteMails([listElement]),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
-						return Promise.resolve()
+						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						return mailModel.moveMails([listElement], getInboxFolder(mailModel.getMailboxFolders(listElement)))
-					} else { // externals don't have an archive folder
+					} else {
 						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
