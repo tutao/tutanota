@@ -96,7 +96,8 @@ export const ApprovalStatus = {
 	RegistrationApproved: '0',
 	RegistrationApprovalNeeded: '1',
 	SendMailsApproved: '2',
-	InvoiceNotPaid: '3'
+	InvoiceNotPaid: '3',
+	SpamSender: '4'
 }
 export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 

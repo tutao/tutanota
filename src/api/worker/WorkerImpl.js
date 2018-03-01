@@ -247,8 +247,11 @@ export class WorkerImpl {
 	}
 
 	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
-		console.log("worker set new index state", state)
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
+	}
+
+	indexedDBSupported(): Promise<boolean> {
+		return this._queue.postMessage(new Request("indexedDBSupported", []))
 	}
 
 }

@@ -12,6 +12,7 @@ import {logins} from "./LoginController"
 import type {EntropySrcEnum, ConversationTypeEnum, AccountTypeEnum} from "../common/TutanotaConstants"
 import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -50,6 +51,9 @@ export class WorkerClient {
 			updateIndexState: (message: any) => {
 				locator.search.indexState(message.args[0])
 				return Promise.resolve()
+			},
+			indexedDBSupported: (message: any) => {
+				return Promise.resolve(client.indexedDb())
 			}
 		})
 	}
