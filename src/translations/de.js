@@ -990,6 +990,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"recipientNotResolvedTooManyRequests_msg": "Der Empfänger konnte nicht aufgelöst werden, da zu viele Anfragen gestellt wurden. Bitte versuche später noch einmal die E-Mail zu senden."
 	}
 }

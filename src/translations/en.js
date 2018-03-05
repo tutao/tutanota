@@ -990,6 +990,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"recipientNotResolvedTooManyRequests_msg": "The recipient could not be resolved because there were too many requests. Please try to send this email later."
 	}
 }

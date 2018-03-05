@@ -65,6 +65,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {searchForContacts, LazyContactListId} from "../contacts/ContactUtils"
+import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 
 
 assertMainOrNode()
@@ -597,6 +598,9 @@ export class MailEditor {
 									}
 								})
 							})
+								.catch(RecipientNotResolvedError, e => {
+									return Dialog.error("recipientNotResolvedTooManyRequests_msg")
+								})
 								.catch(RecipientsNotFoundError, e => {
 									let invalidRecipients = e.message.join("\n")
 									return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
@@ -694,7 +698,9 @@ export class MailEditor {
 					return recipientInfo
 				}
 			})
-		}))
+		})).catch(TooManyRequestsError, e => {
+			throw new RecipientNotResolvedError()
+		})
 	}
 
 	/**
@@ -717,6 +723,9 @@ export class MailEditor {
 			.then(() => m.redraw())
 			.catch(ConnectionError, e => {
 				// we are offline but we want to show the error dialog only when we click on send.
+			})
+			.catch(TooManyRequestsError, e => {
+				Dialog.error("recipientNotResolvedTooManyRequests_msg")
 			})
 		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.button))
 		return bubbleWrapper.bubble

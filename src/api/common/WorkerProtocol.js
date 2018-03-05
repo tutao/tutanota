@@ -38,6 +38,7 @@ import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
 import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
 import {DbError} from "./error/DbError"
 import {CancelledError} from "./error/CancelledError"
+import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -197,6 +198,7 @@ const ErrorNameToType = {
 	SessionKeyNotFoundError,
 	ProgrammingError,
 	RecipientsNotFoundError,
+	RecipientNotResolvedError,
 	OutOfSyncError,
 	SecondFactorPendingError,
 	ServiceUnavailableError,

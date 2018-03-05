@@ -100,6 +100,9 @@ export function createNewContact(mailAddress: string, name: string): Contact {
 	return contact
 }
 
+/**
+ * @throws TooManyRequestsError if the recipient could not be resolved because of too many requests.
+ */
 export function resolveRecipientInfo(recipientInfo: RecipientInfo): Promise<RecipientInfo> {
 	if (recipientInfo.type != recipientInfoType.unknown) {
 		return Promise.resolve(recipientInfo)
