@@ -20,7 +20,8 @@ self.onmessage = function (msg) {
 
 				System.import('src/api/worker/WorkerImpl').then((workerModule) => {
 					let initialRandomizerEntropy = data.args[1]
-					let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null)
+					let indexedDbSupported = data.args[2]
+					let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null, indexedDbSupported)
 					workerImpl.addEntropy(initialRandomizerEntropy)
 					self.postMessage({id: data.id, type: 'response', value: {}})
 				})

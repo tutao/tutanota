@@ -22,14 +22,14 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope) {
+	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean) {
 		const workerScope = self
 		this._queue = new Queue(workerScope)
 		nativeApp.setWorkerQueue(this._queue)
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this);
+		initLocator(this, indexedDbSupported);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
@@ -249,10 +249,5 @@ export class WorkerImpl {
 	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
 	}
-
-	indexedDBSupported(): Promise<boolean> {
-		return this._queue.postMessage(new Request("indexedDBSupported", []))
-	}
-
 }
 

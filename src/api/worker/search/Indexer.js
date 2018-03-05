@@ -65,10 +65,10 @@ export class Indexer {
 	_entity: EntityWorker;
 	_indexedGroupIds: Array<Id>;
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
-		this.db = {dbFacade: new DbFacade(worker), key: neverNull(null), initialized: deferred.promise} // correctly initialized during init()
+		this.db = {dbFacade: new DbFacade(indexedDbSupported), key: neverNull(null), initialized: deferred.promise} // correctly initialized during init()
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(() => this._processEntityEventFromQueue()))
 		this._entity = new EntityWorker()

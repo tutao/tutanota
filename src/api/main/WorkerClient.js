@@ -51,9 +51,6 @@ export class WorkerClient {
 			updateIndexState: (message: any) => {
 				locator.search.indexState(message.args[0])
 				return Promise.resolve()
-			},
-			indexedDBSupported: (message: any) => {
-				return Promise.resolve(client.indexedDb())
 			}
 		})
 	}
@@ -73,7 +70,7 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy()]))
+			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()]))
 				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {

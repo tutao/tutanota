@@ -26,13 +26,15 @@ type WorkerLocatorType = {
 	file :FileFacade;
 	mail :MailFacade;
 	mailAddress :MailAddressFacade;
+	_indexedDbSupported: boolean;
 }
 
 export const locator: WorkerLocatorType = ({}:any)
 
-export function initLocator(worker: WorkerImpl) {
+export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean) {
+	locator._indexedDbSupported = indexedDbSupported
 	locator.login = new LoginFacade(worker)
-	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker)
+	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker, indexedDbSupported)
 	locator.cache = new EntityRestCache(new EntityRestClient(locator.login))
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, [locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade, locator.indexer._whitelabelChildIndexer.suggestionFacade])
 	locator.groupManagement = new GroupManagementFacade(locator.login)
@@ -45,7 +47,7 @@ export function initLocator(worker: WorkerImpl) {
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.reset().then(() => initLocator(locator.login._worker))
+	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported))
 }
 
 if (typeof self != "undefined") {
