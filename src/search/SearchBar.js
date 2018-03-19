@@ -1,10 +1,10 @@
 // @flow
-import {inputLineHeight, Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextField"
 import m from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
 import {styles} from "../gui/styles"
-import {px, size} from "../gui/size"
+import {px, size, inputLineHeight} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"

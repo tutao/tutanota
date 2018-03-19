@@ -29,6 +29,7 @@ import {FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
+import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
 
 assertMainOrNode()
 
@@ -69,7 +70,7 @@ export class SettingsView {
 		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
-				this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
+				this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new SubscriptionViewer()))
 			}
 		}
 

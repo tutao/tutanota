@@ -388,6 +388,7 @@ styles.registerStyle('main', () => {
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.button_height + 1)
 		},
+		'.dialog-header-line-height': {'line-height': px(size.button_height)},
 		'.dialog-progress': {'text-align': 'center', padding: px(size.hpad_large)},
 		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
 		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
@@ -584,6 +585,15 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
+		'.buyOptionBox': {
+			//.centered
+			position: 'relative',
+			display: 'inline-block',
+			border: `1px solid ${theme.content_border}`,
+			//'border-radius': px(10),
+			width: "100%",
+			padding: px(10)
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

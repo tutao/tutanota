@@ -22,7 +22,7 @@ assertMainOrNode()
 export class SearchResultListEntry {
 	_id: IdTuple;
 	entry: Mail|Contact;
-
+ 
 	constructor(entry: Mail|Contact) {
 		this._id = entry._id
 		this.entry = entry

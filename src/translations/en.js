@@ -991,6 +991,25 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"recipientNotResolvedTooManyRequests_msg": "The recipient could not be resolved because there were too many requests. Please try to send this email later."
+		"recipientNotResolvedTooManyRequests_msg": "The recipient could not be resolved because there were too many requests. Please try to send this email later.",
+		"comparisonAliasFree_msg": "No aliases",
+		"comparisonDomainFree_msg": "Tutanota domain only",
+		"comparisonInboxRulesFree_msg": "No inbox rules",
+		"comparisonSearchFree_msg": "Limited search",
+		"comparisonLoginFree_msg": "Login at Tutanota",
+
+		"comparisonAliasPremium_msg": "5 aliases",
+		"comparisonDomainPremium_msg": "Custom domains",
+		"comparisonInboxRulesPremium_msg": "Inbox rules",
+		"comparisonSearchPremium_msg": "Unlimited search",
+		"comparisonLoginPremium_msg": "Login at Tutanota",
+
+
+		"comparisonAliasPro_msg": "10 aliases",
+		"comparisonDomainPro_msg": "Custom domain",
+		"comparisonInboxRulesPro_msg": "Inbox rules",
+		"comparisonSearchPro_msg": "Unlimited search",
+		"comparisonLoginPro_msg": "Custom domain login",
+
 	}
 }

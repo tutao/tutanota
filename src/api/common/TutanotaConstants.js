@@ -92,6 +92,9 @@ export const AccountType = {
 }
 export type AccountTypeEnum = $Values<typeof AccountType>;
 
+
+export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
+
 export const ApprovalStatus = {
 	RegistrationApproved: '0',
 	RegistrationApprovalNeeded: '1',

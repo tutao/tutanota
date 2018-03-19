@@ -55,6 +55,7 @@ export const size = {
 	line_height_l: 1.8,
 }
 
+export const inputLineHeight = size.font_size_base + 8
 
 export function px(value: number): string {
 	return value + 'px'

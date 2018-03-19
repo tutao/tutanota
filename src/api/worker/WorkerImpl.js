@@ -130,6 +130,10 @@ export class WorkerImpl {
 			getPrice: (message: Request) => {
 				return bookingFacade.getPrice.apply(bookingFacade, message.args)
 			},
+			getCurrentPrice: (message: Request) => {
+				return bookingFacade.getCurrentPrice()
+			},
+
 			loadCustomerServerProperties: (message: Request) => {
 				return locator.customer.loadCustomerServerProperties.apply(locator.customer, message.args)
 			},

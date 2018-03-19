@@ -211,6 +211,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 
+	getCurrentPrice(): Promise<PriceServiceReturn> {
+		return this._postRequest(new Request('getCurrentPrice', arguments))
+	}
+
 	tryReconnectEventBus() {
 		return this._postRequest(new Request('tryReconnectEventBus', arguments))
 	}
