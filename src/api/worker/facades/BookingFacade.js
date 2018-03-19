@@ -1,3 +1,4 @@
+import type {BookingItemFeatureTypeEnum} from "../../common/TutanotaConstants"
 // @flow
 import {Const, PaymentMethodType} from "../../common/TutanotaConstants"
 import {createPriceServiceData} from "../../entities/sys/PriceServiceData"
@@ -26,7 +27,7 @@ export class BookingFacade {
 	 * @param  business Business or private.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		let serviceData = createPriceServiceData()
 		serviceData.date = Const.CURRENT_DATE;
 		let priceRequestData = createPriceRequestData()

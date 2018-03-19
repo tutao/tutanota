@@ -362,11 +362,14 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action"): Dialog {
+	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
 		if (allowCancel) {
 			actionBar.addLeft(new Button("cancel_action", () => {
+				if (cancelAction) {
+					cancelAction()
+				}
 				dialog.close()
 			}).setType(ButtonType.Secondary))
 		}

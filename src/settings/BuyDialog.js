@@ -7,6 +7,7 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
 import {DialogType, Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
+import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, PaymentMethodType, AccountType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatDate, formatPrice} from "../misc/Formatter"
@@ -22,7 +23,7 @@ assertMainOrNode()
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export function show(featureType: NumberString, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+export function show(featureType: BookingItemFeatureTypeEnum, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		if (customer.type == AccountType.PREMIUM && customer.canceledPremiumAccount) {
 			return Dialog.error("premiumCancelledMessage_msg").return(false)

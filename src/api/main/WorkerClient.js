@@ -9,7 +9,12 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {EntropySrcEnum, ConversationTypeEnum, AccountTypeEnum} from "../common/TutanotaConstants"
+import type {
+	EntropySrcEnum,
+	ConversationTypeEnum,
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum
+} from "../common/TutanotaConstants"
 import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
@@ -207,7 +212,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 

@@ -1010,6 +1010,8 @@ module.exports = {
 		"comparisonInboxRulesPro_msg": "Inbox rules",
 		"comparisonSearchPro_msg": "Unlimited search",
 		"comparisonLoginPro_msg": "Custom domain login",
+		"invoiceData_msg": "Invoice data",
+		"next_action": "Next"
 
 	}
 }
