@@ -488,17 +488,23 @@ export class MailEditor {
 		this._attachmentButtons = this._attachments.map(file => {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
-				if (file._type == "DataFile") {
-					return fileController.open(((file:any):DataFile))
-				} else {
-					fileController.downloadAndOpen(((file:any):TutanotaFile))
-				}
-			}, null).setType(ButtonType.Secondary))
+					if (file._type === 'FileReference') {
+						return fileApp.open((file:FileReference))
+					} else if (file._type == "DataFile") {
+						return fileController.open(((file:any):DataFile))
+					} else {
+						fileController.downloadAndOpen(((file:any):TutanotaFile))
+					}
+
+				}, null).setType(ButtonType.Secondary)
+			)
+
 			lazyButtons.push(new Button("remove_action", () => {
-				remove(this._attachments, file)
-				this._updateAttachmentButtons()
-				m.redraw()
-			}, null).setType(ButtonType.Secondary))
+					remove(this._attachments, file)
+					this._updateAttachmentButtons()
+					m.redraw()
+				}, null).setType(ButtonType.Secondary)
+			)
 
 			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
@@ -509,7 +515,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 */
-	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
+	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise < void > {
 		let attachments = (saveAttachments) ? this._attachments : null
 		let senderName = getSenderName(this._mailboxDetails)
 		let to = this.toRecipients.bubbles.map(bubble => bubble.entity)
@@ -519,12 +525,14 @@ export class MailEditor {
 		let promise = null
 		const body = this._tempBody ? this._tempBody : this.editor.squire.getHTML()
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId, attachments, this._isConfidential(), this._replyTos)
-		if (this.draft != null) {
+		if (this.draft != null
+		) {
 			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft:any)).catch(NotFoundError, e => {
 				console.log("draft has been deleted, creating new one")
 				return createMailDraft()
 			})
-		} else {
+		}
+		else {
 			promise = createMailDraft()
 		}
 		promise = promise.then(newOrUpdatedDraft => {
@@ -636,8 +644,9 @@ export class MailEditor {
 
 	}
 
-	_updatePreviousMail(): Promise<void> {
-		if (this._previousMail) {
+	_updatePreviousMail(): Promise < void > {
+		if (this._previousMail
+		) {
 			if (this._previousMail.replyType == ReplyType.NONE && this.conversationType == ConversationType.REPLY) {
 				this._previousMail.replyType = ReplyType.REPLY
 			} else if (this._previousMail.replyType == ReplyType.NONE && this.conversationType == ConversationType.FORWARD) {
@@ -652,7 +661,8 @@ export class MailEditor {
 			return update(this._previousMail).catch(NotFoundError, e => {
 				// ignore
 			})
-		} else {
+		}
+		else {
 			return Promise.resolve();
 		}
 	}
@@ -689,7 +699,7 @@ export class MailEditor {
 	/**
 	 * Makes sure the recipient type and contact are resolved.
 	 */
-	_waitForResolvedRecipients(): Promise<RecipientInfo[]> {
+	_waitForResolvedRecipients(): Promise < RecipientInfo[] > {
 		return Promise.all(this._allRecipients().map(recipientInfo => {
 			return resolveRecipientInfo(recipientInfo).then(recipientInfo => {
 				if (recipientInfo.resolveContactPromise) {
@@ -706,7 +716,7 @@ export class MailEditor {
 	/**
 	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
 	 */
-	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
+	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble < RecipientInfo > {
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
 		bubbleWrapper.button = createAsyncDropDownButton(() => getDisplayText(recipientInfo.name, mailAddress, false), null, () => {
@@ -731,7 +741,7 @@ export class MailEditor {
 		return bubbleWrapper.bubble
 	}
 
-	_createBubbleContextButtons(name: string, mailAddress: string, contact: ?Contact, bubbleResolver: Function): (Button|string)[] {
+	_createBubbleContextButtons(name: string, mailAddress: string, contact: ? Contact, bubbleResolver: Function): (Button | string)[] {
 		let buttons = [mailAddress]
 		if (logins.getUserController().isInternalUser()) {
 			if (contact && contact._id) { // the contact may be new contact, in this case do not edit it
@@ -757,7 +767,7 @@ export class MailEditor {
 		return buttons
 	}
 
-	_handleEntityEvent(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
+	_handleEntityEvent(typeRef: TypeRef < any >, listId: ? string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation == OperationType.UPDATE || operation == OperationType.DELETE)) {
 			let contactId: IdTuple = [neverNull(listId), elementId]
 			let allBubbleLists = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles]
@@ -775,7 +785,7 @@ export class MailEditor {
 		}
 	}
 
-	_updateBubble(bubbles: Bubble<RecipientInfo>[], oldBubble: Bubble<RecipientInfo>, contactId: IdTuple) {
+	_updateBubble(bubbles: Bubble < RecipientInfo > [], oldBubble: Bubble < RecipientInfo >, contactId: IdTuple) {
 		let emailAddress = oldBubble.entity.mailAddress
 		load(ContactTypeRef, contactId).then(updatedContact => {
 			if (!updatedContact.mailAddresses.find(ma => ma.address.trim().toLowerCase() === emailAddress.trim().toLowerCase())) {
@@ -791,7 +801,7 @@ export class MailEditor {
 		})
 	}
 
-	_removeBubble(bubble: Bubble<RecipientInfo>) {
+	_removeBubble(bubble: Bubble < RecipientInfo >) {
 		let bubbles = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles].find(b => contains(b, bubble))
 		if (bubbles) {
 			remove(bubbles, bubble)
