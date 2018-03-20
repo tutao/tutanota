@@ -1,5 +1,5 @@
 //@flow
-import {neverNull} from "../common/utils/Utils"
+import {neverNull, defer} from "../common/utils/Utils"
 import {getHttpOrigin, assertMainOrNodeBoot} from "../Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 
@@ -8,11 +8,20 @@ assertMainOrNodeBoot()
 export class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
 	customizations: ?NumberString[];
+	waitForLogin: {resolve:Function, reject: Function, promise: Promise<void>} = defer()
+
 
 	isUserLoggedIn() {
 		return this._userController != null
 	}
 
+	waitForUserLogin(): Promise<void> {
+		return this.waitForLogin.promise
+	}
+
+	loginComplete(): void {
+		this.waitForLogin.resolve()
+	}
 
 	isInternalUserLoggedIn() {
 		return this.isUserLoggedIn() && this.getUserController().isInternalUser()

@@ -19,22 +19,27 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.tutao.tutanota.MainActivity.activity;
-
 /**
  * Created by mpfau on 4/8/17.
  */
-public class Native {
+public final class Native {
     private static final String JS_NAME = "nativeApp";
     private final static String TAG = "Native";
+
     static int requestId = 0;
-    Crypto crypto = new Crypto();
-    FileUtil files = new FileUtil();
-    Contact contact = new Contact();
+    Crypto crypto;
+    FileUtil files;
+    Contact contact;
     Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
+    private final MainActivity activity;
+    private final DeferredObject initialized = new DeferredObject();
 
 
-    Native() {
+    Native(MainActivity activity) {
+        this.activity = activity;
+        crypto = new Crypto(activity);
+        contact = new Contact(activity);
+        files = new FileUtil(activity);
     }
 
     public void setup() {
@@ -153,6 +158,7 @@ public class Native {
         Deferred promise = new DeferredObject<>();
         try {
             if ("init".equals(method)) {
+                initialized.resolve(null);
                 promise.resolve("android");
             } else if ("initPushNotifications".equals(method)) {
                 return initPushNotifications();
@@ -221,6 +227,10 @@ public class Native {
 
     private static String escape(String s) {
         return s.replace("\"", "\\\"");
+    }
+
+    public DeferredObject getInitialized() {
+        return initialized;
     }
 
 }

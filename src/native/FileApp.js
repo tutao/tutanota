@@ -64,7 +64,7 @@ function deleteFile(file: string): Promise<void> {
  * Returns the name of the file
  * @param file The uri of the file
  */
-function getName(file: string): Promise<string> {
+export function getName(file: string): Promise<string> {
 	return nativeApp.invokeNative(new Request("getName", [file]))
 }
 
@@ -72,7 +72,7 @@ function getName(file: string): Promise<string> {
  * Returns the mime type of the file
  * @param file The uri of the file
  */
-function getMimeType(file: string): Promise<string> {
+export function getMimeType(file: string): Promise<string> {
 	return nativeApp.invokeNative(new Request("getMimeType", [file]))
 }
 
@@ -80,7 +80,7 @@ function getMimeType(file: string): Promise<string> {
  * Returns the byte size of a file
  * @param file The uri of the file
  */
-function getSize(file: string): Promise<number> {
+export function getSize(file: string): Promise<number> {
 	return nativeApp.invokeNative(new Request("getSize", [file])).then(sizeString => Number(sizeString))
 }
 

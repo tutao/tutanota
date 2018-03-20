@@ -124,8 +124,8 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
-	| 'updatePushIdentifier'
-type JsRequestType = ''
+type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
+
 
 
 type Callback = (err: ?Error, data: ?Object) => Object

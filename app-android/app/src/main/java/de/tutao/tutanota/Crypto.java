@@ -41,9 +41,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static de.tutao.tutanota.MainActivity.activity;
-
-public class Crypto {
+public final class Crypto {
     public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
     public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
     private static final String PROVIDER = "BC";
@@ -61,12 +59,15 @@ public class Crypto {
 
     private static final Integer ANDROID_6_SDK_VERSION = 23;
 
+    private final MainActivity activity;
+
     static {
         // see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
         PRNGFixes.apply();
     }
 
-    public Crypto() {
+    public Crypto(MainActivity activity) {
+        this.activity = activity;
         this.randomizer = new SecureRandom();
     }
 

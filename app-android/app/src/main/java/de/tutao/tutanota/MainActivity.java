@@ -1,14 +1,19 @@
 package de.tutao.tutanota;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -17,28 +22,30 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.jdeferred.Deferred;
+import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.json.JSONArray;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import de.tutao.tutanota.push.GcmRegistrationService;
 
-import static de.tutao.tutanota.ShareActivity.shareActivity;
-
 public class MainActivity extends Activity {
 
-    public static MainActivity activity;
+    private static final String TAG = "MainActivity";
     private static int requestId = 0;
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
 
     private WebView webView;
-    public Native nativeImpl = new Native();
+    public Native nativeImpl = new Native(this);
+    boolean firstLoaded = false;
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        activity = this;
 
         webView = new WebView(this);
         setContentView(webView);
@@ -51,11 +58,26 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
+        this.nativeImpl.getInitialized().then(new DoneCallback() {
+            @Override
+            public void onDone(Object result) {
+                if (!firstLoaded) {
+                    if (getIntent().getAction() != null) {
+                        share(getIntent());
+                    }
+                }
+                firstLoaded = false;
+            }
+        });
         this.webView.loadUrl(getUrl());
         nativeImpl.setup();
 
-        if (shareActivity != null) {
-            shareActivity.share();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if (intent.getAction() != null) {
+            share(intent);
         }
     }
 
@@ -68,9 +90,9 @@ public class MainActivity extends Activity {
     private String getUrl() {
         switch (BuildConfig.BUILD_TYPE) {
             case "debug":
-                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/local-app";
+                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/app";
             case "debugDist":
-                return "file:///android_asset/tutanota/local-app.html";
+                return "file:///android_asset/tutanota/app.html";
             default:
                 throw new RuntimeException("illegal build type");
         }
@@ -88,20 +110,20 @@ public class MainActivity extends Activity {
         return requestId;
     }
 
-    static Promise<Void,Exception,Void> getPermission(String permission) {
+    Promise<Void, Exception, Void> getPermission(String permission) {
         Deferred p = new DeferredObject();
         if (hasPermission(permission)) {
             p.resolve(null);
         } else {
             int requestCode = getRequestCode();
-            ActivityCompat.requestPermissions(activity, new String[]{permission}, requestCode);
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
             requests.put(requestCode, p);
         }
         return p;
     }
 
-    private static boolean hasPermission(String permission) {
-        return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
+    private boolean hasPermission(String permission) {
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -153,6 +175,35 @@ public class MainActivity extends Activity {
         getApplicationContext().startActivity(intent);
     }
 
+    /**
+     * The sharing activity. Either invoked from MainActivity (if the app was not active when the
+     * share occured) or from onCreate.
+     */
+    void share(Intent intent) {
+        String action = intent.getAction();
+        if (Intent.ACTION_SEND.equals(action)) {
+            ShareCompat.IntentReader share = ShareCompat.IntentReader.from(this);
+            try {
+                final String file;
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    ClipData.Item item = clipData.getItemAt(0);
+                    file = FileUtil.uriToFile(this, item.getUri());
+                } else {
+                    Uri uri = intent.getData();
+                    file = FileUtil.uriToFile(this, uri);
+                }
+                final JSONArray filesArray = new JSONArray();
+                filesArray.put(file);
+                nativeImpl.sendRequest(JsRequest.createMailEditor, new Object[]{filesArray});
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "could not find file", e);
+            }
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+            // TODO
+        }
+    }
+
 }
 
 interface Callback<T> {
@@ -166,6 +217,7 @@ interface ActivityResultCallback {
 class ActivityResult {
     int resultCode;
     Intent data;
+
     ActivityResult(int resultCode, Intent data) {
         this.resultCode = resultCode;
         this.data = data;

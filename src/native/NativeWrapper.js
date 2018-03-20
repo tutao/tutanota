@@ -3,6 +3,7 @@ import {Queue, Request} from "../api/common/WorkerProtocol"
 import {ConnectionError} from "../api/common/error/RestError"
 import {neverNull, asyncImport} from "../api/common/utils/Utils"
 import {Mode, isMainOrNode} from "../api/Env"
+import {getName, getMimeType, getSize} from "./FileApp"
 
 /**
  * Invokes native functions of an app. In case this is executed from a worker scope, the invocations are passed to the
@@ -31,7 +32,35 @@ class NativeWrapper {
 					return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/native/PushServiceApp.js`).then(module => {
 						module.pushServiceApp.updatePushIdentifier(msg.args[0])
 					})
-				}
+				},
+				createMailEditor: (msg: Request) => {
+					return Promise.all([
+						importModule('src/mail/MailModel.js'),
+						importModule('src/mail/MailEditor.js'),
+						importModule('src/mail/MailUtils.js'),
+						importModule('src/api/main/LoginController.js')
+					]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
+						return logins.waitForUserLogin().then(() => Promise.all(msg.args[0]
+							.map(uri => Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
+								return {
+									_type: "FileReference",
+									name,
+									mimeType,
+									size,
+									location: uri
+								}
+							}))))
+							.then(files => {
+								const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+								return editor.initWithTemplate(null, null, files.length > 0 ? files[0].name : "",
+									mailUtilsModule.getEmailSignature(), null)
+									.then(() => {
+										editor._attachFiles(files)
+										editor.show()
+									})
+							})
+					})
+				},
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}
@@ -89,5 +118,9 @@ function _createConnectionErrorHandler(rejectFunction) {
 		}
 	}
 }
+
+
+const importModule = (path): Promise<any> =>
+	asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 
 export const nativeApp = new NativeWrapper()

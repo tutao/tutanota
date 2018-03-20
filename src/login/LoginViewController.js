@@ -145,6 +145,7 @@ export class LoginViewController {
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
 		}).then(() => mailModel.init())
+			.then(() => logins.loginComplete())
 	}
 
 	_showUpgradeReminder(): Promise<void> {
