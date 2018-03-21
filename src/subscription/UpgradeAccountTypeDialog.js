@@ -52,12 +52,13 @@ export class UpgradeAccountTypeDialog {
 
 		let freeTypeBox = new BuyOptionBox(() => "Free", "choose_action",
 			() => this._close(),
-			this._getOptions("Free"), 230, 240)
+			this._getOptions(["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"], "Free"), 230, 240)
 		freeTypeBox.setValue("0 €")
 		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
-		this._premiumUpgradeBox = this._createUpgradeBox(true)
-		this._proUpgradeBox = this._createUpgradeBox(false)
+		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
+		this._premiumUpgradeBox = this._createUpgradeBox(true, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules"])
+		this._proUpgradeBox = this._createUpgradeBox(false, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonLogin", "comparisonTheme"])
 
 		let privateBuyOptions = [freeTypeBox, this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
 		let businessBuyOptions = [this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
@@ -115,7 +116,7 @@ export class UpgradeAccountTypeDialog {
 	}
 
 
-	_createUpgradeBox(premium: boolean): UpgradeBox {
+	_createUpgradeBox(premium: boolean, featurePrefixes: Array<string>): UpgradeBox {
 		let title = premium ? "Premium" : "Pro"
 		let buyOptionBox = new BuyOptionBox(() => title, "buy_action",
 			() => {
@@ -125,7 +126,7 @@ export class UpgradeAccountTypeDialog {
 					paymentInterval: premium ? this._premiumUpgradeBox.paymentInterval().value : this._proUpgradeBox.paymentInterval().value
 				})
 			},
-			this._getOptions(title), 230, 240)
+			this._getOptions(featurePrefixes, title), 230, 240)
 
 		buyOptionBox.setValue(lang.get("emptyString_msg"))
 		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
@@ -170,9 +171,8 @@ export class UpgradeAccountTypeDialog {
 	}
 
 
-	_getOptions(type: string): Array<string> {
-		const features = ["comparisonAlias", "comparisonDomain", "comparisonInboxRules", "comparisonSearch", "comparisonLogin"]
-		return features.map(f => lang.get(f + type + "_msg"))
+	_getOptions(featurePrefixes: Array<String>, type: string): Array<string> {
+		return featurePrefixes.map(f => lang.get(f + type + "_msg"))
 	}
 
 	show() {
