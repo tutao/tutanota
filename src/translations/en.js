@@ -1004,14 +1004,15 @@ module.exports = {
 		"comparisonSearchPremium_msg": "Unlimited search",
 		"comparisonLoginPremium_msg": "Login at Tutanota",
 
-
 		"comparisonAliasPro_msg": "10 aliases",
 		"comparisonDomainPro_msg": "Custom domain",
 		"comparisonInboxRulesPro_msg": "Inbox rules",
 		"comparisonSearchPro_msg": "Unlimited search",
 		"comparisonLoginPro_msg": "Custom domain login",
 		"invoiceData_msg": "Invoice data",
-		"next_action": "Next"
+		"next_action": "Next",
+		"upgradeLater_msg": "Use your  Tutanota email address free of charge and upgrade later.",
+		"choose_action": "Choose"
 
 	}
 }

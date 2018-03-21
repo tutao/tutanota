@@ -269,7 +269,8 @@ export const Countries: Array<Country> = [
 	{n: "Yemen", a: "YE", t: 2, d: 2},
 	{n: "Zambia", a: "ZM", t: 2, d: 2},
 	{n: "Zimbabwe", a: "ZW", t: 2, d: 1}
-];
+]
+Object.freeze(Countries) // prevent modifying the array
 
 export function getByAbbreviation(abbreviation: string): ?Country {
 	return Countries.find((c => c.a == abbreviation))

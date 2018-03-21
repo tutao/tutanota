@@ -532,6 +532,39 @@ styles.registerStyle('main', () => {
 			color: theme.button_bubble_fg,
 		},
 
+		'.segmentControl': {},
+
+		'.segmentControl-border': {
+			'border': `1px solid ${theme.content_border}`,
+			'padding-top': px(1),
+			'padding-bottom': px(1),
+			'padding-left': px(1),
+			'padding-right': px(1),
+		},
+		'.segmentControl-border-active': {
+			'border': `2px solid ${theme.content_accent}`,
+			'padding-top': px(0),
+			'padding-bottom': px(0),
+			'padding-left': px(0),
+			'padding-right': px(0),
+		},
+
+		'.segmentControlSmall': {
+			// same as for bubble buttons
+			'border-top': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+			'border-bottom': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+		},
+
+		'.segmentControlItem:last-child': {
+			'border-bottom-right-radius': px(size.border_radius),
+			'border-top-right-radius': px(size.border_radius)
+		},
+
+		'.segmentControlItem:first-child': {
+			'border-bottom-left-radius': px(size.border_radius),
+			'border-top-left-radius': px(size.border_radius)
+		},
+
 		// contact
 		'.wrapping-row': {display: 'flex', 'flex-flow': 'row wrap', 'margin-right': px(-size.hpad_large)},
 		'.wrapping-row > *': {
@@ -586,11 +619,9 @@ styles.registerStyle('main', () => {
 
 		'.column-width-largest': {},
 		'.buyOptionBox': {
-			//.centered
 			position: 'relative',
 			display: 'inline-block',
 			border: `1px solid ${theme.content_border}`,
-			//'border-radius': px(10),
 			width: "100%",
 			padding: px(10)
 		},

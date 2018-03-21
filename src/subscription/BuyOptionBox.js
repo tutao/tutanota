@@ -15,8 +15,9 @@ export class BuyOptionBox {
 	_value: string;
 	_helpLabel: string;
 	_features: Array<string>;
+	_injection: ?Component;
 
-	constructor(headingIdOrFunction: string|lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: Array<string>) {
+	constructor(headingIdOrFunction: string|lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: Array<string>, width: number, height: number) {
 		this._headingIdOrFunction = headingIdOrFunction
 		this._actionId = actionTextId
 		this._button = new Button(actionTextId, actionClickHandler).setType(ButtonType.Login)
@@ -28,15 +29,25 @@ export class BuyOptionBox {
 			return m("", {
 				style: {
 					margin: "10px",
-					width: "200px",
+					width: px(width),
 					padding: "10px"
 				}
-			}, [m(".buyOptionBox", [
+			}, [m(".buyOptionBox", {
+				style: {height: px(height)}
+			}, [
 				m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
 				m(".h1.center.pt", this._value),
 				m(".small.center", this._helpLabel),
-				m(".button-min-height.pt", m(this._button))
-			]), m(".flex.flex-column.pt", {
+				this._injection ? m(this._injection) : null,
+				m(".button-min-height", {
+					style: {
+						position: "absolute",
+						bottom: px(10),
+						left: px(10),
+						right: px(10)
+					}
+				}, m(this._button))
+			]), m(".flex.flex-column", {
 				style: {lineHeight: px(inputLineHeight)}
 			}, this._features.map(f => m(".center.dialog-header.dialog-header-line-height.text-ellipsis",
 				// {style: {borderBottom: `1px solid ${theme.content_border}`}},
@@ -52,6 +63,10 @@ export class BuyOptionBox {
 	setHelpLabel(value: string): BuyOptionBox {
 		this._helpLabel = value
 		return this
+	}
+
+	setInjection(injection: Component) {
+		this._injection = injection
 	}
 }
 

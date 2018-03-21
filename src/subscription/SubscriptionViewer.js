@@ -39,8 +39,6 @@ export class SubscriptionViewer {
 	_whitelabelField: TextField;
 
 	constructor() {
-
-
 		this._accountTypeField = new TextField("accountType_label").setValue(_getAccountTypeName(logins.getUserController().user.accountType)).setDisabled()
 		let accountTypeAction = createDropDownButton("accountType_label", () => Icons.Edit, () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {

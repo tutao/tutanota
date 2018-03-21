@@ -1,5 +1,6 @@
-// @flow
 import m from "mithril"
+// @flow
+import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
@@ -7,21 +8,39 @@ import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {BuyOptionBox} from "./BuyOptionBox"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
-import stream from "mithril/stream/stream.js"
-import {TextField, Type} from "../gui/base/TextField"
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
+import {SegmentControl} from "../gui/base/SegmentControl"
+import {openInvoiceDataDialog} from "./InvoiceDataDialog"
 import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
-import {Countries} from "../api/common/CountryList"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+
 
 assertMainOrNode()
+
+
+type UpgradePrices = {
+	premiumPrice:number,
+	proPrice:number
+}
+
+type UpgradeBox = {
+	buyOptionBox:BuyOptionBox;
+	paymentInterval:stream<SegmentControlItem<number>>
+}
+
 
 export class UpgradeAccountTypeDialog {
 
 	view: Function;
 	dialog: Dialog;
+	_premiumUpgradeBox: UpgradeBox;
+	_proUpgradeBox: UpgradeBox;
+	_businessUse: stream<SegmentControlItem<boolean>>
+	_monthlyPrice: LazyLoaded<UpgradePrices>
+	_yearlyPrice: LazyLoaded<UpgradePrices>
 
 	/**
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
@@ -31,39 +50,55 @@ export class UpgradeAccountTypeDialog {
 	 */
 	constructor(accountingInfo: AccountingInfo) {
 
-		let freeTypeBox = new BuyOptionBox(() => "Free", "order_action",
+		let freeTypeBox = new BuyOptionBox(() => "Free", "choose_action",
 			() => this._close(),
-			this._getOptions("Free"))
+			this._getOptions("Free"), 230, 240)
 		freeTypeBox.setValue("0 €")
-		freeTypeBox.setHelpLabel("current plan")
+		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
-		let premiumTypeBox = new BuyOptionBox(() => "Premium", "buy_action",
-			() => {
-				this._close()
-				this._lauchPaymentFlow()
-			},
-			this._getOptions("Premium"))
-		premiumTypeBox.setValue("1 €")
-		premiumTypeBox.setHelpLabel("per month(paid yearly)")
+		this._premiumUpgradeBox = this._createUpgradeBox(true)
+		this._proUpgradeBox = this._createUpgradeBox(false)
 
-		let businessTypeBox = new BuyOptionBox(() => "Pro", "buy_action",
-			() => {
-				this._close()
-				this._lauchPaymentFlow()
-			},
-			this._getOptions("Pro"))
-		businessTypeBox.setValue("5 €")
-		businessTypeBox.setHelpLabel("per month (paid yearly)")
-		let buyOptions = [
-			freeTypeBox,
-			premiumTypeBox,
-			businessTypeBox
+		let privateBuyOptions = [freeTypeBox, this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
+		let businessBuyOptions = [this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
+
+		let businessUseItems = [
+			{name: lang.get("privateUse_label"), value: false},
+			{name: lang.get("businessUse_label"), value: true}
 		]
+		this._businessUse = stream(businessUseItems[0])
+		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse, true).setSelectionChangedHandler(businessUseItem => {
+			const helpLabel = lang.get(businessUseItem.value ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
+			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
+			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
+			this._businessUse(businessUseItem)
+		})
+
+		this._yearlyPrice = new LazyLoaded(() => this._getPrices(12), null)
+		this._monthlyPrice = new LazyLoaded(() => {
+			Dialog.error("twoMonthsForFreeYearly_msg")
+			return this._getPrices(1)
+		}, null)
+
+		// initial help label and price
+		this._yearlyPrice.getAsync().then(yearlyPrice => {
+			this._premiumUpgradeBox.buyOptionBox.setValue(formatPrice(yearlyPrice.premiumPrice, false) + " €")
+			this._proUpgradeBox.buyOptionBox.setValue(formatPrice(yearlyPrice.proPrice, false) + " €")
+
+			const helpLabel = lang.get(this._businessUse.value ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
+			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
+			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
+			m.redraw()
+		})
 
 		let headerBar = new DialogHeaderBar()
 			.setMiddle(() => lang.get("upgradeToPremium_action"))
-		//.addRight(new Button('save_action', () => this.save()).setType(ButtonType.Primary))
-		this.view = () => m("#upgrade-account-dialog.pt", m(".flex-center.flex-wrap", buyOptions.map(bo => m(bo))))
+
+		this.view = () => m("#upgrade-account-dialog.pt", [
+				m(privateBusinesUseControl),
+				m(".flex-center.flex-wrap", (this._businessUse().value ? businessBuyOptions : privateBuyOptions).map(bo => m(bo)))
+			]
+		)
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
 			.addShortcut({
@@ -79,109 +114,61 @@ export class UpgradeAccountTypeDialog {
 			})
 	}
 
-	_lauchPaymentFlow() {
-		this._openPaymentDataDialog().then(result => {
-			if (result) {
-				this._openInvoiceDataDialog(result.businiessUsage, result.period)
-			}
-		})
-	}
 
-	_openPaymentDataDialog(): Promise<?{businiessUsage: boolean, period: number}> {
-		let businessUse = stream(false)
-		let businessInput = new DropDownSelector("businessUse_label",
-			null,
-			[{name: lang.get("businessUse_label"), value: true}, {name: lang.get("privateUse_label"), value: false}],
-			businessUse, // Private
-			250).setSelectionChangedHandler(v => {
-			businessUse(v)
-		})
+	_createUpgradeBox(premium: boolean): UpgradeBox {
+		let title = premium ? "Premium" : "Pro"
+		let buyOptionBox = new BuyOptionBox(() => title, "buy_action",
+			() => {
+				this._close()
+				this._lauchPaymentFlow({
+					businessUse: this._businessUse().value,
+					paymentInterval: premium ? this._premiumUpgradeBox.paymentInterval().value : this._proUpgradeBox.paymentInterval().value
+				})
+			},
+			this._getOptions(title), 230, 240)
 
-		const labelHelpConstantPart = lang.get("amountDueBeginOfSubscriptionPeriod_msg");
-		const priceHelperText = () => {
-			const prefix = lang.get(businessUse() ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
-			const suffix = lang.get(period() == 12 ? "twoMonthsForFreeIncluded_msg" : "twoMonthsForFreeYearly_msg")
-			return prefix + " " + labelHelpConstantPart + " " + suffix
+		buyOptionBox.setValue(lang.get("emptyString_msg"))
+		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
+
+		let paymentIntervalItems = [
+			{name: lang.get("yearly_label"), value: 12},
+			{name: lang.get("monthly_label"), value: 1}
+		]
+		let upgradeBox: UpgradeBox = {
+			buyOptionBox: buyOptionBox,
+			paymentInterval: stream(paymentIntervalItems[0])
 		}
 
-		const priceLabel = new TextField("bookingPrice_label", priceHelperText).setValue(" ")
-		let period = stream(12)
-
-		worker.getPrice(BookingItemFeatureType.Users, 1, false, period(), AccountType.PREMIUM, businessUse())
-			.then(response => priceLabel.setValue(formatPrice(Number(neverNull(response.futurePriceNextPeriod).price), true)))
-
-		let subscriptionInput = new DropDownSelector("subscription_label",
-			() => lang.get("renewedSubscriptionInfo_msg"),
-			[{name: lang.get("yearly_label"), value: 12}, {name: lang.get("monthly_label"), value: 1}],
-			period,
-			250).setSelectionChangedHandler(v => {
-			period(v)
-			worker.getPrice(BookingItemFeatureType.Users, 1, false, period(), AccountType.PREMIUM, businessUse())
-				.then(response => {
-					priceLabel.setValue(formatPrice(Number(neverNull(response.futurePriceNextPeriod).price), true))
-					//m.redraw()
-				})
+		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval, true).setSelectionChangedHandler(paymentIntervalItem => {
+			if (paymentIntervalItem.value == 12) {
+				this._yearlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((premium ? upgradePrice.premiumPrice : upgradePrice.proPrice), false) + " €")).then(() => m.redraw())
+			} else {
+				this._monthlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((premium ? upgradePrice.premiumPrice : upgradePrice.proPrice), false) + " €")).then(() => m.redraw())
+			}
+			upgradeBox.paymentInterval(paymentIntervalItem)
 		})
-
-		return Promise.fromCallback((callback) => {
-			let paymentDataDialog = Dialog.smallActionDialog(lang.get("adminPayment_action"), {
-				view: () => m(".text-break.pt", [
-					m(businessInput),
-					m(subscriptionInput),
-					m(priceLabel)
-				])
-			}, () => {
-				paymentDataDialog.close()
-				callback(null, {businessUse: businessUse(), period: period()})
-			}, true, "next_action", () => {
-				paymentDataDialog.close()
-				callback(null, null)
-			})
-		})
+		buyOptionBox.setInjection(subscriptionControl)
+		return upgradeBox
 	}
 
-
-	_openInvoiceDataDialog(businessUse: boolean, period: number): Promise<void> {
-		let invoiceNameInput = new TextField("invoiceRecipient_label", () => businessUse ? lang.get("invoiceRecipientInfoBusiness_msg") : lang.get("invoiceRecipientInfoConsumer_msg"))
-		let invoiceAddressInput = new TextField("invoiceAddress_label", () => businessUse ? lang.get("invoiceAddressInfoBusiness_msg") : lang.get("invoiceAddressInfoConsumer_msg")).setType(Type.Area)
-
-		const countries = Countries.map(c => ({value: c.a, name: c.n}))
-		countries.push({value: null, name: lang.get("choose_label")});
-		let countryCode = stream(null)
-		let countryInput = new DropDownSelector("invoiceCountry_label",
-			() => lang.get("invoiceCountryInfoConsumer_msg"),
-			countries,
-			countryCode,
-			250).setSelectionChangedHandler(v => {
-			countryCode(v)
-		})
-
-		let paymentMethod = stream(null)
-		let paymentMethodInput = new DropDownSelector("paymentMethod_label",
-			() => lang.get("invoicePaymentMethodInfo_msg"),
-			[{name: lang.get("choose_label"), value: null}],
-			paymentMethod,
-			250).setSelectionChangedHandler(v => {
-			paymentMethod(v)
-		})
-
-		return Promise.fromCallback((callback) => {
-			let invoiceDataDialog = Dialog.smallActionDialog(lang.get("invoiceData_msg"), {
-				view: () => m(".text-break", [
-					m(invoiceNameInput),
-					m(invoiceAddressInput),
-					m(countryInput),
-					m(paymentMethodInput)
-				])
-			}, () => {
-				invoiceDataDialog.close()
-				callback(null, null)
-			}, true, "next_action", () => {
-				invoiceDataDialog.close()
-				callback(null, null)
+	_getPrices(paymentInterval: number): Promise<UpgradePrices> {
+		return Promise.join(
+			worker.getPrice(BookingItemFeatureType.Users, 1, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),
+			(userReturn, aliasReturn, storageReturn, brandingReturn) => {
+				return {
+					premiumPrice: Number(neverNull(userReturn.futurePriceNextPeriod).price),
+					proPrice: Number(neverNull(userReturn.futurePriceNextPeriod).price) + Number(neverNull(aliasReturn.futurePriceNextPeriod).price) + Number(neverNull(storageReturn.futurePriceNextPeriod).price) + Number(neverNull(brandingReturn.futurePriceNextPeriod).price)
+				}
 			})
-		})
 	}
+
+	_lauchPaymentFlow(subscriptionOptions: SubscriptionOptions) {
+		return openInvoiceDataDialog(subscriptionOptions)
+	}
+
 
 	_getOptions(type: string): Array<string> {
 		const features = ["comparisonAlias", "comparisonDomain", "comparisonInboxRules", "comparisonSearch", "comparisonLogin"]
