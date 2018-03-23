@@ -141,10 +141,14 @@ class MailModel {
 
 		let promises = []
 		if (groupedMails.trash.length > 0) {
-			let deleteMailData = createDeleteMailData()
-			deleteMailData.mails.push(...groupedMails.trash.map(m => m._id))
-			promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
-				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
+			Dialog.confirm("deleteEmails_msg").then((confirmed) => {
+				if (confirmed) {
+					let deleteMailData = createDeleteMailData()
+					deleteMailData.mails.push(...groupedMails.trash.map(m => m._id))
+					promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+						.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
+				}
+			})
 
 		} else if (groupedMails.move.length > 0) {
 			promises.push(mailModel.moveMails(groupedMails.move, getTrashFolder(mailModel.getMailboxFolders(groupedMails.move[0]))))
@@ -166,7 +170,7 @@ class MailModel {
 				load(UserTypeRef, elementId).then(updatedUser => {
 					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType == GroupType.Mail)
 					let currentDetails = this.mailboxDetails()
-										if (newMemberships.length != currentDetails.length) {
+					if (newMemberships.length != currentDetails.length) {
 						this._initialization = null
 						this.init().then(() => m.redraw())
 					}

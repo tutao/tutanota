@@ -2,32 +2,27 @@
 import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {
-	compareMailaddresses,
+	compareMailAddresses,
 	compareFullname,
-	comparePhonenumbers,
-	compareResidualContactfields,
+	comparePhoneNumbers,
+	compareResidualContactFields,
 	compareContactsForMerge
-} from "../../../src/contacts/MergeView"
+} from "../../../src/contacts/ContactMergeView"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
 
 o.spec("GetMergableContactsTest", function () {
+// tests are made for the validation of the comparison functions to finde mergable contacts
 
 	let allContacts = []
 	allContacts[0] = createContact()
 	allContacts[1] = createContact()
-	allContacts[2] = createContact()
-	allContacts[3] = createContact()
-	allContacts[4] = createContact()
-
 	o("testCompareMailaddresses", function () {
 		allContacts[0].mailAddresses[0] = createContactMailAddress()
 		allContacts[1].mailAddresses[0] = createContactMailAddress()
 		allContacts[0].phoneNumbers[0] = createContactPhoneNumber()
 		allContacts[1].phoneNumbers[0] = createContactPhoneNumber()
-
-		//console.log(">>>>>>" + JSON.stringify(allContacts[1].mailAddresses[0]) + "<<<<<<<", ">>>>>>" + JSON.stringify(allContacts[0].mailAddresses[0]) + "<<<<<<<")
-		o(compareMailaddresses(allContacts[0], allContacts[1])).equals("unique")
+		o(compareMailAddresses(allContacts[0], allContacts[1])).equals("unique")
 		allContacts[0].firstName = "anton"
 		allContacts[0].lastName = "stein"
 		allContacts[0].mailAddresses[0].address = "anton@mail.de"
@@ -38,15 +33,15 @@ o.spec("GetMergableContactsTest", function () {
 		allContacts[1].mailAddresses[0].address = "anton@mail.de"
 
 
-		o(compareMailaddresses(allContacts[0], allContacts[1])).equals("equal")
+		o(compareMailAddresses(allContacts[0], allContacts[1])).equals("equal")
 		allContacts[1].mailAddresses[0].address = "TOM@mail.de"
-		o(compareMailaddresses(allContacts[0], allContacts[1])).equals("unique")
+		o(compareMailAddresses(allContacts[0], allContacts[1])).equals("unique")
 		allContacts[1].mailAddresses[1] = createContactMailAddress()
 		allContacts[1].mailAddresses[1].address = "anton@mail.de"
-		o(compareMailaddresses(allContacts[0], allContacts[1])).equals("similar")
+		o(compareMailAddresses(allContacts[0], allContacts[1])).equals("similar")
 		allContacts[0].mailAddresses[1] = createContactMailAddress()
 		allContacts[0].mailAddresses[1].address = "tom@mail.de"
-		o(compareMailaddresses(allContacts[0], allContacts[1])).equals("similar")
+		o(compareMailAddresses(allContacts[0], allContacts[1])).equals("similar")
 
 	})
 	o("testCompareFullNames", function () {
@@ -69,16 +64,15 @@ o.spec("GetMergableContactsTest", function () {
 		o(compareFullname(allContacts[0], allContacts[1])).equals("equal")
 	})
 	o("testComparePhonenumbers", function () {
-		// console.log(">>>>>>" + JSON.stringify(allContacts[1].phoneNumbers[0]) + "<<<<<<<", ">>>>>>" + JSON.stringify(allContacts[0].phoneNumbers[0]) + "<<<<<<<")
-		o(comparePhonenumbers(allContacts[0], allContacts[1])).equals(null)
+		o(comparePhoneNumbers(allContacts[0], allContacts[1])).equals("equal")
 		allContacts[0].phoneNumbers[0].number = "017695886177"
 		allContacts[1].phoneNumbers[0].number = "017695886177"
-		o(comparePhonenumbers(allContacts[0], allContacts[1])).equals("equal")
+		o(comparePhoneNumbers(allContacts[0], allContacts[1])).equals("equal")
 		allContacts[1].phoneNumbers[0].number = "099999999999"
-		o(comparePhonenumbers(allContacts[0], allContacts[1])).equals("unique")
+		o(comparePhoneNumbers(allContacts[0], allContacts[1])).equals("unique")
 		allContacts[1].phoneNumbers[1] = createContactPhoneNumber()
 		allContacts[1].phoneNumbers[1].number = "017695886177"
-		o(comparePhonenumbers(allContacts[0], allContacts[1])).equals("similar")
+		o(comparePhoneNumbers(allContacts[0], allContacts[1])).equals("similar")
 		allContacts[0].phoneNumbers[1] = createContactPhoneNumber()
 		allContacts[0].phoneNumbers[1].number = "017695886177"
 		allContacts[0].phoneNumbers[0].number = "‪+49 163 7917345‬"
@@ -86,16 +80,16 @@ o.spec("GetMergableContactsTest", function () {
 		allContacts[0].phoneNumbers[0].number = allContacts[0].phoneNumbers[0].number.replace(/[\u200A-\u202F]/g, "")
 		allContacts[1].phoneNumbers[0].number = allContacts[1].phoneNumbers[0].number.replace(/[\u200A-\u202F]/g, "")
 
-		o(comparePhonenumbers(allContacts[0], allContacts[1])).equals("equal")
+		o(comparePhoneNumbers(allContacts[0], allContacts[1])).equals("equal")
 	})
 
 	o("testCompareResidualContact", function () {
 		allContacts[0].company = "Tutao GmbH"
 		allContacts[1].company = "Tutao GmbH"
-		//o(compareResidualContactfields(allContacts[0], allContacts[1])).equals("equal")
+		//o(compareResidualContactFields(allContacts[0], allContacts[1])).equals("equal")
 		allContacts[0].comment = "Tutao GmbH"
 		allContacts[1].comment = "Hallo"
-		o(compareResidualContactfields(allContacts[0], allContacts[1])).equals("unique")
+		o(compareResidualContactFields(allContacts[0], allContacts[1])).equals("unique")
 		//todo bdayFormat testen
 
 
@@ -130,9 +124,9 @@ o.spec("GetMergableContactsTest", function () {
 		allContacts[1].firstName = ""
 		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar")
 		allContacts[1].firstName = "Bob"
-		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar"/*"Unique"*/)//todo klären wie man sich verhält bei gleichem nachnamen und mindestens einer gleichen Mailadresse
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar")
 		allContacts[1].lastName = "BOB"
-		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar"/*"Unique"*/)//todo klären wie man sich verhält bei nicht gleichem ganzen namen und mindestens einer gleichen Mailadresse
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar")
 		allContacts[0].firstName = "anton"
 		allContacts[0].lastName = "stein"
 		allContacts[0].mailAddresses[0].address = "anton@mail.de"
@@ -160,6 +154,36 @@ o.spec("GetMergableContactsTest", function () {
 		allContacts[1].phoneNumbers[0].number = "12345678890"
 		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("unique")
 
+
+	})
+	o("testCompareContactsWithPresharedPasswordForMerg", function () {
+		allContacts[0] = createContact()
+		allContacts[1] = createContact()
+		allContacts[0].mailAddresses[0] = createContactMailAddress()
+		allContacts[1].mailAddresses[0] = createContactMailAddress()
+		allContacts[0].phoneNumbers[0] = createContactPhoneNumber()
+		allContacts[1].phoneNumbers[0] = createContactPhoneNumber()
+		allContacts[0].phoneNumbers[0].number = "017695886177"
+		allContacts[1].phoneNumbers[0].number = "017695886177"
+		allContacts[0].mailAddresses[0].address = "anton@mail.de"
+		allContacts[1].mailAddresses[0].address = "anton@mail.de"
+
+		allContacts[0].comment = "A"
+		allContacts[1].comment = "A"
+
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("equal")
+
+		allContacts[0].firstName = "anton"
+		allContacts[0].lastName = "stein"
+		allContacts[1].firstName = "anton"
+		allContacts[1].lastName = "stein"
+		allContacts[1].presharedPassword = "B"
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar")
+		allContacts[0].presharedPassword = "A"
+		allContacts[1].presharedPassword = null
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("similar")
+		allContacts[1].presharedPassword = "B"
+		o(compareContactsForMerge(allContacts[0], allContacts[1])).equals("unique")
 
 	})
 

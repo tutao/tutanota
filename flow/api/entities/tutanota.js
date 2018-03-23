@@ -121,11 +121,11 @@ type Contact = {
 	company:string;
 	firstName:string;
 	lastName:string;
-	nickname:?string;
+	nickname:string;
 	oldBirthday:?Date;
 	presharedPassword:?string;
 	role:string;
-	title:?string;
+	title:string;
 
 	addresses:ContactAddress[];
 	birthday:?Birthday;

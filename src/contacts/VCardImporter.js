@@ -6,7 +6,6 @@ import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
-import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 
@@ -189,7 +188,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 			}
 		}
-		contact.comment += ((contact.comment == "") ? "" : "\n\n") + lang.get("vCardDateOfImportInComment_msg", {"{date}": new Date().toDateString()})
+		
 		contacts[i] = contact
 	}
 

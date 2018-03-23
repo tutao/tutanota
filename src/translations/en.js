@@ -973,6 +973,19 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"mergeContact_action": "Merge",
-		"next_action": "Next"
+		"proceedMerge_action": "Proceed to merge confirmation",
+		"next_action": "Next",
+		"mergeNotification_msg": "{1} mergable contact(s) has/have been found",
+		"duplicatesNotification_msg": "{1} duplicate(s) was/were found and will be deleted if proceeded further ",
+		'fullName_label': "Full name",
+		"noMerge_msg": "Nothing found for merge!",
+		"noMoreMerge_msg": "Nothing left to merge!",
+		"mergeView_label": "Merge View",
+		"deleteEmails_msg": "Are you sure you want to delete the selected email(s)?",
+		"commentContent_lable": "Content",
+		"firstMergeContact_placeholder": "First Contact",
+		"secondMergeContact_placeholder": "Second Contact",
+		"hereIsTheMergedConatct_msg": "Here the merged contact will be shown.",
+		"noVcardsFound_msg": "no vcards found."
 	}
 }

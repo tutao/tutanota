@@ -973,6 +973,14 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"mergeContact_action": "Merge",
-		"next_action": "Weiter"
+		"next_action": "Weiter",
+		"mergeNotification_msg": "{1} zusammenfügbare Kontakte wurden erkannt",
+		"duplicatesNotification_msg": "{1} exakt gleiche Kontakte wurden erkannt und werden gelöscht, wenn Sie Fortfahren",
+		"deleteEmails_msg": "Möchtest du die ausgewählten Emails wirklich löschen?",
+		"commentContent_lable": "Inhalt",
+		"firstMergeContact_placeholder": "Erster Kontakt",
+		"secondMergeContact_placeholder": "Zweiter Kontakt",
+		"hereIsTheMergedConatct_msg": "Hier wird der zusammengeführte Kontakt angezeigt",
+		"noVcardsFound_msg": "Keine Vcards wurden gefunden."
 	}
 }

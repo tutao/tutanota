@@ -13,7 +13,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {load, setup, erase, loadAll} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {OperationType, GroupType, ContactMergeAction} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
@@ -31,7 +31,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
-import {MergeView} from "./MergeView"
+import {MergeView, getMergableContacts, mergeContacts} from "./ContactMergeView"
 
 
 assertMainOrNode()
@@ -98,9 +98,10 @@ export class ContactView {
 	createNewContact() {
 		return new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 	}
-	createNewMergeView(){
 
-	}
+	// createNewMergeView(){
+	//
+	// }
 
 
 	_setupShortcuts() {
@@ -169,7 +170,7 @@ export class ContactView {
 								let vCardFileData = utf8Uint8ArrayToString(contactFile.data)
 								let vCards = vCardFileToVCards(vCardFileData)
 								if (vCards == null) {
-									throw new Error("no vcards found")
+									throw new Error("noVcardsFound_msg")
 								} else {
 									return vCards
 								}
@@ -197,16 +198,103 @@ export class ContactView {
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
 			new Button("mergeContact_action", () => {
-				LazyContactListId.getAsync().then(contactListId => {
-					 loadAll(ContactTypeRef, contactListId).then(allContacts => {
-						let mergeView = new MergeView(allContacts)
-						 mergeView.show()
-					})
+				let mergeView
+				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
+					return loadAll(ContactTypeRef, contactListId)
+				})).then(allContacts => {
+					if (allContacts.length == 0) {
+						Dialog.error("noContacts_msg")
+					} else {
+						let mergeableAndDuplicates = getMergableContacts(allContacts)
+						let deletePromise = Promise.resolve()
+						if (mergeableAndDuplicates.deletable.length > 0) {
+							deletePromise = Dialog.confirm(() => lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length})).then((confirmed) => {
+								if (confirmed) {
+									// delete async in the background
+									mergeableAndDuplicates.deletable.forEach((dc) => {
+										erase(dc)
+									})
+								}
+							})
+						}
+						deletePromise.then(() => {
+							this._showMergeDialogs(mergeableAndDuplicates.mergeable).then((ch) => {
+								if (mergeableAndDuplicates.mergeable.length == 0 && ch == null) {
+									Dialog.error(() => lang.get("noMerge_msg"))
+								} else if (ch == true) {
+									return null
+								} else if (ch == false) {
+									Dialog.error(() => lang.get("noMoreMerge_msg"))
+								}
+
+							})
+						})
+						//Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+					}
 				})
 			}, () => Icons.People).setType(ButtonType.Dropdown),
 
 		], 250).setColors(ButtonColors.Nav)
 	}
+
+	_showMergeDialogs(mergable: Contact[][]): Promise<boolean|null> {
+		let cancelCheck = null
+		if (mergable.length > 0) {
+			let contact1 = mergable[0][0]
+			let contact2 = mergable[0][1]
+			let mergeDialog = new MergeView(contact1, contact2)
+			return mergeDialog.show().then(action => {
+				// execute action here and update mergable
+				if (action == ContactMergeAction.Merge) {
+					this._removeFromMergableContacts(mergable, contact2)
+					return mergeContacts(contact1, contact2).then(() => {
+						cancelCheck = false
+						return erase(contact2)
+					})
+				} else if (action == ContactMergeAction.DeleteFirst) {
+					this._removeFromMergableContacts(mergable, contact1)
+					cancelCheck = false
+					return erase(contact1)
+				} else if (action == ContactMergeAction.DeleteSecond) {
+					this._removeFromMergableContacts(mergable, contact2)
+					cancelCheck = false
+					return erase(contact2)
+				} else if (action == ContactMergeAction.Skip) {
+					this._removeFromMergableContacts(mergable, contact2)
+					cancelCheck = false
+				} else if (action == ContactMergeAction.Cancel) {
+					mergable.length = 0
+					cancelCheck = true
+
+				}
+			}).then(() => {
+				if (cancelCheck != true && mergable.length > 0) {
+					return this._showMergeDialogs(mergable)
+				} else {
+					return cancelCheck
+				}
+			})
+		} else {
+			return Promise.resolve(cancelCheck)
+		}
+	}
+
+	/**
+	 * removes the given contact from the given mergable arrays first entry (first or second element)
+	 */
+
+	_removeFromMergableContacts(mergable: Contact[][], contact: Contact) {
+		if (mergable[0][0] == contact) {
+			mergable[0].splice(0, 1) // remove contact1
+		} else if (mergable[0][1] == contact) {
+			mergable[0].splice(1, 1) // remove contact2
+		}
+		// remove the first entry if there is only one contact left in the first entry
+		if (mergable[0].length <= 1) {
+			mergable.splice(0, 1)
+		}
+	}
+
 
 	/**
 	 * Notifies the current view about changes of the url within its scope.

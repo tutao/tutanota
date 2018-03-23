@@ -252,3 +252,12 @@ export const ContactComparisonResult = {
 	Equal: "equal",
 }
 export type ContactComparisonResultEnum = $Values<typeof ContactComparisonResult>;
+
+export const ContactMergeAction = {
+	DeleteFirst: "deleteFirst",
+	DeleteSecond: "deleteSecond",
+	Merge: "merge",
+	Skip: "skip",
+	Cancel: "cancel"
+}
+export type ContactMergeActionEnum = $Values<typeof ContactMergeAction>;
