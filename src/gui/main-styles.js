@@ -256,6 +256,7 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
+		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,

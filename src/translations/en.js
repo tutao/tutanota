@@ -1020,7 +1020,9 @@ module.exports = {
 
 		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
 		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment by yourself. The invoice amount will not be debited automatically.",
-		
+
+		"upgradeConfirm_msg": "Confirm your payment!",
+
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",
 		"creditCardExpirationDate_label": "Expiration date",
@@ -1033,7 +1035,6 @@ module.exports = {
 
 		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
-
 
 		// delete
 		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",

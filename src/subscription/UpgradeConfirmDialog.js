@@ -1,11 +1,12 @@
 // @flow
 import m from "mithril"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
 import {getPaymentMethodName} from "./PriceUtils"
+import {HabReminderImage} from "../gui/base/icons/Icons"
 
 export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Promise<boolean> {
 	let orderField = new TextField("bookingOrder_label")
@@ -31,21 +32,27 @@ export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOption
 			dialog.close()
 			cb(null, false)
 		}).setType(ButtonType.Secondary))
-		actionBar.addRight(new Button("buy_action", () => {
+
+		let confirmButton = new Button("buy_action", () => {
 			dialog.close()
 			cb(null, true)
-		}).setType(ButtonType.Primary))
+		}).setType(ButtonType.Login)
 
-		let dialog = new Dialog(DialogType.EditSmall, {
-			view: (): Children => [
-				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb", m("", [
-					m(orderField),
-					m(subscriptionField),
-					m(priceField),
-					m(paymentMethodField),
-				]))
-			]
+		let dialog = Dialog.largeDialog(actionBar, {
+			//let dialog = new Dialog(DialogType.EditSmall, {
+			view: () => [
+				m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+				m(".flex-space-around.flex-wrap", [
+					m(".flex-grow-shrink-half.plr-l", [
+						m(orderField),
+						m(subscriptionField),
+						m(priceField),
+						m(paymentMethodField),
+					]),
+					m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+						m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}}))
+				]),
+				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))]
 		})
 		dialog.show()
 	})
