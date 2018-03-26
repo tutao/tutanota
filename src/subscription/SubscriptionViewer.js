@@ -9,14 +9,15 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
-import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
-import {TextField, Type} from "../gui/base/TextField"
+import {Button} from "../gui/base/Button"
+import {TextField} from "../gui/base/TextField"
 import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {formatPrice} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {UpgradeAccountTypeDialog} from "./UpgradeAccountTypeDialog"
+import {openUpgradeDialog} from "./UpgradeAccountTypeDialog"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -27,10 +28,6 @@ export class SubscriptionViewer {
 	_usageTypeField: TextField;
 	_subscriptionIntervalField: TextField;
 	_currentPriceField: TextField;
-	_invoiceRecipientField: TextField;
-	_invoiceAddressField: TextField;
-	_invoiceCountryField: TextField;
-	_paymentMehthodField: TextField;
 
 	_usersField: TextField;
 	_storageField: TextField;
@@ -40,24 +37,20 @@ export class SubscriptionViewer {
 
 	constructor() {
 		this._accountTypeField = new TextField("accountType_label").setValue(_getAccountTypeName(logins.getUserController().user.accountType)).setDisabled()
-		let accountTypeAction = createDropDownButton("accountType_label", () => Icons.Edit, () => {
+		//let accountTypeAction = createDropDownButton("accountType_label", () => Icons.Edit, () => {
+		let accountTypeAction = new Button("accountType_label", () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
-				return [new Button("unsubscribePremium_label", () => console.log("unsubscribe from premium")).setType(ButtonType.Dropdown)]
+				//return [new Button("unsubscribePremium_label", () => console.log("unsubscribe from premium")).setType(ButtonType.Dropdown)]
+				Dialog.error("unsubscribePremium_label")
 			} else if (logins.getUserController().user.accountType == AccountType.FREE) {
-				return [new Button("upgradeToPremium_action", () => this._showUpgradeDialog()).setType(ButtonType.Dropdown)]
-			} else {
-				return []
+				//return [new Button("upgradeToPremium_action", () => this._showUpgradeDialog()).setType(ButtonType.Dropdown)]
+				openUpgradeDialog()
 			}
-		}, 250)
+		}, () => Icons.Edit)
 		this._accountTypeField._injectionsRight = () => logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount() ? [m(accountTypeAction)] : []
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._subscriptionIntervalField = new TextField("subscription_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._currentPriceField = new TextField("price_label").setValue(lang.get("loading_msg")).setDisabled()
-
-		this._invoiceRecipientField = new TextField("invoiceRecipient_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._invoiceAddressField = new TextField("address_label").setValue(lang.get("loading_msg")).setDisabled().setType(Type.Area)
-		this._invoiceCountryField = new TextField("invoiceCountry_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMehthodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._storageField = new TextField("storageCapacity_label").setValue(lang.get("loading_msg")).setDisabled()
@@ -72,11 +65,6 @@ export class SubscriptionViewer {
 				this._showPriceData() ? m(this._usageTypeField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
-				m(".h4.mt-l", lang.get('adminPayment_action')),
-				m(this._invoiceRecipientField),
-				m(this._invoiceAddressField),
-				m(this._invoiceCountryField),
-				m(this._paymentMehthodField),
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
 				m(this._usersField),
 				m(this._storageField),
@@ -119,9 +107,6 @@ export class SubscriptionViewer {
 	_updateAccountTypeData(accountingInfo: AccountingInfo) {
 		this._usageTypeField.setValue(accountingInfo.business ? lang.get("businessUse_label") : lang.get("privateUse_label"))
 		this._subscriptionIntervalField.setValue(accountingInfo.paymentInterval)
-		this._invoiceRecipientField.setValue(accountingInfo.invoiceName)
-		this._invoiceAddressField.setValue(accountingInfo.invoiceAddress)
-		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry)
 		m.redraw()
 	}
 
@@ -129,16 +114,6 @@ export class SubscriptionViewer {
 		if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
 			load(AccountingInfoTypeRef, elementId).then(accountingInfo => this._updateAccountTypeData(accountingInfo))
 		}
-	}
-
-
-	_showUpgradeDialog() {
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
-			.then(accountingInfo => {
-				new UpgradeAccountTypeDialog(accountingInfo).show()
-			})
 	}
 }
 

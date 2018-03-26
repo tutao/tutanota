@@ -10,7 +10,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
-import {EmptyViewer} from "./EmptyViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -30,6 +29,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
+import {InvoiceViewer} from "../subscription/InvoiceViewer"
 
 assertMainOrNode()
 
@@ -53,7 +53,6 @@ export class SettingsView {
 		]
 		this._adminFolders = []
 
-
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))
 		if (!logins.isProdDisabled() && !logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
@@ -70,7 +69,8 @@ export class SettingsView {
 		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
-				this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new SubscriptionViewer()))
+				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
 			}
 		}
 

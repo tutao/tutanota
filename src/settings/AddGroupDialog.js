@@ -11,7 +11,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getGroupTypeName} from "./GroupViewer"
 import * as AddUserDialog from "./AddUserDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()

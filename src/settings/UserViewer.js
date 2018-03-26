@@ -20,7 +20,7 @@ import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/Tu
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"

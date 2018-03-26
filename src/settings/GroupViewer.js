@@ -25,7 +25,7 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 

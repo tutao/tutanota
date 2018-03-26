@@ -1,5 +1,6 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
 import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
+import type {PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -252,4 +253,30 @@ type SearchIndexStateInfo = {
 	mailIndexEnabled:boolean;
 	progress:number;
 	currentMailIndexTimestamp:number;
+}
+
+type SubscriptionOptions = {
+	businessUse:boolean,
+	paymentInterval: number,
+	proUpgrade:boolean,
+	price:string
+}
+
+type CreditCardData = {
+	number:string,
+	cvv:string,
+	expirationData:string
+}
+
+type PayPalData = {
+	account:string
+}
+
+type InvoiceData = {
+	invoiceName:string;
+	invoiceAddress:string;
+	vatNumber:?string;
+	paymentMethod:PaymentMethodTypeEnum;
+	creditCardData:?CreditCardData;
+	payPalData: ?PayPalData;
 }

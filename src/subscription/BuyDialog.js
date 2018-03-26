@@ -8,7 +8,7 @@ import {Button, ButtonType} from "../gui/base/Button"
 import {DialogType, Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, PaymentMethodType, AccountType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatDate, formatPrice} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
@@ -187,28 +187,6 @@ function _getPriceInfoText(price: PriceServiceReturn, featureType: NumberString)
 		return lang.get("priceChangeValidFrom_label", {"{1}": formatDate(price.periodEndDate)})
 	} else if (price.currentPeriodAddedPrice && Number(price.currentPeriodAddedPrice) >= 0) {
 		return lang.get("priceForCurrentAccountingPeriod_label", {"{1}": formatPrice(Number(price.currentPeriodAddedPrice), true)})
-	} else {
-		return ""
-	}
-}
-
-function _getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
-	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethodInfo
-	} else {
-		return _getPaymentMethodName(accountingInfo.paymentMethod)
-	}
-}
-
-function _getPaymentMethodName(paymentMethod): string {
-	if (paymentMethod == PaymentMethodType.Invoice) {
-		return lang.get("paymentMethodOnAccount_label")
-	} else if (paymentMethod == PaymentMethodType.CreditCard) {
-		return lang.get("paymentMethodCreditCard_label")
-	} else if (paymentMethod == PaymentMethodType.Sepa) {
-		return "SEPA"
-	} else if (paymentMethod == PaymentMethodType.Paypal) {
-		return "PayPal"
 	} else {
 		return ""
 	}

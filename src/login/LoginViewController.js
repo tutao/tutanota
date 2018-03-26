@@ -27,6 +27,7 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
+import {openUpgradeDialog} from "../subscription/UpgradeAccountTypeDialog"
 
 assertMainOrNode()
 
@@ -158,14 +159,7 @@ export class LoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/pricing").then(confirm => {
 								if (confirm) {
-									// TODO: Navigate to premium upgrade
-									//tutao.locator.navigator.settings();
-									//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-									return Dialog.confirm(() => "The premium upgrade is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
-										if (ok) {
-											window.open("https://app.tutanota.com/", null, null, false)
-										}
-									})
+									openUpgradeDialog()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()

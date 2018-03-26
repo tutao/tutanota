@@ -33,7 +33,7 @@ import stream from "mithril/stream/stream.js"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()

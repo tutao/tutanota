@@ -10,10 +10,6 @@ import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
 
-export type SubscriptionOptions = {
-	businessUse:boolean,
-	paymentInterval: number
-}
 
 export function openSubscriptionOptionsDialog(): Promise<?SubscriptionOptions> {
 	let businessUse = stream(false)

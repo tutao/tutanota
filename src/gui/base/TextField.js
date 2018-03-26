@@ -183,7 +183,6 @@ export class TextField {
 	}
 
 	_getTextArea(): VirtualElement {
-
 		if (this.disabled) {
 			return m(".text-prewrap.text-break", {
 				style: {

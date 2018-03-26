@@ -13,7 +13,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll} from "../api/common/utils/ArrayUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 

@@ -12,7 +12,7 @@ export class BuyOptionBox {
 	_actionId: string;
 	_button: Button;
 	view: Function;
-	_value: string;
+	value: stream<string>;
 	_helpLabel: string;
 	_features: Array<string>;
 	_injection: ?Component;
@@ -21,7 +21,7 @@ export class BuyOptionBox {
 		this._headingIdOrFunction = headingIdOrFunction
 		this._actionId = actionTextId
 		this._button = new Button(actionTextId, actionClickHandler).setType(ButtonType.Login)
-		this._value = stream(lang.get("emptyString_msg"))
+		this.value = stream(lang.get("emptyString_msg"))
 		this._helpLabel = stream(lang.get("emptyString_msg"))
 		this._features = features
 
@@ -36,7 +36,7 @@ export class BuyOptionBox {
 				style: {height: px(height)}
 			}, [
 				m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
-				m(".h1.center.pt", this._value),
+				m(".h1.center.pt", this.value()),
 				m(".small.center", this._helpLabel),
 				this._injection ? m(this._injection) : null,
 				m(".button-min-height", {
@@ -56,7 +56,7 @@ export class BuyOptionBox {
 	}
 
 	setValue(value: string): BuyOptionBox {
-		this._value = value
+		this.value(value)
 		return this
 	}
 

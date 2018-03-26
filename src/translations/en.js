@@ -210,12 +210,12 @@ module.exports = {
 		"creditCardCVVInvalid_msg": "Security code is invalid.",
 		"creditCardCVV_label": "Security code",
 		"creditCardData_label": "Credit card data",
-		"creditCardExpirationDateFormat_msg": "Please enter the expiration date of your credit card. Format: MM/YYYY",
-		"creditCardExpirationDate_label": "Valid until",
+
+
 		"creditCardExprationDateInvalid_msg": "Expiration date is invalid.",
 		"creditCardNumberFormat_msg": "Please enter your credit card number.",
 		"creditCardNumberInvalid_msg": "Credit card number is invalid.",
-		"creditCardNumber_label": "Number",
+
 		"currentlyBooked_label": "Booking overview",
 		"currentMailAddressAdmin_label": "Mail address of the administrator",
 		"customColorsInfo_msg": "If you leave a blank field the color from the default light theme is used instead.",
@@ -436,11 +436,9 @@ module.exports = {
 		"invitationMailSubject_msg": "My new email address - join Tutanota for a private communication",
 		"invite_alt": "Invite",
 		"invite_label": "Invite",
-		"invoiceAddressInfoBusiness_msg": "Please enter your invoice address (max. 4 rows).",
-		"invoiceAddressInfoConsumer_msg": "Optional: You can enter your invoice address (max. 4 rows).",
+
 		"invoiceAddress_label": "Address",
-		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
-		"invoiceCountryInfoConsumer_msg": "This is needed to decide if value-added tax must be declared in your invoices.",
+
 		"invoiceCountry_label": "Country",
 		"invoiceMailBodyAutomatic_msg": "there is a new invoice with the number {1} for you available. You can download it at {2} in 'Settings' -> 'Invoicing'. The grand total will automatically be debited.",
 		"invoiceMailBodyOnAccount_msg": "there is a new invoice with the number {1} for you available. You can download it at {2} in 'Settings' -> 'Invoicing'. The payment is due 7 days after the invoice date.\n\nAttention: our bank account has changed!",
@@ -450,8 +448,7 @@ module.exports = {
 		"invoicePayConfirm_msg": "Please confirm the payment for the invoice {invoiceNumber} from {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added in the future.",
 		"invoicePay_action": "Pay",
-		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",
-		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
+
 		"invoiceRecipient_label": "Invoice recipient",
 		"invoiceStateCancelled_label": "Canceled",
 		"invoiceStateOpen_label": "Unpaid",
@@ -993,11 +990,11 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"recipientNotResolvedTooManyRequests_msg": "The recipient could not be resolved because there were too many requests. Please try to send this email later.",
 
+		// new translations
 		"comparisonUsersFree_msg": "One user",
 		"comparisonStorageFree_msg": "1 GB storage capacity",
 		"comparisonDomainFree_msg": "Tutanota domain only",
 		"comparisonSearchFree_msg": "Limited search",
-
 
 		"comparisonUsersPremium_msg": "Add users 1 €/month",
 		"comparisonAliasPremium_msg": "5 aliases",
@@ -1018,7 +1015,30 @@ module.exports = {
 		"invoiceData_msg": "Invoice data",
 		"next_action": "Next",
 		"upgradeLater_msg": "Use your  Tutanota email address free of charge and upgrade later.",
-		"choose_action": "Choose"
+		"choose_action": "Choose",
+		"adminSubscription_action": "Subscription",
+
+		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
+		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment by yourself. The invoice amount will not be debited automatically.",
+		
+		// existing translations - delete in phrase app and create new ones
+		"creditCardNumber_label": "Credit card number",
+		"creditCardExpirationDate_label": "Expiration date",
+
+		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address.",
+		"invoiceAddressInfoConsumer_msg": "Optional: You can enter a name and your invoice address.",
+		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
+
+		"adminPayment_action": "Payment",
+
+		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
+		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
+
+
+		// delete
+		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",
+		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
+
 
 	}
 }

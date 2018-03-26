@@ -218,10 +218,12 @@ styles.registerStyle('main', () => {
 		'.large-button-width': {width: px(size.button_floating_size)},
 		'.full-height': {height: '100%'},
 		'.full-width': {width: '100%'},
+		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},
 		'.no-text-decoration': {'text-decoration': 'none'},
 
 		// flex box
+		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
 		'.flex-fixed': {flex: "0 0 auto"},
 		'.flex-center': {display: 'flex', 'justify-content': 'center'},
@@ -235,6 +237,7 @@ styles.registerStyle('main', () => {
 		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
+		'.flex-grow-shrink-half': {flex: '1 1 50%'},
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
 		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
@@ -532,7 +535,11 @@ styles.registerStyle('main', () => {
 			color: theme.button_bubble_fg,
 		},
 
-		'.segmentControl': {},
+		'.segmentControl': {
+			// same border as for bubble buttons
+			'border-top': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+			'border-bottom': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+		},
 
 		'.segmentControl-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -547,12 +554,6 @@ styles.registerStyle('main', () => {
 			'padding-bottom': px(0),
 			'padding-left': px(0),
 			'padding-right': px(0),
-		},
-
-		'.segmentControlSmall': {
-			// same as for bubble buttons
-			'border-top': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
-			'border-bottom': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
 		},
 
 		'.segmentControlItem:last-child': {

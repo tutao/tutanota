@@ -1,6 +1,6 @@
 //@flow
 
-export const CountryList = {
+export const CountryType = {
 	GERMANY: 0,
 	EU: 1,
 	OTHER: 2

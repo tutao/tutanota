@@ -1,5 +1,5 @@
-import m from "mithril"
 // @flow
+import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
@@ -10,13 +10,18 @@ import {Keys} from "../misc/KeyManager"
 import {BuyOptionBox} from "./BuyOptionBox"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import {openInvoiceDataDialog} from "./InvoiceDataDialog"
 import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
+import {load} from "../api/main/Entity"
+import {logins} from "../api/main/LoginController"
+import {openUpgradeConfirmDialog} from "./UpgradeConfirmDialog"
+import {openInvoiceDataDialog} from "./InvoiceDataDialog"
 
 assertMainOrNode()
 
@@ -31,9 +36,7 @@ type UpgradeBox = {
 	paymentInterval:stream<SegmentControlItem<number>>
 }
 
-
-export class UpgradeAccountTypeDialog {
-
+class UpgradeAccountTypeDialog {
 	view: Function;
 	dialog: Dialog;
 	_premiumUpgradeBox: UpgradeBox;
@@ -42,12 +45,6 @@ export class UpgradeAccountTypeDialog {
 	_monthlyPrice: LazyLoaded<UpgradePrices>
 	_yearlyPrice: LazyLoaded<UpgradePrices>
 
-	/**
-	 * The contact that should be update or the contact list that the new contact should be written to must be provided
-	 * @param c An existing or new contact. If null a new contact is created.
-	 * @param listId The list id of the new contact.
-	 * @param newContactIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
-	 */
 	constructor(accountingInfo: AccountingInfo) {
 
 		let freeTypeBox = new BuyOptionBox(() => "Free", "choose_action",
@@ -57,8 +54,8 @@ export class UpgradeAccountTypeDialog {
 		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(true, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules"])
-		this._proUpgradeBox = this._createUpgradeBox(false, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonLogin", "comparisonTheme"])
+		this._premiumUpgradeBox = this._createUpgradeBox(false, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules"])
+		this._proUpgradeBox = this._createUpgradeBox(true, ["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonLogin", "comparisonTheme"])
 
 		let privateBuyOptions = [freeTypeBox, this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
 		let businessBuyOptions = [this._premiumUpgradeBox.buyOptionBox, this._proUpgradeBox.buyOptionBox]
@@ -68,7 +65,7 @@ export class UpgradeAccountTypeDialog {
 			{name: lang.get("businessUse_label"), value: true}
 		]
 		this._businessUse = stream(businessUseItems[0])
-		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse, true).setSelectionChangedHandler(businessUseItem => {
+		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse).setSelectionChangedHandler(businessUseItem => {
 			const helpLabel = lang.get(businessUseItem.value ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
@@ -83,8 +80,8 @@ export class UpgradeAccountTypeDialog {
 
 		// initial help label and price
 		this._yearlyPrice.getAsync().then(yearlyPrice => {
-			this._premiumUpgradeBox.buyOptionBox.setValue(formatPrice(yearlyPrice.premiumPrice, false) + " €")
-			this._proUpgradeBox.buyOptionBox.setValue(formatPrice(yearlyPrice.proPrice, false) + " €")
+			this._premiumUpgradeBox.buyOptionBox.setValue(yearlyPrice.premiumPrice + " €")
+			this._proUpgradeBox.buyOptionBox.setValue(yearlyPrice.proPrice + " €")
 
 			const helpLabel = lang.get(this._businessUse.value ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
@@ -111,19 +108,21 @@ export class UpgradeAccountTypeDialog {
 				key: Keys.S,
 				ctrl: true,
 				exec: () => console.log("next"),
-				help: "send_action"
+				help: "next_action"
 			})
 	}
 
 
-	_createUpgradeBox(premium: boolean, featurePrefixes: Array<string>): UpgradeBox {
-		let title = premium ? "Premium" : "Pro"
+	_createUpgradeBox(proUpgrade: boolean, featurePrefixes: Array<string>): UpgradeBox {
+		let title = proUpgrade ? "Pro" : "Premium"
 		let buyOptionBox = new BuyOptionBox(() => title, "buy_action",
 			() => {
 				this._close()
 				this._lauchPaymentFlow({
 					businessUse: this._businessUse().value,
-					paymentInterval: premium ? this._premiumUpgradeBox.paymentInterval().value : this._proUpgradeBox.paymentInterval().value
+					paymentInterval: proUpgrade ? this._proUpgradeBox.paymentInterval().value : this._premiumUpgradeBox.paymentInterval().value,
+					proUpgrade: proUpgrade,
+					price: buyOptionBox.value()
 				})
 			},
 			this._getOptions(featurePrefixes, title), 230, 240)
@@ -140,11 +139,11 @@ export class UpgradeAccountTypeDialog {
 			paymentInterval: stream(paymentIntervalItems[0])
 		}
 
-		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval, true).setSelectionChangedHandler(paymentIntervalItem => {
+		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
 			if (paymentIntervalItem.value == 12) {
-				this._yearlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((premium ? upgradePrice.premiumPrice : upgradePrice.proPrice), false) + " €")).then(() => m.redraw())
+				this._yearlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice ) + " €")).then(() => m.redraw())
 			} else {
-				this._monthlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((premium ? upgradePrice.premiumPrice : upgradePrice.proPrice), false) + " €")).then(() => m.redraw())
+				this._monthlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")).then(() => m.redraw())
 			}
 			upgradeBox.paymentInterval(paymentIntervalItem)
 		})
@@ -167,11 +166,20 @@ export class UpgradeAccountTypeDialog {
 	}
 
 	_lauchPaymentFlow(subscriptionOptions: SubscriptionOptions) {
-		return openInvoiceDataDialog(subscriptionOptions)
+		openInvoiceDataDialog(subscriptionOptions).then(invoiceData => {
+			if (invoiceData) {
+				openUpgradeConfirmDialog(subscriptionOptions, invoiceData).then(confirm => {
+					if (confirm) {
+						console.log("upgrade to premium")
+					}
+				})
+			}
+		})
+		//openInvoiceDataDialog(subscriptionOptions)
 	}
 
 
-	_getOptions(featurePrefixes: Array<String>, type: string): Array<string> {
+	_getOptions(featurePrefixes: Array<string>, type: string): Array<string> {
 		return featurePrefixes.map(f => lang.get(f + type + "_msg"))
 	}
 
@@ -186,3 +194,11 @@ export class UpgradeAccountTypeDialog {
 	}
 }
 
+export function openUpgradeDialog(): void {
+	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+		.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+		.then(accountingInfo => {
+			new UpgradeAccountTypeDialog(accountingInfo).show()
+		})
+}
