@@ -971,6 +971,7 @@ type SwitchAccountTypeData = {
 	_format:NumberString;
 	accountType:NumberString;
 	date:?Date;
+	proUpgrade:boolean;
 
 }
 

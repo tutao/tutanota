@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const SwitchAccountTypeDataTypeRef: TypeRef<SwitchAccountTypeData> = new TypeRef("sys", "SwitchAccountTypeData")
 export const _TypeModel: TypeModel = {
@@ -37,11 +38,20 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
+		},
+		"proUpgrade": {
+			"name": "proUpgrade",
+			"id": 1310,
+			"since": 30,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "28"
+	"version": "30"
 }
 
 export function createSwitchAccountTypeData(): SwitchAccountTypeData {

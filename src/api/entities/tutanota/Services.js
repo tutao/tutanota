@@ -30,5 +30,6 @@ export const TutanotaService = {
 	ContactFormAccountService: "contactformaccountservice",
 	DeleteNotAccessibleMailsService: "deletenotaccessiblemailsservice",
 	DeleteContactFormConversationService: "deletecontactformconversationservice",
-	ListUnsubscribeService: "listunsubscribeservice"
+	ListUnsubscribeService: "listunsubscribeservice",
+	OutgoingSpamService: "outgoingspamservice"
 }
