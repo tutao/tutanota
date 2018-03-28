@@ -25,4 +25,12 @@ export class CreditCardInput {
 			]
 		}
 	}
+
+
+	// TODO validate credit card input
+	//"creditCardCVVFormatDetails_label": "Please enter the {1} digit {2} code of your {3} card.",
+	//"creditCardCVVInvalid_msg": "Security code is invalid.",
+	//"creditCardExpirationDateFormat_msg": "Please enter the expiration date of your credit card. Format: MM/YYYY",
+	//"creditCardExprationDateInvalid_msg": "Expiration date is invalid.",
+	//"creditCardNumberInvalid_msg": "Credit card number is invalid.",
 }

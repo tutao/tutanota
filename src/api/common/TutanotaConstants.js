@@ -258,3 +258,14 @@ export type BootstrapFeatureTypeEnum = $Values<typeof BootstrapFeatureType>;
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 
+
+export const PaymentDataResultType = {
+	OK: "0",
+	COUNTRY_MISMATCH: "1",
+	INVALID_VATID_NUMBER: "2",
+	CREDIT_CARD_DECLINED: "3",
+	CREDIT_CARD_CVV_INVALID: "4",
+	PAYMENT_PROVIDER_NOT_AVAILABLE: "5",
+	OTHER_PAYMENT_PROVIDER_ERROR: "6",
+	OTHER_PAYMENT_ACCOUNT_REJECTED: "7"
+}

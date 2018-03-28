@@ -44,9 +44,10 @@ class UpgradeAccountTypeDialog {
 	_businessUse: stream<SegmentControlItem<boolean>>
 	_monthlyPrice: LazyLoaded<UpgradePrices>
 	_yearlyPrice: LazyLoaded<UpgradePrices>
+	_accountingInfo: AccountingInfo
 
 	constructor(accountingInfo: AccountingInfo) {
-
+		this._accountingInfo = accountingInfo
 		let freeTypeBox = new BuyOptionBox(() => "Free", "choose_action",
 			() => this._close(),
 			this._getOptions(["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"], "Free"), 230, 240)
@@ -64,7 +65,7 @@ class UpgradeAccountTypeDialog {
 			{name: lang.get("privateUse_label"), value: false},
 			{name: lang.get("businessUse_label"), value: true}
 		]
-		this._businessUse = stream(businessUseItems[0])
+		this._businessUse = stream(accountingInfo.business ? businessUseItems[1] : businessUseItems[0])
 		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse).setSelectionChangedHandler(businessUseItem => {
 			const helpLabel = lang.get(businessUseItem.value ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
@@ -123,7 +124,7 @@ class UpgradeAccountTypeDialog {
 					paymentInterval: proUpgrade ? this._proUpgradeBox.paymentInterval().value : this._premiumUpgradeBox.paymentInterval().value,
 					proUpgrade: proUpgrade,
 					price: buyOptionBox.value()
-				})
+				}, this._accountingInfo)
 			},
 			this._getOptions(featurePrefixes, title), 230, 240)
 
@@ -165,8 +166,8 @@ class UpgradeAccountTypeDialog {
 			})
 	}
 
-	_lauchPaymentFlow(subscriptionOptions: SubscriptionOptions) {
-		openInvoiceDataDialog(subscriptionOptions).then(invoiceData => {
+	_lauchPaymentFlow(subscriptionOptions: SubscriptionOptions, accountingInfo: AccountingInfo) {
+		openInvoiceDataDialog(subscriptionOptions, accountingInfo).then(invoiceData => {
 			if (invoiceData) {
 				openUpgradeConfirmDialog(subscriptionOptions, invoiceData).then(confirm => {
 					if (confirm) {

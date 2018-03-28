@@ -1,6 +1,7 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
 import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
 import type {PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
+import {Country} from "../../src/api/common/CountryList"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -103,6 +104,8 @@ type WorkerRequestType = 'setup'
 	| 'disableMailIndexing'
 	| 'cancelMailIndexing'
 	| 'updateAdminship'
+	| 'switchFreeToPremiumGroup'
+	| 'updatePaymentData'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -126,7 +129,6 @@ type NativeRequestType =  'init'
 	| 'findSuggestions'
 	| 'initPushNotifications'
 type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
-
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -275,8 +277,10 @@ type PayPalData = {
 type InvoiceData = {
 	invoiceName:string;
 	invoiceAddress:string;
+	country: Country;
 	vatNumber:?string;
 	paymentMethod:PaymentMethodTypeEnum;
+	paymentMethodInfo:string;
 	creditCardData:?CreditCardData;
 	payPalData: ?PayPalData;
 }

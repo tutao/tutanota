@@ -7,8 +7,15 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
 import {getPaymentMethodName} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
+import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
+import {Const, AccountType} from "../api/common/TutanotaConstants"
+import {SysService} from "../api/entities/sys/Services"
+import {serviceRequestVoid} from "../api/main/Entity"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {worker} from "../api/main/WorkerClient"
+import {HttpMethod} from "../api/common/EntityFunctions"
 
-export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Promise<boolean> {
+export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Promise<void> {
 	let orderField = new TextField("bookingOrder_label")
 		.setValue("Tutanota Premium" + (subscriptionOptions.proUpgrade ? " (Pro)" : ""))
 		.setDisabled()
@@ -17,13 +24,15 @@ export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOption
 		.setValue((subscriptionOptions.paymentInterval == 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
 		.setDisabled()
 
+	const netOrGross = subscriptionOptions.businessUse ? lang.get("net_label") : lang.get("gross_label")
 	let priceField = new TextField("price_label")
-		.setValue(subscriptionOptions.price + " " + (subscriptionOptions.paymentInterval == 12 ? lang.get("perYear_label") : lang.get("perMonth_label")))
+		.setValue(subscriptionOptions.price + " " + (subscriptionOptions.paymentInterval == 12 ? lang.get("perYear_label") : lang.get("perMonth_label")) + " (" + netOrGross + ")")
 		.setDisabled()
 
 	let paymentMethodField = new TextField("paymentMethod_label")
 		.setValue(getPaymentMethodName(invoiceData.paymentMethod))
 		.setDisabled()
+
 
 	return Promise.fromCallback(cb => {
 		let actionBar = new DialogHeaderBar()
@@ -34,8 +43,20 @@ export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOption
 		}).setType(ButtonType.Secondary))
 
 		let confirmButton = new Button("buy_action", () => {
-			dialog.close()
-			cb(null, true)
+			const serviceData = createSwitchAccountTypeData()
+			serviceData.accountType = AccountType.PREMIUM
+			serviceData.proUpgrade = subscriptionOptions.proUpgrade
+			serviceData.date = Const.CURRENT_DATE
+			showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
+				return worker.switchFreeToPremiumGroup()
+			})).then(() => {
+				dialog.close()
+				cb(null, true)
+			}).catch(PreconditionFailedError => {
+				Dialog.error("paymentProviderTransactionFailedError_msg")
+			}).catch(BadGatewayError => {
+				Dialog.error("paymentProviderNotAvailableError_msg")
+			})
 		}).setType(ButtonType.Login)
 
 		let dialog = Dialog.largeDialog(actionBar, {
@@ -57,3 +78,7 @@ export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOption
 		dialog.show()
 	})
 }
+
+
+
+

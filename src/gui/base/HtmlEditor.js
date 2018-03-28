@@ -104,7 +104,14 @@ export class HtmlEditor {
 							display: this._mode() === Mode.HTML ? '' : 'none'
 						}
 					}, m("textarea.input-area", {
-						oncreate: vnode => this._domTextArea = vnode.dom,
+						oncreate: vnode => {
+							this._domTextArea = vnode.dom
+							console.log("create textarea", this._value())
+							if (!this.isEmpty()) {
+
+								this._domTextArea.value = this._value()
+							}
+						},
 						onfocus: e => focus(),
 						onblur: e => blur(),
 						oninput: e => {

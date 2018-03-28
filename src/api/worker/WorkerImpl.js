@@ -121,6 +121,12 @@ export class WorkerImpl {
 			updateAdminship: (message: Request) => {
 				return locator.userManagement.updateAdminship.apply(locator.userManagement, message.args)
 			},
+			switchFreeToPremiumGroup(message: Request): Promise<void> {
+				return locator.customer.switchFreeToPremiumGroup.apply(locator.customer, message.args)
+			},
+			updatePaymentData(message: Request): Promise<PaymentDataServicePutReturn> {
+				return locator.customer.updatePaymentData.apply(locator.customer, message.args)
+			},
 			readUsedUserStorage: (message: Request) => {
 				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
 			},

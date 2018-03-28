@@ -192,6 +192,14 @@ export class WorkerClient {
 		return this._postRequest(new Request('updateAdminship', arguments))
 	}
 
+	switchFreeToPremiumGroup(): Promise<void> {
+		return this._postRequest(new Request('switchFreeToPremiumGroup', arguments))
+	}
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+		return this._postRequest(new Request('updatePaymentData', arguments))
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
 		return this._postRequest(new Request('readUsedUserStorage', arguments))
 	}
