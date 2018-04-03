@@ -28,6 +28,7 @@ import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddr
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import * as AddUserDialog from "../settings/AddUserDialog"
 import {openStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
+import {openEmailAliasOptionsDialog} from "./EmailAliasOptionsDialog"
 assertMainOrNode()
 
 export class SubscriptionViewer {
@@ -104,6 +105,12 @@ export class SubscriptionViewer {
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
 		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg")).setDisabled()
+		const changeEmailAliasPackageButton = createBuyButton("emailAlias_label", () => {
+			openEmailAliasOptionsDialog()
+		}, () => Icons.Edit)
+		this._emailAliasField._injectionsRight = () => m(changeEmailAliasPackageButton)
+
+
 		this._contactFormsField = new TextField("contactForms_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
 

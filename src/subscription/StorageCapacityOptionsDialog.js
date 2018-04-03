@@ -55,7 +55,7 @@ export function openStorageCapacityOptionsDialog(): Promise<void> {
 					createStorageCapacityBox(10, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
 					createStorageCapacityBox(100, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
 					createStorageCapacityBox(1000, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
-				].filter(scb => scb.amount == 0 || scb.amount >= freeStorageCapacity).map(scb => scb.buyOptionBox) // filter needless buy options
+				].filter(scb => scb.amount == 0 || scb.amount > freeStorageCapacity).map(scb => scb.buyOptionBox) // filter needless buy options
 
 				const headerBar = new DialogHeaderBar()
 					.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))

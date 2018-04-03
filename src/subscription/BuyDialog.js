@@ -149,7 +149,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			} else {
 				return lang.get("packageDowngradeUserAccounts_label", {"{1}": newPackageCount})
 			}
-		} else if (featureType == BookingItemFeatureType.Aliases) {
+		} else if (featureType == BookingItemFeatureType.Alias) {
 			return visibleAmount + " " + lang.get("mailAddressAliases_label")
 		} else {
 			return "" // not possible
