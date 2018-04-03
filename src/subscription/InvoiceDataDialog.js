@@ -20,7 +20,7 @@ import {PayPalLogo} from "../gui/base/icons/Icons"
 import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 
-export function openInvoiceDataDialog(subscriptionOptions: SubscriptionOptions, accountingInfo: ?AccountingInfo): Promise<?InvoiceData> {
+export function openInvoiceDataDialog(subscriptionOptions: SubscriptionOptions, accountingInfo: ?AccountingInfo, confirmActionId: string = "next_action"): Promise<?InvoiceData> {
 
 	const invoiceName = new TextField("invoiceRecipient_label", () => subscriptionOptions.businessUse ? lang.get("invoiceAddressInfoBusiness_msg") : lang.get("invoiceAddressInfoConsumer_msg"))
 	invoiceName.setValue(accountingInfo ? accountingInfo.invoiceName : "")
@@ -130,7 +130,7 @@ export function openInvoiceDataDialog(subscriptionOptions: SubscriptionOptions, 
 			dialog.close()
 			callback(null, null)
 		}
-		const nextAction = () => {
+		const confirmAction = () => {
 			let error = validateInvoiceData()
 			if (error) {
 				Dialog.error(error)
@@ -156,7 +156,7 @@ export function openInvoiceDataDialog(subscriptionOptions: SubscriptionOptions, 
 		const headerBar = new DialogHeaderBar()
 			.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("adminPayment_action"))
-			.addRight(new Button("next_action", nextAction).setType(ButtonType.Primary))
+			.addRight(new Button(confirmActionId, confirmAction).setType(ButtonType.Primary))
 		const dialog = Dialog.largeDialog(headerBar, {
 			//let dialog = new Dialog(DialogType.EditSmall, {
 			view: () => m("#upgrade-account-dialog.pt", [

@@ -71,7 +71,9 @@ class LanguageViewModel {
 		time: DateTimeFormat,
 		dateTime: DateTimeFormat,
 		priceWithCurrency: NumberFormat,
-		priceWithoutCurrency: NumberFormat
+		priceWithCurrencyWithoutFractionDigits: NumberFormat,
+		priceWithoutCurrency: NumberFormat,
+		priceWithoutCurrencyWithoutFractionDigits:NumberFormat
 	};
 
 	constructor() {
@@ -133,9 +135,18 @@ class LanguageViewModel {
 					currency: 'EUR',
 					minimumFractionDigits: 2
 				}),
+				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+					style: 'currency',
+					currency: 'EUR',
+					maximiumFractionDigits: 0
+				}),
 				priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
 					style: 'decimal',
 					minimumFractionDigits: 2
+				}),
+				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+					style: 'decimal',
+					maximiumFractionDigits: 0
 				})
 			}
 		}

@@ -17,6 +17,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
+import {getPriceItem} from "./PriceUtils"
 
 assertMainOrNode()
 
@@ -104,9 +105,9 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 		} else if (featureType == BookingItemFeatureType.Branding) {
 			if (count > 0) {
-				return lang.get("whitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("whitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			} else {
-				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			}
 		} else if (featureType == BookingItemFeatureType.ContactForm) {
 			if (count > 0) {
@@ -130,7 +131,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			return ""
 		}
 	} else {
-		let item = _getPriceItem(price.futurePriceNextPeriod, featureType)
+		let item = getPriceItem(price.futurePriceNextPeriod, featureType)
 		let newPackageCount = 0
 		if (item != null) {
 			newPackageCount = item.count
@@ -205,28 +206,16 @@ function _isUnbuy(price: PriceServiceReturn, featureType: NumberString): boolean
 }
 
 function _isSinglePriceType(currentPriceData: ?PriceData, futurePriceData: ?PriceData, featureType: NumberString): boolean {
-	let item = _getPriceItem(futurePriceData, featureType) || _getPriceItem(currentPriceData, featureType)
+	let item = getPriceItem(futurePriceData, featureType) || getPriceItem(currentPriceData, featureType)
 	return neverNull(item).singleType
 }
 
-/**
- * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
- */
-function _getPriceItem(priceData: ?PriceData, featureType: NumberString): ?PriceItemData {
-	if (priceData) {
-		return priceData.items.find(item => {
-			return (item.featureType == featureType)
-		})
-	} else {
-		return null
-	}
-}
 
 /**
  * Returns the price for the feature type from the price data if available, otherwise 0.
  */
 function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
-	let item = _getPriceItem(priceData, featureType)
+	let item = getPriceItem(priceData, featureType)
 	let itemPrice = item ? Number(item.price) : 0
 	if (featureType == BookingItemFeatureType.Users) {
 		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)

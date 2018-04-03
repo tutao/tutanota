@@ -605,7 +605,7 @@ module.exports = {
 		"newMail_action": "New email",
 		"newPassword_label": "New password",
 		"newUsers_label": "New users",
-		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
+
 		"nickname_placeholder": "Nickname",
 		"noConnection_msg": "You are offline. A connection to Tutanota could not be established.",
 		"noContacts_msg": "There are no contacts in this list.",
@@ -1022,6 +1022,9 @@ module.exports = {
 		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment by yourself. The invoice amount will not be debited automatically.",
 
 		"upgradeConfirm_msg": "Confirm your payment!",
+		"nextSubscriptionPrice_msg": "The second price is valid for the subscription period after the current one.",
+		"amountUsedOf_label": "{amount} used of {totalAmount}",
+		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
 
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",
@@ -1036,9 +1039,11 @@ module.exports = {
 		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
 
+
 		// delete
 		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",
 		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
+		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
 
 
 	}

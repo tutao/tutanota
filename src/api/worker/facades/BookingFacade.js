@@ -102,21 +102,6 @@ export class BookingFacade {
 		}
 		return null;
 	}
-
-
-	/**
-	 * Returns the price for the feature type from the price data if available. otherwise 0.
-	 * @return The price
-	 */
-	getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
-		let item = this.getPriceItem(priceData, featureType);
-		if (item != null) {
-			return Number(neverNull(item).price);
-		} else {
-			return 0;
-		}
-
-	}
 }
 
 export const bookingFacade: BookingFacade = new BookingFacade()
