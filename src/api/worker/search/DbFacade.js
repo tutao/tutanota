@@ -13,41 +13,48 @@ export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
 
-	constructor() {
+	constructor(supported: boolean) {
 		this._db = new LazyLoaded(() => {
-			return new Promise.fromCallback(callback => {
-				let DBOpenRequest
-				try {
-					DBOpenRequest = indexedDB.open(this._id, 1);
-					DBOpenRequest.onerror = (error) => {
-						callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
-					}
+			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
+			// ask the main thread if indexedDB is supported.
+			if (!supported) {
+				return Promise.reject(new DbError("indexedDB not supported"))
+			} else {
+				return new Promise.fromCallback(callback => {
+					let DBOpenRequest
+					try {
 
-					DBOpenRequest.onupgradeneeded = (event) => {
-						//console.log("upgrade db", event)
-						let db = event.target.result
-						try {
-							db.createObjectStore(SearchIndexOS)
-							db.createObjectStore(ElementDataOS)
-							db.createObjectStore(MetaDataOS)
-							db.createObjectStore(GroupDataOS)
-							db.createObjectStore(SearchTermSuggestionsOS)
-						} catch (e) {
-							callback(new DbError("could not create object store searchindex", e))
+						DBOpenRequest = indexedDB.open(this._id, 1)
+						DBOpenRequest.onerror = (error) => {
+							callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
 						}
-					}
 
-					DBOpenRequest.onsuccess = (event) => {
-						//console.log("opened db", event)
-						DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
-						DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
-						DBOpenRequest.result.onerror = (event) => console.log("db error", event)
-						callback(null, DBOpenRequest.result)
+						DBOpenRequest.onupgradeneeded = (event) => {
+							//console.log("upgrade db", event)
+							let db = event.target.result
+							try {
+								db.createObjectStore(SearchIndexOS)
+								db.createObjectStore(ElementDataOS)
+								db.createObjectStore(MetaDataOS)
+								db.createObjectStore(GroupDataOS)
+								db.createObjectStore(SearchTermSuggestionsOS)
+							} catch (e) {
+								callback(new DbError("could not create object store searchindex", e))
+							}
+						}
+
+						DBOpenRequest.onsuccess = (event) => {
+							//console.log("opened db", event)
+							DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
+							DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
+							DBOpenRequest.result.onerror = (event) => console.log("db error", event)
+							callback(null, DBOpenRequest.result)
+						}
+					} catch (e) {
+						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e), null)
 					}
-				} catch (e) {
-					callback(new DbError(`exception when accessing indexeddb ${this._id}`, e), null)
-				}
-			})
+				})
+			}
 		})
 	}
 

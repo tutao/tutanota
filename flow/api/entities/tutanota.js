@@ -734,10 +734,11 @@ type InternalGroupData = {
 	_type: TypeRef<InternalGroupData>;
 	_id:Id;
 	adminEncGroupKey:Uint8Array;
-	ownerEncGroupInfoSessionKey:Uint8Array;
 	groupEncPrivateKey:Uint8Array;
+	ownerEncGroupInfoSessionKey:Uint8Array;
 	publicKey:Uint8Array;
 
+	adminGroup:?Id;
 }
 
 type CustomerAccountCreateData = {
@@ -793,8 +794,8 @@ type MailboxGroupRoot = {
 	whitelistRequests:Id;
 }
 
-type CreateTeamGroupData = {
-	_type: TypeRef<CreateTeamGroupData>;
+type CreateLocalAdminGroupData = {
+	_type: TypeRef<CreateLocalAdminGroupData>;
 	_format:NumberString;
 	encryptedName:Uint8Array;
 
@@ -853,10 +854,11 @@ type ContactForm = {
 
 	languages:ContactFormLanguage[];
 	statisticsFields_removed:InputField[];
+	statisticsLog:?StatisticLogRef;
 	delegationGroups_removed:Id[];
 	participantGroupInfos:IdTuple[];
+	targetGroup:Id;
 	targetGroupInfo:?IdTuple;
-	targetMailGroup_removed:Id;
 }
 
 type ContactFormAccountReturn = {
@@ -920,8 +922,9 @@ type CustomerContactFormGroupRoot = {
 	_permissions:Id;
 
 	contactFormConversations:?DeleteContactFormConversationIndex;
+	statisticsLog:?UnencryptedStatisticLogRef;
 	contactForms:Id;
-	statisticsLog:Id;
+	statisticsLog_encrypted_removed:Id;
 }
 
 type ContactFormAccountData = {
@@ -996,4 +999,29 @@ type ListUnsubscribeData = {
 	recipient:string;
 
 	mail:IdTuple;
+}
+
+type StatisticLogRef = {
+	_type: TypeRef<StatisticLogRef>;
+	_id:Id;
+
+	items:Id;
+}
+
+type UnencryptedStatisticLogEntry = {
+	_type: TypeRef<UnencryptedStatisticLogEntry>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	contactFormPath:string;
+	date:Date;
+
+}
+
+type UnencryptedStatisticLogRef = {
+	_type: TypeRef<UnencryptedStatisticLogRef>;
+	_id:Id;
+
+	items:Id;
 }

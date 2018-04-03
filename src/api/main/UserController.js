@@ -34,9 +34,17 @@ export class UserController {
 	 * Checks if the current user is an admin of the customer.
 	 * @return True if the user is an admin
 	 */
-	isAdmin() {
+	isGlobalAdmin() {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.admin) != null
+			return this.user.memberships.find(m => m.groupType == GroupType.Admin) != null
+		} else {
+			return false;
+		}
+	}
+
+	isGlobalOrLocalAdmin() {
+		if (this.isInternalUser()) {
+			return this.user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
 		} else {
 			return false;
 		}
@@ -80,20 +88,25 @@ export class UserController {
 		return this.getMailGroupMemberships()[0]
 	}
 
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void{
+	getLocalAdminGroupMemberships(): GroupMembership[] {
+		return this.user.memberships.filter(membership => membership.groupType == GroupType.LocalAdmin)
+	}
+
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
 		if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
-			load(UserTypeRef, this.user._id).then(updatedUser => {
+			return load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser
 			})
 		} else if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
-			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 			})
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
-			loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
+			return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 				this.props = props
 			})
 		}
+		return Promise.resolve()
 	}
 
 	deleteSession(sync: boolean): Promise<void> {

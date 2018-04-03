@@ -22,7 +22,7 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
+import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -58,7 +58,13 @@ export class ContactFormListView {
 							this._setLoadedCompletely();
 
 							// we return all contact forms because we have already loaded all contact forms and the scroll bar shall have the complete size.
-							return Promise.resolve(contactForms);
+							if (logins.getUserController().isGlobalAdmin()) {
+								return contactForms
+							} else {
+								return getAdministratedGroupIds().then(allAdministratedGroupIds => {
+									return contactForms.filter((cf: ContactForm) => allAdministratedGroupIds.indexOf(cf.targetGroup) != -1)
+								})
+							}
 						})
 					})
 				} else {
@@ -137,7 +143,26 @@ export class ContactFormListView {
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, ContactFormTypeRef) && this._listId.isLoaded() && listId == this._listId.getLoaded()) {
-			this.list.entityEventReceived(elementId, operation)
+			if (!logins.getUserController().isGlobalAdmin()) {
+				let listEntity = this.list.getEntity(elementId)
+				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(cf => {
+					return getAdministratedGroupIds().then(allAdministratedGroupIds => {
+						if (listEntity) {
+							if (allAdministratedGroupIds.indexOf(cf.targetGroup) == -1) {
+								this.list.entityEventReceived(elementId, OperationType.DELETE)
+							} else {
+								this.list.entityEventReceived(elementId, operation)
+							}
+						} else {
+							if (allAdministratedGroupIds.indexOf(cf.targetGroup) != -1) {
+								this.list.entityEventReceived(elementId, OperationType.CREATE)
+							}
+						}
+					})
+				})
+			} else {
+				this.list.entityEventReceived(elementId, operation)
+			}
 			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded()) && this._settingsView.detailsViewer && operation == OperationType.UPDATE && isSameId(((this._settingsView.detailsViewer:any):ContactFormViewer).contactForm._id, [neverNull(listId), elementId])) {
 				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(updatedContactForm => {
 					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm, neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))

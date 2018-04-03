@@ -4,7 +4,7 @@ import {CryptoError} from "../common/error/CryptoError"
 import {bookingFacade} from "./facades/BookingFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
-import {resetEntityRestCache, locator, initLocator} from "./WorkerLocator"
+import {locator, initLocator, resetLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
 import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode} from "../Env"
@@ -22,14 +22,14 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope) {
+	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean) {
 		const workerScope = self
 		this._queue = new Queue(workerScope)
 		nativeApp.setWorkerQueue(this._queue)
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this);
+		initLocator(this, indexedDbSupported);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
@@ -58,7 +58,7 @@ export class WorkerImpl {
 				return locator.login.createExternalSession.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
-				return locator.login.reset().then(() => resetEntityRestCache())
+				return resetLocator()
 			},
 			resumeSession: (message: Request) => {
 				return locator.login.resumeSession.apply(locator.login, message.args)
@@ -118,6 +118,15 @@ export class WorkerImpl {
 			changeAdminFlag: (message: Request) => {
 				return locator.userManagement.changeAdminFlag.apply(locator.userManagement, message.args)
 			},
+			updateAdminship: (message: Request) => {
+				return locator.userManagement.updateAdminship.apply(locator.userManagement, message.args)
+			},
+			switchFreeToPremiumGroup(message: Request): Promise<void> {
+				return locator.customer.switchFreeToPremiumGroup.apply(locator.customer, message.args)
+			},
+			updatePaymentData(message: Request): Promise<PaymentDataServicePutReturn> {
+				return locator.customer.updatePaymentData.apply(locator.customer, message.args)
+			},
 			readUsedUserStorage: (message: Request) => {
 				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
 			},
@@ -127,6 +136,10 @@ export class WorkerImpl {
 			getPrice: (message: Request) => {
 				return bookingFacade.getPrice.apply(bookingFacade, message.args)
 			},
+			getCurrentPrice: (message: Request) => {
+				return bookingFacade.getCurrentPrice()
+			},
+
 			loadCustomerServerProperties: (message: Request) => {
 				return locator.customer.loadCustomerServerProperties.apply(locator.customer, message.args)
 			},
@@ -142,8 +155,8 @@ export class WorkerImpl {
 			createMailGroup: (message: Request) => {
 				return locator.groupManagement.createMailGroup.apply(locator.groupManagement, message.args)
 			},
-			createTeamGroup: (message: Request) => {
-				return locator.groupManagement.createTeamGroup.apply(locator.groupManagement, message.args)
+			createLocalAdminGroup: (message: Request) => {
+				return locator.groupManagement.createLocalAdminGroup.apply(locator.groupManagement, message.args)
 			},
 			addUserToGroup: (message: Request) => {
 				return locator.groupManagement.addUserToGroup.apply(locator.groupManagement, message.args)
@@ -243,10 +256,8 @@ export class WorkerImpl {
 		})
 	}
 
-	sendIndexState(state: SearchIndexStateInfo):Promise<void> {
-		console.log("worker set new index state", state)
+	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
 	}
-
 }
 

@@ -17,6 +17,7 @@ import {theme} from "../theme"
 import {progressIcon} from "./Icon"
 import {size, px} from "../size"
 import {styles} from "../styles"
+import {HabReminderImage} from "./icons/Icons"
 
 assertMainOrNode()
 
@@ -308,7 +309,7 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=/images/hab.png].dialog-img.pb")
+							m("img[src=" + HabReminderImage + "].dialog - img.pb")
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
@@ -362,11 +363,14 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action"): Dialog {
+	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
 		if (allowCancel) {
 			actionBar.addLeft(new Button("cancel_action", () => {
+				if (cancelAction) {
+					cancelAction()
+				}
 				dialog.close()
 			}).setType(ButtonType.Secondary))
 		}

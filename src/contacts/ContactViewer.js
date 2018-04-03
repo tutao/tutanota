@@ -17,6 +17,7 @@ import {MailEditor} from "../mail/MailEditor"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
+import {getEmailSignature} from "../mail/MailUtils"
 
 assertMainOrNode()
 
@@ -187,7 +188,7 @@ export class ContactViewer {
 
 	_writeMail(mailAddress: string) {
 		let editor = new MailEditor(mailModel.getUserMailboxDetails())
-		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", "", null).then(() => {
+		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", getEmailSignature(), null).then(() => {
 			editor.show()
 		})
 	}

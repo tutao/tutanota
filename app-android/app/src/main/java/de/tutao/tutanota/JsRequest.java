@@ -2,7 +2,8 @@ package de.tutao.tutanota;
 
 public enum JsRequest {
     updatePushIdentifier("updatePushIdentifier"),
-    notify("notify");
+    notify("notify"),
+    createMailEditor("createMailEditor");
 
     private final String name;
 

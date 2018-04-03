@@ -20,7 +20,7 @@ import {assertWorkerOrNode} from "../../Env"
 import EC from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
-import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 const ValueType = EC.ValueType
 
 assertWorkerOrNode()

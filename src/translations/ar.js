@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2018-01-16T13:31:52Z",
+	"updated_at": "2018-01-26T10:23:08Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "للأسف، تم إلغاء تفعيل حسابك على توتانوتا. يرجى الاتصال بالمسؤول.",
@@ -30,8 +30,8 @@ module.exports = {
 		"addInboxRule_action": "أضف قاعدة للبريد الوارد",
 		"addinInfoText_msg": "نزل المكون الإضافي من Tutanota لـ Outlook هنا. يتم تثبيت التحديثات تلقائيا عند بدء تشغيل Outlook.",
 		"addNext_action": "أضف العنصر التالي إلى التحديد",
-		"addParticipant_label": "إضافة مشترك",
 		"addPrevious_action": "إضافة عنصر سابق إلى التحديد",
+		"addResponsiblePerson_label": "إضافة مشترك",
 		"address_label": "العنوان",
 		"addRule_action": "إضافة قانون",
 		"addSpamRule_action": "أضف قاعدة لصندوق اسبام",

@@ -1,9 +1,10 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const CreateTeamGroupDataTypeRef: TypeRef<CreateTeamGroupData> = new TypeRef("tutanota", "CreateTeamGroupData")
+import {create, TypeRef} from '../../common/EntityFunctions'
+
+export const CreateLocalAdminGroupDataTypeRef: TypeRef<CreateLocalAdminGroupData> = new TypeRef("tutanota", "CreateLocalAdminGroupData")
 export const _TypeModel: TypeModel = {
-	"name": "CreateTeamGroupData",
+	"name": "CreateLocalAdminGroupData",
 	"since": 19,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 703,
@@ -42,9 +43,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "24"
+	"version": "26"
 }
 
-export function createCreateTeamGroupData(): CreateTeamGroupData {
+export function createCreateLocalAdminGroupData(): CreateLocalAdminGroupData {
 	return create(_TypeModel)
 }

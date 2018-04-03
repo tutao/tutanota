@@ -7,7 +7,8 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
 import {DialogType, Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {BookingItemFeatureType, PaymentMethodType} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatDate, formatPrice} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
@@ -15,68 +16,73 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
+import {NotAuthorizedError} from "../api/common/error/RestError"
+import {getPriceItem} from "./PriceUtils"
 
 assertMainOrNode()
 
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export function show(featureType: NumberString, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
-
-
-	return worker.getPrice(featureType, count, reactivate).then(price => {
-		if (!_isPriceChange(price, featureType)) {
-			return Promise.resolve(true)
+export function show(featureType: BookingItemFeatureTypeEnum, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+		if (customer.type == AccountType.PREMIUM && customer.canceledPremiumAccount) {
+			return Dialog.error("premiumCancelledMessage_msg").return(false)
 		} else {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-					return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-						if (!accountingInfo.invoiceCountry) {
-							return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
-								if (confirm) {
-									return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
-										if (ok) {
-											window.open("https://app.tutanota.com/", null, null, false)
-										}
-										return false
-									})
-								}
-								return false
-							})
-						} else {
-							let buy = _isBuy(price, featureType)
-							let orderField = new TextField("bookingOrder_label").setValue(_getBookingText(price, featureType, count, freeAmount)).setDisabled()
-							let buyField = (buy) ? new TextField("subscription_label", () => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price)).setDisabled() : null
-							let priceField = new TextField("price_label", () => _getPriceInfoText(price, featureType)).setValue(_getPriceText(price, featureType)).setDisabled()
-							let paymentField = (buy) ? new TextField("paymentMethod_label").setValue(_getPaymentMethodInfoText(accountingInfo)).setDisabled() : null
-							return Promise.fromCallback(cb => {
-								let actionBar = new DialogHeaderBar()
-								actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-								actionBar.addLeft(new Button("cancel_action", () => {
-									dialog.close()
-									cb(null, false)
-								}).setType(ButtonType.Secondary))
-								actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
-									dialog.close()
-									cb(null, true)
-								}).setType(ButtonType.Primary))
+			return worker.getPrice(featureType, count, reactivate).then(price => {
+				if (!_isPriceChange(price, featureType)) {
+					return Promise.resolve(true)
+				} else {
 
-								let dialog = new Dialog(DialogType.EditSmall, {
-									view: (): Children => [
-										m(".dialog-header.plr-l", m(actionBar)),
-										m(".dialog-contentButtonsTop.plr-l.pb", m("", [
-											m(orderField),
-											buyField ? m(buyField) : null,
-											m(priceField),
-											paymentField ? m(paymentField) : null,
-										]))
-									]
+					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+						return load(AccountingInfoTypeRef, customerInfo.accountingInfo).catch(NotAuthorizedError, e => {/* local admin */
+						}).then(accountingInfo => {
+							if (accountingInfo && !accountingInfo.invoiceCountry) {
+								return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
+									if (confirm) {
+										return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
+											if (ok) {
+												window.open("https://app.tutanota.com/", null, null, false)
+											}
+											return false
+										})
+									}
+									return false
 								})
-								dialog.show()
-							})
-						}
+							} else {
+								let buy = _isBuy(price, featureType)
+								let orderField = new TextField("bookingOrder_label").setValue(_getBookingText(price, featureType, count, freeAmount)).setDisabled()
+								let buyField = (buy) ? new TextField("subscription_label", () => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price)).setDisabled() : null
+								let priceField = new TextField("price_label", () => _getPriceInfoText(price, featureType)).setValue(_getPriceText(price, featureType)).setDisabled()
+
+								return Promise.fromCallback(cb => {
+									let actionBar = new DialogHeaderBar()
+									actionBar.setMiddle(() => lang.get("bookingSummary_label"))
+									actionBar.addLeft(new Button("cancel_action", () => {
+										dialog.close()
+										cb(null, false)
+									}).setType(ButtonType.Secondary))
+									actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
+										dialog.close()
+										cb(null, true)
+									}).setType(ButtonType.Primary))
+
+									let dialog = new Dialog(DialogType.EditSmall, {
+										view: (): Children => [
+											m(".dialog-header.plr-l", m(actionBar)),
+											m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+												m(orderField),
+												buyField ? m(buyField) : null,
+												m(priceField),
+											]))
+										]
+									})
+									dialog.show()
+								})
+							}
+						})
 					})
-				})
+				}
 			})
 		}
 	})
@@ -99,9 +105,9 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 		} else if (featureType == BookingItemFeatureType.Branding) {
 			if (count > 0) {
-				return lang.get("whitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("whitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			} else {
-				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(_getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			}
 		} else if (featureType == BookingItemFeatureType.ContactForm) {
 			if (count > 0) {
@@ -115,11 +121,17 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			} else {
 				return lang.get("cancelSharedMailbox_label")
 			}
+		} else if (featureType == BookingItemFeatureType.LocalAdminGroup) {
+			if (count > 0) {
+				return count + " " + lang.get("localAdminGroup_label")
+			} else {
+				return lang.get("cancelLocalAdminGroup_label")
+			}
 		} else {
 			return ""
 		}
 	} else {
-		let item = _getPriceItem(price.futurePriceNextPeriod, featureType)
+		let item = getPriceItem(price.futurePriceNextPeriod, featureType)
 		let newPackageCount = 0
 		if (item != null) {
 			newPackageCount = item.count
@@ -137,7 +149,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			} else {
 				return lang.get("packageDowngradeUserAccounts_label", {"{1}": newPackageCount})
 			}
-		} else if (featureType == BookingItemFeatureType.Aliases) {
+		} else if (featureType == BookingItemFeatureType.Alias) {
 			return visibleAmount + " " + lang.get("mailAddressAliases_label")
 		} else {
 			return "" // not possible
@@ -181,28 +193,6 @@ function _getPriceInfoText(price: PriceServiceReturn, featureType: NumberString)
 	}
 }
 
-function _getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
-	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethodInfo
-	} else {
-		return _getPaymentMethodName(accountingInfo.paymentMethod)
-	}
-}
-
-function _getPaymentMethodName(paymentMethod): string {
-	if (paymentMethod == PaymentMethodType.Invoice) {
-		return lang.get("paymentMethodOnAccount_label")
-	} else if (paymentMethod == PaymentMethodType.CreditCard) {
-		return lang.get("paymentMethodCreditCard_label")
-	} else if (paymentMethod == PaymentMethodType.Sepa) {
-		return "SEPA"
-	} else if (paymentMethod == PaymentMethodType.Paypal) {
-		return "PayPal"
-	} else {
-		return ""
-	}
-}
-
 function _isPriceChange(price: PriceServiceReturn, featureType: NumberString): boolean {
 	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) != _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
@@ -216,28 +206,16 @@ function _isUnbuy(price: PriceServiceReturn, featureType: NumberString): boolean
 }
 
 function _isSinglePriceType(currentPriceData: ?PriceData, futurePriceData: ?PriceData, featureType: NumberString): boolean {
-	let item = _getPriceItem(futurePriceData, featureType) || _getPriceItem(currentPriceData, featureType)
+	let item = getPriceItem(futurePriceData, featureType) || getPriceItem(currentPriceData, featureType)
 	return neverNull(item).singleType
 }
 
-/**
- * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
- */
-function _getPriceItem(priceData: ?PriceData, featureType: NumberString): ?PriceItemData {
-	if (priceData) {
-		return priceData.items.find(item => {
-			return (item.featureType == featureType)
-		})
-	} else {
-		return null
-	}
-}
 
 /**
  * Returns the price for the feature type from the price data if available, otherwise 0.
  */
 function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
-	let item = _getPriceItem(priceData, featureType)
+	let item = getPriceItem(priceData, featureType)
 	let itemPrice = item ? Number(item.price) : 0
 	if (featureType == BookingItemFeatureType.Users) {
 		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)

@@ -12,13 +12,13 @@ import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFunctions"
+import {isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
-import {BrandingThemeTypeRef} from "../api/entities/sys/BrandingTheme"
+import {WhitelabelConfigTypeRef} from "../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../gui/theme"
 import {updateCustomTheme} from "../gui/theme"
 import {uint8ArrayToBase64, stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
@@ -27,31 +27,32 @@ import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DatePicker} from "../gui/base/DatePicker"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {createDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
+import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
+import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 
 assertMainOrNode()
 
 const MAX_LOGO_SIZE = 1024 * 100
 const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
-const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
-export class BrandingSettingsViewer {
+export class WhitelabelSettingsViewer {
 	view: Function;
 
 	_brandingDomainField: TextField;
 	_customLogoField: TextField;
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
+	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
 
@@ -81,7 +82,7 @@ export class BrandingSettingsViewer {
 		this._contactFormsExist = null
 		this._customer.getAsync().then(customer => {
 			load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
-				loadRange(ContactFormTypeRef, root.contactForms, GENERATED_MIN_ID, 1, false).then(contactForms => {
+				loadRange(ContactFormTypeRef, root.contactForms, CUSTOM_MIN_ID, 1, false).then(contactForms => {
 					this._contactFormsExist = contactForms.length > 0
 					m.redraw()
 				})
@@ -104,6 +105,7 @@ export class BrandingSettingsViewer {
 						m(this._customLogoField),
 						m(this._customColorsField),
 						m(this._customMetaTagsField),
+						this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
 						(this._isWhitelabelRegistrationVisible()) ? m("", [
 								m(this._whitelabelRegistrationDomains),
 								m(this._whitelabelCodeField),
@@ -134,12 +136,12 @@ export class BrandingSettingsViewer {
 	}
 
 	_getBrandingLink(): string {
-		return lang.code == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
+		return (lang.code == "de" || lang.code == "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
-	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?BrandingTheme> {
-		if (domainInfo && domainInfo.theme) {
-			return load(BrandingThemeTypeRef, domainInfo.theme)
+	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
+		if (domainInfo && domainInfo.whitelabelConfig) {
+			return load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig)
 		} else {
 			return Promise.resolve(null)
 		}
@@ -179,8 +181,8 @@ export class BrandingSettingsViewer {
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
-			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(brandingTheme => {
-				let customJsonTheme = (brandingTheme) ? JSON.parse(brandingTheme.jsonTheme) : null
+			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
+				let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 				// customJsonTheme is defined when brandingDomainInfo is defined
 
 				this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
@@ -223,8 +225,8 @@ export class BrandingSettingsViewer {
 							Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
 								if (ok) {
 									delete neverNull(customJsonTheme).logo
-									neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-									update(brandingTheme)
+									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+									update(whitelabelConfig)
 									updateCustomTheme(customJsonTheme)
 								}
 							})
@@ -239,8 +241,8 @@ export class BrandingSettingsViewer {
 							} else {
 								let imageData = "<img src=\"data:image/" + ((extension == "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
 								neverNull(customJsonTheme).logo = imageData
-								neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-								update(brandingTheme)
+								neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+								update(whitelabelConfig)
 								updateCustomTheme(customJsonTheme)
 								this._customLogoField.setValue(lang.get("activated_label"))
 								m.redraw()
@@ -264,37 +266,52 @@ export class BrandingSettingsViewer {
 											delete neverNull(customJsonTheme)[key]
 										}
 									})
-									neverNull(brandingTheme).jsonTheme = JSON.stringify(customJsonTheme)
-									update(brandingTheme)
+									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+									update(whitelabelConfig)
 									updateCustomTheme(customJsonTheme)
 								}
 							})
 						}, () => Icons.Cancel)
 					}
 
-					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => Icons.Edit)
+					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme),), () => Icons.Edit)
 
 					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
 				}
 
-				let customMetaTagsDefined = brandingTheme ? brandingTheme.metaTags.length > 0 : false
+				let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
 				this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
-				if (brandingTheme) {
+				if (whitelabelConfig) {
 					let editCustomMetaTagsButton = new Button("edit_action", () => {
 						let metaTags = new TextField("customMetaTags_label")
-							.setValue(neverNull(brandingTheme).metaTags)
+							.setValue(neverNull(whitelabelConfig).metaTags)
 							.setType(Type.Area)
 						let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
 							view: () => m(metaTags)
 						}, (ok) => {
 							if (ok) {
-								neverNull(brandingTheme).metaTags = metaTags.value()
-								update(brandingTheme)
+								neverNull(whitelabelConfig).metaTags = metaTags.value()
+								update(whitelabelConfig)
 								dialog.close()
 							}
 						})
 					}, () => Icons.Edit)
 					this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+				}
+
+				let customGermanLanguageFileDefined = whitelabelConfig && whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
+				let items = [
+					{name: "Deutsch (Du)", value: "de"},
+					{name: "Deutsch (Sie)", value: "de_sie"}
+				]
+				if (whitelabelConfig && (lang.code == 'de' || lang.code == 'de_sie')) {
+					this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
+						if (v) {
+							neverNull(whitelabelConfig).germanLanguageCode = v
+							update(whitelabelConfig)
+							lang.setLanguage({code: v, languageTag: lang.languageTag})
+						}
+					})
 				}
 
 				m.redraw()
@@ -317,40 +334,22 @@ export class BrandingSettingsViewer {
 		} else {
 			showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
-				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
+				.then(root => loadAll(UnencryptedStatisticLogEntryTypeRef, neverNull(root.statisticsLog).items, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
 				.then(logEntries => {
-					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
-					let titleRow = `contact form,path,date,${columns.join(",")}`
-					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
-						let row = [escape(this._getContactFormTitle(contactForm)), contactForm.path, formatSortableDate(entry.date)]
-						row.length = 3 + columns.length
-						for (let v of entry.values) {
-							row[3 + columns.indexOf(v.name)] = escape(v.value)
-						}
-						return row.join(",")
-					}))).then(rows => {
-						let csv = [titleRow].concat(rows).join("\n")
-
-						let data = stringToUtf8Uint8Array(csv)
-						let tmpFile = createFile()
-						tmpFile.name = "report.csv"
-						tmpFile.mimeType = "text/csv"
-						tmpFile.size = String(data.byteLength)
-						return fileController.open(createDataFile(tmpFile, data))
+					let titleRow = `path,date`
+					let rows = logEntries.map(entry => {
+						return '"' + entry.contactFormPath + '",' + formatSortableDate(entry.date)
 					})
+					let csv = [titleRow].concat(rows).join("\n")
+
+					let data = stringToUtf8Uint8Array(csv)
+					let tmpFile = createFile()
+					tmpFile.name = "report.csv"
+					tmpFile.mimeType = "text/csv"
+					tmpFile.size = String(data.byteLength)
+					return fileController.open(createDataFile(tmpFile, data))
 				}))
 		}
-	}
-
-	_getContactFormTitle(contactForm: ContactForm) {
-		let pageTitle = ""
-		let language = contactForm.languages.find(l => l.code == lang.code)
-		if (language) {
-			pageTitle = language.pageTitle
-		} else if (contactForm.languages.length > 0) {
-			pageTitle = contactForm.languages[0].pageTitle
-		}
-		return pageTitle
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
@@ -361,7 +360,7 @@ export class BrandingSettingsViewer {
 		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
-		} else if (isSameTypeRef(typeRef, BrandingThemeTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, WhitelabelConfigTypeRef) && operation == OperationType.UPDATE) {
 			this._updateFields()
 		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
 			this._props.reset()

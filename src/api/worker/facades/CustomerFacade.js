@@ -13,7 +13,7 @@ import {hash} from "../crypto/Sha256"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
 import {neverNull} from "../../common/utils/Utils"
 import {aes128RandomKey} from "../crypto/Aes"
-import {encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/CreateCustomerServerPropertiesReturn"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "../crypto/CryptoUtils"
@@ -36,6 +36,12 @@ import {createContactFormStatisticField} from "../../entities/tutanota/ContactFo
 import type {LoginFacade} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {readCounterValue} from "./CounterFacade"
+import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
+import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
+import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataServicePutData"
+import type {Country} from "../../common/CountryList"
+import {PaymentDataServicePutReturnTypeRef} from "../../entities/sys/PaymentDataServicePutReturn"
+import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
 
 assertWorkerOrNode()
 
@@ -179,11 +185,11 @@ export class CustomerFacade {
 			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
 			return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
 				return this._worker.sendProgress(5).then(() => {
-					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
+					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(userGroupData => {
 						return this._worker.sendProgress(35).then(() => {
-							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(adminGroupData => {
+							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(adminGroupData => {
 								return this._worker.sendProgress(65).then(() => {
-									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
+									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(customerGroupData => {
 										return this._worker.sendProgress(95).then(() => {
 											let data = createCustomerAccountCreateData()
 											data.authToken = authToken
@@ -214,7 +220,7 @@ export class CustomerFacade {
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
+		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey).then(userGroupData => {
 			return {userGroupKey, userGroupData}
 		})
 		return Promise.resolve()
@@ -225,6 +231,10 @@ export class CustomerFacade {
 	 */
 	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
+		// if an error occurs during sending the contact form mail, the user group data might have been deleted already, so create it again
+		if (!this.contactFormUserGroupData) {
+			this.createContactFormUserGroupData()
+		}
 		return neverNull(this.contactFormUserGroupData).then(contactFormUserGroupData => {
 			let {userGroupKey, userGroupData} = contactFormUserGroupData
 			return this._worker.sendProgress(35).then(() => {
@@ -274,4 +284,47 @@ export class CustomerFacade {
 		}
 	}
 
+
+	switchFreeToPremiumGroup(): Promise<void> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
+			let membershipAddData = createMembershipAddData()
+			membershipAddData.user = this._login.getLoggedInUser()._id
+			membershipAddData.group = neverNull(keyData.premiumGroup)
+			membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
+
+			return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+				let membershipRemoveData = createMembershipRemoveData()
+				membershipRemoveData.user = this._login.getLoggedInUser()._id
+				membershipRemoveData.group = neverNull(keyData.freeGroup)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+			})
+		}).catch(e => {
+			console.log("error switching free to premium group", e);
+		})
+	}
+
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
+						const service = createPaymentDataServicePutData()
+						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
+						service.business = subscriptionOptions.businessUse
+						service.invoiceName = invoiceData.invoiceName
+						service.invoiceAddress = invoiceData.invoiceAddress
+						service.invoiceCountry = invoiceData.country.a
+						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
+						service.paymentMethod = invoiceData.paymentMethod
+						service.paymentMethodInfo = invoiceData.paymentMethodInfo
+						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
+						service.paymentToken = null // TODO add paymentToken
+						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
+						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
+					})
+				})
+			})
+		})
+	}
 }

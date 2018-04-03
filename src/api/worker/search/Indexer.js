@@ -1,12 +1,12 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
+import {OperationType, NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
 import {neverNull, defer} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {
@@ -36,6 +36,7 @@ import {EventQueue} from "./EventQueue"
 import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
 import {contains} from "../../common/utils/ArrayUtils"
+import {CancelledError} from "../../common/error/CancelledError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -62,11 +63,12 @@ export class Indexer {
 
 	_core: IndexerCore;
 	_entity: EntityWorker;
+	_indexedGroupIds: Array<Id>;
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
-		this.db = {dbFacade: new DbFacade(), key: neverNull(null), initialized: deferred.promise} // correctly initialized during init()
+		this.db = {dbFacade: new DbFacade(indexedDbSupported), key: neverNull(null), initialized: deferred.promise} // correctly initialized during init()
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(() => this._processEntityEventFromQueue()))
 		this._entity = new EntityWorker()
@@ -74,6 +76,7 @@ export class Indexer {
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
+		this._indexedGroupIds = []
 	}
 
 	/**
@@ -99,6 +102,8 @@ export class Indexer {
 									return this._initGroupData(groupBatches, t2)
 								})
 							}).then(() => {
+								return this._updateIndexedGroups()
+							}).then(() => {
 								this._dbInitializedCallback()
 							})
 						} else {
@@ -112,6 +117,8 @@ export class Indexer {
 								}),
 								this._loadGroupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user))
 							]).then(() => {
+								return this._updateIndexedGroups()
+							}).then(() => {
 								this._dbInitializedCallback()
 							}).then(() => {
 								return Promise.all([
@@ -142,6 +149,20 @@ export class Indexer {
 						console.log("out of sync - delete database and disable mail indexing")
 						return this.disableMailIndexing()
 					})
+			}).catch(CancelledError, e => {
+				// mail or contact group has been removed from user, disable mail indexing and init index again
+				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
+				// initialized promise will be resolved in this.init later.
+				console.log("cancelled init, disable mail indexing and init again")
+				let mailIndexingEnabled = this._mail.mailIndexingEnabled;
+				return this._mail.disableMailIndexing().then(() => {
+					return this.init(this._initParams.user, this._initParams.groupKey).then(() => {
+						if (mailIndexingEnabled) {
+							return this.enableMailIndexing()
+						}
+					})
+
+				})
 			})
 		}).catch(DbError, e => {
 			console.log("Indexing not supported", e)
@@ -174,6 +195,16 @@ export class Indexer {
 		return this._mail.cancelMailIndexing()
 	}
 
+
+	_updateIndexedGroups(): Promise<void> {
+		return this.db.dbFacade.createTransaction(true, [GroupDataOS])
+			.then(t => t.getAll(GroupDataOS).map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
+			.then(indexedGroupIds => {
+				this._indexedGroupIds = indexedGroupIds
+			})
+	}
+
+
 	_loadGroupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
 		let currentGroups = filterIndexMemberships(user).map(m => {
 			return {id: m.group, type: neverNull(m.groupType)}
@@ -194,12 +225,13 @@ export class Indexer {
 	}
 
 	/**
-	 * Deletes the whole index if the user was removed from a contact or mail group.
+	 *
 	 * Initializes the index db for new groups of the user, but does not start the actual indexing for those groups.
+	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 */
 	_updateGroups(user: User, groupDiff: {deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}): Promise<void> {
 		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
-			return this.disableMailIndexing()
+			return Promise.reject(new CancelledError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
 			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id)).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
 				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then(t => {
@@ -298,7 +330,9 @@ export class Indexer {
 			}
 
 			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) == -1) {
-				console.log("not indexed group", groupId)
+				return Promise.resolve()
+			}
+			if (this._indexedGroupIds.indexOf(groupId) == -1) {
 				return Promise.resolve()
 			}
 			let indexUpdate = _createNewIndexUpdate(groupId)
@@ -324,7 +358,8 @@ export class Indexer {
 				this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate),
 				this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
 				this._groupInfo.processEntityEvents(neverNull(groupedEvents.get(GroupInfoTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
-				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user)
+				this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
+				this._processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
 			]).then(() => {
 				return this._core.writeIndexUpdate(indexUpdate)
 			}).finally(() => {
@@ -339,6 +374,19 @@ export class Indexer {
 			this.processEntityEvents(next.events, next.groupId, next.batchId)
 		}
 	}
+
+
+	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
+		return Promise.all(events.map(event => {
+			if (event.operation == OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId)) {
+				return this._entity.load(UserTypeRef, event.instanceId).then(updatedUser => {
+					this._initParams.user = updatedUser
+				})
+			}
+			return Promise.resolve()
+		})).return()
+	}
+
 }
 
 

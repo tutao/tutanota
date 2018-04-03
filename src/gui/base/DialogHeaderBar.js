@@ -22,7 +22,7 @@ export class DialogHeaderBar {
 
 		this.view = (): VirtualElement => {
 			let columnClass = this.middle ? ".flex-third.overflow-hidden" : ".flex-half.overflow-hidden"
-			return m(".flex-space-between", {
+			return m(".flex-space-between.dialog-header-line-height", {
 				oncreate: (vnode) => this._setDomButtonBar(vnode.dom)
 			}, [
 				m(columnClass + ".ml-negative-s", this.left.filter(b => b.isVisible()).map(b => m(b))),

@@ -14,18 +14,24 @@ import org.json.JSONObject;
 
 import static android.provider.ContactsContract.*;
 import static android.provider.ContactsContract.CommonDataKinds.*;
-import static de.tutao.tutanota.MainActivity.activity;
 
 /**
  * Created by mpfau on 4/12/17.
  */
 
 public class Contact {
+
+    private final MainActivity activity;
+
     private static final String[] PROJECTION = {
             Contacts._ID,
             Contacts.DISPLAY_NAME_PRIMARY,
             Email.ADDRESS,
     };
+
+    public Contact(MainActivity activity) {
+        this.activity = activity;
+    }
 
     private Promise<Void, Exception, Void> requestContactsPermission() {
         return activity.getPermission(Manifest.permission.READ_CONTACTS);

@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {Table, ColumnWidth} from "../gui/base/Table"
-import {erase, load} from "../api/main/Entity"
+import {erase, load, loadAll} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -18,8 +18,16 @@ import {Dialog} from "../gui/base/Dialog"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {DatePicker} from "../gui/base/DatePicker"
+import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
+import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
+import {createFile} from "../api/entities/tutanota/File"
+import {createDataFile} from "../api/common/DataFile"
+import {fileController} from "../file/FileController"
+import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
+import {formatSortableDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -43,14 +51,12 @@ export class ContactFormViewer {
 			mailGroupField.setValue(getGroupInfoDisplayName(groupInfo))
 			m.redraw()
 		})
-		let participantMailGroupsField = new TextField("participants_label").setValue(lang.get("loading_msg")).setDisabled()
-		let mailGroupNames = loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
-			if (mailGroupNames.length == 0) {
-				participantMailGroupsField.setValue(lang.get("noEntries_msg"))
-			} else {
-				participantMailGroupsField.setValue(mailGroupNames.join("; "))
+		let participantMailGroupsField = null
+		loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
+			if (mailGroupNames.length > 0) {
+				participantMailGroupsField = new TextField("responsiblePersons_label").setValue(mailGroupNames.join("; ")).setDisabled()
+				m.redraw()
 			}
-			m.redraw()
 		})
 
 		let language = getDefaultContactFormLanguage(this.contactForm.languages)
@@ -62,6 +68,12 @@ export class ContactFormViewer {
 			statisticsFieldsTable.updateEntries(language.statisticsFields.map(f => new TableLine([f.name, statisticsFieldTypeToString(f)])))
 		}
 
+		let contactFormReportFrom = new DatePicker("dateFrom_label")
+		let contactFormReportTo = new DatePicker("dateTo_label")
+		contactFormReportFrom.setDate(new Date())
+		contactFormReportTo.setDate(new Date())
+		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Download)
+
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -70,15 +82,24 @@ export class ContactFormViewer {
 						m(actions),
 					]),
 					m(mailGroupField),
-					m(".mt-l", [
-						m(participantMailGroupsField),
-					]),
+					participantMailGroupsField ? m(".mt-l", [
+							m(participantMailGroupsField),
+						]) : null,
 					m(".h4.mt-l", lang.get("display_action")),
 					m(urlField),
 					m(pageTitleField),
 					(statisticsFieldsTable) ? m(".h4.mt-l", lang.get("statisticsFields_label")) : null,
 					(statisticsFieldsTable) ? m(statisticsFieldsTable) : null,
-					(statisticsFieldsTable) ? m(".small", lang.get("statisticsFieldsInfo_msg")) : null
+					(statisticsFieldsTable) ? m(".small", lang.get("statisticsFieldsInfo_msg")) : null,
+					m(".mt-l", [
+						m(".h4", lang.get("contactFormReport_label")),
+						m(".small", lang.get("contactFormReportInfo_msg")),
+						m(".flex-space-between.items-center.mb-s", [
+							m(contactFormReportFrom),
+							m(contactFormReportTo),
+							m(contactFormReportButton)
+						]),
+					])
 				]),
 			]
 		}
@@ -104,6 +125,45 @@ export class ContactFormViewer {
 				}))
 			}
 		})
+	}
+
+	_contactFormReport(from: ?Date, to: ?Date) {
+		if ((from == null || to == null) || from.getTime() > to.getTime()) {
+			Dialog.error("dateInvalidRange_msg")
+		} else {
+			showProgressDialog("loading_msg", loadAll(StatisticLogEntryTypeRef, neverNull(this.contactForm.statisticsLog).items, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS))
+				.then(logEntries => {
+					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
+					let titleRow = `contact form,path,date,${columns.map(columnName => `"${columnName}"`).join(",")}`
+					let rows = logEntries.map(entry => {
+						let row = [`"${this._getContactFormTitle(this.contactForm)}"`, this.contactForm.path, formatSortableDate(entry.date)]
+						row.length = 3 + columns.length
+						for (let v of entry.values) {
+							row[3 + columns.indexOf(v.name)] = `"${v.value}"`
+						}
+						return row.join(",")
+					})
+					let csv = [titleRow].concat(rows).join("\n")
+
+					let data = stringToUtf8Uint8Array(csv)
+					let tmpFile = createFile()
+					tmpFile.name = "report.csv"
+					tmpFile.mimeType = "text/csv"
+					tmpFile.size = String(data.byteLength)
+					return fileController.open(createDataFile(tmpFile, data))
+				}))
+		}
+	}
+
+	_getContactFormTitle(contactForm: ContactForm) {
+		let pageTitle = ""
+		let language = contactForm.languages.find(l => l.code == lang.code)
+		if (language) {
+			pageTitle = language.pageTitle
+		} else if (contactForm.languages.length > 0) {
+			pageTitle = contactForm.languages[0].pageTitle
+		}
+		return pageTitle
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {

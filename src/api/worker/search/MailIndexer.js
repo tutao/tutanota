@@ -199,27 +199,34 @@ export class MailIndexer {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
 						let progressCount = 1
-						return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-							let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
-							return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
-								this._worker.sendIndexState({
-									initializing: false,
-									indexingSupported: this._core.indexingSupported,
-									mailIndexEnabled: this.mailIndexingEnabled,
-									progress: Math.round(100 * (progressCount++) / count),
-									currentMailIndexTimestamp: this.currentIndexTimestamp
+						if (!groupData) {
+							progressCount++
+							// group data is not available if group has been added. group will be indexed after login.
+							return;
+						} else {
+							return this._loadMailListIds(mbox).map((mailListId, i, count) => {
+								let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+								return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
+									this._worker.sendIndexState({
+										initializing: false,
+										indexingSupported: this._core.indexingSupported,
+										mailIndexEnabled: this.mailIndexingEnabled,
+										progress: Math.round(100 * (progressCount++) / count),
+										currentMailIndexTimestamp: this.currentIndexTimestamp
+									})
+									return finishedMailList
 								})
-								return finishedMailList
-							})
-						}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
-							return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
-								return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-									groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
-									t2.put(GroupDataOS, mailGroupId, groupData)
-									return t2.wait()
+							}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
+								return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
+									return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+										groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
+										t2.put(GroupDataOS, mailGroupId, groupData)
+										return t2.wait()
+									})
 								})
 							})
-						})
+						}
+
 					})
 				})
 			})
@@ -289,17 +296,19 @@ export class MailIndexer {
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			this.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
-			return Promise.all(filterMailMemberships(user).map(mailGroupMembership => {
+			return Promise.all(filterMailMemberships(user).map((mailGroupMembership, index) => {
 				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
-					if (groupData.indexTimestamp > this.currentIndexTimestamp) { // find the newest timestamp
-						this.currentIndexTimestamp = groupData.indexTimestamp
+					if (!groupData) {
+						return NOTHING_INDEXED_TIMESTAMP
+					} else {
+						return groupData.indexTimestamp
 					}
 				})
-			})).return()
+			})).then(groupIndexTimestamps => {
+				this.currentIndexTimestamp = _getCurrentIndexTimestamp(groupIndexTimestamps)
+			})
 		})
 	}
-
 
 	_isExcluded(event: EntityUpdate) {
 		return this._excludedListIds.indexOf(event.instanceListId) !== -1
@@ -359,5 +368,26 @@ export class MailIndexer {
 			}
 		}).return()
 	}
+}
+
+// export just for testing
+export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
+	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
+	groupIndexTimestamps.forEach((t, index) => {
+		if (index == 0) {
+			currentIndexTimestamp = t
+		} else if (t == NOTHING_INDEXED_TIMESTAMP) {
+			// skip new group memberships
+		} else if (t == FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != NOTHING_INDEXED_TIMESTAMP) {
+			// skip full index timestamp if this is not the first mail group
+		} else if (currentIndexTimestamp == FULL_INDEXED_TIMESTAMP && t != currentIndexTimestamp) { // find the oldest timestamp
+			// mail index ist not fully indexed if one of the mailboxes is not fully indexed
+			currentIndexTimestamp = t
+		} else if (t < currentIndexTimestamp) {
+			// set the oldest index timestamp as current timestamp so all mailboxes can index to this timestamp during log in.
+			currentIndexTimestamp = t
+		}
+	})
+	return currentIndexTimestamp
 }
 

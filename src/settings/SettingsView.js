@@ -10,7 +10,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
-import {EmptyViewer} from "./EmptyViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -21,14 +20,16 @@ import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {ContactFormListView} from "./ContactFormListView"
-import {BrandingSettingsViewer} from "./BrandingSettingsViewer"
+import {WhitelabelSettingsViewer} from "./WhitelabelSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FeatureType} from "../api/common/TutanotaConstants"
+import {FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
+import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
+import {InvoiceViewer} from "../subscription/InvoiceViewer"
 
 assertMainOrNode()
 
@@ -52,18 +53,26 @@ export class SettingsView {
 		]
 		this._adminFolders = []
 
-
-		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => Icons.People, "users", () => new UserListView(this)))
-		if (!logins.isProdDisabled()) {
+		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))
+		if (!logins.isProdDisabled() && !logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
 		}
-		this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
-		this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new BrandingSettingsViewer()))
-		if (logins.isEnabled(FeatureType.WhitelabelParent)) {
-			this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
+		if (logins.getUserController().isGlobalAdmin()) {
+			this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
+			if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
+				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new WhitelabelSettingsViewer()))
+				if (logins.isEnabled(FeatureType.WhitelabelParent)) {
+					this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
+				}
+			}
 		}
-		this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
-		this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
+		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
+			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
+			if (logins.getUserController().isGlobalAdmin()) {
+				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
+			}
+		}
 
 		this._selectedFolder = this._userFolders[0]
 
@@ -74,8 +83,8 @@ export class SettingsView {
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
 				m(".plr-l", m(userFolderExpander)),
 				m(userFolderExpander.panel),
-				logins.getUserController().isAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
-				logins.getUserController().isAdmin() ? m(adminFolderExpander.panel) : null
+				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
+				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null
 			])
 		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
 
@@ -141,7 +150,7 @@ export class SettingsView {
 			this._setUrl(this._userFolders[0].url)
 		} else if (args.folder && this._selectedFolder.path != args.folder) {
 			let folder = this._userFolders.find(f => f.path == args.folder)
-			if (!folder && logins.getUserController().isAdmin()) {
+			if (!folder && logins.getUserController().isGlobalOrLocalAdmin()) {
 				folder = this._adminFolders.find(f => f.path == args.folder)
 			}
 			if (!folder) {
@@ -161,8 +170,8 @@ export class SettingsView {
 		m.route.set(url + location.hash)
 	}
 
-	_isAdmin(user: User): boolean {
-		return user.memberships.find(m => m.admin) != null
+	_isGlobalOrLocalAdmin(user: User): boolean {
+		return user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
 	}
 
 	focusSettingsDetailsColumn() {
@@ -173,7 +182,7 @@ export class SettingsView {
 		if (isSameTypeRef(typeRef, UserTypeRef) && isSameId(elementId, logins.getUserController().user._id)) {
 			load(UserTypeRef, elementId).then(user => {
 				// the user admin status might have changed
-				if (!this._isAdmin(user) && this._currentViewer && this._adminFolders.find(f => f.isActive())) {
+				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer && this._adminFolders.find(f => f.isActive())) {
 					this._setUrl(this._userFolders[0].url)
 				}
 				m.redraw()

@@ -2,7 +2,6 @@
 import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButton, NavButtonColors} from "./NavButton"
-import stream from "mithril/stream/stream.js"
 import {styles} from "../styles"
 import {neverNull, asyncImport} from "../../api/common/utils/Utils"
 import {keyManager, Keys} from "../../misc/KeyManager"
@@ -23,10 +22,10 @@ class Header {
 	buttonBar: NavBar;
 	defaultButtonBar: NavBar;
 	view: Function;
-	contactsUrl: stream<string>;
-	mailsUrl: stream<string>;
-	settingsUrl: stream<string>;
-	searchUrl: stream<string>;
+	contactsUrl: string;
+	mailsUrl: string;
+	settingsUrl: string;
+	searchUrl: string;
 	_viewSlider: ?IViewSlider;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -53,16 +52,16 @@ class Header {
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => premiumUrl, premiumUrl)
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
 			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()), 0, true)
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
 			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)

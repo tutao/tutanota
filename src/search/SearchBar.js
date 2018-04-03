@@ -1,10 +1,10 @@
 // @flow
-import {inputLineHeight, Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextField"
 import m from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
 import {styles} from "../gui/styles"
-import {px, size} from "../gui/size"
+import {px, size, inputLineHeight} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"
@@ -25,7 +25,7 @@ import type {RouteChangeEvent} from "../misc/RouteChange"
 import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
-import {setSearchUrl, getRestriction, getSearchUrl} from "./SearchUtils"
+import {setSearchUrl, getRestriction, getSearchUrl, isAdministratedGroup} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
@@ -206,7 +206,7 @@ export class SearchBar {
 		return [
 			{
 				key: Keys.F,
-				enabled: () => logins.isInternalUserLoggedIn() && !locator.search.indexState().initializing && locator.search.indexState().indexingSupported,
+				enabled: () => this.isVisible(),
 				exec: key => {
 					this.focus()
 					m.redraw()
@@ -231,6 +231,12 @@ export class SearchBar {
 				.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
 			).then(resultInstances => {
 				let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
+
+				// filter group infos for local admins
+				if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController().isGlobalAdmin()) {
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
+				}
 				if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
 					filteredInstances.sort((o1, o2) => compareContacts((o1:any), (o2:any)))
 				}
@@ -343,7 +349,7 @@ export class SearchBar {
 								class: "svg-list-accent-fg",
 							}) : null,
 						(!groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-								icon: Icons.People,
+								icon: BootIcons.Settings,
 								class: "svg-list-accent-fg",
 							}) : null,
 						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {

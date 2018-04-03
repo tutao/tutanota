@@ -9,9 +9,15 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {EntropySrcEnum, ConversationTypeEnum, AccountTypeEnum} from "../common/TutanotaConstants"
+import type {
+	EntropySrcEnum,
+	ConversationTypeEnum,
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum
+} from "../common/TutanotaConstants"
 import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -69,7 +75,7 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy()]))
+			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()]))
 				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -111,12 +117,12 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 
-	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<Credentials> {
-		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, connectEventBus).then(loginData => {
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
+		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin).then(loginData => {
 			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		})
 	}
@@ -182,6 +188,18 @@ export class WorkerClient {
 		return this._postRequest(new Request('changeAdminFlag', arguments))
 	}
 
+	updateAdminship(groupId: Id, newAdminGroupId: Id) {
+		return this._postRequest(new Request('updateAdminship', arguments))
+	}
+
+	switchFreeToPremiumGroup(): Promise<void> {
+		return this._postRequest(new Request('switchFreeToPremiumGroup', arguments))
+	}
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+		return this._postRequest(new Request('updatePaymentData', arguments))
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
 		return this._postRequest(new Request('readUsedUserStorage', arguments))
 	}
@@ -198,12 +216,16 @@ export class WorkerClient {
 		return this._postRequest(new Request('createMailGroup', arguments))
 	}
 
-	createTeamGroup(name: string): Promise<void> {
-		return this._postRequest(new Request('createTeamGroup', arguments))
+	createLocalAdminGroup(name: string): Promise<void> {
+		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: NumberString, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
+	}
+
+	getCurrentPrice(): Promise<PriceServiceReturn> {
+		return this._postRequest(new Request('getCurrentPrice', arguments))
 	}
 
 	tryReconnectEventBus() {

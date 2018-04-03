@@ -11,14 +11,16 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getGroupTypeName} from "./GroupViewer"
 import * as AddUserDialog from "./AddUserDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
 export function show(): Promise<void> {
 	return AddUserDialog.getAvailableDomains().then(availableDomains => {
 
-		let typeField = new DropDownSelector("groupType_label", null, [GroupType.Mail].map(t => {
+		let groupTypes = logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin] : [GroupType.Mail]
+		let typeField = new DropDownSelector("groupType_label", null, groupTypes.map(t => {
 			return {name: getGroupTypeName(t), value: t}
 		}), GroupType.Mail)
 
@@ -48,6 +50,12 @@ export function show(): Promise<void> {
 					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
 						if (accepted) {
 							return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
+						}
+					}))
+				} else if (typeField.selectedValue() == GroupType.LocalAdmin) {
+					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false).then(accepted => {
+						if (accepted) {
+							return worker.createLocalAdminGroup(nameField.value())
 						}
 					}))
 				}

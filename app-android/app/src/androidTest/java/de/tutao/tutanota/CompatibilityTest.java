@@ -43,7 +43,7 @@ public class CompatibilityTest {
 
     @Test
     public void aes128() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
-        Crypto crypto = new Crypto();
+        Crypto crypto = new Crypto(null);
         for (AesTestData td : CompatibilityTest.testData.getAes128Tests()) {
             byte[] key = hexToBytes(td.getHexKey());
             ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();

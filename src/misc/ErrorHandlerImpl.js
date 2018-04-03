@@ -27,6 +27,7 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import {openUpgradeDialog} from "../subscription/UpgradeAccountTypeDialog"
 
 assertMainOrNode()
 
@@ -99,7 +100,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof OutOfSyncError) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
-		if (logins.getUserController().isAdmin()) {
+		if (logins.getUserController().isGlobalAdmin()) {
 			Dialog.error("insufficientStorageAdmin_msg").then(() => {
 				// tutao.locator.navigator.settings()
 				// tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE)
@@ -110,7 +111,10 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof ServiceUnavailableError) {
 		Dialog.error("serviceUnavailable_msg")
 	} else if (e instanceof IndexingNotSupportedError) {
-		Dialog.error("searchDisabled_msg")
+		// external users do not search anyway
+		if (logins.isInternalUserLoggedIn()) {
+			Dialog.error("searchDisabled_msg")
+		}
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
@@ -170,7 +174,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 		if (customer.approvalStatus == ApprovalStatus.RegistrationApprovalNeeded) {
 			return Dialog.error("waitingForApproval_msg").return(false)
 		} else if (customer.approvalStatus == ApprovalStatus.InvoiceNotPaid) {
-			if (logins.getUserController().isAdmin()) {
+			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
 						return lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()})
@@ -198,14 +202,7 @@ export function showNotAvailableForFreeDialog() {
 		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing").then(confirmed => {
 			if (confirmed) {
-				Dialog.confirm(() => "The upgrade to premium is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
-					if (ok) {
-						window.open("https://app.tutanota.com/", null, null, false)
-					}
-				})
-				// TODO: Navigate to premium upgrade
-				//tutao.locator.navigator.settings();
-				//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+				openUpgradeDialog()
 			}
 		})
 	}

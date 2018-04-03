@@ -18,6 +18,7 @@ type Group = {
 	external:boolean;
 	type:NumberString;
 
+	administratedGroups:?AdministratedGroupsRef;
 	keys:KeyPair[];
 	admin:?Id;
 	customer:?Id;
@@ -38,11 +39,13 @@ type GroupInfo = {
 	_permissions:Id;
 	created:Date;
 	deleted:?Date;
+	groupType:?NumberString;
 	mailAddress:?string;
 	name:string;
 
 	mailAddressAliases:MailAddressAlias[];
 	group:Id;
+	localAdmin:?Id;
 }
 
 type GroupMembership = {
@@ -861,7 +864,7 @@ type DomainInfo = {
 
 	catchAllMailGroup:?Id;
 	certificate:?Id;
-	theme:?Id;
+	whitelabelConfig:?Id;
 }
 
 type BookingItem = {
@@ -968,6 +971,7 @@ type SwitchAccountTypeData = {
 	_format:NumberString;
 	accountType:NumberString;
 	date:?Date;
+	proUpgrade:boolean;
 
 }
 
@@ -1195,6 +1199,7 @@ type AuditLogEntry = {
 	modifiedEntity:string;
 
 	groupInfo:?IdTuple;
+	modifiedGroupInfo:?IdTuple;
 }
 
 type AuditLogRef = {
@@ -1204,16 +1209,17 @@ type AuditLogRef = {
 	items:Id;
 }
 
-type BrandingTheme = {
-	_type: TypeRef<BrandingTheme>;
+type WhitelabelConfig = {
+	_type: TypeRef<WhitelabelConfig>;
 	_format:NumberString;
 	_id:Id;
 	_ownerGroup:?Id;
 	_permissions:Id;
+	germanLanguageCode:?string;
 	jsonTheme:string;
 	metaTags:string;
 
-	disabledFeatures:DisabledFeature[];
+	bootstrapCustomizations:BootstrapFeature[];
 }
 
 type BrandingDomainData = {
@@ -1361,10 +1367,10 @@ type OtpChallenge = {
 	secondFactors:IdTuple[];
 }
 
-type DisabledFeature = {
-	_type: TypeRef<DisabledFeature>;
+type BootstrapFeature = {
+	_type: TypeRef<BootstrapFeature>;
 	_id:Id;
-	feature:string;
+	feature:NumberString;
 
 }
 
@@ -1404,4 +1410,32 @@ type WhitelabelParent = {
 
 	customer:Id;
 	whitelabelChildInParent:IdTuple;
+}
+
+type UpdateAdminshipData = {
+	_type: TypeRef<UpdateAdminshipData>;
+	_format:NumberString;
+	newAdminGroupEncGKey:Uint8Array;
+
+	group:Id;
+	newAdminGroup:Id;
+}
+
+type AdministratedGroup = {
+	_type: TypeRef<AdministratedGroup>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	groupType:NumberString;
+
+	groupInfo:IdTuple;
+	localAdminGroup:Id;
+}
+
+type AdministratedGroupsRef = {
+	_type: TypeRef<AdministratedGroupsRef>;
+	_id:Id;
+
+	items:Id;
 }

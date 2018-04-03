@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 export const _TypeModel: TypeModel = {
@@ -117,7 +118,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "24"
+	"version": "26"
 }
 
 export function createMailBox(): MailBox {

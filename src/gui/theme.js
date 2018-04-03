@@ -43,7 +43,7 @@ export type Theme = {
 	navigation_button_icon_selected: string,
 }
 
-let customTheme: Theme|string = "is replaced at runtime with a custom theme" // see RootHandler.java
+let customTheme: ?Theme = whitelabelCustomizations && whitelabelCustomizations.theme ? whitelabelCustomizations.theme : null
 export const themeId: stream<ThemeId> = stream(getThemeId())
 export var theme: Theme = getTheme()
 export var defaultTheme: Theme = getLightTheme()
@@ -53,7 +53,7 @@ themeId.map(() => {
 })
 
 function getThemeId(): ThemeId {
-	if (typeof customTheme == "object" && Object.keys(customTheme).length > 0) {
+	if (customTheme && Object.keys(customTheme).length > 0) {
 		return 'custom'
 	} else {
 		if (deviceConfig.getTheme()) {
@@ -67,7 +67,7 @@ function getThemeId(): ThemeId {
 function getTheme(): Theme {
 	switch (themeId()) {
 		case 'custom':
-			return (Object.assign({}, getLightTheme(), (customTheme:any)):any)
+			return (Object.assign({}, getLightTheme(), customTheme):any)
 		case 'dark':
 			return getDarkTheme() // getD()
 		default:

@@ -1,9 +1,10 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const BrandingThemeTypeRef: TypeRef<BrandingTheme> = new TypeRef("sys", "BrandingTheme")
+import {create, TypeRef} from '../../common/EntityFunctions'
+
+export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", "WhitelabelConfig")
 export const _TypeModel: TypeModel = {
-	"name": "BrandingTheme",
+	"name": "WhitelabelConfig",
 	"since": 22,
 	"type": "ELEMENT_TYPE",
 	"id": 1127,
@@ -47,6 +48,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"germanLanguageCode": {
+			"name": "germanLanguageCode",
+			"id": 1308,
+			"since": 28,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"jsonTheme": {
 			"name": "jsonTheme",
 			"id": 1133,
@@ -67,20 +77,20 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"disabledFeatures": {
-			"name": "disabledFeatures",
+		"bootstrapCustomizations": {
+			"name": "bootstrapCustomizations",
 			"id": 1252,
 			"since": 24,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DisabledFeature",
+			"refType": "BootstrapFeature",
 			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "26"
+	"version": "30"
 }
 
-export function createBrandingTheme(): BrandingTheme {
+export function createWhitelabelConfig(): WhitelabelConfig {
 	return create(_TypeModel)
 }

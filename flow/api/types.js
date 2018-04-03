@@ -1,5 +1,7 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
 import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
+import type {PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
+import {Country} from "../../src/api/common/CountryList"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -77,12 +79,13 @@ type WorkerRequestType = 'setup'
 	| 'readUsedUserStorage'
 	| 'deleteUser'
 	| 'getPrice'
+	| 'getCurrentPrice'
 	| 'loadCustomerServerProperties'
 	| 'addSpamRule'
 	| 'createUser'
 	| 'readUsedGroupStorage'
 	| 'createMailGroup'
-	| 'createTeamGroup'
+	| 'createLocalAdminGroup'
 	| 'addUserToGroup'
 	| 'removeUserFromGroup'
 	| 'deactivateGroup'
@@ -100,6 +103,9 @@ type WorkerRequestType = 'setup'
 	| 'enableMailIndexing'
 	| 'disableMailIndexing'
 	| 'cancelMailIndexing'
+	| 'updateAdminship'
+	| 'switchFreeToPremiumGroup'
+	| 'updatePaymentData'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -122,8 +128,7 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
-	| 'updatePushIdentifier'
-type JsRequestType = ''
+type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -176,6 +181,15 @@ type EnvType = {
 }
 
 declare var env: EnvType
+
+type WhitelabelCustomizations = {
+	theme: ?Theme,
+	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
+	germanLanguageCode: string,
+	registrationDomains: ?String[],
+}
+
+declare var whitelabelCustomizations: ?WhitelabelCustomizations
 
 type Credentials = {
 	mailAddress:string,
@@ -241,4 +255,32 @@ type SearchIndexStateInfo = {
 	mailIndexEnabled:boolean;
 	progress:number;
 	currentMailIndexTimestamp:number;
+}
+
+type SubscriptionOptions = {
+	businessUse:boolean,
+	paymentInterval: number,
+	proUpgrade:boolean,
+	price:string
+}
+
+type CreditCardData = {
+	number:string,
+	cvv:string,
+	expirationData:string
+}
+
+type PayPalData = {
+	account:string
+}
+
+type InvoiceData = {
+	invoiceName:string;
+	invoiceAddress:string;
+	country: Country;
+	vatNumber:?string;
+	paymentMethod:PaymentMethodTypeEnum;
+	paymentMethodInfo:string;
+	creditCardData:?CreditCardData;
+	payPalData: ?PayPalData;
 }

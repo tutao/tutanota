@@ -218,10 +218,12 @@ styles.registerStyle('main', () => {
 		'.large-button-width': {width: px(size.button_floating_size)},
 		'.full-height': {height: '100%'},
 		'.full-width': {width: '100%'},
+		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},
 		'.no-text-decoration': {'text-decoration': 'none'},
 
 		// flex box
+		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
 		'.flex-fixed': {flex: "0 0 auto"},
 		'.flex-center': {display: 'flex', 'justify-content': 'center'},
@@ -235,6 +237,7 @@ styles.registerStyle('main', () => {
 		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
+		'.flex-grow-shrink-half': {flex: '1 1 50%'},
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
 		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
@@ -253,6 +256,7 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
+		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -388,6 +392,7 @@ styles.registerStyle('main', () => {
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.button_height + 1)
 		},
+		'.dialog-header-line-height': {'line-height': px(size.button_height)},
 		'.dialog-progress': {'text-align': 'center', padding: px(size.hpad_large)},
 		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
 		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
@@ -531,6 +536,37 @@ styles.registerStyle('main', () => {
 			color: theme.button_bubble_fg,
 		},
 
+		'.segmentControl': {
+			// same border as for bubble buttons
+			'border-top': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+			'border-bottom': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+		},
+
+		'.segmentControl-border': {
+			'border': `1px solid ${theme.content_border}`,
+			'padding-top': px(1),
+			'padding-bottom': px(1),
+			'padding-left': px(1),
+			'padding-right': px(1),
+		},
+		'.segmentControl-border-active': {
+			'border': `2px solid ${theme.content_accent}`,
+			'padding-top': px(0),
+			'padding-bottom': px(0),
+			'padding-left': px(0),
+			'padding-right': px(0),
+		},
+
+		'.segmentControlItem:last-child': {
+			'border-bottom-right-radius': px(size.border_radius),
+			'border-top-right-radius': px(size.border_radius)
+		},
+
+		'.segmentControlItem:first-child': {
+			'border-bottom-left-radius': px(size.border_radius),
+			'border-top-left-radius': px(size.border_radius)
+		},
+
 		// contact
 		'.wrapping-row': {display: 'flex', 'flex-flow': 'row wrap', 'margin-right': px(-size.hpad_large)},
 		'.wrapping-row > *': {
@@ -584,6 +620,13 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
+		'.buyOptionBox': {
+			position: 'relative',
+			display: 'inline-block',
+			border: `1px solid ${theme.content_border}`,
+			width: "100%",
+			padding: px(10)
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

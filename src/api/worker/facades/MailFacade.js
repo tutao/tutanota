@@ -26,7 +26,7 @@ import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {uint8ArrayToHex} from "../../common/utils/Encoding"
 import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
-import {NotFoundError} from "../../common/error/RestError"
+import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {
 	stringToCustomId,
@@ -56,6 +56,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
+import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 
 assertWorkerOrNode()
 
@@ -347,7 +348,11 @@ export class MailFacade {
 								service.internalRecipientKeyData.push(data)
 							})
 						}
-					}).catch(NotFoundError, e => notFoundRecipients.push(recipientInfo.mailAddress))
+					}).catch(NotFoundError, e => {
+						notFoundRecipients.push(recipientInfo.mailAddress)
+					}).catch(TooManyRequestsError, e => {
+						throw new RecipientNotResolvedError()
+					})
 				}
 			})
 		).then(() => {

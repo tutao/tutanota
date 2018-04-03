@@ -1,6 +1,6 @@
 // @flow
-import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
+import {isSelectedPrefix} from "../gui/base/NavButton"
 
 assertMainOrNode()
 
@@ -20,7 +20,6 @@ export class SettingsFolder {
 	}
 
 	isActive() {
-		let current = m.route.get()
-		return (current == this.url || (current.indexOf(this.url + "/") === 0))
+		return isSelectedPrefix(this.url)
 	}
 }

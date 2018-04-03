@@ -5,7 +5,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as WhitelabelChildModel, WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {neverNull} from "../../common/utils/Utils"
 import type {GroupData, Db, SearchIndexEntry, IndexUpdate} from "./SearchTypes"
-import {_createNewIndexUpdate, userIsAdmin} from "./IndexUtils"
+import {_createNewIndexUpdate, userIsGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
@@ -59,7 +59,7 @@ export class WhitelabelChildIndexer {
 	 * Indexes the whitelabel children if they are not yet indexed.
 	 */
 	indexAllWhitelabelChildrenForAdmin(user: User): Promise<void> {
-		if (userIsAdmin(user)) {
+		if (userIsGlobalAdmin(user)) {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					return t.get(GroupDataOS, customer.adminGroup).then((groupData: GroupData) => {
@@ -88,7 +88,7 @@ export class WhitelabelChildIndexer {
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
 		return Promise.each(events, (event, index) => {
-			if (userIsAdmin(user)) {
+			if (userIsGlobalAdmin(user)) {
 				if (event.operation == OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {
 						if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)

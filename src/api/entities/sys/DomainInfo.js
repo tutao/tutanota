@@ -1,5 +1,6 @@
 // @flow
-import {create, TypeRef} from "../../common/EntityFunctions"
+
+import {create, TypeRef} from '../../common/EntityFunctions'
 
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", "DomainInfo")
 export const _TypeModel: TypeModel = {
@@ -69,19 +70,19 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
-		"theme": {
-			"name": "theme",
+		"whitelabelConfig": {
+			"name": "whitelabelConfig",
 			"id": 1136,
 			"since": 22,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "BrandingTheme",
+			"refType": "WhitelabelConfig",
 			"final": true,
 			"external": false
 		}
 	},
 	"app": "sys",
-	"version": "26"
+	"version": "30"
 }
 
 export function createDomainInfo(): DomainInfo {

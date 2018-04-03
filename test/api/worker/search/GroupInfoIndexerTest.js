@@ -10,6 +10,7 @@ import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchType
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {
+	GroupType,
 	NOTHING_INDEXED_TIMESTAMP,
 	FULL_INDEXED_TIMESTAMP,
 	OperationType
@@ -141,7 +142,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 		user.customer = "customer-id"
 
 		let customer = createCustomer()
@@ -202,7 +203,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = false
+		user.memberships[0].groupType = GroupType.User
 		user.customer = "customer-id"
 
 
@@ -220,7 +221,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 		user.customer = "customer-id"
 
 		let customer = createCustomer()
@@ -263,7 +264,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1"), createUpdate(OperationType.UPDATE, "groupInfo-list", "2"), createUpdate(OperationType.DELETE, "groupInfo-list", "3")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].admin = false
+		user.memberships[0].groupType = GroupType.User
 
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
 			// nothing changed
@@ -295,7 +296,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
 			// nothing changed
@@ -326,7 +327,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
 			// nothing changed
@@ -360,7 +361,7 @@ o.spec("GroupInfoIndexer test", () => {
 		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].admin = true
+		user.memberships[0].groupType = GroupType.Admin
 
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
 			// nothing changed

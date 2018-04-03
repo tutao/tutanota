@@ -35,21 +35,21 @@ export class NavButton {
 	_hideLabel: boolean;
 
 
-	constructor(label: string|lazy<string>, icon: lazy<SVG>, href: string|Function, isSelectedPrefix: ?string) {
+	constructor(label: string|lazy<string>, icon: lazy<SVG>, href: string|Function, selectedPrefix: ?string) {
 		this._hideLabel = false
 		this.icon = icon
 		this.href = href
 		this.clickHandler = null
-		this._isSelectedPrefix = isSelectedPrefix
+		this._isSelectedPrefix = selectedPrefix
 		this._colors = NavButtonColors.Header
 		this.isVisible = TRUE_CLOSURE
 		this._draggedOver = false
 		this.isSelected = () => {
 			if (this._isSelectedPrefix) {
-				let current = m.route.get()
-				return this._isSelectedPrefix && (current == this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix + "/") === 0))
+				return isSelectedPrefix(this._isSelectedPrefix)
+			} else {
+				return false
 			}
-			return false
 		}
 		this.getLabel = label instanceof Function ? label : lang.get.bind(lang, label)
 
@@ -232,4 +232,10 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 		}:clickHandler))
 		.setHideLabel(true)
 	return mainButton
+}
+
+export function isSelectedPrefix(buttonHref: string): boolean {
+	let current = m.route.get()
+	// don't just check current.indexOf(buttonHref) because other buttons may also start with this href
+	return (buttonHref != "") && (current == buttonHref || (current.indexOf(buttonHref + "/") === 0) || (current.indexOf(buttonHref + "?") === 0))
 }

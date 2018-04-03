@@ -131,6 +131,7 @@ function createHtml(env, bundles) {
 	let imports = ["libs.js", "main-boot.js", `${filenamePrefix}.js`]
 	return Promise.all([
 		_writeFile(`./build/dist/${filenamePrefix}.js`, [
+			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,

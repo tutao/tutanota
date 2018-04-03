@@ -107,11 +107,11 @@ export class RegisterView {
 	}
 
 	_getTermsLink() {
-		return (lang.code == "de") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
+		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
 	}
 
 	_getPrivacyLink() {
-		return (lang.code == "de") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
+		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
 	}
 
 

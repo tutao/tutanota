@@ -1,5 +1,5 @@
 // @flow
-import {size, px} from "../size"
+import {size, px, inputLineHeight} from "../size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
@@ -23,7 +23,7 @@ export const Type = {
 }
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
-export const inputLineHeight = size.font_size_base + 8
+
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
 /**
@@ -183,7 +183,6 @@ export class TextField {
 	}
 
 	_getTextArea(): VirtualElement {
-
 		if (this.disabled) {
 			return m(".text-prewrap.text-break", {
 				style: {

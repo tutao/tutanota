@@ -17,7 +17,11 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {MailIndexer, INITIAL_MAIL_INDEX_INTERVAL_DAYS} from "../../../../src/api/worker/search/MailIndexer"
+import {
+	MailIndexer,
+	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
+	_getCurrentIndexTimestamp
+} from "../../../../src/api/worker/search/MailIndexer"
 import {createMail, _TypeModel as MailModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tutanota/MailBody"
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
@@ -582,6 +586,27 @@ o.spec("MailIndexer test", () => {
 		})
 	})
 
+
+	o("_getCurrentIndexTimestamp", () => {
+		o(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
+		o(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP]))
+		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP]))
+		let now = new Date().getTime()
+		let past = now - 1000
+		o(now).equals(_getCurrentIndexTimestamp([now]))
+		o(past).equals(_getCurrentIndexTimestamp([now, past]))
+		o(past).equals(_getCurrentIndexTimestamp([past, now]))
+		o(now).equals(_getCurrentIndexTimestamp([now, now]))
+		o(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now]))
+		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP]))
+		o(now).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, now]))
+		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP]))
+		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP]))
+		o(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
+		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
+		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+	})
 })
 
 function createUpdate(type: OperationTypeEnum, listId: Id, id: Id) {

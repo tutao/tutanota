@@ -296,12 +296,17 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 			})
 		}
 		resultPromise.then(buttons => {
-			let dropdown = new Dropdown(() => buttons, width)
-			if (mainButton._domButton) {
-				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
-
+			if (buttons.length == 0) {
+				asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
+					return module.Dialog.error("selectionNotAvailable_msg")
+				})
+			} else {
+				let dropdown = new Dropdown(() => buttons, width)
+				if (mainButton._domButton) {
+					let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
+					dropdown.setOrigin(buttonRect)
+					modal.display(dropdown)
+				}
 			}
 		})
 	}:clickHandler), icon)

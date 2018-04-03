@@ -19,8 +19,11 @@ import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
+import {isAdministratedGroup} from "../search/SearchUtils"
+import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 
 assertMainOrNode()
 
@@ -33,6 +36,7 @@ export class GroupListView {
 	_settingsView: SettingsView;
 	_searchResultStreamDependency: stream;
 	onremove: Function;
+	_localAdminGroupMemberships: GroupMembership[];
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
@@ -42,6 +46,8 @@ export class GroupListView {
 				return customer.teamGroups
 			})
 		})
+
+		this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
 
 		this.list = new List({
 			rowHeight: size.list_row_height,
@@ -53,8 +59,12 @@ export class GroupListView {
 							this._setLoadedCompletely();
 
 							// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-							return allGroupInfos
-
+							if (logins.getUserController().isGlobalAdmin()) {
+								return allGroupInfos
+							} else {
+								let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+								return allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
+							}
 						})
 					})
 				} else {
@@ -131,7 +141,34 @@ export class GroupListView {
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
-			this.list.entityEventReceived(elementId, operation)
+			if (!logins.getUserController().isGlobalAdmin()) {
+				let listEntity = this.list.getEntity(elementId)
+				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					if (listEntity) {
+						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
+							this.list.entityEventReceived(elementId, OperationType.DELETE)
+						} else {
+							this.list.entityEventReceived(elementId, operation)
+						}
+					} else {
+						if (isAdministratedGroup(localAdminGroupIds, gi)) {
+							this.list.entityEventReceived(elementId, OperationType.CREATE)
+						}
+					}
+				})
+			} else {
+				this.list.entityEventReceived(elementId, operation)
+			}
+		} else if (!logins.getUserController().isGlobalAdmin() && isSameTypeRef(typeRef, GroupMemberTypeRef)) {
+			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] == elementId)
+			let newLocalAdminGroupMembership = logins.getUserController().getLocalAdminGroupMemberships().find(gm => gm.groupMember[1] == elementId)
+			if (operation == OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
+				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
+			} else if (operation == OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
+				this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
+			}
+			this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
 		}
 	}
 }
@@ -143,7 +180,7 @@ export class GroupRow {
 	_domName: HTMLElement;
 	_domAddress: HTMLElement;
 	_domDeletedIcon: HTMLElement;
-	_domTeamIcon: HTMLElement;
+	_domLocalAdminIcon: HTMLElement;
 	_domMailIcon: HTMLElement;
 
 	constructor() {
@@ -166,10 +203,10 @@ export class GroupRow {
 			this._domDeletedIcon.style.display = 'none'
 		}
 		if (groupInfo.mailAddress) {
-			this._domTeamIcon.style.display = 'none'
+			this._domLocalAdminIcon.style.display = 'none'
 			this._domMailIcon.style.display = ''
 		} else {
-			this._domTeamIcon.style.display = ''
+			this._domLocalAdminIcon.style.display = ''
 			this._domMailIcon.style.display = 'none'
 		}
 	}
@@ -193,8 +230,8 @@ export class GroupRow {
 						style: {display: 'none'},
 					}),
 					m(Icon, {
-						icon: Icons.People,
-						oncreate: (vnode) => this._domTeamIcon = vnode.dom,
+						icon: BootIcons.Settings,
+						oncreate: (vnode) => this._domLocalAdminIcon = vnode.dom,
 						class: "svg-list-accent-fg",
 						style: {display: 'none'}
 					}),

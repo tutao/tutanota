@@ -1,5 +1,7 @@
 // @flow
 
+export const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
+
 /**
  * Provides a date representing the beginning of the next day of the given date in local time.
  */

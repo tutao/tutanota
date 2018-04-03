@@ -8,7 +8,8 @@ export const GroupType = {
 	External: "4",
 	Mail: "5",
 	Contact: "6",
-	File: "7"
+	File: "7",
+	LocalAdmin: "8"
 }
 export type GroupTypeEnum = $Values<typeof GroupType>;
 
@@ -91,11 +92,15 @@ export const AccountType = {
 }
 export type AccountTypeEnum = $Values<typeof AccountType>;
 
+
+export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
+
 export const ApprovalStatus = {
 	RegistrationApproved: '0',
 	RegistrationApprovalNeeded: '1',
 	SendMailsApproved: '2',
-	InvoiceNotPaid: '3'
+	InvoiceNotPaid: '3',
+	SpamSender: '4'
 }
 export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 
@@ -107,7 +112,8 @@ export const BookingItemFeatureType = {
 	SharedMailGroup: '3',
 	Branding: '4',
 	ContactForm: '5',
-	WhitelabelChild: '6'
+	WhitelabelChild: '6',
+	LocalAdminGroup: '7'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
@@ -238,13 +244,31 @@ export const FeatureType = {
 	InternalCommunication: "2",
 	DeleteMailsOnPasswordReset: "3",
 	WhitelabelParent: "4",
-	WhitelabelChild: "5"
-	// 3 and 4 are not used on clients
+	WhitelabelChild: "5",
+	ReplyOnly: "6",
+	DisableDefaultSignature: "7"
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 
+export const BootstrapFeatureType = {
+	DisableSavePassword: "0",
+}
+export type BootstrapFeatureTypeEnum = $Values<typeof BootstrapFeatureType>;
+
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+
+
+export const PaymentDataResultType = {
+	OK: "0",
+	COUNTRY_MISMATCH: "1",
+	INVALID_VATID_NUMBER: "2",
+	CREDIT_CARD_DECLINED: "3",
+	CREDIT_CARD_CVV_INVALID: "4",
+	PAYMENT_PROVIDER_NOT_AVAILABLE: "5",
+	OTHER_PAYMENT_PROVIDER_ERROR: "6",
+	OTHER_PAYMENT_ACCOUNT_REJECTED: "7"
+}
 
 export const ContactComparisonResult = {
 	Unique: "unique",

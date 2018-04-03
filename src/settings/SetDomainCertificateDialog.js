@@ -12,7 +12,7 @@ import {InvalidDataError, PreconditionFailedError} from "../api/common/error/Res
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isDomainName} from "../misc/Formatter"
-import * as BuyDialog from "./BuyDialog"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()

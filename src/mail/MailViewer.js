@@ -16,12 +16,12 @@ import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {MailState, ConversationType, InboxRuleType} from "../api/common/TutanotaConstants"
+import {MailState, ConversationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, Mode} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
@@ -65,6 +65,7 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
+import {exportAsEml} from "./Exporter"
 
 assertMainOrNode()
 
@@ -194,6 +195,8 @@ export class MailViewer {
 				if (!this.mail.unread) {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
+				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown)
+					.setIsVisibleHandler(() => env.mode != Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
 						if (this.mail.headers) {
@@ -408,7 +411,7 @@ export class MailViewer {
 				let toRecipients = []
 				let ccRecipients = []
 				let bccRecipients = []
-				if (!logins.getUserController().isInternalUser()) {
+				if (!logins.getUserController().isInternalUser() && this.mail.state != MailState.SENT) {
 					toRecipients.push(this.mail.sender)
 				} else if (this.mail.state == MailState.RECEIVED) {
 					if (this.mail.replyTos.length > 0) {
@@ -519,16 +522,18 @@ export class MailViewer {
 		}
 	}
 
-	_handleMailto(event: Event) {
+	_handleMailto(event: Event): void {
 		let target = (event.target:any)
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
-				let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				event.preventDefault()
-				return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
-					mailEditor.show()
-				})
+				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
+					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
+					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
+						mailEditor.show()
+					})
+				}
 			}
 		}
 	}

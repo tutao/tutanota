@@ -19,8 +19,8 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError} from "../api/common/error/RestError"
-import * as BuyDialog from "./BuyDialog"
+import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
+import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
@@ -51,6 +51,7 @@ export class UserViewer {
 	_aliases: EditAliasesForm;
 	_usedStorage: TextField;
 	_admin: DropDownSelector<boolean>;
+	_administratedBy: DropDownSelector<?Id>;
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
@@ -65,31 +66,34 @@ export class UserViewer {
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync().then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
-		this._senderName = new TextField("mailName_label").setValue(userGroupInfo.name).setDisabled()
+		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value()).then(newName => {
-				userGroupInfo.name = newName
-				update(userGroupInfo)
+				this.userGroupInfo.name = newName
+				update(this.userGroupInfo)
 			})
 		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
-		let mailAddress = new TextField("mailAddress_label").setValue(userGroupInfo.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(userGroupInfo.created)).setDisabled()
+		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
+		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
-		this._admin = new DropDownSelector("administrator_label", null, [{
-			name: lang.get("no_label"),
-			value: false
-		}, {name: lang.get("yes_label"), value: true}], isAdmin).setSelectionChangedHandler(makeAdmin => {
+		this._admin = new DropDownSelector("globalAdmin_label", null, [
+			{name: lang.get("no_label"), value: false},
+			{name: lang.get("yes_label"), value: true}
+		], isAdmin).setSelectionChangedHandler(makeAdmin => {
 			if (this.userGroupInfo.deleted) {
 				Dialog.error("userAccountDeactivated_msg")
 			} else if (this._isItMe()) {
 				Dialog.error("removeOwnAdminFlagInfo_msg")
+			} else if (this.userGroupInfo.localAdmin != null) {
+				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
+
 
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
@@ -107,13 +111,39 @@ export class UserViewer {
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
-		this._aliases = new EditAliasesForm(userGroupInfo)
+		this._aliases = new EditAliasesForm(this.userGroupInfo)
 
 		this._teamGroupInfos.getAsync().then(availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {
 				let addGroupButton = new Button("addGroup_label", () => this._showAddUserToGroupDialog(), () => Icons.Add)
 				this._groupsTable = new Table(["name_label", "groupType_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, addGroupButton)
 				this._updateGroups()
+
+				let adminGroupIdToName: {name: string, value: ?Id}[] = [{
+					name: lang.get("globalAdmin_label"),
+					value: null
+				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType == GroupType.LocalAdmin).map(gi => {
+					return {
+						name: getGroupInfoDisplayName(gi),
+						value: gi.group
+					}
+				}))
+				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.userGroupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
+					return this._user.getAsync().then(user => {
+						if (this.userGroupInfo.deleted) {
+							Dialog.error("userAccountDeactivated_msg")
+						} else if (this._isItMe()) {
+							Dialog.error("updateOwnAdminship_msg")
+						} else if (this._isAdmin(user)) {
+							Dialog.error("updateAdminshipGlobalAdmin_msg")
+						} else {
+							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
+							}))
+						}
+					})
+				})
 			}
 		})
 
@@ -122,7 +152,7 @@ export class UserViewer {
 			return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
 				loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
-						let contactFormsAddButton = new Button("addParticipant_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
+						let contactFormsAddButton = new Button("addResponsiblePerson_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
 						this._contactFormsTable = new Table(["contactForms_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, contactFormsAddButton)
 						this._updateContactForms()
 					}
@@ -146,7 +176,10 @@ export class UserViewer {
 					m("", [
 						m(this._senderName),
 						m(password),
-						m(this._admin),
+						!logins.getUserController().isGlobalAdmin() ? null : [
+								m(this._admin),
+								this._administratedBy ? m(this._administratedBy) : null,
+							],
 						m(this._deactivated)
 					]),
 					(logins.getUserController().isPremiumAccount() || logins.getUserController().isFreeAccount()) ? m(this._secondFactorsForm) : null,
@@ -170,6 +203,9 @@ export class UserViewer {
 
 	_createOrUpdateWhitelistProtectionField() {
 		// currently not available
+		// if (!logins.getUserController().isGlobalAdmin()) {
+		// 	return
+		// }
 		// this._user.getAsync().then(user => {
 		// 	let userMailGroupId = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
 		// 	return load(MailboxGroupRootTypeRef, userMailGroupId).then(mailboxGroupRoot => {
@@ -215,8 +251,11 @@ export class UserViewer {
 				this._customer.getAsync().then(customer => {
 					Promise.map(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
-							let removeButton = new Button("remove_action", () => {
-								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
+							let removeButton
+							removeButton = new Button("remove_action", () => {
+								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group)).catch(NotAuthorizedError, e => {
+									Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
+								})
 							}, () => Icons.Cancel)
 							return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
 						})
@@ -261,7 +300,15 @@ export class UserViewer {
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			// remove all groups the user is already member of
-			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null)
+			let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+			let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => {
+				if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) == -1) {
+					return false
+				} else {
+					return !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null
+				}
+			})
 			if (availableGroupInfos.length > 0) {
 				availableGroupInfos.sort(compareGroupInfos)
 				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
@@ -287,7 +334,7 @@ export class UserViewer {
 						let d = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
 							return {name: cf.path, value: cf}
 						}), contactForms[0], 250)
-						return Dialog.smallDialog(lang.get("addParticipant_label"), {
+						return Dialog.smallDialog(lang.get("responsiblePersons_label"), {
 							view: () => m(d)
 						}, null).then(ok => {
 							if (ok) {
@@ -323,7 +370,7 @@ export class UserViewer {
 	}
 
 	_isAdmin(user: User): boolean {
-		return user.memberships.find(m => m.admin) != null
+		return user.memberships.find(m => m.groupType == GroupType.Admin) != null
 	}
 
 	_deleteUser(restore: boolean): Promise<void> {
@@ -352,6 +399,9 @@ export class UserViewer {
 				this._senderName.setValue(updatedUserGroupInfo.name)
 				this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
 				this._updateUsedStorageAndAdminFlag()
+				if (this._administratedBy) {
+					this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
+				}
 				m.redraw()
 			})
 		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE && this._user.isLoaded() && isSameId(this._user.getLoaded()._id, elementId)) {

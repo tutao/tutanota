@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -29,16 +28,20 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import static android.app.Activity.RESULT_OK;
-import static de.tutao.tutanota.MainActivity.activity;
 
 
 public class FileUtil {
     private final static String TAG = "FileUtil";
     private static final int HTTP_TIMEOUT = 15 * 1000;
+
+    private final MainActivity activity;
+
+    public FileUtil(MainActivity activity) {
+        this.activity = activity;
+    }
 
 
     private Promise<Void, Exception, Void> requestStoragePermission() {
@@ -90,11 +93,11 @@ public class FileUtil {
                                 if (clipData != null) {
                                     for (int i = 0; i < clipData.getItemCount(); i++) {
                                         ClipData.Item item = clipData.getItemAt(i);
-                                        selectedFiles.put(uriToFile(item.getUri()));
+                                        selectedFiles.put(uriToFile(activity.getWebView().getContext(), item.getUri()));
                                     }
                                 } else {
                                     Uri uri = result.data.getData();
-                                    selectedFiles.put(uriToFile(uri));
+                                    selectedFiles.put(uriToFile(activity.getWebView().getContext(), uri));
                                 }
                             } catch (Exception e) {
                                 return new DeferredObject<JSONArray, Exception, Void>().reject(e);
@@ -109,13 +112,15 @@ public class FileUtil {
 
     /**
      *
+     *
+     * @param context
      * @param uri that starts with content:/ and is not directly accessible as a file
      * @return a resolved file path
      * @throws Exception if the file does not exist
      */
-    private String uriToFile(Uri uri) throws Exception {
+    public static String uriToFile(Context context, Uri uri) throws FileNotFoundException {
         Log.v(TAG, "uri of selected file: " + uri.toString());
-        File file = Utils.uriToFile(activity.getWebView().getContext(), uri.toString());
+        File file = Utils.uriToFile(context, uri.toString());
         if (!file.exists()) {
             throw new FileNotFoundException("Selected file does not exist: " + file.getAbsolutePath());
         } else {

@@ -71,7 +71,9 @@ class LanguageViewModel {
 		time: DateTimeFormat,
 		dateTime: DateTimeFormat,
 		priceWithCurrency: NumberFormat,
-		priceWithoutCurrency: NumberFormat
+		priceWithCurrencyWithoutFractionDigits: NumberFormat,
+		priceWithoutCurrency: NumberFormat,
+		priceWithoutCurrencyWithoutFractionDigits:NumberFormat
 	};
 
 	constructor() {
@@ -133,9 +135,18 @@ class LanguageViewModel {
 					currency: 'EUR',
 					minimumFractionDigits: 2
 				}),
+				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+					style: 'currency',
+					currency: 'EUR',
+					maximiumFractionDigits: 0
+				}),
 				priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
 					style: 'decimal',
 					minimumFractionDigits: 2
+				}),
+				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+					style: 'decimal',
+					maximiumFractionDigits: 0
 				})
 			}
 		}
@@ -187,14 +198,18 @@ class LanguageViewModel {
 					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) != -1))
 				}
 				if (language) {
-					return {code: language.code, languageTag: tag}
+					if (language.code == 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+						return {code: whitelabelCustomizations.germanLanguageCode, languageTag: tag}
+					} else {
+						return {code: language.code, languageTag: tag}
+					}
 				}
 			}
 		}
 		if (restrictions == null || restrictions.indexOf("en") != -1) {
 			return {code: 'en', languageTag: 'en-US'}
 		} else {
-			return {code: restrictions[0], languageTag: restrictions[0].replace("_sie", "").replace("/_/g", "-")}
+			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
 		}
 	}
 

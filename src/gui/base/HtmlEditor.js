@@ -26,6 +26,7 @@ export class HtmlEditor {
 	_placeholderDomElement: HTMLElement;
 	_value: stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
+	_htmlMonospace: boolean;
 
 	constructor() {
 		this._editor = new Editor(null)
@@ -37,6 +38,7 @@ export class HtmlEditor {
 		this._placeholderId = null
 		this._value = stream("")
 		this._modeSwitcher = null
+		this._htmlMonospace = true
 
 		this._mode.map(v => {
 			this.setValue(this._value())
@@ -102,7 +104,14 @@ export class HtmlEditor {
 							display: this._mode() === Mode.HTML ? '' : 'none'
 						}
 					}, m("textarea.input-area", {
-						oncreate: vnode => this._domTextArea = vnode.dom,
+						oncreate: vnode => {
+							this._domTextArea = vnode.dom
+							console.log("create textarea", this._value())
+							if (!this.isEmpty()) {
+
+								this._domTextArea.value = this._value()
+							}
+						},
 						onfocus: e => focus(),
 						onblur: e => blur(),
 						oninput: e => {
@@ -110,7 +119,7 @@ export class HtmlEditor {
 							this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
 						},
 						style: {
-							'font-family': 'monospace',
+							'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 						},
 						disabled: !this._editor._enabled
@@ -184,6 +193,16 @@ export class HtmlEditor {
 		if (this._domTextArea) {
 			this._domTextArea.disabled = !enabled
 		}
+		return this
+	}
+
+	setMode(mode: HtmlEditorModeEnum): HtmlEditor {
+		this._mode(mode)
+		return this
+	}
+
+	setHtmlMonospace(monospace: boolean): HtmlEditor {
+		this._htmlMonospace = monospace
 		return this
 	}
 

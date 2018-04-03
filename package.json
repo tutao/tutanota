@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "3.26.0",
+  "version": "3.29.3",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
@@ -34,7 +34,7 @@
     "sha": "2.0.1",
     "spdy": "3.3.1",
     "squire-rte": "1.8.9",
-    "systemjs": "0.20.10",
+    "systemjs": "0.20.15",
     "systemjs-builder": "0.16.4",
     "systemjs-hmr": "git+https://github.com/mpfau/systemjs-hmr.git#temp",
     "systemjs-hot-reloader": "git+https://github.com/mpfau/systemjs-hot-reloader.git#temp",

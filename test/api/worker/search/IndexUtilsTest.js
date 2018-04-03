@@ -7,12 +7,13 @@ import {
 	encryptIndexKeyBase64,
 	encryptSearchIndexEntry,
 	decryptSearchIndexEntry,
-	userIsAdmin,
+	userIsLocalOrGlobalAdmin,
 	filterIndexMemberships,
 	filterMailMemberships,
 	_createNewIndexUpdate,
 	containsEventOfType,
-	encryptIndexKeyUint8Array
+	encryptIndexKeyUint8Array,
+	userIsGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {UserTypeRef, createUser} from "../../../../src/api/entities/sys/User"
@@ -71,15 +72,32 @@ o.spec("Index Utils", () => {
 		}
 	})
 
-	o("userIsAdmin", function () {
+	o("userIsLocalOrGlobalAdmin", function () {
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
-		user.memberships[0].admin = true
-		o(userIsAdmin(user)).equals(true)
+		user.memberships[0].groupType = GroupType.Admin
+		o(userIsLocalOrGlobalAdmin(user)).equals(true)
 
-		user.memberships[0].admin = false
-		o(userIsAdmin(user)).equals(false)
+		user.memberships[0].groupType = GroupType.LocalAdmin
+		o(userIsLocalOrGlobalAdmin(user)).equals(true)
+
+		user.memberships[0].groupType = GroupType.Mail
+		o(userIsLocalOrGlobalAdmin(user)).equals(false)
 	})
+
+	o("userIsGlobalAdmin", function () {
+		let user = createUser()
+		user.memberships.push(createGroupMembership())
+		user.memberships[0].groupType = GroupType.Admin
+		o(userIsGlobalAdmin(user)).equals(true)
+
+		user.memberships[0].groupType = GroupType.LocalAdmin
+		o(userIsGlobalAdmin(user)).equals(false)
+
+		user.memberships[0].groupType = GroupType.Mail
+		o(userIsGlobalAdmin(user)).equals(false)
+	})
+
 
 	o("filterIndexMemberships", function () {
 		let user = createUser()
