@@ -981,7 +981,7 @@ module.exports = {
 		"noMerge_msg": "Nothing found for merge!",
 		"noMoreMerge_msg": "Nothing left to merge!",
 		"mergeView_label": "Merge View",
-		"deleteEmails_msg": "Are you sure you want to delete the selected email(s)?",
+		"finallyDeleteEmails_msg": "Are you sure you want to finally delete the selected email(s)?",
 		"commentContent_lable": "Content",
 		"firstMergeContact_placeholder": "First Contact",
 		"secondMergeContact_placeholder": "Second Contact",

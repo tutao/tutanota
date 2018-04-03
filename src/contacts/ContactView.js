@@ -31,7 +31,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
-import {MergeView, getMergableContacts, mergeContacts} from "./ContactMergeView"
+import {MergeView, getMergeableContacts, mergeContacts} from "./ContactMergeView"
 
 
 assertMainOrNode()
@@ -98,10 +98,6 @@ export class ContactView {
 	createNewContact() {
 		return new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 	}
-
-	// createNewMergeView(){
-	//
-	// }
 
 
 	_setupShortcuts() {
@@ -170,7 +166,7 @@ export class ContactView {
 								let vCardFileData = utf8Uint8ArrayToString(contactFile.data)
 								let vCards = vCardFileToVCards(vCardFileData)
 								if (vCards == null) {
-									throw new Error("noVcardsFound_msg")
+									throw new Error("no vcards found")
 								} else {
 									return vCards
 								}
@@ -198,14 +194,13 @@ export class ContactView {
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
 			new Button("mergeContact_action", () => {
-				let mergeView
 				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
 					return loadAll(ContactTypeRef, contactListId)
 				})).then(allContacts => {
 					if (allContacts.length == 0) {
 						Dialog.error("noContacts_msg")
 					} else {
-						let mergeableAndDuplicates = getMergableContacts(allContacts)
+						let mergeableAndDuplicates = getMergeableContacts(allContacts)
 						let deletePromise = Promise.resolve()
 						if (mergeableAndDuplicates.deletable.length > 0) {
 							deletePromise = Dialog.confirm(() => lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length})).then((confirmed) => {
@@ -218,16 +213,15 @@ export class ContactView {
 							})
 						}
 						deletePromise.then(() => {
-							this._showMergeDialogs(mergeableAndDuplicates.mergeable).then((ch) => {
-								if (mergeableAndDuplicates.mergeable.length == 0 && ch == null) {
-									Dialog.error(() => lang.get("noMerge_msg"))
-								} else if (ch == true) {
-									return null
-								} else if (ch == false) {
-									Dialog.error(() => lang.get("noMoreMerge_msg"))
-								}
-
-							})
+							if (mergeableAndDuplicates.mergeable.length == 0) {
+								Dialog.error(() => lang.get("noMerge_msg"))
+							} else {
+								this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
+									if (!canceled) {
+										Dialog.error(() => lang.get("noMoreMerge_msg"))
+									}
+								})
+							}
 						})
 						//Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 					}
@@ -237,8 +231,11 @@ export class ContactView {
 		], 250).setColors(ButtonColors.Nav)
 	}
 
-	_showMergeDialogs(mergable: Contact[][]): Promise<boolean|null> {
-		let cancelCheck = null
+	/**
+	 * @returns True if the merging was canceled by the user, false otherwise
+	 */
+	_showMergeDialogs(mergable: Contact[][]): Promise<boolean> {
+		let canceled = false
 		if (mergable.length > 0) {
 			let contact1 = mergable[0][0]
 			let contact2 = mergable[0][1]
@@ -247,35 +244,30 @@ export class ContactView {
 				// execute action here and update mergable
 				if (action == ContactMergeAction.Merge) {
 					this._removeFromMergableContacts(mergable, contact2)
-					return mergeContacts(contact1, contact2).then(() => {
-						cancelCheck = false
+					return showProgressDialog("pleaseWait_msg", mergeContacts(contact1, contact2).then(() => {
 						return erase(contact2)
-					})
+					}))
 				} else if (action == ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
-					cancelCheck = false
 					return erase(contact1)
 				} else if (action == ContactMergeAction.DeleteSecond) {
 					this._removeFromMergableContacts(mergable, contact2)
-					cancelCheck = false
 					return erase(contact2)
 				} else if (action == ContactMergeAction.Skip) {
 					this._removeFromMergableContacts(mergable, contact2)
-					cancelCheck = false
 				} else if (action == ContactMergeAction.Cancel) {
 					mergable.length = 0
-					cancelCheck = true
-
+					canceled = true
 				}
 			}).then(() => {
-				if (cancelCheck != true && mergable.length > 0) {
+				if (!canceled && mergable.length > 0) {
 					return this._showMergeDialogs(mergable)
 				} else {
-					return cancelCheck
+					return canceled
 				}
 			})
 		} else {
-			return Promise.resolve(cancelCheck)
+			return Promise.resolve(canceled)
 		}
 	}
 

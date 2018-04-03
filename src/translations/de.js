@@ -976,7 +976,7 @@ module.exports = {
 		"next_action": "Weiter",
 		"mergeNotification_msg": "{1} zusammenfügbare Kontakte wurden erkannt",
 		"duplicatesNotification_msg": "{1} exakt gleiche Kontakte wurden erkannt und werden gelöscht, wenn Sie Fortfahren",
-		"deleteEmails_msg": "Möchtest du die ausgewählten Emails wirklich löschen?",
+		"finallyDeleteEmails_msg": "Möchtest du die ausgewählten E-Mails endgültig löschen?",
 		"commentContent_lable": "Inhalt",
 		"firstMergeContact_placeholder": "Erster Kontakt",
 		"secondMergeContact_placeholder": "Zweiter Kontakt",

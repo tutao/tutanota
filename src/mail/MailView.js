@@ -36,7 +36,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
 	getFolderName,
 	getFolderIcon,
-	isFinallyDeleteAllowed,
+	isFinalDelete,
 	getMailboxName,
 	getInboxFolder,
 	getSortedSystemFolders,
@@ -320,7 +320,7 @@ export class MailView {
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
 			view: () => m(".folders", this._mailboxExpanders[mailGroupId].systemFolderButtons.map(fb => m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb),
-				fb.isSelected() && this.selectedFolder && isFinallyDeleteAllowed(this.selectedFolder) ? m(purgeAllButton, {
+				fb.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
 						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null

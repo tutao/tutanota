@@ -253,6 +253,12 @@ export const ContactComparisonResult = {
 }
 export type ContactComparisonResultEnum = $Values<typeof ContactComparisonResult>;
 
+export const IndifferentContactComparisonResult = {
+	OneEmpty: "oneEmpty",
+	BothEmpty: "bothEmpty",
+}
+export type IndifferentContactComparisonResultEnum = $Values<typeof IndifferentContactComparisonResult>;
+
 export const ContactMergeAction = {
 	DeleteFirst: "deleteFirst",
 	DeleteSecond: "deleteSecond",

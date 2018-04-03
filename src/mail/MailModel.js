@@ -9,7 +9,7 @@ import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
-import {isFinallyDeleteAllowed, getTrashFolder} from "./MailUtils"
+import {isFinalDelete, getTrashFolder} from "./MailUtils"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailBoxTypeRef} from "../api/entities/tutanota/MailBox"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
@@ -135,13 +135,13 @@ class MailModel {
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		let groupedMails = mails.reduce((all, mail) => {
-			isFinallyDeleteAllowed(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
+			isFinalDelete(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
 			return all
 		}, {trash: [], move: []})
 
 		let promises = []
 		if (groupedMails.trash.length > 0) {
-			Dialog.confirm("deleteEmails_msg").then((confirmed) => {
+			Dialog.confirm("finallyDeleteEmails_msg").then((confirmed) => {
 				if (confirmed) {
 					let deleteMailData = createDeleteMailData()
 					deleteMailData.mails.push(...groupedMails.trash.map(m => m._id))
@@ -149,7 +149,6 @@ class MailModel {
 						.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
 				}
 			})
-
 		} else if (groupedMails.move.length > 0) {
 			promises.push(mailModel.moveMails(groupedMails.move, getTrashFolder(mailModel.getMailboxFolders(groupedMails.move[0]))))
 		}

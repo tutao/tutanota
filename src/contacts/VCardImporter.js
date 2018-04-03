@@ -184,11 +184,15 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					let role = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					contact.role += ((contact.role.length > 0) ? " " : "") + role.join(" ")
 					break
+				case "TITLE": //todo testing
+					let title = vCardReescapingArray(vCardEscapingSplit(tagValue))
+					contact.title = ((contact.title ? contact.title : "") + " " + title.join(" ")).trim()
+					break
 				default:
 
 			}
 		}
-		
+
 		contacts[i] = contact
 	}
 

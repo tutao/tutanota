@@ -310,7 +310,7 @@ export function getDefaultSender(mailboxDetails: MailboxDetail): string {
 	}
 }
 
-export function isFinallyDeleteAllowed(folder: ?MailFolder): boolean {
+export function isFinalDelete(folder: ?MailFolder): boolean {
 	return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
 }
 
