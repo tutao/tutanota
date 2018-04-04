@@ -12,7 +12,7 @@ import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFunctions"
+import {isSameTypeRef, CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -27,7 +27,6 @@ import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
@@ -39,6 +38,9 @@ import {createDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
+import {BookingTypeRef} from "../api/entities/sys/Booking"
+import {getCurrentCount} from "../subscription/PriceUtils"
+import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
 
 assertMainOrNode()
 
@@ -182,139 +184,143 @@ export class WhitelabelSettingsViewer {
 		this._customerInfo.getAsync().then(customerInfo => {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
 			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
-				let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
-				// customJsonTheme is defined when brandingDomainInfo is defined
-
-				this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
+				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
+					const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length == 1 ? bookings[0] : null)
+					let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
+					// customJsonTheme is defined when brandingDomainInfo is defined
+					this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
+						if (brandingDomainInfo) {
+							return lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
+						} else {
+							return lang.get("emptyString_msg")
+						}
+					}).setValue((brandingDomainInfo) ? brandingDomainInfo.domain : lang.get("deactivated_label")).setDisabled()
+					let deactivateAction = null
 					if (brandingDomainInfo) {
-						return lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
-					} else {
-						return lang.get("emptyString_msg")
+						deactivateAction = new Button("deactivate_action", () => {
+							Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
+								if (ok) {
+									showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
+								}
+
+							})
+						}, () => Icons.Cancel)
 					}
-				}).setValue((brandingDomainInfo) ? brandingDomainInfo.domain : lang.get("deactivated_label")).setDisabled()
-				let deactivateAction = null
-				if (brandingDomainInfo) {
-					deactivateAction = new Button("deactivate_action", () => {
-						Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
-							if (ok) {
-								showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, 0, 0, false)).then(accepted => {
-									if (accepted) {
-										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
+					let editAction = new Button("edit_action", () => {
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog()
+						} else {
+							const whitelabelEnabledPromise: Promise<boolean> = brandingCount == 0 ? WhitelabelBuyDialog.show(true) : Promise.resolve(true)
+							whitelabelEnabledPromise.then(enabled => {
+								if (enabled) {
+									SetCustomDomainCertificateDialog.show(customerInfo)
+								}
+							})
+						}
+					}, () => Icons.Edit)
+					this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
+
+
+					let customLogoDefined = customJsonTheme && customJsonTheme.logo
+					this._customLogoField = new TextField("customLogo_label", () => lang.get("customLogoInfo_msg")).setValue(lang.get(customLogoDefined ? "activated_label" : "deactivated_label")).setDisabled()
+					if (customJsonTheme) {
+						let deleteCustomLogo
+						if (customLogoDefined) {
+							deleteCustomLogo = new Button("deactivate_action", () => {
+								Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
+									if (ok) {
+										delete neverNull(customJsonTheme).logo
+										neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+										update(whitelabelConfig)
+										updateCustomTheme(customJsonTheme)
 									}
 								})
-							}
-						})
-					}, () => Icons.Cancel)
-				}
-				let editAction = new Button("edit_action", () => {
-					if (logins.getUserController().isFreeAccount()) {
-						showNotAvailableForFreeDialog()
-					} else {
-						SetCustomDomainCertificateDialog.show(customerInfo)
-					}
-				}, () => Icons.Edit)
-				this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
-
-
-				let customLogoDefined = customJsonTheme && customJsonTheme.logo
-				this._customLogoField = new TextField("customLogo_label", () => lang.get("customLogoInfo_msg")).setValue(lang.get(customLogoDefined ? "activated_label" : "deactivated_label")).setDisabled()
-				if (customJsonTheme) {
-					let deleteCustomLogo
-					if (customLogoDefined) {
-						deleteCustomLogo = new Button("deactivate_action", () => {
-							Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
-								if (ok) {
-									delete neverNull(customJsonTheme).logo
-									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
-									update(whitelabelConfig)
-									updateCustomTheme(customJsonTheme)
-								}
-							})
-						}, () => Icons.Cancel)
-					}
-
-					let chooseLogoButton = new Button("edit_action", () => {
-						fileController.showFileChooser(false).then(files => {
-							let extension = files[0].name.toLowerCase().substring(files[0].name.lastIndexOf(".") + 1)
-							if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_FILE_TYPES, extension)) {
-								Dialog.error("customLogoInfo_msg")
-							} else {
-								let imageData = "<img src=\"data:image/" + ((extension == "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
-								neverNull(customJsonTheme).logo = imageData
-								neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
-								update(whitelabelConfig)
-								updateCustomTheme(customJsonTheme)
-								this._customLogoField.setValue(lang.get("activated_label"))
-								m.redraw()
-							}
-						})
-					}, () => Icons.Edit)
-
-					this._customLogoField._injectionsRight = () => [(deleteCustomLogo) ? m(deleteCustomLogo) : null, m(chooseLogoButton)]
-				}
-
-				let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
-				this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
-				if (customJsonTheme) {
-					let deactivateColorTheme
-					if (customColorsDefined) {
-						deactivateColorTheme = new Button("deactivate_action", () => {
-							Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
-								if (ok) {
-									Object.keys(neverNull(customJsonTheme)).forEach(key => {
-										if (key != "logo") {
-											delete neverNull(customJsonTheme)[key]
-										}
-									})
-									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
-									update(whitelabelConfig)
-									updateCustomTheme(customJsonTheme)
-								}
-							})
-						}, () => Icons.Cancel)
-					}
-
-					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme),), () => Icons.Edit)
-
-					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
-				}
-
-				let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
-				this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
-				if (whitelabelConfig) {
-					let editCustomMetaTagsButton = new Button("edit_action", () => {
-						let metaTags = new TextField("customMetaTags_label")
-							.setValue(neverNull(whitelabelConfig).metaTags)
-							.setType(Type.Area)
-						let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
-							view: () => m(metaTags)
-						}, (ok) => {
-							if (ok) {
-								neverNull(whitelabelConfig).metaTags = metaTags.value()
-								update(whitelabelConfig)
-								dialog.close()
-							}
-						})
-					}, () => Icons.Edit)
-					this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
-				}
-
-				let customGermanLanguageFileDefined = whitelabelConfig && whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
-				let items = [
-					{name: "Deutsch (Du)", value: "de"},
-					{name: "Deutsch (Sie)", value: "de_sie"}
-				]
-				if (whitelabelConfig && (lang.code == 'de' || lang.code == 'de_sie')) {
-					this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
-						if (v) {
-							neverNull(whitelabelConfig).germanLanguageCode = v
-							update(whitelabelConfig)
-							lang.setLanguage({code: v, languageTag: lang.languageTag})
+							}, () => Icons.Cancel)
 						}
-					})
-				}
 
-				m.redraw()
+						let chooseLogoButton = new Button("edit_action", () => {
+							fileController.showFileChooser(false).then(files => {
+								let extension = files[0].name.toLowerCase().substring(files[0].name.lastIndexOf(".") + 1)
+								if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_FILE_TYPES, extension)) {
+									Dialog.error("customLogoInfo_msg")
+								} else {
+									let imageData = "<img src=\"data:image/" + ((extension == "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
+									neverNull(customJsonTheme).logo = imageData
+									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+									update(whitelabelConfig)
+									updateCustomTheme(customJsonTheme)
+									this._customLogoField.setValue(lang.get("activated_label"))
+									m.redraw()
+								}
+							})
+						}, () => Icons.Edit)
+
+						this._customLogoField._injectionsRight = () => [(deleteCustomLogo) ? m(deleteCustomLogo) : null, m(chooseLogoButton)]
+					}
+
+					let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
+					this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
+					if (customJsonTheme) {
+						let deactivateColorTheme
+						if (customColorsDefined) {
+							deactivateColorTheme = new Button("deactivate_action", () => {
+								Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
+									if (ok) {
+										Object.keys(neverNull(customJsonTheme)).forEach(key => {
+											if (key != "logo") {
+												delete neverNull(customJsonTheme)[key]
+											}
+										})
+										neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+										update(whitelabelConfig)
+										updateCustomTheme(customJsonTheme)
+									}
+								})
+							}, () => Icons.Cancel)
+						}
+
+						let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme),), () => Icons.Edit)
+
+						this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
+					}
+
+					let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
+					this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")).setDisabled()
+					if (whitelabelConfig) {
+						let editCustomMetaTagsButton = new Button("edit_action", () => {
+							let metaTags = new TextField("customMetaTags_label")
+								.setValue(neverNull(whitelabelConfig).metaTags)
+								.setType(Type.Area)
+							let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
+								view: () => m(metaTags)
+							}, (ok) => {
+								if (ok) {
+									neverNull(whitelabelConfig).metaTags = metaTags.value()
+									update(whitelabelConfig)
+									dialog.close()
+								}
+							})
+						}, () => Icons.Edit)
+						this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+					}
+
+					let customGermanLanguageFileDefined = whitelabelConfig && whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
+					let items = [
+						{name: "Deutsch (Du)", value: "de"},
+						{name: "Deutsch (Sie)", value: "de_sie"}
+					]
+					if (whitelabelConfig && (lang.code == 'de' || lang.code == 'de_sie')) {
+						this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
+							if (v) {
+								neverNull(whitelabelConfig).germanLanguageCode = v
+								update(whitelabelConfig)
+								lang.setLanguage({code: v, languageTag: lang.languageTag})
+							}
+						})
+					}
+
+					m.redraw()
+				})
 			})
 		})
 	}

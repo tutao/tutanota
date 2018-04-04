@@ -138,7 +138,8 @@ class LanguageViewModel {
 				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
 					style: 'currency',
 					currency: 'EUR',
-					maximiumFractionDigits: 0
+					maximiumFractionDigits: 0,
+					minimumFractionDigits: 0
 				}),
 				priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
 					style: 'decimal',
@@ -146,7 +147,8 @@ class LanguageViewModel {
 				}),
 				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
 					style: 'decimal',
-					maximiumFractionDigits: 0
+					maximiumFractionDigits: 0,
+					minimumFractionDigits: 0
 				})
 			}
 		}

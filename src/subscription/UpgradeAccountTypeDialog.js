@@ -20,8 +20,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {load} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
-import {openUpgradeConfirmDialog} from "./UpgradeConfirmDialog"
-import {openInvoiceDataDialog} from "./InvoiceDataDialog"
+import * as InvoiceDataDialog from "./InvoiceDataDialog"
+import * as UpgradeConfirmDialog from "./UpgradeConfirmDialog"
 
 assertMainOrNode()
 
@@ -167,16 +167,11 @@ class UpgradeAccountTypeDialog {
 	}
 
 	_lauchPaymentFlow(subscriptionOptions: SubscriptionOptions, accountingInfo: AccountingInfo) {
-		openInvoiceDataDialog(subscriptionOptions, accountingInfo).then(invoiceData => {
+		InvoiceDataDialog.show(subscriptionOptions, accountingInfo).then(invoiceData => {
 			if (invoiceData) {
-				openUpgradeConfirmDialog(subscriptionOptions, invoiceData).then(confirm => {
-					if (confirm) {
-						console.log("upgrade to premium")
-					}
-				})
+				UpgradeConfirmDialog.show(subscriptionOptions, invoiceData)
 			}
 		})
-		//openInvoiceDataDialog(subscriptionOptions)
 	}
 
 
@@ -195,7 +190,7 @@ class UpgradeAccountTypeDialog {
 	}
 }
 
-export function openUpgradeDialog(): void {
+export function show(): void {
 	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))

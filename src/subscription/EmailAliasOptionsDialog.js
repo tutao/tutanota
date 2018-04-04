@@ -22,7 +22,7 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
 
-export function openEmailAliasOptionsDialog(): Promise<void> {
+export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {

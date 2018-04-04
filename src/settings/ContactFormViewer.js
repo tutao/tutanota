@@ -41,7 +41,7 @@ export class ContactFormViewer {
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 
 		let actions = new ActionBar()
-			.add(new Button('edit_action', () => ContactFormEditor.show(this.contactForm, false, brandingDomain, this._newContactFormIdReceiver), () => Icons.Edit))
+			.add(new Button('edit_action', () => ContactFormEditor.show(this.contactForm, false, this._newContactFormIdReceiver), () => Icons.Edit))
 			.add(new Button('copy_action', () => this._copy(brandingDomain), () => Icons.Copy))
 			.add(new Button('delete_action', () => this._delete(), () => Icons.Trash))
 
@@ -112,7 +112,7 @@ export class ContactFormViewer {
 		newForm.participantGroupInfos = this.contactForm.participantGroupInfos.slice()
 		newForm.path = "" // do not copy the path
 		newForm.languages = this.contactForm.languages.map(l => Object.assign({}, l))
-		ContactFormEditor.show(newForm, true, brandingDomain, this._newContactFormIdReceiver)
+		ContactFormEditor.show(newForm, true, this._newContactFormIdReceiver)
 	}
 
 	_delete() {

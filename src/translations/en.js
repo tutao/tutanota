@@ -1013,7 +1013,7 @@ module.exports = {
 
 		"invoiceData_msg": "Invoice data",
 		"next_action": "Next",
-		"upgradeLater_msg": "Use your  Tutanota email address free of charge and upgrade later.",
+		"upgradeLater_msg": "Use your Tutanota email address free of charge and upgrade later.",
 		"choose_action": "Choose",
 		"adminSubscription_action": "Subscription",
 
@@ -1024,6 +1024,7 @@ module.exports = {
 		"nextSubscriptionPrice_msg": "The second price is valid for the subscription period after the current one.",
 		"amountUsedOf_label": "{amount} used of {totalAmount}",
 		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
+		"whitelabelDomainExisting_msg": "A whitelable domain is still existing. Please remove the whitelabel domain.",
 
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",

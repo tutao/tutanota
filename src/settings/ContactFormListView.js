@@ -12,7 +12,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, getBrandingDomain} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -131,14 +131,7 @@ export class ContactFormListView {
 	}
 
 	addButtonClicked() {
-		this._customerInfo.getAsync().then(customerInfo => {
-			let brandingDomain = getBrandingDomain(customerInfo)
-			if (brandingDomain) {
-				ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
-			} else {
-				Dialog.error("whitelabelDomainNeeded_msg")
-			}
-		})
+		ContactFormEditor.show(null, true, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
@@ -181,10 +174,6 @@ export class ContactFormListView {
 	}
 }
 
-function getBrandingDomain(customerInfo: CustomerInfo): ?string {
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
-	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
-}
 
 export class ContactFormRow {
 	top: number;

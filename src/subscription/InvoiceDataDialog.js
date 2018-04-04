@@ -20,7 +20,7 @@ import {PayPalLogo} from "../gui/base/icons/Icons"
 import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 
-export function openInvoiceDataDialog(subscriptionOptions: SubscriptionOptions, accountingInfo: ?AccountingInfo, confirmActionId: string = "next_action"): Promise<?InvoiceData> {
+export function show(subscriptionOptions: SubscriptionOptions, accountingInfo: ?AccountingInfo, confirmActionId: string = "next_action"): Promise<?InvoiceData> {
 
 	const invoiceName = new TextField("invoiceRecipient_label", () => subscriptionOptions.businessUse ? lang.get("invoiceAddressInfoBusiness_msg") : lang.get("invoiceAddressInfoConsumer_msg"))
 	invoiceName.setValue(accountingInfo ? accountingInfo.invoiceName : "")

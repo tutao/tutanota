@@ -27,7 +27,7 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
-import {openUpgradeDialog} from "../subscription/UpgradeAccountTypeDialog"
+import * as UpgradeDialog from "../subscription/UpgradeAccountTypeDialog"
 
 assertMainOrNode()
 
@@ -159,7 +159,7 @@ export class LoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/pricing").then(confirm => {
 								if (confirm) {
-									openUpgradeDialog()
+									UpgradeDialog.show()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()

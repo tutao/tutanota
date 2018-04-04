@@ -22,7 +22,7 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
 
-export function openStorageCapacityOptionsDialog(): Promise<void> {
+export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
@@ -96,34 +96,6 @@ function createStorageCapacityBox(amount: number, freeAmount: number, buyAction:
 	})
 	return {amount, buyOptionBox}
 }
-
-/*
-
- // Get the current count from the price service - stored in current price next period.
- var currentPriceItemNextPeriod = tutao.util.BookingUtils.getPriceItem(newPrice.getCurrentPriceNextPeriod(), self._featureType);
- if ( currentPriceItemNextPeriod != null) {
- currentCount = Number(currentPriceItemNextPeriod.getCount());
- }
-
- if (self._featureAmount == currentCount) {
- self._parent.updateCurrentOption(self);
- }
-
- // format price. if no price is available show zero price.
- var futurePriceNextPeriod = tutao.util.BookingUtils.getPriceFromPriceData(newPrice.getFuturePriceNextPeriod(), self._featureType);
- self.price(tutao.util.BookingUtils.formatPrice(futurePriceNextPeriod, true, tutao.locator.settingsViewModel.decimalSeparator()));
-
- var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
- if (paymentInterval == "12") {
- self.paymentIntervalText(tutao.lang('perYear_label'));
- } else {
- self.paymentIntervalText(tutao.lang('perMonth_label'));
- }
-
- }).lastly(function(){
- self.busy(false);
- });
- */
 
 function formatStorageCapacity(amount: number): string {
 	if (amount < 1000) {

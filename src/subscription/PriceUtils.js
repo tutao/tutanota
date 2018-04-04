@@ -70,3 +70,12 @@ export function getPriceFromPriceData(priceData: ?PriceData, featureType: Number
 		return 0;
 	}
 }
+
+export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking: ?Booking): number {
+	if (booking) {
+		let bookingItem = booking.items.find(item => item.featureType == featureType)
+		return bookingItem ? Number(bookingItem.currentCount) : 0
+	} else {
+		return 0
+	}
+}

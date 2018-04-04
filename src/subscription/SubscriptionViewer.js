@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import type {BookingItemFeatureTypeEnum, OperationTypeEnum, AccountTypeEnum} from "../api/common/TutanotaConstants"
+import type {OperationTypeEnum, AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {Const, BookingItemFeatureType, AccountType, AccountTypeNames} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "../api/common/utils/Utils"
@@ -15,20 +15,23 @@ import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
-import {openUpgradeDialog} from "./UpgradeAccountTypeDialog"
 import {Dialog} from "../gui/base/Dialog"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {formatPriceDataWithInfo} from "./PriceUtils"
+import {formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
-import {openInvoiceDataDialog} from "./InvoiceDataDialog"
+import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {SysService} from "../api/entities/sys/Services"
 import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddressAliasServiceReturn"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import * as AddUserDialog from "../settings/AddUserDialog"
-import {openStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
-import {openEmailAliasOptionsDialog} from "./EmailAliasOptionsDialog"
+import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
+import * as AddGroupDialog from "../settings/AddGroupDialog"
+import * as ContactFormEditor from "../settings/ContactFormEditor"
+import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
+import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
+import * as UpgradeDialog from "./UpgradeAccountTypeDialog"
 assertMainOrNode()
 
 export class SubscriptionViewer {
@@ -42,6 +45,7 @@ export class SubscriptionViewer {
 	_usersField: TextField;
 	_storageField: TextField;
 	_emailAliasField: TextField;
+	_groupsField: TextField;
 	_contactFormsField: TextField;
 	_whitelabelField: TextField;
 	_periodEndDate: Date;
@@ -51,14 +55,11 @@ export class SubscriptionViewer {
 
 	constructor() {
 		this._accountTypeField = new TextField("accountType_label")
-		//let accountTypeAction = createDropDownButton("accountType_label", () => Icons.Edit, () => {
 		let accountTypeAction = new Button("accountType_label", () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
-				//return [new Button("unsubscribePremium_label", () => console.log("unsubscribe from premium")).setType(ButtonType.Dropdown)]
 				Dialog.error("unsubscribePremium_label")
 			} else if (logins.getUserController().user.accountType == AccountType.FREE) {
-				//return [new Button("upgradeToPremium_action", () => this._showUpgradeDialog()).setType(ButtonType.Dropdown)]
-				openUpgradeDialog()
+				UpgradeDialog.show()
 			}
 		}, () => Icons.Edit)
 		this._accountTypeField._injectionsRight = () => logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount() ? [m(accountTypeAction)] : []
@@ -96,23 +97,40 @@ export class SubscriptionViewer {
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
 		const addUserActionButton = createBuyButton("addUsers_action", () => AddUserDialog.show(), () => Icons.Add);
-		this._usersField._injectionsRight = () => m(addUserActionButton)
+		const editUsersAction = createBuyButton("bookingItemUsers_label", () => m.route.set("/settings/users"), () => Icons.Edit)
+		this._usersField._injectionsRight = () => [m(addUserActionButton), m(editUsersAction)]
 
 		this._storageField = new TextField("storageCapacity_label").setValue(lang.get("loading_msg")).setDisabled()
 		const changeStorageCapacityButton = createBuyButton("storageCapacity_label", () => {
-			openStorageCapacityOptionsDialog()
+			StorageCapacityOptionsDialog.show()
 		}, () => Icons.Edit)
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
 		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg")).setDisabled()
 		const changeEmailAliasPackageButton = createBuyButton("emailAlias_label", () => {
-			openEmailAliasOptionsDialog()
+			EmailAliasOptionsDialog.show()
 		}, () => Icons.Edit)
 		this._emailAliasField._injectionsRight = () => m(changeEmailAliasPackageButton)
 
+		this._groupsField = new TextField("groups_label").setValue(lang.get("loading_msg")).setDisabled()
+		const addGroupsAction = createBuyButton("addGroup_label", () => {
+			AddGroupDialog.show()
+		}, () => Icons.Add)
+		const editGroupsAction = createBuyButton("groups_label", () => m.route.set("/settings/groups"), () => Icons.Edit)
+		this._groupsField._injectionsRight = () => [m(addGroupsAction), m(editGroupsAction)]
 
 		this._contactFormsField = new TextField("contactForms_label").setValue(lang.get("loading_msg")).setDisabled()
+		const addContactFormAction = createBuyButton("createContactForm_label", () => {
+			ContactFormEditor.show(null, true, contactFormId => {
+			})
+		}, () => Icons.Add)
+		const editContactFormsAction = createBuyButton("contactForms_label", () => m.route.set("/settings/contactforms"), () => Icons.Edit)
+		this._contactFormsField._injectionsRight = () => [m(addContactFormAction), m(editContactFormsAction)]
+
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
+		const enableWhiteLabelAction = createBuyButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit)
+		const disableWhiteLabelAction = createBuyButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel)
+		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) == 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
 
 		this.view = (): VirtualElement => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
@@ -125,8 +143,9 @@ export class SubscriptionViewer {
 				m(this._usersField),
 				m(this._storageField),
 				m(this._emailAliasField),
-				m(this._contactFormsField),
+				m(this._groupsField),
 				m(this._whitelabelField),
+				m(this._contactFormsField)
 			])
 		}
 
@@ -166,7 +185,7 @@ export class SubscriptionViewer {
 
 	_changeBusinessUse(businessUse: boolean): void {
 		if (this._accountingInfo && this._accountingInfo.business != businessUse) {
-			openInvoiceDataDialog({
+			InvoiceDataDialog.show({
 					businessUse: businessUse,
 					paymentInterval: Number(this._accountingInfo.paymentInterval),
 					proUpgrade: false,
@@ -220,11 +239,12 @@ export class SubscriptionViewer {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
 					this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 					Promise.all([
-							this._updateUserField(this._lastBooking),
-							this._updateStorageField(customer, customerInfo, this._lastBooking),
-							this._updateAliasField(customer, customerInfo, this._lastBooking),
-							this._updateContactFormsField(this._lastBooking),
-							this._updateWhitelabelField(this._lastBooking)
+							this._updateUserField(),
+							this._updateStorageField(customer, customerInfo),
+							this._updateAliasField(customer, customerInfo),
+							this._updateGroupsField(),
+							this._updateWhitelabelField(),
+							this._updateContactFormsField()
 						]
 					).then(() => m.redraw())
 				})
@@ -233,12 +253,12 @@ export class SubscriptionViewer {
 	}
 
 
-	_updateUserField(lastBooking: ?Booking): Promise<void> {
+	_updateUserField(): Promise<void> {
 		this._usersField.setValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.Users, this._lastBooking)))
 		return Promise.resolve()
 	}
 
-	_updateStorageField(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): Promise<void> {
+	_updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
 		return worker.readUsedCustomerStorage().then(usedStorage => {
 			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
 			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR)
@@ -249,8 +269,8 @@ export class SubscriptionViewer {
 		})
 	}
 
-	_updateAliasField(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): Promise<void> {
-		const totalAmount = getTotalAliases(customer, customerInfo, lastBooking)
+	_updateAliasField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
+		const totalAmount = getTotalAliases(customer, customerInfo, this._lastBooking)
 		if (totalAmount == 0) {
 			this._emailAliasField.setValue("0")
 			return Promise.resolve()
@@ -265,14 +285,21 @@ export class SubscriptionViewer {
 		}
 	}
 
-	_updateContactFormsField(lastBooking: ?Booking): Promise<void> {
-		const totalAmount = getCurrentCount(BookingItemFeatureType.ContactForm, lastBooking)
+	_updateGroupsField(): Promise<void> {
+		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
+		const localAdminText = localAdminCount > 0 ? ", " + getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking) + " " + lang.get("localAdminGroup_label") : ""
+		this._groupsField.setValue(getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking) + " " + lang.get("sharedMailbox_label") + localAdminText)
+		return Promise.resolve()
+	}
+
+	_updateContactFormsField(): Promise<void> {
+		const totalAmount = getCurrentCount(BookingItemFeatureType.ContactForm, this._lastBooking)
 		this._contactFormsField.setValue(totalAmount.toString())
 		return Promise.resolve()
 	}
 
-	_updateWhitelabelField(lastBooking: ?Booking): Promise<void> {
-		const totalAmount = getCurrentCount(BookingItemFeatureType.Branding, lastBooking)
+	_updateWhitelabelField(): Promise<void> {
+		const totalAmount = getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking)
 		if (totalAmount == 0) {
 			this._whitelabelField.setValue(lang.get("deactivated_label"))
 		} else {
@@ -325,16 +352,6 @@ function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBoo
 		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
 	} else {
 		return freeAliases
-	}
-}
-
-
-function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking: ?Booking): number {
-	if (booking) {
-		let bookingItem = booking.items.find(item => item.featureType == featureType)
-		return bookingItem ? Number(bookingItem.currentCount) : 0
-	} else {
-		return 0
 	}
 }
 

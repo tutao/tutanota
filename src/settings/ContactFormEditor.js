@@ -7,7 +7,7 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {GroupType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {load, loadAll, update, setup} from "../api/main/Entity"
-import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
+import {neverNull, getGroupInfoDisplayName, compareGroupInfos, getBrandingDomain} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
@@ -35,6 +35,7 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 
@@ -352,23 +353,30 @@ export class ContactFormEditor {
  * @param createNew If true creates a new contact form. if c is provided it is taken as template for the new form.
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
-export function show(c: ?ContactForm, createNew: boolean, brandingDomain: string, newContactFormIdReceiver: Function) {
-	showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		// collect all enabled user mail groups together with the users name and the users mail address
-		return loadAll(GroupInfoTypeRef, customer.userGroups).filter(g => !g.deleted).then(userGroupInfos => {
-			let globalAdmin = logins.getUserController().isGlobalAdmin()
-			return getAdministratedGroupIds().then(adminGroupIds => {
-				// get and separate all enabled shared mail groups and shared team groups
-				return loadAll(GroupInfoTypeRef, customer.teamGroups)
-					.filter(g => !g.deleted)
-					.filter(teamGroupInfo => teamGroupInfo.groupType == GroupType.Mail).then(sharedMailGroupInfos => {
-						let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, brandingDomain)
-						editor.dialog.show()
-						windowFacade.checkWindowClosing(true)
+export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: Function) {
+	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+		load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+			let brandingDomain = getBrandingDomain(customerInfo)
+			if (brandingDomain) {
+				//ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups).filter(g => !g.deleted).then(userGroupInfos => {
+					let globalAdmin = logins.getUserController().isGlobalAdmin()
+					return getAdministratedGroupIds().then(adminGroupIds => {
+						// get and separate all enabled shared mail groups and shared team groups
+						return loadAll(GroupInfoTypeRef, customer.teamGroups)
+							.filter(g => !g.deleted)
+							.filter(teamGroupInfo => teamGroupInfo.groupType == GroupType.Mail).then(sharedMailGroupInfos => {
+								let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, neverNull(brandingDomain))
+								editor.dialog.show()
+								windowFacade.checkWindowClosing(true)
+							})
 					})
-			})
+				}))
+			} else {
+				Dialog.error("whitelabelDomainNeeded_msg")
+			}
 		})
-	}))
+	})
 }
 
 function getLanguageName(code: string): string {

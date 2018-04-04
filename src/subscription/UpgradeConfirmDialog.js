@@ -15,7 +15,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
-export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Promise<void> {
+export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Promise<void> {
 	let orderField = new TextField("bookingOrder_label")
 		.setValue("Tutanota Premium" + (subscriptionOptions.proUpgrade ? " (Pro)" : ""))
 		.setDisabled()
