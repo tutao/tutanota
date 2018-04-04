@@ -575,6 +575,12 @@ styles.registerStyle('main', () => {
 			'min-width': px(200), // makes sure the row is wrapped with too large content
 		},
 
+		'.non-wrapping-row': {display: 'flex', 'flex-flow': 'row', 'margin-right': px(-size.hpad_large)},
+		'.non-wrapping-row > *': {
+			flex: '1 0 40%',
+			'margin-right': px(size.hpad_large),
+		},
+
 		// text input field
 		'.inputWrapper': {
 			flex: "1 1 auto",

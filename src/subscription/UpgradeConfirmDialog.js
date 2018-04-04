@@ -45,7 +45,7 @@ export function openUpgradeConfirmDialog(subscriptionOptions: SubscriptionOption
 		let confirmButton = new Button("buy_action", () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			serviceData.proUpgrade = subscriptionOptions.proUpgrade
+			// serviceData.proUpgrade = subscriptionOptions.proUpgrade
 			serviceData.date = Const.CURRENT_DATE
 			showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
 				return worker.switchFreeToPremiumGroup()

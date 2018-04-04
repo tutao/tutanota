@@ -17,10 +17,11 @@ import {
 } from "../api/common/TutanotaConstants"
 import {update} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel"
-import {TextField, Type as TextFieldType} from "../gui/base/TextField"
+import {TextField} from "../gui/base/TextField"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {defer, neverNull} from "../api/common/utils/Utils"
+import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 
 export class MergeView {
 	view: Function;
@@ -34,7 +35,7 @@ export class MergeView {
 		this.contact2 = contact2
 
 		// following code prepares c1 and c2 for rendering in mithrill
-		let mergeButton = new Button("mergeContact_action", () => {
+		let mergeButton = new Button("mergeContacts_action", () => {
 			this._close(ContactMergeAction.Merge)
 		}).setType(ButtonType.Login)
 		let delButton1 = new Button('delete_action', () => {
@@ -55,7 +56,7 @@ export class MergeView {
 			.addLeft(new Button('cancel_action', () => {
 				this._close(ContactMergeAction.Cancel)
 			}).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("mergeView_label"))
+			.setMiddle(() => lang.get("merge_action"))
 			.addRight(new Button('next_action', () => {
 				this._close(ContactMergeAction.Skip)
 			}).setType(ButtonType.Primary))
@@ -72,9 +73,7 @@ export class MergeView {
 				.setDisabled()
 		})
 		let addresses1 = this.contact1.addresses.map(element => {
-			return new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
-				.setValue(element.address)
-				.setDisabled()
+			return new HtmlEditor(() => getContactAddressTypeLabel((element.type:any), element.customTypeName)).showBorders().setValue(element.address).setEnabled(false).setMode(Mode.HTML).setHtmlMonospace(false)
 		})
 		let socials1 = this.contact1.socialIds.map(element => {
 			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
@@ -93,9 +92,7 @@ export class MergeView {
 				.setDisabled()
 		})
 		let addresses2 = this.contact2.addresses.map(element => {
-			return new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
-				.setValue(element.address)
-				.setDisabled()
+			return new HtmlEditor(() => getContactAddressTypeLabel((element.type:any), element.customTypeName)).showBorders().setValue(element.address).setEnabled(false).setMode(Mode.HTML).setHtmlMonospace(false)
 		})
 		let socials2 = this.contact2.socialIds.map(element => {
 			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
@@ -103,140 +100,148 @@ export class MergeView {
 				.setDisabled()
 		})
 
-		let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
+		//empty.. placeholders are used if one contact has an attribute while the other does not have it, so an empty one is shown for comparison
+		let emptyFieldPlaceholder = new TextField("emptyString_msg").setValue("").setDisabled()
+		let emptyHTMLFieldPlaceholder = new HtmlEditor("emptyString_msg").showBorders().setValue("").setEnabled(false).setMode(Mode.HTML).setHtmlMonospace(false)
 
+		let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
+		let firstNameFields = this._createTextFields(this.contact1.firstName, this.contact2.firstName, "firstName_placeholder")
+		let lastNameFields = this._createTextFields(this.contact1.lastName, this.contact2.lastName, "lastName_placeholder")
+		let nicknameFields = this._createTextFields(this.contact1.nickname, this.contact2.nickname, "nickname_placeholder")
+		let companyFields = this._createTextFields(this.contact1.company, this.contact2.company, "company_label")
+		let roleFields = this._createTextFields(this.contact1.role, this.contact2.role, "role_placeholder")
+		let birthdayFields = this._createTextFields(this.contact1.oldBirthday ? formatDateWithMonth(this.contact1.oldBirthday) : "", this.contact2.oldBirthday ? formatDateWithMonth(this.contact2.oldBirthday) : "", "birthday_alt")
+		let presharedPasswordFields = this._createTextFields(this.contact1.presharedPassword && this.contact1.presharedPassword.length > 0 ? "***" : "", this.contact2.presharedPassword && this.contact2.presharedPassword.length > 0 ? "***" : "", "presharedPassword_label")
 
 		let comment1Field = null
 		let comment2Field = null
 		if (this.contact1.comment || this.contact2.comment) {
-			comment1Field = new TextField("comment_label").setValue(this.contact1.comment).setDisabled().setType(TextFieldType.Area)
-			comment2Field = new TextField("comment_label").setValue(this.contact2.comment).setDisabled().setType(TextFieldType.Area)
+			comment1Field = new HtmlEditor("comment_label").showBorders().setValue(this.contact1.comment).setEnabled(false).setMode(Mode.HTML).setHtmlMonospace(false)
+			comment2Field = new HtmlEditor("comment_label").showBorders().setValue(this.contact2.comment).setEnabled(false).setMode(Mode.HTML).setHtmlMonospace(false)
 		}
+
 
 		this.view = () => {
 			return m("#contact-editor", [
-
-				m("", {style: {width: "120px", margin: "5px auto", paddingTop: "16px"}}, [m("", [m(mergeButton)])]),
-				m(".wrapping-row", [
+				m(".flex-center.mt", [
+					m(".full-width.max-width-s", [
+						m(mergeButton)
+					])
+				]),
+				m(".non-wrapping-row", [
 					m(""/*first contact */, [
 						m(".items-center", [
-							m(".items-base.flex", [
-								m(".h4.mt-l", lang.get("firstMergeContact_placeholder")),
+							m(".items-base.flex-space-between", [
+								m(".h4.mt-l", lang.get("firstMergeContact_label")),
 								m(delButton1)
 							]),
-							m(".small", lang.get("hereIsTheMergedConatct_msg")),
 						])
 					]),
 					m(""/*second contact */, [
 						m(".items-center", [
-							m(".items-base.flex", [
-								m(".h4.mt-l", lang.get("secondMergeContact_placeholder")),
+							m(".items-base.flex-space-between", [
+								m(".h4.mt-l", lang.get("secondMergeContact_label")),
 								m(delButton2)
 							]),
-							m(".small", "test")
 						]),
 					])
 				]),
-				titleFields ? m(".wrapping-row", [
+				titleFields ? m(".non-wrapping-row", [
 						m(titleFields[0]),
 						m(titleFields[1])
 					]) : null,
-				this.contact1.firstName || this.contact2.firstName ? m(".wrapping-row", [
-						this.contact1.firstName ? m(new TextField("firstName_placeholder").setValue(this.contact1.firstName).setDisabled()) : m(new TextField("firstName_placeholder").setValue("").setDisabled()),
-						this.contact2.firstName ? m(new TextField("firstName_placeholder").setValue(this.contact2.firstName).setDisabled()) : m(new TextField("firstName_placeholder").setValue("").setDisabled())
+				firstNameFields ? m(".non-wrapping-row", [
+						m(firstNameFields[0]),
+						m(firstNameFields[1])
 					]) : null,
-				this.contact1.lastName || this.contact2.lastName ? m(".wrapping-row", [
-						this.contact1.lastName ? m(new TextField("lastName_placeholder").setValue(this.contact1.lastName).setDisabled()) : m(new TextField("lastName_placeholder").setValue("").setDisabled()),
-						this.contact2.lastName ? m(new TextField("lastName_placeholder").setValue(this.contact2.lastName).setDisabled()) : m(new TextField("lastName_placeholder").setValue("").setDisabled())
+				lastNameFields ? m(".non-wrapping-row", [
+						m(lastNameFields[0]),
+						m(lastNameFields[1])
 					]) : null,
-				this.contact1.nickname || this.contact2.nickname ? m(".wrapping-row", [
-						this.contact1.nickname ? m(new TextField("nickname_placeholder").setValue(this.contact1.nickname).setDisabled()) : m(new TextField("nickname_placeholder").setValue("").setDisabled()),
-						this.contact2.nickname ? m(new TextField("nickname_placeholder").setValue(this.contact2.nickname).setDisabled()) : m(new TextField("nickname_placeholder").setValue("").setDisabled())
+				nicknameFields ? m(".non-wrapping-row", [
+						m(nicknameFields[0]),
+						m(nicknameFields[1])
 					]) : null,
-				this.contact1.oldBirthday || this.contact2.oldBirthday ? m(".wrapping-row", [
-						this.contact1.oldBirthday ? m(new TextField("birthday_alt").setValue(formatDateWithMonth((this.contact1.oldBirthday:any))).setDisabled()) : m(new TextField("birthday_alt").setValue(null).setDisabled()),
-						this.contact2.oldBirthday ? m(new TextField("birthday_alt").setValue(formatDateWithMonth((this.contact2.oldBirthday:any))).setDisabled()) : m(new TextField("birthday_alt").setValue(null).setDisabled())
+				companyFields ? m(".non-wrapping-row", [
+						m(companyFields[0]),
+						m(companyFields[1])
 					]) : null,
-				this.contact1.company || this.contact2.company ? m(".wrapping-row", [
-						this.contact1.company ? m(new TextField("company_placeholder").setValue(this.contact1.company).setDisabled()) : m(new TextField("company_placeholder").setValue("").setDisabled()),
-						this.contact2.company ? m(new TextField("company_placeholder").setValue(this.contact2.company).setDisabled()) : m(new TextField("company_placeholder").setValue("").setDisabled())]) : null,
-				this.contact1.role || this.contact2.role ? m(".wrapping-row", [
-						this.contact1.role ? m(new TextField("role_placeholder").setValue(this.contact1.role).setDisabled()) : m(new TextField("role_placeholder").setValue("").setDisabled()),
-						this.contact2.role ? m(new TextField("role_placeholder").setValue(this.contact2.role).setDisabled()) : m(new TextField("role_placeholder").setValue("").setDisabled())
+				birthdayFields ? m(".non-wrapping-row", [
+						m(birthdayFields[0]),
+						m(birthdayFields[1])
 					]) : null,
-				mailAddresses1.length > 0 || mailAddresses2.length > 0 ? m(".wrapping-row", [
+				roleFields ? m(".non-wrapping-row", [
+						m(roleFields[0]),
+						m(roleFields[1])
+					]) : null,
+				mailAddresses1.length > 0 || mailAddresses2.length > 0 ? m(".non-wrapping-row", [
 						m(".mail.mt-l", [
 							m("", lang.get('email_label')),
 							m(".aggregateEditors", [
-								mailAddresses1.length > 0 ? mailAddresses1.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()),
+								mailAddresses1.length > 0 ? mailAddresses1.map(ma => m(ma)) : m(emptyFieldPlaceholder),
 							])
 						]),
 						m(".mail.mt-l", [
 							m("", lang.get('email_label')),
 							m(".aggregateEditors", [
-								mailAddresses2.length > 0 ? mailAddresses2.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()),
+								mailAddresses2.length > 0 ? mailAddresses2.map(ma => m(ma)) : m(emptyFieldPlaceholder),
 							])
 						]),
 					]) : null,
-				phones1.length > 0 || phones2.length > 0 ? m(".wrapping-row", [
+				phones1.length > 0 || phones2.length > 0 ? m(".non-wrapping-row", [
 						m(".phone.mt-l", [
 							m("", lang.get('phone_label')),
 							m(".aggregateEditors", [
-								phones1.length > 0 ? phones1.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()),
+								phones1.length > 0 ? phones1.map(ma => m(ma)) : m(emptyFieldPlaceholder),
 							])
 						]),
 						m(".phone.mt-l", [
 							m("", lang.get('phone_label')),
 							m(".aggregateEditors", [
-								phones2.length > 0 ? phones2.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()),
+								phones2.length > 0 ? phones2.map(ma => m(ma)) : m(emptyFieldPlaceholder),
 							])
 						]),
 					]) : null,
-				addresses1.length > 0 || addresses2.length > 0 ? m(".wrapping-row", [
+				addresses1.length > 0 || addresses2.length > 0 ? m(".non-wrapping-row", [
 						m(".address.mt-l", [
 							m("", lang.get('address_label')),
-							m(".aggregateEditors", addresses1.length > 0 ? addresses1.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()))
+							m(".aggregateEditors", addresses1.length > 0 ? addresses1.map(ma => m(ma)) : m(emptyHTMLFieldPlaceholder))
 						]),
 						m(".address.mt-l", [
 							m("", lang.get('address_label')),
-							m(".aggregateEditors", addresses2.length > 0 ? addresses2.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()))
+							m(".aggregateEditors", addresses2.length > 0 ? addresses2.map(ma => m(ma)) : m(emptyHTMLFieldPlaceholder))
 						]),
 					]) : null,
-				socials1.length > 0 || socials2.length > 0 ? m(".wrapping-row", [
+				socials1.length > 0 || socials2.length > 0 ? m(".non-wrapping-row", [
 						m(".social.mt-l", [
 							m("", lang.get('social_label')),
-							m(".aggregateEditors", socials1.length > 0 ? socials1.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()))
+							m(".aggregateEditors", socials1.length > 0 ? socials1.map(ma => m(ma)) : m(emptyFieldPlaceholder))
 						]),
 						m(".social.mt-l", [
 							m("", lang.get('social_label')),
-							m(".aggregateEditors", socials2.length > 0 ? socials2.map(ma => m(ma)) : m(new TextField("emptyString_msg").setValue("").setDisabled()))
+							m(".aggregateEditors", socials2.length > 0 ? socials2.map(ma => m(ma)) : m(emptyFieldPlaceholder))
 						]),
 					]) : null,
-				(comment1Field && comment2Field) ? m(".wrapping-row", [
+				(comment1Field && comment2Field) ? m(".non-wrapping-row", [
 						m(".mt-l", [
 							m(comment1Field)
 						]),
 						m(".mt-l", [
 							m(comment2Field)
 						]),
-					]) : null, m("", {style: {height: "5px"}}),
-				this.contact1.presharedPassword || this.contact2.presharedPassword ? m(".wrapping-row", [
-						m(".phone.mt-l", [
-							m("", lang.get("presharedPassword_label")),
-							m(".aggregateEditors", this.contact1.presharedPassword && this.contact1.presharedPassword.length > 0 ? m(new TextField("presharedPassword_label").setValue("***").setDisabled()) : m(new TextField("presharedPassword_label").setValue("").setDisabled())),
-						]),
-						m(".phone.mt-l", [
-							m("", lang.get("presharedPassword_label")),//todo testen im client geht mit meinem Stand noch nicht.
-							m(".aggregateEditors", this.contact2.presharedPassword && this.contact2.presharedPassword.length > 0 ? m(new TextField("presharedPassword_label").setValue("***").setDisabled()) : m(new TextField("presharedPassword_label").setValue("").setDisabled())),
-						]),
-					]) : null, m("", {style: {height: "5px"}}),
+					]) : null,
+				(presharedPasswordFields) ? m(".non-wrapping-row", [
+						m(presharedPasswordFields[0]),
+						m(presharedPasswordFields[1])
+					]) : null,
+				m("", {style: {height: "5px"}}/*Used as spacer so the last gui-element is not touching the window border*/),
 			])
 		}
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
 	}
 
-	_createTextFields(value1: ?string, value2: ?string, labelTextId: string): ?TextField[] {
+	_createTextFields(value1: ? string, value2: ? string, labelTextId: string): ? TextField[] {
 		if (value1 || value2) {
 			return [
 				new TextField(labelTextId).setValue(value1 ? value1 : "").setDisabled(),
@@ -247,7 +252,7 @@ export class MergeView {
 		}
 	}
 
-	show(): Promise<ContactMergeActionEnum> {
+	show(): Promise < ContactMergeActionEnum > {
 		this.dialog.show()
 		windowFacade.checkWindowClosing(true)
 		let d = defer()

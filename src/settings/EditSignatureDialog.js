@@ -20,7 +20,7 @@ export function show(props: TutanotaProperties) {
 	}
 
 	let previousType = logins.getUserController().props.emailSignatureType
-	let editor = new HtmlEditor().showBorders().setMinHeight(200).setValue(getSignature(previousType, currentCustomSignature))
+	let editor = new HtmlEditor("preview_label").showBorders().setMinHeight(200).setValue(getSignature(previousType, currentCustomSignature))
 
 	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), previousType)
 	typeField.selectedValue.map(type => {
@@ -36,7 +36,6 @@ export function show(props: TutanotaProperties) {
 		view: () => {
 			return [
 				m(typeField),
-				m(".small.mt-form", lang.get("preview_label")),
 				m(editor),
 			]
 		}

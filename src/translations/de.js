@@ -992,15 +992,16 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"recipientNotResolvedTooManyRequests_msg": "Der Empfänger konnte nicht aufgelöst werden, da zu viele Anfragen gestellt wurden. Bitte versuche später noch einmal die E-Mail zu senden.",
-		"mergeContact_action": "Merge",
+
+		"mergeContacts_action": "Kontakte zusammenführen",
+		"merge_action": "Zusammenführen",
 		"next_action": "Weiter",
-		"mergeNotification_msg": "{1} zusammenfügbare Kontakte wurden erkannt",
-		"duplicatesNotification_msg": "{1} exakt gleiche Kontakte wurden erkannt und werden gelöscht, wenn Sie Fortfahren",
+		"duplicatesNotification_msg": "{1} identische Kontakte wurden erkannt und werden gelöscht.",
+		"noSimilarContacts_msg": "Keine ähnlichen Kontakte gefunden.",
+		"noMoreSimilarContacts_msg": "Keine weiteren ähnlichen Kontakte gefunden.",
 		"finallyDeleteEmails_msg": "Möchtest du die ausgewählten E-Mails endgültig löschen?",
-		"commentContent_lable": "Inhalt",
-		"firstMergeContact_placeholder": "Erster Kontakt",
-		"secondMergeContact_placeholder": "Zweiter Kontakt",
-		"hereIsTheMergedConatct_msg": "Hier wird der zusammengeführte Kontakt angezeigt",
-		"noVcardsFound_msg": "Keine Vcards wurden gefunden."
+		"firstMergeContact_label": "Kontakt 1",
+		"secondMergeContact_label": "Kontakt 2",
+		"noVcardsFound_msg": "Keine vCards gefunden."
 	}
 }

@@ -958,7 +958,6 @@ module.exports = {
 		"userManagementAddUser_msg": "Click on 'Add user' to add a new user (with costs).",
 		"userSettings_label": "User settings",
 		"validInputFormat_msg": "Format ok.",
-		"vCardDateOfImportInComment_msg": "Imported from vCard on {date}.",
 		"version_label": "Version:",
 		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 48 hours.",
 		"weekDays_label": "---\n- Su\n- Mo\n- Tu\n- We\n- Th\n- Fr\n- Sa\n",
@@ -1045,20 +1044,15 @@ module.exports = {
 		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
 		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
 
-		"mergeContact_action": "Merge",
-		"proceedMerge_action": "Proceed to merge confirmation",
+		"mergeContacts_action": "Merge contacts",
+		"merge_action": "Merge",
 		"next_action": "Next",
-		"mergeNotification_msg": "{1} mergable contact(s) has/have been found",
-		"duplicatesNotification_msg": "{1} duplicate(s) was/were found and will be deleted if proceeded further ",
-		'fullName_label': "Full name",
-		"noMerge_msg": "Nothing found for merge!",
-		"noMoreMerge_msg": "Nothing left to merge!",
-		"mergeView_label": "Merge View",
+		"duplicatesNotification_msg": "{1} duplicate contacts were found and will be deleted.",
+		"noSimilarContacts_msg": "No similar contacts found.",
+		"noMoreSimilarContacts_msg": "No more similar contacts found.",
 		"finallyDeleteEmails_msg": "Are you sure you want to finally delete the selected email(s)?",
-		"commentContent_lable": "Content",
-		"firstMergeContact_placeholder": "First Contact",
-		"secondMergeContact_placeholder": "Second Contact",
-		"hereIsTheMergedConatct_msg": "Here the merged contact will be shown.",
-		"noVcardsFound_msg": "no vcards found."	
+		"firstMergeContact_label": "Contact 1",
+		"secondMergeContact_label": "Contact 2",
+		"noVcardsFound_msg": "No vCards found."
 	}
 }

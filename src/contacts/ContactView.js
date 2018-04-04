@@ -193,7 +193,7 @@ export class ContactView {
 					}
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
-			new Button("mergeContact_action", () => {
+			new Button("merge_action", () => {
 				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
 					return loadAll(ContactTypeRef, contactListId)
 				})).then(allContacts => {
@@ -214,11 +214,11 @@ export class ContactView {
 						}
 						deletePromise.then(() => {
 							if (mergeableAndDuplicates.mergeable.length == 0) {
-								Dialog.error(() => lang.get("noMerge_msg"))
+								Dialog.error(() => lang.get("noSimilarContacts_msg"))
 							} else {
 								this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
 									if (!canceled) {
-										Dialog.error(() => lang.get("noMoreMerge_msg"))
+										Dialog.error(() => lang.get("noMoreSimilarContacts_msg"))
 									}
 								})
 							}

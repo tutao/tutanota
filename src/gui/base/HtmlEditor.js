@@ -28,7 +28,7 @@ export class HtmlEditor {
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
 
-	constructor() {
+	constructor(labelIdOrLabelFunction: string|lazy<string>) {
 		this._editor = new Editor(null)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -92,6 +92,7 @@ export class HtmlEditor {
 		this.view = () => {
 			return m(".html-editor", [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
+				( labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
 				m((this._showBorders ? ".editor-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
