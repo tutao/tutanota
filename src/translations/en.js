@@ -1025,6 +1025,7 @@ module.exports = {
 		"amountUsedOf_label": "{amount} used of {totalAmount}",
 		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
 		"whitelabelDomainExisting_msg": "A whitelable domain is still existing. Please remove the whitelabel domain.",
+		"invoiceSettingDescription_msg": "List of all your existing invoices including payment status",
 
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",

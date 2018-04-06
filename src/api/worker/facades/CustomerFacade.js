@@ -42,6 +42,9 @@ import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataSer
 import type {Country} from "../../common/CountryList"
 import {PaymentDataServicePutReturnTypeRef} from "../../entities/sys/PaymentDataServicePutReturn"
 import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
+import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
+import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
+import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServiceReturn"
 
 assertWorkerOrNode()
 
@@ -324,6 +327,23 @@ export class CustomerFacade {
 						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
 					})
 				})
+			})
+		})
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<DataFile> {
+		let data = createPdfInvoiceServiceData()
+		data.invoice = invoice._id
+		return resolveSessionKey(InvoiceTypeModel, invoice).then(invoiceSessionKey => {
+			return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef, null, invoiceSessionKey).then(returnData => {
+				return {
+					_type: 'DataFile',
+					name: String(invoice.number) + ".pdf",
+					mimeType: "application/pdf",
+					data: returnData.data,
+					size: returnData.data.byteLength,
+					id: null
+				}
 			})
 		})
 	}

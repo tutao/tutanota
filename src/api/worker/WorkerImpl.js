@@ -127,6 +127,9 @@ export class WorkerImpl {
 			updatePaymentData(message: Request): Promise<PaymentDataServicePutReturn> {
 				return locator.customer.updatePaymentData.apply(locator.customer, message.args)
 			},
+			downloadInvoice(message: Request): Promise<DataFile> {
+				return locator.customer.downloadInvoice.apply(locator.customer, message.args)
+			},
 			readUsedUserStorage: (message: Request) => {
 				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
 			},

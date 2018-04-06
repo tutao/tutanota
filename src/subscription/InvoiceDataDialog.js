@@ -24,7 +24,6 @@ export function show(subscriptionOptions: SubscriptionOptions, accountingInfo: ?
 
 	const invoiceName = new TextField("invoiceRecipient_label", () => subscriptionOptions.businessUse ? lang.get("invoiceAddressInfoBusiness_msg") : lang.get("invoiceAddressInfoConsumer_msg"))
 	invoiceName.setValue(accountingInfo ? accountingInfo.invoiceName : "")
-	//this._invoiceAddress = new TextField("invoiceAddress_label", () => subscriptionOptions.businessUse ? lang.get("invoiceAddressInfoBusiness_msg") : lang.get("invoiceAddressInfoConsumer_msg")).setType(Type.Area)
 	const invoiceAddress = new HtmlEditor()
 		.setMinHeight(120)
 		.showBorders()
@@ -38,7 +37,7 @@ export function show(subscriptionOptions: SubscriptionOptions, accountingInfo: ?
 
 	const countries = Countries.map(c => ({value: c, name: c.n}))
 	countries.push({value: null, name: lang.get("choose_label")});
-	const country = stream((accountingInfo && accountingInfo.invoiceCountry) ? getByAbbreviation(accountingInfo.invoiceCountry) : null)
+	const country: stream<?Country> = stream((accountingInfo && accountingInfo.invoiceCountry) ? getByAbbreviation(accountingInfo.invoiceCountry) : null)
 
 	const countryInput = new DropDownSelector("invoiceCountry_label",
 		() => lang.get("invoiceCountryInfoConsumer_msg"),
@@ -139,7 +138,7 @@ export function show(subscriptionOptions: SubscriptionOptions, accountingInfo: ?
 					invoiceName: invoiceName.value(),
 					invoiceAddress: invoiceAddress.getValue(),
 					country: country(),
-					vatNumber: showVatIdNoField() ? vatNumber.value() : null,
+					vatNumber: (country() && country().t == CountryType.EU) ? vatNumber.value() : "",
 					paymentMethod: paymentMethod().value,
 					paymentMethodInfo: "", //TODO set paymentMethodInfo
 					creditCardData: null, // TODO collect credit card and PayPal data

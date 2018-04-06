@@ -291,3 +291,20 @@ export const ContactMergeAction = {
 	Cancel: "cancel"
 }
 export type ContactMergeActionEnum = $Values<typeof ContactMergeAction>;
+
+
+export const InvoiceStatus = {
+	CREATED : "0",
+	PUBLISHEDFORAUTOMATIC : "1",
+	PUBLISHEDFORMANUAL : "2",
+	PAID : "3",
+	DEBITFAILED : "4",
+	DISPUTED : "5",
+	CANCELLED : "6",
+	PARTNERMANAGED : "7",
+	FIRSTREMINDER : "8",
+	REFUNDED : "9",
+	DISPUTEACCEPTED : "10",
+	SECONDREMINDER : "11"
+}
+export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;

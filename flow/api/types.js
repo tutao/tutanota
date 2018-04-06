@@ -106,6 +106,7 @@ type WorkerRequestType = 'setup'
 	| 'updateAdminship'
 	| 'switchFreeToPremiumGroup'
 	| 'updatePaymentData'
+	| 'downloadInvoice'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -278,7 +279,7 @@ type InvoiceData = {
 	invoiceName:string;
 	invoiceAddress:string;
 	country: Country;
-	vatNumber:?string;
+	vatNumber:string; // only for EU countries otherwise empty
 	paymentMethod:PaymentMethodTypeEnum;
 	paymentMethodInfo:string;
 	creditCardData:?CreditCardData;

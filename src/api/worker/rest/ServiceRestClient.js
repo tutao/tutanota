@@ -30,7 +30,7 @@ export function _service<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorS
 			return restClient.request(path, method, queryParams, headers, encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json).then(data => {
 				if (responseTypeRef) {
 					return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
-						return decryptAndMapToInstance(responseTypeModel, JSON.parse(((data:any):string)))
+						return decryptAndMapToInstance(responseTypeModel, JSON.parse(((data:any):string)), sk)
 					})
 				}
 			})

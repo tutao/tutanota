@@ -1,11 +1,14 @@
-import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 //@flow
-import {PaymentMethodType} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../misc/Formatter"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {logins} from "../api/main/LoginController"
+import {Button} from "../gui/base/Button"
 
 
-export function getPaymentMethodName(paymentMethod: PaymentMethodTypeEnum): string {
+export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod == PaymentMethodType.Invoice) {
 		return lang.get("paymentMethodOnAccount_label")
 	} else if (paymentMethod == PaymentMethodType.CreditCard) {
@@ -21,11 +24,7 @@ export function getPaymentMethodName(paymentMethod: PaymentMethodTypeEnum): stri
 
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
-	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethodInfo
-	} else {
-		return getPaymentMethodName(accountingInfo.paymentMethod)
-	}
+	return accountingInfo.paymentMethodInfo ? accountingInfo.paymentMethodInfo : ""
 }
 
 
@@ -77,5 +76,36 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 		return bookingItem ? Number(bookingItem.currentCount) : 0
 	} else {
 		return 0
+	}
+}
+
+export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazy<SVG>): Button {
+	return new Button(labelId, () => {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+		} else {
+			buyAction()
+		}
+	}, icon)
+}
+
+
+export function getInvoiceStatusText(invoice: Invoice): string {
+	if (invoice.status == InvoiceStatus.PUBLISHEDFORAUTOMATIC
+		|| invoice.status == InvoiceStatus.PUBLISHEDFORMANUAL
+		|| invoice.status == InvoiceStatus.CREATED) {
+		return lang.get('invoiceStateOpen_label')
+	} else if (invoice.status == InvoiceStatus.DEBITFAILED || invoice.status == InvoiceStatus.FIRSTREMINDER || invoice.status == InvoiceStatus.SECONDREMINDER) {
+		return lang.get('invoiceStatePaymentFailed_label')
+	} else if (invoice.status == InvoiceStatus.PAID) {
+		return lang.get('invoiceStatePaid_label')
+	} else if (invoice.status == InvoiceStatus.DISPUTED) {
+		return lang.get('invoiceStateResolving_label')
+	} else if (invoice.status == InvoiceStatus.REFUNDED || invoice.status == InvoiceStatus.DISPUTEACCEPTED) {
+		return lang.get('invoiceStateRefunded_label')
+	} else if (invoice.status == InvoiceStatus.CANCELLED) {
+		return lang.get('invoiceStateCancelled_label')
+	} else {
+		return "";
 	}
 }
