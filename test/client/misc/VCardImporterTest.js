@@ -12,7 +12,6 @@ import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("VCardImporterTest", function () {
 	let date = new Date()
-	let importNote = "Imported from vCard on "
 
 	o.before(function () {
 		lang.init(en)
@@ -168,7 +167,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = "Hello World\nHier ist ein Umbruch\n\n" + importNote + date.toDateString() + "."
+		b.comment = "Hello World\nHier ist ein Umbruch"
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -199,7 +198,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -232,7 +231,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -277,7 +276,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 			number: 'HOME01923825434',
 			type: '1'
 		}
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
 })

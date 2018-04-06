@@ -8,7 +8,7 @@ import {
 	_compareContactsForMerge,
 	getMergeableContacts,
 	_comparePhoneNumbers
-} from "../../../src/contacts/ContactMergeView"
+} from "../../../src/contacts/ContactMergeUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
 import {
