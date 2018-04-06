@@ -2,7 +2,7 @@
 import type {ContactComparisonResultEnum, IndifferentContactComparisonResultEnum} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {update} from "../api/worker/EntityWorker"
+import {update} from "../api/main/Entity"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
