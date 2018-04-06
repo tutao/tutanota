@@ -31,7 +31,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
-import {MergeView, getMergeableContacts, mergeContacts} from "./ContactMergeView"
+import {MergeView} from "./ContactMergeView"
+import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 
 
 assertMainOrNode()
