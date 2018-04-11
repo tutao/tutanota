@@ -157,6 +157,8 @@ styles.registerStyle('main', () => {
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 
+		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
+
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
 

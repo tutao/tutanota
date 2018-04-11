@@ -34,6 +34,7 @@ import {BadGatewayError, TooManyRequestsError, PreconditionFailedError} from "..
 import {Dialog} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
 import {SysService} from "../api/entities/sys/Services"
+import {getByAbbreviation} from "../api/common/CountryList"
 
 assertMainOrNode()
 
@@ -65,14 +66,20 @@ export class InvoiceViewer {
 
 		const changeInvoiceDataButton = createNotAvailableForFreeButton("edit_action", () => {
 			if (this._accountingInfo) {
+				const accountingInfo = neverNull(this._accountingInfo)
+				const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
 				InvoiceDataDialog.show({
-						businessUse: this._accountingInfo.business,
-						paymentInterval: Number(this._accountingInfo.paymentInterval),
-						proUpgrade: false,
-						price: ""
-					},
-					this._accountingInfo,
-					"save_action"
+						businessUse: accountingInfo.business,
+						paymentInterval: Number(accountingInfo.paymentInterval)
+					}, {
+						invoiceAddress: accountingInfo.invoiceName != "" ? (accountingInfo.invoiceName + "\n" + accountingInfo.invoiceAddress) : accountingInfo.invoiceAddress,
+						country: invoiceCountry,
+						vatNumber: accountingInfo.invoiceVatIdNo,
+						paymentMethod: null,
+						paymentMethodInfo: "",
+						creditCardData: null,
+						payPalData: null
+					}
 				)
 			}
 		}, () => Icons.Edit)

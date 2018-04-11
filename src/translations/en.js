@@ -437,7 +437,6 @@ module.exports = {
 		"invite_alt": "Invite",
 		"invite_label": "Invite",
 
-		"invoiceAddress_label": "Address",
 
 		"invoiceCountry_label": "Country",
 		"invoiceMailBodyAutomatic_msg": "there is a new invoice with the number {1} for you available. You can download it at {2} in 'Settings' -> 'Invoicing'. The grand total will automatically be debited.",
@@ -1020,7 +1019,7 @@ module.exports = {
 		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
 		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment by yourself. The invoice amount will not be debited automatically.",
 
-		"upgradeConfirm_msg": "Confirm your payment!",
+		"upgradeConfirm_msg": "Confirm your order!",
 		"nextSubscriptionPrice_msg": "The second price is valid for the subscription period after the current one.",
 		"amountUsedOf_label": "{amount} used of {totalAmount}",
 		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
@@ -1031,14 +1030,15 @@ module.exports = {
 		"creditCardNumber_label": "Credit card number",
 		"creditCardExpirationDate_label": "Expiration date",
 
-		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address.",
-		"invoiceAddressInfoConsumer_msg": "Optional: You can enter a name and your invoice address.",
+		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address (max. 5 rows).",
+		"invoiceAddressInfoConsumer_msg": "Optional: You can enter a name and your invoice address (max. 5 rows).",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 
 		"adminPayment_action": "Payment",
 
 		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
+		"invoiceAddress_label": "Name and invoice address",
 
 
 		// delete

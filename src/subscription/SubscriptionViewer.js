@@ -20,7 +20,6 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {formatPriceDataWithInfo, getCurrentCount, createNotAvailableForFreeButton} from "./PriceUtils"
 import {formatDate, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
-import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {SysService} from "../api/entities/sys/Services"
 import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddressAliasServiceReturn"
@@ -161,38 +160,26 @@ export class SubscriptionViewer {
 
 	_changeSubscriptionInterval(paymentInterval: number): void {
 		if (this._accountingInfo && this._accountingInfo.invoiceCountry && Number(this._accountingInfo.paymentInterval) != paymentInterval) {
-			let accountInfo = neverNull(this._accountingInfo)
-			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountInfo.invoiceCountry)))
-
+			let accountingInfo = neverNull(this._accountingInfo)
+			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 			worker.updatePaymentData({
-				businessUse: accountInfo.business,
-				paymentInterval: paymentInterval,
-				proUpgrade: false,
-				price: ""
-			}, {
-				invoiceName: accountInfo.invoiceName,
-				invoiceAddress: accountInfo.invoiceAddress,
-				country: invoiceCountry,
-				vatNumber: accountInfo.invoiceVatIdNo,
-				paymentMethod: accountInfo.paymentMethod,
-				paymentMethodInfo: accountInfo.paymentMethodInfo ? accountInfo.paymentMethodInfo : "",
-				creditCardData: null,
-				payPalData: null,
-			}, invoiceCountry)
+					businessUse: accountingInfo.business,
+					paymentInterval: paymentInterval,
+					proUpgrade: false,
+					price: ""
+				}, {
+					invoiceAddress: accountingInfo.invoiceName != "" ? (accountingInfo.invoiceName + "\n" + accountingInfo.invoiceAddress) : accountingInfo.invoiceAddress,
+					country: invoiceCountry,
+					vatNumber: accountingInfo.invoiceVatIdNo
+				},
+				null,
+				invoiceCountry)
 		}
 	}
 
 	_changeBusinessUse(businessUse: boolean): void {
 		if (this._accountingInfo && this._accountingInfo.business != businessUse) {
-			InvoiceDataDialog.show({
-					businessUse: businessUse,
-					paymentInterval: Number(this._accountingInfo.paymentInterval),
-					proUpgrade: false,
-					price: ""
-				},
-				this._accountingInfo,
-				"save_action"
-			)
+			// TODO allow private to business only.
 		}
 	}
 

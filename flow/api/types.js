@@ -261,8 +261,6 @@ type SearchIndexStateInfo = {
 type SubscriptionOptions = {
 	businessUse:boolean,
 	paymentInterval: number,
-	proUpgrade:boolean,
-	price:string
 }
 
 type CreditCardData = {
@@ -274,14 +272,15 @@ type CreditCardData = {
 type PayPalData = {
 	account:string
 }
-
 type InvoiceData = {
-	invoiceName:string;
 	invoiceAddress:string;
-	country: Country;
+	country: ?Country;
 	vatNumber:string; // only for EU countries otherwise empty
+}
+type PaymentData = {
 	paymentMethod:PaymentMethodTypeEnum;
-	paymentMethodInfo:string;
+	paymentMethodInfo:?string;
+	paymentToken: ?string;
 	creditCardData:?CreditCardData;
 	payPalData: ?PayPalData;
 }

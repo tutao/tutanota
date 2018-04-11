@@ -307,7 +307,7 @@ export class CustomerFacade {
 	}
 
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
@@ -315,14 +315,14 @@ export class CustomerFacade {
 						const service = createPaymentDataServicePutData()
 						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
 						service.business = subscriptionOptions.businessUse
-						service.invoiceName = invoiceData.invoiceName
-						service.invoiceAddress = invoiceData.invoiceAddress
-						service.invoiceCountry = invoiceData.country.a
-						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
-						service.paymentMethod = invoiceData.paymentMethod
-						service.paymentMethodInfo = invoiceData.paymentMethodInfo
 						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
-						service.paymentToken = null // TODO add paymentToken
+						service.invoiceName = ""
+						service.invoiceAddress = invoiceData.invoiceAddress
+						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
+						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
+						service.paymentMethod = paymentData ? paymentData.paymentMethod : (accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "")
+						service.paymentMethodInfo = paymentData ? paymentData.paymentMethodInfo : null
+						service.paymentToken = paymentData ? paymentData.paymentToken : null
 						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
 						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
 					})
