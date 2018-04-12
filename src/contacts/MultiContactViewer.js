@@ -18,6 +18,9 @@ export class MultiContactViewer {
 
 	constructor(contactView: ContactView) {
 		let emptyMessageBox = new MessageBox(() => this._getContactSelectionMessage(contactView))
+		let actionsWithManualMerge = new ActionBar()
+		actionsWithManualMerge.add(new Button('delete_action', () => contactView._deleteSelected(), () => Icons.Trash))
+		actionsWithManualMerge.add(new Button("merge_action", () => contactView.mergeSelected(), () => Icons.People))
 		let actions = new ActionBar()
 		actions.add(new Button('delete_action', () => contactView._deleteSelected(), () => Icons.Trash))
 		this.view = () => {
@@ -26,7 +29,7 @@ export class MultiContactViewer {
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-							m(actions)
+							m((contactView._contactList && contactView._contactList.list.getSelectedEntities().length == 2) ? actionsWithManualMerge : actions)
 						])
 					] : [m(emptyMessageBox)])
 			]

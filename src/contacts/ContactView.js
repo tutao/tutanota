@@ -334,6 +334,28 @@ export class ContactView {
 		})
 	}
 
+	/**
+	 * @pre the number of selected contacts is 2
+	 */
+	mergeSelected(): void {
+		if (this._contactList.list.getSelectedEntities().length == 2) {
+			Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
+				if (confirmed) {
+					return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+						let contact1 = this._contactList.list.getSelectedEntities[0]
+						let contact2 = this._contactList.list.getSelectedEntities[1]
+						mergeContacts(contact1, contact2).then(() => {
+							erase(contact2).catch(NotFoundError, e => {
+								// ignore
+							})
+						})
+					}))
+				}
+			})
+		}
+	}
+		
+
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (contacts.length == 1) {
 			this.contactViewer = new ContactViewer(contacts[0])

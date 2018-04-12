@@ -1054,6 +1054,7 @@ module.exports = {
 		"firstMergeContact_label": "Contact 1",
 		"secondMergeContact_label": "Contact 2",
 		"noVcardsFound_msg": "No vCards found.",
-		"exportVCard_action": "Export vCard"
+		"exportVCard_action": "Export vCard",
+		"mergeAllSelectedContacts_msg": "Are you sure you want to merge the selected contacts?"
 	}
 }
