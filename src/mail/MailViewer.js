@@ -47,6 +47,7 @@ import {ContactEditor} from "../contacts/ContactEditor"
 import MessageBox from "../gui/base/MessageBox"
 import {keyManager, Keys} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
+import * as AddSpamRuleDialog from "../settings/AddSpamRuleDialog"
 import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
 import {Icon, progressIcon} from "../gui/base/Icon"
@@ -369,8 +370,13 @@ export class MailViewer {
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount() && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)) {
-					buttons.push(new Button("addRule_action", () => {
+					buttons.push(new Button("addInboxRule_action", () => {
 						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+					}, null).setType(ButtonType.Secondary))
+				}
+				if (logins.isGlobalAdminUserLoggedIn()) {
+					buttons.push(new Button("addSpamRule_action", () => {
+						AddSpamRuleDialog.show(address.address.trim().toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				return buttons
