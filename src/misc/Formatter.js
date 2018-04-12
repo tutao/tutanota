@@ -44,12 +44,18 @@ export function formatDateTime(date: Date): string {
 	return lang.formats.dateTime.format(date)
 }
 
+/**
+ * Formats as yyyy-mm-dd
+ */
 export function formatSortableDate(date: Date): string {
 	const month = ("0" + (date.getMonth() + 1)).slice(-2)
 	const day = ("0" + date.getDate()).slice(-2)
 	return `${date.getFullYear()}-${month}-${day}`
 }
 
+/**
+ * Formats as yyyy-mm-dd <hh>h-<mm>m-<ss>s
+ */
 export function formatSortableDateTime(date: Date): string {
 	const hours = ("0" + date.getHours()).slice(-2)
 	const minutes = ("0" + date.getMinutes()).slice(-2)

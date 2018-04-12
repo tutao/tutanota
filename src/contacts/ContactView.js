@@ -33,6 +33,7 @@ import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
 import {MergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
+import {exportAsVCard} from "./VCardExporter"
 
 
 assertMainOrNode()
@@ -194,6 +195,7 @@ export class ContactView {
 					}
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
+			new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown),
 			new Button("merge_action", () => {
 				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
 					return loadAll(ContactTypeRef, contactListId)
@@ -224,11 +226,9 @@ export class ContactView {
 								})
 							}
 						})
-						//Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 					}
 				})
 			}, () => Icons.People).setType(ButtonType.Dropdown),
-
 		], 250).setColors(ButtonColors.Nav)
 	}
 

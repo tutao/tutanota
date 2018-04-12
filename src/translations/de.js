@@ -1002,6 +1002,7 @@ module.exports = {
 		"finallyDeleteEmails_msg": "Möchtest du die ausgewählten E-Mails endgültig löschen?",
 		"firstMergeContact_label": "Kontakt 1",
 		"secondMergeContact_label": "Kontakt 2",
-		"noVcardsFound_msg": "Keine vCards gefunden."
+		"noVcardsFound_msg": "Keine vCards gefunden.",
+		"exportVCard_action": "VCard exportieren"
 	}
 }

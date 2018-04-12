@@ -12,13 +12,14 @@ import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("VCardImporterTest", function () {
 	let date = new Date()
-	let importNote = "Imported from vCard on "
+
 
 	o.before(function () {
 		lang.init(en)
 	})
 
 	o("testFileToVCards", function () {
+
 		let str = `BEGIN:VCARD
 VERSION:3.0
 FN:proto type
@@ -53,11 +54,11 @@ EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
 ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`]
+		//prepares for further usage --> removes Begin and End tag and pushes the content between those tags into an array
 		o(vCardFileToVCards(str)).deepEquals(expected)
 
 	})
 	o("testImportEmpty", function () {
-
 		o(vCardFileToVCards("")).equals(null)
 	})
 	o("testImportWithoutLinefeed", function () {
@@ -93,6 +94,8 @@ EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
 ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`]
+
+		//Unfolding lines for content lines longer than 75 characters
 		o(vCardFileToVCards(str)).deepEquals(expected)
 
 	})
@@ -150,7 +153,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 
 	})
 	o("testToContactNames", function () {
-		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;Basche\nNOTE:Hello World\\nHier ist ein Umbruch"]
+		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 
 		let contacts = vCardListToContacts(a, "")
 
@@ -168,7 +171,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = "Hello World\nHier ist ein Umbruch\n\n" + importNote + date.toDateString() + "."
+		b.comment = "Hello World\nHier ist ein Umbruch"
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -199,7 +202,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -232,7 +235,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
 		b.oldBirthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
@@ -277,7 +280,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 			number: 'HOME01923825434',
 			type: '1'
 		}
-		b.comment = importNote + date.toDateString() + "."
+		b.comment = ""
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
 })

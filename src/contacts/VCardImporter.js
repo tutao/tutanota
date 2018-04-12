@@ -25,7 +25,7 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 	let vCardList = []
 	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1) {
 		vCardFileData = vCardFileData.replace(/\r/g, "")
-		vCardFileData = vCardFileData.replace(/\n /g, "")
+		vCardFileData = vCardFileData.replace(/\n /g, "") //folding symbols removed
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n\n/g, "")
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n/g, "")
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD/g, "")
@@ -181,12 +181,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					// /*Here will be the photo import*/
 					break
 				case "ROLE":
+				case "TITLE":
 					let role = vCardReescapingArray(vCardEscapingSplit(tagValue))
-					contact.role += ((contact.role.length > 0) ? " " : "") + role.join(" ")
-					break
-				case "TITLE": //todo testing
-					let title = vCardReescapingArray(vCardEscapingSplit(tagValue))
-					contact.title = ((contact.title ? contact.title : "") + " " + title.join(" ")).trim()
+					contact.role += (" " + role.join(" ")).trim()
 					break
 				default:
 

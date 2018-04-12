@@ -1053,6 +1053,7 @@ module.exports = {
 		"finallyDeleteEmails_msg": "Are you sure you want to finally delete the selected email(s)?",
 		"firstMergeContact_label": "Contact 1",
 		"secondMergeContact_label": "Contact 2",
-		"noVcardsFound_msg": "No vCards found."
+		"noVcardsFound_msg": "No vCards found.",
+		"exportVCard_action": "Export vCard"
 	}
 }
