@@ -168,7 +168,8 @@ export class SubscriptionViewer {
 					proUpgrade: false,
 					price: ""
 				}, {
-					invoiceAddress: accountingInfo.invoiceName != "" ? (accountingInfo.invoiceName + "\n" + accountingInfo.invoiceAddress) : accountingInfo.invoiceAddress,
+					invoiceName: accountingInfo.invoiceName,
+					invoiceAddress: accountingInfo.invoiceAddress,
 					country: invoiceCountry,
 					vatNumber: accountingInfo.invoiceVatIdNo
 				},

@@ -12,6 +12,7 @@ import {px} from "../gui/size"
 export function show(accountingInfo: AccountingInfo): Dialog {
 
 	let invoiceData = {
+		invoiceName: accountingInfo.invoiceName,
 		invoiceAddress: accountingInfo.invoiceAddress,
 		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo

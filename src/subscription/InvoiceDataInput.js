@@ -6,6 +6,7 @@ import stream from "mithril/stream/stream.js"
 import {TextField} from "../gui/base/TextField"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
+import {parseInvoiceNameAndAddress, formatNameAndAddress} from "../misc/Formatter"
 
 export class InvoiceDataInput {
 	view: Function;
@@ -37,11 +38,9 @@ export class InvoiceDataInput {
 			this.selectedCountry(value)
 		})
 
-		if (invoiceData) {
-			this._invoiceAddressComponent.setValue(invoiceData.invoiceAddress)
-			this._vatNumberField.setValue(invoiceData.vatNumber)
-			this.selectedCountry(invoiceData.country)
-		}
+		this._invoiceAddressComponent.setValue(formatNameAndAddress(invoiceData.invoiceName, invoiceData.invoiceAddress))
+		this._vatNumberField.setValue(invoiceData.vatNumber)
+		this.selectedCountry(invoiceData.country)
 
 		this.view = () => [
 			m(".pt", m(this._invoiceAddressComponent)),
@@ -53,9 +52,11 @@ export class InvoiceDataInput {
 	}
 
 	validateInvoiceData(): ? string {
-		if (this._subscriptionOptions.businessUse
-		) {
-			if (this._invoiceAddressComponent.getValue().trim() == "" || (this._invoiceAddressComponent.getValue().match(/\n/g) || []).length > 4) {
+		let nameAndAddress = parseInvoiceNameAndAddress(this._invoiceAddressComponent.getValue())
+		if (this._subscriptionOptions.businessUse) {
+			if (nameAndAddress.name == "") {
+				return "invoiceRecipientInfoBusiness_msg";
+			} else if (nameAndAddress.address == "" || (nameAndAddress.address.match(/\n/g) || []).length > 3) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"
@@ -66,7 +67,7 @@ export class InvoiceDataInput {
 		else {
 			if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg" // use business text here because it fits better
-			} else if ((this._invoiceAddressComponent.getValue().match(/\n/g) || []).length > 4) {
+			} else if ((nameAndAddress.address.match(/\n/g) || []).length > 3) {
 				return "invoiceAddressInfoBusiness_msg"
 			}
 		}
@@ -79,8 +80,10 @@ export class InvoiceDataInput {
 	}
 
 	getInvoiceData(): InvoiceData {
+		let nameAndAddress = parseInvoiceNameAndAddress(this._invoiceAddressComponent.getValue())
 		return {
-			invoiceAddress: this._invoiceAddressComponent.getValue(),
+			invoiceName: nameAndAddress.name,
+			invoiceAddress: nameAndAddress.address,
 			country: this.selectedCountry(),
 			vatNumber: (this.selectedCountry() && this.selectedCountry().t == CountryType.EU) ? this._vatNumberField.value() : ""
 		}

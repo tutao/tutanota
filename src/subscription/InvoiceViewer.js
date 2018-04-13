@@ -24,7 +24,7 @@ import {isSameTypeRef, isSameId, sortCompareByReverseId, HttpMethod} from "../ap
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {formatDate, formatPrice} from "../misc/Formatter"
+import {formatDate, formatPrice, formatNameAndAddress} from "../misc/Formatter"
 import {OperationType, InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
@@ -74,7 +74,8 @@ export class InvoiceViewer {
 						businessUse: accountingInfo.business,
 						paymentInterval: Number(accountingInfo.paymentInterval)
 					}, {
-						invoiceAddress: accountingInfo.invoiceName != "" ? (accountingInfo.invoiceName + "\n" + accountingInfo.invoiceAddress) : accountingInfo.invoiceAddress,
+						invoiceName: accountingInfo.invoiceName,
+						invoiceAddress: accountingInfo.invoiceAddress,
 						country: invoiceCountry,
 						vatNumber: accountingInfo.invoiceVatIdNo,
 						paymentMethod: null,
@@ -145,8 +146,7 @@ export class InvoiceViewer {
 
 	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._invoiceAddressField.setValue(accountingInfo.invoiceAddress)
-
+		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
 		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry ? accountingInfo.invoiceCountry : "<" + lang.get("comboBoxSelectionNone_msg") + ">")
 		this._paymentMehthodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))

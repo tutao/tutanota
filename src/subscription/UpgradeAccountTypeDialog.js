@@ -33,7 +33,8 @@ export function show(): void {
 					paymentInterval: Number(accountingInfo.paymentInterval)
 				},
 				invoiceData: {
-					invoiceAddress: accountingInfo.invoiceName != "" ? (accountingInfo.invoiceName + "\n" + accountingInfo.invoiceAddress) : accountingInfo.invoiceAddress,
+					invoiceName: accountingInfo.invoiceName,
+					invoiceAddress: accountingInfo.invoiceAddress,
 					country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 					vatNumber: accountingInfo.invoiceVatIdNo // only for EU countries otherwise empty
 				},

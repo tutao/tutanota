@@ -84,7 +84,7 @@ export class WizardDialog<T> {
 	}
 
 
-	_backAction(targetIndex): void {
+	_backAction(targetIndex: number): void {
 		const wizardData = this._currentPage.getUncheckedWizardData()
 		this._currentPage = this._pages[targetIndex]
 		this._currentPage.updateWizardData(wizardData)
@@ -123,7 +123,6 @@ export class WizardDialog<T> {
 }
 
 class WizardPagingButton {
-
 	view: Function;
 
 	constructor(pageIndex: number, getSelectedPageIndex: ()=>number, navigateBackHandler: (pageIndex: number)=>void) {
@@ -157,6 +156,4 @@ class WizardPagingButton {
 		}
 
 	}
-
-
 }
