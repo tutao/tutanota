@@ -561,7 +561,8 @@ styles.registerStyle('main', () => {
 
 		'.segmentControlItem:last-child': {
 			'border-bottom-right-radius': px(size.border_radius),
-			'border-top-right-radius': px(size.border_radius)
+			'border-top-right-radius': px(size.border_radius),
+			cursor: "pointer"
 		},
 
 		'.segmentControlItem:first-child': {

@@ -26,6 +26,25 @@ export class CreditCardInput {
 		}
 	}
 
+	getCreditCardData(): CreditCardData {
+		return {
+			number: this.creditCardNumber.value(),
+			cvv: this.cvv.value(),
+			expirationDate: this.expirationDate.value()
+		}
+	}
+
+	setCreditCardData(data: ?CreditCardData): void {
+		if (data) {
+			this.creditCardNumber.value(data.number)
+			this.cvv.value(data.cvv)
+			this.expirationDate.value(data.expirationDate)
+		} else {
+			this.creditCardNumber.value("")
+			this.cvv.value("")
+			this.expirationDate.value("")
+		}
+	}
 
 	// TODO validate credit card input
 	//"creditCardCVVFormatDetails_label": "Please enter the {1} digit {2} code of your {3} card.",

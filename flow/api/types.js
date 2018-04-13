@@ -266,7 +266,7 @@ type SubscriptionOptions = {
 type CreditCardData = {
 	number:string,
 	cvv:string,
-	expirationData:string
+	expirationDate:string
 }
 
 type PayPalData = {

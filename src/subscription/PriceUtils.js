@@ -18,7 +18,7 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 	} else if (paymentMethod == PaymentMethodType.Paypal) {
 		return "PayPal"
 	} else {
-		return ""
+		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
 	}
 }
 

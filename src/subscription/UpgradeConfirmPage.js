@@ -15,7 +15,7 @@ import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeDialog"
-import {updatePaymentData} from "./InvoiceAndPaymentDataEditor"
+import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
@@ -55,8 +55,6 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 					})
 				}
 			})
-
-
 		}).setType(ButtonType.Login)
 
 		this.view = () => [

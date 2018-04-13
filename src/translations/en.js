@@ -684,7 +684,6 @@ module.exports = {
 		"paymentAccountRejected_msg": "Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated.",
 		"paymentDataEnterData_msg": "Please enter your payment data for future payments.",
 		"paymentDataPayPalConfirm_msg": "Please confirm your PayPal account.",
-		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. Attention: Our payment provider currently does not support the PayPal Security Key feature. Please deactivate your security key temporarily. Thanks!",
 		"paymentDataValidation_action": "Confirm",
 		"paymentMethodCreditCard_label": "Credit card",
 		"paymentMethodOnAccount_label": "Purchase on account",
@@ -1039,7 +1038,7 @@ module.exports = {
 		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
 		"invoiceAddress_label": "Name and invoice address",
-
+		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website",
 
 		// delete
 		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",

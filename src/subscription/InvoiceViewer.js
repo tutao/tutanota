@@ -35,31 +35,33 @@ import {Dialog} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
 import {SysService} from "../api/entities/sys/Services"
 import {getByAbbreviation} from "../api/common/CountryList"
+import * as PaymentDataDialog from "./PaymentDataDialog"
 
 assertMainOrNode()
 
 export class InvoiceViewer {
-
-	_invoiceRecipientField: TextField;
 	_invoiceAddressField: HtmlEditor;
 	_invoiceCountryField: TextField;
 	_paymentMehthodField: TextField;
 	_invoiceTable: Table;
 	_accountingInfo: ?AccountingInfo;
-	_invoices: Array<Invoice>
-	_paymentBusy: boolean
+	_invoices: Array<Invoice>;
+	_paymentBusy: boolean;
+	_invoiceVatNumber: TextField;
 
 	view: Function;
 
 	constructor() {
-		this._invoiceRecipientField = new TextField("invoiceRecipient_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._invoiceAddressField = new HtmlEditor("invoiceAddress_label")
+		this._invoiceAddressField = new HtmlEditor()
 			.setMinHeight(120)
 			.showBorders()
 			.setMode(Mode.HTML)
 			.setHtmlMonospace(false)
 			.setEnabled(false)
+			.setPlaceholderId("invoiceAddress_label")
+
 		this._invoiceCountryField = new TextField("invoiceCountry_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._paymentMehthodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._invoices = []
 		this._paymentBusy = false
@@ -84,9 +86,16 @@ export class InvoiceViewer {
 			}
 		}, () => Icons.Edit)
 
-		this._invoiceCountryField._injectionsRight = () => m(changeInvoiceDataButton)
-		this._invoiceRecipientField._injectionsRight = () => m(changeInvoiceDataButton)
-		this._paymentMehthodField._injectionsRight = () => m(changeInvoiceDataButton)
+		const changePaymentDataButton = createNotAvailableForFreeButton("edit_action", () => {
+			if (this._accountingInfo) {
+				PaymentDataDialog.show(this._accountingInfo)
+			}
+		}, () => Icons.Edit)
+
+
+		//this._invoiceCountryField._injectionsRight = () => m(changeInvoiceDataButton)
+		//this._invoiceVatNumber._injectionsRight = () => m(changeInvoiceDataButton)
+		//this._paymentMehthodField._injectionsRight = () => m(changePaymentDataButton)
 
 		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true)
 		let invoiceExpander = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
@@ -94,12 +103,19 @@ export class InvoiceViewer {
 
 		this.view = (): VirtualElement => {
 			return m("#invoicing-settings.fill-absolute.scroll.plr-l", [
-				m(".h4.mt-l", lang.get('invoiceData_msg')),
-				m(this._invoiceRecipientField),
+				m(".flex-space-between.items-center.mt-l.mb-s", [
+					m(".h4", lang.get('invoiceData_msg')),
+					m(".mr-negative-s", m(changeInvoiceDataButton))
+				]),
+				//m(".small", lang.get("invoiceAddress_label")),
 				m(this._invoiceAddressField),
 				m(this._invoiceCountryField),
+				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0) ? m(this._invoiceVatNumber) : null,
+				m(".flex-space-between.items-center.mt-l", [
+					m(".h4", lang.get('adminPayment_action')),
+					m(".mr-negative-s", m(changePaymentDataButton))
+				]),
 				m(this._paymentMehthodField),
-
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoices_label')),
 					m(invoiceExpander)
@@ -129,11 +145,10 @@ export class InvoiceViewer {
 
 	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._invoiceRecipientField.setValue(accountingInfo.invoiceName)
 		this._invoiceAddressField.setValue(accountingInfo.invoiceAddress)
 
-		const vatInfo = accountingInfo.invoiceVatIdNo.trim().length > 0 ? (", " + accountingInfo.invoiceVatIdNo) : ""
-		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry ? (accountingInfo.invoiceCountry + vatInfo ) : "")
+		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
+		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry ? accountingInfo.invoiceCountry : "<" + lang.get("comboBoxSelectionNone_msg") + ">")
 		this._paymentMehthodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}

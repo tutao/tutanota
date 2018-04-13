@@ -2,18 +2,19 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {InvoiceAndPaymentDataEditor, updatePaymentData} from "./InvoiceAndPaymentDataEditor"
+import {InvoiceDataInput} from "./InvoiceDataInput"
+import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 
 export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Dialog {
 
-	const invoiceEditor = new InvoiceAndPaymentDataEditor(subscriptionOptions, invoiceData, null)
+	const invoiceDataInput = new InvoiceDataInput(subscriptionOptions, invoiceData)
 
 	const confirmAction = () => {
-		let error = invoiceEditor.validateInvoiceData()
+		let error = invoiceDataInput.validateInvoiceData()
 		if (error) {
 			Dialog.error(error)
 		} else {
-			updatePaymentData(subscriptionOptions, invoiceEditor.getInvoiceData(), null, null).then(success => {
+			updatePaymentData(subscriptionOptions, invoiceDataInput.getInvoiceData(), null, null).then(success => {
 				if (success) {
 					dialog.close()
 				}
@@ -23,7 +24,7 @@ export function show(subscriptionOptions: SubscriptionOptions, invoiceData: Invo
 
 	const dialog = Dialog.smallActionDialog(lang.get("invoiceData_msg"), {
 		view: () => m("#changeInvoiceDataDialog", [
-			m(invoiceEditor),
+			m(invoiceDataInput),
 		])
 	}, confirmAction, true, "save_action")
 	return dialog

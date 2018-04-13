@@ -9,6 +9,7 @@ import {Button, ButtonType} from "./Button"
 import {Icons} from "./icons/Icons"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
+import {lang} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -31,7 +32,7 @@ export class WizardDialog<T> {
 	dialog: Dialog;
 	_pages: Array<WizardPage<T>>;
 	_currentPage: WizardPage<T>;
-	_cancelButton: Button;
+	_backButton: Button;
 	_nextButton: Button;
 
 	constructor(wizardPages: Array<WizardPage<T>>) {
@@ -42,19 +43,25 @@ export class WizardDialog<T> {
 			showNext: (wizardData: T) => this._handlePageConfirm(wizardData)
 		}))
 
-		this._cancelButton = new Button("cancel_action", () => this._close()).setType(ButtonType.Secondary)
+
+		this._backButton = new Button(() => {
+			return this._pages.indexOf(this._currentPage) == 0 ? lang.get("cancel_action") : lang.get("back_action")
+		}, () => {
+			let pageIndex = this._pages.indexOf(this._currentPage)
+			if (pageIndex > 0) {
+				this._backAction(pageIndex - 1)
+			} else {
+				this._close()
+			}
+		}).setType(ButtonType.Secondary)
 
 		this._nextButton = new Button("next_action", () => this._nextAction()).setType(ButtonType.Secondary)
 			.setIsVisibleHandler(() => this._currentPage.isNextAvailable() && this._pages.indexOf(this._currentPage) != (this._pages.length - 1))
 
-		let pagingButtons: Component[] = wizardPages.map((page, index) => new WizardPagingButton(index, () => this._pages.indexOf(this._currentPage), (targetIndex) => {
-			const wizardData = this._currentPage.getUncheckedWizardData()
-			this._currentPage = this._pages[targetIndex]
-			this._currentPage.updateWizardData(wizardData)
-		}))
+		let pagingButtons: Component[] = wizardPages.map((page, index) => new WizardPagingButton(index, () => this._pages.indexOf(this._currentPage), (index) => this._backAction(index)))
 
 		let headerBar = new DialogHeaderBar()
-			.addLeft(this._cancelButton)
+			.addLeft(this._backButton)
 			.setMiddle(() => this._currentPage.headerTitle())
 			.addRight(this._nextButton)
 
@@ -76,6 +83,12 @@ export class WizardDialog<T> {
 			})
 	}
 
+
+	_backAction(targetIndex): void {
+		const wizardData = this._currentPage.getUncheckedWizardData()
+		this._currentPage = this._pages[targetIndex]
+		this._currentPage.updateWizardData(wizardData)
+	}
 
 	_nextAction(): void {
 		this._currentPage.nextAction().then(wizardData => {
