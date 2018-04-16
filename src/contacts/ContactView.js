@@ -11,7 +11,7 @@ import {ContactListView} from "./ContactListView"
 import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
-import {load, setup, erase, loadAll} from "../api/main/Entity"
+import {load, setup, erase, loadAll, update} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType, ContactMergeAction} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
@@ -245,9 +245,8 @@ export class ContactView {
 				// execute action here and update mergable
 				if (action == ContactMergeAction.Merge) {
 					this._removeFromMergableContacts(mergable, contact2)
-					return showProgressDialog("pleaseWait_msg", mergeContacts(contact1, contact2).then(() => {
-						return erase(contact2)
-					}))
+					mergeContacts(contact1, contact2)
+					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
 				} else if (action == ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -339,22 +338,26 @@ export class ContactView {
 	 */
 	mergeSelected(): void {
 		if (this._contactList.list.getSelectedEntities().length == 2) {
-			Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
-				if (confirmed) {
-					return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-						let contact1 = this._contactList.list.getSelectedEntities[0]
-						let contact2 = this._contactList.list.getSelectedEntities[1]
-						mergeContacts(contact1, contact2).then(() => {
-							erase(contact2).catch(NotFoundError, e => {
+			let keptContact = this._contactList.list.getSelectedEntities()[0]
+			let goodbyeContact = this._contactList.list.getSelectedEntities()[1]
+
+			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || (keptContact.presharedPassword == goodbyeContact.presharedPassword)) {
+				Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
+					if (confirmed) {
+						mergeContacts(keptContact, goodbyeContact)
+						return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
+							return erase(goodbyeContact).catch(NotFoundError, e => {
 								// ignore
 							})
-						})
-					}))
-				}
-			})
+						}))
+					}
+				})
+			} else {
+				Dialog.error("presharedPasswordsUnequal_msg")
+			}
 		}
 	}
-		
+
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (contacts.length == 1) {

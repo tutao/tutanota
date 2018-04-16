@@ -2,7 +2,8 @@
 import type {ContactComparisonResultEnum, IndifferentContactComparisonResultEnum} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {update} from "../api/worker/EntityWorker"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {formatSortableDate} from "../misc/Formatter"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -60,32 +61,33 @@ export function getMergeableContacts(inputContacts: Contact[]): {mergeable:Conta
 }
 
 /**
- * merges two contacts c1~c2 => c2 is merged into c1
+ * merges two contacts (eliminatedContact is merged into keptContact). outside this function keptContact must be updated on the server and eliminatedContact must be deleted
  */
-export function mergeContacts(contact1: Contact, contact2: Contact): Promise<void> {
-	contact1.firstName = _getMergedNameField(contact1.firstName, contact2.firstName)
-	contact1.lastName = _getMergedNameField(contact1.lastName, contact2.lastName)
-	contact1.title = neverNull(_getMergedOtherField(contact1.title, contact2.title, ", "))
-	contact1.comment = neverNull(_getMergedOtherField(contact1.comment, contact2.comment, "\n\n"))
-	contact1.company = neverNull(_getMergedOtherField(contact1.company, contact2.company, ", "))
-	contact1.nickname = _getMergedOtherField(contact1.nickname, contact2.nickname, ", ")
-	contact1.role = neverNull(_getMergedOtherField(contact1.role, contact2.role, ", "))
-	contact1.oldBirthday = _getMergedOldBirthday(contact1.oldBirthday, contact2.oldBirthday)
-	contact1.birthday = _getMergedBirthday(contact1.birthday, contact2.birthday)
-	contact1.mailAddresses = _getMergedEmailAddresses(contact1.mailAddresses, contact2.mailAddresses)
-	contact1.phoneNumbers = _getMergedPhoneNumbers(contact1.phoneNumbers, contact2.phoneNumbers)
-	contact1.socialIds = _getMergedSocialIds(contact1.socialIds, contact2.socialIds)
-	contact1.addresses = _getMergedAddresses(contact1.addresses, contact2.addresses)
-	contact1.presharedPassword = neverNull(_getMergedOtherField(contact1.presharedPassword, contact2.presharedPassword, "")) // the passwords are never different and not null
-	return update(contact1)
+export function mergeContacts(keptContact: Contact, eliminatedContact: Contact): void {
+	keptContact.firstName = _getMergedNameField(keptContact.firstName, eliminatedContact.firstName)
+	keptContact.lastName = _getMergedNameField(keptContact.lastName, eliminatedContact.lastName)
+	keptContact.title = neverNull(_getMergedOtherField(keptContact.title, eliminatedContact.title, ", "))
+	keptContact.comment = neverNull(_getMergedOtherField(keptContact.comment, eliminatedContact.comment, "\n\n"))
+	keptContact.company = neverNull(_getMergedOtherField(keptContact.company, eliminatedContact.company, ", "))
+	keptContact.nickname = _getMergedOtherField(keptContact.nickname, eliminatedContact.nickname, ", ")
+	keptContact.role = neverNull(_getMergedOtherField(keptContact.role, eliminatedContact.role, ", "))
+	let birthdays = _getMergedBirthdays(keptContact.oldBirthday, eliminatedContact.oldBirthday, keptContact.birthday, eliminatedContact.birthday)
+	keptContact.oldBirthday = birthdays.oldBDay
+	keptContact.birthday = birthdays.newBDay
+	keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
+	keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
+	keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
+	keptContact.addresses = _getMergedAddresses(keptContact.addresses, eliminatedContact.addresses)
+	keptContact.presharedPassword = neverNull(_getMergedOtherField(keptContact.presharedPassword, eliminatedContact.presharedPassword, "")) // the passwords are never different and not null
 }
 
 /**
- * Result is unique if preshared passwords are not equal  are not empty.
  * Result is equal if all fields are equal or empty (types are ignored).
  * Result is similar if one of:
  * 1. name result is equal or similar
  * 2. name result (bothEmpty or oneEmpty) and mail or phone result is similar or equal
+ * Result is unique if preshared passwords are not equal  are not empty.
+ * Result is unique if birthdays are not equal are not empty.
  * Otherwise the result is unique
  * Export for testing
  */
@@ -95,7 +97,7 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
 	let phoneResult = _comparePhoneNumbers(contact1.phoneNumbers, contact2.phoneNumbers)
 	let residualContactFieldsEqual = _areResidualContactFieldsEqual(contact1, contact2)
 
-	if (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword == contact2.presharedPassword)) {
+	if (_isEqualBirthdays(contact1, contact2) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword == contact2.presharedPassword))) {
 		if ((nameResult == ContactComparisonResult.Equal || nameResult == IndifferentContactComparisonResult.BothEmpty) && (mailResult == ContactComparisonResult.Equal || mailResult == IndifferentContactComparisonResult.BothEmpty) && (phoneResult == ContactComparisonResult.Equal || phoneResult == IndifferentContactComparisonResult.BothEmpty) && residualContactFieldsEqual) {
 			return ContactComparisonResult.Equal
 		} else if (nameResult == ContactComparisonResult.Equal || nameResult == ContactComparisonResult.Similar) {
@@ -134,8 +136,9 @@ export function _compareFullName(contact1: Contact, contact2: Contact): ContactC
 
 /**
  * Provides name1 if it is not empty, otherwise name2
+ * Export for testing
  */
-function _getMergedNameField(name1: string, name2: string) {
+export function _getMergedNameField(name1: string, name2: string) {
 	if (name1) {
 		return name1
 	} else {
@@ -155,7 +158,10 @@ export function _compareMailAddresses(contact1MailAddresses: ContactMailAddress[
 	return _compareValues(contact1MailAddresses.map(m => m.address), contact2MailAddresses.map(m => m.address))
 }
 
-function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
+/**
+ * Export for testing
+ */
+export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
 	let filteredMailAddresses2 = mailAddresses2.filter(ma2 => {
 		return !mailAddresses1.find(ma1 => ma1.address.toLowerCase() == ma2.address.toLowerCase())
 	})
@@ -169,7 +175,10 @@ export function _comparePhoneNumbers(contact1PhoneNumbers: ContactPhoneNumber[],
 	return _compareValues(contact1PhoneNumbers.map(m => m.number), contact2PhoneNumbers.map(m => m.number))
 }
 
-function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
+/**
+ * Export for testing
+ */
+export function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
 	let filteredNumbers2 = phoneNumbers2.filter(ma2 => {
 		return !phoneNumbers1.find(ma1 => ma1.number == ma2.number)
 	})
@@ -188,61 +197,50 @@ export function _areResidualContactFieldsEqual(contact1: Contact, contact2: Cont
 		_isEqualOtherField(contact1.role, contact2.role) &&
 		_isEqualOtherField(contact1.title, contact2.title) &&
 		_isEqualOtherField(contact1.presharedPassword, contact2.presharedPassword) &&
-		_isEqualOldBirthday(contact1, contact2) &&
-		_isEqualBirthday(contact1, contact2) &&
 		_areSocialIdsEqual(contact1.socialIds, contact2.socialIds) &&
 		_areAddressesEqual(contact1.addresses, contact2.addresses)
 }
 
-export function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2SocialIds: ContactSocialId[]): boolean {
+function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2SocialIds: ContactSocialId[]): boolean {
 	let result = _compareValues(contact1SocialIds.map(m => m.socialId), contact2SocialIds.map(m => m.socialId))
 	return result == IndifferentContactComparisonResult.BothEmpty || result == ContactComparisonResult.Equal
 }
 
-function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
+/**
+ * Export for testing
+ */
+export function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
 	let filteredSocialIds2 = socialIds2.filter(ma2 => {
 		return !socialIds1.find(ma1 => ma1.socialId == ma2.socialId)
 	})
 	return socialIds1.concat(filteredSocialIds2)
 }
 
-export function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Addresses: ContactAddress[]): boolean {
+function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Addresses: ContactAddress[]): boolean {
 	let result = _compareValues(contact1Addresses.map(m => m.address), contact2Addresses.map(m => m.address))
 	return result == IndifferentContactComparisonResult.BothEmpty || result == ContactComparisonResult.Equal
 }
 
-function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
+/**
+ * Export for testing
+ */
+export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
 	let filteredAddresses2 = addresses2.filter(ma2 => {
 		return !addresses1.find(ma1 => ma1.address == ma2.address)
 	})
 	return addresses1.concat(filteredAddresses2)
 }
 
-function _isEqualOldBirthday(contact1: Contact, contact2: Contact): boolean {
-	return (JSON.stringify(contact1.oldBirthday) == JSON.stringify(contact2.oldBirthday))
-}
-
-function _getMergedOldBirthday(birthday1: ?Date, birthday2: ?Date): ?Date {
-	if (birthday1) {
-		return birthday1
-	} else {
-		return birthday2
-	}
-}
-
-function _isEqualBirthday(contact1: Contact, contact2: Contact): boolean {
+function _isEqualBirthdays(contact1: Contact, contact2: Contact): boolean {
 	if (contact1.birthday && contact2.birthday) {
 		return contact1.birthday.day == contact2.birthday.day && contact1.birthday.month == contact2.birthday.month && contact1.birthday.year == contact2.birthday.year
+	} else if (JSON.stringify(contact1.oldBirthday) == JSON.stringify(contact2.oldBirthday)) {
+		return true
+	} else if ((contact1.birthday && contact2.oldBirthday && contact1.birthday == oldBirthdayToBirthday(contact2.oldBirthday))
+		|| (contact2.birthday && contact1.oldBirthday && contact2.birthday == oldBirthdayToBirthday(contact1.oldBirthday))) {
+		return true
 	} else {
-		return !contact1.birthday && !contact2.birthday
-	}
-}
-
-function _getMergedBirthday(birthday1: ?Birthday, birthday2: ?Birthday): ?Birthday {
-	if (birthday1) {
-		return birthday1
-	} else {
-		return birthday2
+		return false
 	}
 }
 
@@ -279,8 +277,9 @@ function _isEqualOtherField(otherAttribute1: ?string, otherAttribute2: ?string):
 
 /**
  * Provides the value that exists or both separated by the given separator if both have some content
+ * Export for testing
  */
-function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: ?string, separator: string): ?string {
+export function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: ?string, separator: string): ?string {
 	if (otherAttribute1 == otherAttribute2) {
 		return otherAttribute2
 	} else if (otherAttribute1 && otherAttribute2) {
@@ -289,5 +288,41 @@ function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: ?string
 		return otherAttribute2
 	} else {
 		return otherAttribute1
+	}
+}
+/**
+ * returns new birthday format from old birthday format
+ * Export for testing
+ */
+export function oldBirthdayToBirthday(oldBirthday: Date): Birthday {
+	let bDayDetails = createBirthday()
+	let birthdayString = (formatSortableDate(oldBirthday)).split("-")
+	bDayDetails.day = String(Number(birthdayString[2]))
+	bDayDetails.month = String(Number(birthdayString[1]))
+	bDayDetails.year = String(Number(birthdayString[0]))
+	return bDayDetails
+}
+
+/**
+ * Export for testing
+ */
+export function birthdayToOldBirthday(newBirthday: Birthday): Date {
+	return new Date(Number(newBirthday.year), Number(newBirthday.month) - 1, Number(newBirthday.day))
+}
+
+/**
+ * Export for testing
+ */
+export function _getMergedBirthdays(oldBirthday1: ?Date, oldBirthday2: ?Date, newBirthday1: ?Birthday, newBirthday2: ?Birthday): {oldBDay:?Date, newBDay:?Birthday} {
+	if (newBirthday1) {
+		return {oldBDay: birthdayToOldBirthday(newBirthday1), newBDay: newBirthday1}
+	} else if (newBirthday2) {
+		return {oldBDay: birthdayToOldBirthday(newBirthday2), newBDay: newBirthday2}
+	} else if (oldBirthday1) {
+		return {oldBDay: oldBirthday1, newBDay: oldBirthdayToBirthday(oldBirthday1)}
+	} else if (oldBirthday2) {
+		return {oldBDay: oldBirthday2, newBDay: oldBirthdayToBirthday(oldBirthday2)}
+	} else {
+		return {oldBDay: null, newBDay: null}
 	}
 }

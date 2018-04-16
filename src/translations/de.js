@@ -1003,6 +1003,8 @@ module.exports = {
 		"firstMergeContact_label": "Kontakt 1",
 		"secondMergeContact_label": "Kontakt 2",
 		"noVcardsFound_msg": "Keine vCards gefunden.",
-		"exportVCard_action": "VCard exportieren"
+		"exportVCard_action": "VCard exportieren",
+		"mergeAllSelectedContacts_msg": "Bist du sicher, dass du die ausgewählten Kontakte zusammenführen möchtest?",
+		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!"
 	}
 }

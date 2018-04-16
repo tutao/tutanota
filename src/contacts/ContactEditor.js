@@ -31,6 +31,7 @@ import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
+import {oldBirthdayToBirthday} from "./ContactMergeUtils"
 
 assertMainOrNode()
 
@@ -87,6 +88,7 @@ export class ContactEditor {
 					if (value.trim().length > 0) {
 						let timestamp = parseDate(value)
 						this.contact.oldBirthday = isNaN(timestamp) ? null : new Date(timestamp)
+						this.contact.birthday = this.contact.oldBirthday ? oldBirthdayToBirthday(this.contact.oldBirthday) : null
 					} else {
 						this.contact.oldBirthday = null
 					}
@@ -122,7 +124,7 @@ export class ContactEditor {
 		this.socialEditors = this.contact.socialIds.map(p => new ContactAggregateEditor(p, e => remove(this.socialEditors, e)))
 		this.createNewSocialEditor()
 
-		let presharedPassword = this.contact.presharedPassword != null ? new TextField('passwordsHeading_label')
+		let presharedPassword = this.contact.presharedPassword ? new TextField('password_label')
 				.setValue((this.contact.presharedPassword:any))
 				.onUpdate(value => this.contact.presharedPassword = value) : null
 
@@ -177,7 +179,7 @@ export class ContactEditor {
 
 			presharedPassword ? m(".wrapping-row", [
 					m(".passwords.mt-xl", [
-						m(".h4", lang.get('passwordsHeading_label')),
+						m(".h4", lang.get('passwords_label')),
 						m(presharedPassword)
 					]),
 					m(".spacer")
@@ -364,7 +366,8 @@ class ContactAggregateEditor {
 		let typeButton = createDropDownButton("more_label", () => Icons.More, () => Object.keys(TypeToLabelMap).map(key => {
 			return new Button((TypeToLabelMap:any)[key], e => {
 				if (isCustom(key)) {
-					let tagDialogActionBar = new DialogHeaderBar()/* Unused Variable*/
+					let tagDialogActionBar = new DialogHeaderBar()
+					/* Unused Variable*/
 					let tagName = new TextField("customLabel_label")
 						.setValue(this.aggregate.customTypeName)
 

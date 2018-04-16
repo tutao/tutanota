@@ -42,46 +42,52 @@ export function exportAsVCard(): Promise<void> {
  */
 export function contactsToVCard(allContacts: Contact[]): string {
 	let vCardFile = ""
-	allContacts.map((contact) => {
-
-		let contactToVCardString = "BEGIN:VCARD\nVERSION:3.0\n" //must be invcluded in vCard3.0
-		//FN tag must be included in vCard3.0
-		let fnString = "FN:"
-		fnString += contact.title ? _getVCardEscaped(contact.title) + " " : ""
-		fnString += contact.firstName ? _getVCardEscaped(contact.firstName) + " " : ""
-		fnString += contact.lastName ? _getVCardEscaped(contact.lastName) : ""
-		contactToVCardString += _getFoldedString(fnString.trim()) + "\n"
-
-		//N tag must be included in vCard3.0
-		let nString = "N:"
-		nString += contact.lastName ? _getVCardEscaped(contact.lastName) + ";" : ";"
-		nString += contact.firstName ? _getVCardEscaped(contact.firstName) + ";;" : ";;"
-		nString += contact.title ? _getVCardEscaped(contact.title) + ";" : ";"
-		contactToVCardString += _getFoldedString(nString) + "\n"
-
-		contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname)) + "\n" : ""
-		//adds oldBirthday converted into a string if present else if available new birthday format is added to contactToVCardString
-		if (contact.birthday && contact.birthday.year) {
-			let day = Number(neverNull(contact.birthday).day)
-			let month = Number(neverNull(contact.birthday).month)
-			let year = Number(neverNull(neverNull(contact.birthday).year))
-			//month -1 because new birthday format is number string not a date. if month 09 is wanted input has to be 08.
-			contactToVCardString += "BDAY:" + formatSortableDate(new Date(year, month - 1, day)) + "\n"
-		} else if (contact.oldBirthday) {
-			contactToVCardString += "BDAY:" + formatSortableDate(contact.oldBirthday) + "\n"
-		}
-		contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.addresses), "ADR")
-		contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.mailAddresses), "EMAIL")
-		contactToVCardString += _vCardFormatArrayToString(_phoneNumbersToVCardPhoneNumbers(contact.phoneNumbers), "TEL")
-		contactToVCardString += _vCardFormatArrayToString(_socialIdsToVCardSocialUrls(contact.socialIds), "URL")
-		contactToVCardString += contact.role ? _getFoldedString("ROLE:" + _getVCardEscaped(contact.role)) + "\n" : ""
-		contactToVCardString += contact.company ? _getFoldedString("ORG:" + _getVCardEscaped(contact.company)) + "\n" : ""
-		contactToVCardString += contact.comment ? _getFoldedString("NOTE:" + _getVCardEscaped(contact.comment)) + "\n" : ""
-		contactToVCardString += "END:VCARD\n\n" //must be included in vCard3.0
-		vCardFile += contactToVCardString
+	allContacts.forEach((contact) => {
+		vCardFile += _contactToVCard(contact)
 	})
 	return vCardFile
 
+}
+
+/**
+ * Export for testing
+ */
+export function _contactToVCard(contact: Contact): string {
+	let contactToVCardString = "BEGIN:VCARD\nVERSION:3.0\n" //must be invcluded in vCard3.0
+	//FN tag must be included in vCard3.0
+	let fnString = "FN:"
+	fnString += contact.title ? _getVCardEscaped(contact.title) + " " : ""
+	fnString += contact.firstName ? _getVCardEscaped(contact.firstName) + " " : ""
+	fnString += contact.lastName ? _getVCardEscaped(contact.lastName) : ""
+	contactToVCardString += _getFoldedString(fnString.trim()) + "\n"
+
+	//N tag must be included in vCard3.0
+	let nString = "N:"
+	nString += contact.lastName ? _getVCardEscaped(contact.lastName) + ";" : ";"
+	nString += contact.firstName ? _getVCardEscaped(contact.firstName) + ";;" : ";;"
+	nString += contact.title ? _getVCardEscaped(contact.title) + ";" : ";"
+	contactToVCardString += _getFoldedString(nString) + "\n"
+
+	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname)) + "\n" : ""
+	//adds oldBirthday converted into a string if present else if available new birthday format is added to contactToVCardString
+	if (contact.birthday && contact.birthday.year) {
+		let day = Number(neverNull(contact.birthday).day)
+		let month = Number(neverNull(contact.birthday).month)
+		let year = Number(neverNull(neverNull(contact.birthday).year))
+		//month -1 because new birthday format is number string not a date. if month 09 is wanted input has to be 08.
+		contactToVCardString += "BDAY:" + formatSortableDate(new Date(year, month - 1, day)) + "\n"
+	} else if (contact.oldBirthday) {
+		contactToVCardString += "BDAY:" + formatSortableDate(contact.oldBirthday) + "\n"
+	}
+	contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.addresses), "ADR")
+	contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.mailAddresses), "EMAIL")
+	contactToVCardString += _vCardFormatArrayToString(_phoneNumbersToVCardPhoneNumbers(contact.phoneNumbers), "TEL")
+	contactToVCardString += _vCardFormatArrayToString(_socialIdsToVCardSocialUrls(contact.socialIds), "URL")
+	contactToVCardString += contact.role ? _getFoldedString("ROLE:" + _getVCardEscaped(contact.role)) + "\n" : ""
+	contactToVCardString += contact.company ? _getFoldedString("ORG:" + _getVCardEscaped(contact.company)) + "\n" : ""
+	contactToVCardString += contact.comment ? _getFoldedString("NOTE:" + _getVCardEscaped(contact.comment)) + "\n" : ""
+	contactToVCardString += "END:VCARD\n\n" //must be included in vCard3.0
+	return contactToVCardString
 }
 /**
  * export for testing

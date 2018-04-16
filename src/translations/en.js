@@ -1055,6 +1055,7 @@ module.exports = {
 		"secondMergeContact_label": "Contact 2",
 		"noVcardsFound_msg": "No vCards found.",
 		"exportVCard_action": "Export vCard",
-		"mergeAllSelectedContacts_msg": "Are you sure you want to merge the selected contacts?"
+		"mergeAllSelectedContacts_msg": "Are you sure you want to merge the selected contacts?",
+		"presharedPasswordsUnequal_msg": "The selected contacts have different agreed passwords. They can not be merged!"
 	}
 }

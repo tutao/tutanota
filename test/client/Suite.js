@@ -14,7 +14,7 @@ import "./mail/InboxRuleHandlerTest"
 import "./mail/MailUtilsTest"
 import "./misc/U2fClientTest"
 import "./contact/ContactUtilsTest"
-import "./misc/GetMergableContactsTest"
+import "./misc/ContactMergeUtilsTest"
 import o from "ospec/ospec.js"
 
 o.run()
