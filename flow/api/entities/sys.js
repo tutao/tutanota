@@ -260,6 +260,7 @@ type AccountingInfo = {
 	paymentMethod:?NumberString;
 	paymentMethodInfo:?string;
 	paymentProviderCustomerId:?string;
+	paypalBillingAgreement:?string;
 	secondCountryInfo:NumberString;
 
 	invoiceInfo:?Id;
@@ -1002,7 +1003,7 @@ type MailAddressAliasServiceDataDelete = {
 type PaymentDataServiceGetReturn = {
 	_type: TypeRef<PaymentDataServiceGetReturn>;
 	_format:NumberString;
-	clientToken:string;
+	loginUrl:string;
 
 }
 

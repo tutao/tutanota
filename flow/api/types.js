@@ -280,8 +280,5 @@ type InvoiceData = {
 }
 type PaymentData = {
 	paymentMethod:PaymentMethodTypeEnum;
-	paymentMethodInfo:?string;
-	paymentToken: ?string;
 	creditCardData:?CreditCardData;
-	payPalData: ?PayPalData;
 }

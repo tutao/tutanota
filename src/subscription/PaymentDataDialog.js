@@ -23,7 +23,7 @@ export function show(accountingInfo: AccountingInfo): Dialog {
 		paymentInterval: Number(accountingInfo.paymentInterval)
 	}
 
-	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country))
+	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo)
 	const availablePaymentMethods = paymentMethodInput.getAvailablePaymentMethods()
 
 	const selectedPaymentMethod: stream<PaymentMethodTypeEnum> = stream(availablePaymentMethods[0].value)

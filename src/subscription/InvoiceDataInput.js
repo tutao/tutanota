@@ -47,7 +47,6 @@ export class InvoiceDataInput {
 			m(".small", lang.get(subscriptionOptions.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoConsumer_msg")),
 			m(countryInput),
 			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
-
 		]
 	}
 

@@ -34,7 +34,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeAccountTypeD
 		this.updateWizardData = (data: UpgradeAccountTypeData) => {
 			this._upgradeData = data
 			this._invoiceDataInput = new InvoiceDataInput(upgradeData.subscriptionOptions, upgradeData.invoiceData)
-			this._paymentMethodInput = new PaymentMethodInput(upgradeData.subscriptionOptions, this._invoiceDataInput.selectedCountry)
+			this._paymentMethodInput = new PaymentMethodInput(upgradeData.subscriptionOptions, this._invoiceDataInput.selectedCountry, data.accountingInfo)
 			this._availablePaymentMethods = this._paymentMethodInput.getAvailablePaymentMethods()
 			this._paymentMethodSelector = new SegmentControl(this._availablePaymentMethods, this._selectedPaymentMethod, 130)
 				.setSelectionChangedHandler((selectedItem) => {

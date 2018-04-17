@@ -20,7 +20,8 @@ export type UpgradeAccountTypeData = {
 	invoiceData:InvoiceData,
 	paymentData:PaymentData,
 	proUpgrade:boolean,
-	price:string
+	price:string,
+	accountingInfo:AccountingInfo
 }
 
 export function show(): void {
@@ -39,14 +40,13 @@ export function show(): void {
 					vatNumber: accountingInfo.invoiceVatIdNo // only for EU countries otherwise empty
 				},
 				paymentData: {
-					paymentMethod: PaymentMethod.CreditCard,
-					paymentMethodInfo: null,
-					paymentToken: null,
+					paymentMethod: accountingInfo.paymentMethod ? accountingInfo.paymentMethod : PaymentMethod.CreditCard,
+					paymentMethodInfo: accountingInfo.paymentMethodInfo,
 					creditCardData: null,
-					payPalData: null
 				},
 				price: "",
-				proUpgrade: false
+				proUpgrade: false,
+				accountingInfo: accountingInfo
 			}
 
 			const wizardPages = [

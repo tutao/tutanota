@@ -321,8 +321,8 @@ export class CustomerFacade {
 						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
 						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
 						service.paymentMethod = paymentData ? paymentData.paymentMethod : (accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "")
-						service.paymentMethodInfo = paymentData ? paymentData.paymentMethodInfo : null
-						service.paymentToken = paymentData ? paymentData.paymentToken : null
+						service.paymentMethodInfo = null
+						service.paymentToken = null
 						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
 						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
 					})
