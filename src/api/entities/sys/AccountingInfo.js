@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
 export const _TypeModel: TypeModel = {
@@ -160,6 +159,15 @@ export const _TypeModel: TypeModel = {
 			"name": "paymentProviderCustomerId",
 			"id": 770,
 			"since": 9,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
+		"paypalBillingAgreement": {
+			"name": "paypalBillingAgreement",
+			"id": 1312,
+			"since": 30,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,

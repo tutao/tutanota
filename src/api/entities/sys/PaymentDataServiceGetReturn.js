@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const PaymentDataServiceGetReturnTypeRef: TypeRef<PaymentDataServiceGetReturn> = new TypeRef("sys", "PaymentDataServiceGetReturn")
 export const _TypeModel: TypeModel = {
@@ -21,8 +20,8 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"clientToken": {
-			"name": "clientToken",
+		"loginUrl": {
+			"name": "loginUrl",
 			"id": 792,
 			"since": 9,
 			"type": "String",
