@@ -280,5 +280,5 @@ type InvoiceData = {
 }
 type PaymentData = {
 	paymentMethod:PaymentMethodTypeEnum;
-	creditCardData:?CreditCardData;
+	creditCardData:?CreditCard;
 }

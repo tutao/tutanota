@@ -1008,6 +1008,7 @@ module.exports = {
 		"comparisonSearchPro_msg": "Unlimited search",
 		"comparisonLoginPro_msg": "Custom domain login",
 		"comparisonThemePro_msg": "Custom theme",
+		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
 
 		"invoiceData_msg": "Invoice data",
 		"next_action": "Next",
@@ -1024,7 +1025,7 @@ module.exports = {
 		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
 		"whitelabelDomainExisting_msg": "A whitelable domain is still existing. Please remove the whitelabel domain.",
 		"invoiceSettingDescription_msg": "List of all your existing invoices including payment status",
-		"payPalRedirect_msg" : "You will be redirected to the PayPal website",
+		"payPalRedirect_msg": "You will be redirected to the PayPal website",
 
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",
@@ -1040,7 +1041,8 @@ module.exports = {
 		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
 		"invoiceAddress_label": "Name and invoice address",
 		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website",
-		"paymentDataPayPalFinished_msg" : "Assigned paypal account: {accountAddress}",
+		"paymentDataPayPalFinished_msg": "Assigned paypal account: {accountAddress}",
+		"updatePaymentDataBusy_msg": "Verifying payment data ...",
 
 		// delete
 		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",

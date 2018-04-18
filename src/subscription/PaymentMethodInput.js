@@ -40,7 +40,7 @@ export class PaymentMethodInput {
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()
 		this._accountingInfo = accountingInfo;
-		
+
 		const accountingInfoListener = (typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
 			if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
 				load(AccountingInfoTypeRef, elementId).then(accountingInfo => {
@@ -101,7 +101,7 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod == PaymentMethodType.Paypal) {
 			return this.isPaypalAssigned() ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod == PaymentMethodType.CreditCard) {
-			return "paymentMethodNotAvailable_msg"
+			return null
 		}
 	}
 

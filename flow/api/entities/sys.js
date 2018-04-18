@@ -1022,6 +1022,7 @@ type PaymentDataServicePutData = {
 	paymentMethodInfo:?string;
 	paymentToken:?string;
 
+	creditCard:?CreditCard;
 }
 
 type PaymentDataServicePutReturn = {
@@ -1439,4 +1440,14 @@ type AdministratedGroupsRef = {
 	_id:Id;
 
 	items:Id;
+}
+
+type CreditCard = {
+	_type: TypeRef<CreditCard>;
+	_id:Id;
+	cvv:string;
+	expirationMonth:string;
+	expirationYear:string;
+	number:string;
+
 }

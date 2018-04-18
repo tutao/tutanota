@@ -13,6 +13,7 @@ import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {Button, ButtonType} from "../gui/base/Button"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -55,7 +56,12 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeAccountTypeD
 			} else {
 				this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
 				this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
-				this._pageActionHandler.showNext(this._upgradeData)
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.subscriptionOptions, this._upgradeData.invoiceData, this._upgradeData.paymentData, null).then(success => {
+					if (success) {
+						this._pageActionHandler.showNext(this._upgradeData)
+					}
+				}))
+
 			}
 		}).setType(ButtonType.Login)
 
@@ -123,6 +129,12 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 					Dialog.error("paymentProviderNotAvailable_msg");
 				} else if (statusCode == PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
 					Dialog.error("paymentAccountRejected_msg");
+				} else if (statusCode == PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
+					Dialog.error("creditCardExprationDateInvalid_msg");
+				} else if (statusCode == PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
+					Dialog.error("creditCardNumberInvalid_msg");
+				} else if (statusCode == PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
+					Dialog.error("invalidVatIdValidationFailed_msg");
 				} else {
 					Dialog.error("otherPaymentProviderError_msg");
 				}

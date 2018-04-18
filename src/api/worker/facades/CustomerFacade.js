@@ -323,6 +323,9 @@ export class CustomerFacade {
 						service.paymentMethod = paymentData ? paymentData.paymentMethod : (accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "")
 						service.paymentMethodInfo = null
 						service.paymentToken = null
+						if (paymentData && paymentData.creditCardData) {
+							service.creditCard = paymentData.creditCardData
+						}
 						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
 						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
 					})

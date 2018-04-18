@@ -15,7 +15,6 @@ import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeDialog"
-import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
@@ -42,18 +41,14 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 			serviceData.accountType = AccountType.PREMIUM
 			// serviceData.proUpgrade = subscriptionOptions.proUpgrade
 			serviceData.date = Const.CURRENT_DATE
-			updatePaymentData(this._upgradeData.subscriptionOptions, this._upgradeData.invoiceData, this._upgradeData.paymentData, null).then(success => {
-				if (success) {
-					showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
-						return worker.switchFreeToPremiumGroup()
-					})).then(() => {
-						this._pageActionHandler.showNext(this._upgradeData)
-					}).catch(PreconditionFailedError => {
-						Dialog.error("paymentProviderTransactionFailedError_msg")
-					}).catch(BadGatewayError => {
-						Dialog.error("paymentProviderNotAvailableError_msg")
-					})
-				}
+			showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
+				return worker.switchFreeToPremiumGroup()
+			})).then(() => {
+				this._pageActionHandler.showNext(this._upgradeData)
+			}).catch(PreconditionFailedError => {
+				Dialog.error("paymentProviderTransactionFailedError_msg")
+			}).catch(BadGatewayError => {
+				Dialog.error("paymentProviderNotAvailableError_msg")
 			})
 		}).setType(ButtonType.Login)
 
