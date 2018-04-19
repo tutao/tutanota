@@ -1052,6 +1052,9 @@ module.exports = {
 		"creditCardCardHolderName_label": "Card holder name",
 		"creditCardCardHolderName_msg": "Please enter card holder name.",
 
+		"keepSubscription_msg": "Keep the current subscription including all benefits.",
+		"downgradeSubscription_msg": "Downgrade to a free subscription without additional users and storage.",
+
 		"mergeContacts_action": "Merge contacts",
 		"merge_action": "Merge",
 		"next_action": "Next",

@@ -302,10 +302,29 @@ export class CustomerFacade {
 				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
 			})
 		}).catch(e => {
-			console.log("error switching free to premium group", e);
+			console.log(e)
+			throw new Error("error switching free to premium group")
 		})
 	}
 
+	switchPremiumToFreeGroup(): Promise<void> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
+			let membershipAddData = createMembershipAddData()
+			membershipAddData.user = this._login.getLoggedInUser()._id
+			membershipAddData.group = neverNull(keyData.freeGroup)
+			membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+
+			return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+				let membershipRemoveData = createMembershipRemoveData()
+				membershipRemoveData.user = this._login.getLoggedInUser()._id
+				membershipRemoveData.group = neverNull(keyData.premiumGroup)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+			})
+		}).catch(e => {
+			console.log(e)
+			throw new Error("error switching free to premium group")
+		})
+	}
 
 	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {

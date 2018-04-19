@@ -12,7 +12,7 @@ import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeDialog"
+import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeWizard"
 import type {WizardPageActionHandler, WizardPage} from "../gui/base/WizardDialog"
 
 
@@ -26,7 +26,7 @@ type UpgradeBox = {
 	paymentInterval:stream<SegmentControlItem<number>>
 }
 
-export class ChooseAccountTypePage implements WizardPage<UpgradeAccountTypeData> {
+export class UpgradeAccountTypePage implements WizardPage<UpgradeAccountTypeData> {
 	view: Function;
 	_premiumUpgradeBox: UpgradeBox;
 	_proUpgradeBox: UpgradeBox;

@@ -27,7 +27,7 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import * as UpgradeDialog from "../subscription/UpgradeAccountTypeDialog"
+import * as UpgradeWizard from "../subscription/UpgradeAccountTypeWizard"
 
 assertMainOrNode()
 
@@ -202,7 +202,7 @@ export function showNotAvailableForFreeDialog() {
 		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing").then(confirmed => {
 			if (confirmed) {
-				UpgradeDialog.show()
+				UpgradeWizard.show()
 			}
 		})
 	}

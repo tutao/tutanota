@@ -124,6 +124,9 @@ export class WorkerImpl {
 			switchFreeToPremiumGroup(message: Request): Promise<void> {
 				return locator.customer.switchFreeToPremiumGroup.apply(locator.customer, message.args)
 			},
+			switchPremiumToFreeGroup(message: Request): Promise<void> {
+				return locator.customer.switchPremiumToFreeGroup.apply(locator.customer, message.args)
+			},
 			updatePaymentData(message: Request): Promise<PaymentDataServicePutReturn> {
 				return locator.customer.updatePaymentData.apply(locator.customer, message.args)
 			},

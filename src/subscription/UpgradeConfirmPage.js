@@ -14,7 +14,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
-import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeDialog"
+import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeWizard"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {

@@ -11,7 +11,7 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import {WizardDialog} from "../gui/base/WizardDialog"
 import {InvoiceAndPaymentDataPage} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage} from "./UpgradeConfirmPage"
-import {ChooseAccountTypePage} from "./ChooseAccountTypePage"
+import {UpgradeAccountTypePage} from "./UpgradeAccountTypePage"
 import {formatNameAndAddress} from "../misc/Formatter"
 
 assertMainOrNode()
@@ -50,7 +50,7 @@ export function show(): void {
 			}
 
 			const wizardPages = [
-				new ChooseAccountTypePage(upgradeData),
+				new UpgradeAccountTypePage(upgradeData),
 				new InvoiceAndPaymentDataPage(upgradeData),
 				new UpgradeConfirmPage(upgradeData)
 			]

@@ -15,7 +15,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
-import {Dialog} from "../gui/base/Dialog"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {formatPriceDataWithInfo, getCurrentCount, createNotAvailableForFreeButton} from "./PriceUtils"
 import {formatDate, formatStorageSize, formatNameAndAddress} from "../misc/Formatter"
@@ -29,7 +28,8 @@ import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
 import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
-import * as UpgradeDialog from "./UpgradeAccountTypeDialog"
+import * as UpgradeWizard from "./UpgradeAccountTypeWizard"
+import {showDowngradeDialog} from "./DowngradeDialog"
 assertMainOrNode()
 
 export class SubscriptionViewer {
@@ -55,9 +55,9 @@ export class SubscriptionViewer {
 		this._accountTypeField = new TextField("accountType_label")
 		let accountTypeAction = new Button("accountType_label", () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
-				Dialog.error("unsubscribePremium_label")
+				showDowngradeDialog()
 			} else if (logins.getUserController().user.accountType == AccountType.FREE) {
-				UpgradeDialog.show()
+				UpgradeWizard.show()
 			}
 		}, () => Icons.Edit)
 		this._accountTypeField._injectionsRight = () => logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount() ? [m(accountTypeAction)] : []
