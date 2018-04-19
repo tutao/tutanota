@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const PaymentDataServicePutDataTypeRef: TypeRef<PaymentDataServicePutData> = new TypeRef("sys", "PaymentDataServicePutData")
 export const _TypeModel: TypeModel = {
@@ -115,7 +114,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"creditCard": {
 			"name": "creditCard",
-			"id": 1319,
+			"id": 1320,
 			"since": 30,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",

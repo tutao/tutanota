@@ -1445,9 +1445,17 @@ type AdministratedGroupsRef = {
 type CreditCard = {
 	_type: TypeRef<CreditCard>;
 	_id:Id;
+	cardHolderName:string;
 	cvv:string;
 	expirationMonth:string;
 	expirationYear:string;
 	number:string;
+
+}
+
+type LocationServiceGetReturn = {
+	_type: TypeRef<LocationServiceGetReturn>;
+	_format:NumberString;
+	country:string;
 
 }

@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
 export const _TypeModel: TypeModel = {

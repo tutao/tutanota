@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const CreateFolderReturnTypeRef: TypeRef<CreateFolderReturn> = new TypeRef("tutanota", "CreateFolderReturn")
 export const _TypeModel: TypeModel = {

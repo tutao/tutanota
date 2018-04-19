@@ -273,7 +273,6 @@ type PayPalData = {
 	account:string
 }
 type InvoiceData = {
-	invoiceName:string;
 	invoiceAddress:string;
 	country: ?Country;
 	vatNumber:string; // only for EU countries otherwise empty

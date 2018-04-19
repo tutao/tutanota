@@ -1,30 +1,30 @@
 // @flow
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const CustomerInfoReturnTypeRef: TypeRef<CustomerInfoReturn> = new TypeRef("sys", "CustomerInfoReturn")
+export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 export const _TypeModel: TypeModel = {
-	"name": "CustomerInfoReturn",
-	"since": 1,
+	"name": "LocationServiceGetReturn",
+	"since": 30,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 550,
-	"rootId": "A3N5cwACJg",
+	"id": 1321,
+	"rootId": "A3N5cwAFKQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 551,
-			"since": 1,
+			"id": 1322,
+			"since": 30,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"sendMailDisabled": {
-			"name": "sendMailDisabled",
-			"id": 552,
-			"since": 1,
-			"type": "Boolean",
+		"country": {
+			"name": "country",
+			"id": 1323,
+			"since": 30,
+			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -35,6 +35,6 @@ export const _TypeModel: TypeModel = {
 	"version": "30"
 }
 
-export function createCustomerInfoReturn(): CustomerInfoReturn {
+export function createLocationServiceGetReturn(): LocationServiceGetReturn {
 	return create(_TypeModel)
 }

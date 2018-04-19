@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const CreditCardTypeRef: TypeRef<CreditCard> = new TypeRef("sys", "CreditCard")
 export const _TypeModel: TypeModel = {
@@ -21,9 +20,18 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"cardHolderName": {
+			"name": "cardHolderName",
+			"id": 1315,
+			"since": 30,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"cvv": {
 			"name": "cvv",
-			"id": 1316,
+			"id": 1317,
 			"since": 30,
 			"type": "String",
 			"cardinality": "One",
@@ -32,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"expirationMonth": {
 			"name": "expirationMonth",
-			"id": 1317,
+			"id": 1318,
 			"since": 30,
 			"type": "String",
 			"cardinality": "One",
@@ -41,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"expirationYear": {
 			"name": "expirationYear",
-			"id": 1318,
+			"id": 1319,
 			"since": 30,
 			"type": "String",
 			"cardinality": "One",
@@ -50,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"number": {
 			"name": "number",
-			"id": 1315,
+			"id": 1316,
 			"since": 30,
 			"type": "String",
 			"cardinality": "One",
