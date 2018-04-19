@@ -12,6 +12,7 @@ import {WizardDialog} from "../gui/base/WizardDialog"
 import {InvoiceAndPaymentDataPage} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage} from "./UpgradeConfirmPage"
 import {ChooseAccountTypePage} from "./ChooseAccountTypePage"
+import {formatNameAndAddress} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -34,8 +35,7 @@ export function show(): void {
 					paymentInterval: Number(accountingInfo.paymentInterval)
 				},
 				invoiceData: {
-					invoiceName: accountingInfo.invoiceName,
-					invoiceAddress: accountingInfo.invoiceAddress,
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 					country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 					vatNumber: accountingInfo.invoiceVatIdNo // only for EU countries otherwise empty
 				},

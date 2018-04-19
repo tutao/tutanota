@@ -18,7 +18,7 @@ import {isSameTypeRef, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityF
 import {Dialog} from "../gui/base/Dialog"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {formatPriceDataWithInfo, getCurrentCount, createNotAvailableForFreeButton} from "./PriceUtils"
-import {formatDate, formatStorageSize} from "../misc/Formatter"
+import {formatDate, formatStorageSize, formatNameAndAddress} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {SysService} from "../api/entities/sys/Services"
@@ -168,8 +168,7 @@ export class SubscriptionViewer {
 					proUpgrade: false,
 					price: ""
 				}, {
-					invoiceName: accountingInfo.invoiceName,
-					invoiceAddress: accountingInfo.invoiceAddress,
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 					country: invoiceCountry,
 					vatNumber: accountingInfo.invoiceVatIdNo
 				},

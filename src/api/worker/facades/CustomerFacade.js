@@ -316,7 +316,7 @@ export class CustomerFacade {
 						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
 						service.business = subscriptionOptions.businessUse
 						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
-						service.invoiceName = invoiceData.invoiceName
+						service.invoiceName = ""
 						service.invoiceAddress = invoiceData.invoiceAddress
 						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
 						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""

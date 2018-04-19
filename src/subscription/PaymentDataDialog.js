@@ -8,12 +8,12 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {px} from "../gui/size"
+import {formatNameAndAddress} from "../misc/Formatter"
 
 export function show(accountingInfo: AccountingInfo): Dialog {
 
 	let invoiceData = {
-		invoiceName: accountingInfo.invoiceName,
-		invoiceAddress: accountingInfo.invoiceAddress,
+		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo
 	}

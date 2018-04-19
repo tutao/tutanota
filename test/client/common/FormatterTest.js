@@ -11,7 +11,6 @@ import {
 	fullNameToFirstAndLastName,
 	mailAddressToFirstAndLastName,
 	isRegularExpression,
-	parseInvoiceNameAndAddress,
 	formatNameAndAddress
 } from "../../../src/misc/Formatter"
 
@@ -199,15 +198,7 @@ o.spec("FormatterTest", function () {
 	})
 
 
-	o("parseInvoiceNameAndAddress", function () {
-		o(parseInvoiceNameAndAddress("")).deepEquals({name: "", address: ""})
-		o(parseInvoiceNameAndAddress("\n\n")).deepEquals({name: "", address: ""})
-		o(parseInvoiceNameAndAddress("\nBernd\n")).deepEquals({name: "Bernd", address: ""})
-		o(parseInvoiceNameAndAddress("\nBernd\nHanomaghof 2\n\n30449 Hannover\n\n")).deepEquals({
-			name: "Bernd",
-			address: "Hanomaghof 2\n30449 Hannover"
-		})
-
+	o("formatNameAndAddress", function () {
 		o(formatNameAndAddress("", "")).equals("")
 		o(formatNameAndAddress("Bernd", "")).equals("Bernd")
 		o(formatNameAndAddress("Bernd", "")).equals("Bernd")

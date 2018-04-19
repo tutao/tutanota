@@ -319,19 +319,6 @@ export function urlEncodeHtmlTags(text: string) {
 		.replace(/'/g, "&#039;")
 }
 
-export function parseInvoiceNameAndAddress(nameAndAddress: string): {name:string, address:string} {
-	let lines = nameAndAddress.trim().split("\n").filter(line => line.trim() != "")
-	let name = ""
-	let address = ""
-	if (lines.length > 0) {
-		name = lines[0]
-	}
-	if (lines.length > 1) {
-		address = lines.slice(1).join("\n")
-	}
-	return {name, address}
-}
-
 export function formatNameAndAddress(name: string, address: string): string {
 	return name != "" ? name + (address != "" ? "\n" : "") + address : address
 }

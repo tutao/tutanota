@@ -74,14 +74,9 @@ export class InvoiceViewer {
 						businessUse: accountingInfo.business,
 						paymentInterval: Number(accountingInfo.paymentInterval)
 					}, {
-						invoiceName: accountingInfo.invoiceName,
-						invoiceAddress: accountingInfo.invoiceAddress,
+						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 						country: invoiceCountry,
-						vatNumber: accountingInfo.invoiceVatIdNo,
-						paymentMethod: null,
-						paymentMethodInfo: "",
-						creditCardData: null,
-						payPalData: null
+						vatNumber: accountingInfo.invoiceVatIdNo
 					}
 				)
 			}

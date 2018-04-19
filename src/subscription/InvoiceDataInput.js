@@ -6,7 +6,6 @@ import stream from "mithril/stream/stream.js"
 import {TextField} from "../gui/base/TextField"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {parseInvoiceNameAndAddress, formatNameAndAddress} from "../misc/Formatter"
 import {serviceRequest} from "../api/main/Entity"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {SysService} from "../api/entities/sys/Services"
@@ -43,13 +42,13 @@ export class InvoiceDataInput {
 			this.selectedCountry(value)
 		})
 
-		this._invoiceAddressComponent.setValue(formatNameAndAddress(invoiceData.invoiceName, invoiceData.invoiceAddress))
+		this._invoiceAddressComponent.setValue(invoiceData.invoiceAddress)
 		this._vatNumberField.setValue(invoiceData.vatNumber)
 		this.selectedCountry(invoiceData.country)
 
 		this.view = () => [
 			m(".pt", m(this._invoiceAddressComponent)),
-			m(".small", lang.get(subscriptionOptions.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoConsumer_msg")),
+			m(".small", lang.get("invoiceAddressInput_msg")),
 			m(countryInput),
 			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
 		]
@@ -68,22 +67,19 @@ export class InvoiceDataInput {
 	}
 
 	validateInvoiceData(): ? string {
-		let nameAndAddress = parseInvoiceNameAndAddress(this._invoiceAddressComponent.getValue())
+		let address = this._getAddress()
 		if (this._subscriptionOptions.businessUse) {
-			if (nameAndAddress.name == "") {
-				return "invoiceRecipientInfoBusiness_msg";
-			} else if (nameAndAddress.address == "" || (nameAndAddress.address.match(/\n/g) || []).length > 3) {
+			if (address.trim() == "" && address.split('\n').length > 4) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"
 			} else if (this._isVatIdFieldVisible() && this._vatNumberField.value().trim() == "") {
 				return "invoiceVatIdNoInfoBusiness_msg"
 			}
-		}
-		else {
+		} else {
 			if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg" // use business text here because it fits better
-			} else if ((nameAndAddress.address.match(/\n/g) || []).length > 3) {
+			} else if (address.split('\n').length > 4) {
 				return "invoiceAddressInfoBusiness_msg"
 			}
 		}
@@ -96,12 +92,18 @@ export class InvoiceDataInput {
 	}
 
 	getInvoiceData(): InvoiceData {
-		let nameAndAddress = parseInvoiceNameAndAddress(this._invoiceAddressComponent.getValue())
+		let address = this._getAddress()
 		return {
-			invoiceName: nameAndAddress.name,
-			invoiceAddress: nameAndAddress.address,
+			invoiceAddress: address,
 			country: this.selectedCountry(),
 			vatNumber: (this.selectedCountry() && this.selectedCountry().t == CountryType.EU) ? this._vatNumberField.value() : ""
 		}
 	}
+
+	_getAddress(): string {
+		const address = this._invoiceAddressComponent.getValue()
+		return address.split('\n').filter(line => line.trim().length > 0).join('\n')
+	}
+
+
 }

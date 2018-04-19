@@ -206,14 +206,14 @@ module.exports = {
 		"createSearchIndex_msg": "Creating search index {progress}%.",
 		"createUsers_label": "Create users",
 		"creditCardCVVFormatDetails_label": "Please enter the {1} digit {2} code of your {3} card.",
-		"creditCardCVVFormat_label": "Please enter the 3 or 4 digit security code.",
+
 		"creditCardCVVInvalid_msg": "Security code is invalid.",
 		"creditCardCVV_label": "Security code",
 		"creditCardData_label": "Credit card data",
 
 
 		"creditCardExprationDateInvalid_msg": "Expiration date is invalid.",
-		"creditCardNumberFormat_msg": "Please enter your credit card number.",
+
 		"creditCardNumberInvalid_msg": "Credit card number is invalid.",
 
 		"currentlyBooked_label": "Booking overview",
@@ -986,6 +986,29 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"recipientNotResolvedTooManyRequests_msg": "The recipient could not be resolved because there were too many requests. Please try to send this email later.",
+		"creditCardCVVFormat_label": "Please enter the 3 or 4 digit security code.",
+		"creditCardNumberFormat_msg": "Please enter your credit card number.",
+
+		// delete
+		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",
+		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
+		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
+		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address (max. 5 rows).",
+		"invoiceAddressInfoConsumer_msg": "Optional (max. 5 rows).",
+
+		// existing translations - delete in phrase app and create new ones
+		"creditCardNumber_label": "Credit card number",
+		"creditCardExpirationDate_label": "Expiration date",
+		"invoiceAddressInput_msg": "Max. 5 rows",
+
+		"adminPayment_action": "Payment",
+		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
+		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
+		"invoiceAddress_label": "Name and invoice address",
+		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website",
+		"paymentDataPayPalFinished_msg": "Assigned paypal account: {accountAddress}",
+		"updatePaymentDataBusy_msg": "Verifying payment data ...",
+		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 
 		// new translations
 		"comparisonUsersFree_msg": "One user",
@@ -1026,28 +1049,8 @@ module.exports = {
 		"whitelabelDomainExisting_msg": "A whitelable domain is still existing. Please remove the whitelabel domain.",
 		"invoiceSettingDescription_msg": "List of all your existing invoices including payment status",
 		"payPalRedirect_msg": "You will be redirected to the PayPal website",
-
-		// existing translations - delete in phrase app and create new ones
-		"creditCardNumber_label": "Credit card number",
-		"creditCardExpirationDate_label": "Expiration date",
-
-		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address (max. 5 rows).",
-		"invoiceAddressInfoConsumer_msg": "Optional: You can enter a name and your invoice address (max. 5 rows).",
-		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
-
-		"adminPayment_action": "Payment",
-
-		"invoiceCountryInfoBusiness_msg": "Please choose your country of residence.",
-		"invoiceCountryInfoConsumer_msg": "This is needed to calculate value-added tax.",
-		"invoiceAddress_label": "Name and invoice address",
-		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website",
-		"paymentDataPayPalFinished_msg": "Assigned paypal account: {accountAddress}",
-		"updatePaymentDataBusy_msg": "Verifying payment data ...",
-
-		// delete
-		"invoiceRecipientInfoBusiness_msg": "Please enter the recipient to be shown on your invoices, e.g. your company name.",
-		"invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown on your invoices.",
-		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
+		"creditCardCardHolderName_label": "Card holder name",
+		"creditCardCardHolderName_msg": "Please enter card holder name.",
 
 		"mergeContacts_action": "Merge contacts",
 		"merge_action": "Merge",

@@ -101,7 +101,16 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod == PaymentMethodType.Paypal) {
 			return this.isPaypalAssigned() ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod == PaymentMethodType.CreditCard) {
-			return null
+			let cc = this._creditCardComponent.getCreditCardData()
+			if (cc.cardHolderName == "") {
+				return "creditCardCardHolderName_msg"
+			} else if (cc.number == "") {
+				return "creditCardNumberFormat_msg"
+			} else if (cc.cvv = "") {
+				return "creditCardCVVFormat_label"
+			} else if (cc.expirationMonth.length != 2 || cc.expirationYear.length != 4) {
+				return "creditCardExprationDateInvalid_msg"
+			}
 		}
 	}
 
