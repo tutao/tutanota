@@ -15,6 +15,7 @@ import {worker} from "../api/main/WorkerClient"
 import {Button, ButtonType} from "../gui/base/Button"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
+
 /**
  * Wizard page for editing invoice and payment data.
  */

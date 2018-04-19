@@ -7,9 +7,14 @@ import {TextField} from "../gui/base/TextField"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {parseInvoiceNameAndAddress, formatNameAndAddress} from "../misc/Formatter"
+import {serviceRequest} from "../api/main/Entity"
+import {HttpMethod} from "../api/common/EntityFunctions"
+import {SysService} from "../api/entities/sys/Services"
+import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
 
 export class InvoiceDataInput {
 	view: Function;
+	oncreate: Function;
 	selectedCountry: stream<?Country>;
 	_invoiceAddressComponent: HtmlEditor;
 	_vatNumberField: TextField;
@@ -48,6 +53,18 @@ export class InvoiceDataInput {
 			m(countryInput),
 			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
 		]
+
+		this.oncreate = () => {
+			serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef).then((location: LocationServiceGetReturn) => {
+				if (!this.selectedCountry()) {
+					let country = Countries.find(c => c.a == location.country)
+					if (country) {
+						this.selectedCountry(country)
+						m.redraw()
+					}
+				}
+			})
+		}
 	}
 
 	validateInvoiceData(): ? string {
