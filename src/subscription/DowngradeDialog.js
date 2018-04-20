@@ -49,9 +49,6 @@ export function showDowngradeDialog() {
 	})
 	dialog.show()
 
-	// accountSwitchAdditionalPackagesActive_msg
-	// accountSwitchTooManyActiveUsers_msg
-	// deactivatePremiumWithCustomDomainError_msg
 }
 
 function cancelSubscription(dialog: Dialog) {
@@ -67,5 +64,6 @@ function cancelSubscription(dialog: Dialog) {
 				.catch(PreconditionFailedError, e => Dialog.error("accountSwitchAdditionalPackagesActive_msg"))
 				.finally(() => dialog.close())
 		}
+		// TODO deactivatePremiumWithCustomDomainError_msg ?
 	})
 }

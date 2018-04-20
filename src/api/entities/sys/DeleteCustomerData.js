@@ -20,6 +20,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"authVerifier": {
+			"name": "authVerifier",
+			"id": 1325,
+			"since": 30,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"reason": {
 			"name": "reason",
 			"id": 644,

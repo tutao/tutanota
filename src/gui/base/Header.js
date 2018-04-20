@@ -14,7 +14,7 @@ import type {MailEditor} from "../../mail/MailEditor"
 import {Mode, assertMainOrNodeBoot} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 
-const LogoutUrl = '/login?noAutoLogin=true'
+export const LogoutUrl = '/login?noAutoLogin=true'
 
 assertMainOrNodeBoot()
 

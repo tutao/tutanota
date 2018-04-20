@@ -160,6 +160,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('changePassword', arguments))
 	}
 
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		return this._postRequest(new Request('deleteAccount', arguments))
+	}
+
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
 		return this._postRequest(new Request('createMailFolder', arguments))
 	}

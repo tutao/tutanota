@@ -41,6 +41,7 @@ import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingEr
 import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
+import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 
 assertWorkerOrNode()
 
@@ -426,6 +427,20 @@ export class LoginFacade {
 		service.pwEncUserGroupKey = pwEncUserGroupKey
 		this._authVerifierAfterNextRequest = authVerifierBase64Url
 		return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, service)
+	}
+
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		let d = createDeleteCustomerData()
+		d.authVerifier = createAuthVerifier(generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128))
+		d.undelete = false
+		d.customer = neverNull(neverNull(this._user).customer)
+		d.reason = reason
+		if (takeover != "") {
+			d.takeoverMailAddress = takeover
+		} else {
+			d.takeoverMailAddress = null
+		}
+		return serviceRequestVoid(SysService.CustomerService, HttpMethod.DELETE, d)
 	}
 
 	tryReconnectEventBus(): Promise<void> {

@@ -776,6 +776,7 @@ type PushIdentifierList = {
 type DeleteCustomerData = {
 	_type: TypeRef<DeleteCustomerData>;
 	_format:NumberString;
+	authVerifier:?Uint8Array;
 	reason:string;
 	takeoverMailAddress:?string;
 	undelete:boolean;

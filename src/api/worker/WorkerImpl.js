@@ -69,6 +69,9 @@ export class WorkerImpl {
 			changePassword: (message: Request) => {
 				return locator.login.changePassword.apply(locator.login, message.args)
 			},
+			deleteAccount: (message: Request) => {
+				return locator.login.deleteAccount.apply(locator.login, message.args)
+			},
 			createMailFolder: (message: Request) => {
 				return locator.mail.createMailFolder.apply(locator.mail, message.args)
 			},
