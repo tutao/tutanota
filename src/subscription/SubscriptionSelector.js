@@ -40,8 +40,8 @@ export class SubscriptionSelector {
 		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [this._premiumUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules"])
-		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [this._proUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonLogin", "comparisonTheme"])
+		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [this._premiumUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport"])
+		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [this._proUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"])
 
 		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
 		this._monthlyPrice = new LazyLoaded(() => {
@@ -80,6 +80,10 @@ export class SubscriptionSelector {
 			() => {
 				return this._getOptions(featurePrefixes(), title)
 			}, 230, 240)
+
+		if (!proUpgrade) {
+			buyOptionBox.selected = true
+		}
 
 		buyOptionBox.setValue(lang.get("emptyString_msg"))
 		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))

@@ -1025,6 +1025,7 @@ module.exports = {
 		"comparisonDomainPremium_msg": "Custom domains",
 		"comparisonInboxRulesPremium_msg": "Inbox rules",
 		"comparisonSearchPremium_msg": "Unlimited search",
+		"comparisonSupportPremium_msg": "Support via E-Mail",
 
 		"comparisonUsersPro_msg": "Add users 2 €/month",
 		"comparisonUsersMonthlyPaymentPro_msg": "Add users 2,40 €/month",
@@ -1033,8 +1034,11 @@ module.exports = {
 		"comparisonDomainPro_msg": "Custom domains",
 		"comparisonInboxRulesPro_msg": "Inbox rules",
 		"comparisonSearchPro_msg": "Unlimited search",
+		"comparisonSupportPro_msg": "Professional Support",
 		"comparisonLoginPro_msg": "Custom domain login",
 		"comparisonThemePro_msg": "Custom theme",
+		"comparisonContactFormPro_msg": "Contact forms",
+
 		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
 
 		"invoiceData_msg": "Invoice data",
