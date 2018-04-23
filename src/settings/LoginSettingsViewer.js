@@ -45,7 +45,7 @@ export class LoginSettingsViewer {
 			showDeleteAccountDialog()
 		}).setType(ButtonType.Login)
 		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
-			view: () => m(deleteButton)
+			view: () => m(".flex-center", m("", {style: {"width": '200px'}}, m(deleteButton)))
 		}), false)
 
 

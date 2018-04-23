@@ -12,9 +12,6 @@ module.exports = {
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
 		"accountSettings_label": "Account",
-		"accountSwitchAdditionalPackagesActive_msg": "Please deactivate the booked storage or alias package and disable all email aliases before switching the account type.",
-		"accountSwitchTooManyActiveUsers_msg": "Please deactivate all additional users before switching the account type.",
-		"accountType_label": "Account type",
 		"account_label": "User",
 		"action_label": "Action",
 		"activated_label": "Activated",
@@ -713,7 +710,6 @@ module.exports = {
 		"priceChangeValidFrom_label": "Price change will take effect on {1}.",
 		"priceExcludesTaxes_msg": "Net price.",
 		"priceForCurrentAccountingPeriod_label": "Pro rata price for current subscription period is {1}.",
-		"priceIncludesTaxes_msg": "Price includes taxes.",
 		"price_label": "Price",
 		"privacyLink_label": "Privacy policy",
 		"privateKeyInfo_msg": "Please select the file with the certificate's private key in PEM format (base64 encoded).",
@@ -995,6 +991,7 @@ module.exports = {
 		"nextSubscriptionPeriodInBrackets_msg": "The values shown in brackets are valid for the subscription period after the current one.",
 		"invoiceAddressInfoBusiness_msg": "Please enter your invoice name and address (max. 5 rows).",
 		"invoiceAddressInfoConsumer_msg": "Optional (max. 5 rows).",
+		"accountType_label": "Account type",
 
 		// existing translations - delete in phrase app and create new ones
 		"creditCardNumber_label": "Credit card number",
@@ -1010,6 +1007,11 @@ module.exports = {
 		"updatePaymentDataBusy_msg": "Verifying payment data ...",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 
+		"accountSwitchAdditionalPackagesActive_msg": "Please deactivate the booked storage or alias package and disable all email aliases before switching the subscription.",
+		"accountSwitchTooManyActiveUsers_msg": "Please deactivate all additional users before switching the subscription.",
+
+		"priceIncludesTaxes_msg": "Base price including taxes.",
+
 		// new translations
 		"comparisonUsersFree_msg": "One user",
 		"comparisonStorageFree_msg": "1 GB storage capacity",
@@ -1017,6 +1019,7 @@ module.exports = {
 		"comparisonSearchFree_msg": "Limited search",
 
 		"comparisonUsersPremium_msg": "Add users 1 €/month",
+		"comparisonUsersMonthlyPaymentPremium_msg": "Add users 1,20 €/month",
 		"comparisonAliasPremium_msg": "5 aliases",
 		"comparisonStoragePremium_msg": "1 GB storage capacity",
 		"comparisonDomainPremium_msg": "Custom domains",
@@ -1024,6 +1027,7 @@ module.exports = {
 		"comparisonSearchPremium_msg": "Unlimited search",
 
 		"comparisonUsersPro_msg": "Add users 2 €/month",
+		"comparisonUsersMonthlyPaymentPro_msg": "Add users 2,40 €/month",
 		"comparisonAliasPro_msg": "20 aliases",
 		"comparisonStoragePro_msg": "10 GB storage capacity",
 		"comparisonDomainPro_msg": "Custom domains",
@@ -1043,7 +1047,7 @@ module.exports = {
 		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment by yourself. The invoice amount will not be debited automatically.",
 
 		"upgradeConfirm_msg": "Confirm your order!",
-		"nextSubscriptionPrice_msg": "The second price is valid for the subscription period after the current one.",
+		"nextSubscriptionPrice_msg": "This price is valid for the next subscription period after the current one.",
 		"amountUsedOf_label": "{amount} used of {totalAmount}",
 		"amountUsedAndActivatedOf_label": "{used} used, {active} activated of {totalAmount}",
 		"whitelabelDomainExisting_msg": "A whitelable domain is still existing. Please remove the whitelabel domain.",
@@ -1054,6 +1058,14 @@ module.exports = {
 
 		"keepSubscription_msg": "Keep the current subscription including all benefits.",
 		"downgradeSubscription_msg": "Downgrade to a free subscription without additional users and storage.",
+		"downgradeToPremium_msg": "Your account will be downgraded to a premium account with 5 aliases, 1 GB of storage and without custom domain login and themes.",
+		"upgradePro_msg": "Your account will be upgraded to a pro account.",
+		"upgrade_action": "Upgrade",
+		"unsubscribeConfirm_msg": "Do you really want to unsubscribe from Tutanota?",
+		"cancelledBy_label": "(cancelled by {endOfSubscriptionPeriod})",
+		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
+		"priceTill_label": "Price till {date}",
+		"priceFrom_label": "Price from {date}",
 
 		"mergeContacts_action": "Merge contacts",
 		"merge_action": "Merge",

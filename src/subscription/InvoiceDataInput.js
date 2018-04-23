@@ -69,7 +69,7 @@ export class InvoiceDataInput {
 	validateInvoiceData(): ? string {
 		let address = this._getAddress()
 		if (this._subscriptionOptions.businessUse) {
-			if (address.trim() == "" && address.split('\n').length > 4) {
+			if (address.trim() == "" || address.split('\n').length > 5) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"

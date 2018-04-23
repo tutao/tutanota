@@ -21,6 +21,15 @@ import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
+export function buyStorage(amount: number): Promise<void> {
+	const bookingData = createBookingServiceData()
+	bookingData.amount = amount.toString()
+	bookingData.featureType = BookingItemFeatureType.Storage
+	bookingData.date = Const.CURRENT_DATE
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).catch(PreconditionFailedError, error => {
+		return Dialog.error("storageCapacityTooManyUsedForBooking_msg")
+	})
+}
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -32,14 +41,8 @@ export function show(): Promise<void> {
 					dialog.close()
 					BuyDialog.show(BookingItemFeatureType.Storage, amount, freeStorageCapacity, false).then(confirm => {
 						if (confirm) {
-							const bookingData = createBookingServiceData()
-							bookingData.amount = amount.toString()
-							bookingData.featureType = BookingItemFeatureType.Storage
-							bookingData.date = Const.CURRENT_DATE
-							return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+							return buyStorage(amount)
 						}
-					}).catch(PreconditionFailedError, error => {
-						return Dialog.error("storageCapacityTooManyUsedForBooking_msg")
 					}).then(() => {
 						callback(null, null)
 					})
@@ -81,7 +84,7 @@ export function show(): Promise<void> {
 function createStorageCapacityBox(amount: number, freeAmount: number, buyAction: (amount: number) => void, actionId: string = "buy_action"): {amount:number, buyOptionBox:BuyOptionBox} {
 	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "choose_action",
 		() => buyAction(amount),
-		[], 230, 240)
+		() => [], 230, 240)
 
 	buyOptionBox.setValue(lang.get("emptyString_msg"))
 	buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))

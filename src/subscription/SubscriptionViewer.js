@@ -28,17 +28,20 @@ import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
 import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
-import * as UpgradeWizard from "./UpgradeAccountTypeWizard"
-import {showDowngradeDialog} from "./DowngradeDialog"
+import * as UpgradeWizard from "./UpgradeSubscriptionWizard"
+import {showDowngradeDialog} from "./SwitchSubscriptionDialog"
 assertMainOrNode()
+
+const DAY = 1000 * 60 * 60 * 24;
 
 export class SubscriptionViewer {
 
 	view: Function;
-	_accountTypeField: TextField;
+	_subscriptionField: TextField;
 	_usageTypeField: TextField;
 	_subscriptionIntervalField: TextField;
 	_currentPriceField: TextField;
+	_nextPriceField: TextField;
 
 	_usersField: TextField;
 	_storageField: TextField;
@@ -50,17 +53,24 @@ export class SubscriptionViewer {
 	_nextPeriodPriceVisible: boolean;
 	_accountingInfo: ?AccountingInfo;
 	_lastBooking: ?Booking;
+	_isPro: boolean;
+	_isCancelled: boolean;
 
 	constructor() {
-		this._accountTypeField = new TextField("accountType_label")
+		this._isPro = false
+		this._subscriptionField = new TextField("subscription_label")
 		let accountTypeAction = new Button("accountType_label", () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
-				showDowngradeDialog()
+				if (this._accountingInfo) {
+					showDowngradeDialog(this._accountingInfo, this._isPro)
+				}
 			} else if (logins.getUserController().user.accountType == AccountType.FREE) {
 				UpgradeWizard.show()
 			}
 		}, () => Icons.Edit)
-		this._accountTypeField._injectionsRight = () => logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount() ? [m(accountTypeAction)] : []
+		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show())
+			.setType(ButtonType.Accent)
+		this._subscriptionField._injectionsRight = () => (logins.getUserController().isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController().isPremiumAccount() && !this._isCancelled ? [m(accountTypeAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg")).setDisabled()
 		let usageTypeAction = createDropDownButton("businessOrPrivateUsage_label", () => Icons.Edit, () => {
 			return [
@@ -72,7 +82,7 @@ export class SubscriptionViewer {
 				}).setType(ButtonType.Dropdown)
 			]
 		})
-		this._usageTypeField._injectionsRight = () => m(usageTypeAction)
+		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
 		this._subscriptionIntervalField = new TextField("subscription_label", () => {
 			return this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : ""
@@ -80,18 +90,17 @@ export class SubscriptionViewer {
 		let subscriptionIntervalAction = createDropDownButton("subscription_label", () => Icons.Edit, () => {
 			return [
 				new Button("yearly_label", () => {
-					this._changeSubscriptionInterval(12)
+					if (this._accountingInfo) changeSubscriptionInterval(this._accountingInfo, 12)
 				}).setType(ButtonType.Dropdown),
 				new Button("monthly_label", () => {
-					this._changeSubscriptionInterval(1)
+					if (this._accountingInfo) changeSubscriptionInterval(this._accountingInfo, 1)
 				}).setType(ButtonType.Dropdown)
 			]
 		})
 		this._subscriptionIntervalField._injectionsRight = () => m(subscriptionIntervalAction)
 
-		this._currentPriceField = new TextField("price_label", () => {
-			return this._nextPeriodPriceVisible ? "* " + lang.get("nextSubscriptionPrice_msg") : ""
-		}).setValue(lang.get("loading_msg")).setDisabled()
+		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : "price_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
 		const addUserActionButton = createNotAvailableForFreeButton("addUsers_action", () => AddUserDialog.show(), () => Icons.Add);
@@ -134,10 +143,11 @@ export class SubscriptionViewer {
 		this.view = (): VirtualElement => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
-				m(this._accountTypeField),
+				m(this._subscriptionField),
 				this._showPriceData() ? m(this._usageTypeField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
+				(this._showPriceData() && this._nextPeriodPriceVisible) ? m(this._nextPriceField) : null,
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
 				m(this._usersField),
 				m(this._storageField),
@@ -154,28 +164,9 @@ export class SubscriptionViewer {
 			.then(accountingInfo => {
 				this._updateAccountInfoData(accountingInfo)
 			})
-		this._updateAccountTypeFields()
+		this._subscriptionField.setValue(lang.get("loading_msg")).setDisabled()
 		this._updatePriceInfo()
 		this._updateBookings()
-	}
-
-	_changeSubscriptionInterval(paymentInterval: number): void {
-		if (this._accountingInfo && this._accountingInfo.invoiceCountry && Number(this._accountingInfo.paymentInterval) != paymentInterval) {
-			let accountingInfo = neverNull(this._accountingInfo)
-			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-			worker.updatePaymentData({
-					businessUse: accountingInfo.business,
-					paymentInterval: paymentInterval,
-					proUpgrade: false,
-					price: ""
-				}, {
-					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-					country: invoiceCountry,
-					vatNumber: accountingInfo.invoiceVatIdNo
-				},
-				null,
-				invoiceCountry)
-		}
 	}
 
 	_changeBusinessUse(businessUse: boolean): void {
@@ -195,7 +186,8 @@ export class SubscriptionViewer {
 		worker.getCurrentPrice().then(priceServiceReturn => {
 			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
 				if (priceServiceReturn.currentPriceThisPeriod.price != priceServiceReturn.currentPriceNextPeriod.price) {
-					this._currentPriceField.setValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod) + " / " + formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)) + "*")
+					this._currentPriceField.setValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+					this._nextPriceField.setValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
 					this._nextPeriodPriceVisible = true
 				} else {
 					this._currentPriceField.setValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
@@ -216,8 +208,15 @@ export class SubscriptionViewer {
 		m.redraw()
 	}
 
-	_updateAccountTypeFields() {
-		this._accountTypeField.setValue(_getAccountTypeName(logins.getUserController().user.accountType)).setDisabled()
+	_updateSubscriptionField(cancelled: boolean) {
+		let cancelledText = !cancelled ? "" : " " + lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
+		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro) + cancelledText).setDisabled()
+	}
+
+	_updatePro(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking) {
+		let aliases = getTotalAliases(customer, customerInfo, lastBooking)
+		let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
+		this._isPro = this._isWhitelabelActive() && aliases >= 20 && storage >= 10
 	}
 
 	_updateBookings() {
@@ -225,6 +224,9 @@ export class SubscriptionViewer {
 			load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
 					this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+					this._isCancelled = customer.canceledPremiumAccount
+					this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+					this._updateSubscriptionField(this._isCancelled)
 					Promise.all([
 							this._updateUserField(),
 							this._updateStorageField(customer, customerInfo),
@@ -286,13 +288,16 @@ export class SubscriptionViewer {
 	}
 
 	_updateWhitelabelField(): Promise<void> {
-		const totalAmount = getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking)
-		if (totalAmount == 0) {
-			this._whitelabelField.setValue(lang.get("deactivated_label"))
-		} else {
+		if (this._isWhitelabelActive()) {
 			this._whitelabelField.setValue(lang.get("active_label"))
+		} else {
+			this._whitelabelField.setValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
+	}
+
+	_isWhitelabelActive(): boolean {
+		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) != 0
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
@@ -300,7 +305,7 @@ export class SubscriptionViewer {
 			load(AccountingInfoTypeRef, elementId).then(accountingInfo => this._updateAccountInfoData(accountingInfo))
 			this._updatePriceInfo()
 		} else if (isSameTypeRef(typeRef, UserTypeRef)) {
-			this._updateAccountTypeFields()
+			this._updateBookings()
 			this._updatePriceInfo()
 		} else if (isSameTypeRef(typeRef, BookingTypeRef)) {
 			this._updateBookings()
@@ -332,6 +337,26 @@ function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBoo
 }
 
 
-function _getAccountTypeName(type: AccountTypeEnum): string {
-	return "Tutanota " + AccountTypeNames[Number(type)];
+function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
+	if (type == AccountType.PREMIUM && isPro) {
+		return "Pro"
+	} else {
+		return AccountTypeNames[Number(type)];
+	}
+}
+
+export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number): void {
+	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) != paymentInterval) {
+		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
+		worker.updatePaymentData({
+				businessUse: accountingInfo.business,
+				paymentInterval: paymentInterval,
+			}, {
+				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+				country: invoiceCountry,
+				vatNumber: accountingInfo.invoiceVatIdNo
+			},
+			null,
+			invoiceCountry)
+	}
 }

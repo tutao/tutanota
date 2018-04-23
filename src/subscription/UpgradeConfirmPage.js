@@ -14,20 +14,21 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
-import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeWizard"
+import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
+import {PreconditionFailedError, BadGatewayError} from "../api/common/error/RestError"
 
 
-export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
+export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 	view: Function;
-	_pageActionHandler: WizardPageActionHandler<UpgradeAccountTypeData>;
-	_upgradeData: UpgradeAccountTypeData;
+	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
+	_upgradeData: UpgradeSubscriptionData;
 	_orderField: TextField;
 	_subscriptionField: TextField;
 	_priceField: TextField;
 	_paymentMethodField: TextField;
 
-	constructor(data: UpgradeAccountTypeData) {
+	constructor(data: UpgradeSubscriptionData) {
 		this._orderField = new TextField("bookingOrder_label").setDisabled()
 		this._subscriptionField = new TextField("subscription_label").setDisabled()
 		this._priceField = new TextField("price_label").setDisabled()
@@ -45,9 +46,9 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 				return worker.switchFreeToPremiumGroup()
 			})).then(() => {
 				this._pageActionHandler.showNext(this._upgradeData)
-			}).catch(PreconditionFailedError => {
+			}).catch(PreconditionFailedError, e => {
 				Dialog.error("paymentProviderTransactionFailedError_msg")
-			}).catch(BadGatewayError => {
+			}).catch(BadGatewayError, e => {
 				Dialog.error("paymentProviderNotAvailableError_msg")
 			})
 		}).setType(ButtonType.Login)
@@ -71,7 +72,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 		return lang.get("bookingSummary_label")
 	}
 
-	nextAction(): Promise<?UpgradeAccountTypeData> {
+	nextAction(): Promise<?UpgradeSubscriptionData> {
 		// next action not available for this page
 		return Promise.resolve(null)
 	}
@@ -80,11 +81,11 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 		return false
 	}
 
-	setPageActionHandler(handler: WizardPageActionHandler<UpgradeAccountTypeData>) {
+	setPageActionHandler(handler: WizardPageActionHandler<UpgradeSubscriptionData>) {
 		this._pageActionHandler = handler
 	}
 
-	updateWizardData(wizardData: UpgradeAccountTypeData) {
+	updateWizardData(wizardData: UpgradeSubscriptionData) {
 		this._upgradeData = wizardData
 		this._orderField.setValue("Tutanota Premium" + (this._upgradeData.subscriptionOptions.proUpgrade ? " (Pro)" : ""))
 		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval == 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
@@ -93,7 +94,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeAccountTypeData> {
 		this._paymentMethodField.setValue(getPaymentMethodName(this._upgradeData.paymentData.paymentMethod))
 	}
 
-	getUncheckedWizardData(): UpgradeAccountTypeData {
+	getUncheckedWizardData(): UpgradeSubscriptionData {
 		return this._upgradeData
 	}
 }

@@ -3,7 +3,7 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
-import type {UpgradeAccountTypeData} from "./UpgradeAccountTypeWizard"
+import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -19,21 +19,21 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 /**
  * Wizard page for editing invoice and payment data.
  */
-export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeAccountTypeData> {
+export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscriptionData> {
 
 	view: Function;
-	updateWizardData: (UpgradeAccountTypeData)=>void;
-	_pageActionHandler: WizardPageActionHandler<UpgradeAccountTypeData>;
-	_upgradeData: UpgradeAccountTypeData;
+	updateWizardData: (UpgradeSubscriptionData)=>void;
+	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
+	_upgradeData: UpgradeSubscriptionData;
 	_paymentMethodInput: PaymentMethodInput;
 	_invoiceDataInput: InvoiceDataInput;
 	_availablePaymentMethods: Array<SegmentControlItem<PaymentMethodTypeEnum>>;
 	_selectedPaymentMethod: stream<SegmentControlItem<PaymentMethodTypeEnum>>;
 	_paymentMethodSelector: SegmentControl<PaymentMethodTypeEnum>;
 
-	constructor(upgradeData: UpgradeAccountTypeData) {
+	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._selectedPaymentMethod = stream(null)
-		this.updateWizardData = (data: UpgradeAccountTypeData) => {
+		this.updateWizardData = (data: UpgradeSubscriptionData) => {
 			this._upgradeData = data
 			this._invoiceDataInput = new InvoiceDataInput(upgradeData.subscriptionOptions, upgradeData.invoiceData)
 			this._paymentMethodInput = new PaymentMethodInput(upgradeData.subscriptionOptions, this._invoiceDataInput.selectedCountry, data.accountingInfo)
@@ -77,7 +77,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeAccountTypeD
 		])
 	}
 
-	nextAction(): Promise<?UpgradeAccountTypeData> {
+	nextAction(): Promise<?UpgradeSubscriptionData> {
 		return Promise.resolve(null)
 	}
 
@@ -90,11 +90,11 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeAccountTypeD
 		return false
 	}
 
-	setPageActionHandler(handler: WizardPageActionHandler < UpgradeAccountTypeData >) {
+	setPageActionHandler(handler: WizardPageActionHandler < UpgradeSubscriptionData >) {
 		this._pageActionHandler = handler
 	}
 
-	getUncheckedWizardData(): UpgradeAccountTypeData {
+	getUncheckedWizardData(): UpgradeSubscriptionData {
 		this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
 		this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
 		return this._upgradeData

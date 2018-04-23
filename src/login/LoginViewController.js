@@ -27,7 +27,7 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
-import * as UpgradeWizard from "../subscription/UpgradeAccountTypeWizard"
+import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 

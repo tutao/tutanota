@@ -10,6 +10,18 @@ import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 
+export function buyWhitelabel(enable: boolean) {
+	const amount = enable ? 1 : 0
+	const bookingData = createBookingServiceData()
+	bookingData.amount = amount.toString()
+	bookingData.featureType = BookingItemFeatureType.Branding
+	bookingData.date = Const.CURRENT_DATE
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).then(() => {
+		return true
+	}).catch(PreconditionFailedError, error => {
+		return Dialog.error("whitelabelDomainExisting_msg").return(false)
+	})
+}
 /**
  * Shows the buy dialog to enable or disable the whitelabel package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
@@ -19,15 +31,7 @@ export function show(enable: boolean): Promise<boolean> {
 	const amount = enable ? 1 : 0
 	return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, amount, 0, false)).then(accepted => {
 		if (accepted) {
-			const bookingData = createBookingServiceData()
-			bookingData.amount = amount.toString()
-			bookingData.featureType = BookingItemFeatureType.Branding
-			bookingData.date = Const.CURRENT_DATE
-			return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).then(() => {
-				return true
-			}).catch(PreconditionFailedError, error => {
-				return Dialog.error("whitelabelDomainExisting_msg").return(false)
-			})
+			return buyWhitelabel(enable)
 		} else {
 			return false
 		}

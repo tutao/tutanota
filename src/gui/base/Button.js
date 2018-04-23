@@ -21,6 +21,7 @@ export const ButtonType = {
 	Secondary: 'secondary',
 	Dropdown: 'dropdown',
 	Login: 'login',
+	Accent: 'accent',
 	Floating: 'floating',
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
@@ -91,11 +92,11 @@ export class Button {
 
 			return m("button.limit-width.noselect" + ((this._type == ButtonType.Bubble) ? ".print" : ""), {
 					class: this.getButtonClasses().join(' '),
-					style: this._type === ButtonType.Login ? {
+					style: (this._type === ButtonType.Login || this._type === ButtonType.Accent) ? {
 							'background-color': theme.content_accent,
 						} : {},
 					onclick: (event: MouseEvent) => this.click(event),
-					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login ? this.getLabel() : "",
+					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login || this._type == ButtonType.Accent ? this.getLabel() : "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
 						addFlash(vnode.dom)
@@ -164,6 +165,8 @@ export class Button {
 		} else if (this._type == ButtonType.Action || this._type == ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
+		} else if (this._type == ButtonType.Accent) {
+			buttonClasses.push("button-height-accent")
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
@@ -180,6 +183,9 @@ export class Button {
 		}
 		if (this._type == ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
+		} else if (this._type == ButtonType.Accent) {
+			wrapperClasses.push("button-height-accent")
+			wrapperClasses.push("mlr")
 		} else {
 			wrapperClasses.push("justify-center")
 		}
@@ -206,7 +212,7 @@ export class Button {
 		let color
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
-		} else if (this._type === ButtonType.Login) {
+		} else if (this._type === ButtonType.Login || this._type === ButtonType.Accent) {
 			color = theme.content_button_icon
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
 			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg

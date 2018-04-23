@@ -11,12 +11,12 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import {WizardDialog} from "../gui/base/WizardDialog"
 import {InvoiceAndPaymentDataPage} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage} from "./UpgradeConfirmPage"
-import {UpgradeAccountTypePage} from "./UpgradeAccountTypePage"
+import {UpgradeSubscriptionPage} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
 
 assertMainOrNode()
 
-export type UpgradeAccountTypeData = {
+export type UpgradeSubscriptionData = {
 	subscriptionOptions:SubscriptionOptions,
 	invoiceData:InvoiceData,
 	paymentData:PaymentData,
@@ -29,7 +29,7 @@ export function show(): void {
 	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-			const upgradeData: UpgradeAccountTypeData = {
+			const upgradeData: UpgradeSubscriptionData = {
 				subscriptionOptions: {
 					businessUse: accountingInfo.business,
 					paymentInterval: Number(accountingInfo.paymentInterval)
@@ -50,7 +50,7 @@ export function show(): void {
 			}
 
 			const wizardPages = [
-				new UpgradeAccountTypePage(upgradeData),
+				new UpgradeSubscriptionPage(upgradeData),
 				new InvoiceAndPaymentDataPage(upgradeData),
 				new UpgradeConfirmPage(upgradeData)
 			]

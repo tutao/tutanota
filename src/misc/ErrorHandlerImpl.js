@@ -27,7 +27,7 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import * as UpgradeWizard from "../subscription/UpgradeAccountTypeWizard"
+import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 

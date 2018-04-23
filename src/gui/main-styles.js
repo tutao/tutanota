@@ -214,6 +214,7 @@ styles.registerStyle('main', () => {
 		'.left': {'text-align': 'left'},
 		'.statusTextColor': {color: theme.content_accent},
 		'.button-height': {height: px(size.button_height)},
+		'.button-height-accent': {height: px(size.button_height_accent) + " !important"},
 		'.button-min-height': {'min-height': px(size.button_height)},
 		'.button-width-fixed': {width: px(size.button_height)},
 		'.large-button-height': {height: px(size.button_floating_size)},
@@ -559,10 +560,12 @@ styles.registerStyle('main', () => {
 			'padding-right': px(0),
 		},
 
+		'.segmentControlItem': {
+			cursor: 'pointer'
+		},
 		'.segmentControlItem:last-child': {
 			'border-bottom-right-radius': px(size.border_radius),
 			'border-top-right-radius': px(size.border_radius),
-			cursor: "pointer"
 		},
 
 		'.segmentControlItem:first-child': {
