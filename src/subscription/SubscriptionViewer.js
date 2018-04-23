@@ -99,7 +99,7 @@ export class SubscriptionViewer {
 		})
 		this._subscriptionIntervalField._injectionsRight = () => m(subscriptionIntervalAction)
 
-		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : "price_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg")).setDisabled()
 		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
