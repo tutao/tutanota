@@ -1066,6 +1066,7 @@ module.exports = {
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
 		"priceTill_label": "Price till {date}",
 		"priceFrom_label": "Price from {date}",
+		"endsWith_label": "ends with",
 
 		"mergeContacts_action": "Merge contacts",
 		"merge_action": "Merge",

@@ -1,11 +1,12 @@
 //@flow
-import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../misc/Formatter"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {Button} from "../gui/base/Button"
+import {neverNull} from "../api/common/utils/Utils"
 
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
@@ -24,7 +25,11 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
-	return accountingInfo.paymentMethodInfo ? accountingInfo.paymentMethodInfo : ""
+	if (accountingInfo.paymentMethodInfo) {
+		return accountingInfo.paymentMethod == PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
+	} else {
+		return ""
+	}
 }
 
 

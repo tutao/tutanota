@@ -9,6 +9,9 @@ import {PaymentMethodInput} from "./PaymentMethodInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {px} from "../gui/size"
 import {formatNameAndAddress} from "../misc/Formatter"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
+import {neverNull} from "../api/common/utils/Utils"
 
 export function show(accountingInfo: AccountingInfo): Dialog {
 
@@ -26,7 +29,8 @@ export function show(accountingInfo: AccountingInfo): Dialog {
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo)
 	const availablePaymentMethods = paymentMethodInput.getAvailablePaymentMethods()
 
-	const selectedPaymentMethod: stream<PaymentMethodTypeEnum> = stream(availablePaymentMethods[0].value)
+	const selectedPaymentMethod: stream<PaymentMethodTypeEnum> = stream(accountingInfo.paymentMethod)
+	paymentMethodInput.updatePaymentMethod(neverNull(accountingInfo.paymentMethod))
 
 	const paymentMethodSelector = new DropDownSelector("paymentMethod_label",
 		null,
@@ -45,7 +49,7 @@ export function show(accountingInfo: AccountingInfo): Dialog {
 		if (error) {
 			Dialog.error(error)
 		} else {
-			updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country).then(success => {
+			showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country)).then(success => {
 				if (success) {
 					dialog.close()
 				}

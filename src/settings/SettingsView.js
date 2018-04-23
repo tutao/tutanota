@@ -70,7 +70,9 @@ export class SettingsView {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
+				if (!logins.getUserController().isFreeAccount()) {
+					this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
+				}
 			}
 		}
 
