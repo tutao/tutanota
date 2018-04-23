@@ -16,6 +16,7 @@ export class BuyOptionBox {
 	_helpLabel: string;
 	_features: lazy<string[]>;
 	_injection: ?Component;
+	selected: boolean;
 
 	constructor(headingIdOrFunction: string|lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: lazy<string[]>, width: number, height: number) {
 		this._headingIdOrFunction = headingIdOrFunction
@@ -24,6 +25,7 @@ export class BuyOptionBox {
 		this.value = stream(lang.get("emptyString_msg"))
 		this._helpLabel = stream(lang.get("emptyString_msg"))
 		this._features = features
+		this.selected = false
 
 		this.view = (): ?VirtualElement => {
 			return m("", {
@@ -32,7 +34,7 @@ export class BuyOptionBox {
 					width: px(width),
 					padding: "10px"
 				}
-			}, [m(".buyOptionBox", {
+			}, [m(".buyOptionBox" + (this.selected ? ".selected" : ""), {
 				style: {height: px(height)}
 			}, [
 				m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),

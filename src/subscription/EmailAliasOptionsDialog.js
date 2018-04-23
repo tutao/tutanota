@@ -92,6 +92,9 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 
 	worker.getPrice(BookingItemFeatureType.Alias, amount, false).then(newPrice => {
 		const currentCount = getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Alias);
+		if (amount == currentCount) {
+			buyOptionBox.selected = true
+		}
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias)
 		buyOptionBox.setValue(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval

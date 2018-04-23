@@ -639,6 +639,9 @@ styles.registerStyle('main', () => {
 			width: "100%",
 			padding: px(10)
 		},
+		'.buyOptionBox.selected': {
+			border: `1px solid ${theme.content_accent}`,
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

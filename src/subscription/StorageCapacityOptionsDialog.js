@@ -91,6 +91,9 @@ function createStorageCapacityBox(amount: number, freeAmount: number, buyAction:
 
 	worker.getPrice(BookingItemFeatureType.Storage, amount, false).then(newPrice => {
 		const currentCount = getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Storage);
+		if (amount == currentCount) {
+			buyOptionBox.selected = true
+		}
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage)
 		buyOptionBox.setValue(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
