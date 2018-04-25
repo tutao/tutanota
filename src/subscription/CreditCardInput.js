@@ -47,7 +47,9 @@ export class CreditCardInput {
 			this.creditCardNumber.value(data.number)
 			this.cardHolderName.value(data.cardHolderName)
 			this.cvv.value(data.cvv)
-			this.expirationDate.value(data.expirationMonth + "/" + data.expirationYear)
+			if (data.expirationMonth && data.expirationYear) {
+				this.expirationDate.value(data.expirationMonth + "/" + data.expirationYear)
+			}
 		} else {
 			this.creditCardNumber.value("")
 			this.cardHolderName.value("")

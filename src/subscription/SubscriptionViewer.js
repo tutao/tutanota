@@ -203,7 +203,7 @@ export class SubscriptionViewer {
 		this._accountingInfo = accountingInfo
 		this._usageTypeField.setValue(accountingInfo.business ? lang.get("businessUse_label") : lang.get("privateUse_label"))
 		this._subscriptionIntervalField
-			.setValue((Number(accountingInfo.paymentInterval) == 12 ? lang.get("yearly_label") : lang.get("monthly_label")))
+			.setValue((Number(accountingInfo.paymentInterval) == 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ', ' + lang.get('automaticRenewal_label'))
 
 		m.redraw()
 	}

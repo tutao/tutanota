@@ -30,7 +30,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 	constructor(data: UpgradeSubscriptionData) {
 		this._orderField = new TextField("bookingOrder_label").setDisabled()
-		this._subscriptionField = new TextField("subscription_label").setDisabled()
+		this._subscriptionField = new TextField("subscriptionPeriod_label").setDisabled()
 		this._priceField = new TextField("price_label").setDisabled()
 		this._paymentMethodField = new TextField("paymentMethod_label").setDisabled()
 
