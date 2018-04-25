@@ -24,7 +24,10 @@ styles.registerStyle('main', () => {
 		'html, body': {height: '100%', margin: 0},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
 
-		'button, textarea': {padding: 0},
+		'button, textarea': {
+			padding: 0,
+			'text-align': 'left'
+		},
 
 		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
 			overflow: 'hidden',
