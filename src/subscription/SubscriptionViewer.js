@@ -30,6 +30,8 @@ import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 import * as UpgradeWizard from "./UpgradeSubscriptionWizard"
 import {showDowngradeDialog} from "./SwitchSubscriptionDialog"
+import {DropDownSelector} from "../gui/base/DropDownSelector"
+import stream from "mithril/stream/stream.js"
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -39,7 +41,8 @@ export class SubscriptionViewer {
 	view: Function;
 	_subscriptionField: TextField;
 	_usageTypeField: TextField;
-	_subscriptionIntervalField: TextField;
+	_subscriptionIntervalField: DropDownSelector<number>;
+	_selectedSubscriptionInterval: stream<number>;
 	_currentPriceField: TextField;
 	_nextPriceField: TextField;
 
@@ -84,20 +87,21 @@ export class SubscriptionViewer {
 		})
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
-		this._subscriptionIntervalField = new TextField("subscriptionPeriod_label", () => {
-			return this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : ""
-		}).setValue(lang.get("loading_msg")).setDisabled()
-		let subscriptionIntervalAction = createDropDownButton("subscription_label", () => Icons.Edit, () => {
-			return [
-				new Button("yearly_label", () => {
-					if (this._accountingInfo) changeSubscriptionInterval(this._accountingInfo, 12)
-				}).setType(ButtonType.Dropdown),
-				new Button("monthly_label", () => {
-					if (this._accountingInfo) changeSubscriptionInterval(this._accountingInfo, 1)
-				}).setType(ButtonType.Dropdown)
-			]
+		let subscriptionPeriods = [
+			{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
+			{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
+		]
+		this._selectedSubscriptionInterval = stream(null)
+		this._subscriptionIntervalField = new DropDownSelector("subscriptionPeriod_label",
+			() => this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : "",
+			subscriptionPeriods,
+			this._selectedSubscriptionInterval,
+			300).setSelectionChangedHandler(value => {
+			if (this._accountingInfo) {
+				changeSubscriptionInterval(this._accountingInfo, value)
+			}
 		})
-		this._subscriptionIntervalField._injectionsRight = () => m(subscriptionIntervalAction)
+
 
 		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg")).setDisabled()
 		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
@@ -202,8 +206,7 @@ export class SubscriptionViewer {
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
 		this._usageTypeField.setValue(accountingInfo.business ? lang.get("businessUse_label") : lang.get("privateUse_label"))
-		this._subscriptionIntervalField
-			.setValue((Number(accountingInfo.paymentInterval) == 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ', ' + lang.get('automaticRenewal_label'))
+		this._selectedSubscriptionInterval(Number(accountingInfo.paymentInterval))
 
 		m.redraw()
 	}
