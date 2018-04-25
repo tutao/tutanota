@@ -42,7 +42,7 @@ assertMainOrNode()
 export class InvoiceViewer {
 	_invoiceAddressField: HtmlEditor;
 	_invoiceCountryField: TextField;
-	_paymentMehthodField: TextField;
+	_paymentMethodField: TextField;
 	_invoiceTable: Table;
 	_accountingInfo: ?AccountingInfo;
 	_invoices: Array<Invoice>;
@@ -62,7 +62,7 @@ export class InvoiceViewer {
 
 		this._invoiceCountryField = new TextField("invoiceCountry_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMehthodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._paymentMethodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._invoices = []
 		this._paymentBusy = false
 
@@ -111,7 +111,7 @@ export class InvoiceViewer {
 					m(".h4", lang.get('adminPayment_action')),
 					m(".mr-negative-s", m(changePaymentDataButton))
 				]),
-				m(this._paymentMehthodField),
+				m(this._paymentMethodField),
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoices_label')),
 					m(invoiceExpander)
@@ -144,7 +144,7 @@ export class InvoiceViewer {
 		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
 		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry ? accountingInfo.invoiceCountry : "<" + lang.get("comboBoxSelectionNone_msg") + ">")
-		this._paymentMehthodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))
+		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}
 
