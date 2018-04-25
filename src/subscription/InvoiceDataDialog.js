@@ -4,6 +4,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
+import {BadRequestError} from "../api/common/error/RestError"
 
 export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData): Dialog {
 
@@ -18,6 +19,8 @@ export function show(subscriptionOptions: SubscriptionOptions, invoiceData: Invo
 				if (success) {
 					dialog.close()
 				}
+			}).catch(BadRequestError, e => {
+				Dialog.error("paymentMethodNotAvailable_msg")
 			})
 		}
 	}
