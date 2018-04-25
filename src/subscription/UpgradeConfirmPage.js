@@ -29,7 +29,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 	_paymentMethodField: TextField;
 
 	constructor(data: UpgradeSubscriptionData) {
-		this._orderField = new TextField("bookingOrder_label").setDisabled()
+		this._orderField = new TextField("subscription_label").setDisabled()
 		this._subscriptionField = new TextField("subscriptionPeriod_label").setDisabled()
 		this._priceField = new TextField("price_label").setDisabled()
 		this._paymentMethodField = new TextField("paymentMethod_label").setDisabled()
@@ -40,7 +40,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		let confirmButton = new Button("buy_action", () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			// serviceData.proUpgrade = subscriptionOptions.proUpgrade
+			serviceData.proUpgrade = data.proUpgrade
 			serviceData.date = Const.CURRENT_DATE
 			showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
 				return worker.switchFreeToPremiumGroup()
@@ -87,7 +87,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 	updateWizardData(wizardData: UpgradeSubscriptionData) {
 		this._upgradeData = wizardData
-		this._orderField.setValue("Tutanota Premium" + (this._upgradeData.subscriptionOptions.proUpgrade ? " (Pro)" : ""))
+		this._orderField.setValue((this._upgradeData.proUpgrade ? "Pro" : "Premium"))
 		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval == 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
 		const netOrGross = this._upgradeData.subscriptionOptions.businessUse ? lang.get("net_label") : lang.get("gross_label")
 		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval == 12 ? lang.get("perYear_label") : lang.get("perMonth_label")) + " (" + netOrGross + ")")
