@@ -11,7 +11,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Vaš uporabniški račun pri Tutanoti je bil žal deaktiviran. Prosimo, obrnite se na svojega administratorja.",
-		"accountType_label": "Vrsta računa",
 		"account_label": "Uporabnik",
 		"activate_action": "Aktiviraj",
 		"addinInfoText_msg": "Tu lahko prenesete dodatek Tutanota za Outlook. Posodobitve se samodejno namestijo ob zagonu programa.",
@@ -25,7 +24,6 @@ module.exports = {
 		"archivedMails_alt": "Arhivirana sporočila",
 		"archive_action": "Arhiv",
 		"attachFiles_action": "Pripni datoteke",
-		"autoTransmitPasswordHeading_label": "",
 		"backTologin_action": "Nazaj na vstopno stran",
 		"back_action": "Nazaj",
 		"bcc_label": "Bcc",
@@ -44,7 +42,6 @@ module.exports = {
 		"confidentialDefault_msg": "Vsa nova sporočila pošlji kot zaupna.",
 		"confidentialityDisabled_msg": "To sporočilo ne bo poslano kot zaupno. Kliknite, če želite poslati zaupno sporočilo.",
 		"confidentialityEnabled_msg": "To sporočilo bo poslano kot zaupno.",
-		"confidentialityOffline_msg": "",
 		"confidentiality_label": "Zaupno",
 		"confidentialMail_alt": "Sporočilo je bilo posredovano z end-to-end šifriranjem.",
 		"confidentialStatus_msg": "To sporočilo bo poslano šifrirano end-to-end.",
@@ -90,7 +87,6 @@ module.exports = {
 		"facebook_label": "Facebook",
 		"failedLoginsInfo_msg": "Število neuspešnih poskusov prijave od vaše zadnje uspešne prijave.",
 		"failedLogins_label": "Neuspešne prijave",
-		"fax_label": "",
 		"feedbackErrorInfo_msg": "Vaše sporočilo ter podrobnosti o napaki in verziji vašega brskalnika so šifrirani poslani na support@tutao.de.",
 		"folderNameCreate_label": "Ustvari mapo",
 		"folderNameInvalidExisting_msg": "Mapa s tem imenom že obstaja.",
@@ -250,7 +246,6 @@ module.exports = {
 		"welcomeMailBody4_msg": "VašaTutanota ekipa",
 		"welcomeMailBody5_msg": "PS: Tutanota je odprtokodna, zato vas vabimo, da si ogledate in pregledate izvorno kodo:",
 		"welcomeMailSubject_msg": "Počutite se kot doma. Vaši podatki ostanejo zasebni.",
-		"work_label": "",
 		"xing_label": "XING"
 	}
 }

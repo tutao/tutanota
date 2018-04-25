@@ -33,7 +33,7 @@ export class SubscriptionSelector {
 
 	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: stream<boolean>) {
 
-		let freeTypeBox = new BuyOptionBox(() => "Free", "choose_action",
+		let freeTypeBox = new BuyOptionBox(() => "Free", "select_action",
 			freeAction,
 			() => this._getOptions(["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"], "Free"), 230, 240)
 		freeTypeBox.setValue("0 €")
@@ -54,13 +54,13 @@ export class SubscriptionSelector {
 			this._premiumUpgradeBox.buyOptionBox.setValue(yearlyPrice.premiumPrice + " €")
 			this._proUpgradeBox.buyOptionBox.setValue(yearlyPrice.proPrice + " €")
 
-			const helpLabel = lang.get(business() ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
+			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			m.redraw()
 		})
 		business.map(business => {
-			const helpLabel = lang.get(business ? "priceExcludesTaxes_msg" : "priceIncludesTaxes_msg")
+			const helpLabel = lang.get(business ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 		})
@@ -75,7 +75,7 @@ export class SubscriptionSelector {
 
 	_createUpgradeBox(proUpgrade: boolean, action: clickHandler, featurePrefixes: lazy<string[]>, fixedPaymentInterval: ?number): UpgradeBox {
 		let title = proUpgrade ? "Pro" : "Premium"
-		let buyOptionBox = new BuyOptionBox(() => title, "choose_action",
+		let buyOptionBox = new BuyOptionBox(() => title, "select_action",
 			action,
 			() => {
 				return this._getOptions(featurePrefixes(), title)

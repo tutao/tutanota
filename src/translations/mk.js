@@ -11,7 +11,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "За жал , твојота Тутанота сметка е деактивирана . Ве молиме контактирајте го вашиот\nадминистратор .",
-		"accountType_label": "Тип на сметка",
 		"account_label": "Корисник",
 		"activate_action": "Активирај",
 		"addAttachmentNotPossibleIe_msg": "Internet Explorer за мобилен телефон не подржува додатоци на е-маил пораките.Ве молиме користете десктоп пребарувач за оваа функција",

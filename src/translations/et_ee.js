@@ -11,7 +11,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kahjuks Teie Tutanota konto on deaktiveeritud. Palun võtke oma administraatoriga ühendust.",
-		"accountType_label": "konto liik",
 		"account_label": "Kasutaja",
 		"activate_action": "Käivita",
 		"addAttachmentNotPossibleIe_msg": "Internet Explorer'i mobiiliversioon ei toeta manuste lisamist e-kirjale. Palun kasuta lauaarvuti brauserit selle funktsiooni tarbeks.",

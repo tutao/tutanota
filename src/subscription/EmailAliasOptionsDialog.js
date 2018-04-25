@@ -83,7 +83,7 @@ export function show(): Promise<void> {
 }
 
 function createEmailAliasPackageBox(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount:number, buyOptionBox:BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "choose_action",
+	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "select_action",
 		() => buyAction(amount),
 		() => [], 230, 240)
 

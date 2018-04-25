@@ -11,7 +11,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është pezullu. Të lutem, kontaktoje përgjegjësin.",
-		"accountType_label": "Lloji i llogarisë",
 		"account_label": "Përdorësi",
 		"activate_action": "Aktivizo",
 		"addAttachmentNotPossibleIe_msg": "Internet Exploreri mobil nuk mundëson me iu ngjitë fajlla mesazheve. Të lutem, përdore një kompjuter për këtë.",

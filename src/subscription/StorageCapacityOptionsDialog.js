@@ -82,7 +82,7 @@ export function show(): Promise<void> {
 }
 
 function createStorageCapacityBox(amount: number, freeAmount: number, buyAction: (amount: number) => void, actionId: string = "buy_action"): {amount:number, buyOptionBox:BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "choose_action",
+	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "select_action",
 		() => buyAction(amount),
 		() => [], 230, 240)
 

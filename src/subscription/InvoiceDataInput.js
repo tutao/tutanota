@@ -28,7 +28,7 @@ export class InvoiceDataInput {
 			.setMode(Mode.HTML)
 			.setHtmlMonospace(false)
 
-		this._vatNumberField = new TextField("invoiceVatIdNo_label")
+		this._vatNumberField = new TextField("invoiceVatIdNo_label", () => lang.get("invoiceVatIdNoInfoBusiness_msg"))
 
 		const countries = Countries.map(c => ({value: c, name: c.n}))
 		countries.push({value: null, name: lang.get("choose_label")});

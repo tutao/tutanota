@@ -59,7 +59,7 @@ export class SubscriptionViewer {
 	constructor() {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
-		let accountTypeAction = new Button("accountType_label", () => {
+		let subscriptionAction = new Button("subscription_label", () => {
 			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
 				if (this._accountingInfo) {
 					showDowngradeDialog(this._accountingInfo, this._isPro)
@@ -70,7 +70,7 @@ export class SubscriptionViewer {
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show())
 			.setType(ButtonType.Accent)
-		this._subscriptionField._injectionsRight = () => (logins.getUserController().isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController().isPremiumAccount() && !this._isCancelled ? [m(accountTypeAction)] : null)
+		this._subscriptionField._injectionsRight = () => (logins.getUserController().isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController().isPremiumAccount() && !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg")).setDisabled()
 		let usageTypeAction = createDropDownButton("businessOrPrivateUsage_label", () => Icons.Edit, () => {
 			return [
@@ -84,7 +84,7 @@ export class SubscriptionViewer {
 		})
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
-		this._subscriptionIntervalField = new TextField("subscription_label", () => {
+		this._subscriptionIntervalField = new TextField("subscriptionPeriod_label", () => {
 			return this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : ""
 		}).setValue(lang.get("loading_msg")).setDisabled()
 		let subscriptionIntervalAction = createDropDownButton("subscription_label", () => Icons.Edit, () => {
