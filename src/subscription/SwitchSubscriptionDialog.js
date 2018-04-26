@@ -10,7 +10,7 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
 import {AccountType, Const} from "../api/common/TutanotaConstants"
-import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
+import {InvalidDataError, PreconditionFailedError, BadRequestError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
@@ -19,7 +19,7 @@ import {buyStorage} from "./StorageCapacityOptionsDialog"
 import {buyWhitelabel} from "./WhitelabelBuyDialog"
 import {changeSubscriptionInterval} from "./SubscriptionViewer"
 
-export function showDowngradeDialog(accountingInfo: AccountingInfo, isPro: boolean) {
+export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean) {
 	let businessStream = stream(accountingInfo.business)
 	let selector = new SubscriptionSelector(AccountType.PREMIUM,
 		() => cancelSubscription(dialog),
@@ -57,9 +57,9 @@ function cancelSubscription(dialog: Dialog) {
 				.then(() => worker.switchPremiumToFreeGroup())
 				.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
 				.catch(PreconditionFailedError, e => Dialog.error("accountSwitchAdditionalPackagesActive_msg"))
+				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
 				.finally(() => dialog.close())
 		}
-		// TODO deactivatePremiumWithCustomDomainError_msg ?
 	})
 }
 

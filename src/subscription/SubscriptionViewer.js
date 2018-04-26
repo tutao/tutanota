@@ -29,9 +29,11 @@ import * as ContactFormEditor from "../settings/ContactFormEditor"
 import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 import * as UpgradeWizard from "./UpgradeSubscriptionWizard"
-import {showDowngradeDialog} from "./SwitchSubscriptionDialog"
+import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
+import {showDeleteAccountDialog} from "./DeleteAccountDialog"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -63,12 +65,8 @@ export class SubscriptionViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
-				if (this._accountingInfo) {
-					showDowngradeDialog(this._accountingInfo, this._isPro)
-				}
-			} else if (logins.getUserController().user.accountType == AccountType.FREE) {
-				UpgradeWizard.show()
+			if (this._accountingInfo) {
+				showSwitchDialog(this._accountingInfo, this._isPro)
 			}
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show())
@@ -143,6 +141,12 @@ export class SubscriptionViewer {
 		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel)
 		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) == 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
 
+		let deleteButton = new Button("adminDeleteAccount_action", () => {
+			showDeleteAccountDialog()
+		}).setType(ButtonType.Login)
+		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
+			view: () => m(".flex-center", m("", {style: {"width": '200px'}}, m(deleteButton)))
+		}), false)
 
 		this.view = (): VirtualElement => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
@@ -158,7 +162,12 @@ export class SubscriptionViewer {
 				m(this._emailAliasField),
 				m(this._groupsField),
 				m(this._whitelabelField),
-				m(this._contactFormsField)
+				m(this._contactFormsField),
+				m(".flex-space-between.items-center.mt-l.mb-s", [
+					m(".h4", lang.get('adminDeleteAccount_action')),
+					m(deleteAccountExpander)
+				]),
+				m(deleteAccountExpander.panel),
 			])
 		}
 

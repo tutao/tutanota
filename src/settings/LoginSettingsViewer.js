@@ -41,14 +41,6 @@ export class LoginSettingsViewer {
 
 		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
 
-		let deleteButton = new Button("adminDeleteAccount_action", () => {
-			showDeleteAccountDialog()
-		}).setType(ButtonType.Login)
-		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
-			view: () => m(".flex-center", m("", {style: {"width": '200px'}}, m(deleteButton)))
-		}), false)
-
-
 		this.view = () => {
 			return [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
@@ -65,11 +57,6 @@ export class LoginSettingsViewer {
 					]),
 					m(closedSessionExpander.panel),
 					m(".small", lang.get("sessionsInfo_msg")),
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get('adminDeleteAccount_action')),
-						m(deleteAccountExpander)
-					]),
-					m(deleteAccountExpander.panel),
 				])
 			]
 		}
