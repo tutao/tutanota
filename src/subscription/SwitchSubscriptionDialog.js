@@ -18,6 +18,7 @@ import {buyAliases} from "./EmailAliasOptionsDialog"
 import {buyStorage} from "./StorageCapacityOptionsDialog"
 import {buyWhitelabel} from "./WhitelabelBuyDialog"
 import {changeSubscriptionInterval} from "./SubscriptionViewer"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean) {
 	let businessStream = stream(accountingInfo.business)
@@ -53,11 +54,12 @@ function cancelSubscription(dialog: Dialog) {
 			let d = createSwitchAccountTypeData()
 			d.accountType = AccountType.FREE
 			d.date = Const.CURRENT_DATE
-			serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
+
+			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
 				.then(() => worker.switchPremiumToFreeGroup())
 				.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
 				.catch(PreconditionFailedError, e => Dialog.error("accountSwitchAdditionalPackagesActive_msg"))
-				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
+				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg")))
 				.finally(() => dialog.close())
 		}
 	})
@@ -68,20 +70,20 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 	if (bookPro && !isPro) {
 		Dialog.confirm("upgradePro_msg").then(ok => {
 			if (ok) {
-				promise = buyAliases(20)
+				promise = showProgressDialog("pleaseWait_msg", buyAliases(20)
 					.then(() => buyStorage(10))
 					.then(() => buyWhitelabel(true))
-					.then(() => updatePaymentInterval(paymentInterval, accountingInfo))
+					.then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
 					.then(() => dialog.close())
 			}
 		})
 	} else if (!bookPro && isPro) {
 		Dialog.confirm("downgradeToPremium_msg").then(ok => {
 			if (ok) {
-				promise = buyAliases(0)
+				promise = showProgressDialog("pleaseWait_msg", buyAliases(0)
 					.then(() => buyStorage(0))
 					.then(() => buyWhitelabel(false))
-					.then(() => updatePaymentInterval(paymentInterval, accountingInfo))
+					.then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
 					.then(() => dialog.close())
 			}
 		})
