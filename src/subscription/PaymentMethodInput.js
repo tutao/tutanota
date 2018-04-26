@@ -102,13 +102,13 @@ export class PaymentMethodInput {
 			return this.isPaypalAssigned() ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod == PaymentMethodType.CreditCard) {
 			let cc = this._creditCardComponent.getCreditCardData()
-			if (cc.cardHolderName == "") {
-				return "creditCardCardHolderName_msg"
-			} else if (cc.number == "") {
+			if (cc.number == "") {
 				return "creditCardNumberFormat_msg"
+			} else if (cc.cardHolderName == "") {
+				return "creditCardCardHolderName_msg"
 			} else if (cc.cvv = "") {
 				return "creditCardCVVFormat_label"
-			} else if (cc.expirationMonth.length != 2 || cc.expirationYear.length != 4) {
+			} else if (cc.expirationMonth.length != 2 || (cc.expirationYear.length != 4 && cc.expirationYear.length != 2)) {
 				return "creditCardExprationDateInvalid_msg"
 			}
 		}

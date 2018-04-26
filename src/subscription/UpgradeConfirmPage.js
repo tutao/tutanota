@@ -42,7 +42,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 			serviceData.accountType = AccountType.PREMIUM
 			serviceData.proUpgrade = data.proUpgrade
 			serviceData.date = Const.CURRENT_DATE
-			showProgressDialog("upgradeToPremium_action", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
+			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
 				return worker.switchFreeToPremiumGroup()
 			})).then(() => {
 				this._pageActionHandler.showNext(this._upgradeData)

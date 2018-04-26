@@ -74,7 +74,7 @@ export class InvoiceDataInput {
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"
 			} else if (this._isVatIdFieldVisible() && this._vatNumberField.value().trim() == "") {
-				return "invoiceVatIdNoInfoBusiness_msg"
+				return "invalidVatIdNumber_msg"
 			}
 		} else {
 			if (!this.selectedCountry()) {

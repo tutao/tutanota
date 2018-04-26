@@ -71,6 +71,8 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 				promise = buyAliases(20)
 					.then(() => buyStorage(10))
 					.then(() => buyWhitelabel(true))
+					.then(() => updatePaymentInterval(paymentInterval, accountingInfo))
+					.then(() => dialog.close())
 			}
 		})
 	} else if (!bookPro && isPro) {
@@ -80,11 +82,10 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 					.then(() => buyStorage(0))
 					.then(() => buyWhitelabel(false))
 					.then(() => updatePaymentInterval(paymentInterval, accountingInfo))
+					.then(() => dialog.close())
 			}
 		})
 	}
-	promise.then(() => updatePaymentInterval(paymentInterval, accountingInfo))
-		.then(() => dialog.close())
 }
 
 function updatePaymentInterval(paymentInterval: number, accountingInfo: AccountingInfo) {
