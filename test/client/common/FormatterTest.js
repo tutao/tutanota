@@ -199,11 +199,14 @@ o.spec("FormatterTest", function () {
 
 
 	o("formatNameAndAddress", function () {
-		o(formatNameAndAddress("", "")).equals("")
-		o(formatNameAndAddress("Bernd", "")).equals("Bernd")
-		o(formatNameAndAddress("Bernd", "")).equals("Bernd")
-		o(formatNameAndAddress("", "Hanomaghof")).equals("Hanomaghof")
-		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover")).equals("Bernd\nHanomaghof 2\n30449 Hannover")
+		o(formatNameAndAddress("", "", null)).equals("")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("", "Hanomaghof", null)).equals("Hanomaghof")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", null)).equals("Bernd\nHanomaghof 2\n30449 Hannover")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", "FR")).equals("Bernd\nHanomaghof 2\n30449 Hannover\nFrance")
+		o(formatNameAndAddress("", "", "DE")).equals("Deutschland")
+		o(formatNameAndAddress("a", "", "DE")).equals("a\nDeutschland")
 	})
 
 })

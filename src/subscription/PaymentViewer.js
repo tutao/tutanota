@@ -41,9 +41,8 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
-export class InvoiceViewer {
+export class PaymentViewer {
 	_invoiceAddressField: HtmlEditor;
-	_invoiceCountryField: TextField;
 	_paymentMethodField: TextField;
 	_invoiceTable: Table;
 	_accountingInfo: ?AccountingInfo;
@@ -63,9 +62,9 @@ export class InvoiceViewer {
 			.setEnabled(false)
 			.setPlaceholderId("invoiceAddress_label")
 
-		this._invoiceCountryField = new TextField("invoiceCountry_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._paymentMethodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._paymentMethodField._injectionsRight = () => [m(changePaymentDataButton)]
 		this._invoices = []
 		this._paymentBusy = false
 
@@ -100,10 +99,6 @@ export class InvoiceViewer {
 		}, () => Icons.Edit)
 
 
-		//this._invoiceCountryField._injectionsRight = () => m(changeInvoiceDataButton)
-		//this._invoiceVatNumber._injectionsRight = () => m(changeInvoiceDataButton)
-		//this._paymentMehthodField._injectionsRight = () => m(changePaymentDataButton)
-
 		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true)
 		this._invoiceExpanderButton = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
 
@@ -116,12 +111,7 @@ export class InvoiceViewer {
 				]),
 				//m(".small", lang.get("invoiceAddress_label")),
 				m(this._invoiceAddressField),
-				m(this._invoiceCountryField),
 				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0) ? m(this._invoiceVatNumber) : null,
-				m(".flex-space-between.items-center.mt-l", [
-					m(".h4", lang.get('adminPayment_action')),
-					m(".mr-negative-s", m(changePaymentDataButton))
-				]),
 				m(this._paymentMethodField),
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoices_label')),
@@ -152,9 +142,8 @@ export class InvoiceViewer {
 
 	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
+		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
-		this._invoiceCountryField.setValue(accountingInfo.invoiceCountry ? accountingInfo.invoiceCountry : "<" + lang.get("comboBoxSelectionNone_msg") + ">")
 		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}

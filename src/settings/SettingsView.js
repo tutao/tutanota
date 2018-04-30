@@ -29,7 +29,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
-import {InvoiceViewer} from "../subscription/InvoiceViewer"
+import {PaymentViewer} from "../subscription/PaymentViewer"
 
 assertMainOrNode()
 
@@ -70,7 +70,7 @@ export class SettingsView {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()).setIsVisibleHandler(() => {
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer()).setIsVisibleHandler(() => {
 					return !logins.getUserController().isFreeAccount()
 				}))
 			}
