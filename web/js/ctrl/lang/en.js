@@ -712,6 +712,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
 	"loginSecondFactorError_msg": "You have enabled second factor authentication, so login in this old client is not supported any more.",
 	"noPermission_title":"No Permission",
 	"changePermissions_msg":"To grant access you have to modify the permissions for this device",
-	
-	
+	"ageConfirmation_msg": "I am at least 16 years old.",
+	"parentConfirmation_msg": "According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following: \"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data.\""	
 };

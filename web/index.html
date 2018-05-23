@@ -1371,6 +1371,12 @@
 								</div>
 								<label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
 							</div>
+							<div class="recordData">
+								<div class="recordValue">
+									<input id="ageInput" type="checkbox" data-bind="enable: isFormEditable(), checked: oldAge"/>
+									<label for="ageInput" data-bind="lang: 'ageConfirmation_msg'"></label>
+								</div>
+							</div>
 						</div>
 
                                 <div class="record" data-bind="if: isCaptchaVisible()">

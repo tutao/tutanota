@@ -712,4 +712,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
 	"loginSecondFactorError_msg": "Du hast die Zwei-Faktor-Authentifizierung aktiviert, daher ist der Login in diesem alten Client nicht mehr möglich.",
 	"noPermission_title": "Keine Berechtigung",
 	"changePermissions_msg" : "Um die Berechtigung zu erteilen müssen die Einstellungen für dieses Gerät geändert werden.",
+	"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
+	"parentConfirmation_msg": "Die EU-Datenschutzgrundverordnung (DSGVO) verlangt für Kinder unter 16 Jahren die Zustimmung ihrer Eltern ihre personenbezogenen Daten verarbeiten zu lassen. Daher hole bitte einen deiner Eltern oder Erziehungsberechtigten her und lasse sie folgendes bestätigen: \"Ich bin Elternteil oder Erziehungsberechtigte(r) meines Kindes, erlaube ihm Tutanota zu verwenden und stimme damit der Verarbeitung der personenbezogenen Daten meines Kindes zu.\""
 };

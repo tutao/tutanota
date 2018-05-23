@@ -29,6 +29,7 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.password1 = ko.observable("");
 	this.password2 = ko.observable("");
 	this.termsAccepted = ko.observable(false);
+	this.oldAge = ko.observable(false);
 
 	this._keyGenProgress = ko.observable(0);
 
@@ -246,38 +247,47 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
     if (!this.isCreateAccountPossible()) {
         return;
     }
-
-    if (!this.authToken()) {
-        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CHECKING_CAPTCHA);
-        tutao.entity.sys.RegistrationCaptchaServiceReturn.load({}, null).then(function(captchaReturn) {
-            self.authToken(captchaReturn.getToken());
-            if (captchaReturn.getChallenge()) {
-                self.captchaBase64Png(captchaReturn.getChallenge());
-                self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA);
-            } else {
-                self._checkEntropyAndGenerateKeys();
-            }
-        }).caught(tutao.AccessDeactivatedError, function(e) {
-            self._reset();
-            return tutao.tutanota.gui.alert( tutao.lang("createAccountAccessDeactivated_msg" ));
-        });
-    } else if (this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) {
-        this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING);
-        var data = new tutao.entity.sys.RegistrationCaptchaServiceData();
-        data.setToken(this.authToken());
-        data.setResponse(this.captchaTime());
-        data.setup({}, null).then(function(fine) {
-            self._checkEntropyAndGenerateKeys();
-        }).caught(tutao.InvalidDataError, function(e) {
-            self._resetGeneratedData();
-            return tutao.tutanota.gui.alert( tutao.lang("createAccountInvalidCaptcha_msg" ));
-        }).caught(tutao.AccessExpiredError, function(e) {
-            self._reset();
-            return tutao.tutanota.gui.alert(tutao.lang("createAccountAccessDeactivated_msg"));
-        });
-    } else {
-        this._checkEntropyAndGenerateKeys()
+    
+    var p = Promise.resolve(true)
+    if (!this.oldAge()) {
+        p = tutao.tutanota.gui.confirm(tutao.lang("parentConfirmation_msg"))
     }
+
+    p.then(function (confirmed) {
+        if (confirmed) {
+			if (!self.authToken()) {
+				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CHECKING_CAPTCHA);
+				tutao.entity.sys.RegistrationCaptchaServiceReturn.load({}, null).then(function (captchaReturn) {
+					self.authToken(captchaReturn.getToken());
+					if (captchaReturn.getChallenge()) {
+						self.captchaBase64Png(captchaReturn.getChallenge());
+						self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA);
+					} else {
+						self._checkEntropyAndGenerateKeys();
+					}
+				}).caught(tutao.AccessDeactivatedError, function (e) {
+					self._reset();
+					return tutao.tutanota.gui.alert(tutao.lang("createAccountAccessDeactivated_msg"));
+				});
+			} else if (self._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) {
+				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING);
+				var data = new tutao.entity.sys.RegistrationCaptchaServiceData();
+				data.setToken(self.authToken());
+				data.setResponse(self.captchaTime());
+				data.setup({}, null).then(function (fine) {
+					self._checkEntropyAndGenerateKeys();
+				}).caught(tutao.InvalidDataError, function (e) {
+					self._resetGeneratedData();
+					return tutao.tutanota.gui.alert(tutao.lang("createAccountInvalidCaptcha_msg"));
+				}).caught(tutao.AccessExpiredError, function (e) {
+					self._reset();
+					return tutao.tutanota.gui.alert(tutao.lang("createAccountAccessDeactivated_msg"));
+				});
+			} else {
+				self._checkEntropyAndGenerateKeys()
+			}
+		}
+	})
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys = function() {
