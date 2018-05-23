@@ -1049,6 +1049,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
+		"parentConfirmation_msg": "Die EU-Datenschutzgrundverordnung (DSGVO) verlangt für Kinder unter 16 Jahren die Zustimmung ihrer Eltern ihre personenbezogenen Daten verarbeiten zu lassen. Daher hole bitte einen deiner Eltern oder Erziehungsberechtigten her und lasse sie folgendes bestätigen:\n\n\"Ich bin Elternteil oder Erziehungsberechtigte(r) meines Kindes, erlaube ihm Tutanota zu verwenden und stimme damit der Verarbeitung der personenbezogenen Daten meines Kindes zu.\""
 	}
 }

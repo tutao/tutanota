@@ -40,7 +40,10 @@ export class RegisterView {
 			m("div", lang.get("termsAndConditions_label")),
 			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, lang.get("termsAndConditionsLink_label"))),
 			m("div", m(`a[href=${this._getPrivacyLink()}][target=_blank]`, lang.get("privacyLink_label")))
-		], () => lang.get(confirmStatus().text))
+		])
+		let confirmAge = new Checkbox(() => [
+			m("div", lang.get("ageConfirmation_msg"))
+		])
 		let confirmStatus = confirm.checked.map(checked => {
 			if (!checked) {
 				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
@@ -56,12 +59,21 @@ export class RegisterView {
 				return
 			}
 
-			let authToken = m.route.param()['authToken']
-			if (!authToken) {
-				this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
-			} else {
-				// FIXME
+			let p = Promise.resolve(true)
+			if (!confirmAge.checked()) {
+				p = Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			}
+
+			p.then(confirmed =>  {
+				if (confirmed) {
+					let authToken = m.route.param()['authToken']
+					if (!authToken) {
+						this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
+					} else {
+						// FIXME
+					}
+				}
+			})
 		}
 
 		let signupButton = new Button('createAccount_action', () => _createAccount()).setType(ButtonType.Login)
@@ -93,6 +105,7 @@ export class RegisterView {
 						m(passwordForm),
 						(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
 						m(confirm),
+						m(confirmAge),
 						m(".mt-l.mb-l", m(signupButton)),
 						m(".flex-center", [
 							m(optionsExpander),

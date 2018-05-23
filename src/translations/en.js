@@ -1049,6 +1049,8 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"ageConfirmation_msg": "I am at least 16 years old.",
+		"parentConfirmation_msg": "According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following:\n\n\"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data.\""
 	}
 }
