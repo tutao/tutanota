@@ -2,7 +2,7 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
@@ -15,7 +15,6 @@ import type {
 	AccountTypeEnum,
 	BookingItemFeatureTypeEnum
 } from "../common/TutanotaConstants"
-import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 
@@ -362,6 +361,10 @@ export class WorkerClient {
 
 	entropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<Uint8Array> {
+		return this._postRequest(new Request('downloadInvoice', Array.from(arguments)))
 	}
 
 	_postRequest(msg: Request) {

@@ -21,6 +21,12 @@ export const HttpMethod = {
 }
 export type HttpMethodEnum = $Values<typeof HttpMethod>;
 
+export const MediaType = {
+	Json: 'application/json',
+	Binary: 'application/octet-stream',
+}
+export type MediaTypeEnum = $Values<typeof MediaType>;
+
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  */
@@ -60,7 +66,12 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
+	let pathPrefix = env.rootPathPrefix
+	if (env.adminTypes.indexOf(typeRef.app + "/" + typeRef.type) !== -1) {
+		pathPrefix = "admin/"
+	}
+
+	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
 		return module._TypeModel
 	})
 }

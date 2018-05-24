@@ -152,6 +152,7 @@ styles.registerStyle('main', () => {
 		'.z2': {'z-index': '2'},
 		'.z3': {'z-index': '3'},
 		'.noselect': noselect,
+		'.no-wrap': {'white-space': 'nowrap'},
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
@@ -202,6 +203,8 @@ styles.registerStyle('main', () => {
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
+		'.sticky': {position: 'sticky'},
+		'.fixed': {position: 'fixed'},
 		'.rel': {position: 'relative'},
 		'.max-width-s': {'max-width': px(360)},
 		'.max-width-m': {'max-width': px(450)},
@@ -622,12 +625,16 @@ styles.registerStyle('main', () => {
 			width: '100%'
 		},
 
-		'.table > tr:first-child': {
+		'.table tr:first-child': {
 			'border-bottom': `1px solid ${theme.content_border}`
 		},
 
-		'.table > td': {
-			'vertical-align': 'middle'
+		'.table td': {
+			'vertical-align': 'middle',
+		},
+
+		'td': {
+			'padding': 0,
 		},
 
 		'.column-width-small': {

@@ -126,6 +126,10 @@ export const PaymentMethodType = {
 }
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 
+export const reverse = (objectMap:Object) => Object.keys(objectMap).reduce((r, k) => Object.assign(r, {[objectMap[k]]: (r[objectMap[k]] || []).concat(k)}), {})
+
+export const ValueToPaymentMethodType = reverse(PaymentMethodType)
+
 
 export const Const = {
 	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,

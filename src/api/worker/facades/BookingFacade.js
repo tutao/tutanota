@@ -7,7 +7,16 @@ import {serviceRequest} from "../EntityWorker"
 import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "../../common/utils/Utils"
 import {assertWorkerOrNode} from "../../Env"
-import {HttpMethod} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {restClient} from "../rest/RestClient"
+import {
+	_TypeModel as PdfInvoiceServiceDataTypeModel,
+	createPdfInvoiceServiceData
+} from "../../entities/sys/PdfInvoiceServiceData"
+import {_TypeModel as PdfInvoiceServiceReturnTypeModel} from "../../entities/sys/PdfInvoiceServiceReturn"
+import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
+import {resolveSessionKey, decryptValue, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -102,6 +111,37 @@ export class BookingFacade {
 		}
 		return null;
 	}
+
+
+	/**
+	 * Returns the price for the feature type from the price data if available. otherwise 0.
+	 * @return The price
+	 */
+	getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
+		let item = this.getPriceItem(priceData, featureType);
+		if (item != null) {
+			return Number(neverNull(item).price);
+		} else {
+			return 0;
+		}
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<Uint8Array> {
+		let headers = locator.login.createAuthHeaders()
+		headers['v'] = PdfInvoiceServiceDataTypeModel.version
+		let data = createPdfInvoiceServiceData()
+		data.invoice = invoice._id
+		return encryptAndMapToLiteral(PdfInvoiceServiceDataTypeModel, data).then(object => {
+			let body = JSON.stringify(object)
+			return restClient.request("/rest/sys/pdfinvoiceservice", HttpMethod.GET, {}, headers, body, MediaType.Json).then(data => {
+				return resolveSessionKey(InvoiceTypeModel, invoice).then(sk => {
+					let response = JSON.parse(data)
+					return decryptValue(PdfInvoiceServiceReturnTypeModel.values.data, response.data, sk)
+				})
+			})
+		})
+	}
+
 }
 
 export const bookingFacade: BookingFacade = new BookingFacade()

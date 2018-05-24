@@ -7,7 +7,7 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
-	TooManyRequestsError
+	TooManyRequestsError, NotFoundError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
 import {Mode, assertMainOrNode} from "../api/Env"
@@ -70,7 +70,7 @@ export class LoginViewController {
 								if (!persistentSession) {
 									deviceConfig.delete(mailAddress)
 								}
-							})
+							}).catch(NotFoundError, e => console.log("session already deleted"))
 					}
 				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {

@@ -91,8 +91,31 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 	 * True if the user may select multiple or 0 elements.
 	 * Keep in mind that even if multiSelectionAllowed == false, elementSelected() will be called with multiSelectOperation = true if an element is deleted and removed from the selection.
 	 */
-		multiSelectionAllowed:boolean;
+	multiSelectionAllowed:boolean;
 	emptyMessage:string;
+}
+
+declare interface TableRow<T> {
+	render: (entity: T, odd: boolean, index: number)=> Children;
+}
+
+declare interface TableHead {
+	render: ()=> Children;
+}
+
+declare interface TableAttrs<T> {
+	row: TableRow<T>; // The component to render all rows
+	head?: TableHead;
+	cache: RowCache<T>; // The cache for this table
+	style?: Object;
+	class?: string;
+}
+
+declare interface RowCache<T> {
+	cache: T[];
+	loadMore():Promise<void>;
+	complete:boolean;
+	loading: ?Promise<void>;
 }
 
 declare interface SwipeConfiguration<T> {
@@ -128,7 +151,7 @@ declare interface ModalComponent {
 	hideAnimation():Promise<void>;
 	close():void;
 	shortcuts():Shortcut[];
-	view(): Vnode<any>;
+	view(vnode: Vnode<any>): Vnode<any>;
 	backgroundClick(e: MouseEvent):void;
 }
 

@@ -36,6 +36,10 @@ export function isMain(): boolean {
 	return !worker && !node
 }
 
+export function isAdmin():boolean {
+	return env.adminTypes.length > 0
+}
+
 export function isMainOrNode(): boolean {
 	return !worker || node || env.mode === Mode.Test
 }

@@ -145,6 +145,9 @@ export class WorkerImpl {
 			getPrice: (message: Request) => {
 				return bookingFacade.getPrice.apply(bookingFacade, message.args)
 			},
+			downloadInvoice(message: Request) {
+				return bookingFacade.downloadInvoice.apply(bookingFacade, message.args)
+			},
 			getCurrentPrice: (message: Request) => {
 				return bookingFacade.getCurrentPrice()
 			},
@@ -217,7 +220,7 @@ export class WorkerImpl {
 			},
 			tryReconnectEventBus(message: Request) {
 				return locator.login.tryReconnectEventBus()
-			}
+			},
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

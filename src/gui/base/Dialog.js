@@ -10,13 +10,13 @@ import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Keys} from "../../misc/KeyManager"
-import {mod} from "../../misc/MathUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {progressIcon} from "./Icon"
 import {size, px} from "../size"
 import {styles} from "../styles"
+import {focusPrevious, focusNext, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 
 assertMainOrNode()
@@ -31,8 +31,6 @@ export const DialogType = {
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
-export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
-export const INPUT = "input, textarea, div[contenteditable='true']"
 
 export class Dialog {
 	buttons: Button[];
@@ -50,29 +48,13 @@ export class Dialog {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[tabbable.length - 1].focus()
-					}
-				},
+				exec: () => focusNext(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[0].focus()
-					}
-				},
+				exec: () => focusPrevious(this._domDialog),
 				help: "selectNext_action"
 			},
 		]

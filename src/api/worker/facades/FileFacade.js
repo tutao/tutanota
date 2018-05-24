@@ -1,6 +1,6 @@
 // @flow
 import {_TypeModel as FileDataDataGetTypModel, createFileDataDataGet} from "../../entities/tutanota/FileDataDataGet"
-import {restClient, MediaType, addParamsToUrl} from "../rest/RestClient"
+import {restClient, addParamsToUrl} from "../rest/RestClient"
 import {encryptAndMapToLiteral, resolveSessionKey, encryptBytes} from "../crypto/CryptoFacade"
 import {aes128Decrypt} from "../crypto/Aes"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
@@ -12,7 +12,7 @@ import {FileDataReturnPostTypeRef} from "../../entities/tutanota/FileDataReturnP
 import {GroupType} from "../../common/TutanotaConstants"
 import {random} from "../crypto/Randomizer"
 import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
-import {HttpMethod} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../Env"
 import {aesEncryptFile, aesDecryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"

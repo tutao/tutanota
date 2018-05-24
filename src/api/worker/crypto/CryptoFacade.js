@@ -167,10 +167,15 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 
 		} else {
 			return loaders.loadPermissions(instance._permissions).then((listPermissions: Permission[]) => {
-				let p: ?Permission = listPermissions.find(p => p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric)
+				let userGroupIds = locator.login.getAllGroupIds()
+				let p: ?Permission = listPermissions.find(p => (p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) && p._ownerGroup && userGroupIds.indexOf(p._ownerGroup) !== -1)
 				if (p) {
-					let gk = locator.login.getGroupKey((p._ownerGroup:any))
-					return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
+					try {
+						let gk = locator.login.getGroupKey((p._ownerGroup:any))
+						return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
+					} catch (e) {
+						console.log("could not find group key for ownerGroup ", p._ownerGroup)
+					}
 				}
 				p = (listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External):any)
 				if (p == null) {
