@@ -181,6 +181,7 @@ type EnvType = {
 	versionNumber : string,
 	timeout: number,
 	rootPathPrefix: string,
+	adminTypes: string[],
 }
 
 declare var env: EnvType

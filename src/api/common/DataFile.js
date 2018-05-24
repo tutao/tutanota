@@ -21,7 +21,7 @@ export function createDataFile(file: File|TutanotaFile, data: Uint8Array): DataF
 			mimeType: getCleanedMimeType(nativeFile.type),
 			data: data,
 			size: data.byteLength,
-			//id: file read from filesystem, does not have an id because it has not been stored in tutanota.
+			id: null // file read from filesystem, does not have an id because it has not been stored in tutanota.
 		}
 	}
 }

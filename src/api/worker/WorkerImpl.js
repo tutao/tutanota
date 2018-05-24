@@ -145,9 +145,6 @@ export class WorkerImpl {
 			getPrice: (message: Request) => {
 				return bookingFacade.getPrice.apply(bookingFacade, message.args)
 			},
-			downloadInvoice(message: Request) {
-				return bookingFacade.downloadInvoice.apply(bookingFacade, message.args)
-			},
 			getCurrentPrice: (message: Request) => {
 				return bookingFacade.getCurrentPrice()
 			},

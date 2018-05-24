@@ -363,10 +363,6 @@ export class WorkerClient {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
-	downloadInvoice(invoice: Invoice): Promise<Uint8Array> {
-		return this._postRequest(new Request('downloadInvoice', Array.from(arguments)))
-	}
-
 	_postRequest(msg: Request) {
 		if (!this.initialized.isFulfilled()) {
 			throw new Error("worker has not been initialized, request: " + JSON.stringify(msg))
