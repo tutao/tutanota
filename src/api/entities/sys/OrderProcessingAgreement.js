@@ -1,20 +1,20 @@
 // @flow
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const WhitelabelChildTypeRef: TypeRef<WhitelabelChild> = new TypeRef("sys", "WhitelabelChild")
+export const OrderProcessingAgreementTypeRef: TypeRef<OrderProcessingAgreement> = new TypeRef("sys", "OrderProcessingAgreement")
 export const _TypeModel: TypeModel = {
-	"name": "WhitelabelChild",
-	"since": 26,
+	"name": "OrderProcessingAgreement",
+	"since": 31,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 1257,
-	"rootId": "A3N5cwAE6Q",
+	"id": 1326,
+	"rootId": "A3N5cwAFLg",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1261,
-			"since": 26,
+			"id": 1330,
+			"since": 31,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -22,8 +22,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_id": {
 			"name": "_id",
-			"id": 1259,
-			"since": 26,
+			"id": 1328,
+			"since": 31,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -31,8 +31,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1263,
-			"since": 26,
+			"id": 1332,
+			"since": 31,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -40,8 +40,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1262,
-			"since": 26,
+			"id": 1331,
+			"since": 31,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -49,59 +49,60 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1260,
-			"since": 26,
+			"id": 1329,
+			"since": 31,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"comment": {
-			"name": "comment",
-			"id": 1267,
-			"since": 26,
+		"customerAddress": {
+			"name": "customerAddress",
+			"id": 1334,
+			"since": 31,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
-		"createdDate": {
-			"name": "createdDate",
-			"id": 1265,
-			"since": 26,
+		"signatureDate": {
+			"name": "signatureDate",
+			"id": 1335,
+			"since": 31,
 			"type": "Date",
 			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"deletedDate": {
-			"name": "deletedDate",
-			"id": 1266,
-			"since": 26,
-			"type": "Date",
-			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
-		"mailAddress": {
-			"name": "mailAddress",
-			"id": 1264,
-			"since": 26,
+		"version": {
+			"name": "version",
+			"id": 1333,
+			"since": 31,
 			"type": "String",
 			"cardinality": "One",
-			"final": true,
+			"final": false,
 			"encrypted": false
 		}
 	},
 	"associations": {
 		"customer": {
 			"name": "customer",
-			"id": 1268,
-			"since": 26,
+			"id": 1337,
+			"since": 31,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "Customer",
 			"final": true,
+			"external": false
+		},
+		"signerUserGroupInfo": {
+			"name": "signerUserGroupInfo",
+			"id": 1336,
+			"since": 31,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "GroupInfo",
+			"final": false,
 			"external": false
 		}
 	},
@@ -109,6 +110,6 @@ export const _TypeModel: TypeModel = {
 	"version": "31"
 }
 
-export function createWhitelabelChild(): WhitelabelChild {
+export function createOrderProcessingAgreement(): OrderProcessingAgreement {
 	return create(_TypeModel)
 }

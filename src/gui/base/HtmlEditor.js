@@ -165,7 +165,11 @@ export class HtmlEditor {
 				return this._value()
 			}
 		} else {
-			return this._domTextArea.value
+			if (this._domTextArea) {
+				return this._domTextArea.value
+			} else {
+				return this._value()
+			}
 		}
 	}
 

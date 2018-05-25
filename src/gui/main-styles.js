@@ -722,6 +722,12 @@ styles.registerStyle('main', () => {
 			"#mail-viewer": {
 				overflow: "visible"
 			},
+			".dialog-header": {
+				display: 'none'
+			},
+			".dialog-container": {
+				overflow: "visible"
+			},
 			"button:not(.print)": {
 				display: 'none'
 			},

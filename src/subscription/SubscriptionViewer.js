@@ -34,6 +34,9 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {showDeleteAccountDialog} from "./DeleteAccountDialog"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
+import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -43,6 +46,7 @@ export class SubscriptionViewer {
 	view: Function;
 	_subscriptionField: TextField;
 	_usageTypeField: TextField;
+	_orderAgreementField: TextField;
 	_subscriptionIntervalField: DropDownSelector<number>;
 	_selectedSubscriptionInterval: stream<number>;
 	_currentPriceField: TextField;
@@ -56,8 +60,10 @@ export class SubscriptionViewer {
 	_whitelabelField: TextField;
 	_periodEndDate: Date;
 	_nextPeriodPriceVisible: boolean;
+	_customer: ?Customer;
 	_accountingInfo: ?AccountingInfo;
 	_lastBooking: ?Booking;
+	_orderAgreement: ?OrderProcessingAgreement;
 	_isPro: boolean;
 	_isCancelled: boolean;
 
@@ -83,12 +89,35 @@ export class SubscriptionViewer {
 				}).setType(ButtonType.Dropdown)
 			]
 		})
+
+		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg")).setDisabled()
+		let signOrderAgreementAction = new Button("sign_action", () => {
+			SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo))
+		}, () => Icons.Edit)
+		let showOrderAgreementAction = new Button("show_action", () => {
+			load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo).then(signerUserGroupInfo => {
+				SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)
+			})
+		}, () => Icons.Download)
+		this._orderAgreementField._injectionsRight = () => {
+			if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
+				return [m(signOrderAgreementAction), m(showOrderAgreementAction)]
+			} else if (this._orderAgreement) {
+				return [m(showOrderAgreementAction)]
+			} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
+				return [m(signOrderAgreementAction)]
+			} else {
+				return []
+			}
+		}
+
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
-		let subscriptionPeriods = [
-			{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
-			{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
-		]
+		let
+			subscriptionPeriods = [
+				{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
+				{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
+			]
 		this._selectedSubscriptionInterval = stream(null)
 		this._subscriptionIntervalField = new DropDownSelector("subscriptionPeriod_label",
 			() => this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : "",
@@ -153,6 +182,7 @@ export class SubscriptionViewer {
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
 				m(this._subscriptionField),
 				this._showPriceData() ? m(this._usageTypeField) : null,
+				(logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()) ? m(this._orderAgreementField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
 				(this._showPriceData() && this._nextPeriodPriceVisible) ? m(this._nextPriceField) : null,
@@ -172,14 +202,38 @@ export class SubscriptionViewer {
 		}
 
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+			.then(customer => {
+				this._updateOrderProcessingAgreement(customer)
+				return load(CustomerInfoTypeRef, customer.customerInfo)
+			}).then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then(accountingInfo => {
 				this._updateAccountInfoData(accountingInfo)
 			})
 		this._subscriptionField.setValue(lang.get("loading_msg")).setDisabled()
 		this._updatePriceInfo()
 		this._updateBookings()
+	}
+
+	_updateOrderProcessingAgreement(customer: Customer) {
+		let p = Promise.resolve()
+		this._customer = customer
+		if (this._customer.orderProcessingAgreement) {
+			p = load(OrderProcessingAgreementTypeRef, this._customer.orderProcessingAgreement).then(a => {
+				this._orderAgreement = a
+			})
+		} else {
+			this._orderAgreement = null
+		}
+		p.then(() => {
+			if (customer.orderProcessingAgreementNeeded) {
+				this._orderAgreementField.setValue(lang.get("signingNeeded_msg"))
+			} else if (this._orderAgreement) {
+				this._orderAgreementField.setValue(lang.get("signedOn_msg", {"{date}": formatDate(this._orderAgreement.signatureDate)}))
+			} else {
+				this._orderAgreementField.setValue(lang.get("notSigned_msg"))
+			}
+			m.redraw()
+		})
 	}
 
 	_changeBusinessUse(businessUse: boolean): void {
@@ -296,7 +350,7 @@ export class SubscriptionViewer {
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
 			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
 		} else {
-			this._groupsField.setValue(sharedMailText + localAdminText) 
+			this._groupsField.setValue(sharedMailText + localAdminText)
 		}
 		return Promise.resolve()
 	}
@@ -330,6 +384,8 @@ export class SubscriptionViewer {
 		} else if (isSameTypeRef(typeRef, BookingTypeRef)) {
 			this._updateBookings()
 			this._updatePriceInfo()
+		} else if (isSameTypeRef(typeRef, CustomerTypeRef)) {
+			load(CustomerTypeRef, elementId).then(customer => this._updateOrderProcessingAgreement(customer))
 		}
 	}
 }

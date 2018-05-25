@@ -65,6 +65,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"orderProcessingAgreementNeeded": {
+			"name": "orderProcessingAgreementNeeded",
+			"id": 1347,
+			"since": 31,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"type": {
 			"name": "type",
 			"id": 36,
@@ -189,6 +198,16 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
+		"orderProcessingAgreement": {
+			"name": "orderProcessingAgreement",
+			"id": 1348,
+			"since": 31,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OrderProcessingAgreement",
+			"final": true,
+			"external": false
+		},
 		"properties": {
 			"name": "properties",
 			"id": 662,
@@ -231,7 +250,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "30"
+	"version": "31"
 }
 
 export function createCustomer(): Customer {

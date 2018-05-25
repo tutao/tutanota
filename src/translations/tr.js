@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2018-04-25T10:24:50Z",
+	"updated_at": "2018-05-22T12:20:03Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ne yazık ki Tutanota hesabınız devre dışı bırakıldı. Lütfen yöneticinize başvurunuz.",
