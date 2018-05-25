@@ -22,7 +22,6 @@ export const INPUT = "input, textarea, div[contenteditable='true']"
 
 export function focusNext(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
-	console.log("tabbable", tabbable)
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()

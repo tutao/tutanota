@@ -170,12 +170,8 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 				let userGroupIds = locator.login.getAllGroupIds()
 				let p: ?Permission = listPermissions.find(p => (p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) && p._ownerGroup && userGroupIds.indexOf(p._ownerGroup) !== -1)
 				if (p) {
-					try {
-						let gk = locator.login.getGroupKey((p._ownerGroup:any))
-						return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
-					} catch (e) {
-						console.log("could not find group key for ownerGroup ", p._ownerGroup)
-					}
+					let gk = locator.login.getGroupKey((p._ownerGroup:any))
+					return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
 				}
 				p = (listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External):any)
 				if (p == null) {
