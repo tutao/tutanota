@@ -288,8 +288,16 @@ export class SubscriptionViewer {
 
 	_updateGroupsField(): Promise<void> {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount > 0 ? ", " + getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking) + " " + lang.get("localAdminGroup_label") : ""
-		this._groupsField.setValue(getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking) + " " + lang.get("sharedMailbox_label") + localAdminText)
+		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
+		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
+		const sharedMailText = sharedMailCount > 0 ? sharedMailCount + " " + lang.get("sharedMailbox_label") : ""
+		if (localAdminCount == 0 && sharedMailCount == 0) {
+			this._groupsField.setValue("0")
+		} else if (localAdminCount > 0 && sharedMailCount > 0) {
+			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
+		} else {
+			this._groupsField.setValue(sharedMailText + localAdminText) 
+		}
 		return Promise.resolve()
 	}
 

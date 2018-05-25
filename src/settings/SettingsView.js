@@ -54,7 +54,7 @@ export class SettingsView {
 		this._adminFolders = []
 
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))
-		if (!logins.isProdDisabled() && !logins.isEnabled(FeatureType.WhitelabelChild)) {
+		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
 		}
 		if (logins.getUserController().isGlobalAdmin()) {
