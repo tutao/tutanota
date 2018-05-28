@@ -17,7 +17,7 @@ You can build your own Tutanota client and run it locally. Remember that you hav
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 2.15.0): `git checkout tutanota-release-2.15.0`
+3. Checkout latest release (currently 2.15.2): `git checkout tutanota-release-2.15.2`
 4. Install gulp globally: `npm install -g gulp`
 5. Install dependencies: `npm install`
 6. Build Tutanota: `gulp dist`
@@ -37,7 +37,7 @@ If you build and install the Tutanota Android app by yourself, keep in mind that
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the Tutanota directory: `cd tutanota`
-3. Checkout latest Android release (currently 2.15.0): `git checkout tutanota-android-release-2.15.0`
+3. Checkout latest Android release (currently 2.15.2): `git checkout tutanota-android-release-2.15.2`
 4. Install Cordova globally: `npm install -g cordova`
 5. Install gulp.js globally: `npm install -g gulp`
 6. Install dependencies: `npm install`
