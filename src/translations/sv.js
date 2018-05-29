@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2018-05-23T18:45:19Z",
+	"updated_at": "2018-05-26T19:08:42Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Tyvärr är ditt Tutanota konto avaktiverad. Vänligen kontakta administratören.",
@@ -705,6 +705,7 @@ module.exports = {
 		"packageDowngradeUserAccounts_label": "Paketnedgradering till {1} ​​användarkonto(n)",
 		"packageUpgradeUserAccounts_label": "Paketuppgradering till {1} ​​användarkonto(n)",
 		"pageTitle_label": "Sidans titel",
+		"parentConfirmation_msg": "Enligt EU:s allmänna dataskyddsförordning (GDPR) behöver barn under 16 år sina föräldrars tillstånd för att tillåta behandling av deras personuppgifter. Så vänligen kontakta en av dina föräldrar eller målsmän och låt dem bekräfta det följande:\n\n\"Jag är förälder eller målsman till mitt barn och tillåter honom eller henne att använda Tutanota vilket inkluderar behandling av hans eller hennes personuppgifter.\"",
 		"password1InvalidSame_msg": "Det nya lösenordet är detsamma som det gamla.",
 		"password1InvalidTooShort_msg": "Lösenordet är för kort.",
 		"password1InvalidUnsecure_msg": "Lösenordet är inte tillräckligt säkert.",
