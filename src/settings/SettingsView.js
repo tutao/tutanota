@@ -70,9 +70,9 @@ export class SettingsView {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				if (!logins.getUserController().isFreeAccount()) {
-					this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
-				}
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()).setIsVisibleHandler(() => {
+					return !logins.getUserController().isFreeAccount()
+				}))
 			}
 		}
 
@@ -125,12 +125,13 @@ export class SettingsView {
 			button.setClickHandler(event => {
 				this.viewSlider.focus(this._settingsColumn)
 			})
+			button.setIsVisibleHandler(() => folder.isVisible())
 			return button
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
-			view: () => m(".folders", buttons.map(fb => m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-				m(fb)
-			])))
+			view: () => m(".folders", buttons.map(fb => fb.isVisible() ? m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
+					m(fb)
+				]) : null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander
