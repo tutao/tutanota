@@ -62,7 +62,7 @@ export class Table {
 				style: {
 					width: px(size.button_height),
 					position: 'relative',
-					'right': px(-size.hpad_button - 1)
+					'right': px(-size.hpad_button) // same as .mr-negative-s
 				}
 			}, (actionButton) ? [m(actionButton)] : []))
 		}

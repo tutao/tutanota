@@ -31,11 +31,13 @@ import {fileController} from "../file/FileController"
 import TableLine from "../gui/base/TableLine"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {BadGatewayError, TooManyRequestsError, PreconditionFailedError} from "../api/common/error/RestError"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
 import {SysService} from "../api/entities/sys/Services"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -48,6 +50,7 @@ export class InvoiceViewer {
 	_invoices: Array<Invoice>;
 	_paymentBusy: boolean;
 	_invoiceVatNumber: TextField;
+	_invoiceExpanderButton: ExpanderButton;
 
 	view: Function;
 
@@ -84,7 +87,15 @@ export class InvoiceViewer {
 
 		const changePaymentDataButton = createNotAvailableForFreeButton("edit_action", () => {
 			if (this._accountingInfo) {
-				PaymentDataDialog.show(this._accountingInfo)
+				PaymentDataDialog.show(this._accountingInfo).then(success => {
+					if (success) {
+						return Promise.each(this._invoices, (invoice) => {
+							if (this._isPayButtonVisible(invoice)) {
+								return this._showPayInvoiceDialog(invoice)
+							}
+						})
+					}
+				})
 			}
 		}, () => Icons.Edit)
 
@@ -94,7 +105,7 @@ export class InvoiceViewer {
 		//this._paymentMehthodField._injectionsRight = () => m(changePaymentDataButton)
 
 		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true)
-		let invoiceExpander = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
+		this._invoiceExpanderButton = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
 
 
 		this.view = (): VirtualElement => {
@@ -114,9 +125,9 @@ export class InvoiceViewer {
 				m(this._paymentMethodField),
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoices_label')),
-					m(invoiceExpander)
+					m(this._invoiceExpanderButton)
 				]),
-				m(invoiceExpander.panel),
+				m(this._invoiceExpanderButton.panel),
 				m(".small", lang.get("invoiceSettingDescription_msg"))
 			])
 		}
@@ -150,23 +161,26 @@ export class InvoiceViewer {
 
 	_updateInvoiceTable() {
 		this._invoiceTable.updateEntries(this._invoices.map((invoice) => {
-
 			const downloadButton = new Button("download_action", () => {
 				worker.downloadInvoice(invoice).then(pdfInvoice => fileController.open(pdfInvoice))
 			}, () => Icons.Download)
 
 			let invoiceButton;
+			let showExpanderWarning = false
 			if (this._isPayButtonVisible(invoice)) {
+				showExpanderWarning = true
 				const payButton = new Button("invoicePay_action", () => {
-					this._payInvoice(invoice)
-				}, () => Icons.Download)
-				invoiceButton = createDropDownButton("more_label", Icons.Warning, () => {
+					this._showPayInvoiceDialog(invoice)
+				}, () => Icons.Cash)
+				invoiceButton = createDropDownButton("more_label", () => Icons.Warning, () => {
 					downloadButton.setType(ButtonType.Dropdown)
 					payButton.setType(ButtonType.Dropdown)
+					return [downloadButton, payButton]
 				})
 			} else {
 				invoiceButton = downloadButton
 			}
+			this._invoiceExpanderButton.setShowWarning(showExpanderWarning)
 			return new TableLine([formatDate(invoice.date), getInvoiceStatusText(invoice), formatPrice(Number(invoice.grandTotal), true)], invoiceButton)
 		}))
 	}
@@ -193,30 +207,65 @@ export class InvoiceViewer {
 			&& (invoice.status == InvoiceStatus.FIRSTREMINDER || invoice.status == InvoiceStatus.SECONDREMINDER)
 	}
 
-	_payInvoice(invoice: Invoice): void {
+	_showPayInvoiceDialog(invoice: Invoice): Promise<void> {
 		if (!this._isPayButtonVisible(invoice) || this._paymentBusy) {
-			return
+			return Promise.resolve()
 		}
 		this._paymentBusy = true
 		let confirmMessage = lang.get("invoicePayConfirm_msg", {
 			"{invoiceNumber}": invoice.number,
 			"{invoiceDate}": formatDate(invoice.date)
 		})
-		let priceMessage = lang.get('bookingTotalPrice_label') + ": " + formatPrice(Number(invoice.grandTotal), true)
-		Dialog.confirm(() => confirmMessage + " " + priceMessage, "invoicePay_action").then(confirmed => {
+		return _showPayInvoiceConfirmDialog(invoice.number, invoice.date, Number(invoice.grandTotal)).then(confirmed => {
 			if (confirmed) {
 				let service = createDebitServicePutData()
 				service.invoice = invoice._id
-				return serviceRequestVoid(SysService.PaymentDataService, HttpMethod.PUT, service)
+				return showProgressDialog("invoiceUpdateProgress", serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
 					.catch(PreconditionFailedError, error => {
-						return error("paymentProviderTransactionFailedError_msg")
+						return "paymentProviderTransactionFailedError_msg"
 					}).catch(BadGatewayError, error => {
-						return error("paymentProviderNotAvailableError_msg")
+						return "paymentProviderNotAvailableError_msg"
 					}).catch(TooManyRequestsError, error => {
-						return error("tooManyAttempts_msg")
-					})
+						return "tooManyAttempts_msg"
+					}), false)
+			}
+		}).then(errorId => {
+			if (errorId) {
+				return Dialog.error(errorId)
 			}
 		}).finally(() => this._paymentBusy = false)
 	}
 }
 
+
+function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, price: number): Promise<boolean> {
+	return Promise.fromCallback(cb => {
+		let actionBar = new DialogHeaderBar()
+		actionBar.setMiddle(() => lang.get("adminPayment_action"))
+		actionBar.addLeft(new Button("cancel_action", () => {
+			dialog.close()
+			cb(null, false)
+		}).setType(ButtonType.Secondary))
+		actionBar.addRight(new Button("invoicePay_action", () => {
+			dialog.close()
+			cb(null, true)
+		}).setType(ButtonType.Primary))
+
+		let orderField = new TextField("number_label").setValue(invoiceNumber).setDisabled()
+		let dateField = new TextField("date_label").setValue(formatDate(invoiceDate)).setDisabled()
+		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
+
+		let dialog = new Dialog(DialogType.EditSmall, {
+			view: (): Children => [
+				m(".dialog-header.plr-l", m(actionBar)),
+				m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+					m(".pt", lang.get("invoicePayConfirm_msg")),
+					m(orderField),
+					m(dateField),
+					m(priceField),
+				]))
+			]
+		})
+		dialog.show()
+	})
+}

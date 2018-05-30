@@ -488,7 +488,7 @@ module.exports = {
 		"invoiceMailSubject_msg": "New invoice for Tutanota",
 		"invoiceNotPaidUser_msg": "Sorry, you are currently not allowed to send emails. Please contact your administrator.",
 		"invoiceNotPaid_msg": "Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data at {1} in 'Settings' -> 'Payment data' and pay the invoices in 'Settings'->'Invoicing' afterwards.",
-		"invoicePayConfirm_msg": "Please confirm the payment for the invoice {invoiceNumber} from {invoiceDate}.",
+
 		"invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added in the future.",
 		"invoicePay_action": "Pay",
 		"invoiceRecipient_label": "Invoice recipient",
@@ -1060,6 +1060,8 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"invoicePayConfirm_msg": "We will now debit the amount for this invoice:",
+		"invoiceUpdateProgress": "Updating invoice state ..."
 	}
 }

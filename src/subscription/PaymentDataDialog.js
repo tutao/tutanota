@@ -13,7 +13,10 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 
-export function show(accountingInfo: AccountingInfo): Dialog {
+/**
+ * @returns {boolean} true if the payment data update was successful
+ */
+export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 
 	let invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
@@ -44,24 +47,26 @@ export function show(accountingInfo: AccountingInfo): Dialog {
 	})
 
 
-	const confirmAction = () => {
-		let error = paymentMethodInput.validatePaymentData()
-		if (error) {
-			Dialog.error(error)
-		} else {
-			showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country)).then(success => {
-				if (success) {
-					dialog.close()
-				}
-			})
+	return Promise.fromCallback(cb => {
+		const confirmAction = () => {
+			let error = paymentMethodInput.validatePaymentData()
+			if (error) {
+				Dialog.error(error)
+			} else {
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country)).then(success => {
+					if (success) {
+						dialog.close()
+						cb(null, true)
+					}
+				})
+			}
 		}
-	}
 
-	const dialog = Dialog.smallActionDialog(lang.get("adminPayment_action"), {
-		view: () => m("#changePaymentDataDialog", {style: {minHeight: px(310)}}, [
-			m(paymentMethodSelector),
-			m(paymentMethodInput),
-		])
-	}, confirmAction, true, "save_action")
-	return dialog
+		const dialog = Dialog.smallActionDialog(lang.get("adminPayment_action"), {
+			view: () => m("#changePaymentDataDialog", {style: {minHeight: px(310)}}, [
+				m(paymentMethodSelector),
+				m(paymentMethodInput),
+			])
+		}, confirmAction, true, "save_action", () => cb(null, false))
+	})
 }

@@ -488,7 +488,7 @@ module.exports = {
 		"invoiceMailSubject_msg": "Neue Rechnung für Tutanota",
 		"invoiceNotPaidUser_msg": "Sie drfen leider keine E-Mails senden. Bitte wenden Sie sich an den Administrator.",
 		"invoiceNotPaid_msg": "Sie drfen leider keine E-Mails senden, da mindestens eine Ihrer Rechnungen nicht bezahlt ist. Bitte aktualisieren Sie Ihre Zahlungsdaten unter {1} in 'Einstellungen' -> 'Zahlungsdaten' und bezahlen Sie die ausstehenden Rechnungen in 'Einstellungen'->'Rechnungen'.",
-		"invoicePayConfirm_msg": "Bitte bestätigen Sie die Zahlung der Rechnung {invoiceNumber} vom {invoiceDate}.",
+
 		"invoicePaymentMethodInfo_msg": "Bitte wählen Sie eine Zahlungsmethode. Weitere Zahlungsoptionen werden in Zukunft hinzugefügt.",
 		"invoicePay_action": "Bezahlen",
 		"invoiceRecipient_label": "Rechnungs-Empfänger",
@@ -1060,6 +1060,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"invoicePayConfirm_msg": "Wir werden jetzt den Betrag für diese Rechnung abbuchen:",
+		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ..."
 	}
 }
