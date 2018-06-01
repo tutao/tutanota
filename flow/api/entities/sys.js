@@ -68,6 +68,7 @@ type Customer = {
 	_permissions:Id;
 	approvalStatus:NumberString;
 	canceledPremiumAccount:boolean;
+	orderProcessingAgreementNeeded:boolean;
 	type:NumberString;
 
 	auditLog:?AuditLogRef;
@@ -82,6 +83,7 @@ type Customer = {
 	customerGroup:Id;
 	customerGroups:Id;
 	customerInfo:IdTuple;
+	orderProcessingAgreement:?IdTuple;
 	properties:?Id;
 	serverProperties:?Id;
 	teamGroups:Id;
@@ -1458,5 +1460,36 @@ type LocationServiceGetReturn = {
 	_type: TypeRef<LocationServiceGetReturn>;
 	_format:NumberString;
 	country:string;
+
+}
+
+type OrderProcessingAgreement = {
+	_type: TypeRef<OrderProcessingAgreement>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	customerAddress:string;
+	signatureDate:Date;
+	version:string;
+
+	customer:Id;
+	signerUserGroupInfo:IdTuple;
+}
+
+type OrderProcessingAgreements = {
+	_type: TypeRef<OrderProcessingAgreements>;
+	_id:Id;
+
+	agreements:Id;
+}
+
+type SignOrderProcessingAgreementData = {
+	_type: TypeRef<SignOrderProcessingAgreementData>;
+	_format:NumberString;
+	customerAddress:string;
+	version:string;
 
 }

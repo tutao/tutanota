@@ -45,5 +45,6 @@ export const SysService = {
 	CustomerPublicKeyService: "customerpublickeyservice",
 	UpdateAdminshipService: "updateadminshipservice",
 	PaypalPaymentWebhook: "paypalpaymentwebhook",
-	LocationService: "locationservice"
+	LocationService: "locationservice",
+	SignOrderProcessingAgreementService: "signorderprocessingagreementservice"
 }
