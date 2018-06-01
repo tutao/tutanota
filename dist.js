@@ -166,15 +166,15 @@ let debName = `tutanota-next-${version}_1_amd64.deb`
 function deb() {
 	if (process.argv.indexOf("deb") !== -1) {
 		console.log("create" + debName)
-		spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
 	}
 }
@@ -182,24 +182,30 @@ function deb() {
 function release() {
 	if (process.argv.indexOf("release") !== -1) {
 		console.log("create git tag and copy .deb")
-		spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/bin/cp", `-f build/${debName} /opt/repository/tutanota/`.split(" "), {
+		exitOnFail(spawnSync("/bin/cp", `-f build/${debName} /opt/repository/tutanota/`.split(" "), {
 			cwd: __dirname,
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
 		// user puppet needs to read the deb file from jetty
-		spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debName}`.split(" "), {
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debName}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
+	}
+}
+
+function exitOnFail(result) {
+	if (result.status != 0) {
+		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 }
 
