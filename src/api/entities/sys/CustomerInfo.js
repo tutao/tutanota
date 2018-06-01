@@ -225,7 +225,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "31"
+	"version": "30"
 }
 
 export function createCustomerInfo(): CustomerInfo {
