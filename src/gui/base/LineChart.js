@@ -1,6 +1,5 @@
 //@flow
 import m from "mithril"
-import {colors} from "../AlternateColors"
 import {theme} from "../theme"
 import {size} from "../size"
 
@@ -12,7 +11,7 @@ type AxisLabel = {
 
 export type LineChartAttrs = {
 	data: {
-		name: string, line: boolean, scatter: boolean, coordinates:[number, number][], // x,y
+		name: string, color: string, line: boolean, scatter: boolean, coordinates:[number, number][], // x,y
 		maxX: ?number, maxY: ?number, minX: ?number, minY: ?number,
 	}[];
 	maxX: number;
@@ -70,17 +69,19 @@ class _LineChart {
 
 	_move(e: MouseEvent) {
 		this._moving = true
+		this._domWrapper.style.cursor = 'pointer'
 		e.preventDefault()
 	}
 
 	_stopMove(e: MouseEvent) {
 		this._moving = false
+		this._domWrapper.style.cursor = ''
 		e.preventDefault()
 	}
 
 	view(vnode: Vnode<LineChartAttrs>) {
 		try {
-			console.log("view")
+			console.log("updating linechart")
 			//let start = performance.now()
 
 			const a = vnode.attrs
@@ -92,7 +93,6 @@ class _LineChart {
 					oncreate: vnode => {
 						this._domWrapper = vnode.dom
 					},
-					style: this._moving ? {cursor: 'pointer'} : {cursor: 'cell'}
 				}, [
 					m("div.positions.abs.mlr-l.mt-l", {
 						oncreate: vnode => this._domPositions = vnode.dom,
@@ -165,7 +165,7 @@ class _LineChart {
 									a.data.map((d, index) => {
 										return d.coordinates.length == 0 ? null : [
 												d.line ? m("g", {
-															stroke: colors['alt_' + (index + 13) % 36],
+															stroke: d.color,
 															'stroke-width': 1 * this._scale / this._zoom,
 															fill: 'none',
 														},
@@ -176,7 +176,7 @@ class _LineChart {
 														}),
 													) : null,
 												d.scatter ? m("g", d.coordinates.map(xy => m("circle", {
-														fill: colors['alt_' + (index + 13) % 36],
+														fill: d.color,
 														cx: calculateX(xy[0], a, xFactor),
 														cy: calculateY(height, xy[1], a, yFactor),
 														r: 2.5 * this._scale / this._zoom

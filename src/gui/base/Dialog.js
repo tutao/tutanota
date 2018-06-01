@@ -272,6 +272,29 @@ export class Dialog {
 		})
 	}
 
+    static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
+        return Promise.fromCallback(cb => {
+            let actionBar = new DialogHeaderBar()
+            actionBar.addLeft(new Button("close_alt", () => {
+                saveDialog.close()
+                setTimeout(() => cb(null), DefaultAnimationTime)
+            }).setType(ButtonType.Secondary))
+            actionBar.addRight(new Button("save_action", () => {
+                saveAction().then(() => {
+                    saveDialog.close()
+                    setTimeout(() => cb(null), DefaultAnimationTime)
+                })
+            }).setType(ButtonType.Primary))
+            let saveDialog = new Dialog(DialogType.EditMedium, {
+                view: () => m("", [
+                    m(".dialog-header.plr-l", m(actionBar)),
+                    m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+                ])
+            })
+            actionBar.setMiddle(title)
+            saveDialog.show()
+        })
+    }
 
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
 		return Promise.fromCallback(cb => {
