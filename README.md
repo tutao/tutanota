@@ -16,13 +16,14 @@ You can build your own Tutanota client and run it locally. Remember that you hav
 #### Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
-2. Switch into the web directory: `cd tutanota/web`
+2. Switch into the repository directory: `cd tutanota`
 3. Checkout latest release (currently 2.15.2): `git checkout tutanota-release-2.15.2`
-4. Install gulp globally: `npm install -g gulp`
-5. Install dependencies: `npm install`
-6. Build Tutanota: `gulp dist`
-7. Switch into the build directory: `cd build`
-8. Open the `index.html` with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
+4. Switch into the web directory: `cd web`
+5. Install gulp globally: `npm install -g gulp`
+6. Install dependencies: `npm install`
+7. Build Tutanota: `gulp dist`
+8. Switch into the build directory: `cd build`
+9. Open the `index.html` with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
 
 ## Building and running your own Tutanota Android app
 
