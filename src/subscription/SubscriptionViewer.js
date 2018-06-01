@@ -37,6 +37,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import * as InvoiceDataDialog from "./InvoiceDataDialog"
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -82,13 +83,11 @@ export class SubscriptionViewer {
 		let usageTypeAction = createDropDownButton("businessOrPrivateUsage_label", () => Icons.Edit, () => {
 			return [
 				new Button("businessUse_label", () => {
-					this._changeBusinessUse(true)
+					this._switchToBusinessUse()
 				}).setType(ButtonType.Dropdown),
-				new Button("privateUse_label", () => {
-					this._changeBusinessUse(false)
-				}).setType(ButtonType.Dropdown)
 			]
 		})
+		this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
 		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg")).setDisabled()
 		let signOrderAgreementAction = new Button("sign_action", () => {
@@ -236,9 +235,18 @@ export class SubscriptionViewer {
 		})
 	}
 
-	_changeBusinessUse(businessUse: boolean): void {
-		if (this._accountingInfo && this._accountingInfo.business != businessUse) {
-			// TODO allow private to business only.
+	_switchToBusinessUse(): void {
+		if (this._accountingInfo && !this._accountingInfo.business) {
+			let accountingInfo = neverNull(this._accountingInfo)
+			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
+			InvoiceDataDialog.show({
+				businessUse: true,
+				paymentInterval: Number(accountingInfo.paymentInterval),
+			}, {
+				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+				country: invoiceCountry,
+				vatNumber: ""
+			}, "businessChangeInfo_msg")
 		}
 	}
 

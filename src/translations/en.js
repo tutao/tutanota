@@ -1062,6 +1062,7 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"invoicePayConfirm_msg": "We will now debit the amount for this invoice:",
-		"invoiceUpdateProgress": "Updating invoice state ..."
+		"invoiceUpdateProgress": "Updating invoice state ...",
+		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use."
 	}
 }

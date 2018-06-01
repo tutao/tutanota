@@ -1062,7 +1062,8 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"invoicePayConfirm_msg": "Wir werden jetzt den Betrag für diese Rechnung abbuchen:",
-		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ..."
+		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ...",
+		"businessChangeInfo_msg": "Bitte bestätige deine Rechnungsdaten für die geschäftliche Nutzung."
 
 	}
 }
