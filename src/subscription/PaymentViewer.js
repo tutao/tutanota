@@ -149,13 +149,13 @@ export class PaymentViewer {
 	}
 
 	_updateInvoiceTable() {
+		let showExpanderWarning = false
 		this._invoiceTable.updateEntries(this._invoices.map((invoice) => {
 			const downloadButton = new Button("download_action", () => {
 				worker.downloadInvoice(invoice).then(pdfInvoice => fileController.open(pdfInvoice))
 			}, () => Icons.Download)
 
 			let invoiceButton;
-			let showExpanderWarning = false
 			if (this._isPayButtonVisible(invoice)) {
 				showExpanderWarning = true
 				const payButton = new Button("invoicePay_action", () => {
@@ -169,9 +169,9 @@ export class PaymentViewer {
 			} else {
 				invoiceButton = downloadButton
 			}
-			this._invoiceExpanderButton.setShowWarning(showExpanderWarning)
 			return new TableLine([formatDate(invoice.date), getInvoiceStatusText(invoice), formatPrice(Number(invoice.grandTotal), true)], invoiceButton)
 		}))
+		this._invoiceExpanderButton.setShowWarning(showExpanderWarning)
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {

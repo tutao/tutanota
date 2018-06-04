@@ -9,7 +9,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -80,14 +80,10 @@ export class SubscriptionViewer {
 			.setType(ButtonType.Accent)
 		this._subscriptionField._injectionsRight = () => (logins.getUserController().isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController().isPremiumAccount() && !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg")).setDisabled()
-		let usageTypeAction = createDropDownButton("businessOrPrivateUsage_label", () => Icons.Edit, () => {
-			return [
-				new Button("businessUse_label", () => {
-					this._switchToBusinessUse()
-				}).setType(ButtonType.Dropdown),
-			]
-		})
-		this._usageTypeField._injectionsRight = () => m(usageTypeAction)
+		let usageTypeAction = new Button("businessUse_label", () => {
+			this._switchToBusinessUse()
+		}, () => Icons.Edit)
+		this._usageTypeField._injectionsRight = () => this._accountingInfo && !this._accountingInfo.business ? m(usageTypeAction) : null
 
 		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg")).setDisabled()
 		let signOrderAgreementAction = new Button("sign_action", () => {
@@ -246,7 +242,7 @@ export class SubscriptionViewer {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: ""
-			}, "businessChangeInfo_msg")
+			}, "businessUse_label", "businessChangeInfo_msg")
 		}
 	}
 

@@ -6,7 +6,7 @@ import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
 
-export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, infoMessageId: ?string): Dialog {
+export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, headingId: ?string, infoMessageId: ?string): Dialog {
 
 	const invoiceDataInput = new InvoiceDataInput(subscriptionOptions, invoiceData)
 
@@ -25,7 +25,7 @@ export function show(subscriptionOptions: SubscriptionOptions, invoiceData: Invo
 		}
 	}
 
-	const dialog = Dialog.smallActionDialog(lang.get("invoiceData_msg"), {
+	const dialog = Dialog.smallActionDialog(headingId ? lang.get(headingId) : lang.get("invoiceData_msg"), {
 		view: () => m("#changeInvoiceDataDialog", [
 			infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
 			m(invoiceDataInput),
