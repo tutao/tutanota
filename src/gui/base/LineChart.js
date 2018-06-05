@@ -127,8 +127,10 @@ class _LineChart {
 								})
 								this._domSvg.addEventListener("mouseleave", (e: MouseEvent) => this._stopMove(e))
 								this._domSvg.addEventListener("wheel", (e: any) => {
-									e.deltaY > 0 ? this.zoom(e, -0.3) : this.zoom(e, 0.3)
-									e.preventDefault()
+									if (e.ctrlKey) {
+										e.deltaY > 0 ? this.zoom(e, -0.3) : this.zoom(e, 0.3)
+										e.preventDefault()
+									}
 								})
 
 							},
@@ -281,7 +283,7 @@ class _LineChart {
 		this._viewBox = this._bounds
 		this._offset = [this._domWrapper.offsetLeft, this._domWrapper.offsetTop]
 		const newScale = this._viewBox.width / this._domSvg.clientWidth
-		if (newScale != this._scale) {
+		if (Math.round(newScale * 100) / 100 != Math.round(this._scale * 100) / 100) {
 			this._scale = newScale
 			window.requestAnimationFrame(m.redraw)
 		}
