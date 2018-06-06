@@ -26,7 +26,7 @@ class Header {
 	mailsUrl: string;
 	settingsUrl: string;
 	searchUrl: string;
-	_viewSlider: ?IViewSlider;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+	_currentView: ?Component;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
@@ -36,7 +36,7 @@ class Header {
 		this.mailsUrl = '/mail'
 		this.settingsUrl = '/settings'
 		this.searchUrl = '/search'
-		this._viewSlider = null
+		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
 		/*
@@ -163,8 +163,13 @@ class Header {
 	}
 
 	_getColumnTitle() {
-		if (this._viewSlider) {
-			return this._viewSlider.focusedColumn.getTitle()
+		const viewSlider = this._getViewSlider()
+		if (viewSlider) {
+			return viewSlider.focusedColumn.getTitle()
+		} else if (m.route.get().startsWith('/login')) {
+			return lang.get("login_label")
+		} else if (m.route.get().startsWith('/signup')) {
+			return lang.get("registrationHeadline_msg")
 		} else {
 			return ""
 		}
@@ -172,8 +177,8 @@ class Header {
 
 
 	_getLeftElements() {
-		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
-			let viewSlider = neverNull(this._viewSlider)
+		const viewSlider = this._getViewSlider()
+		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => viewSlider.focusPreviousColumn())
@@ -189,17 +194,15 @@ class Header {
 	}
 
 	updateCurrentView(currentView: Component) {
-		if (currentView.viewSlider) {
-			this._viewSlider = (currentView:any).viewSlider
-		} else {
-			this._viewSlider = null
-		}
-		if (currentView.buttonBar) {
-			this.buttonBar = (currentView:any).buttonBar
-		} else {
-			this.buttonBar = this.defaultButtonBar
-		}
+		this._currentView = currentView
+	}
 
+	_getViewSlider(): ?IViewSlider {
+		if (this._currentView) {
+			return (this._currentView:any).viewSlider
+		} else {
+			return null
+		}
 	}
 }
 

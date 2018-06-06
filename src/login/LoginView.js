@@ -4,7 +4,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {client, DeviceType} from "../misc/ClientDetector"
-import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -141,7 +141,7 @@ export class LoginView {
 			(!whitelabelCustomizations || whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1) ? m(this.savePassword) : null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
-			m(".flex-center.pt-l", this.appButtons.map(button => m(button))),
+			isApp() ? null : m(".flex-center.pt-l", this.appButtons.map(button => m(button)))
 		])
 	}
 

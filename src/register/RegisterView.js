@@ -64,7 +64,7 @@ export class RegisterView {
 				p = Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			}
 
-			p.then(confirmed =>  {
+			p.then(confirmed => {
 				if (confirmed) {
 					let authToken = m.route.param()['authToken']
 					if (!authToken) {
@@ -87,7 +87,7 @@ export class RegisterView {
 			}
 		}).setType(ButtonType.Secondary)
 
-		let login = new Button('login_label', () => m.route.set('/login')).setType(ButtonType.Secondary)
+		let login = new Button('login_label', () => m.route.set('/login?noAutoLogin=true')).setType(ButtonType.Secondary)
 
 		let panel = {
 			view: () => m(".flex-center.flex-column", [
