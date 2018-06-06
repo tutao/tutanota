@@ -174,7 +174,7 @@ class CaptchaDialog {
 		this.dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb", [
+				m(".plr-l.pb", [
 					m("img.mt-l", {
 						src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(this.captchaReturn.challenge)),
 						alt: lang.get("captchaDisplay_label")

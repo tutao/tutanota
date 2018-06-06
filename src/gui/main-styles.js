@@ -414,6 +414,7 @@ styles.registerStyle('main', () => {
 			'border-left': `1px solid ${theme.content_border}`,
 			'margin-left': '0'
 		},
+		'.dialog-max-height': {'max-height': 'calc(100vh - 100px)'},
 
 		// mail folder view column
 		' .folder-column': {

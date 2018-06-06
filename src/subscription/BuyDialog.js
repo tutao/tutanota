@@ -70,7 +70,7 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 									let dialog = new Dialog(DialogType.EditSmall, {
 										view: (): Children => [
 											m(".dialog-header.plr-l", m(actionBar)),
-											m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+											m(".plr-l.pb", m("", [
 												m(orderField),
 												buyField ? m(buyField) : null,
 												m(priceField),

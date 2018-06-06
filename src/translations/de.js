@@ -1066,7 +1066,10 @@ module.exports = {
 		"yourMessage_label": "Deine Nachricht",
 		"invoicePayConfirm_msg": "Wir werden jetzt den Betrag für diese Rechnung abbuchen:",
 		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ...",
-		"businessChangeInfo_msg": "Bitte bestätige deine Rechnungsdaten für die geschäftliche Nutzung."
+		"businessChangeInfo_msg": "Bitte bestätige deine Rechnungsdaten für die geschäftliche Nutzung.",
+		"noAppAvailable_msg": "Es ist keine App installiert, die diese Aktion verarbeiten kann.",
+		"addOpenOTPApp_action": "Zur Authenticator-App hinzufügen",
+		"totpTransferSecretApp_msg": "Bitte aktualisiere deine Authenticator-App durch betätigen des Buttons oder die manuelle Eingabe des Geheimnisses."
 
 	}
 }

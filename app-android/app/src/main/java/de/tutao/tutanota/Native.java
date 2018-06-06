@@ -1,6 +1,11 @@
 package de.tutao.tutanota;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -10,6 +15,7 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.jdeferred.impl.DeferredPromise;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,7 +81,7 @@ public final class Native {
                                     public void onFail(Exception e) {
                                         sendErrorResponse(request, e);
                                     }
-                            });
+                                });
                     }
                 } catch (JSONException e) {
                     Log.e("Native", "could not parse msg:" + msg, e);
@@ -194,6 +200,8 @@ public final class Native {
                 promise.resolve(null);
             } else if (method.equals("findSuggestions")) {
                 return contact.findSuggestions(args.getString(0));
+            } else if (method.equals("openLink")) {
+                promise.resolve(openLink(args.getString(0)));
             } else {
                 throw new Exception("unsupported method: " + method);
             }
@@ -202,6 +210,16 @@ public final class Native {
             promise.reject(e);
         }
         return promise.promise();
+    }
+
+    private boolean openLink(@Nullable String uri) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        PackageManager pm = activity.getPackageManager();
+        boolean resolved = intent.resolveActivity(pm) != null;
+        if (resolved) {
+            activity.startActivity(intent);
+        }
+        return resolved;
     }
 
     private Promise<JSONObject, Exception, ?> initPushNotifications() {

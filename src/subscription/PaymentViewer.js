@@ -247,7 +247,7 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+				m(".plr-l.pb", m("", [
 					m(".pt", lang.get("invoicePayConfirm_msg")),
 					m(orderField),
 					m(dateField),

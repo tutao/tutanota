@@ -298,7 +298,7 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 		let dialog = new Dialog(DialogType.EditMedium, {
 			view: () => m("", [
 				m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
-				m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)),
+				m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)),
 				m(confirm)
 			])
 		})

@@ -1066,6 +1066,9 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"invoicePayConfirm_msg": "We will now debit the amount for this invoice:",
 		"invoiceUpdateProgress": "Updating invoice state ...",
-		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use."
+		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use.",
+		"noAppAvailable_msg": "There’s no app installed which can handle this action.",
+		"addOpenOTPApp_action": "Add to authenticator app",
+		"totpTransferSecretApp_msg": "Please update your authenticator app by pressing the button below or by entering the secret key manually."
 	}
 }

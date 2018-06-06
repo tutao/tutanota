@@ -90,7 +90,7 @@ export class NavButton {
 
 	_isExternalUrl() {
 		let url = this._getUrl()
-		return url != null ? url.indexOf("http") == 0 : false
+		return url != null ? url.indexOf("http") == 0 || url.indexOf("otpauth") == 0 : false
 	}
 
 	createButtonAttributes() {

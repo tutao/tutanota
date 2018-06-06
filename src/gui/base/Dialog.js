@@ -64,7 +64,7 @@ export class Dialog {
 					m(this._getDialogStyle(dialogType), {
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						style: {
-							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
+							'margin-top': styles.isDesktopLayout() ? '60px' : dialogType === DialogType.EditLarge ? mobileMargin : 0,
 							'margin-left': mobileMargin,
 							'margin-right': mobileMargin
 						},
@@ -272,29 +272,29 @@ export class Dialog {
 		})
 	}
 
-    static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
-        return Promise.fromCallback(cb => {
-            let actionBar = new DialogHeaderBar()
-            actionBar.addLeft(new Button("close_alt", () => {
-                saveDialog.close()
-                setTimeout(() => cb(null), DefaultAnimationTime)
-            }).setType(ButtonType.Secondary))
-            actionBar.addRight(new Button("save_action", () => {
-                saveAction().then(() => {
-                    saveDialog.close()
-                    setTimeout(() => cb(null), DefaultAnimationTime)
-                })
-            }).setType(ButtonType.Primary))
-            let saveDialog = new Dialog(DialogType.EditMedium, {
-                view: () => m("", [
-                    m(".dialog-header.plr-l", m(actionBar)),
-                    m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
-                ])
-            })
-            actionBar.setMiddle(title)
-            saveDialog.show()
-        })
-    }
+	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
+		return Promise.fromCallback(cb => {
+			let actionBar = new DialogHeaderBar()
+			actionBar.addLeft(new Button("close_alt", () => {
+				saveDialog.close()
+				setTimeout(() => cb(null), DefaultAnimationTime)
+			}).setType(ButtonType.Secondary))
+			actionBar.addRight(new Button("save_action", () => {
+				saveAction().then(() => {
+					saveDialog.close()
+					setTimeout(() => cb(null), DefaultAnimationTime)
+				})
+			}).setType(ButtonType.Primary))
+			let saveDialog = new Dialog(DialogType.EditMedium, {
+				view: () => m("", [
+					m(".dialog-header.plr-l", m(actionBar)),
+					m(".plr-l.pb.text-break", m(child))
+				])
+			})
+			actionBar.setMiddle(title)
+			saveDialog.show()
+		})
+	}
 
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
 		return Promise.fromCallback(cb => {
@@ -352,7 +352,7 @@ export class Dialog {
 			let dialog = new Dialog(DialogType.EditSmall, {
 				view: () => m("", [
 					m(".dialog-header.plr-l", m(actionBar)),
-					m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+					m(".plr-l.pb.text-break", m(child))
 				])
 			})
 
@@ -371,21 +371,37 @@ export class Dialog {
 	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
-		if (allowCancel) {
-			actionBar.addLeft(new Button("cancel_action", () => {
-				if (cancelAction) {
-					cancelAction()
-				}
-				dialog.close()
-			}).setType(ButtonType.Secondary))
+		let doCancel = () => {
+			if (cancelAction) {
+				cancelAction()
+			}
+			dialog.close()
 		}
+
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(DialogType.EditSmall, {
 			view: () => m("", [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
 			])
+		})
+
+		if (allowCancel) {
+			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: doCancel,
+				help: "cancel_action"
+			})
+		}
+
+		dialog.addShortcut({
+			key: Keys.RETURN,
+			shift: false,
+			exec: okAction,
+			help: okActionTextId
 		})
 
 		if (title) {

@@ -131,6 +131,7 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
+	| 'openLink'
 type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
 
 
