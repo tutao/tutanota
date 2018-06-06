@@ -38,7 +38,7 @@ public final class Native {
     Contact contact;
     Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
-    private final DeferredObject initialized = new DeferredObject();
+    private final DeferredObject<Void, Void, Void> initialized = new DeferredObject<>();
 
 
     Native(MainActivity activity) {
@@ -164,7 +164,9 @@ public final class Native {
         Deferred promise = new DeferredObject<>();
         try {
             if ("init".equals(method)) {
-                initialized.resolve(null);
+                if (!initialized.isResolved()) {
+                    initialized.resolve(null);
+                }
                 promise.resolve("android");
             } else if ("initPushNotifications".equals(method)) {
                 return initPushNotifications();
