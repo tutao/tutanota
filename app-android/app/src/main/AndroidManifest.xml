@@ -33,7 +33,7 @@
         </activity>
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="de.tutao.fileprovider"
+            android:authorities="${contentProviderAuthority}"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -66,7 +66,7 @@
         </service>
         <service
             android:name="de.tutao.tutanota.push.GcmRegistrationService"
-            android:exported="false"></service>
+            android:exported="false" />
     </application>
 
 </manifest>
