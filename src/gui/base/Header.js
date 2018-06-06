@@ -51,8 +51,9 @@ class Header {
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
-			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => premiumUrl, premiumUrl)
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
+			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isFreeAccount())
+				.setClickHandler(() => this._showUpgradeDialog()), 0, true)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
@@ -130,6 +131,13 @@ class Header {
 				editor.show()
 			})
 		})
+	}
+
+	_showUpgradeDialog() {
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`).then(upgradeWizard => {
+				return upgradeWizard.show()
+			}
+		)
 	}
 
 	_writeSupportMail() {
