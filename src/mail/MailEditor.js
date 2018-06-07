@@ -259,7 +259,7 @@ export class MailEditor {
 					this.send()
 				},
 				help: "send_action"
-			})
+			}).setCloseHandler(() => closeButton.clickHandler())
 	}
 
 	_focusBodyOnLoad() {

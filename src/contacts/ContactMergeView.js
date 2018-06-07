@@ -43,10 +43,11 @@ export class MergeView {
 				}
 			})
 		}, () => Icons.Trash)
+		const cancelAction = () => {
+			this._close(ContactMergeAction.Cancel)
+		}
 		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', () => {
-				this._close(ContactMergeAction.Cancel)
-			}).setType(ButtonType.Secondary))
+			.addLeft(new Button('cancel_action', cancelAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("merge_action"))
 			.addRight(new Button('next_action', () => {
 				this._close(ContactMergeAction.Skip)
@@ -230,6 +231,7 @@ export class MergeView {
 		}
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
+			.setCloseHandler(cancelAction)
 	}
 
 	_createTextFields(value1: ? string, value2: ? string, labelTextId: string): ? TextField[] {

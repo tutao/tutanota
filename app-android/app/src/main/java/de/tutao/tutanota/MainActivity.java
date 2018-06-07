@@ -27,6 +27,7 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -217,6 +218,19 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
+                .then(result -> {
+                    try {
+                        if (!result.getBoolean("value")) {
+                            finish();
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "error parsing response",e);
+                    }
+                });
+    }
 }
 
 interface Callback<T> {

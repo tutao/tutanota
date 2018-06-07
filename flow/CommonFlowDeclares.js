@@ -91,7 +91,7 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 	 * True if the user may select multiple or 0 elements.
 	 * Keep in mind that even if multiSelectionAllowed == false, elementSelected() will be called with multiSelectOperation = true if an element is deleted and removed from the selection.
 	 */
-	multiSelectionAllowed:boolean;
+		multiSelectionAllowed:boolean;
 	emptyMessage:string;
 }
 
@@ -149,7 +149,7 @@ declare interface View {
 
 declare interface ModalComponent {
 	hideAnimation():Promise<void>;
-	close():void;
+	onClose():void;
 	shortcuts():Shortcut[];
 	view(vnode: Vnode<any>): Vnode<any>;
 	backgroundClick(e: MouseEvent):void;

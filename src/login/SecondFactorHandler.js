@@ -8,7 +8,6 @@ import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, SessionState, SecondFactorType} from "../api/common/TutanotaConstants"
-import {worker} from "../api/main/WorkerClient"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
@@ -142,8 +141,9 @@ export class SecondFactorHandler {
 						]),
 						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain})) : null
 					])
-				})
-				this._waitingForSecondFactorDialog.show()
+				}).setCloseHandler(() => {
+					// Prevent accidential closing
+				}).show()
 				if (u2fSupport && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {

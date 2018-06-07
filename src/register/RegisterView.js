@@ -185,10 +185,11 @@ class CaptchaDialog {
 		})
 
 		let actionBar = new DialogHeaderBar()
-		actionBar.addLeft(new Button("cancel_action", () => {
+		let cancelAction = () => {
 			this.dialog.close()
 			this.callback(null, null)
-		}).setType(ButtonType.Secondary))
+		}
+		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 		actionBar.addRight(new Button("ok_action", () => {
 			let captchaTime = captchaInput.value().trim()
 			if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
@@ -223,6 +224,7 @@ class CaptchaDialog {
 			}
 		}).setType(ButtonType.Primary))
 			.setMiddle(() => lang.get("captchaDisplay_label"))
+		this.dialog.setCloseHandler(cancelAction)
 	}
 
 	/**

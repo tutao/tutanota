@@ -30,6 +30,7 @@ class Header {
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
+	mailNavButton: NavButton;
 
 	constructor() {
 		this.contactsUrl = '/contact'
@@ -45,10 +46,13 @@ class Header {
 		 .setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
 		 .setClickHandler(() => console.log("show search input field"))
 		 */
+
+
+		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
+			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
 		this.defaultButtonBar = new NavBar()
 		//.addButton(searchViewButton, 0, true, false)
-			.addButton(new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
+			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)

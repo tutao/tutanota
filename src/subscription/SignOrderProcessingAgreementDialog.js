@@ -34,9 +34,11 @@ const agreementTexts = {
 
 
 export function showForSigning(customer: Customer, accountingInfo: AccountingInfo): Dialog {
-	let cancelButton = new Button("cancel_action", () => {
+
+	let cancelAction = () => {
 		dialog.close()
-	}).setType(ButtonType.Secondary)
+	}
+	let cancelButton = new Button("cancel_action", cancelAction).setType(ButtonType.Secondary)
 
 	let version = "1_" + ((lang.code == "de") ? "de" : "en")
 
@@ -76,8 +78,8 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 			m.trust(agreementTexts[version].appendix)
 		])
 	})
-	dialog.show()
-	return dialog
+		.setCloseHandler(cancelAction)
+	return dialog.show()
 }
 
 export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo): Dialog {

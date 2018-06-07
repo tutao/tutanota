@@ -132,7 +132,9 @@ type NativeRequestType =  'init'
 	| 'findSuggestions'
 	| 'initPushNotifications'
 	| 'openLink'
-type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
+type JsRequestType ='createMailEditor'
+	| 'updatePushIdentifier'
+	| 'handleBackPress'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object

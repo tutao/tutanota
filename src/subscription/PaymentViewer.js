@@ -230,21 +230,7 @@ export class PaymentViewer {
 function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, price: number): Promise<boolean> {
 	return Promise.fromCallback(cb => {
 		let actionBar = new DialogHeaderBar()
-		actionBar.setMiddle(() => lang.get("adminPayment_action"))
-		actionBar.addLeft(new Button("cancel_action", () => {
-			dialog.close()
-			cb(null, false)
-		}).setType(ButtonType.Secondary))
-		actionBar.addRight(new Button("invoicePay_action", () => {
-			dialog.close()
-			cb(null, true)
-		}).setType(ButtonType.Primary))
-
-		let orderField = new TextField("number_label").setValue(invoiceNumber).setDisabled()
-		let dateField = new TextField("date_label").setValue(formatDate(invoiceDate)).setDisabled()
-		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
-
-		let dialog = new Dialog(DialogType.EditSmall, {
+		const dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
 				m(".dialog-header.plr-l", m(actionBar)),
 				m(".plr-l.pb", m("", [
@@ -255,6 +241,22 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 				]))
 			]
 		})
-		dialog.show()
+		const cancelAction = () => {
+			dialog.close()
+			cb(null, false)
+		}
+		actionBar.setMiddle(() => lang.get("adminPayment_action"))
+		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
+		actionBar.addRight(new Button("invoicePay_action", () => {
+			dialog.close()
+			cb(null, true)
+		}).setType(ButtonType.Primary))
+
+		let orderField = new TextField("number_label").setValue(invoiceNumber).setDisabled()
+		let dateField = new TextField("date_label").setValue(formatDate(invoiceDate)).setDisabled()
+		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
+
+		dialog.setCloseHandler(cancelAction)
+			.show()
 	})
 }

@@ -61,6 +61,12 @@ class NativeWrapper {
 							})
 					})
 				},
+				handleBackPress: (): Promise<boolean> => {
+					return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/native/DeviceButtonHandler.js`).then(module => {
+							return module.handleBackPress()
+						}
+					)
+				}
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}

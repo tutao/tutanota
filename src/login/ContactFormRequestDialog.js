@@ -66,7 +66,9 @@ export class ContactFormRequestDialog {
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 
-		let closeButton = new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary)
+		let closeAction = () => this._close()
+
+		let closeButton = new Button('cancel_action', closeAction).setType(ButtonType.Secondary)
 		let sendButton = new Button('send_action', () => this.send()).setType(ButtonType.Primary)
 		let headerBar = new DialogHeaderBar()
 			.addLeft(closeButton)
@@ -118,7 +120,7 @@ export class ContactFormRequestDialog {
 		this._dialog = Dialog.largeDialog(headerBar, this)
 			.addShortcut({
 				key: Keys.ESC,
-				exec: () => closeButton.clickHandler(),
+				exec: closeAction,
 				help: "close_alt"
 			})
 			.addShortcut({
@@ -129,7 +131,7 @@ export class ContactFormRequestDialog {
 					this.send()
 				},
 				help: "send_action"
-			})
+			}).setCloseHandler(closeAction)
 	}
 
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
@@ -301,7 +303,8 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 				m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)),
 				m(confirm)
 			])
-		})
-		dialog.show()
+		}).setCloseHandler(() => {
+			// Prevent user from closing accidentally
+		}).show()
 	})
 }

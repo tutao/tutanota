@@ -122,6 +122,10 @@ export class Dropdown {
 		modal.remove(this)
 	}
 
+	onClose(): void {
+		this.close()
+	}
+
 	show(domElement: HTMLElement) {
 		this._domDropdown = domElement
 		if (this.origin) {
