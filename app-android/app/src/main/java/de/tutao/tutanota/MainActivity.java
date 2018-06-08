@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
+        webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         setContentView(webView);
         final String appUrl = getUrl();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.BUILD_TYPE.startsWith("debug")) {
