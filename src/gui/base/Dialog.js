@@ -38,7 +38,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ()=>void;
+	_closeHandler: ?()=>void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
@@ -159,7 +159,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notifed wehn onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: () => void): Dialog {
+	setCloseHandler(closeHandler: ?() => void): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -274,11 +274,11 @@ export class Dialog {
 	static confirm(messageIdOrMessageFunction: string|lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			let closeAction = () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
 			}
-			buttons.push(new Button("cancel_action", closeAction).setType(ButtonType.Secondary))
+			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button(confirmId, () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
@@ -289,7 +289,7 @@ export class Dialog {
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
-			dialog.setCloseHandler(closeAction)
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -324,11 +324,11 @@ export class Dialog {
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			let closeAction = () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
 			}
-			buttons.push(new Button("upgradeReminderCancel_action", closeAction).setType(ButtonType.Secondary))
+			buttons.push(new Button("upgradeReminderCancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button("upgradeToPremium_action", () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
@@ -347,7 +347,7 @@ export class Dialog {
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
-			dialog.setCloseHandler(closeAction)
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -360,11 +360,11 @@ export class Dialog {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
 
-			let closeAction = () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
 			}
-			actionBar.addLeft(new Button("cancel_action", closeAction).setType(ButtonType.Secondary))
+			actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			actionBar.addRight(new Button("ok_action", () => {
 				if (inputValidator) {
 					let errorMessage = inputValidator()
@@ -392,7 +392,7 @@ export class Dialog {
 				}
 			}
 
-			dialog.setCloseHandler(closeAction)
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
