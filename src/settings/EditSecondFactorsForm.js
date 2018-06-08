@@ -28,7 +28,7 @@ import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {openLinkNative} from "../native/UtilsApp"
+import {openLinkNative} from "../native/SystemApp"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 
 assertMainOrNode()

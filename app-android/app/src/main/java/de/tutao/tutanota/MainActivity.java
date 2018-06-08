@@ -14,7 +14,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -61,7 +60,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        this.nativeImpl.getInitialized().then(new DoneCallback() {
+        this.nativeImpl.getWebAppInitialized().then(new DoneCallback() {
             @Override
             public void onDone(Object result) {
                 if (!firstLoaded) {
@@ -69,7 +68,7 @@ public class MainActivity extends Activity {
                         share(getIntent());
                     }
                 }
-                firstLoaded = false;
+                firstLoaded = true;
             }
         });
         this.webView.setWebViewClient(new WebViewClient() {
@@ -220,16 +219,24 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
-                .then(result -> {
-                    try {
-                        if (!result.getBoolean("value")) {
-                            finish();
+        if (nativeImpl.getWebAppInitialized().isResolved()) {
+            nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
+                    .then(result -> {
+                        try {
+                            if (!result.getBoolean("value")) {
+                                goBack();
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error parsing response", e);
                         }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "error parsing response",e);
-                    }
-                });
+                    });
+        } else {
+            goBack();
+        }
+    }
+
+    private void goBack() {
+        moveTaskToBack(false);
     }
 }
 

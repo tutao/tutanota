@@ -9,3 +9,8 @@ import {Request} from "../api/common/WorkerProtocol"
 export function openLinkNative(uri: string): Promise<boolean> {
 	return nativeApp.invokeNative(new Request("openLink", [uri]))
 }
+
+
+export function prepareLogout(): Promise<void> {
+	return nativeApp.invokeNative(new Request('prepareLogout', []))
+}
