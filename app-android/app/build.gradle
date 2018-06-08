@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
     defaultConfig {
         applicationId "de.tutao.tutanota"
         minSdkVersion 16
@@ -12,42 +12,43 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debug']
+            applicationIdSuffix ".debug"
+        }
+        debugDist {
+            initWith debug
+            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debugdist']
+            applicationIdSuffix ".debugdist"
+        }
         release {
             minifyEnabled false
+            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider']
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile "com.google.android.gms:play-services-gcm:10.2.1"
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.jdeferred:jdeferred-core:1.2.4'
-    testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.3.2"
-    androidTestCompile 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
-    androidTestCompile 'commons-codec:commons-codec:1.6'
-}
+    buildTypes.each {
+        it.buildConfigField 'String', 'hostname', '"' + InetAddress.getLocalHost().getHostName() + '"'
+        it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
+    }
 
-android {
     packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/ASL2.0'
     }
+}
 
-    buildTypes {
-        debug
-        debugDist {
-            initWith debug
-        }
-        release
-    }
-
-    buildTypes.each {
-        it.buildConfigField 'String', 'hostname', '"' + java.net.InetAddress.getLocalHost().getHostName() + '"'
-    }
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    implementation "com.google.android.gms:play-services-gcm:10.2.1"
+    implementation 'commons-io:commons-io:2.4'
+    implementation 'org.jdeferred:jdeferred-core:1.2.4'
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.robolectric:robolectric:3.3.2"
+    androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
+    androidTestImplementation 'commons-codec:commons-codec:1.6'
 }
