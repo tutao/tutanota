@@ -101,14 +101,7 @@ public class MainActivity extends Activity {
     }
 
     private String getUrl() {
-        switch (BuildConfig.BUILD_TYPE) {
-            case "debug":
-                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/app";
-            case "debugDist":
-                return "file:///android_asset/tutanota/app.html";
-            default:
-                throw new RuntimeException("illegal build type");
-        }
+        return BuildConfig.RES_ADDRESS;
     }
 
     public WebView getWebView() {

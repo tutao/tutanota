@@ -14,23 +14,30 @@ android {
     buildTypes {
         debug {
             manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debug']
+            buildConfigField 'String', 'RES_ADDRESS',  "\"http://" + InetAddress.getLocalHost().getHostName().split("\\.")[0] + ":9000/client/build/app\""
             applicationIdSuffix ".debug"
         }
         debugDist {
             initWith debug
             manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debugdist']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             applicationIdSuffix ".debugdist"
         }
         release {
             minifyEnabled false
             manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     buildTypes.each {
-        it.buildConfigField 'String', 'hostname', '"' + InetAddress.getLocalHost().getHostName() + '"'
         it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     packagingOptions {
