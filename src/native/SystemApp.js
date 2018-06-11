@@ -11,6 +11,6 @@ export function openLinkNative(uri: string): Promise<boolean> {
 }
 
 
-export function prepareLogout(): Promise<void> {
-	return nativeApp.invokeNative(new Request('prepareLogout', []))
+export function logout(parameters: string): Promise<void> {
+	return nativeApp.invokeNative(new Request('logout', [parameters]))
 }

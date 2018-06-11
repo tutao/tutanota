@@ -36,7 +36,7 @@ public final class Native {
     Contact contact;
     Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
-    private DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
+    private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
 
 
     Native(MainActivity activity) {
@@ -59,31 +59,29 @@ public final class Native {
      */
     @JavascriptInterface
     public void invoke(final String msg) throws JSONException {
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    final JSONObject request = new JSONObject(msg);
-                    if (request.get("type").equals("response")) {
-                        DeferredObject promise = queue.remove(request.get("id"));
-                        promise.resolve(request);
-                    } else {
-                        invokeMethod(request.getString("type"), request.getJSONArray("args"))
-                                .then(new DoneCallback() {
-                                    @Override
-                                    public void onDone(Object result) {
-                                        sendResponse(request, result);
-                                    }
-                                })
-                                .fail(new FailCallback<Exception>() {
-                                    @Override
-                                    public void onFail(Exception e) {
-                                        sendErrorResponse(request, e);
-                                    }
-                                });
-                    }
-                } catch (JSONException e) {
-                    Log.e("Native", "could not parse msg:" + msg, e);
+        new Thread(() -> {
+            try {
+                final JSONObject request = new JSONObject(msg);
+                if (request.get("type").equals("response")) {
+                    DeferredObject promise = queue.remove(request.get("id"));
+                    promise.resolve(request);
+                } else {
+                    invokeMethod(request.getString("type"), request.getJSONArray("args"))
+                            .then(new DoneCallback() {
+                                @Override
+                                public void onDone(Object result) {
+                                    sendResponse(request, result);
+                                }
+                            })
+                            .fail(new FailCallback<Exception>() {
+                                @Override
+                                public void onFail(Exception e) {
+                                    sendErrorResponse(request, e);
+                                }
+                            });
                 }
+            } catch (JSONException e) {
+                Log.e("Native", "could not parse msg:" + msg, e);
             }
         }).start();
     }
@@ -168,8 +166,9 @@ public final class Native {
                     }
                     promise.resolve("android");
                     break;
-                case "prepareLogout":
+                case "logout":
                     webAppInitialized = new DeferredObject<>();
+                    activity.loadMainPage(args.getString(0));
                     break;
                 case "initPushNotifications":
                     return initPushNotifications();

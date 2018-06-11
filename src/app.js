@@ -18,7 +18,7 @@ import {logins} from "./api/main/LoginController"
 import {asyncImport} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
-import {prepareLogout} from "./native/SystemApp"
+import {logout} from "./native/SystemApp"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -74,9 +74,10 @@ let initialized = lang.init(en).then(() => {
 					return workerPromise.then(worker => {
 						return worker.logout(false).then(function () {
 							if (isApp()) {
-								prepareLogout()
+								logout("?noAutoLogin=true")
+							} else {
+								window.location.reload();
 							}
-							window.location.reload();
 						})
 					})
 				} else {
@@ -182,8 +183,9 @@ function forceLogin(args: string[], requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else {
-		if (requestedPath.trim() === '/') {
-			m.route.set(`/login`)
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		if (pathWithoutParameter.trim() === '/') {
+			m.route.set(`/login` + (args["noAutoLogin"] ? "?noAutoLogin=" + args["noAutoLogin"] : ""))
 		} else {
 			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}

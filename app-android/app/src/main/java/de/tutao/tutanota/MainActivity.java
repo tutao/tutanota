@@ -232,6 +232,12 @@ public class MainActivity extends Activity {
     private void goBack() {
         moveTaskToBack(false);
     }
+
+    public void loadMainPage(String parameters) {
+        // additional path information like app.html/login are not handled properly by the webview
+        // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+        runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+    }
 }
 
 interface Callback<T> {
