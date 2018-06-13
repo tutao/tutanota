@@ -1,5 +1,5 @@
-import "./misc/VCardExporterTest"
-import "./misc/VCardImporterTest"
+import "./contact/VCardExporterTest"
+import "./contact/VCardImporterTest"
 import "./common/ClientDetectorTest"
 import "./common/LanguageViewModelTest"
 import "./common/FormatterTest"
@@ -14,7 +14,7 @@ import "./mail/InboxRuleHandlerTest"
 import "./mail/MailUtilsTest"
 import "./misc/U2fClientTest"
 import "./contact/ContactUtilsTest"
-import "./misc/ContactMergeUtilsTest"
+import "./contact/ContactMergeUtilsTest"
 import o from "ospec/ospec.js"
 
 o.run()
