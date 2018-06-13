@@ -240,16 +240,16 @@ export class _TextField {
 
 export const TextFieldN: Class<MComponent<TextFieldAttrs>> = _TextField
 
-
-export function editableTextField(label: string, value: ?string, updateHandler: handler<string>) {
+export function editableTextField(label: string, value: ?string, updateHandler: handler<string>, area: ?boolean = false) {
 	return m(TextFieldN, {
 		label: () => label,
 		value: () => value,
+		type: area ? Type.Area : Type.Text,
 		disabled: true,
 		injectionsRight: () => m(ButtonN, {
 			label: () => "update",
 			icon: () => Icons.Edit,
-			click: () => Dialog.showTextInputDialog("edit_action", () => label, null, value ? value : "").then(value => updateHandler(value).catch(e => {
+			click: () => (area ? Dialog.showTextAreaInputDialog : Dialog.showTextInputDialog)("edit_action", () => label, null, value ? value : "").then(value => updateHandler(value).catch(e => {
 				Dialog.error(() => `Could not update "${label}" with value ${value}`)
 				console.log(e)
 			}))
