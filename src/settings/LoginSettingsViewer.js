@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
@@ -19,6 +19,7 @@ import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {showDeleteAccountDialog} from "../subscription/DeleteAccountDialog"
 
 assertMainOrNode()
 
@@ -42,7 +43,7 @@ export class LoginSettingsViewer {
 
 		this.view = () => {
 			return [
-				m("#user-settings.fill-absolute.scroll.plr-l", [
+				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
@@ -55,7 +56,7 @@ export class LoginSettingsViewer {
 						m(closedSessionExpander)
 					]),
 					m(closedSessionExpander.panel),
-					m(".small", lang.get("sessionsInfo_msg"))
+					m(".small", lang.get("sessionsInfo_msg")),
 				])
 			]
 		}

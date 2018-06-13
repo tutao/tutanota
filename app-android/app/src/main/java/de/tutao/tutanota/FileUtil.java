@@ -137,7 +137,8 @@ public class FileUtil {
         if (file.exists()) {
             Uri path = Uri.parse(fileName);
             if (path.getAuthority().equals("")) {
-                path = FileProvider.getUriForFile(activity.getWebView().getContext(), "de.tutao.fileprovider", file);
+                path = FileProvider.getUriForFile(activity.getWebView().getContext(),
+                        BuildConfig.FILE_PROVIDER_AUTHORITY, file);
             }
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(path, getCorrectedMimeType(fileName, mimeType));

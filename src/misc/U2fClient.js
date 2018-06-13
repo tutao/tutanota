@@ -6,7 +6,7 @@ import {
 	base64UrlToBase64,
 	base64ToUint8Array
 } from "../api/common/utils/Encoding"
-import {assertMainOrNode, getHttpOrigin} from "../api/Env"
+import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
@@ -48,7 +48,7 @@ export class U2fClient {
 	 * Triggers a dummy U2F registration request to check if the U2F interface is available.
 	 */
 	isSupported(): Promise<boolean> {
-		if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE) {
+		if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE || isApp()) {
 			// we do not use the actual check below in IE and Edge because they would ask how to open the chrome extension
 			return Promise.resolve(false)
 		} else {

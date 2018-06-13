@@ -126,6 +126,10 @@ export const PaymentMethodType = {
 }
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 
+export const reverse = (objectMap:Object) => Object.keys(objectMap).reduce((r, k) => Object.assign(r, {[objectMap[k]]: (r[objectMap[k]] || []).concat(k)}), {})
+
+export const ValueToPaymentMethodType = reverse(PaymentMethodType)
+
 
 export const Const = {
 	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,
@@ -267,7 +271,10 @@ export const PaymentDataResultType = {
 	CREDIT_CARD_CVV_INVALID: "4",
 	PAYMENT_PROVIDER_NOT_AVAILABLE: "5",
 	OTHER_PAYMENT_PROVIDER_ERROR: "6",
-	OTHER_PAYMENT_ACCOUNT_REJECTED: "7"
+	OTHER_PAYMENT_ACCOUNT_REJECTED: "7",
+	COULD_NOT_VERIFY_VATID: "8",
+	CREDIT_CARD_DATE_INVALID: "9",
+	CREDIT_CARD_NUMBER_INVALID: "10"
 }
 
 export const ContactComparisonResult = {
@@ -291,3 +298,20 @@ export const ContactMergeAction = {
 	Cancel: "cancel"
 }
 export type ContactMergeActionEnum = $Values<typeof ContactMergeAction>;
+
+
+export const InvoiceStatus = {
+	CREATED: "0",
+	PUBLISHEDFORAUTOMATIC: "1",
+	PUBLISHEDFORMANUAL: "2",
+	PAID: "3",
+	DEBITFAILED: "4",
+	DISPUTED: "5",
+	CANCELLED: "6",
+	PARTNERMANAGED: "7",
+	FIRSTREMINDER: "8",
+	REFUNDED: "9",
+	DISPUTEACCEPTED: "10",
+	SECONDREMINDER: "11"
+}
+export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;

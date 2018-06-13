@@ -19,7 +19,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {BadRequestError, NotAuthorizedError} from "../api/common/error/RestError"
+import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
@@ -375,19 +375,14 @@ export class UserViewer {
 
 	_deleteUser(restore: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg", load(GroupTypeRef, this.userGroupInfo.group).then(group => {
-			let availablePromise = (restore) ? worker.isMailAddressAvailable(neverNull(this.userGroupInfo.mailAddress)) : Promise.resolve(true)
-			return availablePromise.then(available => {
-				if (available) {
-					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
-						if (confirmed) {
-							return this._user.getAsync().then(user => {
-								return worker.deleteUser(user, restore)
-							})
-						}
-					}))
-				} else {
-					Dialog.error("emailAddressInUse_msg")
+			return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
+				if (confirmed) {
+					return this._user.getAsync().then(user => {
+						return worker.deleteUser(user, restore)
+					})
 				}
+			})).catch(PreconditionFailedError, e => {
+				Dialog.error("emailAddressInUse_msg")
 			})
 		}))
 	}

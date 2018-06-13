@@ -1,11 +1,15 @@
-import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 //@flow
-import {PaymentMethodType} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
+import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../misc/Formatter"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {logins} from "../api/main/LoginController"
+import {Button} from "../gui/base/Button"
+import {neverNull} from "../api/common/utils/Utils"
 
 
-export function getPaymentMethodName(paymentMethod: PaymentMethodTypeEnum): string {
+export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod == PaymentMethodType.Invoice) {
 		return lang.get("paymentMethodOnAccount_label")
 	} else if (paymentMethod == PaymentMethodType.CreditCard) {
@@ -15,16 +19,16 @@ export function getPaymentMethodName(paymentMethod: PaymentMethodTypeEnum): stri
 	} else if (paymentMethod == PaymentMethodType.Paypal) {
 		return "PayPal"
 	} else {
-		return ""
+		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
 	}
 }
 
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethodInfo
+		return accountingInfo.paymentMethod == PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
 	} else {
-		return getPaymentMethodName(accountingInfo.paymentMethod)
+		return ""
 	}
 }
 
@@ -68,5 +72,45 @@ export function getPriceFromPriceData(priceData: ?PriceData, featureType: Number
 		return Number(item.price);
 	} else {
 		return 0;
+	}
+}
+
+export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking: ?Booking): number {
+	if (booking) {
+		let bookingItem = booking.items.find(item => item.featureType == featureType)
+		return bookingItem ? Number(bookingItem.currentCount) : 0
+	} else {
+		return 0
+	}
+}
+
+export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazy<SVG>): Button {
+	return new Button(labelId, () => {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+		} else {
+			buyAction()
+		}
+	}, icon)
+}
+
+
+export function getInvoiceStatusText(invoice: Invoice): string {
+	if (invoice.status == InvoiceStatus.PUBLISHEDFORAUTOMATIC
+		|| invoice.status == InvoiceStatus.PUBLISHEDFORMANUAL
+		|| invoice.status == InvoiceStatus.CREATED) {
+		return lang.get('invoiceStateOpen_label')
+	} else if (invoice.status == InvoiceStatus.DEBITFAILED || invoice.status == InvoiceStatus.FIRSTREMINDER || invoice.status == InvoiceStatus.SECONDREMINDER) {
+		return lang.get('invoiceStatePaymentFailed_label')
+	} else if (invoice.status == InvoiceStatus.PAID) {
+		return lang.get('invoiceStatePaid_label')
+	} else if (invoice.status == InvoiceStatus.DISPUTED) {
+		return lang.get('invoiceStateResolving_label')
+	} else if (invoice.status == InvoiceStatus.REFUNDED || invoice.status == InvoiceStatus.DISPUTEACCEPTED) {
+		return lang.get('invoiceStateRefunded_label')
+	} else if (invoice.status == InvoiceStatus.CANCELLED) {
+		return lang.get('invoiceStateCancelled_label')
+	} else {
+		return "";
 	}
 }

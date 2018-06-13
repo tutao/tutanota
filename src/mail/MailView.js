@@ -125,8 +125,9 @@ export class MailView {
 			])
 		}
 
+		let closeAction = () => this.mailHeaderDialog.close()
 		let headerBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', () => this.mailHeaderDialog.close()).setType(ButtonType.Secondary))
+			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("mailHeaders_title"))
 		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
 			view: () => {
@@ -134,9 +135,9 @@ export class MailView {
 			}
 		}).addShortcut({
 			key: Keys.ESC,
-			exec: () => this.mailHeaderDialog.close(),
+			exec: closeAction,
 			help: "close_alt"
-		})
+		}).setCloseHandler(closeAction)
 
 		this._setupShortcuts()
 

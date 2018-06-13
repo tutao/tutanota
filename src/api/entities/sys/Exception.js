@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const ExceptionTypeRef: TypeRef<Exception> = new TypeRef("sys", "Exception")
 export const _TypeModel: TypeModel = {
@@ -42,7 +41,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "30"
+	"version": "31"
 }
 
 export function createException(): Exception {

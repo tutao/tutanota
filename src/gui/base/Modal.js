@@ -57,7 +57,6 @@ class Modal {
 		}
 	}
 
-
 	display(component: ModalComponent) {
 		this.visible = true
 		if (this.components.length > 0) {
@@ -105,3 +104,4 @@ export const modal: Modal = new Modal()
 if (replaced && replaced.components) {
 	replaced.components.map(wrapper => replaced.remove(wrapper.component))
 }
+

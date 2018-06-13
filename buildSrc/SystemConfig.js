@@ -31,17 +31,19 @@ const hotReloaderMap = {
 	"systemjs-hmr": "./libs/systemjs-hmr.js"
 }
 
+const hotReloaderDisabledMap = {
+	"systemjs-hot-reloader": "@empty"
+}
 
-function devConfig(bundles) {
+function devConfig(enableHotReload) {
 	return Object.assign({}, systemConfigTemplate, {
-		map: Object.assign({}, systemConfigTemplate.map, hotReloaderMap),
-		bundles
+		map: Object.assign({}, systemConfigTemplate.map, enableHotReload ? hotReloaderMap : hotReloaderDisabledMap),
 	})
 }
 
 function distRuntimeConfig(bundles) {
 	return {
-		map: Object.assign({"systemjs-hot-reloader": "@empty"}, replaceLibsPath(dependencyMap)),
+		map: Object.assign(hotReloaderDisabledMap, replaceLibsPath(dependencyMap)),
 		bundles
 	}
 }

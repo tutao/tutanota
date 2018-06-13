@@ -7,7 +7,16 @@ import {serviceRequest} from "../EntityWorker"
 import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "../../common/utils/Utils"
 import {assertWorkerOrNode} from "../../Env"
-import {HttpMethod} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {restClient} from "../rest/RestClient"
+import {
+	_TypeModel as PdfInvoiceServiceDataTypeModel,
+	createPdfInvoiceServiceData
+} from "../../entities/sys/PdfInvoiceServiceData"
+import {_TypeModel as PdfInvoiceServiceReturnTypeModel} from "../../entities/sys/PdfInvoiceServiceReturn"
+import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
+import {resolveSessionKey, decryptValue, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 

@@ -29,7 +29,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
-import {InvoiceViewer} from "../subscription/InvoiceViewer"
+import {PaymentViewer} from "../subscription/PaymentViewer"
 
 assertMainOrNode()
 
@@ -54,7 +54,7 @@ export class SettingsView {
 		this._adminFolders = []
 
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))
-		if (!logins.isProdDisabled() && !logins.isEnabled(FeatureType.WhitelabelChild)) {
+		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
 		}
 		if (logins.getUserController().isGlobalAdmin()) {
@@ -70,7 +70,9 @@ export class SettingsView {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 			if (logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new InvoiceViewer()))
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer()).setIsVisibleHandler(() => {
+					return !logins.getUserController().isFreeAccount()
+				}))
 			}
 		}
 
@@ -123,12 +125,13 @@ export class SettingsView {
 			button.setClickHandler(event => {
 				this.viewSlider.focus(this._settingsColumn)
 			})
+			button.setIsVisibleHandler(() => folder.isVisible())
 			return button
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
-			view: () => m(".folders", buttons.map(fb => m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-				m(fb)
-			])))
+			view: () => m(".folders", buttons.map(fb => fb.isVisible() ? m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
+					m(fb)
+				]) : null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander

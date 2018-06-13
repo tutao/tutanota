@@ -42,6 +42,9 @@ import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataSer
 import type {Country} from "../../common/CountryList"
 import {PaymentDataServicePutReturnTypeRef} from "../../entities/sys/PaymentDataServicePutReturn"
 import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
+import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
+import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
+import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServiceReturn"
 
 assertWorkerOrNode()
 
@@ -299,12 +302,31 @@ export class CustomerFacade {
 				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
 			})
 		}).catch(e => {
-			console.log("error switching free to premium group", e);
+			console.log(e)
+			throw new Error("error switching free to premium group")
 		})
 	}
 
+	switchPremiumToFreeGroup(): Promise<void> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
+			let membershipAddData = createMembershipAddData()
+			membershipAddData.user = this._login.getLoggedInUser()._id
+			membershipAddData.group = neverNull(keyData.freeGroup)
+			membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+			return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+				let membershipRemoveData = createMembershipRemoveData()
+				membershipRemoveData.user = this._login.getLoggedInUser()._id
+				membershipRemoveData.group = neverNull(keyData.premiumGroup)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+			})
+		}).catch(e => {
+			console.log(e)
+			throw new Error("error switching free to premium group")
+		})
+	}
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
@@ -312,18 +334,38 @@ export class CustomerFacade {
 						const service = createPaymentDataServicePutData()
 						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
 						service.business = subscriptionOptions.businessUse
-						service.invoiceName = invoiceData.invoiceName
-						service.invoiceAddress = invoiceData.invoiceAddress
-						service.invoiceCountry = invoiceData.country.a
-						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
-						service.paymentMethod = invoiceData.paymentMethod
-						service.paymentMethodInfo = invoiceData.paymentMethodInfo
 						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
-						service.paymentToken = null // TODO add paymentToken
+						service.invoiceName = ""
+						service.invoiceAddress = invoiceData.invoiceAddress
+						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
+						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
+						service.paymentMethod = paymentData ? paymentData.paymentMethod : (accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "")
+						service.paymentMethodInfo = null
+						service.paymentToken = null
+						if (paymentData && paymentData.creditCardData) {
+							service.creditCard = paymentData.creditCardData
+						}
 						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
 						return serviceRequest(SysService.PaymentDataService, HttpMethod.PUT, service, PaymentDataServicePutReturnTypeRef, null, accountingInfoSessionKey)
 					})
 				})
+			})
+		})
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<DataFile> {
+		let data = createPdfInvoiceServiceData()
+		data.invoice = invoice._id
+		return resolveSessionKey(InvoiceTypeModel, invoice).then(invoiceSessionKey => {
+			return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef, null, invoiceSessionKey).then(returnData => {
+				return {
+					_type: 'DataFile',
+					name: String(invoice.number) + ".pdf",
+					mimeType: "application/pdf",
+					data: returnData.data,
+					size: returnData.data.byteLength,
+					id: null
+				}
 			})
 		})
 	}

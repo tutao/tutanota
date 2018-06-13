@@ -70,6 +70,7 @@ type WorkerRequestType = 'setup'
 	| 'entropy'
 	| 'tryReconnectEventBus'
 	| 'changePassword'
+	| 'deleteAccount'
 	| 'setMailAliasStatus'
 	| 'addMailAlias'
 	| 'isMailAddressAvailable'
@@ -105,7 +106,9 @@ type WorkerRequestType = 'setup'
 	| 'cancelMailIndexing'
 	| 'updateAdminship'
 	| 'switchFreeToPremiumGroup'
+	| 'switchPremiumToFreeGroup'
 	| 'updatePaymentData'
+	| 'downloadInvoice'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -128,7 +131,11 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
-type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
+	| 'openLink'
+	| 'logout'
+type JsRequestType ='createMailEditor'
+	| 'updatePushIdentifier'
+	| 'handleBackPress'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -178,6 +185,7 @@ type EnvType = {
 	versionNumber : string,
 	timeout: number,
 	rootPathPrefix: string,
+	adminTypes: string[],
 }
 
 declare var env: EnvType
@@ -260,27 +268,23 @@ type SearchIndexStateInfo = {
 type SubscriptionOptions = {
 	businessUse:boolean,
 	paymentInterval: number,
-	proUpgrade:boolean,
-	price:string
 }
 
 type CreditCardData = {
 	number:string,
 	cvv:string,
-	expirationData:string
+	expirationDate:string
 }
 
 type PayPalData = {
 	account:string
 }
-
 type InvoiceData = {
-	invoiceName:string;
 	invoiceAddress:string;
-	country: Country;
-	vatNumber:?string;
+	country: ?Country;
+	vatNumber:string; // only for EU countries otherwise empty
+}
+type PaymentData = {
 	paymentMethod:PaymentMethodTypeEnum;
-	paymentMethodInfo:string;
-	creditCardData:?CreditCardData;
-	payPalData: ?PayPalData;
+	creditCardData:?CreditCard;
 }

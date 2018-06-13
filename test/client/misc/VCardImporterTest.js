@@ -13,13 +13,11 @@ import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 o.spec("VCardImporterTest", function () {
 	let date = new Date()
 
-
 	o.before(function () {
 		lang.init(en)
 	})
 
 	o("testFileToVCards", function () {
-
 		let str = `BEGIN:VCARD
 VERSION:3.0
 FN:proto type
@@ -94,7 +92,6 @@ EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
 ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`]
-
 		//Unfolding lines for content lines longer than 75 characters
 		o(vCardFileToVCards(str)).deepEquals(expected)
 

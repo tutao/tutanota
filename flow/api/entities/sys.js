@@ -68,6 +68,7 @@ type Customer = {
 	_permissions:Id;
 	approvalStatus:NumberString;
 	canceledPremiumAccount:boolean;
+	orderProcessingAgreementNeeded:boolean;
 	type:NumberString;
 
 	auditLog:?AuditLogRef;
@@ -82,6 +83,7 @@ type Customer = {
 	customerGroup:Id;
 	customerGroups:Id;
 	customerInfo:IdTuple;
+	orderProcessingAgreement:?IdTuple;
 	properties:?Id;
 	serverProperties:?Id;
 	teamGroups:Id;
@@ -260,6 +262,7 @@ type AccountingInfo = {
 	paymentMethod:?NumberString;
 	paymentMethodInfo:?string;
 	paymentProviderCustomerId:?string;
+	paypalBillingAgreement:?string;
 	secondCountryInfo:NumberString;
 
 	invoiceInfo:?Id;
@@ -775,6 +778,7 @@ type PushIdentifierList = {
 type DeleteCustomerData = {
 	_type: TypeRef<DeleteCustomerData>;
 	_format:NumberString;
+	authVerifier:?Uint8Array;
 	reason:string;
 	takeoverMailAddress:?string;
 	undelete:boolean;
@@ -1002,7 +1006,7 @@ type MailAddressAliasServiceDataDelete = {
 type PaymentDataServiceGetReturn = {
 	_type: TypeRef<PaymentDataServiceGetReturn>;
 	_format:NumberString;
-	clientToken:string;
+	loginUrl:string;
 
 }
 
@@ -1021,6 +1025,7 @@ type PaymentDataServicePutData = {
 	paymentMethodInfo:?string;
 	paymentToken:?string;
 
+	creditCard:?CreditCard;
 }
 
 type PaymentDataServicePutReturn = {
@@ -1438,4 +1443,53 @@ type AdministratedGroupsRef = {
 	_id:Id;
 
 	items:Id;
+}
+
+type CreditCard = {
+	_type: TypeRef<CreditCard>;
+	_id:Id;
+	cardHolderName:string;
+	cvv:string;
+	expirationMonth:string;
+	expirationYear:string;
+	number:string;
+
+}
+
+type LocationServiceGetReturn = {
+	_type: TypeRef<LocationServiceGetReturn>;
+	_format:NumberString;
+	country:string;
+
+}
+
+type OrderProcessingAgreement = {
+	_type: TypeRef<OrderProcessingAgreement>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	customerAddress:string;
+	signatureDate:Date;
+	version:string;
+
+	customer:Id;
+	signerUserGroupInfo:IdTuple;
+}
+
+type OrderProcessingAgreements = {
+	_type: TypeRef<OrderProcessingAgreements>;
+	_id:Id;
+
+	agreements:Id;
+}
+
+type SignOrderProcessingAgreementData = {
+	_type: TypeRef<SignOrderProcessingAgreementData>;
+	_format:NumberString;
+	customerAddress:string;
+	version:string;
+
 }

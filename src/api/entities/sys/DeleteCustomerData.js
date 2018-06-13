@@ -1,6 +1,5 @@
 // @flow
-
-import {create, TypeRef} from '../../common/EntityFunctions'
+import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
 export const _TypeModel: TypeModel = {
@@ -18,6 +17,15 @@ export const _TypeModel: TypeModel = {
 			"since": 5,
 			"type": "Number",
 			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"authVerifier": {
+			"name": "authVerifier",
+			"id": 1325,
+			"since": 30,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
@@ -62,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "30"
+	"version": "31"
 }
 
 export function createDeleteCustomerData(): DeleteCustomerData {

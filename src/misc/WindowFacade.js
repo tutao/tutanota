@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Mode, assertMainOrNodeBoot} from "../api/Env"
+import {Mode, assertMainOrNodeBoot, isApp} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
@@ -60,7 +60,7 @@ class WindowFacade {
 				}, 66)
 			}
 		}
-		if (window.addEventListener) {
+		if (window.addEventListener && !isApp()) {
 			window.addEventListener("beforeunload", e => this._beforeUnload(e))
 			window.addEventListener("unload", e => this._onUnload())
 		}

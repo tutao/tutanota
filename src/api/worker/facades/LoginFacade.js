@@ -25,8 +25,15 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {neverNull} from "../../common/utils/Utils"
-import {isSameTypeRef, TypeRef, isSameId, HttpMethod, GENERATED_ID_BYTES_LENGTH} from "../../common/EntityFunctions"
-import {assertWorkerOrNode, isTest} from "../../Env"
+import {
+	isSameTypeRef,
+	TypeRef,
+	isSameId,
+	HttpMethod,
+	GENERATED_ID_BYTES_LENGTH,
+	MediaType
+} from "../../common/EntityFunctions"
+import {assertWorkerOrNode, isTest, isAdmin} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
@@ -34,13 +41,14 @@ import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {SessionTypeRef, _TypeModel as SessionModelType} from "../../entities/sys/Session"
 import {typeRefToPath} from "../rest/EntityRestClient"
-import {restClient, MediaType} from "../rest/RestClient"
+import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
 import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
+import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 
 assertWorkerOrNode()
 
@@ -212,7 +220,7 @@ export class LoginFacade {
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
 			.then(() => {
-				if (!isTest() && permanentLogin) {
+				if (!isTest() && permanentLogin && !isAdmin()) {
 					// index new items in background
 					this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 				}
@@ -426,6 +434,20 @@ export class LoginFacade {
 		service.pwEncUserGroupKey = pwEncUserGroupKey
 		this._authVerifierAfterNextRequest = authVerifierBase64Url
 		return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, service)
+	}
+
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		let d = createDeleteCustomerData()
+		d.authVerifier = createAuthVerifier(generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128))
+		d.undelete = false
+		d.customer = neverNull(neverNull(this._user).customer)
+		d.reason = reason
+		if (takeover != "") {
+			d.takeoverMailAddress = takeover
+		} else {
+			d.takeoverMailAddress = null
+		}
+		return serviceRequestVoid(SysService.CustomerService, HttpMethod.DELETE, d)
 	}
 
 	tryReconnectEventBus(): Promise<void> {

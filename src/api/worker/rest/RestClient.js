@@ -1,17 +1,11 @@
 // @flow
 import {getHttpOrigin, assertWorkerOrNode} from "../../Env"
 import {handleRestError, ConnectionError} from "../../common/error/RestError"
-import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {HttpMethod} from "../../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 
 assertWorkerOrNode()
-
-export const MediaType = {
-	Json: 'application/json',
-	Binary: 'application/octet-stream',
-}
-export type MediaTypeEnum = $Values<typeof MediaType>;
 
 export class RestClient {
 	url: string;

@@ -69,6 +69,9 @@ export class WorkerImpl {
 			changePassword: (message: Request) => {
 				return locator.login.changePassword.apply(locator.login, message.args)
 			},
+			deleteAccount: (message: Request) => {
+				return locator.login.deleteAccount.apply(locator.login, message.args)
+			},
 			createMailFolder: (message: Request) => {
 				return locator.mail.createMailFolder.apply(locator.mail, message.args)
 			},
@@ -124,8 +127,14 @@ export class WorkerImpl {
 			switchFreeToPremiumGroup(message: Request): Promise<void> {
 				return locator.customer.switchFreeToPremiumGroup.apply(locator.customer, message.args)
 			},
+			switchPremiumToFreeGroup(message: Request): Promise<void> {
+				return locator.customer.switchPremiumToFreeGroup.apply(locator.customer, message.args)
+			},
 			updatePaymentData(message: Request): Promise<PaymentDataServicePutReturn> {
 				return locator.customer.updatePaymentData.apply(locator.customer, message.args)
+			},
+			downloadInvoice(message: Request): Promise<DataFile> {
+				return locator.customer.downloadInvoice.apply(locator.customer, message.args)
 			},
 			readUsedUserStorage: (message: Request) => {
 				return locator.userManagement.readUsedUserStorage.apply(locator.userManagement, message.args)
@@ -208,7 +217,7 @@ export class WorkerImpl {
 			},
 			tryReconnectEventBus(message: Request) {
 				return locator.login.tryReconnectEventBus()
-			}
+			},
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

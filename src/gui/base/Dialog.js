@@ -10,13 +10,12 @@ import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Keys} from "../../misc/KeyManager"
-import {mod} from "../../misc/MathUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
-import {progressIcon} from "./Icon"
 import {size, px} from "../size"
 import {styles} from "../styles"
+import {focusPrevious, focusNext, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 
 assertMainOrNode()
@@ -31,8 +30,6 @@ export const DialogType = {
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
-export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
-export const INPUT = "input, textarea, div[contenteditable='true']"
 
 export class Dialog {
 	buttons: Button[];
@@ -41,6 +38,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
+	_closeHandler: ?()=>void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
@@ -50,29 +48,13 @@ export class Dialog {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[tabbable.length - 1].focus()
-					}
-				},
+				exec: () => focusNext(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[0].focus()
-					}
-				},
+				exec: () => focusPrevious(this._domDialog),
 				help: "selectNext_action"
 			},
 		]
@@ -82,7 +64,7 @@ export class Dialog {
 					m(this._getDialogStyle(dialogType), {
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						style: {
-							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
+							'margin-top': styles.isDesktopLayout() ? '60px' : dialogType === DialogType.EditLarge ? mobileMargin : 0,
 							'margin-left': mobileMargin,
 							'margin-right': mobileMargin
 						},
@@ -173,6 +155,15 @@ export class Dialog {
 		return this
 	}
 
+	/**
+	 * Sets a close handler to the dialog. If set the handler will be notifed wehn onClose is called on the dialog.
+	 * The handler must is then responsible for closing the dialog.
+	 */
+	setCloseHandler(closeHandler: ?() => void): Dialog {
+		this._closeHandler = closeHandler
+		return this
+	}
+
 	shortcuts() {
 		return this._shortcuts
 	}
@@ -183,10 +174,26 @@ export class Dialog {
 		return this
 	}
 
+	/**
+	 * Removes the dialog from the current view.
+	 */
 	close(): void {
 		this.visible = false
 		modal.remove(this)
 	}
+
+
+	/**
+	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
+	 */
+	onClose(): void {
+		if (this._closeHandler) {
+			this._closeHandler()
+		} else {
+			this.close()
+		}
+	}
+
 
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
@@ -207,24 +214,15 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static pending(messageIdOrMessageFunction: string|lazy<string>, image: ?string): Dialog {
-		let dialog = new Dialog(DialogType.Progress, {
-			view: () => m("", [
-				image ? m(".flex-center", m("img[src=" + image + "]")) : m(".flex-center", progressIcon()),
-				m("p", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
-			])
-		})
-		dialog.show()
-		return dialog
-	}
-
 	static error(messageIdOrMessageFunction: string|lazy<string>): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("ok_action", () => {
+
+			let closeAction = () => {
 				(dialog:any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			}
+			buttons.push(new Button("ok_action", closeAction).setType(ButtonType.Primary))
 
 			let message = messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)
 			let lines = message.split("\n")
@@ -235,6 +233,7 @@ export class Dialog {
 						m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 					)
 			})
+			dialog.setCloseHandler(closeAction)
 			dialog.show()
 		})
 	}
@@ -243,10 +242,12 @@ export class Dialog {
 	static legacyDownload(filename: string, href: string): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("close_alt", () => {
+			let closeAction = () => {
 				(dialog:any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			}
+
+			buttons.push(new Button("close_alt", closeAction).setType(ButtonType.Primary))
 
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
@@ -264,6 +265,7 @@ export class Dialog {
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(closeAction)
 			dialog.show()
 		})
 	}
@@ -272,32 +274,61 @@ export class Dialog {
 	static confirm(messageIdOrMessageFunction: string|lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("cancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button(confirmId, () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
 			}).setType(ButtonType.Primary))
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
-					m(".dialog-contentButtonsBottom.text-break", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
+					m(".dialog-contentButtonsBottom.text-break.text-prewrap", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
 
+	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
+		return Promise.fromCallback(cb => {
+			let actionBar = new DialogHeaderBar()
+
+			let closeAction = () => {
+				saveDialog.close()
+				setTimeout(() => cb(null, false), DefaultAnimationTime)
+			}
+			actionBar.addLeft(new Button("close_alt", closeAction).setType(ButtonType.Secondary))
+			actionBar.addRight(new Button("save_action", () => {
+				saveAction().then(() => {
+					saveDialog.close()
+					setTimeout(() => cb(null), DefaultAnimationTime)
+				})
+			}).setType(ButtonType.Primary))
+			let saveDialog = new Dialog(DialogType.EditMedium, {
+				view: () => m("", [
+					m(".dialog-header.plr-l", m(actionBar)),
+					m(".plr-l.pb.text-break", m(child))
+				])
+			})
+			actionBar.setMiddle(title)
+			saveDialog.setCloseHandler(closeAction)
+			saveDialog.show()
+		})
+	}
 
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("upgradeReminderCancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			buttons.push(new Button("upgradeReminderCancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button("upgradeToPremium_action", () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
@@ -316,6 +347,7 @@ export class Dialog {
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -328,10 +360,11 @@ export class Dialog {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
 
-			actionBar.addLeft(new Button("cancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			actionBar.addRight(new Button("ok_action", () => {
 				if (inputValidator) {
 					let errorMessage = inputValidator()
@@ -347,7 +380,7 @@ export class Dialog {
 			let dialog = new Dialog(DialogType.EditSmall, {
 				view: () => m("", [
 					m(".dialog-header.plr-l", m(actionBar)),
-					m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+					m(".plr-l.pb.text-break", m(child))
 				])
 			})
 
@@ -359,6 +392,7 @@ export class Dialog {
 				}
 			}
 
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -366,21 +400,37 @@ export class Dialog {
 	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
-		if (allowCancel) {
-			actionBar.addLeft(new Button("cancel_action", () => {
-				if (cancelAction) {
-					cancelAction()
-				}
-				dialog.close()
-			}).setType(ButtonType.Secondary))
+		let doCancel = () => {
+			if (cancelAction) {
+				cancelAction()
+			}
+			dialog.close()
 		}
+
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(DialogType.EditSmall, {
 			view: () => m("", [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
 			])
+		})
+
+		if (allowCancel) {
+			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: doCancel,
+				help: "cancel_action"
+			})
+		}
+
+		dialog.addShortcut({
+			key: Keys.RETURN,
+			shift: false,
+			exec: okAction,
+			help: okActionTextId
 		})
 
 		if (title) {
@@ -391,6 +441,7 @@ export class Dialog {
 			}
 		}
 
+		dialog.setCloseHandler(doCancel)
 		return dialog.show()
 	}
 

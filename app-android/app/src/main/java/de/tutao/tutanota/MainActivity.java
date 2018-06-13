@@ -26,6 +26,7 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -48,7 +49,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
+        webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         setContentView(webView);
+        final String appUrl = getUrl();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.BUILD_TYPE.startsWith("debug")) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -58,7 +61,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        this.nativeImpl.getInitialized().then(new DoneCallback() {
+        this.nativeImpl.getWebAppInitialized().then(new DoneCallback() {
             @Override
             public void onDone(Object result) {
                 if (!firstLoaded) {
@@ -66,10 +69,21 @@ public class MainActivity extends Activity {
                         share(getIntent());
                     }
                 }
-                firstLoaded = false;
+                firstLoaded = true;
             }
         });
-        this.webView.loadUrl(getUrl());
+        this.webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith(appUrl)) {
+                    return false;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            }
+        });
+        this.webView.loadUrl(appUrl);
         nativeImpl.setup();
 
     }
@@ -88,14 +102,7 @@ public class MainActivity extends Activity {
     }
 
     private String getUrl() {
-        switch (BuildConfig.BUILD_TYPE) {
-            case "debug":
-                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/app";
-            case "debugDist":
-                return "file:///android_asset/tutanota/app.html";
-            default:
-                throw new RuntimeException("illegal build type");
-        }
+        return BuildConfig.RES_ADDRESS;
     }
 
     public WebView getWebView() {
@@ -204,6 +211,33 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if (nativeImpl.getWebAppInitialized().isResolved()) {
+            nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
+                    .then(result -> {
+                        try {
+                            if (!result.getBoolean("value")) {
+                                goBack();
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error parsing response", e);
+                        }
+                    });
+        } else {
+            goBack();
+        }
+    }
+
+    private void goBack() {
+        moveTaskToBack(false);
+    }
+
+    public void loadMainPage(String parameters) {
+        // additional path information like app.html/login are not handled properly by the webview
+        // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+        runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+    }
 }
 
 interface Callback<T> {

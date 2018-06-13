@@ -198,7 +198,7 @@ export class ContactEditor {
 				ctrl: true,
 				exec: () => this.save(),
 				help: "send_action"
-			})
+			}).setCloseHandler(() => this._close())
 	}
 
 	show() {

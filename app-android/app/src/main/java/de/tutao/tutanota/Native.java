@@ -1,6 +1,10 @@
 package de.tutao.tutanota;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -32,7 +36,7 @@ public final class Native {
     Contact contact;
     Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
-    private final DeferredObject initialized = new DeferredObject();
+    private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
 
 
     Native(MainActivity activity) {
@@ -55,31 +59,29 @@ public final class Native {
      */
     @JavascriptInterface
     public void invoke(final String msg) throws JSONException {
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    final JSONObject request = new JSONObject(msg);
-                    if (request.get("type").equals("response")) {
-                        DeferredObject promise = queue.remove(request.get("id"));
-                        promise.resolve(request);
-                    } else {
-                        invokeMethod(request.getString("type"), request.getJSONArray("args"))
-                                .then(new DoneCallback() {
-                                    @Override
-                                    public void onDone(Object result) {
-                                        sendResponse(request, result);
-                                    }
-                                })
-                                .fail(new FailCallback<Exception>() {
-                                    @Override
-                                    public void onFail(Exception e) {
-                                        sendErrorResponse(request, e);
-                                    }
+        new Thread(() -> {
+            try {
+                final JSONObject request = new JSONObject(msg);
+                if (request.get("type").equals("response")) {
+                    DeferredObject promise = queue.remove(request.get("id"));
+                    promise.resolve(request);
+                } else {
+                    invokeMethod(request.getString("type"), request.getJSONArray("args"))
+                            .then(new DoneCallback() {
+                                @Override
+                                public void onDone(Object result) {
+                                    sendResponse(request, result);
+                                }
+                            })
+                            .fail(new FailCallback<Exception>() {
+                                @Override
+                                public void onFail(Exception e) {
+                                    sendErrorResponse(request, e);
+                                }
                             });
-                    }
-                } catch (JSONException e) {
-                    Log.e("Native", "could not parse msg:" + msg, e);
                 }
+            } catch (JSONException e) {
+                Log.e("Native", "could not parse msg:" + msg, e);
             }
         }).start();
     }
@@ -157,51 +159,84 @@ public final class Native {
     private Promise invokeMethod(String method, JSONArray args) {
         Deferred promise = new DeferredObject<>();
         try {
-            if ("init".equals(method)) {
-                initialized.resolve(null);
-                promise.resolve("android");
-            } else if ("initPushNotifications".equals(method)) {
-                return initPushNotifications();
-            } else if ("generateRsaKey".equals(method)) {
-                promise.resolve(crypto.generateRsaKey(Utils.base64ToBytes(args.getString(0))));
-            } else if ("rsaEncrypt".equals(method)) {
-                promise.resolve(crypto.rsaEncrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1)), Utils.base64ToBytes(args.getString(2))));
-            } else if ("rsaDecrypt".equals(method)) {
-                promise.resolve(crypto.rsaDecrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1))));
-            } else if ("aesEncryptFile".equals(method)) {
-                promise.resolve(crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))));
-            } else if ("aesDecryptFile".equals(method)) {
-                promise.resolve(crypto.aesDecryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1)));
-            } else if ("open".equals(method)) {
-                return files.openFile(args.getString(0), args.getString(1));
-            } else if (method.equals("openFileChooser")) {
-                return files.openFileChooser();
-            } else if (method.equals("deleteFile")) {
-                files.delete(args.getString(0));
-                promise.resolve(null);
-            } else if (method.equals("getName")) {
-                promise.resolve(files.getName(args.getString(0)));
-            } else if (method.equals("getMimeType")) {
-                promise.resolve(files.getMimeType(args.getString(0)));
-            } else if (method.equals("getSize")) {
-                promise.resolve(files.getSize(args.getString(0)));
-            } else if (method.equals("upload")) {
-                promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
-            } else if (method.equals("download")) {
-                promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
-            } else if (method.equals("clearFileData")) {
-                files.clearFileData();
-                promise.resolve(null);
-            } else if (method.equals("findSuggestions")) {
-                return contact.findSuggestions(args.getString(0));
-            } else {
-                throw new Exception("unsupported method: " + method);
+            switch (method) {
+                case "init":
+                    if (!webAppInitialized.isResolved()) {
+                        webAppInitialized.resolve(null);
+                    }
+                    promise.resolve("android");
+                    break;
+                case "logout":
+                    webAppInitialized = new DeferredObject<>();
+                    activity.loadMainPage(args.getString(0));
+                    break;
+                case "initPushNotifications":
+                    return initPushNotifications();
+                case "generateRsaKey":
+                    promise.resolve(crypto.generateRsaKey(Utils.base64ToBytes(args.getString(0))));
+                    break;
+                case "rsaEncrypt":
+                    promise.resolve(crypto.rsaEncrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1)), Utils.base64ToBytes(args.getString(2))));
+                    break;
+                case "rsaDecrypt":
+                    promise.resolve(crypto.rsaDecrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1))));
+                    break;
+                case "aesEncryptFile":
+                    promise.resolve(crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))));
+                    break;
+                case "aesDecryptFile":
+                    promise.resolve(crypto.aesDecryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1)));
+                    break;
+                case "open":
+                    return files.openFile(args.getString(0), args.getString(1));
+                case "openFileChooser":
+                    return files.openFileChooser();
+                case "deleteFile":
+                    files.delete(args.getString(0));
+                    promise.resolve(null);
+                    break;
+                case "getName":
+                    promise.resolve(files.getName(args.getString(0)));
+                    break;
+                case "getMimeType":
+                    promise.resolve(files.getMimeType(args.getString(0)));
+                    break;
+                case "getSize":
+                    promise.resolve(files.getSize(args.getString(0)));
+                    break;
+                case "upload":
+                    promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
+                    break;
+                case "download":
+                    promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
+                    break;
+                case "clearFileData":
+                    files.clearFileData();
+                    promise.resolve(null);
+                    break;
+                case "findSuggestions":
+                    return contact.findSuggestions(args.getString(0));
+                case "openLink":
+                    promise.resolve(openLink(args.getString(0)));
+                    break;
+                default:
+                    throw new Exception("unsupported method: " + method);
             }
         } catch (Exception e) {
             Log.e(TAG, "failed invocation", e);
             promise.reject(e);
         }
         return promise.promise();
+    }
+
+    private boolean openLink(@Nullable String uri) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        PackageManager pm = activity.getPackageManager();
+        boolean resolved = intent.resolveActivity(pm) != null;
+        if (resolved) {
+            activity.startActivity(intent);
+        }
+        return resolved;
     }
 
     private Promise<JSONObject, Exception, ?> initPushNotifications() {
@@ -229,8 +264,8 @@ public final class Native {
         return s.replace("\"", "\\\"");
     }
 
-    public DeferredObject getInitialized() {
-        return initialized;
+    public DeferredObject getWebAppInitialized() {
+        return webAppInitialized;
     }
 
 }

@@ -10,7 +10,8 @@ import {
 	stringToNameAndMailAddress,
 	fullNameToFirstAndLastName,
 	mailAddressToFirstAndLastName,
-	isRegularExpression
+	isRegularExpression,
+	formatNameAndAddress
 } from "../../../src/misc/Formatter"
 
 o.spec("FormatterTest", function () {
@@ -195,5 +196,18 @@ o.spec("FormatterTest", function () {
 		o(isRegularExpression("/\\/")).equals(true)
 		o(isRegularExpression("/\$/")).equals(true)
 	})
+
+
+	o("formatNameAndAddress", function () {
+		o(formatNameAndAddress("", "", null)).equals("")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("", "Hanomaghof", null)).equals("Hanomaghof")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", null)).equals("Bernd\nHanomaghof 2\n30449 Hannover")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", "FR")).equals("Bernd\nHanomaghof 2\n30449 Hannover\nFrance")
+		o(formatNameAndAddress("", "", "DE")).equals("Deutschland")
+		o(formatNameAndAddress("a", "", "DE")).equals("a\nDeutschland")
+	})
+
 })
 

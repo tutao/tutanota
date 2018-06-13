@@ -11,7 +11,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sa kasamaang-palad, ang iyong Tutanota account ay nawalang bisa. Pakipaalam sa iyong administrator.",
-		"accountType_label": "Uri ng account",
 		"account_label": "User",
 		"activate_action": "I-activate",
 		"addAttachmentNotPossibleIe_msg": "Ang mobile Internet Explorer ay walang kakayahan maglagay ng attachment sa mga email. Gumamit ng desktop browser para sa kakayahan na ito.",

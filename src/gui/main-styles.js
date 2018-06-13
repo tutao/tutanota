@@ -24,7 +24,10 @@ styles.registerStyle('main', () => {
 		'html, body': {height: '100%', margin: 0},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
 
-		'button, textarea': {padding: 0},
+		'button, textarea': {
+			padding: 0,
+			'text-align': 'left'
+		},
 
 		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
 			overflow: 'hidden',
@@ -149,6 +152,7 @@ styles.registerStyle('main', () => {
 		'.z2': {'z-index': '2'},
 		'.z3': {'z-index': '3'},
 		'.noselect': noselect,
+		'.no-wrap': {'white-space': 'nowrap'},
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
@@ -156,6 +160,8 @@ styles.registerStyle('main', () => {
 
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
+
+		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
 
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
@@ -197,6 +203,8 @@ styles.registerStyle('main', () => {
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
+		'.sticky': {position: 'sticky'},
+		'.fixed': {position: 'fixed'},
 		'.rel': {position: 'relative'},
 		'.max-width-s': {'max-width': px(360)},
 		'.max-width-m': {'max-width': px(450)},
@@ -212,6 +220,7 @@ styles.registerStyle('main', () => {
 		'.left': {'text-align': 'left'},
 		'.statusTextColor': {color: theme.content_accent},
 		'.button-height': {height: px(size.button_height)},
+		'.button-height-accent': {height: px(size.button_height_accent) + " !important"},
 		'.button-min-height': {'min-height': px(size.button_height)},
 		'.button-width-fixed': {width: px(size.button_height)},
 		'.large-button-height': {height: px(size.button_floating_size)},
@@ -405,6 +414,7 @@ styles.registerStyle('main', () => {
 			'border-left': `1px solid ${theme.content_border}`,
 			'margin-left': '0'
 		},
+		'.dialog-max-height': {'max-height': 'calc(100vh - 100px)'},
 
 		// mail folder view column
 		' .folder-column': {
@@ -557,9 +567,12 @@ styles.registerStyle('main', () => {
 			'padding-right': px(0),
 		},
 
+		'.segmentControlItem': {
+			cursor: 'pointer'
+		},
 		'.segmentControlItem:last-child': {
 			'border-bottom-right-radius': px(size.border_radius),
-			'border-top-right-radius': px(size.border_radius)
+			'border-top-right-radius': px(size.border_radius),
 		},
 
 		'.segmentControlItem:first-child': {
@@ -613,12 +626,16 @@ styles.registerStyle('main', () => {
 			width: '100%'
 		},
 
-		'.table > tr:first-child': {
+		'.table tr:first-child': {
 			'border-bottom': `1px solid ${theme.content_border}`
 		},
 
-		'.table > td': {
-			'vertical-align': 'middle'
+		'.table td': {
+			'vertical-align': 'middle',
+		},
+
+		'td': {
+			'padding': 0,
 		},
 
 		'.column-width-small': {
@@ -632,6 +649,9 @@ styles.registerStyle('main', () => {
 			border: `1px solid ${theme.content_border}`,
 			width: "100%",
 			padding: px(10)
+		},
+		'.buyOptionBox.selected': {
+			border: `1px solid ${theme.content_accent}`,
 		},
 
 		// media query for small devices where elements should be arranged in one column
@@ -701,6 +721,12 @@ styles.registerStyle('main', () => {
 				width: "100% !important",
 			},
 			"#mail-viewer": {
+				overflow: "visible"
+			},
+			".dialog-header": {
+				display: 'none'
+			},
+			".dialog-container": {
 				overflow: "visible"
 			},
 			"button:not(.print)": {

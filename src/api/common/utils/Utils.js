@@ -141,3 +141,8 @@ export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
 	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
 }
+
+export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
+	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
+	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
+}

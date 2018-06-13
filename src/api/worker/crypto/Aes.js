@@ -146,7 +146,7 @@ export function aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array,
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
-export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
+	export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_128)
 
 	let useMac = encryptedBytes.length % 2 == 1

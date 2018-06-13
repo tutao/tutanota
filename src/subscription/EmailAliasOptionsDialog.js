@@ -22,7 +22,17 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
 
-export function openEmailAliasOptionsDialog(): Promise<void> {
+export function buyAliases(amount: number): Promise<void> {
+	const bookingData = createBookingServiceData()
+	bookingData.amount = amount.toString()
+	bookingData.featureType = BookingItemFeatureType.Alias
+	bookingData.date = Const.CURRENT_DATE
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).catch(PreconditionFailedError, error => {
+		return Dialog.error("emailAliasesTooManyActivatedForBooking_msg")
+	})
+}
+
+export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
@@ -32,14 +42,8 @@ export function openEmailAliasOptionsDialog(): Promise<void> {
 					dialog.close()
 					BuyDialog.show(BookingItemFeatureType.Alias, amount, freeEmailAliases, false).then(confirm => {
 						if (confirm) {
-							const bookingData = createBookingServiceData()
-							bookingData.amount = amount.toString()
-							bookingData.featureType = BookingItemFeatureType.Alias
-							bookingData.date = Const.CURRENT_DATE
-							return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+							return buyAliases(amount)
 						}
-					}).catch(PreconditionFailedError, error => {
-						return Dialog.error("emailAliasesTooManyActivatedForBooking_msg")
 					}).then(() => {
 						callback(null, null)
 					})
@@ -72,6 +76,7 @@ export function openEmailAliasOptionsDialog(): Promise<void> {
 					exec: cancelAction,
 					help: "closeDialog_msg"
 				})
+				dialog.setCloseHandler(cancelAction)
 				dialog.show()
 			})
 
@@ -79,15 +84,18 @@ export function openEmailAliasOptionsDialog(): Promise<void> {
 }
 
 function createEmailAliasPackageBox(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount:number, buyOptionBox:BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "choose_action",
+	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "select_action",
 		() => buyAction(amount),
-		[], 230, 240)
+		() => [], 230, 240)
 
 	buyOptionBox.setValue(lang.get("emptyString_msg"))
 	buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
 
 	worker.getPrice(BookingItemFeatureType.Alias, amount, false).then(newPrice => {
 		const currentCount = getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Alias);
+		if (amount == currentCount) {
+			buyOptionBox.selected = true
+		}
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias)
 		buyOptionBox.setValue(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval

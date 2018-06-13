@@ -2,7 +2,7 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
@@ -15,7 +15,6 @@ import type {
 	AccountTypeEnum,
 	BookingItemFeatureTypeEnum
 } from "../common/TutanotaConstants"
-import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 
@@ -160,6 +159,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('changePassword', arguments))
 	}
 
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		return this._postRequest(new Request('deleteAccount', arguments))
+	}
+
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
 		return this._postRequest(new Request('createMailFolder', arguments))
 	}
@@ -196,8 +199,16 @@ export class WorkerClient {
 		return this._postRequest(new Request('switchFreeToPremiumGroup', arguments))
 	}
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	switchPremiumToFreeGroup(): Promise<void> {
+		return this._postRequest(new Request('switchPremiumToFreeGroup', arguments))
+	}
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return this._postRequest(new Request('updatePaymentData', arguments))
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<DataFile> {
+		return this._postRequest(new Request('downloadInvoice', arguments))
 	}
 
 	readUsedUserStorage(user: User): Promise<number> {

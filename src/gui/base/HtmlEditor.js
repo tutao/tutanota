@@ -92,7 +92,7 @@ export class HtmlEditor {
 		this.view = () => {
 			return m(".html-editor", [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
-				( labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
+				(labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
 				m((this._showBorders ? ".editor-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
@@ -165,7 +165,11 @@ export class HtmlEditor {
 				return this._value()
 			}
 		} else {
-			return this._domTextArea.value
+			if (this._domTextArea) {
+				return this._domTextArea.value
+			} else {
+				return this._value()
+			}
 		}
 	}
 

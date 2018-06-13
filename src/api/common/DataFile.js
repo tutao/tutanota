@@ -2,7 +2,7 @@
 import {FileTypeRef} from "../entities/tutanota/File"
 import {isSameTypeRef} from "./EntityFunctions"
 
-export function createDataFile(file: File|TutanotaFile, data: Uint8Array) {
+export function createDataFile(file: File|TutanotaFile, data: Uint8Array): DataFile {
 	if (file._type && isSameTypeRef((file:any)._type, FileTypeRef)) {
 		let tutanotaFile = ((file:any):TutanotaFile)
 		return {

@@ -29,6 +29,7 @@ export const size = {
 	font_size_small: 12,
 
 	button_height: 44,
+	button_height_accent: 40,
 	button_height_bubble: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,

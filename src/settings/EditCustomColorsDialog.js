@@ -10,6 +10,7 @@ import type {Theme} from "../gui/theme"
 import {updateCustomTheme, defaultTheme, theme} from "../gui/theme"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {update} from "../api/main/Entity"
+import {Keys} from "../misc/KeyManager"
 
 assertMainOrNode()
 
@@ -59,7 +60,8 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 	}
 
 	let actionBar = new DialogHeaderBar()
-	actionBar.addLeft(new Button("cancel_action", () => dialog.close()).setType(ButtonType.Secondary))
+	let cancelAction = () => dialog.close()
+	actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 	actionBar.setMiddle(stream(lang.get("customColors_label")))
 	actionBar.addRight(new Button("ok_action", () => {
 		let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
@@ -80,7 +82,13 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 		dialog.close()
 	}).setType(ButtonType.Primary))
 
-	let dialog = Dialog.largeDialog(actionBar, form).show()
+	let dialog = Dialog.largeDialog(actionBar, form)
+		.addShortcut({
+			key: Keys.ESC,
+			exec: cancelAction,
+			help: "close_alt"
+		}).setCloseHandler(cancelAction)
+		.show()
 }
 
 function getValidColorValue(field: TextField): ?String {

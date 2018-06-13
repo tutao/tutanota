@@ -38,8 +38,10 @@ export class ContactFormView {
 
 		this._contactForm = null
 
+		let closeAction = () => this._moreInformationDialog.close()
+
 		let moreInfoHeaderBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', () => this._moreInformationDialog.close()).setType(ButtonType.Secondary))
+			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("moreInformation_action"))
 		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBar, {
 			view: () => {
@@ -48,9 +50,9 @@ export class ContactFormView {
 			}
 		}).addShortcut({
 			key: Keys.ESC,
-			exec: () => this._moreInformationDialog.close(),
+			exec: closeAction,
 			help: "close_alt"
-		})
+		}).setCloseHandler(closeAction)
 
 		this._readResponseButton = new Button('readResponse_action', () => m.route.set("/login")).setType(ButtonType.Login)
 		this._moreInformationButton = new Button('moreInformation_action', () => this._moreInformationDialog.show()).setType(ButtonType.Secondary)

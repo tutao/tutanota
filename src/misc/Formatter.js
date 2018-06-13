@@ -2,6 +2,8 @@
 import {lang} from "./LanguageViewModel"
 import {startsWith, pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
+import {getByAbbreviation} from "../api/common/CountryList"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -323,4 +325,24 @@ export function urlEncodeHtmlTags(text: string) {
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;")
+}
+
+export function formatNameAndAddress(name: string, address: string, countryCode: ?string): string {
+	let result = ""
+	if (name) {
+		result += name
+	}
+	if (address) {
+		if (result) {
+			result += "\n"
+		}
+		result += address
+	}
+	if (countryCode) {
+		if (result) {
+			result += "\n"
+		}
+		result += neverNull(getByAbbreviation(countryCode)).n
+	}
+	return result
 }

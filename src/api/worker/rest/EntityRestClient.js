@@ -1,5 +1,5 @@
 //@flow
-import {restClient, MediaType} from "./RestClient"
+import {restClient} from "./RestClient"
 import {
 	decryptAndMapToInstance,
 	encryptAndMapToLiteral,
@@ -8,7 +8,7 @@ import {
 	setNewOwnerEncSessionKey
 } from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef, HttpMethod} from "../../common/EntityFunctions"
+import {resolveTypeReference, TypeRef, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
 import type {LoginFacade} from "../facades/LoginFacade"
@@ -86,7 +86,7 @@ export class EntityRestClient {
 		})
 	}
 
-	entityEventReceived(data: EntityUpdate): Promise<void> {
+	entityEventReceived(data: EntityUpdate): Promise<void> { // for the admin area (no cache available)
 		return Promise.resolve()
 	}
 }
