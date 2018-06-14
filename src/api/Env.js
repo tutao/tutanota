@@ -28,6 +28,10 @@ export function isIOSApp(): boolean {
 	return env.mode == Mode.App && env.platformId == "ios"
 }
 
+export function isAndroidApp(): boolean {
+	return env.mode == Mode.App && env.platformId == "android"
+}
+
 export function isApp(): boolean {
 	return env.mode == Mode.App
 }

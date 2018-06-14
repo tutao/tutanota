@@ -18,9 +18,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-
 import org.jdeferred.Deferred;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
@@ -31,7 +28,7 @@ import org.json.JSONException;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 
-import de.tutao.tutanota.push.GcmRegistrationService;
+import de.tutao.tutanota.push.PushNotificationService;
 
 public class MainActivity extends Activity {
 
@@ -47,6 +44,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        this.setupPushNotifications();
 
         webView = new WebView(this);
         webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
@@ -85,7 +84,6 @@ public class MainActivity extends Activity {
         });
         this.webView.loadUrl(appUrl);
         nativeImpl.setup();
-
     }
 
     @Override
@@ -157,23 +155,7 @@ public class MainActivity extends Activity {
     }
 
     void setupPushNotifications() {
-        if (gcmIsAvailable()) {
-            // gcm registration
-            Intent intent = new Intent(MainActivity.this, GcmRegistrationService.class);
-            startService(intent);
-        }
-    }
-
-    /**
-     * @return true, if the GCM is available.
-     */
-    private boolean gcmIsAvailable() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            return false;
-        }
-        return true;
+        startService(new Intent(this, PushNotificationService.class));
     }
 
     public void bringToForeground() {

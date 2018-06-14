@@ -23,6 +23,8 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.tutao.tutanota.push.SseStorage;
+
 /**
  * Created by mpfau on 4/8/17.
  */
@@ -34,6 +36,7 @@ public final class Native {
     Crypto crypto;
     FileUtil files;
     Contact contact;
+    SseStorage sseStorage;
     Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
     private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
@@ -44,6 +47,7 @@ public final class Native {
         crypto = new Crypto(activity);
         contact = new Contact(activity);
         files = new FileUtil(activity);
+        sseStorage = new SseStorage(activity);
     }
 
     public void setup() {
@@ -218,6 +222,14 @@ public final class Native {
                     return contact.findSuggestions(args.getString(0));
                 case "openLink":
                     promise.resolve(openLink(args.getString(0)));
+                    break;
+                case "getPushIdentifier":
+                    promise.resolve(sseStorage.getPushIdentifier());
+                    break;
+                case "storePushIdentifierLocally":
+                    sseStorage.storePushIdentifier(args.getString(0), args.getString(1),
+                            args.getString(2));
+                    promise.resolve(true);
                     break;
                 default:
                     throw new Exception("unsupported method: " + method);

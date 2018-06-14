@@ -51,9 +51,11 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation "com.google.android.gms:play-services-gcm:10.2.1"
     implementation 'commons-io:commons-io:2.4'
     implementation 'org.jdeferred:jdeferred-core:1.2.4'
+    implementation 'com.android.support:support-compat:27.1.1'
+    implementation 'com.android.support:support-core-utils:27.1.1'
+
     testImplementation 'junit:junit:4.12'
     testImplementation "org.robolectric:robolectric:3.3.2"
     androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'

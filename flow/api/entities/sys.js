@@ -1493,3 +1493,18 @@ type SignOrderProcessingAgreementData = {
 	version:string;
 
 }
+
+type GeneratedIdWrapper = {
+	_type: TypeRef<GeneratedIdWrapper>;
+	_id:Id;
+	value:Id;
+
+}
+
+type SseConnectData = {
+	_type: TypeRef<SseConnectData>;
+	_format:NumberString;
+	identifier:string;
+
+	userIds:GeneratedIdWrapper[];
+}

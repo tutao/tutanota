@@ -380,6 +380,10 @@ export class WorkerClient {
 			this._progressUpdater = null
 		}
 	}
+
+	generateSsePushIdentifer(): Promise<string> {
+		return this._postRequest(new Request('generateSsePushIdentifer', arguments))
+	}
 }
 
 export const worker = new WorkerClient()
