@@ -14,7 +14,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.support.v4.app.NotificationBuilderWithBuilderAccessor;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -40,19 +40,25 @@ import de.tutao.tutanota.Utils;
 
 public final class PushNotificationService extends Service {
 
-    private static final String TAG = "PushNotificationService";
+    protected static final String TAG = "PushNotificationService";
     private static final int NOTIFICATION_ID = 341;
     private static final int ONGOING_NOTIFICATION_ID = 342;
+    private static final String SSE_INFO_EXTRA = "sseInfo";
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
     private final AtomicReference<HttpURLConnection> httpsURLConnectionRef =
             new AtomicReference<>(null);
     private final Crypto crypto = new Crypto(this);
-    private SseInfo connectedSseInfo;
+    private volatile SseInfo connectedSseInfo;
     private ConnectivityManager connectivityManager;
 
-    public PushNotificationService() {
+    public static Intent startIntent(Context context, @Nullable SseInfo sseInfo) {
+        Intent intent = new Intent(context, PushNotificationService.class);
+        if (sseInfo != null) {
+            intent.putExtra(SSE_INFO_EXTRA, sseInfo.toJSON());
+        }
+        return intent;
     }
 
     @Override
@@ -64,17 +70,19 @@ public final class PushNotificationService extends Service {
     public void onCreate() {
         super.onCreate();
         connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        this.connectedSseInfo = sseStorage.getSseInfo();
+        looperThread.start();
 
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 HttpURLConnection connection = httpsURLConnectionRef.get();
                 if (!hasNetworkConnection()) {
-                    if (connection != null) {
-                        connection.disconnect();
-                    }
+                    Log.d(TAG, "Network is DOWN");
                 } else {
+                    Log.d(TAG, "Network is UP");
                     if (connection == null) {
+                        Log.d(TAG, "ConnectionRef not available, schedule connect because of network state change");
                         reschedule(0);
                     }
                 }
@@ -92,20 +100,30 @@ public final class PushNotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Received start");
+        Log.d(TAG, "Received onStartCommand" );
+
+        SseInfo sseInfo = null;
+        if (intent != null && intent.hasExtra(SSE_INFO_EXTRA)) {
+            sseInfo = SseInfo.fromJson(intent.getStringExtra(SSE_INFO_EXTRA));
+        }
+        if (sseInfo == null) {
+            sseInfo = sseStorage.getSseInfo();
+        }
+        SseInfo oldConnectedInfo = this.connectedSseInfo;
+        this.connectedSseInfo = sseInfo;
+
+        Log.d(TAG, "current sseInfo: " + connectedSseInfo);
+        Log.d(TAG, "stored sseInfo: " + oldConnectedInfo);
+
         HttpURLConnection connection = httpsURLConnectionRef.get();
-        if (this.looperThread.isAlive()) {
-            Log.d(TAG, "Reconnect onStartCommand");
-            if (connection != null
-                    && this.connectedSseInfo != null
-                    && !this.connectedSseInfo.equals(sseStorage.getSseInfo())) {
-                connection.disconnect();
-            } else {
-                this.looperThread.getHandler().post(this::connect);
-            }
+        if (connection == null) {
+            Log.d(TAG, "ConnectionRef not available, schedule connect");
+            this.reschedule(0);
+        }else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
+            Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
+            connection.disconnect();
         } else {
-            Log.d(TAG, "Starting looperThread");
-            looperThread.start();
+            Log.d(TAG, "ConnectionRef available, do nothing");
         }
         return Service.START_STICKY;
     }
@@ -114,21 +132,16 @@ public final class PushNotificationService extends Service {
         Log.d(TAG, "Starting SSE connection");
         Random random = new Random();
         BufferedReader reader = null;
-        SseInfo sseInfo = sseStorage.getSseInfo();
-        if (sseInfo == null) {
+        if (connectedSseInfo == null) {
             Log.d(TAG, "sse info not available skip reconnect");
             return;
         }
-        this.connectedSseInfo = sseInfo;
-
-
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         Uri notificatoinUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
         try {
-            URL url = new URL(sseInfo.getSseOrigin() + "/sse?_body=" + requestJson(sseInfo));
+            URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
             this.httpsURLConnectionRef.set(httpsURLConnection);
             httpsURLConnection.setRequestProperty("Content-Type", "application/json");
@@ -137,11 +150,13 @@ public final class PushNotificationService extends Service {
             httpsURLConnection.setRequestProperty("Connection", "close");
             httpsURLConnection.setRequestProperty("Accept", "text/event-stream");
             httpsURLConnection.setRequestMethod("GET");
-            //httpsURLConnection.setConnectTimeout(70000);
+
+            httpsURLConnection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(5));
             httpsURLConnection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(15));
             InputStream inputStream = new BufferedInputStream(httpsURLConnection.getInputStream());
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String event;
+            Log.d(TAG, "SSE connection established, listening for events");
             while ((event = reader.readLine()) != null) {
                 if (!event.startsWith("data: ")) {
                     continue;
@@ -172,8 +187,14 @@ public final class PushNotificationService extends Service {
                 // ignore Exception when getting status code.
             }
             int delay = random.nextInt(15) + 15;
-            Log.e(TAG, "error opening sse, rescheduling after " + delay, ignored);
-            reschedule(delay);
+
+            if (this.hasNetworkConnection()) {
+                Log.e(TAG, "error opening sse, rescheduling after " + delay, ignored);
+                reschedule(delay);
+            } else {
+                Log.e(TAG, "network is not connected, do not reschedule ", ignored);
+            }
+
         } finally {
             if (reader != null) {
                 try {
@@ -186,8 +207,12 @@ public final class PushNotificationService extends Service {
     }
 
     private void reschedule(int delay) {
-        looperThread.getHandler().postDelayed(this::connect,
-                TimeUnit.SECONDS.toMillis(delay));
+        if (looperThread.getHandler() != null) {
+            looperThread.getHandler().postDelayed(this::connect,
+                    TimeUnit.SECONDS.toMillis(delay));
+        } else {
+            Log.d(TAG, "looper thread is starting, skip additional reschedule");
+        }
     }
 
     private boolean hasNetworkConnection() {
@@ -223,7 +248,7 @@ public final class PushNotificationService extends Service {
 
 final class LooperThread extends Thread {
 
-    private Handler handler;
+    private volatile Handler handler;
     private Runnable initRunnable;
 
     LooperThread(Runnable initRunnable) {
@@ -232,6 +257,7 @@ final class LooperThread extends Thread {
 
     @Override
     public void run() {
+        Log.d(PushNotificationService.TAG, "LooperThread is started");
         Looper.prepare();
         handler = new Handler();
         handler.post(initRunnable);

@@ -24,9 +24,10 @@ class PushServiceApp {
 		if (isAndroidApp()) {
 			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
 				if (identifier) {
-					this._loadPushIdentifier(identifier).then(pushIdentifier => {
-						if (!pushIdentifier) { // outdated push identifer stored locally
+					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
+						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
+								.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier, logins.getUserController().user._id))
 						} else {
 							return Promise.resolve()
 						}

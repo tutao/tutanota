@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -33,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.SseStorage;
 
 public class MainActivity extends Activity {
 
@@ -176,7 +178,8 @@ public class MainActivity extends Activity {
     }
 
     void setupPushNotifications() {
-        startService(new Intent(this, PushNotificationService.class));
+        startService(PushNotificationService.startIntent(this,
+                new SseStorage(this).getSseInfo()));
     }
 
     /**

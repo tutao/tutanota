@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
             android:allowBackup="false"
@@ -47,6 +48,16 @@
                 android:enabled="true"
                 android:exported="false"
                 android:process=":pushprocess"/>
+
+        <receiver
+            android:name=".push.BootBroadcastReceiver"
+            android:directBootAware="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                        <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
+                    </intent-filter>
+                </receiver>
+
     </application>
 
 </manifest>
