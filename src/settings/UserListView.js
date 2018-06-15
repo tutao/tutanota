@@ -103,9 +103,9 @@ export class UserListView {
 		this.list.loadInitial()
 
 		this._listId.getAsync().then(listId => {
-			header.defaultButtonBar.searchBar.setGroupInfoRestrictionListId(listId)
+			header.buttonBar.searchBar.setGroupInfoRestrictionListId(listId)
 		})
-		this._searchResultStreamDependency = header.defaultButtonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
+		this._searchResultStreamDependency = header.buttonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
 			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}

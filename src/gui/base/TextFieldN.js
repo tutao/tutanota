@@ -52,6 +52,9 @@ export class _TextField {
 		if (typeof vnode.attrs.value.map == "function") {
 			vnode.attrs.value.map(value => {
 				if (this._domInput) {
+					if (value && !this.active) {
+						this.animate(true)
+					}
 					if (vnode.attrs.type == Type.Area && value != this._domInput.value) {
 						this._domInput.value = value
 					}

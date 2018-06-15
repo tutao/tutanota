@@ -20,7 +20,6 @@ assertMainOrNodeBoot()
 
 class Header {
 	buttonBar: NavBar;
-	defaultButtonBar: NavBar;
 	view: Function;
 	contactsUrl: string;
 	mailsUrl: string;
