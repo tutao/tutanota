@@ -1072,7 +1072,8 @@ module.exports = {
 		"totpTransferSecretApp_msg": "Bitte aktualisiere deine Authenticator-App durch betätigen des Buttons oder die manuelle Eingabe des Geheimnisses.",
 		"exportVCard_action": "VCard exportieren",
 		"mergeAllSelectedContacts_msg": "Bist du sicher, dass du die ausgewählten Kontakte zusammenführen möchtest?",
-		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!"
+		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!",
+		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tutanota, damit die Benachrichtigungen zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern."
 
 	}
 }

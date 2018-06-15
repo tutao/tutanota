@@ -53,6 +53,7 @@ class _LineChart {
 	_viewBox: {x: number, y: number, width: number, height: number};
 	_bounds: {x: number, y: number, width: number, height: number};
 	_circle: HTMLElement;
+	attrs: any;
 
 	constructor(vnode: Vnode<LineChartAttrs>) {
 		this._scale = 1

@@ -63,7 +63,7 @@ public final class SseStorage {
     }
 
     public void clear() {
-        this.getPrefs().edit().clear().apply();
+        this.getPrefs().edit().remove(SSE_INFO_PREF).apply();
     }
 
     private SharedPreferences getPrefs() {

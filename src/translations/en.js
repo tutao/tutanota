@@ -1072,6 +1072,7 @@ module.exports = {
 		"totpTransferSecretApp_msg": "Please update your authenticator app by pressing the button below or by entering the secret key manually.",
 		"exportVCard_action": "Export vCard",
 		"mergeAllSelectedContacts_msg": "Are you sure you want to merge the selected contacts?",
-		"presharedPasswordsUnequal_msg": "The selected contacts have different agreed passwords. They can not be merged!"
+		"presharedPasswordsUnequal_msg": "The selected contacts have different agreed passwords. They can not be merged!",
+		"allowPushNotification_msg": "To receive push notifications reliably, please agree to disable battery optimizations for the Tutanota. You can change this later in system settings"
 	}
 }

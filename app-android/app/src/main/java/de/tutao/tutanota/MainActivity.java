@@ -3,9 +3,11 @@ package de.tutao.tutanota;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -24,7 +26,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -39,8 +40,9 @@ import de.tutao.tutanota.push.SseStorage;
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
-    private static int requestId = 0;
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
+    private static int requestId = 0;
+    private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
 
     private WebView webView;
     public Native nativeImpl = new Native(this);
@@ -87,8 +89,6 @@ public class MainActivity extends Activity {
         });
         this.webView.loadUrl(appUrl);
         nativeImpl.setup();
-
-        this.askBatteryOptinmizationsIfNeeded();
     }
 
     @Override
@@ -104,22 +104,25 @@ public class MainActivity extends Activity {
         webView.saveState(outState);
     }
 
-    private void askBatteryOptinmizationsIfNeeded() {
+    public void askBatteryOptinmizationsIfNeeded() {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //noinspection ConstantConditions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
                 && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Battery optimizations")
-                    .setMessage("Please disable battery optimizations to be able to receive push notifications")
-                    .setPositiveButton(android.R.string.ok, (d, i) -> {
-                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                Uri.parse("package:" + getPackageName()));
-                        startActivity(intent);
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
+            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then( (result) -> {
+                saveAskedBatteryOptimizations(preferences);
+                @SuppressLint("BatteryLife")
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            });
         }
+    }
+
+    private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
+        preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
     }
 
     private String getUrl() {

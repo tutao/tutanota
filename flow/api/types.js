@@ -139,6 +139,7 @@ type NativeRequestType =  'init'
 type JsRequestType ='createMailEditor'
 	| 'updatePushIdentifier'
 	| 'handleBackPress'
+	| 'showAlertDialog'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
