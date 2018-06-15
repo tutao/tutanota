@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.support.v4.app.NotificationBuilderWithBuilderAccessor;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -41,6 +42,7 @@ public final class PushNotificationService extends Service {
 
     private static final String TAG = "PushNotificationService";
     private static final int NOTIFICATION_ID = 341;
+    private static final int ONGOING_NOTIFICATION_ID = 342;
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -78,6 +80,14 @@ public final class PushNotificationService extends Service {
                 }
             }
         }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+        Notification notification = new Notification.Builder(this)
+                .setContentTitle("Tutanota notification service")
+                .setSmallIcon(R.drawable.ic_status)
+                .setPriority(Notification.PRIORITY_MIN)
+                .build();
+
+        startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 
     @Override
@@ -90,7 +100,7 @@ public final class PushNotificationService extends Service {
                     && this.connectedSseInfo != null
                     && !this.connectedSseInfo.equals(sseStorage.getSseInfo())) {
                 connection.disconnect();
-            }else {
+            } else {
                 this.looperThread.getHandler().post(this::connect);
             }
         } else {

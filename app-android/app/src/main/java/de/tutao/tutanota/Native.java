@@ -33,11 +33,11 @@ public final class Native {
     private final static String TAG = "Native";
 
     static int requestId = 0;
-    Crypto crypto;
-    FileUtil files;
-    Contact contact;
-    SseStorage sseStorage;
-    Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
+    private Crypto crypto;
+    private FileUtil files;
+    private Contact contact;
+    private SseStorage sseStorage;
+    private Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
     private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
 
@@ -71,18 +71,10 @@ public final class Native {
                     promise.resolve(request);
                 } else {
                     invokeMethod(request.getString("type"), request.getJSONArray("args"))
-                            .then(new DoneCallback() {
-                                @Override
-                                public void onDone(Object result) {
-                                    sendResponse(request, result);
-                                }
+                            .then(result -> {
+                                sendResponse(request, result);
                             })
-                            .fail(new FailCallback<Exception>() {
-                                @Override
-                                public void onFail(Exception e) {
-                                    sendErrorResponse(request, e);
-                                }
-                            });
+                            .fail((FailCallback<Exception>) e -> sendErrorResponse(request, e));
                 }
             } catch (JSONException e) {
                 Log.e("Native", "could not parse msg:" + msg, e);
@@ -143,19 +135,13 @@ public final class Native {
     }
 
     private void evaluateJs(final String js) {
-        activity.getWebView().post(new Runnable() {
-            @Override
-            public void run() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    activity.getWebView().evaluateJavascript(js, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            // no response expected
-                        }
-                    });
-                } else {
-                    activity.getWebView().loadUrl("javascript:" + js);
-                }
+        activity.getWebView().post(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                activity.getWebView().evaluateJavascript(js, value -> {
+                    // no response expected
+                });
+            } else {
+                activity.getWebView().loadUrl("javascript:" + js);
             }
         });
     }
@@ -276,7 +262,7 @@ public final class Native {
         return s.replace("\"", "\\\"");
     }
 
-    public DeferredObject getWebAppInitialized() {
+    public DeferredObject<Void, Void, Void> getWebAppInitialized() {
         return webAppInitialized;
     }
 

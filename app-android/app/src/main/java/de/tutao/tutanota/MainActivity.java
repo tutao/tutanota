@@ -2,12 +2,16 @@ package de.tutao.tutanota;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
@@ -60,16 +64,13 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        this.nativeImpl.getWebAppInitialized().then(new DoneCallback() {
-            @Override
-            public void onDone(Object result) {
-                if (!firstLoaded) {
-                    if (getIntent().getAction() != null) {
-                        share(getIntent());
-                    }
+        this.nativeImpl.getWebAppInitialized().then(result -> {
+            if (!firstLoaded) {
+                if (getIntent().getAction() != null) {
+                    share(getIntent());
                 }
-                firstLoaded = true;
             }
+            firstLoaded = true;
         });
         this.webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -84,6 +85,8 @@ public class MainActivity extends Activity {
         });
         this.webView.loadUrl(appUrl);
         nativeImpl.setup();
+
+        this.askBatteryOptinmizationsIfNeeded();
     }
 
     @Override
@@ -97,6 +100,24 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         webView.saveState(outState);
+    }
+
+    private void askBatteryOptinmizationsIfNeeded() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        //noinspection ConstantConditions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Battery optimizations")
+                    .setMessage("Please disable battery optimizations to be able to receive push notifications")
+                    .setPositiveButton(android.R.string.ok, (d, i) -> {
+                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
     }
 
     private String getUrl() {
@@ -158,12 +179,6 @@ public class MainActivity extends Activity {
         startService(new Intent(this, PushNotificationService.class));
     }
 
-    public void bringToForeground() {
-        Intent intent = new Intent(this, getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        getApplicationContext().startActivity(intent);
-    }
-
     /**
      * The sharing activity. Either invoked from MainActivity (if the app was not active when the
      * share occured) or from onCreate.
@@ -220,14 +235,6 @@ public class MainActivity extends Activity {
         // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
         runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
     }
-}
-
-interface Callback<T> {
-    void finish(Exception e, T result);
-}
-
-interface ActivityResultCallback {
-    void finish(int resultCode, Intent data);
 }
 
 class ActivityResult {
