@@ -3,14 +3,17 @@ package de.tutao.tutanota.push;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.RingtoneManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -22,34 +25,30 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.Base64;
-import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.tutao.tutanota.BuildConfig;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 
-public class PushNotificationService extends Service {
+public final class PushNotificationService extends Service {
 
     private static final String TAG = "PushNotificationService";
-
     private static final int NOTIFICATION_ID = 341;
+
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
-
-    final AtomicReference<HttpURLConnection> httpsURLConnectionRef = new AtomicReference<>(null);
+    private final AtomicReference<HttpURLConnection> httpsURLConnectionRef =
+            new AtomicReference<>(null);
     private final Crypto crypto = new Crypto(this);
     private SseInfo connectedSseInfo;
+    private ConnectivityManager connectivityManager;
 
     public PushNotificationService() {
     }
@@ -60,12 +59,36 @@ public class PushNotificationService extends Service {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                HttpURLConnection connection = httpsURLConnectionRef.get();
+                if (!hasNetworkConnection()) {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                } else {
+                    if (connection == null) {
+                        reschedule(0);
+                    }
+                }
+            }
+        }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Received start");
         HttpURLConnection connection = httpsURLConnectionRef.get();
         if (this.looperThread.isAlive()) {
             Log.d(TAG, "Reconnect onStartCommand");
-            if (connection != null && this.connectedSseInfo != null && !this.connectedSseInfo.equals(sseStorage.getSseInfo())) {
+            if (connection != null
+                    && this.connectedSseInfo != null
+                    && !this.connectedSseInfo.equals(sseStorage.getSseInfo())) {
                 connection.disconnect();
             }else {
                 this.looperThread.getHandler().post(this::connect);
@@ -87,6 +110,13 @@ public class PushNotificationService extends Service {
             return;
         }
         this.connectedSseInfo = sseInfo;
+
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Uri notificatoinUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
         try {
             URL url = new URL(sseInfo.getSseOrigin() + "/sse?_body=" + requestJson(sseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
@@ -109,11 +139,6 @@ public class PushNotificationService extends Service {
                 event = event.substring(6);
                 if (event.matches("^[0-9]{1,}$"))
                     continue;
-
-                NotificationManager notificationManager =
-                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-                Uri notificatoinUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
                 Notification notification = new Notification.Builder(this)
                         .setContentTitle(event)
@@ -138,8 +163,7 @@ public class PushNotificationService extends Service {
             }
             int delay = random.nextInt(15) + 15;
             Log.e(TAG, "error opening sse, rescheduling after " + delay, ignored);
-            looperThread.getHandler().postDelayed(this::connect,
-                    TimeUnit.SECONDS.toMillis(delay));
+            reschedule(delay);
         } finally {
             if (reader != null) {
                 try {
@@ -147,7 +171,18 @@ public class PushNotificationService extends Service {
                 } catch (IOException ignored) {
                 }
             }
+            httpsURLConnectionRef.set(null);
         }
+    }
+
+    private void reschedule(int delay) {
+        looperThread.getHandler().postDelayed(this::connect,
+                TimeUnit.SECONDS.toMillis(delay));
+    }
+
+    private boolean hasNetworkConnection() {
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
     private String requestJson(SseInfo sseInfo) {
@@ -176,7 +211,7 @@ public class PushNotificationService extends Service {
     }
 }
 
-class LooperThread extends Thread {
+final class LooperThread extends Thread {
 
     private Handler handler;
     private Runnable initRunnable;
