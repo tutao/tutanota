@@ -2,6 +2,7 @@ package de.tutao.tutanota.push;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,7 +31,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,9 +46,9 @@ import de.tutao.tutanota.Utils;
 public final class PushNotificationService extends Service {
 
     protected static final String TAG = "PushNotificationService";
-    private static final int NOTIFICATION_ID = 341;
     private static final int ONGOING_NOTIFICATION_ID = 342;
     private static final String SSE_INFO_EXTRA = "sseInfo";
+    public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -52,6 +57,8 @@ public final class PushNotificationService extends Service {
     private final Crypto crypto = new Crypto(this);
     private volatile SseInfo connectedSseInfo;
     private ConnectivityManager connectivityManager;
+
+    private final Map<String, Integer> aliasNotification = new ConcurrentHashMap<>();
 
     public static Intent startIntent(Context context, @Nullable SseInfo sseInfo) {
         Intent intent = new Intent(context, PushNotificationService.class);
@@ -100,12 +107,21 @@ public final class PushNotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Received onStartCommand" );
+        Log.d(TAG, "Received onStartCommand");
+
+        if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
+            String notificationId = intent.getStringExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
+            if (notificationId != null) {
+                aliasNotification.remove(notificationId);
+            }
+            return START_STICKY;
+        }
 
         SseInfo sseInfo = null;
         if (intent != null && intent.hasExtra(SSE_INFO_EXTRA)) {
             sseInfo = SseInfo.fromJson(intent.getStringExtra(SSE_INFO_EXTRA));
         }
+
         if (sseInfo == null) {
             sseInfo = sseStorage.getSseInfo();
         }
@@ -119,7 +135,7 @@ public final class PushNotificationService extends Service {
         if (connection == null) {
             Log.d(TAG, "ConnectionRef not available, schedule connect");
             this.reschedule(0);
-        }else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
+        } else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
             Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
             connection.disconnect();
         } else {
@@ -164,15 +180,43 @@ public final class PushNotificationService extends Service {
                 event = event.substring(6);
                 if (event.matches("^[0-9]{1,}$"))
                     continue;
+                PushMessage pushMessage;
+                try {
+                    pushMessage = PushMessage.fromJson(event);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse notification message", e);
+                    continue;
+                }
 
-                Notification notification = new Notification.Builder(this)
-                        .setContentTitle(event)
-                        .setSmallIcon(R.drawable.ic_status)
-                        .setSound(notificatoinUri)
-                        .setVibrate(new long[]{3000})
-                        .build();
-                //noinspection ConstantConditions
-                notificationManager.notify(NOTIFICATION_ID, notification);
+                List<PushMessage.RecipientInfo> recipientInfos = pushMessage.getRecipientInfos();
+                for (int i = 0; i < recipientInfos.size(); i++) {
+                    PushMessage.RecipientInfo recipientInfo = recipientInfos.get(i);
+                    Intent deleteIntent = new Intent(this, PushNotificationService.class);
+                    int notificationId = recipientInfo.getAddress().hashCode();
+                    deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, recipientInfo.getAddress());
+
+                    Integer counterPerAlias =
+                            aliasNotification.get(recipientInfo.getAddress());
+                    if (counterPerAlias == null) {
+                        counterPerAlias = recipientInfo.getCounter();
+                    } else {
+                        counterPerAlias += recipientInfo.getCounter();
+                    }
+                    aliasNotification.put(recipientInfo.getAddress(), counterPerAlias);
+
+                    Notification.Builder notificationBuilder = new Notification.Builder(this)
+                            .setContentTitle(pushMessage.getTitle())
+                            .setContentText(recipientInfo.getAddress())
+                            .setNumber(counterPerAlias)
+                            .setSmallIcon(R.drawable.ic_status)
+                            .setDeleteIntent(PendingIntent.getService(this.getApplicationContext(), notificationId, deleteIntent, 0));
+                    if (i == 0) {
+                        notificationBuilder.setSound(notificatoinUri);
+                        notificationBuilder.setVibrate(new long[]{3000});
+                    }
+                    //noinspection ConstantConditions
+                    notificationManager.notify(notificationId, notificationBuilder.build());
+                }
             }
         } catch (Exception ignored) {
             HttpURLConnection httpURLConnection = httpsURLConnectionRef.get();
@@ -206,10 +250,11 @@ public final class PushNotificationService extends Service {
         }
     }
 
-    private void reschedule(int delay) {
+
+    private void reschedule(int delayInSeconds) {
         if (looperThread.getHandler() != null) {
             looperThread.getHandler().postDelayed(this::connect,
-                    TimeUnit.SECONDS.toMillis(delay));
+                    TimeUnit.SECONDS.toMillis(delayInSeconds));
         } else {
             Log.d(TAG, "looper thread is starting, skip additional reschedule");
         }
@@ -266,5 +311,60 @@ final class LooperThread extends Thread {
 
     public Handler getHandler() {
         return handler;
+    }
+}
+
+final class PushMessage {
+
+    private static final String TITLE_KEY = "title";
+    private static final String ADDRESS_KEY = "address";
+    private static final String COUNTER_KEY = "counter";
+    private static final String NOTIFICATIONS_KEY  = "notificationInfos";
+
+    private final String title;
+    private final List<RecipientInfo> recipientInfos;
+
+    public static PushMessage fromJson(String json) throws JSONException {
+        JSONObject jsonObject = new JSONObject(json);
+        String title = jsonObject.getString(TITLE_KEY);
+        JSONArray recipientInfosJsonArray = jsonObject.getJSONArray(NOTIFICATIONS_KEY);
+        List<RecipientInfo> recipientInfos = new ArrayList<>(recipientInfosJsonArray.length());
+        for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
+            String address = recipientInfosJsonArray.getJSONObject(i).getString(ADDRESS_KEY);
+            int counter = recipientInfosJsonArray.getJSONObject(i).getInt(COUNTER_KEY);
+            recipientInfos.add(new RecipientInfo(address, counter));
+        }
+        return new PushMessage(title, recipientInfos);
+    }
+
+    private PushMessage(String title, List<RecipientInfo> recipientInfos) {
+        this.title = title;
+        this.recipientInfos = recipientInfos;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public List<RecipientInfo> getRecipientInfos() {
+        return recipientInfos;
+    }
+
+    final static class RecipientInfo {
+        private final String address;
+        private final int counter;
+
+        RecipientInfo(String address, int counter) {
+            this.address = address;
+            this.counter = counter;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public int getCounter() {
+            return counter;
+        }
     }
 }
