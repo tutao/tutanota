@@ -53,7 +53,7 @@ class _LineChart {
 	_viewBox: {x: number, y: number, width: number, height: number};
 	_bounds: {x: number, y: number, width: number, height: number};
 	_circle: HTMLElement;
-	attrs: any;
+	_attrs: LineChartAttrs;
 
 	constructor(vnode: Vnode<LineChartAttrs>) {
 		this._scale = 1
@@ -86,7 +86,7 @@ class _LineChart {
 			//let start = performance.now()
 
 			const a = vnode.attrs
-			this.attrs = a
+			this._attrs = a
 			const height = coordinateSystemWidth * a.heightFactor
 			const xFactor = coordinateSystemWidth / ((a.maxX - a.minX))
 			const yFactor = height / ((a.maxY - a.minY))
@@ -114,7 +114,7 @@ class _LineChart {
 
 									// update position labels (right top)
 									let {x, y} = this.getMousePosition(e)
-									let a = this.attrs
+									let a = this._attrs
 									const height = coordinateSystemWidth * a.heightFactor
 									const xFactor = coordinateSystemWidth / ((a.maxX - a.minX))
 									const yFactor = height / ((a.maxY - a.minY))
