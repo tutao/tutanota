@@ -29,13 +29,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -59,6 +63,15 @@ public final class PushNotificationService extends Service {
     private ConnectivityManager connectivityManager;
 
     private final Map<String, Integer> aliasNotification = new ConcurrentHashMap<>();
+
+    private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
+
+    private final ThreadPoolExecutor confirmationThreadPool = new ThreadPoolExecutor(
+            2, // initial pool size
+            2, // max pool size
+            1, // keep alive time
+            TimeUnit.SECONDS,
+            confirmationWorkQueue);
 
     public static Intent startIntent(Context context, @Nullable SseInfo sseInfo) {
         Intent intent = new Intent(context, PushNotificationService.class);
@@ -155,7 +168,7 @@ public final class PushNotificationService extends Service {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Uri notificatoinUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         try {
             URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
@@ -188,9 +201,9 @@ public final class PushNotificationService extends Service {
                     continue;
                 }
 
-                List<PushMessage.RecipientInfo> recipientInfos = pushMessage.getRecipientInfos();
+                List<PushMessage.NotificationInfo> recipientInfos = pushMessage.getNotificationInfos();
                 for (int i = 0; i < recipientInfos.size(); i++) {
-                    PushMessage.RecipientInfo recipientInfo = recipientInfos.get(i);
+                    PushMessage.NotificationInfo recipientInfo = recipientInfos.get(i);
                     Intent deleteIntent = new Intent(this, PushNotificationService.class);
                     int notificationId = recipientInfo.getAddress().hashCode();
                     deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, recipientInfo.getAddress());
@@ -204,18 +217,28 @@ public final class PushNotificationService extends Service {
                     }
                     aliasNotification.put(recipientInfo.getAddress(), counterPerAlias);
 
+                    Log.d(TAG, "Event: " + event);
+
                     Notification.Builder notificationBuilder = new Notification.Builder(this)
                             .setContentTitle(pushMessage.getTitle())
                             .setContentText(recipientInfo.getAddress())
                             .setNumber(counterPerAlias)
                             .setSmallIcon(R.drawable.ic_status)
-                            .setDeleteIntent(PendingIntent.getService(this.getApplicationContext(), notificationId, deleteIntent, 0));
+                            .setDeleteIntent(PendingIntent.getService(
+                                    this.getApplicationContext(),
+                                    notificationId,
+                                    deleteIntent,
+                                    0));
                     if (i == 0) {
-                        notificationBuilder.setSound(notificatoinUri);
+                        notificationBuilder.setSound(ringtoneUri);
                         notificationBuilder.setVibrate(new long[]{3000});
                     }
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
+
+                    Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
+                    confirmationThreadPool.execute(
+                            () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 }
             }
         } catch (Exception ignored) {
@@ -250,6 +273,31 @@ public final class PushNotificationService extends Service {
         }
     }
 
+    private void sendConfirmation(String pushIdentifier, PushMessage pushMessage) {
+        Log.d(TAG, "Sending confirmation");
+        URL confirmUrl;
+        try {
+            confirmUrl = new URL(connectedSseInfo.getSseOrigin() + "/sse?confirmationId=" +
+                    URLEncoder.encode(pushMessage.getConfirmationId(), "UTF-8")
+                    + "&pushIdentifier=" + URLEncoder.encode(pushIdentifier, "UTF-8"));
+        } catch (MalformedURLException e) {
+            Log.w(TAG, "Confirmation URL is malformed", e);
+            return;
+        } catch (UnsupportedEncodingException ignored) {
+            return;
+        }
+        try {
+            HttpURLConnection httpURLConnection = (HttpURLConnection) confirmUrl.openConnection();
+            httpURLConnection.setRequestMethod("DELETE");
+            httpURLConnection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(5));
+            Log.d(TAG, "Confirmation: opening connection " + confirmUrl);
+            httpURLConnection.connect();
+            int responseCode = httpURLConnection.getResponseCode();
+            Log.d(TAG, "Confirmation response code " + responseCode);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to send confirmation");
+        }
+    }
 
     private void reschedule(int delayInSeconds) {
         if (looperThread.getHandler() != null) {
@@ -319,42 +367,51 @@ final class PushMessage {
     private static final String TITLE_KEY = "title";
     private static final String ADDRESS_KEY = "address";
     private static final String COUNTER_KEY = "counter";
-    private static final String NOTIFICATIONS_KEY  = "notificationInfos";
+    private static final String NOTIFICATIONS_KEY = "notificationInfos";
+    private static final String CONFIRMATION_ID_KEY = "confirmationId";
 
     private final String title;
-    private final List<RecipientInfo> recipientInfos;
+    private final String confirmationId;
+    private final List<NotificationInfo> notificationInfos;
 
     public static PushMessage fromJson(String json) throws JSONException {
         JSONObject jsonObject = new JSONObject(json);
         String title = jsonObject.getString(TITLE_KEY);
+        String confirmationId = jsonObject.getString(CONFIRMATION_ID_KEY);
         JSONArray recipientInfosJsonArray = jsonObject.getJSONArray(NOTIFICATIONS_KEY);
-        List<RecipientInfo> recipientInfos = new ArrayList<>(recipientInfosJsonArray.length());
+        List<NotificationInfo> notificationInfos = new ArrayList<>(recipientInfosJsonArray.length());
         for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
             String address = recipientInfosJsonArray.getJSONObject(i).getString(ADDRESS_KEY);
             int counter = recipientInfosJsonArray.getJSONObject(i).getInt(COUNTER_KEY);
-            recipientInfos.add(new RecipientInfo(address, counter));
+            notificationInfos.add(new NotificationInfo(address, counter));
         }
-        return new PushMessage(title, recipientInfos);
+        return new PushMessage(title, confirmationId, notificationInfos);
     }
 
-    private PushMessage(String title, List<RecipientInfo> recipientInfos) {
+    private PushMessage(String title, String confirmationId,
+                        List<NotificationInfo> notificationInfos) {
         this.title = title;
-        this.recipientInfos = recipientInfos;
+        this.confirmationId = confirmationId;
+        this.notificationInfos = notificationInfos;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public List<RecipientInfo> getRecipientInfos() {
-        return recipientInfos;
+    public List<NotificationInfo> getNotificationInfos() {
+        return notificationInfos;
     }
 
-    final static class RecipientInfo {
+    public String getConfirmationId() {
+        return confirmationId;
+    }
+
+    final static class NotificationInfo {
         private final String address;
         private final int counter;
 
-        RecipientInfo(String address, int counter) {
+        NotificationInfo(String address, int counter) {
             this.address = address;
             this.counter = counter;
         }
@@ -367,4 +424,5 @@ final class PushMessage {
             return counter;
         }
     }
+
 }
