@@ -82,6 +82,12 @@ o.spec("MailUtils", browser(function () {
 		o(result.subject).equals("Blah")
 		o(result.body).equals("What? Everything encoded in mailto?")
 	})
+	o(" parserMailtoUrl with full addressing scheme", function () {
+		let result = parseMailtoUrl("mailto:Fritz%20Eierschale%20%3Ceierschale@irgend.wo%3E")
+		o(result.to.length).equals(1)
+		o(result.to[0].address).equals("eierschale@irgend.wo")
+		o(result.to[0].name).equals("Fritz Eierschale")
+	})
 
 
 }))
