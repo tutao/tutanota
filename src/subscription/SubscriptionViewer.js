@@ -177,7 +177,7 @@ export class SubscriptionViewer {
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
 				m(this._subscriptionField),
 				this._showPriceData() ? m(this._usageTypeField) : null,
-				(logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()) ? m(this._orderAgreementField) : null,
+				((logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()) && this._accountingInfo && this._accountingInfo.business) ? m(this._orderAgreementField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
 				(this._showPriceData() && this._nextPeriodPriceVisible) ? m(this._nextPriceField) : null,

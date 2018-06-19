@@ -66,7 +66,14 @@ class NativeWrapper {
 							return module.handleBackPress()
 						}
 					)
+				},
+				showAlertDialog: (msg: Request): Promise<void> => {
+					return importModule('src/gui/base/Dialog.js').then(module => {
+							return module.Dialog.error(msg.args[0])
+						}
+					)
 				}
+
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}

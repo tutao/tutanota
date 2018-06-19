@@ -20,7 +20,6 @@ assertMainOrNodeBoot()
 
 class Header {
 	buttonBar: NavBar;
-	defaultButtonBar: NavBar;
 	view: Function;
 	contactsUrl: string;
 	mailsUrl: string;
@@ -50,7 +49,7 @@ class Header {
 
 		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
-		this.defaultButtonBar = new NavBar()
+		this.buttonBar = new NavBar()
 		//.addButton(searchViewButton, 0, true, false)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
@@ -71,8 +70,6 @@ class Header {
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
-
-		this.buttonBar = this.defaultButtonBar
 
 		this._setupShortcuts()
 

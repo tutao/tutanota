@@ -53,6 +53,7 @@ class _LineChart {
 	_viewBox: {x: number, y: number, width: number, height: number};
 	_bounds: {x: number, y: number, width: number, height: number};
 	_circle: HTMLElement;
+	_attrs: LineChartAttrs;
 
 	constructor(vnode: Vnode<LineChartAttrs>) {
 		this._scale = 1
@@ -85,6 +86,7 @@ class _LineChart {
 			//let start = performance.now()
 
 			const a = vnode.attrs
+			this._attrs = a
 			const height = coordinateSystemWidth * a.heightFactor
 			const xFactor = coordinateSystemWidth / ((a.maxX - a.minX))
 			const yFactor = height / ((a.maxY - a.minY))
@@ -102,13 +104,6 @@ class _LineChart {
 							style: {border: `1px solid ${theme.content_border}`},
 							oncreate: vnode => {
 								this.init(vnode)
-
-								const updatePosition = (x, y) => {
-									this._domPositions.innerHTML = a.yLabel.formatExact(a.maxY - y / yFactor) + "<br>" + a.xLabel.formatExact(a.minX + x / xFactor)
-									//this._circle.style.display = '',
-									//(this:any)._circle.setAttribute("cx", x);
-									//(this:any)._circle.setAttribute("cy", y)
-								}
 								const moveListener = (e: MouseEvent) => {
 									//console.log(e.movementX, this._scale)
 									if (this._moving) {
@@ -116,8 +111,14 @@ class _LineChart {
 										let y = this._pos[1] - e.movementY * this._scale / this._zoom
 										this.setPosition(x, y)
 									}
+
+									// update position labels (right top)
 									let {x, y} = this.getMousePosition(e)
-									updatePosition(x, y)
+									let a = this._attrs
+									const height = coordinateSystemWidth * a.heightFactor
+									const xFactor = coordinateSystemWidth / ((a.maxX - a.minX))
+									const yFactor = height / ((a.maxY - a.minY))
+									this._domPositions.innerHTML = a.yLabel.formatExact(a.maxY - (y / yFactor)) + "<br>" + a.xLabel.formatExact(a.minX + (x / xFactor))
 								}
 								this._domSvg.addEventListener("mousemove", moveListener)
 								this._domSvg.addEventListener("mousedown", (e: MouseEvent) => this._move(e))
@@ -239,7 +240,7 @@ class _LineChart {
 	}
 
 	getMousePosition(e: MouseEvent) {
-		let offset = (e.target:any).getBoundingClientRect()
+		let offset = (e.currentTarget:any).getBoundingClientRect()
 		return {
 			x: ((e.clientX - offset.left) * this._scale / this._zoom) + this._pos[0],
 			y: ((e.clientY - offset.top) * this._scale / this._zoom) + this._pos[1]
@@ -253,7 +254,7 @@ class _LineChart {
 	}
 
 	zoom(e: MouseEvent, step: number) {
-		let offset = (e.target:any).getBoundingClientRect()
+		let offset = (e.currentTarget:any).getBoundingClientRect()
 		let currentMousePosition = {
 			x: ((e.clientX - offset.left) * this._scale / this._zoom),
 			y: ((e.clientY - offset.top) * this._scale / this._zoom)

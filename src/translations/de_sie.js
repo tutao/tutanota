@@ -1069,6 +1069,7 @@ module.exports = {
 		"businessChangeInfo_msg": "Bitte bestätigen Sie Ihre Rechnungsdaten für die geschäftliche Nutzung.",
 		"noAppAvailable_msg": "Es ist keine App installiert, die diese Aktion verarbeiten kann.",
 		"addOpenOTPApp_action": "Zur Authenticator-App hinzufügen",
-		"totpTransferSecretApp_msg": "Bitte aktualisieren Sie Ihre Authenticator-App durch betätigen des Buttons oder die manuelle Eingabe des Geheimnisses."
+		"totpTransferSecretApp_msg": "Bitte aktualisieren Sie Ihre Authenticator-App durch betätigen des Buttons oder die manuelle Eingabe des Geheimnisses.",
+		"allowPushNotification_msg": "Bitte deaktivieren Sie die Akkuoptimierung für Tutanota, damit die Benachrichtigungen zuverlässig angezeigt werden können. Sie können dies auch später in den Einstellungen ändern."
 	}
 }

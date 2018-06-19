@@ -1493,3 +1493,55 @@ type SignOrderProcessingAgreementData = {
 	version:string;
 
 }
+
+type GeneratedIdWrapper = {
+	_type: TypeRef<GeneratedIdWrapper>;
+	_id:Id;
+	value:Id;
+
+}
+
+type SseConnectData = {
+	_type: TypeRef<SseConnectData>;
+	_format:NumberString;
+	identifier:string;
+
+	userIds:GeneratedIdWrapper[];
+}
+
+type InvoiceNumberToInvoice = {
+	_type: TypeRef<InvoiceNumberToInvoice>;
+	_format:NumberString;
+	_id:Id;
+	_ownerGroup:?Id;
+	_permissions:Id;
+
+	customer:Id;
+	invoice:IdTuple;
+}
+
+type NotificationInfo = {
+	_type: TypeRef<NotificationInfo>;
+	_id:Id;
+	counter:NumberString;
+	mailAddress:string;
+
+}
+
+type MissedNotification = {
+	_type: TypeRef<MissedNotification>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	confirmationId:Id;
+
+	notificationInfos:NotificationInfo[];
+}
+
+type MissedNotifications = {
+	_type: TypeRef<MissedNotifications>;
+	_id:Id;
+
+	notifications:Id;
+}

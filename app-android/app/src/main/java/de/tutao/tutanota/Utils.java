@@ -26,6 +26,11 @@ public class Utils {
 		return Base64.decode(base64, Base64.NO_WRAP);
 	}
 
+	public static String  base64ToBase64Url(String base64) {
+		return base64.replaceAll("\\+", "-")
+				.replaceAll("/", "_")
+				.replaceAll("=", "");
+	}
 
 
 

@@ -7,10 +7,8 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -23,6 +21,8 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.tutao.tutanota.push.SseStorage;
+
 /**
  * Created by mpfau on 4/8/17.
  */
@@ -31,10 +31,11 @@ public final class Native {
     private final static String TAG = "Native";
 
     static int requestId = 0;
-    Crypto crypto;
-    FileUtil files;
-    Contact contact;
-    Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
+    private Crypto crypto;
+    private FileUtil files;
+    private Contact contact;
+    private SseStorage sseStorage;
+    private Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
     private final MainActivity activity;
     private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
 
@@ -44,6 +45,7 @@ public final class Native {
         crypto = new Crypto(activity);
         contact = new Contact(activity);
         files = new FileUtil(activity);
+        sseStorage = new SseStorage(activity);
     }
 
     public void setup() {
@@ -67,18 +69,10 @@ public final class Native {
                     promise.resolve(request);
                 } else {
                     invokeMethod(request.getString("type"), request.getJSONArray("args"))
-                            .then(new DoneCallback() {
-                                @Override
-                                public void onDone(Object result) {
-                                    sendResponse(request, result);
-                                }
+                            .then(result -> {
+                                sendResponse(request, result);
                             })
-                            .fail(new FailCallback<Exception>() {
-                                @Override
-                                public void onFail(Exception e) {
-                                    sendErrorResponse(request, e);
-                                }
-                            });
+                            .fail((FailCallback<Exception>) e -> sendErrorResponse(request, e));
                 }
             } catch (JSONException e) {
                 Log.e("Native", "could not parse msg:" + msg, e);
@@ -139,19 +133,13 @@ public final class Native {
     }
 
     private void evaluateJs(final String js) {
-        activity.getWebView().post(new Runnable() {
-            @Override
-            public void run() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    activity.getWebView().evaluateJavascript(js, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            // no response expected
-                        }
-                    });
-                } else {
-                    activity.getWebView().loadUrl("javascript:" + js);
-                }
+        activity.getWebView().post(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                activity.getWebView().evaluateJavascript(js, value -> {
+                    // no response expected
+                });
+            } else {
+                activity.getWebView().loadUrl("javascript:" + js);
             }
         });
     }
@@ -219,6 +207,14 @@ public final class Native {
                 case "openLink":
                     promise.resolve(openLink(args.getString(0)));
                     break;
+                case "getPushIdentifier":
+                    promise.resolve(sseStorage.getPushIdentifier());
+                    break;
+                case "storePushIdentifierLocally":
+                    sseStorage.storePushIdentifier(args.getString(0), args.getString(1),
+                            args.getString(2));
+                    promise.resolve(true);
+                    break;
                 default:
                     throw new Exception("unsupported method: " + method);
             }
@@ -240,7 +236,10 @@ public final class Native {
     }
 
     private Promise<JSONObject, Exception, ?> initPushNotifications() {
-        activity.setupPushNotifications();
+        activity.runOnUiThread(() -> {
+            activity.askBatteryOptinmizationsIfNeeded();
+            activity.setupPushNotifications();
+        });
         return new DeferredObject().resolve(null);
     }
 
@@ -264,7 +263,7 @@ public final class Native {
         return s.replace("\"", "\\\"");
     }
 
-    public DeferredObject getWebAppInitialized() {
+    public DeferredObject<Void, Void, Void> getWebAppInitialized() {
         return webAppInitialized;
     }
 

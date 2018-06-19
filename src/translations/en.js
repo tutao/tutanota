@@ -460,6 +460,7 @@ module.exports = {
 		"invalidAttachment_msg": "This email can not be sent via Tutanota because it contains an unsupported attachment.",
 		"invalidBirthday_msg": "Invalid birthday. Please update the value of the birthday field.",
 		"invalidCnameRecord_msg": "The CNAME record for this domain is not set correctly.",
+		"invalidDateFormat_msg": "Invalid format. Valid: {1}",
 		"invalidInputFormat_msg": "Invalid format.",
 		"invalidLink_msg": "Sorry, this link is not valid.",
 		"invalidPageLoadUnsupported_msg": "The payment method is not supported by your current browser.",
@@ -1072,10 +1073,6 @@ module.exports = {
 		"exportVCard_action": "Export vCard",
 		"mergeAllSelectedContacts_msg": "Are you sure you want to merge the selected contacts?",
 		"presharedPasswordsUnequal_msg": "The selected contacts have different agreed passwords. They can not be merged!",
-		"birthdayDay_placeholder": "Birthday",
-		"birthdayMonth_placeholder": "Month",
-		"birthdayYear_placeholder": "Year",
-		"invalidDateFormat_msg": "Invalid format. Valid: {1}. Year is optional.",
-		"editPhoto_label": "Edit picture"
+		"allowPushNotification_msg": "To receive push notifications reliably, please agree to disable battery optimizations for the Tutanota. You can change this later in system settings"
 	}
 }

@@ -2,12 +2,19 @@ package de.tutao.tutanota;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
@@ -18,11 +25,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -31,13 +34,15 @@ import org.json.JSONException;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 
-import de.tutao.tutanota.push.GcmRegistrationService;
+import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.SseStorage;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
-    private static int requestId = 0;
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
+    private static int requestId = 0;
+    private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
 
     private WebView webView;
     public Native nativeImpl = new Native(this);
@@ -47,6 +52,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        this.setupPushNotifications();
 
         webView = new WebView(this);
         webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
@@ -61,16 +68,13 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        this.nativeImpl.getWebAppInitialized().then(new DoneCallback() {
-            @Override
-            public void onDone(Object result) {
-                if (!firstLoaded) {
-                    if (getIntent().getAction() != null) {
-                        share(getIntent());
-                    }
+        this.nativeImpl.getWebAppInitialized().then(result -> {
+            if (!firstLoaded) {
+                if (getIntent().getAction() != null) {
+                    share(getIntent());
                 }
-                firstLoaded = true;
             }
+            firstLoaded = true;
         });
         this.webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -85,7 +89,6 @@ public class MainActivity extends Activity {
         });
         this.webView.loadUrl(appUrl);
         nativeImpl.setup();
-
     }
 
     @Override
@@ -99,6 +102,27 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         webView.saveState(outState);
+    }
+
+    public void askBatteryOptinmizationsIfNeeded() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        //noinspection ConstantConditions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+                && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then( (result) -> {
+                saveAskedBatteryOptimizations(preferences);
+                @SuppressLint("BatteryLife")
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            });
+        }
+    }
+
+    private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
+        preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
     }
 
     private String getUrl() {
@@ -157,29 +181,8 @@ public class MainActivity extends Activity {
     }
 
     void setupPushNotifications() {
-        if (gcmIsAvailable()) {
-            // gcm registration
-            Intent intent = new Intent(MainActivity.this, GcmRegistrationService.class);
-            startService(intent);
-        }
-    }
-
-    /**
-     * @return true, if the GCM is available.
-     */
-    private boolean gcmIsAvailable() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            return false;
-        }
-        return true;
-    }
-
-    public void bringToForeground() {
-        Intent intent = new Intent(this, getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        getApplicationContext().startActivity(intent);
+        startService(PushNotificationService.startIntent(this,
+                new SseStorage(this).getSseInfo()));
     }
 
     /**
@@ -238,14 +241,6 @@ public class MainActivity extends Activity {
         // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
         runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
     }
-}
-
-interface Callback<T> {
-    void finish(Exception e, T result);
-}
-
-interface ActivityResultCallback {
-    void finish(int resultCode, Intent data);
 }
 
 class ActivityResult {

@@ -4,7 +4,8 @@ public enum JsRequest {
     updatePushIdentifier("updatePushIdentifier"),
     notify("notify"),
     createMailEditor("createMailEditor"),
-    handleBackPress("handleBackPress");
+    handleBackPress("handleBackPress"),
+    showAlertDialog("showAlertDialog");
 
     private final String name;
 

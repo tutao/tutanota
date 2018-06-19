@@ -49,6 +49,11 @@ styles.init()
 
 export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
 
+let origin = location.origin
+if (location.origin.indexOf("localhost") != -1) {
+	origin += "/client/build/index"
+}
+navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
@@ -144,6 +149,7 @@ let initialized = lang.init(en).then(() => {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 		"/login": loginViewResolver,
+		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
 		"/mail/:listId/:mailId": mailViewResolver,
