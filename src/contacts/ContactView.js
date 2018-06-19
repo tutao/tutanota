@@ -184,14 +184,16 @@ export class ContactView {
 									return Promise.all(promises).then(() => {
 										return promises.length
 									})
-								}).then(numberOfContacts => {
-									Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 								})
 							}))
 						}
 					} catch (e) {
 						console.log(e)
 						Dialog.error("importVCardError_msg")
+					}
+				}).then(numberOfContacts => {
+					if (numberOfContacts) {
+						Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 					}
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),

@@ -4,6 +4,7 @@ import {startsWith, pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 
@@ -105,6 +106,7 @@ export function parseDate(dateString: string): number {
 	let languageTag = lang.languageTag.toLowerCase()
 
 	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+	// for finding day month and year position of locale date format  in cleanAndSplit array
 	let dayPos = referenceParts.findIndex(e => e == 23)
 	let monthPos = referenceParts.findIndex(e => e == 6)
 	let yearPos = referenceParts.findIndex(e => e == 2017)
@@ -123,7 +125,57 @@ export function parseDate(dateString: string): number {
 	}
 	return parsed
 }
-function _cleanupAndSplit(dateString: string): number[] {
+
+/**
+ * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
+ * @return A birthday object containing the data form the given text or null if the text could not be parsed.
+ */
+export function parseBirthday(text: string): ?Birthday {
+	try {
+		const referenceDate = new Date(2017, 5, 23)
+		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+		//for finding day month and year position of locale date format  in cleanAndSplit array
+		let dayPos = referenceParts.findIndex(e => e == 23)
+		let monthPos = referenceParts.findIndex(e => e == 6)
+		let yearPos = referenceParts.findIndex(e => e == 2017)
+		let birthdayValues = _cleanupAndSplit(text)
+		let birthday = createBirthday()
+		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
+			if (birthdayValues[dayPos] < 32) {
+				birthday.day = String(birthdayValues[dayPos])
+			} else {
+				return null
+			}
+			if (birthdayValues[monthPos] < 13) {
+				birthday.month = String(birthdayValues[monthPos])
+			} else {
+				return null
+			}
+		} else {
+			return null
+		}
+		if (birthdayValues[yearPos]) {
+			if (String(birthdayValues[yearPos]).length == 4) {
+				birthday.year = String(birthdayValues[yearPos])
+			} else if (String(birthdayValues[yearPos]).length == 2) {
+				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
+					birthday.year = "19" + String(birthdayValues[yearPos])
+				} else {
+					birthday.year = "20" + String(birthdayValues[yearPos])
+				}
+			} else {
+				return null
+			}
+		} else {
+			birthday.year = null
+		}
+		return birthday
+	} catch (e) {
+		return null
+	}
+}
+
+export function _cleanupAndSplit(dateString: string): number[] {
 	let languageTag = lang.languageTag.toLowerCase()
 
 	if (languageTag === 'bg-bg') {

@@ -461,7 +461,7 @@ export function createFilledContact(firstName: string, lastName: string, comment
 		c.birthday = createBirthday()
 		neverNull(c.birthday).day = String(newBirthdayDay)
 		neverNull(c.birthday).month = String(newBirthdayMonth)
-		neverNull(c.birthday).year = String(newBirthdayYear)
+		neverNull(c.birthday).year = newBirthdayYear ? String(newBirthdayYear) : null
 	}
 	return c
 }

@@ -1,7 +1,8 @@
 import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {compareContacts} from "../../../src/contacts/ContactUtils"
+import {compareContacts, formatNewBirthday} from "../../../src/contacts/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
+import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, expectedResult) {
@@ -67,4 +68,27 @@ o.spec("ContactUtilsTest", function () {
 
 		compare("ma", "p", "aa", "Gump", "Forrest", "aa", 1) // reverse id
 	})
+
+	o("formatNewBirthdayTest", function () {
+		let bday = createBirthday()
+		bday.day = "12"
+		bday.month = "10"
+		bday.year = "2009"
+
+		o(formatNewBirthday(bday)).equals("10/12/2009")
+
+		bday.day = "9"
+		bday.month = "07"
+		bday.year = null
+
+		o(formatNewBirthday(bday)).equals("7/9")
+
+		bday.day = "09"
+		bday.month = "7"
+		bday.year = null
+
+		o(formatNewBirthday(bday)).equals("7/9")
+	})
+
 })
+

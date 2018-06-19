@@ -9,8 +9,12 @@ import type {ContactMergeActionEnum} from "../api/common/TutanotaConstants"
 import {ContactMergeAction} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
-import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
-import {formatDateWithMonth} from "../misc/Formatter"
+import {
+	getContactAddressTypeLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactSocialTypeLabel,
+	formatNewBirthday
+} from "./ContactUtils"
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 
@@ -102,7 +106,7 @@ export class MergeView {
 		let nicknameFields = this._createTextFields(this.contact1.nickname, this.contact2.nickname, "nickname_placeholder")
 		let companyFields = this._createTextFields(this.contact1.company, this.contact2.company, "company_label")
 		let roleFields = this._createTextFields(this.contact1.role, this.contact2.role, "role_placeholder")
-		let birthdayFields = this._createTextFields(this.contact1.oldBirthday ? formatDateWithMonth(this.contact1.oldBirthday) : "", this.contact2.oldBirthday ? formatDateWithMonth(this.contact2.oldBirthday) : "", "birthday_alt")
+		let birthdayFields = this._createTextFields(this.contact1.birthday ? formatNewBirthday(this.contact1.birthday) : "", this.contact2.birthday ? formatNewBirthday(this.contact2.birthday) : "", "birthday_alt")
 		let presharedPasswordFields = this._createTextFields(this.contact1.presharedPassword && this.contact1.presharedPassword.length > 0 ? "***" : "", this.contact2.presharedPassword && this.contact2.presharedPassword.length > 0 ? "***" : "", "presharedPassword_label")
 
 		let comment1Field = null

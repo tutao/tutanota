@@ -167,7 +167,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = new Date("09/09/2016")
+		b.oldBirthday = null
 		b.comment = "Hello World\nHier ist ein Umbruch"
 		b.company = ""
 		b.role = ""
@@ -198,7 +198,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = new Date("09/09/2016")
+		b.oldBirthday = null
 		b.comment = ""
 		b.company = ""
 		b.role = ""
@@ -231,7 +231,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = new Date("09/09/2016")
+		b.oldBirthday =null
 		b.comment = ""
 		b.company = ""
 		b.role = ""

@@ -16,7 +16,7 @@ import {
 	_getMergedAddresses,
 	_getMergedSocialIds,
 	birthdayToOldBirthday,
-	oldBirthdayToBirthday
+	_compareBirthdays
 } from "../../../src/contacts/ContactMergeUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
@@ -33,6 +33,7 @@ import {createFilledContact} from "./VCardExporterTest"
 import {neverNull} from "../../../src/api/common/utils/Utils"
 import {_contactToVCard} from "../../../src/contacts/VCardExporter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {oldBirthdayToBirthday, migrateToNewBirthday} from "../../../src/contacts/ContactUtils"
 
 o.spec("ContactMergeUtilsTest", function () {
 // tests are made for the validation of the comparison functions to find mergable contacts
@@ -392,6 +393,55 @@ o.spec("ContactMergeUtilsTest", function () {
 		c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
 		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
 		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		//________________________________Birthday test cases for merge________________________________________<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12), 12, 8, 1991)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12), 12, 8, 1991)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12))
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12))
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [],)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [],)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, null)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], new Date(1991, 7, 12), 12, 8, 1991)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 7, 12), 12, 8, null)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1991)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 7, 12), 12, 8, null)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1991)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, null)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1992)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1993, 7, 12))
+		 c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1993)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(12,7,1992))
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(12,7,1992))
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(13,8,1991))
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null,12,8,1991)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(13,8,1991))
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null,12,8,1991)
+		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null,13,8,1992)
+		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 
 //_________________More test cases for full contact simulation here --added other contact fields ___________________
 		c1 = createEmailPhoneContact("", "", [], [])
@@ -630,7 +680,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 	function _testMerge(c1: Contact, c2: Contact, merged: Contact) {
 		mergeContacts(c1, c2)
-		o(JSON.stringify(c1.oldBirthday)).equals(JSON.stringify(merged.oldBirthday))
+		o(JSON.stringify(c1.oldBirthday)).equals(JSON.stringify(null))
 		if (!c1.oldBirthday && !c1.birthday) {
 			o(JSON.stringify(c2.oldBirthday)).equals(JSON.stringify(merged.oldBirthday))
 		}
@@ -1074,5 +1124,68 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
 	})
 
+	o("_compareBirthdaysForComparisonResultTest", function () {
+		let c1 = createContact()
+		let c2 = createContact()
+		c1.birthday = fillBirthday("14", "11", "1999", true)
+		c2.birthday = fillBirthday("14", "11", "1999", true)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
+		c1.birthday = fillBirthday("14", "11", null, true)
+		c2.birthday = fillBirthday("14", "11", null, true)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
+		c1 = createContact()
+		c2 = createContact()
+		c1.oldBirthday = new Date(2000, 10, 14)
+		migrateToNewBirthday(c1)
+		c2.birthday = fillBirthday("14", "11", "2000", true)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
+		c1.birthday = fillBirthday("14", "11", "1999", false)
+		c2.birthday = fillBirthday("14", "11", "1999", false)
+		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.BothEmpty)
+		c1.birthday = fillBirthday("14", "11", "1999", true)
+		c2.birthday = fillBirthday("14", "11", "1999", false)
+		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
+		c1 = createContact()
+		c2.birthday = fillBirthday("14", "11", "1999", true)
+		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
+		c1 = createContact()
+		c2 = createContact()
+		c1.oldBirthday = null
+		migrateToNewBirthday(c1)
+		c2.birthday = fillBirthday("14", "11", null, true)
+		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
+		c1 = createContact()
+		c2 = createContact()
+		c1.oldBirthday = new Date(2000, 10, 14)
+		migrateToNewBirthday(c1)
+		c2.birthday = fillBirthday("14", "11", null, true)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
+		c1 = createContact()
+		c2 = createContact()
+		c1.oldBirthday = new Date(1991, 7, 12)
+		c1.birthday = fillBirthday("12", "8", "1991", true)
+		migrateToNewBirthday(c1)
+		c2.oldBirthday = new Date(1991, 7, 12)
+		c2.birthday = fillBirthday("12", "8", null, true)
+		migrateToNewBirthday(c2)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
+		c1.birthday = fillBirthday("14", "11", "1999", true)
+		c2.birthday = fillBirthday("14", "11", "2000", true)
+		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Unique)
 
+
+	})
 })
+
+
+function fillBirthday(day: NumberString, month: NumberString, year: ?NumberString, toFill: boolean) {
+	if (toFill) {
+		let bday = createBirthday()
+		bday.day = day
+		bday.month = month
+		bday.year = year
+		return bday
+	} else {
+		return null
+	}
+}

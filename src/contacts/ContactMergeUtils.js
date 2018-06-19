@@ -2,8 +2,7 @@
 import type {ContactComparisonResultEnum, IndifferentContactComparisonResultEnum} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {formatSortableDate} from "../misc/Formatter"
+import {oldBirthdayToBirthday, migrateToNewBirthday} from "./ContactUtils"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -82,12 +81,11 @@ export function mergeContacts(keptContact: Contact, eliminatedContact: Contact):
 }
 
 /**
+ * Result is unique if preshared passwords are not equal and are not empty.
  * Result is equal if all fields are equal or empty (types are ignored).
  * Result is similar if one of:
- * 1. name result is equal or similar
- * 2. name result (bothEmpty or oneEmpty) and mail or phone result is similar or equal
- * Result is unique if preshared passwords are not equal  are not empty.
- * Result is unique if birthdays are not equal are not empty.
+ * 1. name result is equal or similar and birthday result is similar or oneEmpty or equal or bothEmpty
+ * 2. name result (bothEmpty or oneEmpty) and mail or phone result is similar or equal and birthday result is similar or oneEmpty or equal or bothEmpty
  * Otherwise the result is unique
  * Export for testing
  */
@@ -95,11 +93,16 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
 	let nameResult = _compareFullName(contact1, contact2)
 	let mailResult = _compareMailAddresses(contact1.mailAddresses, contact2.mailAddresses)
 	let phoneResult = _comparePhoneNumbers(contact1.phoneNumbers, contact2.phoneNumbers)
+	let birthdayResult = _compareBirthdays(contact1, contact2)
 	let residualContactFieldsEqual = _areResidualContactFieldsEqual(contact1, contact2)
 
-	if (_isEqualBirthdays(contact1, contact2) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword == contact2.presharedPassword))) {
+	if ((birthdayResult != ContactComparisonResult.Unique) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword == contact2.presharedPassword))) {
 		if ((nameResult == ContactComparisonResult.Equal || nameResult == IndifferentContactComparisonResult.BothEmpty) && (mailResult == ContactComparisonResult.Equal || mailResult == IndifferentContactComparisonResult.BothEmpty) && (phoneResult == ContactComparisonResult.Equal || phoneResult == IndifferentContactComparisonResult.BothEmpty) && residualContactFieldsEqual) {
-			return ContactComparisonResult.Equal
+			if (birthdayResult == IndifferentContactComparisonResult.BothEmpty || birthdayResult == ContactComparisonResult.Equal) {
+				return ContactComparisonResult.Equal
+			} else {
+				return ContactComparisonResult.Similar
+			}
 		} else if (nameResult == ContactComparisonResult.Equal || nameResult == ContactComparisonResult.Similar) {
 			return ContactComparisonResult.Similar
 		} else if ((nameResult == IndifferentContactComparisonResult.BothEmpty || nameResult == IndifferentContactComparisonResult.OneEmpty) && (mailResult == ContactComparisonResult.Similar || phoneResult == ContactComparisonResult.Similar || mailResult == ContactComparisonResult.Equal || phoneResult == ContactComparisonResult.Equal)) {
@@ -230,17 +233,28 @@ export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: Co
 	})
 	return addresses1.concat(filteredAddresses2)
 }
-
-function _isEqualBirthdays(contact1: Contact, contact2: Contact): boolean {
+/**
+ * Export for testing
+ */
+export function _compareBirthdays(contact1: Contact, contact2: Contact): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
+	migrateToNewBirthday(contact1)
+	migrateToNewBirthday(contact2)
 	if (contact1.birthday && contact2.birthday) {
-		return contact1.birthday.day == contact2.birthday.day && contact1.birthday.month == contact2.birthday.month && contact1.birthday.year == contact2.birthday.year
-	} else if (JSON.stringify(contact1.oldBirthday) == JSON.stringify(contact2.oldBirthday)) {
-		return true
-	} else if ((contact1.birthday && contact2.oldBirthday && contact1.birthday == oldBirthdayToBirthday(contact2.oldBirthday))
-		|| (contact2.birthday && contact1.oldBirthday && contact2.birthday == oldBirthdayToBirthday(contact1.oldBirthday))) {
-		return true
+		if (contact1.birthday.day == contact2.birthday.day && contact1.birthday.month == contact2.birthday.month) {
+			if (contact1.birthday.year == contact2.birthday.year) {
+				return ContactComparisonResult.Equal
+			} else if (contact1.birthday.year && contact2.birthday.year && contact1.birthday.year != contact2.birthday.year) {
+				return ContactComparisonResult.Unique
+			} else {
+				return ContactComparisonResult.Similar
+			}
+		} else {
+			return ContactComparisonResult.Unique
+		}
+	} else if ((contact1.birthday && !contact2.birthday) || (!contact1.birthday && contact2.birthday)) {
+		return IndifferentContactComparisonResult.OneEmpty
 	} else {
-		return false
+		return IndifferentContactComparisonResult.BothEmpty
 	}
 }
 
@@ -290,18 +304,7 @@ export function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: 
 		return otherAttribute1
 	}
 }
-/**
- * returns new birthday format from old birthday format
- * Export for testing
- */
-export function oldBirthdayToBirthday(oldBirthday: Date): Birthday {
-	let bDayDetails = createBirthday()
-	let birthdayString = (formatSortableDate(oldBirthday)).split("-")
-	bDayDetails.day = String(Number(birthdayString[2]))
-	bDayDetails.month = String(Number(birthdayString[1]))
-	bDayDetails.year = String(Number(birthdayString[0]))
-	return bDayDetails
-}
+
 
 /**
  * Export for testing
@@ -314,14 +317,22 @@ export function birthdayToOldBirthday(newBirthday: Birthday): Date {
  * Export for testing
  */
 export function _getMergedBirthdays(oldBirthday1: ?Date, oldBirthday2: ?Date, newBirthday1: ?Birthday, newBirthday2: ?Birthday): {oldBDay:?Date, newBDay:?Birthday} {
-	if (newBirthday1) {
-		return {oldBDay: birthdayToOldBirthday(newBirthday1), newBDay: newBirthday1}
+	if (newBirthday1 && newBirthday2) {
+		if (newBirthday1.year) {
+			return {oldBDay: null, newBDay: newBirthday1}
+		} else if (newBirthday2.year) {
+			return {oldBDay: null, newBDay: newBirthday2}
+		} else {
+			return {oldBDay: null, newBDay: newBirthday1}
+		}
+	} else if (newBirthday1) {
+		return {oldBDay: null, newBDay: newBirthday1}
 	} else if (newBirthday2) {
-		return {oldBDay: birthdayToOldBirthday(newBirthday2), newBDay: newBirthday2}
+		return {oldBDay: null, newBDay: newBirthday2}
 	} else if (oldBirthday1) {
-		return {oldBDay: oldBirthday1, newBDay: oldBirthdayToBirthday(oldBirthday1)}
+		return {oldBDay: null, newBDay: oldBirthdayToBirthday(oldBirthday1)}
 	} else if (oldBirthday2) {
-		return {oldBDay: oldBirthday2, newBDay: oldBirthdayToBirthday(oldBirthday2)}
+		return {oldBDay: null, newBDay: oldBirthdayToBirthday(oldBirthday2)}
 	} else {
 		return {oldBDay: null, newBDay: null}
 	}

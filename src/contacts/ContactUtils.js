@@ -14,10 +14,12 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
-import {asyncFindAndMap} from "../api/common/utils/Utils"
+import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {locator} from "../api/main/MainLocator"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {formatSortableDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -183,5 +185,35 @@ export function getContactDisplayName(contact: Contact): string {
 		return contact.nickname
 	} else {
 		return `${contact.firstName} ${contact.lastName}`.trim()
+	}
+}
+
+export function formatNewBirthday(birthday: Birthday): string {
+	if (birthday.year) {
+		return lang.formats.simpleDate.format(new Date(Number(neverNull(birthday.year)), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+	} else {
+		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+	}
+}
+
+/**
+ * returns new birthday format from old birthday format
+ * Export for testing
+ */
+export function oldBirthdayToBirthday(oldBirthday: Date): Birthday {
+	let bDayDetails = createBirthday()
+	let birthdayString = (formatSortableDate(oldBirthday)).split("-")
+	bDayDetails.day = String(Number(birthdayString[2]))
+	bDayDetails.month = String(Number(birthdayString[1]))
+	bDayDetails.year = String(Number(birthdayString[0]))
+	return bDayDetails
+}
+
+export function migrateToNewBirthday(contact: Contact) {
+	if (!contact.birthday && contact.oldBirthday) {
+		contact.birthday = oldBirthdayToBirthday(contact.oldBirthday)
+	}
+	if (contact.oldBirthday) {
+		contact.oldBirthday = null
 	}
 }

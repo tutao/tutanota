@@ -11,8 +11,10 @@ import {
 	fullNameToFirstAndLastName,
 	mailAddressToFirstAndLastName,
 	isRegularExpression,
-	formatNameAndAddress
+	formatNameAndAddress,
+	parseBirthday
 } from "../../../src/misc/Formatter"
+import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("FormatterTest", function () {
 
@@ -208,6 +210,54 @@ o.spec("FormatterTest", function () {
 		o(formatNameAndAddress("", "", "DE")).equals("Deutschland")
 		o(formatNameAndAddress("a", "", "DE")).equals("a\nDeutschland")
 	})
+
+	o("parseBirthdayGermanLocale", browser(function () {
+		lang._setLanguageTag("de-DE")
+		o(parseBirthday("")).equals(null)
+		o(parseBirthday("a")).equals(null)
+		o(parseBirthday("1.13.1950")).equals(null)
+		o(parseBirthday("a.4.12")).equals(null)
+		o(_checkParseBirthday("1a.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.12.2001", 1, 12, 2001))
+		o(_checkParseBirthday("01.01.2001", 1, 1, 2001))
+		o(_checkParseBirthday("01.12.2001", 1, 12, 2001))
+		o(_checkParseBirthday("1.1.", 1, 1, null))
+		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.1.18", 1, 1, 2018))
+		o(_checkParseBirthday("1.1.19", 1, 1, 1919))
+	}))
+
+	o("parseBirthdayUsLocale", browser(function () {
+		lang._setLanguageTag("en-US")
+		o(parseBirthday("")).equals(null)
+		o(parseBirthday("a")).equals(null)
+		o(parseBirthday("13/1/1950")).equals(null)
+		o(parseBirthday("a/4/12")).equals(null)
+		o(_checkParseBirthday("1a/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("12/1/2001", 1, 12, 2001))
+		o(_checkParseBirthday("01/01/2001", 1, 1, 2001))
+		o(_checkParseBirthday("12/01/2001", 1, 12, 2001))
+		o(_checkParseBirthday("1/1", 1, 1, null))
+		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("1/1/18", 1, 1, 2018))
+		o(_checkParseBirthday("1/1/19", 1, 1, 1919))
+	}))
+
+	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {
+		let expected = createBirthday()
+		expected._id = ""
+		expected.day = String(expectedDay)
+		expected.month = String(expectedMonth)
+		expected.year = expectedYear ? String(expectedYear) : null
+		let result = parseBirthday(text)
+		if (result) {
+			result._id = ""
+			result._type = expected._type
+		}
+		o(result).deepEquals(expected)
+	}
 
 })
 

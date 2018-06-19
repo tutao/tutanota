@@ -23,7 +23,7 @@ export function exportAsVCard(): Promise<void> {
 		LazyContactListId.getAsync().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length == 0) {
-					Dialog.error("noContacts_msg")
+					return 0
 				} else {
 					let vCardFile = contactsToVCard(allContacts)
 					let data = stringToUtf8Uint8Array(vCardFile)
@@ -31,11 +31,15 @@ export function exportAsVCard(): Promise<void> {
 					tmpFile.name = "vCard3.0.vcf"
 					tmpFile.mimeType = "vCard/rfc2426"
 					tmpFile.size = String(data.byteLength)
-					return fileController.open(createDataFile(tmpFile, data))
+					return fileController.open(createDataFile(tmpFile, data)).return(allContacts.length)
 				}
 			})
 		})
-	)
+	).then(nbrOfContacts => {
+		if (nbrOfContacts == 0) {
+			Dialog.error("noContacts_msg")
+		}
+	})
 }
 /**
  * Turns given contacts separately into a vCard version 3.0 compatible string then the string is concatenated into a multiple contact vCard string witch is then returned
