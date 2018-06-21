@@ -140,6 +140,7 @@ type JsRequestType ='createMailEditor'
 	| 'updatePushIdentifier'
 	| 'handleBackPress'
 	| 'showAlertDialog'
+	| 'openMailbox'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -207,6 +208,7 @@ type Credentials = {
 	mailAddress:string,
 	encryptedPassword: ?Base64, // only set for persistent sessions
 	accessToken: Base64Url,
+	userId: Id
 }
 
 declare function browser(f: Function): Function

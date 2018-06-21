@@ -5,7 +5,8 @@ public enum JsRequest {
     notify("notify"),
     createMailEditor("createMailEditor"),
     handleBackPress("handleBackPress"),
-    showAlertDialog("showAlertDialog");
+    showAlertDialog("showAlertDialog"),
+    openMailbox("openMailbox");
 
     private final String name;
 

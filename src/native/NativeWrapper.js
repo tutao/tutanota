@@ -72,8 +72,13 @@ class NativeWrapper {
 							return module.Dialog.error(msg.args[0])
 						}
 					)
+				},
+				openMailbox: (msg: Request): Promise<void> => {
+					return importModule('src/native/OpenMailboxHandler.js').then(module => {
+							return module.openMailbox(msg.args[0], msg.args[1])
+						}
+					)
 				}
-
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}

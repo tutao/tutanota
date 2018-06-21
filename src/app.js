@@ -53,7 +53,9 @@ let origin = location.origin
 if (location.origin.indexOf("localhost") != -1) {
 	origin += "/client/build/index"
 }
-navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
+if (navigator.registerProtocolHandler) {
+	navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
+}
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
@@ -79,7 +81,12 @@ let initialized = lang.init(en).then(() => {
 					return workerPromise.then(worker => {
 						return worker.logout(false).then(function () {
 							if (isApp()) {
-								logout("?noAutoLogin=true")
+								if (!args.hasOwnProperty("noAutoLogin")) {
+									args.noAutoLogin = true
+								}
+
+								let newQueryString = m.buildQueryString(args)
+								logout(newQueryString.length > 0 ? "?" + newQueryString : "")
 							} else {
 								window.location.reload();
 							}
@@ -185,13 +192,14 @@ let initialized = lang.init(en).then(() => {
 	disableBodyTouchScrolling()
 })
 
-function forceLogin(args: string[], requestedPath: string) {
+function forceLogin(args: {[string]:string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else {
 		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
 		if (pathWithoutParameter.trim() === '/') {
-			m.route.set(`/login` + (args["noAutoLogin"] ? "?noAutoLogin=" + args["noAutoLogin"] : ""))
+			let newQueryString = m.buildQueryString(args)
+			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))
 		} else {
 			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}

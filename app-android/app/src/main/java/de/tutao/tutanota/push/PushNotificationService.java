@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 
@@ -201,34 +202,47 @@ public final class PushNotificationService extends Service {
                     continue;
                 }
 
-                List<PushMessage.NotificationInfo> recipientInfos = pushMessage.getNotificationInfos();
-                for (int i = 0; i < recipientInfos.size(); i++) {
-                    PushMessage.NotificationInfo recipientInfo = recipientInfos.get(i);
+                List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
+                for (int i = 0; i < notificationInfos.size(); i++) {
+                    PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
                     Intent deleteIntent = new Intent(this, PushNotificationService.class);
-                    int notificationId = recipientInfo.getAddress().hashCode();
-                    deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, recipientInfo.getAddress());
+                    int notificationId = Math.abs(notificationInfo.getAddress().hashCode());
+                    deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, notificationInfo.getAddress());
 
                     Integer counterPerAlias =
-                            aliasNotification.get(recipientInfo.getAddress());
+                            aliasNotification.get(notificationInfo.getAddress());
                     if (counterPerAlias == null) {
-                        counterPerAlias = recipientInfo.getCounter();
+                        counterPerAlias = notificationInfo.getCounter();
                     } else {
-                        counterPerAlias += recipientInfo.getCounter();
+                        counterPerAlias += notificationInfo.getCounter();
                     }
-                    aliasNotification.put(recipientInfo.getAddress(), counterPerAlias);
+                    aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
 
                     Log.d(TAG, "Event: " + event);
 
+                    Intent openMailboxIntent = new Intent(this, MainActivity.class);
+                    openMailboxIntent.setAction(MainActivity.OPEN_USER_MAILBOX_ACTION);
+                    openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY, notificationInfo.getAddress());
+                    openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, notificationInfo.getUserId());
+
+
                     Notification.Builder notificationBuilder = new Notification.Builder(this)
                             .setContentTitle(pushMessage.getTitle())
-                            .setContentText(recipientInfo.getAddress())
+                            .setContentText(notificationInfo.getAddress())
                             .setNumber(counterPerAlias)
                             .setSmallIcon(R.drawable.ic_status)
                             .setDeleteIntent(PendingIntent.getService(
                                     this.getApplicationContext(),
                                     notificationId,
                                     deleteIntent,
-                                    0));
+                                    0))
+                            .setContentIntent(PendingIntent.getActivity(
+                                    this,
+                                    notificationId,
+                                    openMailboxIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT))
+                            .setAutoCancel(true);
+
                     if (i == 0) {
                         notificationBuilder.setSound(ringtoneUri);
                         notificationBuilder.setVibrate(new long[]{3000});
@@ -367,6 +381,7 @@ final class PushMessage {
     private static final String TITLE_KEY = "title";
     private static final String ADDRESS_KEY = "address";
     private static final String COUNTER_KEY = "counter";
+    private static final String USER_ID_KEY = "userId";
     private static final String NOTIFICATIONS_KEY = "notificationInfos";
     private static final String CONFIRMATION_ID_KEY = "confirmationId";
 
@@ -381,9 +396,11 @@ final class PushMessage {
         JSONArray recipientInfosJsonArray = jsonObject.getJSONArray(NOTIFICATIONS_KEY);
         List<NotificationInfo> notificationInfos = new ArrayList<>(recipientInfosJsonArray.length());
         for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
-            String address = recipientInfosJsonArray.getJSONObject(i).getString(ADDRESS_KEY);
-            int counter = recipientInfosJsonArray.getJSONObject(i).getInt(COUNTER_KEY);
-            notificationInfos.add(new NotificationInfo(address, counter));
+            JSONObject itemObject = recipientInfosJsonArray.getJSONObject(i);
+            String address = itemObject.getString(ADDRESS_KEY);
+            int counter = itemObject.getInt(COUNTER_KEY);
+            String userId = itemObject.getString(USER_ID_KEY);
+            notificationInfos.add(new NotificationInfo(address, counter, userId));
         }
         return new PushMessage(title, confirmationId, notificationInfos);
     }
@@ -410,10 +427,12 @@ final class PushMessage {
     final static class NotificationInfo {
         private final String address;
         private final int counter;
+        private String userId;
 
-        NotificationInfo(String address, int counter) {
+        NotificationInfo(String address, int counter, String userId) {
             this.address = address;
             this.counter = counter;
+            this.userId = userId;
         }
 
         public String getAddress() {
@@ -422,6 +441,10 @@ final class PushMessage {
 
         public int getCounter() {
             return counter;
+        }
+
+        public String getUserId() {
+            return userId;
         }
     }
 

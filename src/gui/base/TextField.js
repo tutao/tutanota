@@ -227,11 +227,6 @@ export class TextField {
 
 	setValue(value: ?string): TextField {
 		this.value(value ? value : "")
-		if (value) {
-			this._baseLabel = false
-		} else if (!this.disabled) {
-			this._baseLabel = true
-		}
 		return this
 	}
 
@@ -254,9 +249,11 @@ export class TextField {
 	focus() {
 		if (!this.isActive() && !this.disabled) {
 			this.active = true
-			this._domInput.focus()
-			this._domWrapper.classList.add("active")
-			this.animate()
+			if (this._domInput) {
+				this._domInput.focus()
+				this._domWrapper.classList.add("active")
+				this.animate()
+			}
 		}
 	}
 

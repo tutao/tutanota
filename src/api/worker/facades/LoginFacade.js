@@ -127,7 +127,8 @@ export class LoginFacade {
 							credentials: {
 								mailAddress,
 								accessToken: neverNull(this._accessToken),
-								encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null
+								encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+								userId: neverNull(this._user)._id
 							}
 						}
 					})
@@ -176,7 +177,8 @@ export class LoginFacade {
 					credentials: {
 						mailAddress: userId, // we set the external user id because we do not have the mail address
 						accessToken: neverNull(this._accessToken),
-						encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null
+						encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+						userId
 					}
 				}
 			})

@@ -43,6 +43,10 @@ public class MainActivity extends Activity {
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
     private static int requestId = 0;
     private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
+    public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
+    public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
+    public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
+
 
     private WebView webView;
     public Native nativeImpl = new Native(this);
@@ -70,9 +74,7 @@ public class MainActivity extends Activity {
 
         this.nativeImpl.getWebAppInitialized().then(result -> {
             if (!firstLoaded) {
-                if (getIntent().getAction() != null) {
-                    share(getIntent());
-                }
+                handleIntent(getIntent());
             }
             firstLoaded = true;
         });
@@ -87,16 +89,35 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        this.webView.loadUrl(appUrl);
+
+        // avoid auto login if launched from notification message
+        String loadUrl = appUrl;
+        if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
+            loadUrl = appUrl + "?noAutoLogin=true";
+        }
+        this.webView.loadUrl(loadUrl);
         nativeImpl.setup();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
         if (intent.getAction() != null) {
-            share(intent);
+            switch (intent.getAction()) {
+                case Intent.ACTION_SEND:
+                case Intent.ACTION_SEND_MULTIPLE:
+                    share(intent);
+                    break;
+                case MainActivity.OPEN_USER_MAILBOX_ACTION:
+                    openMailbox(intent);
+                    break;
+            }
         }
     }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -111,7 +132,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
                 && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
-            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then( (result) -> {
+            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
                 saveAskedBatteryOptimizations(preferences);
                 @SuppressLint("BatteryLife")
                 Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
@@ -192,7 +213,6 @@ public class MainActivity extends Activity {
     void share(Intent intent) {
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action)) {
-            ShareCompat.IntentReader share = ShareCompat.IntentReader.from(this);
             try {
                 final String file;
                 ClipData clipData = intent.getClipData();
@@ -214,7 +234,17 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void openMailbox(@NonNull Intent intent) {
+        String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
+        String address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY);
+        if (userId == null || address == null) {
+            return;
+        }
+        nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
+    }
+
     @Override
+
     public void onBackPressed() {
         if (nativeImpl.getWebAppInitialized().isResolved()) {
             nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])

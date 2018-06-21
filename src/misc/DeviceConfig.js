@@ -42,6 +42,10 @@ class DeviceConfig {
 		return this._credentials.find(c => c.mailAddress === mailAddress)
 	}
 
+	getByUserId(id: Id): ?Credentials {
+		return this._credentials.find(c => c.userId == id)
+	}
+
 	set(credentials: Credentials) {
 		let index = this._credentials.findIndex(c => c.mailAddress === credentials.mailAddress)
 		if (index !== -1) {

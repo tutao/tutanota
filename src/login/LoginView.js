@@ -162,10 +162,17 @@ export class LoginView {
 		} else {
 			this._requestedPath = this.targetPath
 		}
-		if (args.loginWith && !deviceConfig.get(args.loginWith)) {
+		if (args.loginWith && !deviceConfig.get(args.loginWith) ||
+			args.userId && !deviceConfig.getByUserId(args.userId)) {
 			// there are no credentials stored for the desired email address, so let the user enter the password
 			this.mailAddress.setValue(args.loginWith)
+			// ensure that input fields have been created after app launch
+			if (this.mailAddress._domInput) {
+				this.mailAddress.animate()
+			}
+			this.password.focus()
 			this._visibleCredentials = []
+			m.redraw()
 		} else {
 			this._visibleCredentials = deviceConfig.getAllInternal()
 			let autoLoginCredentials: ?Credentials = null
@@ -173,6 +180,8 @@ export class LoginView {
 				if (args.loginWith && deviceConfig.get(args.loginWith)) {
 					// there are credentials for the desired email address existing, so try to auto login
 					autoLoginCredentials = deviceConfig.get(args.loginWith)
+				} else if (args.userId && deviceConfig.getByUserId(args.userId)) {
+					autoLoginCredentials = deviceConfig.getByUserId(args.userId)
 				} else if (this._visibleCredentials.length === 1) {
 					// there is one credentials stored, so try to auto login
 					autoLoginCredentials = this._visibleCredentials[0]
