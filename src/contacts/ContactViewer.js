@@ -18,6 +18,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
+import {birthdayToOldBirthday} from "./ContactMergeUtils"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -101,10 +103,11 @@ export class ContactViewer {
 						m(actions),
 					]),
 					insertBetween([
-						this.contact.company ? m("span.company", this.contact.company) : null,
-						this.contact.role ? m("span.title", this.contact.role) : null,
-						this.contact.oldBirthday ? m("span.birthday", formatDateWithMonth((this.contact.oldBirthday:any))) : null,
-					], m("span", " | ")),
+							this.contact.company ? m("span.company", this.contact.company) : null,
+							this.contact.role ? m("span.title", this.contact.role) : null,
+							m("span.birthday", this._formatBirthday())
+						], m("span", " | ")
+					),
 					m("hr.hr.mt-l"),
 
 					this.mailAddresses.length > 0 || this.phones.length > 0 ? m(".wrapping-row", [
@@ -218,5 +221,21 @@ export class ContactViewer {
 
 	edit() {
 		new ContactEditor(this.contact).show()
+	}
+
+	_formatBirthday(): string {
+		if (this.contact.birthday) {
+			if (this.contact.birthday.year) {
+				return formatDateWithMonth(birthdayToOldBirthday(this.contact.birthday))
+			} else {
+				return lang.formats.dateWithoutYear.format(new Date(Number(2011), Number(neverNull(this.contact.birthday).month) - 1, Number(neverNull(this.contact.birthday).day)))
+			}
+		} else {
+			if (this.contact.oldBirthday) {
+				return formatDateWithMonth((this.contact.oldBirthday))
+			} else {
+				return ""
+			}
+		}
 	}
 }

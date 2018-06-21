@@ -279,7 +279,7 @@ export class Button {
 	click(event: MouseEvent) {
 		this.clickHandler(event)
 		// in IE the activeElement might not be defined and blur might not exist
-		if (document.activeElement && document.activeElement.blur instanceof Function) {
+		if (document.activeElement && typeof document.activeElement.blur == "function") {
 			document.activeElement.blur()
 		}
 		if (!this.propagateClickEvents) {

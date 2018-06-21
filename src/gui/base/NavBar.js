@@ -2,7 +2,7 @@
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
 import {NavButton, NavButtonColors, createDropDownNavButton} from "./NavButton"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNodeBoot, isAdmin} from "../../api/Env"
 import {size} from "../size"
 import {styles} from "../styles"
 import {BootIcons} from "./icons/BootIcons"
@@ -59,9 +59,11 @@ export class NavBar {
 		}
 		this.more.button.setColors(NavButtonColors.Header)
 
-		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
-			this.searchBar = new searchBarModule.SearchBar()
-		})
+		if (!isAdmin()) {
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
+				this.searchBar = new searchBarModule.SearchBar()
+			})
+		}
 
 		this.maxWidth = 0;
 		this.resizeListener = (width, height) => {

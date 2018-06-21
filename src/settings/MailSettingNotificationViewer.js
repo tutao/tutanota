@@ -50,7 +50,7 @@ export class MailSettingNotificationViewer {
 			loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
 				this._pushIdentifiersTable.updateEntries(identifiers.map(identifier => {
 					let emailTypeName = lang.get("adminEmailSettings_action")
-					let typeName = ["Android", "iOS", emailTypeName][Number(identifier.pushServiceType)]
+					let typeName = ["Android FCM", "iOS", emailTypeName, "Android Tutanota"][Number(identifier.pushServiceType)]
 					let isCurrentPushIdentifier = env.mode == Mode.App && identifier.identifier == pushServiceApp.currentPushIdentifier;
 					let identifierText = (isCurrentPushIdentifier) ? lang.get("pushIdentifierCurrentDevice_label") + " - " + identifier.identifier : identifier.identifier
 					let actionButton = new Button("delete_action", () => erase(identifier), () => Icons.Cancel)

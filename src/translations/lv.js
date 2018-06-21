@@ -185,7 +185,6 @@ module.exports = {
 		"invoiceCountryInfoBusiness_msg": "Lūdzu izvēlieties savu dzīvesvietas valsti.",
 		"invoiceCountry_label": "Valsts",
 		"invoiceMailSubject_msg": "Jauns Tutanota rēķins",
-		"invoicePayConfirm_msg": "Lūdzu apstipriniet maksājumu rēķinam {invoiceNumber} no {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Lūdzu, izvēlieties maksājuma veidu. Papildu iespējas tiks pievienotas nākotnē.",
 		"invoicePay_action": "Maksāt",
 		"invoiceRecipient_label": "Rēķina saņēmējs",

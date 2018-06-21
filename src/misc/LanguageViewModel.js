@@ -12,7 +12,6 @@ export const languages: Language[] = [
 	{code: 'sq', textId: 'languageAlbanian_label'},
 	{code: 'hr', textId: 'languageCroatian_label'},
 	{code: 'zh_hant', textId: 'languageChineseTraditional_label'},
-	//{ code: 'zh', textId: 'languageChineseSimplified_label'},
 	{code: 'en', textId: 'languageEnglish_label'},
 	{code: 'nl', textId: 'languageDutch_label'},
 	{code: 'de', textId: 'languageGerman_label'},
@@ -45,7 +44,14 @@ export const languages: Language[] = [
 	{code: 'ta_in', textId: 'languageTamil_label'},
 	{code: 'uk_ua', textId: 'languageUkrainian_label'},
 	{code: 'vi', textId: 'languageVietnamese_label'},
-	{code: 'ca_es', textId: 'languageCatalan_label'}
+	{code: 'ca_es', textId: 'languageCatalan_label'},
+	{code: 'gl', textId: 'languageGalician_label'},
+	{code: 'hi_in', textId: 'languageHindi_label'},
+	{code: 'id', textId: 'languageIndonesian_label'},
+	{code: 'ms', textId: 'languageMalay_label'},
+	{code: 'sw', textId: 'languageSwahili_label'},
+	{code: 'zh_tw', textId: 'languageChineseSimplified_label'}
+
 ]
 
 /**
@@ -66,6 +72,8 @@ class LanguageViewModel {
 	formats: {
 		simpleDate: DateTimeFormat,
 		dateWithMonth: DateTimeFormat,
+		dateWithoutYear:DateTimeFormat,
+		simpleDateWithoutYear:DateTimeFormat,
 		dateWithWeekday: DateTimeFormat,
 		dateWithWeekdayAndYear: DateTimeFormat,
 		time: DateTimeFormat,
@@ -114,7 +122,15 @@ class LanguageViewModel {
 		if (client.dateFormat()) {
 			this.formats = {
 				simpleDate: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
-				dateWithMonth: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'short', year: 'numeric'}),
+				dateWithMonth: new (Intl.DateTimeFormat:any)(tag, {
+					day: 'numeric',
+					month: 'short',
+					year: 'numeric'
+				}),
+				dateWithoutYear: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'short'}),
+				simpleDateWithoutYear: new (Intl.DateTimeFormat:any)(tag, {
+					day: 'numeric', month: 'numeric'
+				}),
 				dateWithWeekday: new (Intl.DateTimeFormat:any)(tag, {weekday: 'short', day: 'numeric', month: 'short'}),
 				dateWithWeekdayAndYear: new (Intl.DateTimeFormat:any)(tag, {
 					weekday: 'short',

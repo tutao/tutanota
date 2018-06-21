@@ -126,6 +126,10 @@ export const PaymentMethodType = {
 }
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 
+export const reverse = (objectMap: Object) => Object.keys(objectMap).reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+
+export const ValueToPaymentMethodType = reverse(PaymentMethodType)
+
 
 export const Const = {
 	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,
@@ -208,7 +212,8 @@ export type SessionStateEnum = $Values<typeof SessionState>;
 export const PushServiceType = {
 	ANDROID: "0",
 	IOS: "1",
-	EMAIL: "2"
+	EMAIL: "2",
+	SSE: "3"
 }
 export type PushServiceTypeEnum = $Values<typeof PushServiceType>;
 

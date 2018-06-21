@@ -36,6 +36,7 @@ import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contac
 import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {Keys} from "../misc/KeyManager"
 
 assertMainOrNode()
 
@@ -219,8 +220,9 @@ export class ContactFormEditor {
 		})
 
 
+		let cancelAction = () => this._close()
 		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))
+			.addLeft(new Button('cancel_action', cancelAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label"))
 			.addRight(new Button('save_action', () => this._save()).setType(ButtonType.Primary))
 		this.view = () => m("#contact-editor.pb", [
@@ -241,6 +243,11 @@ export class ContactFormEditor {
 			m(this._statisticsFieldsTable)
 		])
 		this.dialog = Dialog.largeDialog(headerBar, this)
+			.addShortcut({
+				key: Keys.ESC,
+				exec: cancelAction,
+				help: "close_alt"
+			}).setCloseHandler(cancelAction)
 	}
 
 	updateLanguageFromFields(language: ContactFormLanguage) {

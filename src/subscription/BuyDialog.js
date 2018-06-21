@@ -57,11 +57,12 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 
 								return Promise.fromCallback(cb => {
 									let actionBar = new DialogHeaderBar()
-									actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-									actionBar.addLeft(new Button("cancel_action", () => {
+									let cancelAction = () => {
 										dialog.close()
 										cb(null, false)
-									}).setType(ButtonType.Secondary))
+									}
+									actionBar.setMiddle(() => lang.get("bookingSummary_label"))
+									actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 									actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
 										dialog.close()
 										cb(null, true)
@@ -70,13 +71,14 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 									let dialog = new Dialog(DialogType.EditSmall, {
 										view: (): Children => [
 											m(".dialog-header.plr-l", m(actionBar)),
-											m(".dialog-contentButtonsTop.plr-l.pb", m("", [
+											m(".plr-l.pb", m("", [
 												m(orderField),
 												buyField ? m(buyField) : null,
 												m(priceField),
 											]))
 										]
 									})
+									dialog.setCloseHandler(cancelAction)
 									dialog.show()
 								})
 							}

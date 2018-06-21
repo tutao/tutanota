@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-02-06T09:56:56Z",
-	"updated_at": "2018-04-25T10:24:50Z",
+	"updated_at": "2018-05-22T12:20:03Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është shkallmu. Të lutem, kontaktoje përgjegjësin.",
@@ -318,7 +318,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Faturë e re nga Tutanota",
 		"invoiceNotPaidUser_msg": "Kërkojmë ndjesë, Juve nuk iu lejohet përkohësisht që të dërgoni mesazhe. Ju lutemi kontaktoni administratorin.",
 		"invoiceNotPaid_msg": "Kërkojmë ndjesë, aktualisht juve nuk iu lejohet të dërgoni mesazhe sepse së paku një nga faturat e juaja nuk është paguar. Ju lutemi azhurnoni të dhënat e juaja pagesore tek {1} në 'Settings' -> data' dhe më pas paguani faturën tek 'Settings'->'Invoicing'",
-		"invoicePayConfirm_msg": "Ju lutemi konfirmoni pagesën e faturës {invoiceNumber} nga {invoiceDate}",
 		"invoicePaymentMethodInfo_msg": "Të lutem, zgjedh një mënyrë pagese. (Në të ardhmen do pranojmë dhe mënyra tjera.)",
 		"invoicePay_action": "Paguaj",
 		"invoiceRecipient_label": "Marrësi i faturës",

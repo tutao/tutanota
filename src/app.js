@@ -11,13 +11,14 @@ import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button, ButtonType} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
 import {asyncImport} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
+import {logout} from "./native/SystemApp"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -48,6 +49,11 @@ styles.init()
 
 export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
 
+let origin = location.origin
+if (location.origin.indexOf("localhost") != -1) {
+	origin += "/client/build/index"
+}
+navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
@@ -72,7 +78,11 @@ let initialized = lang.init(en).then(() => {
 					logginOut()
 					return workerPromise.then(worker => {
 						return worker.logout(false).then(function () {
-							window.location.reload();
+							if (isApp()) {
+								logout("?noAutoLogin=true")
+							} else {
+								window.location.reload();
+							}
 						})
 					})
 				} else {
@@ -139,6 +149,7 @@ let initialized = lang.init(en).then(() => {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 		"/login": loginViewResolver,
+		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
 		"/mail/:listId/:mailId": mailViewResolver,
@@ -178,8 +189,9 @@ function forceLogin(args: string[], requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else {
-		if (requestedPath.trim() === '/') {
-			m.route.set(`/login`)
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		if (pathWithoutParameter.trim() === '/') {
+			m.route.set(`/login` + (args["noAutoLogin"] ? "?noAutoLogin=" + args["noAutoLogin"] : ""))
 		} else {
 			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}

@@ -14,7 +14,7 @@
 // prod app release      | mail.tutanota.com  | app.html   | node dist prod
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
-function create(systemConfig, staticUrl, version, mode, dist) {
+function create(systemConfig, staticUrl, version, mode, dist, rootPathPrefix, adminTypes) {
 	return {
 		systemConfig,
 		"staticUrl": staticUrl,
@@ -22,7 +22,8 @@ function create(systemConfig, staticUrl, version, mode, dist) {
 		"versionNumber": version,
 		"dist": dist != null ? dist : false,
 		"timeout": 20000,
-		"rootPathPrefix": ""
+		"rootPathPrefix": rootPathPrefix != null ? rootPathPrefix : "",
+		"adminTypes": adminTypes ? adminTypes : []
 	}
 }
 

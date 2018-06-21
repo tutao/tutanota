@@ -44,16 +44,18 @@ export class WizardDialog<T> {
 		}))
 
 
-		this._backButton = new Button(() => {
-			return this._pages.indexOf(this._currentPage) == 0 ? lang.get("cancel_action") : lang.get("back_action")
-		}, () => {
+		let backAction = () => {
 			let pageIndex = this._pages.indexOf(this._currentPage)
 			if (pageIndex > 0) {
 				this._backAction(pageIndex - 1)
+				m.redraw()
 			} else {
 				this._close()
 			}
-		}).setType(ButtonType.Secondary)
+		}
+		this._backButton = new Button(() => {
+			return this._pages.indexOf(this._currentPage) == 0 ? lang.get("cancel_action") : lang.get("back_action")
+		}, backAction).setType(ButtonType.Secondary)
 
 		this._nextButton = new Button("next_action", () => this._nextAction()).setType(ButtonType.Secondary)
 			.setIsVisibleHandler(() => this._currentPage.isNextAvailable() && this._pages.indexOf(this._currentPage) != (this._pages.length - 1))
@@ -80,7 +82,7 @@ export class WizardDialog<T> {
 				key: Keys.ESC,
 				exec: () => this._close(),
 				help: "closeDialog_msg"
-			})
+			}).setCloseHandler(backAction)
 	}
 
 

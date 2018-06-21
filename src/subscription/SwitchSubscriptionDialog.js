@@ -37,14 +37,12 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean)
 		.setMiddle(() => lang.get("subscription_label"))
 	const dialog = Dialog.largeDialog(headerBar, {
 		view: () => m("#upgrade-account-dialog.pt", m(selector))
-	})
-
-	dialog.addShortcut({
+	}).addShortcut({
 		key: Keys.ESC,
 		exec: cancelAction,
 		help: "closeDialog_msg"
-	})
-	dialog.show()
+	}).setCloseHandler(cancelAction)
+		.show()
 
 }
 

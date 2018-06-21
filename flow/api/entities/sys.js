@@ -68,6 +68,7 @@ type Customer = {
 	_permissions:Id;
 	approvalStatus:NumberString;
 	canceledPremiumAccount:boolean;
+	orderProcessingAgreementNeeded:boolean;
 	type:NumberString;
 
 	auditLog:?AuditLogRef;
@@ -82,6 +83,7 @@ type Customer = {
 	customerGroup:Id;
 	customerGroups:Id;
 	customerInfo:IdTuple;
+	orderProcessingAgreement:?IdTuple;
 	properties:?Id;
 	serverProperties:?Id;
 	teamGroups:Id;
@@ -1459,4 +1461,87 @@ type LocationServiceGetReturn = {
 	_format:NumberString;
 	country:string;
 
+}
+
+type OrderProcessingAgreement = {
+	_type: TypeRef<OrderProcessingAgreement>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	customerAddress:string;
+	signatureDate:Date;
+	version:string;
+
+	customer:Id;
+	signerUserGroupInfo:IdTuple;
+}
+
+type OrderProcessingAgreements = {
+	_type: TypeRef<OrderProcessingAgreements>;
+	_id:Id;
+
+	agreements:Id;
+}
+
+type SignOrderProcessingAgreementData = {
+	_type: TypeRef<SignOrderProcessingAgreementData>;
+	_format:NumberString;
+	customerAddress:string;
+	version:string;
+
+}
+
+type GeneratedIdWrapper = {
+	_type: TypeRef<GeneratedIdWrapper>;
+	_id:Id;
+	value:Id;
+
+}
+
+type SseConnectData = {
+	_type: TypeRef<SseConnectData>;
+	_format:NumberString;
+	identifier:string;
+
+	userIds:GeneratedIdWrapper[];
+}
+
+type InvoiceNumberToInvoice = {
+	_type: TypeRef<InvoiceNumberToInvoice>;
+	_format:NumberString;
+	_id:Id;
+	_ownerGroup:?Id;
+	_permissions:Id;
+
+	customer:Id;
+	invoice:IdTuple;
+}
+
+type NotificationInfo = {
+	_type: TypeRef<NotificationInfo>;
+	_id:Id;
+	counter:NumberString;
+	mailAddress:string;
+
+}
+
+type MissedNotification = {
+	_type: TypeRef<MissedNotification>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	confirmationId:Id;
+
+	notificationInfos:NotificationInfo[];
+}
+
+type MissedNotifications = {
+	_type: TypeRef<MissedNotifications>;
+	_id:Id;
+
+	notifications:Id;
 }

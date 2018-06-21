@@ -11,7 +11,7 @@ import {ContactListView} from "./ContactListView"
 import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
-import {load, setup, erase, loadAll} from "../api/main/Entity"
+import {load, setup, erase, loadAll, update} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType, ContactMergeAction} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
@@ -31,8 +31,9 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
-import {MergeView} from "./ContactMergeView"
+import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
+import {exportAsVCard} from "./VCardExporter"
 
 
 assertMainOrNode()
@@ -183,8 +184,6 @@ export class ContactView {
 									return Promise.all(promises).then(() => {
 										return promises.length
 									})
-								}).then(numberOfContacts => {
-									Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 								})
 							}))
 						}
@@ -192,8 +191,13 @@ export class ContactView {
 						console.log(e)
 						Dialog.error("importVCardError_msg")
 					}
+				}).then(numberOfContacts => {
+					if (numberOfContacts) {
+						Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+					}
 				})
 			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
+			new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown),
 			new Button("merge_action", () => {
 				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
 					return loadAll(ContactTypeRef, contactListId)
@@ -224,11 +228,9 @@ export class ContactView {
 								})
 							}
 						})
-						//Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 					}
 				})
 			}, () => Icons.People).setType(ButtonType.Dropdown),
-
 		], 250).setColors(ButtonColors.Nav)
 	}
 
@@ -240,14 +242,13 @@ export class ContactView {
 		if (mergable.length > 0) {
 			let contact1 = mergable[0][0]
 			let contact2 = mergable[0][1]
-			let mergeDialog = new MergeView(contact1, contact2)
+			let mergeDialog = new ContactMergeView(contact1, contact2)
 			return mergeDialog.show().then(action => {
 				// execute action here and update mergable
 				if (action == ContactMergeAction.Merge) {
 					this._removeFromMergableContacts(mergable, contact2)
-					return showProgressDialog("pleaseWait_msg", mergeContacts(contact1, contact2).then(() => {
-						return erase(contact2)
-					}))
+					mergeContacts(contact1, contact2)
+					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
 				} else if (action == ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -333,6 +334,32 @@ export class ContactView {
 			}
 		})
 	}
+
+	/**
+	 * @pre the number of selected contacts is 2
+	 */
+	mergeSelected(): void {
+		if (this._contactList.list.getSelectedEntities().length == 2) {
+			let keptContact = this._contactList.list.getSelectedEntities()[0]
+			let goodbyeContact = this._contactList.list.getSelectedEntities()[1]
+
+			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || (keptContact.presharedPassword == goodbyeContact.presharedPassword)) {
+				Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
+					if (confirmed) {
+						mergeContacts(keptContact, goodbyeContact)
+						return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
+							return erase(goodbyeContact).catch(NotFoundError, e => {
+								// ignore
+							})
+						}))
+					}
+				})
+			} else {
+				Dialog.error("presharedPasswordsUnequal_msg")
+			}
+		}
+	}
+
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		if (contacts.length == 1) {

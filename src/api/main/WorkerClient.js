@@ -2,7 +2,7 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
@@ -15,7 +15,6 @@ import type {
 	AccountTypeEnum,
 	BookingItemFeatureTypeEnum
 } from "../common/TutanotaConstants"
-import type {MediaTypeEnum} from "../worker/rest/RestClient"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 
@@ -380,6 +379,10 @@ export class WorkerClient {
 		if (this._progressUpdater == updater) {
 			this._progressUpdater = null
 		}
+	}
+
+	generateSsePushIdentifer(): Promise<string> {
+		return this._postRequest(new Request('generateSsePushIdentifer', arguments))
 	}
 }
 

@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "30"
+	"version": "32"
 }
 
 export function createVersionReturn(): VersionReturn {

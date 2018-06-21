@@ -13,7 +13,7 @@ import {worker} from "../api/main/WorkerClient"
 import type {OperationTypeEnum, MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, FeatureType, MailFolderType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
-import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/EntityFunctions"
+import {isSameId, TypeRef, HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -125,8 +125,9 @@ export class MailView {
 			])
 		}
 
+		let closeAction = () => this.mailHeaderDialog.close()
 		let headerBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', () => this.mailHeaderDialog.close()).setType(ButtonType.Secondary))
+			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("mailHeaders_title"))
 		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
 			view: () => {
@@ -134,9 +135,9 @@ export class MailView {
 			}
 		}).addShortcut({
 			key: Keys.ESC,
-			exec: () => this.mailHeaderDialog.close(),
+			exec: closeAction,
 			help: "close_alt"
-		})
+		}).setCloseHandler(closeAction)
 
 		this._setupShortcuts()
 
@@ -354,6 +355,18 @@ export class MailView {
 	 * @param args Object containing the optional parts of the url which are listId and mailId for the mail view.
 	 */
 	updateUrl(args: Object) {
+		if (m.route.get().indexOf("/mailto") == 0) {
+			if (location.hash.length > 5) {
+				let url = location.hash.substring(5)
+				let decodedUrl = decodeURIComponent(url)
+				mailModel.init().then(() => {
+					let editor = new MailEditor(mailModel.getUserMailboxDetails())
+					editor.initWithMailtoUrl(decodedUrl, false)
+					editor.show()
+					history.pushState("", document.title, window.location.pathname) // remove # from url
+				})
+			}
+		}
 		if (this.isInitialized() && args.listId && this.mailList && args.listId != this.mailList.listId) {
 			// a mail list is visible and now a new one is selected
 			this._showList(args.listId, args.mailId);

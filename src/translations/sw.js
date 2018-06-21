@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2018-04-25T10:24:51Z",
+	"updated_at": "2018-05-22T12:20:03Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kwa bahati mbaya, akaunti yako ya Tutanota kimezimwa. Tafadhali wasiliana na msimamizi wako.",
@@ -365,7 +365,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Ankara mpya ajili ya Tutanota",
 		"invoiceNotPaidUser_msg": "Samahani, kwa sasa hauruhusiwi kutuma barua pepe. Tafadhali wasiliana na msimamizi wako.",
 		"invoiceNotPaid_msg": "Samahani, kwa sasa hauruhusiwi kutuma barua pepe kwa sababu angalau moja ya ankara yako haijalipwa. Tafadhali Sasisha data yako ya malipo katika {1} katika 'Mipangilio' -> 'Malipo' na kulipa ankara ya katika 'Mazingira' ->'Malipo ya' baadaye.",
-		"invoicePayConfirm_msg": "Tafadhali kuthibitisha malipo kwa ankara {invoiceNumber} kutoka {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Tafadhali chagua njia ya malipo. Machaguo zaidi kuongezwa katika siku zijazo.",
 		"invoicePay_action": "Lipa",
 		"invoiceRecipient_label": "Ankara mpokeaji",

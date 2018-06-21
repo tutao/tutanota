@@ -3,7 +3,6 @@ package de.tutao.tutanota;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -59,15 +58,15 @@ public final class Crypto {
 
     private static final Integer ANDROID_6_SDK_VERSION = 23;
 
-    private final MainActivity activity;
+    private final Context context;
 
     static {
         // see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
         PRNGFixes.apply();
     }
 
-    public Crypto(MainActivity activity) {
-        this.activity = activity;
+    public Crypto(Context context) {
+        this.context = context;
         this.randomizer = new SecureRandom();
     }
 
@@ -176,7 +175,6 @@ public final class Crypto {
     }
 
     String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
-        Context context = activity.getWebView().getContext();
         File inputFile = Utils.uriToFile(context, fileUrl);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
@@ -213,7 +211,6 @@ public final class Crypto {
     }
 
     String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException {
-        Context context = activity.getWebView().getContext();
         File inputFile = Utils.uriToFile(context, fileUrl);
         File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
         decryptedDir.mkdirs();
@@ -242,6 +239,10 @@ public final class Crypto {
             IOUtils.closeQuietly(decrypted);
             IOUtils.closeQuietly(out);
         }
+    }
+
+    public SecureRandom getRandomizer() {
+        return randomizer;
     }
 
     private InputStream getCipherInputStream(InputStream in, Cipher cipher) {

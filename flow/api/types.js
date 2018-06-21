@@ -109,6 +109,7 @@ type WorkerRequestType = 'setup'
 	| 'switchPremiumToFreeGroup'
 	| 'updatePaymentData'
 	| 'downloadInvoice'
+	| 'generateSsePushIdentifer'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
@@ -131,7 +132,14 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
-type JsRequestType = 'createMailEditor'| 'updatePushIdentifier'
+	| 'openLink'
+	| 'logout'
+	| 'getPushIdentifier'
+	| 'storePushIdentifierLocally'
+type JsRequestType ='createMailEditor'
+	| 'updatePushIdentifier'
+	| 'handleBackPress'
+	| 'showAlertDialog'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -181,6 +189,7 @@ type EnvType = {
 	versionNumber : string,
 	timeout: number,
 	rootPathPrefix: string,
+	adminTypes: string[],
 }
 
 declare var env: EnvType

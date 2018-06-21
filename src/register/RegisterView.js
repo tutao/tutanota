@@ -40,7 +40,10 @@ export class RegisterView {
 			m("div", lang.get("termsAndConditions_label")),
 			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, lang.get("termsAndConditionsLink_label"))),
 			m("div", m(`a[href=${this._getPrivacyLink()}][target=_blank]`, lang.get("privacyLink_label")))
-		], () => lang.get(confirmStatus().text))
+		])
+		let confirmAge = new Checkbox(() => [
+			m("div", lang.get("ageConfirmation_msg"))
+		])
 		let confirmStatus = confirm.checked.map(checked => {
 			if (!checked) {
 				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
@@ -56,12 +59,21 @@ export class RegisterView {
 				return
 			}
 
-			let authToken = m.route.param()['authToken']
-			if (!authToken) {
-				this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
-			} else {
-				// FIXME
+			let p = Promise.resolve(true)
+			if (!confirmAge.checked()) {
+				p = Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			}
+
+			p.then(confirmed => {
+				if (confirmed) {
+					let authToken = m.route.param()['authToken']
+					if (!authToken) {
+						this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
+					} else {
+						// FIXME
+					}
+				}
+			})
 		}
 
 		let signupButton = new Button('createAccount_action', () => _createAccount()).setType(ButtonType.Login)
@@ -75,7 +87,7 @@ export class RegisterView {
 			}
 		}).setType(ButtonType.Secondary)
 
-		let login = new Button('login_label', () => m.route.set('/login')).setType(ButtonType.Secondary)
+		let login = new Button('login_label', () => m.route.set('/login?noAutoLogin=true')).setType(ButtonType.Secondary)
 
 		let panel = {
 			view: () => m(".flex-center.flex-column", [
@@ -93,6 +105,7 @@ export class RegisterView {
 						m(passwordForm),
 						(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
 						m(confirm),
+						m(confirmAge),
 						m(".mt-l.mb-l", m(signupButton)),
 						m(".flex-center", [
 							m(optionsExpander),
@@ -161,7 +174,7 @@ class CaptchaDialog {
 		this.dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb", [
+				m(".plr-l.pb", [
 					m("img.mt-l", {
 						src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(this.captchaReturn.challenge)),
 						alt: lang.get("captchaDisplay_label")
@@ -172,10 +185,11 @@ class CaptchaDialog {
 		})
 
 		let actionBar = new DialogHeaderBar()
-		actionBar.addLeft(new Button("cancel_action", () => {
+		let cancelAction = () => {
 			this.dialog.close()
 			this.callback(null, null)
-		}).setType(ButtonType.Secondary))
+		}
+		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 		actionBar.addRight(new Button("ok_action", () => {
 			let captchaTime = captchaInput.value().trim()
 			if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
@@ -210,6 +224,7 @@ class CaptchaDialog {
 			}
 		}).setType(ButtonType.Primary))
 			.setMiddle(() => lang.get("captchaDisplay_label"))
+		this.dialog.setCloseHandler(cancelAction)
 	}
 
 	/**

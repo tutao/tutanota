@@ -29,7 +29,7 @@ class NativeWrapper {
 			}:any))
 			this._nativeQueue.setCommands({
 				updatePushIdentifier: (msg: Request) => {
-					return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/native/PushServiceApp.js`).then(module => {
+					return importModule('src/native/PushServiceApp.js').then(module => {
 						module.pushServiceApp.updatePushIdentifier(msg.args[0])
 					})
 				},
@@ -61,6 +61,19 @@ class NativeWrapper {
 							})
 					})
 				},
+				handleBackPress: (): Promise<boolean> => {
+					return importModule('src/native/DeviceButtonHandler.js').then(module => {
+							return module.handleBackPress()
+						}
+					)
+				},
+				showAlertDialog: (msg: Request): Promise<void> => {
+					return importModule('src/gui/base/Dialog.js').then(module => {
+							return module.Dialog.error(msg.args[0])
+						}
+					)
+				}
+
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}

@@ -7,10 +7,11 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
-	TooManyRequestsError
+	TooManyRequestsError,
+	NotFoundError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNode, isAdmin} from "../api/Env"
 import {Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -70,7 +71,7 @@ export class LoginViewController {
 								if (!persistentSession) {
 									deviceConfig.delete(mailAddress)
 								}
-							})
+							}).catch(NotFoundError, e => console.log("session already deleted"))
 					}
 				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
@@ -145,8 +146,11 @@ export class LoginViewController {
 			return this._checkStorageWarningLimit()
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
-		}).then(() => mailModel.init())
-			.then(() => logins.loginComplete())
+		}).then(() => {
+			if (!isAdmin()) {
+				return mailModel.init()
+			}
+		}).then(() => logins.loginComplete())
 	}
 
 	_showUpgradeReminder(): Promise<void> {

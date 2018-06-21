@@ -76,6 +76,7 @@ export function show(): Promise<void> {
 					exec: cancelAction,
 					help: "closeDialog_msg"
 				})
+				dialog.setCloseHandler(cancelAction)
 				dialog.show()
 			})
 

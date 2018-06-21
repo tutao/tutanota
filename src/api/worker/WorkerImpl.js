@@ -13,6 +13,8 @@ import {restClient} from "./rest/RestClient"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
+import {keyToBase64} from "./crypto/CryptoUtils"
+import {aes256RandomKey} from "./crypto/Aes"
 
 assertWorkerOrNode()
 
@@ -217,6 +219,9 @@ export class WorkerImpl {
 			},
 			tryReconnectEventBus(message: Request) {
 				return locator.login.tryReconnectEventBus()
+			},
+			generateSsePushIdentifer: () => {
+				return Promise.resolve(keyToBase64(aes256RandomKey()))
 			}
 		})
 

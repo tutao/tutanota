@@ -68,14 +68,12 @@ export function show(): Promise<void> {
 						m(".pt.center", lang.get("buyStorageCapacityInfo_msg")),
 						m(".flex-center.flex-wrap", storageBuyOptions.map(so => m(so)))
 					]
-				})
-
-				dialog.addShortcut({
+				}).addShortcut({
 					key: Keys.ESC,
 					exec: cancelAction,
 					help: "closeDialog_msg"
-				})
-				dialog.show()
+				}).setCloseHandler(cancelAction)
+					.show()
 			})
 
 		})

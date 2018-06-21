@@ -13,6 +13,7 @@ export class ExpanderButton {
 	getLabel: lazy<string>;
 	_domIcon: ?HTMLElement;
 	view: Function;
+	_showWarning: boolean;
 
 	constructor(labelTextIdOrLabelFunction: string|lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
 		this.panel = panel
@@ -20,6 +21,7 @@ export class ExpanderButton {
 		if (typeof style.color === 'undefined') {
 			style.color = color
 		}
+		this._showWarning = showWarning
 
 		this.view = (): VirtualElement => m(".pr-expander.flex.limit-width", [ // .limit-width does not work without .flex in IE11
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
@@ -31,7 +33,7 @@ export class ExpanderButton {
 				oncreate: vnode => addFlash(vnode.dom),
 				onbeforeremove: (vnode) => removeFlash(vnode.dom),
 			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
-				(showWarning) ? m(Icon, {
+				(this._showWarning) ? m(Icon, {
 						icon: Icons.Warning,
 						style: {fill: color}
 					}) : null,
@@ -55,6 +57,10 @@ export class ExpanderButton {
 			animations.add(this._domIcon, transform('rotateZ', start, start + 180))
 		}
 		this.panel.setExpanded(!this.panel.expanded)
+	}
+
+	setShowWarning(showWarning: boolean): void {
+		this._showWarning = showWarning
 	}
 
 }

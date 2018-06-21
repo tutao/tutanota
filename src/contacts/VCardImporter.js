@@ -25,7 +25,7 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 	let vCardList = []
 	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1) {
 		vCardFileData = vCardFileData.replace(/\r/g, "")
-		vCardFileData = vCardFileData.replace(/\n /g, "")
+		vCardFileData = vCardFileData.replace(/\n /g, "") //folding symbols removed
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n\n/g, "")
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n/g, "")
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD/g, "")
@@ -114,9 +114,6 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					bDayDetails.month = bDay[1].trim()
 					bDayDetails.year = bDay[0].trim()
 					contact.birthday = bDayDetails
-					bDay = [bDay[1], bDay[2], bDay[0]]
-					let timestamp = new Date(bDay.join("/")).getTime()
-					contact.oldBirthday = isNaN(timestamp) ? null : new Date(timestamp)
 					break
 				case "ORG":
 					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
@@ -138,6 +135,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					}
 					break
 				case "EMAIL":
+				case "ITEM1.EMAIL":// necessary for apple vcards
+				case "ITEM2.EMAIL":// necessary for apple vcards
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
 						_addMailAddress(tagValue, contact, ContactAddressType.PRIVATE)
 					} else if (tagAndTypeString.indexOf("WORK") > (-1)) {
@@ -148,6 +147,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 				case "TEL":
 				case "ITEM1.TEL":// necessary for apple vcards
+				case "ITEM2.TEL":// necessary for apple vcards
 					tagValue = tagValue.replace(/[\u2000-\u206F]/g, "")
 					if (tagAndTypeString.indexOf("HOME") > (-1)) {
 						_addPhoneNumber(tagValue, contact, ContactPhoneNumberType.PRIVATE)
@@ -181,12 +181,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					// /*Here will be the photo import*/
 					break
 				case "ROLE":
+				case "TITLE":
 					let role = vCardReescapingArray(vCardEscapingSplit(tagValue))
-					contact.role += ((contact.role.length > 0) ? " " : "") + role.join(" ")
-					break
-				case "TITLE": //todo testing
-					let title = vCardReescapingArray(vCardEscapingSplit(tagValue))
-					contact.title = ((contact.title ? contact.title : "") + " " + title.join(" ")).trim()
+					contact.role += (" " + role.join(" ")).trim()
 					break
 				default:
 

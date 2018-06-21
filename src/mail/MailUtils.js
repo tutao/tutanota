@@ -174,7 +174,7 @@ export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAdd
 	}
 
 	addresses.forEach((address) => {
-		address ? toRecipients.push(neverNull(createMailAddressFromString(address))) : null
+		address ? toRecipients.push(neverNull(createMailAddressFromString(decodeURIComponent(address)))) : null
 	})
 
 	if (url.searchParams) { // not supported in Edge
