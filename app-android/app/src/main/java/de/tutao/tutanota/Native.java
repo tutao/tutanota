@@ -1,5 +1,7 @@
 package de.tutao.tutanota;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -215,6 +217,11 @@ public final class Native {
                             args.getString(2));
                     promise.resolve(true);
                     break;
+                case "closePushNotifications":
+                    JSONArray addressesArray = args.getJSONArray(0);
+                    cancelNotifications(addressesArray);
+                    promise.resolve(true);
+                    break;
                 default:
                     throw new Exception("unsupported method: " + method);
             }
@@ -223,6 +230,15 @@ public final class Native {
             promise.reject(e);
         }
         return promise.promise();
+    }
+
+    private void cancelNotifications(JSONArray addressesArray) throws JSONException {
+        NotificationManager notificationManager =
+                (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+        for (int i = 0; i < addressesArray.length(); i++) {
+            //noinspection ConstantConditions
+            notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
+        }
     }
 
     private boolean openLink(@Nullable String uri) {

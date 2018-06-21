@@ -20,7 +20,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {neverNull} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {MailEditor} from "./MailEditor"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
@@ -46,6 +46,7 @@ import {
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
+import {pushServiceApp} from "../native/PushServiceApp"
 
 assertMainOrNode()
 
@@ -367,6 +368,14 @@ export class MailView {
 				})
 			}
 		}
+
+		if (isApp()) {
+			let userGroupInfo = logins.getUserController().userGroupInfo
+			pushServiceApp.closePushNotification(
+				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
+					.concat(userGroupInfo.mailAddress || []))
+		}
+
 		if (this.isInitialized() && args.listId && this.mailList && args.listId != this.mailList.listId) {
 			// a mail list is visible and now a new one is selected
 			this._showList(args.listId, args.mailId);

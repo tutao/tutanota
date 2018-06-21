@@ -101,6 +101,10 @@ class PushServiceApp {
 			}, newValue);
 		}
 	}
+
+	closePushNotification(addresses: string[]) {
+		nativeApp.invokeNative(new Request('closePushNotifications', [addresses]))
+	}
 }
 
 export const pushServiceApp: PushServiceApp = new PushServiceApp()
