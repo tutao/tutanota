@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2018-05-24T05:40:56Z",
+	"updated_at": "2018-06-19T13:32:16Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "很抱歉，您的Tutanota帳號已被停用。請與您的管理員聯繫。",
@@ -485,7 +485,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "新的Tutanota收據",
 		"invoiceNotPaidUser_msg": "很抱歉，您目前不允許發送電子郵件。請與管理員聯繫。",
 		"invoiceNotPaid_msg": "很抱歉，您目前不允許發送電子郵件因為至少有一個款項並未支付。請在＂設定＂-> ＂付款資料＂的{1}更新您的付款資料，並之後在＂設定＂ - > ＂明細＂支付登錄的款項。",
-		"invoicePayConfirm_msg": "請確認{invoiceDate}收據{invoiceNumber}的付款",
 		"invoicePaymentMethodInfo_msg": "請選擇一個付款方式。未來我們會增加更多支付的選項。",
 		"invoicePay_action": "付款",
 		"invoiceRecipient_label": "明細收件人",

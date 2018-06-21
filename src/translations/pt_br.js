@@ -330,7 +330,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Nova fatura - Tutanota",
 		"invoiceNotPaidUser_msg": "Sentimos muito, você atualmente não está autorizado a enviar e-mails. Por favor contacte o seu administrador.",
 		"invoiceNotPaid_msg": "Sentimos muito, você atualmente não está autorizado a enviar e-mails porque ao menos uma de suas cobranças não foi paga. Por favor atualize seus dados de pagamento em {1} em 'Configurações' -> 'Dados de Pagamento' e posteriormente pague as cobranças em 'Configurações' -> 'Cobranças'.",
-		"invoicePayConfirm_msg": "Por favor confirme o pagamento da cobrança {invoiceNumber} do dia {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Escolha um método de pagamento. Futuramente, mais opções serão adicionadas. ",
 		"invoicePay_action": "Pagar",
 		"invoiceRecipient_label": "Destinatário da cobrança",

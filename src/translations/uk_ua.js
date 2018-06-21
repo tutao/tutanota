@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-18T12:13:41Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "На жаль ваш обліковий запис Tutanota було відключено. Будь ласка зв'яжіться із своїм адміністратором.",
@@ -391,7 +391,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Новий рахунок для Tutanota",
 		"invoiceNotPaidUser_msg": "Вибачте, ви пока не можете надсилати листи. Будь ласка, зв’яжіться зі своїм адміністратором.",
 		"invoiceNotPaid_msg": "Вибачте, ви поки не можете надсилати листи, тому що якнайменше один з рахунків не оплачений. Будь ласка, обновіть ваші платіжні дані у {1} через «Налаштування» → «Платіжні дані» та оплатіть рахунки через «Налаштування» → «Рахунки».",
-		"invoicePayConfirm_msg": "Будь ласка, підтвердіть оплату рахунку {invoiceNumber} за {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Оберіть, будь-ласка, метод оплати. У майбутньому буде більше опцій.",
 		"invoicePay_action": "Оплатити",
 		"invoiceRecipient_label": "Отримувач рахунку",

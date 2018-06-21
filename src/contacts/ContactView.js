@@ -31,7 +31,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId} from "../contacts/ContactUtils"
-import {MergeView} from "./ContactMergeView"
+import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
 
@@ -242,7 +242,7 @@ export class ContactView {
 		if (mergable.length > 0) {
 			let contact1 = mergable[0][0]
 			let contact2 = mergable[0][1]
-			let mergeDialog = new MergeView(contact1, contact2)
+			let mergeDialog = new ContactMergeView(contact1, contact2)
 			return mergeDialog.show().then(action => {
 				// execute action here and update mergable
 				if (action == ContactMergeAction.Merge) {

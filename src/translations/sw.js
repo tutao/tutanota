@@ -365,7 +365,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Ankara mpya ajili ya Tutanota",
 		"invoiceNotPaidUser_msg": "Samahani, kwa sasa hauruhusiwi kutuma barua pepe. Tafadhali wasiliana na msimamizi wako.",
 		"invoiceNotPaid_msg": "Samahani, kwa sasa hauruhusiwi kutuma barua pepe kwa sababu angalau moja ya ankara yako haijalipwa. Tafadhali Sasisha data yako ya malipo katika {1} katika 'Mipangilio' -> 'Malipo' na kulipa ankara ya katika 'Mazingira' ->'Malipo ya' baadaye.",
-		"invoicePayConfirm_msg": "Tafadhali kuthibitisha malipo kwa ankara {invoiceNumber} kutoka {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Tafadhali chagua njia ya malipo. Machaguo zaidi kuongezwa katika siku zijazo.",
 		"invoicePay_action": "Lipa",
 		"invoiceRecipient_label": "Ankara mpokeaji",

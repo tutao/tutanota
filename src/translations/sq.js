@@ -318,7 +318,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Faturë e re nga Tutanota",
 		"invoiceNotPaidUser_msg": "Kërkojmë ndjesë, Juve nuk iu lejohet përkohësisht që të dërgoni mesazhe. Ju lutemi kontaktoni administratorin.",
 		"invoiceNotPaid_msg": "Kërkojmë ndjesë, aktualisht juve nuk iu lejohet të dërgoni mesazhe sepse së paku një nga faturat e juaja nuk është paguar. Ju lutemi azhurnoni të dhënat e juaja pagesore tek {1} në 'Settings' -> data' dhe më pas paguani faturën tek 'Settings'->'Invoicing'",
-		"invoicePayConfirm_msg": "Ju lutemi konfirmoni pagesën e faturës {invoiceNumber} nga {invoiceDate}",
 		"invoicePaymentMethodInfo_msg": "Të lutem, zgjedh një mënyrë pagese. (Në të ardhmen do pranojmë dhe mënyra tjera.)",
 		"invoicePay_action": "Paguaj",
 		"invoiceRecipient_label": "Marrësi i faturës",

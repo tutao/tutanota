@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "other"],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Deja, jūsų Tutanota paskyra išjungta. Kreipkitės į jūsų administratorių.",
@@ -773,7 +773,7 @@ module.exports = {
 		"userInfo_action": "Informacija",
 		"userManagementAddAlias_msg": "Pasirinkite vartotoją slapyvardžio pridėjimui.",
 		"userManagementAddUser_msg": "Spustelėkite \"Pridėti vartotoją\" kad pridėti naują (apmokamą)  vartotoją.",
-		"userSettings_label": "Vartotojas",
+		"userSettings_label": "Vartotojo nustatymai",
 		"validInputFormat_msg": "Formatas geras.",
 		"version_label": "Versija:",
 		"weekDays_label": "---\n- Pr\n- A\n- T\n- K\n- Pn\n- Š\n- S",

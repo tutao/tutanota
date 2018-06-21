@@ -18,7 +18,7 @@ import {
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 
-export class MergeView {
+export class ContactMergeView {
 	view: Function;
 	dialog: Dialog;
 	contact1: Contact;
@@ -53,7 +53,7 @@ export class MergeView {
 		let headerBar = new DialogHeaderBar()
 			.addLeft(new Button('cancel_action', cancelAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("merge_action"))
-			.addRight(new Button('next_action', () => {
+			.addRight(new Button('skip_action', () => {
 				this._close(ContactMergeAction.Skip)
 			}).setType(ButtonType.Primary))
 

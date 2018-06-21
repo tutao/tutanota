@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Lamentablemente a súa conta Tutanota foi desactivada. Por favor, contacte coa administración.",
@@ -485,7 +485,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Nova factura de Tutanota",
 		"invoiceNotPaidUser_msg": "Lamentámolo, actualmente non pode enviar correos. Contacte coa administración.",
 		"invoiceNotPaid_msg": "Disculpe, actualmente non pode enviar correos porque cando menos unha das súas facturas non está pagada. Por favor, actualice os seus datos de pagamento a {1} en 'Axustes'->'Datos de pagamento' e pague posteriormente as facturas en 'Axustes'->'Facturación'.",
-		"invoicePayConfirm_msg": "Por favor, confirme o pago da factura {invoiceNumber} de {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Por favor escolla un método de pagamento. Engadiranse máis opcións no futuro.",
 		"invoicePay_action": "Pago",
 		"invoiceRecipient_label": "Titular da factura",

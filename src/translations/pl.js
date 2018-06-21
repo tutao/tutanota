@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2018-05-25T18:55:13Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Niestety, Twoje konto Tutanota zostało zdezaktywowane. Prosimy o kontakt z administratorem.",
@@ -455,7 +455,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Nowa faktura za Tutanota",
 		"invoiceNotPaidUser_msg": "Przepraszamy, nie możesz aktualnie wysyłać wiadomości. Prosimy o kontakt z administratorem.",
 		"invoiceNotPaid_msg": "Przepraszamy, nie możesz aktualnie wysyłać wiadomości, ponieważ co najmniej jedna z Twoich faktur nie została opłacona. Prosimy o zaktualizowanie płatności o {1} w 'Ustawienia' -> 'Dane płatności' oraz następnie zapłacenie faktur w 'Ustawienia' -> 'Fakturowanie'.",
-		"invoicePayConfirm_msg": "Proszę potwierdzić zapłatę faktury {invoiceNumber} z {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Proszę wybrać metodę płatności. Więcej opcji będzie dodane w przyszłości.",
 		"invoicePay_action": "Zapłać",
 		"invoiceRecipient_label": "Odbiorca faktury",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-13T09:31:08Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Malangnya, akaun Tutanota anda dinyahaktifkan. Sila hubungi pentadbir anda.",
@@ -397,7 +397,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Invois baru untuk Tutanota",
 		"invoiceNotPaidUser_msg": "Maaf, anda tidak dibenarkan menghantar e-mel pada masa ini. Sila hubungi pentadbir anda.",
 		"invoiceNotPaid_msg": "Maaf, pada masa ini anda tidak dibenarkan menghantar e-mel kerana sekurang-kurangnya salah satu invois anda belum dibayar. Sila kemas kini data pembayaran anda di {1} di 'Tetapan' -> 'Data pembayaran' dan bayar invois dalam 'Tetapan' -> 'Invois' selepas itu.",
-		"invoicePayConfirm_msg": "Sila sahkan pembayaran untuk invois {invoiceNumber} dari {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Sila pilih kaedah pembayaran. Lebih banyak pilihan akan ditambah pada masa akan dating.",
 		"invoicePay_action": "Bayar",
 		"invoiceRecipient_label": "Penerima invois",

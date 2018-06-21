@@ -301,7 +301,6 @@ module.exports = {
 		"invoiceAddress_label": "地址",
 		"invoiceCountryInfoBusiness_msg": "請選擇你的居住國。",
 		"invoiceData_msg": "發票資料",
-		"invoicePayConfirm_msg": "請確認{invoiceDate}的{invoiceNumber}賬單。",
 		"invoicePaymentMethodInfo_msg": "請選擇一個付款方式。在未來我們會有更多的選項",
 		"invoicePay_action": "付款",
 		"invoiceRecipient_label": "發票收件人",

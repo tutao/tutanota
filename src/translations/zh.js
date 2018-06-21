@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "很不幸，您的Tutanota帐户已停用，请联系管理员。",
@@ -434,7 +434,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Tutanota新发票",
 		"invoiceNotPaidUser_msg": "抱歉，您当前无法发送邮件，请联系管理员。",
 		"invoiceNotPaid_msg": "很抱歉，因您当前有未支付的发票，故暂不能发送邮件。谨请您在“设置”->“支付数据”的{1}中更新支付细节，并在“设置”->“发票”里完成支付。",
-		"invoicePayConfirm_msg": "请确认支付时间为：{invoiceDate} 编号为：{invoiceNumber} 的发票。",
 		"invoicePaymentMethodInfo_msg": "请选择支付手段。未来会加入更多途径。",
 		"invoicePay_action": "支付",
 		"invoiceRecipient_label": "发票收件人",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2018-05-27T17:38:17Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Helaas is uw Tutanota account gedeactiveerd. Neem a.u.b. contact op met uw beheerder.",
@@ -487,7 +487,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Nieuwe rekening voor Tutanota",
 		"invoiceNotPaidUser_msg": "Sorrie, u mag op dit moment geen emails verzenden. Neem contact op met uw beheerder.",
 		"invoiceNotPaid_msg": "Sorrie, u kunt op dit moment geen emails verzenden omdat tenminste een factuur niet betaald is. Update  uw betaling in {1} bij 'Instellingen>'Facturatie'  en betaal de openstaande facturen onder 'Facturen' ",
-		"invoicePayConfirm_msg": "Bevestig alstublieft uw betaling van factuur {invoiceNumber} van {invoiceDate}",
 		"invoicePaymentMethodInfo_msg": "Kies uw betaalwijze. Meer opties worden in de toekomst toegevoegd.",
 		"invoicePay_action": "Betaal",
 		"invoiceRecipient_label": "Ontvanger factuur",

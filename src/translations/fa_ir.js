@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2018-05-18T20:40:26Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",
@@ -389,7 +389,6 @@ module.exports = {
 		"invoiceMailBodyAutomatic_msg": "صورتحساب جدیدی به شمارهٔ {1} برای شما در دسترس است. می‌توانید از {2} در «تنظیمات» -> «صورتحساب» بارگیری‌اش کنید. مجموع کل به صورت خودکار به حساب‌تان نوشته می‌شود.",
 		"invoiceMailSubject_msg": "صورتحساب جدید برای Tutanota",
 		"invoiceNotPaidUser_msg": "پوزش،شما در حال حاضر مجاز به فرستادن رایانامه ها نمی باشید.خواهشمندیم با مدیرخود تماس بگیرید.",
-		"invoicePayConfirm_msg": "خواهشمندیم پرداختی برای صورت حساب را تایید نمایید {شماره صورت حساب} از روی {تاریخ صورت حساب}.",
 		"invoicePaymentMethodInfo_msg": "خواهشمندیم روش پرداخت را انتخاب کنید. گزینه های بیشتر در آینده اضافه خواهد شد.",
 		"invoicePay_action": "پرداخت",
 		"invoiceRecipient_label": "گیرنده فاکتور",

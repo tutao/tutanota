@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-18T12:13:41Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sayangnya, akun Tutanota Anda telah dinonaktifkan. Mohon hubungi administrator Anda.",
@@ -335,7 +335,6 @@ module.exports = {
 		"invoiceMailBodyAutomatic_msg": "ada tagihan baru dengan nomor {1} tersedia untuk Anda. Anda bisa mengunduhnya di {2} dalam 'Pengaturan' -> 'Penagihan'. Total biaya akan secara otomatis didebit.",
 		"invoiceMailSubject_msg": "Tagihan baru untuk Tutanota",
 		"invoiceNotPaidUser_msg": "Maaf, saat ini Anda tidak diizinkan mengirimkan surel. Silakan hubungi administrator Anda.",
-		"invoicePayConfirm_msg": "Mohon konfirmasi pembayaran untuk tagihan {invoiceNumber} pada {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Mohon pilih metode pembayaran. Opsi lain akan ditambahkan kedepannya.",
 		"invoicePay_action": "Bayar",
 		"invoiceRecipient_label": "Penerima tagihan",

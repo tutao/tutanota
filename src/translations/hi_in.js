@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-19T13:32:15Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "दुर्भाग्य से, आपका टुटानोटा खाता निष्क्रिय हो गया है. कृपया अपने व्यवस्थापक से संपर्क करें.",
@@ -434,7 +434,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "टुटानोटा के लिए नया चालान",
 		"invoiceNotPaidUser_msg": "क्षमा करें, आपको वर्तमान में ईमेल भेजने की अनुमति नहीं है कृपया अपने व्यवस्थापक से संपर्क करें.",
 		"invoiceNotPaid_msg": "क्षमा करें, आपको वर्तमान में ईमेल भेजने की अनुमति नहीं है क्योंकि कम से कम आपके चालान का भुगतान नहीं किया गया है. कृपया 'सेटिंग' -> 'भुगतान डेटा' में {1} पर अपना भुगतान डेटा अपडेट करें और बाद में 'सेटिंग' -> 'इनवॉइसिंग' में चालान का भुगतान करें.",
-		"invoicePayConfirm_msg": "{InvoiceDate} से चालान {invoiceNumber} के लिए भुगतान की पुष्टि करें।",
 		"invoicePaymentMethodInfo_msg": "कृपया भुगतान विधि चुनें. भविष्य में और विकल्प जोड़े जाएंगे",
 		"invoicePay_action": "वेतन",
 		"invoiceRecipient_label": "बिल धारक",

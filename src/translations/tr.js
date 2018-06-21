@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2018-05-22T12:20:03Z",
+	"updated_at": "2018-06-18T12:13:41Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ne yazık ki Tutanota hesabınız devre dışı bırakıldı. Lütfen yöneticinize başvurunuz.",
@@ -390,7 +390,6 @@ module.exports = {
 		"invoiceMailSubject_msg": "Tutanota için yeni fatura",
 		"invoiceNotPaidUser_msg": "Üzgünüz, şu anda eposta yollamanıza izin verilmiyor. Lütfen yöneticiniz ile irtibata geçin.",
 		"invoiceNotPaid_msg": "Üzgünüz, şu anda eposta göndermenize izin verilmiyor çünkü en az bir ödenmemiş faturanız bulunmakta. Lütfen ödeme bilgilerinizi 'Settings' -> 'Invoicing' bölümündeki {1} kısmından güncelleyip ardından faturalarınızı ödeyiniz.",
-		"invoicePayConfirm_msg": "Lütfen {invoiceNumber} numarali {invoiceDate} tarihli faturanın ödemesini onaylayınız.",
 		"invoicePaymentMethodInfo_msg": "Lütfen bir ödeme şekli seçin. Gelecekte daha çok seçenek eklenecektir.",
 		"invoicePay_action": "Öde",
 		"invoiceRecipient_label": "Fatura alıcısı",

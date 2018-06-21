@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2018-05-06T16:23:08Z",
+	"updated_at": "2018-06-13T09:31:08Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "К сожалению, ваш аккаунт в Tutanota был деактивирован. Пожалуйста, свяжитесь со своим администратором.",
@@ -334,7 +334,6 @@ module.exports = {
 		"invoiceMailBodyAutomatic_msg": "Новый счёт {1} появился в Настройках → Счета. Вся сумма автоматически снимется.",
 		"invoiceMailSubject_msg": "Новый счёт для Tutanota.",
 		"invoiceNotPaidUser_msg": "Извините, на данный момент вы не можете отправлять сообщения. Пожалуйста, свяжитесь с Вашим администратором. ",
-		"invoicePayConfirm_msg": "Пожалуйста подтвердите платеж по инвойсу {invoiceNumber} от {invoiceDate}.",
 		"invoicePaymentMethodInfo_msg": "Пожалуйста выберите способ оплаты. Дополнительные опции будут добавлены в будущем.",
 		"invoicePay_action": "Оплатить",
 		"invoiceRecipient_label": "Плательщик счёта",
