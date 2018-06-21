@@ -141,7 +141,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "26"
+	"version": "27"
 }
 
 export function createCustomerAccountCreateData(): CustomerAccountCreateData {

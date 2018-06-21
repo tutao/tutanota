@@ -37,6 +37,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"userId": {
+			"name": "userId",
+			"id": 1368,
+			"since": 32,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},

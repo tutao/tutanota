@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "MissedNotifications",
 	"since": 32,
 	"type": "AGGREGATED_TYPE",
-	"id": 1376,
-	"rootId": "A3N5cwAFYA",
+	"id": 1377,
+	"rootId": "A3N5cwAFYQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1377,
+			"id": 1378,
 			"since": 32,
 			"type": "CustomId",
 			"cardinality": "One",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"notifications": {
 			"name": "notifications",
-			"id": 1378,
+			"id": 1379,
 			"since": 32,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

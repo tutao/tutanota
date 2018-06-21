@@ -280,6 +280,7 @@ type CustomerInfo = {
 	deletionReason:?string;
 	deletionTime:?Date;
 	domain:string;
+	erased:boolean;
 	includedEmailAliases:NumberString;
 	includedStorageCapacity:NumberString;
 	promotionEmailAliases:NumberString;
@@ -1509,22 +1510,12 @@ type SseConnectData = {
 	userIds:GeneratedIdWrapper[];
 }
 
-type InvoiceNumberToInvoice = {
-	_type: TypeRef<InvoiceNumberToInvoice>;
-	_format:NumberString;
-	_id:Id;
-	_ownerGroup:?Id;
-	_permissions:Id;
-
-	customer:Id;
-	invoice:IdTuple;
-}
-
 type NotificationInfo = {
 	_type: TypeRef<NotificationInfo>;
 	_id:Id;
 	counter:NumberString;
 	mailAddress:string;
+	userId:Id;
 
 }
 

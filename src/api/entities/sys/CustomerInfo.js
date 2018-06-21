@@ -101,6 +101,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"erased": {
+			"name": "erased",
+			"id": 1381,
+			"since": 32,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"includedEmailAliases": {
 			"name": "includedEmailAliases",
 			"id": 1067,
