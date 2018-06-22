@@ -231,7 +231,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday =null
+		b.oldBirthday = null
 		b.comment = ""
 		b.company = ""
 		b.role = ""
@@ -279,6 +279,27 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.comment = ""
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
+	})
+
+	o("test vcard 4.0 date format", function () {
+		let vcards = `BEGIN:VCARD
+VERSION:3.0
+BDAY:19540331
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+BDAY:--0626
+END:VCARD`
+
+		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
+
+		o(neverNull(contacts[0].birthday).day).equals("31")
+		o(neverNull(contacts[0].birthday).month).equals("03")
+		o(neverNull(contacts[0].birthday).year).equals("1954")
+
+		o(neverNull(contacts[1].birthday).day).equals("26")
+		o(neverNull(contacts[1].birthday).month).equals("06")
+		o(neverNull(contacts[1].birthday).year).equals(null)
 	})
 })
 

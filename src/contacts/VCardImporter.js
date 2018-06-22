@@ -108,11 +108,23 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 				case "BDAY":
 					let indexOfT = tagValue.indexOf("T")
-					let bDay = tagValue.substring(0, (indexOfT != -1) ? indexOfT : tagValue.length).split("-")
-					let bDayDetails = createBirthday()
-					bDayDetails.day = bDay[2].trim()
-					bDayDetails.month = bDay[1].trim()
-					bDayDetails.year = bDay[0].trim()
+					let bDayDetails = null
+					if (tagValue.match(/--\d{4}/g)) {
+						bDayDetails = createBirthday()
+						bDayDetails.month = tagValue.substring(2, 4)
+						bDayDetails.day = tagValue.substring(4, 6)
+					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
+						let bDay = tagValue.substring(0, (indexOfT != -1) ? indexOfT : tagValue.length).split("-")
+						bDayDetails = createBirthday()
+						bDayDetails.year = bDay[0].trim()
+						bDayDetails.month = bDay[1].trim()
+						bDayDetails.day = bDay[2].trim()
+					} else if (tagValue.match(/\d{8}/g)) {
+						bDayDetails = createBirthday()
+						bDayDetails.year = tagValue.substring(0, 4)
+						bDayDetails.month = tagValue.substring(4, 6)
+						bDayDetails.day = tagValue.substring(6, 8)
+					}
 					contact.birthday = bDayDetails
 					break
 				case "ORG":
