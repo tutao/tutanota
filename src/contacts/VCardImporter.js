@@ -125,6 +125,10 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						bDayDetails.month = tagValue.substring(4, 6)
 						bDayDetails.day = tagValue.substring(6, 8)
 					}
+					if (bDayDetails && bDayDetails.year == "1111") {
+						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
+						bDayDetails.year = null
+					}
 					contact.birthday = bDayDetails
 					break
 				case "ORG":

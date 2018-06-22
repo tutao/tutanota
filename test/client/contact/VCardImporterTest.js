@@ -301,5 +301,26 @@ END:VCARD`
 		o(neverNull(contacts[1].birthday).month).equals("06")
 		o(neverNull(contacts[1].birthday).year).equals(null)
 	})
+
+	o("test import without year", function () {
+		let vcards = `BEGIN:VCARD
+VERSION:3.0
+BDAY:1111-03-31
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+BDAY:11110331
+END:VCARD`
+
+		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
+
+		o(neverNull(contacts[0].birthday).day).equals("31")
+		o(neverNull(contacts[0].birthday).month).equals("03")
+		o(neverNull(contacts[0].birthday).year).equals(null)
+
+		o(neverNull(contacts[1].birthday).day).equals("31")
+		o(neverNull(contacts[1].birthday).month).equals("03")
+		o(neverNull(contacts[1].birthday).year).equals(null)
+	})
 })
 

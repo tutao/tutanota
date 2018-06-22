@@ -74,10 +74,11 @@ export function _contactToVCard(contact: Contact): string {
 
 	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname)) + "\n" : ""
 	//adds oldBirthday converted into a string if present else if available new birthday format is added to contactToVCardString
-	if (contact.birthday && contact.birthday.year) {
+	if (contact.birthday) {
 		let day = Number(neverNull(contact.birthday).day)
 		let month = Number(neverNull(contact.birthday).month)
-		let year = Number(neverNull(neverNull(contact.birthday).year))
+		// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
+		let year = neverNull(contact.birthday).year ? Number(neverNull(neverNull(contact.birthday).year)) : 1111
 		//month -1 because new birthday format is number string not a date. if month 09 is wanted input has to be 08.
 		contactToVCardString += "BDAY:" + formatSortableDate(new Date(year, month - 1, day)) + "\n"
 	} else if (contact.oldBirthday) {

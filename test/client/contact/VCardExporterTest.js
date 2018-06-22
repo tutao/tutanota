@@ -162,6 +162,18 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Kev\nN:Kev;Bob;;Phd.;\nADR;TYPE=work:House
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1800-10-10\nEND:VCARD\n\n`
 		contactArray.push(contact1)
 		o(contactsToVCard(contactArray)).equals(c1String)
+
+
+		contactArray = []
+		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
+		bday = createBirthday()
+		bday.day = "10"
+		bday.month = "10"
+		bday.year = null
+		contact1.birthday = bday
+		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1111-10-10\nEND:VCARD\n\n`
+		contactArray.push(contact1)
+		o(contactsToVCard(contactArray)).equals(c1String)
 	})
 
 	o("contactsToVCardsTestMoreThan75CharContentLine", function () {
