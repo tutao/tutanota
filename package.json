@@ -27,7 +27,7 @@
     "http-server": "0.9.0",
     "mithril": "1.1.4",
     "mithril-node-render": "1.0.1-4",
-    "node-static": "0.7.9",
+    "node-static": "0.7.10",
     "ospec": "1.4.0",
     "plugman": "1.4.1",
     "server-destroy": "1.0.1",
