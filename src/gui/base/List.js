@@ -3,13 +3,7 @@ import m from "mithril"
 import {log, timer, Cat} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import {
-	GENERATED_MAX_ID,
-	firstBiggerThanSecond,
-	getLetId,
-	compareNewestFirst,
-	compareOldestFirst
-} from "../../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, firstBiggerThanSecond, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUtils"

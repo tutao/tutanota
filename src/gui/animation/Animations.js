@@ -51,9 +51,11 @@ class Animations {
 		if (!target || targetArrayOrCollection && target.length === 0) {
 			return Promise.reject(new Error('tried to animate a non existing element'))
 		}
-		let mutation: any = mutations
+		let mutation: DomMutation[]
 		if (!(mutations instanceof Array)) {
-			mutation = [mutation]
+			mutation = [mutations]
+		} else {
+			mutation = mutations
 		}
 		let verifiedOptions = Animations.verifiyOptions(options)
 		if (!targetArrayOrCollection) target = [target]
@@ -117,8 +119,7 @@ export class Animation {
 export function transform(type: TransformEnum, begin: number, end: number): DomTransform {
 	let values: TransformValues = {[type]: {begin, end}}
 	let updateDom = function (target: HTMLElement, percent: number, easing: EasingFunction): void {
-		let transform = buildTransformString(values, percent, easing);
-		target.style.transform = transform
+		target.style.transform = buildTransformString(values, percent, easing)
 	}
 	let chain = function (type: TransformEnum, begin: number, end: number) {
 		values[type] = {begin, end}
@@ -136,8 +137,7 @@ transform.type = {
 export function scroll(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
-			let position = calculateValue(percent, begin, end, easing)
-			target.scrollTop = position
+			target.scrollTop = calculateValue(percent, begin, end, easing)
 		}
 	}
 }
