@@ -37,7 +37,7 @@ export function getInboxRuleTypeName(type: string): string {
  * @returns true if a rule matches otherwise false
  */
 export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
-	if (!mail.unread || !isInboxList(mailboxDetail, mail._id[0]) || !logins.getUserController().isPremiumAccount()) {
+	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, mail._id[0]) || !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(false)
 	}
 	return _findMatchingRule(mail).then(inboxRule => {
