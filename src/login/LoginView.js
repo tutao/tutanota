@@ -162,9 +162,8 @@ export class LoginView {
 		} else {
 			this._requestedPath = this.targetPath
 		}
-		if (args.loginWith && !deviceConfig.get(args.loginWith) ||
-			args.userId && !deviceConfig.getByUserId(args.userId)) {
-			// there are no credentials stored for the desired email address, so let the user enter the password
+		if (!(args.loginWith && deviceConfig.get(args.loginWith) || args.userId && deviceConfig.getByUserId(args.userId))) {
+			// there are no credentials stored for the desired email address or user id, so let the user enter the password
 			this.mailAddress.setValue(args.loginWith)
 			// ensure that input fields have been created after app launch
 			if (this.mailAddress._domInput) {

@@ -110,13 +110,13 @@ export class ViewSlider {
 				return
 			}
 
-			if (!this._isModalBackgroundVisible) {
-				this._isModalBackgroundVisible = true;
-				m.redraw()
-			}
-
 			const gestureInfo = this.lastGestureInfo
 			if (gestureInfo && event.touches.length == 1) {
+				if (!this._isModalBackgroundVisible) {
+					this._isModalBackgroundVisible = true;
+					m.redraw()
+				}
+
 				const newTouchPos = event.touches[0].pageX
 				const sideColRect = sideCol.getBoundingClientRect()
 				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos), sideColRect.width)
