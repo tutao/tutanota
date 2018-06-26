@@ -384,6 +384,10 @@ export class WorkerClient {
 	generateSsePushIdentifer(): Promise<string> {
 		return this._postRequest(new Request('generateSsePushIdentifer', arguments))
 	}
+
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
+		return this._postRequest(new Request('decryptUserPassword', arguments))
+	}
 }
 
 export const worker = new WorkerClient()

@@ -127,7 +127,7 @@ export class LoginView {
 	}
 
 	login() {
-		this._viewController.then((viewController: ILoginViewController) => viewController._formLogin())
+		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
 	loginForm() {
@@ -148,9 +148,9 @@ export class LoginView {
 	credentialsSelector() {
 		return this._visibleCredentials.map(c => {
 			var credentialButtons = [];
-			credentialButtons.push(m(new Button(() => c.mailAddress, () => this._viewController.then((viewController: ILoginViewController) => viewController._autologin(c))).setType(ButtonType.Login)))
+			credentialButtons.push(m(new Button(() => c.mailAddress, () => this._viewController.then((viewController: ILoginViewController) => viewController.autologin(c))).setType(ButtonType.Login)))
 			if (this._isDeleteCredentials) {
-				credentialButtons.push(m(new Button("delete_action", () => this._viewController.then((viewController: ILoginViewController) => viewController._deleteCredentialsNotLoggedIn(c))).setType(ButtonType.Secondary)))
+				credentialButtons.push(m(new Button("delete_action", () => this._viewController.then((viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c))).setType(ButtonType.Secondary)))
 			}
 			return m(".flex-space-between.pt-l.child-grow.last-child-fixed", credentialButtons)
 		})
@@ -162,38 +162,49 @@ export class LoginView {
 		} else {
 			this._requestedPath = this.targetPath
 		}
-		if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) || args.userId && deviceConfig.getByUserId(args.userId))) {
-			// there are no credentials stored for the desired email address or user id, so let the user enter the password
-			this.mailAddress.setValue(args.loginWith)
-			// ensure that input fields have been created after app launch
-			if (this.mailAddress._domInput) {
-				this.mailAddress.animate()
-			}
-			this.password.focus()
-			this._visibleCredentials = []
-			m.redraw()
-		} else {
-			this._visibleCredentials = deviceConfig.getAllInternal()
-			let autoLoginCredentials: ?Credentials = null
-			if (args.noAutoLogin != true) {
-				if (args.loginWith && deviceConfig.get(args.loginWith)) {
-					// there are credentials for the desired email address existing, so try to auto login
-					autoLoginCredentials = deviceConfig.get(args.loginWith)
-				} else if (args.userId && deviceConfig.getByUserId(args.userId)) {
-					autoLoginCredentials = deviceConfig.getByUserId(args.userId)
-				} else if (this._visibleCredentials.length === 1) {
-					// there is one credentials stored, so try to auto login
-					autoLoginCredentials = this._visibleCredentials[0]
+
+		let loadedConfigString = client.localStorage() ? localStorage.getItem("config") : null
+		let oldCredentials = loadedConfigString != null ? JSON.parse(loadedConfigString)._credentials || [] : []
+		let promise = Promise.resolve()
+		if (oldCredentials.length > 0) {
+			promise = this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
+				.then(() => localStorage.removeItem("config"))
+		}
+		promise.then(() => {
+			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) || args.userId && deviceConfig.getByUserId(args.userId))) {
+				// there are no credentials stored for the desired email address or user id, so let the user enter the password
+				this.mailAddress.setValue(args.loginWith)
+				// ensure that input fields have been created after app launch
+				if (this.mailAddress._domInput) {
+					this.mailAddress.animate()
+				}
+				this.password.focus()
+				this._visibleCredentials = []
+				m.redraw()
+			} else {
+				this._visibleCredentials = deviceConfig.getAllInternal()
+				let autoLoginCredentials: ?Credentials = null
+				if (args.noAutoLogin != true) {
+					if (args.loginWith && deviceConfig.get(args.loginWith)) {
+						// there are credentials for the desired email address existing, so try to auto login
+						autoLoginCredentials = deviceConfig.get(args.loginWith)
+					} else if (args.userId && deviceConfig.getByUserId(args.userId)) {
+						autoLoginCredentials = deviceConfig.getByUserId(args.userId)
+					} else if (this._visibleCredentials.length === 1) {
+						// there is one credentials stored, so try to auto login
+						autoLoginCredentials = this._visibleCredentials[0]
+					}
+				}
+				m.redraw()
+				if (autoLoginCredentials) {
+					this._viewController.then(viewController => viewController.autologin(neverNull(autoLoginCredentials)))
 				}
 			}
-			if (autoLoginCredentials) {
-				this._viewController.then((viewController: ILoginViewController) => viewController._autologin(neverNull(autoLoginCredentials)))
-			}
-		}
 
-		if (this._isDeleteCredentials) {
-			this._switchDeleteCredentialsState();
-		}
+			if (this._isDeleteCredentials) {
+				this._switchDeleteCredentialsState();
+			}
+		})
 	}
 
 	_showLoginForm(mailAddress: string) {

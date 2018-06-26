@@ -41,7 +41,7 @@ export class LoginViewController {
 		this._loginPromise = Promise.resolve()
 	}
 
-	_autologin(credentials: Credentials): void {
+	autologin(credentials: Credentials): void {
 		if (this._loginPromise.isPending()) return
 		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials), () => {
@@ -50,7 +50,24 @@ export class LoginViewController {
 		}))
 	}
 
-	_formLogin(): void {
+
+	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
+		return showProgressDialog("loading_msg",
+			worker.initialized.then(() => Promise.each(oldCredentials, c => {
+				return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword).then(userPw => {
+					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false).then(newCredentials => {
+						deviceConfig.set(newCredentials)
+					}).catch(ignored => {
+						// prevent reloading the page by ErrorHandler
+					}).finally(() => {
+						worker.logout(false)
+					})
+				})
+			}))).return()
+	}
+
+
+	formLogin(): void {
 		if (this._loginPromise.isPending()) return
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
@@ -203,7 +220,7 @@ export class LoginViewController {
 
 	}
 
-	_deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
+	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
 		return worker.deleteSession(credentials.accessToken)
 			.then(() => {
 				// not authenticated error is caught in worker

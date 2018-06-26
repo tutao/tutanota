@@ -76,7 +76,8 @@ interface IUserController {
 }
 
 interface ILoginViewController {
-	_formLogin():void;
-	_autologin(credentials: Credentials):Promise<IUserController>;
-	_deleteCredentialsNotLoggedIn(credentials: Credentials):Promise<void>;
+	formLogin():void;
+	autologin(credentials: Credentials):Promise<IUserController>;
+	deleteCredentialsNotLoggedIn(credentials: Credentials):Promise<void>;
+	migrateDeviceConfig(oldCredentials: Object[]):Promise<void>;
 }

@@ -11,7 +11,13 @@ import {
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {createAuthVerifierAsBase64Url, createAuthVerifier, base64ToKey, keyToUint8Array} from "../crypto/CryptoUtils"
+import {
+	createAuthVerifierAsBase64Url,
+	createAuthVerifier,
+	base64ToKey,
+	keyToUint8Array,
+	uint8ArrayToKey
+} from "../crypto/CryptoUtils"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType, OperationType, AccountType} from "../../common/TutanotaConstants"
@@ -49,6 +55,8 @@ import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
+import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
+import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 
 assertWorkerOrNode()
 
@@ -455,6 +463,17 @@ export class LoginFacade {
 	tryReconnectEventBus(): Promise<void> {
 		this._eventBusClient.tryReconnect(true);
 		return Promise.resolve()
+	}
+
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
+		const getData = createAutoLoginDataGet()
+		getData.userId = userId
+		getData.deviceToken = deviceToken
+		return serviceRequest(SysService.AutoLoginService, HttpMethod.GET, getData, AutoLoginDataReturnTypeRef, null, null)
+			.then(returnData => {
+				const key = uint8ArrayToKey(returnData.deviceKey)
+				return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
+			})
 	}
 }
 

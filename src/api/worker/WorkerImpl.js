@@ -222,6 +222,9 @@ export class WorkerImpl {
 			},
 			generateSsePushIdentifer: () => {
 				return Promise.resolve(keyToBase64(aes256RandomKey()))
+			},
+			decryptUserPassword: (message: Request) => {
+				return locator.login.decryptUserPassword.apply(locator.login, message.args)
 			}
 		})
 
