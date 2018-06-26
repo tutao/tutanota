@@ -145,9 +145,9 @@ export class ViewSlider {
 			return m(".view-columns.fill-absolute.backface_fix", {
 				oncreate: (vnode) => {
 					this._domSlider = vnode.dom
-					for (let listener in this._eventListners) {
-						this._domSlider.addEventListener(listener, this._eventListners[listener], true)
-					}
+					//for (let listener in this._eventListners) {
+					//	this._domSlider.addEventListener(listener, this._eventListners[listener], true)
+					//}
 				},
 				style: {
 					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
