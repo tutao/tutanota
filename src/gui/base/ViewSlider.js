@@ -100,7 +100,6 @@ export class ViewSlider {
 			const colRect = mainCol.getBoundingClientRect()
 			if (event.touches.length == 1 && (this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)) {
 				event.stopPropagation()
-				event.preventDefault()
 				this.lastGestureInfo = {x: event.touches[0].pageX, time: Date.now()}
 			}
 		},
@@ -124,7 +123,6 @@ export class ViewSlider {
 				this.oldGestureInfo = this.lastGestureInfo
 				this.lastGestureInfo = {x: event.touches[0].pageX, time: Date.now()}
 				event.stopPropagation()
-				event.preventDefault()
 			}
 		},
 		touchend: this._gestureEnd,
@@ -145,9 +143,9 @@ export class ViewSlider {
 			return m(".view-columns.fill-absolute.backface_fix", {
 				oncreate: (vnode) => {
 					this._domSlider = vnode.dom
-					//for (let listener in this._eventListners) {
-					//	this._domSlider.addEventListener(listener, this._eventListners[listener], true)
-					//}
+					for (let listener in this._eventListners) {
+						this._domSlider.addEventListener(listener, this._eventListners[listener], true)
+					}
 				},
 				style: {
 					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
