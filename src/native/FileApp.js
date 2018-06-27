@@ -9,7 +9,8 @@ export const fileApp = {
 	upload,
 	open,
 	deleteFile,
-	clearFileData
+	clearFileData,
+	readFile
 }
 
 
@@ -102,6 +103,10 @@ function download(sourceUrl: string, filename: string, headers: Object): Promise
 
 function clearFileData() {
 	return nativeApp.invokeNative(new Request("clearFileData", []))
+}
+
+function readFile(path: string): Promise<Base64> {
+	return nativeApp.invokeNative(new Request("readFile", [path]))
 }
 
 

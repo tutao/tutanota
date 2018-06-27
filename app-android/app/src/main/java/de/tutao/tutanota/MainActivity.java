@@ -20,19 +20,25 @@ import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.apache.commons.io.IOUtils;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
@@ -92,10 +98,17 @@ public class MainActivity extends Activity {
 
         // avoid auto login if launched from notification message
         String loadUrl = appUrl;
-        if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
-            loadUrl = appUrl + "?noAutoLogin=true";
+
+        List<String> queryParameters = new ArrayList<>();
+
+        if(new File(getFilesDir(),"config/tutanota.json").exists()) {
+            queryParameters.add("migrateCredentials=true");
         }
-        this.webView.loadUrl(loadUrl);
+
+        if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
+            queryParameters.add("noAutoLogin=true");
+        }
+        this.webView.loadUrl(loadUrl + (queryParameters.isEmpty() ? "" : "?" +TextUtils.join("&", queryParameters)));
         nativeImpl.setup();
     }
 

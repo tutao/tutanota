@@ -13,6 +13,8 @@ import {themeId} from "../gui/theme"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
+import {base64ToUint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
+import {fileApp} from "../native/FileApp"
 
 assertMainOrNode()
 
@@ -163,12 +165,17 @@ export class LoginView {
 			this._requestedPath = this.targetPath
 		}
 
-		let loadedConfigString = client.localStorage() ? localStorage.getItem("config") : null
-		let oldCredentials = loadedConfigString != null ? JSON.parse(loadedConfigString)._credentials || [] : []
+
 		let promise = Promise.resolve()
-		if (oldCredentials.length > 0) {
-			promise = this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
-				.then(() => localStorage.removeItem("config"))
+		if (args.migrateCredentials) {
+			promise =
+				Promise.all([
+					fileApp.readFile("config/tutanota.json").then(fileContents => JSON.parse(utf8Uint8ArrayToString(base64ToUint8Array(fileContents)))),
+					this._viewController
+				])
+					.spread((config, viewController) => viewController.migrateDeviceConfig(config))
+					.then(() => { /* remove file */
+					})
 		}
 		promise.then(() => {
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) || args.userId && deviceConfig.getByUserId(args.userId))) {

@@ -18,6 +18,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -221,6 +223,9 @@ public final class Native {
                     JSONArray addressesArray = args.getJSONArray(0);
                     cancelNotifications(addressesArray);
                     promise.resolve(true);
+                    break;
+                case "readFile":
+                    promise.resolve(Utils.bytesToBase64(Utils.readFile(new File(activity.getFilesDir(), args.getString(0)))));
                     break;
                 default:
                     throw new Exception("unsupported method: " + method);
