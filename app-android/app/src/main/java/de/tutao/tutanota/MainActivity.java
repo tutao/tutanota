@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
         webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         setContentView(webView);
         final String appUrl = getUrl();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.BUILD_TYPE.startsWith("debug")) {
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         WebSettings settings = webView.getSettings();
@@ -284,6 +284,7 @@ public class MainActivity extends Activity {
             return;
         }
         nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
+        startService(PushNotificationService.notificationDismissedIntent(this, address));
     }
 
     @Override

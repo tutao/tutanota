@@ -82,6 +82,13 @@ public final class PushNotificationService extends Service {
         return intent;
     }
 
+
+    public static Intent notificationDismissedIntent(Context context, String emailAddress) {
+        Intent deleteIntent = new Intent(context, PushNotificationService.class);
+        deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddress);
+        return deleteIntent;
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -124,9 +131,9 @@ public final class PushNotificationService extends Service {
         Log.d(TAG, "Received onStartCommand");
 
         if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-            String notificationId = intent.getStringExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
-            if (notificationId != null) {
-                aliasNotification.remove(notificationId);
+            String dissmessAddr = intent.getStringExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
+            if (dissmessAddr != null) {
+                aliasNotification.remove(dissmessAddr);
             }
             return START_STICKY;
         }

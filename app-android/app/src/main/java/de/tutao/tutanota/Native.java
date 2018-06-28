@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
 /**
@@ -251,6 +252,7 @@ public final class Native {
         for (int i = 0; i < addressesArray.length(); i++) {
             //noinspection ConstantConditions
             notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
+            activity.startService(PushNotificationService.notificationDismissedIntent(activity, addressesArray.getString(i)));
         }
     }
 
