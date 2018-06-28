@@ -62,9 +62,8 @@ public class FileUtil {
     }
 
     void delete(final String absolutePath) throws Exception {
-        Context context = activity.getWebView().getContext();
-        File file = Utils.uriToFile(context, absolutePath);
-        if (absolutePath.startsWith(Uri.fromFile(Utils.getDir(context)).toString())) {
+        File file = Utils.uriToFile(activity, absolutePath);
+        if (absolutePath.startsWith(Uri.fromFile(Utils.getDir(activity)).toString())) {
             // we do not delete files that are not stored in our cache dir
             if (!file.delete()) {
                 throw new Exception("could not delete file " + absolutePath);
@@ -80,41 +79,37 @@ public class FileUtil {
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
         final Intent chooser = Intent.createChooser(intent, "Select File");
-        return this.requestStoragePermission().then(new DonePipe<Void, JSONArray, Exception, Void>() {
-            @Override
-            public Promise<JSONArray, Exception, Void> pipeDone(Void result) {
-                return activity.startActivityForResult(chooser).then(new DonePipe<ActivityResult, JSONArray, Exception, Void>() {
-                    @Override
-                    public Promise<JSONArray, Exception, Void> pipeDone(ActivityResult result) {
-                        JSONArray selectedFiles = new JSONArray();
-                        if (result.resultCode == RESULT_OK) {
-                            ClipData clipData = result.data.getClipData();
-                            try {
-                                if (clipData != null) {
-                                    for (int i = 0; i < clipData.getItemCount(); i++) {
-                                        ClipData.Item item = clipData.getItemAt(i);
-                                        selectedFiles.put(uriToFile(activity.getWebView().getContext(), item.getUri()));
+        return this.requestStoragePermission()
+                .then((DonePipe<Void, JSONArray, Exception, Void>) result ->
+                        activity.startActivityForResult(chooser)
+                                .then(new DonePipe<ActivityResult, JSONArray, Exception, Void>() {
+                                    @Override
+                                    public Promise<JSONArray, Exception, Void> pipeDone(ActivityResult result) {
+                                        JSONArray selectedFiles = new JSONArray();
+                                        if (result.resultCode == RESULT_OK) {
+                                            ClipData clipData = result.data.getClipData();
+                                            try {
+                                                if (clipData != null) {
+                                                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                                                        ClipData.Item item = clipData.getItemAt(i);
+                                                        selectedFiles.put(uriToFile(activity.getWebView().getContext(), item.getUri()));
+                                                    }
+                                                } else {
+                                                    Uri uri = result.data.getData();
+                                                    selectedFiles.put(uriToFile(activity.getWebView().getContext(), uri));
+                                                }
+                                            } catch (Exception e) {
+                                                return new DeferredObject<JSONArray, Exception, Void>().reject(e);
+                                            }
+                                        }
+                                        return new DeferredObject<JSONArray, Exception, Void>().resolve(selectedFiles);
                                     }
-                                } else {
-                                    Uri uri = result.data.getData();
-                                    selectedFiles.put(uriToFile(activity.getWebView().getContext(), uri));
-                                }
-                            } catch (Exception e) {
-                                return new DeferredObject<JSONArray, Exception, Void>().reject(e);
-                            }
-                        }
-                        return new DeferredObject<JSONArray, Exception, Void>().resolve(selectedFiles);
-                    }
-                });
-            }
-        });
+                                }));
     }
 
     /**
-     *
-     *
      * @param context
-     * @param uri that starts with content:/ and is not directly accessible as a file
+     * @param uri     that starts with content:/ and is not directly accessible as a file
      * @return a resolved file path
      * @throws Exception if the file does not exist
      */
@@ -132,7 +127,7 @@ public class FileUtil {
 
     // @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
     Promise<Boolean, Exception, Void> openFile(String fileName, String mimeType) {
-        File file = Utils.uriToFile(activity.getWebView().getContext(), fileName);
+        File file = Utils.uriToFile(activity, fileName);
 
         if (file.exists()) {
             Uri path = Uri.parse(fileName);
@@ -143,12 +138,8 @@ public class FileUtil {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(path, getCorrectedMimeType(fileName, mimeType));
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            return activity.startActivityForResult(intent).then(new DoneFilter<ActivityResult, Boolean>() {
-                @Override
-                public Boolean filterDone(ActivityResult result) {
-                    return result.resultCode == RESULT_OK;
-                }
-            });
+            return activity.startActivityForResult(intent)
+                    .then((DoneFilter<ActivityResult, Boolean>) result -> result.resultCode == RESULT_OK);
         } else {
             throw new Error("file does not exist");
         }

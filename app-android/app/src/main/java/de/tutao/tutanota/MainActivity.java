@@ -10,12 +10,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
@@ -58,7 +60,7 @@ public class MainActivity extends Activity {
     public Native nativeImpl = new Native(this);
     boolean firstLoaded = false;
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,19 +98,47 @@ public class MainActivity extends Activity {
             }
         });
 
-        // avoid auto login if launched from notification message
-        String loadUrl = appUrl;
-
         List<String> queryParameters = new ArrayList<>();
 
-        if(new File(getFilesDir(),"config/tutanota.json").exists()) {
-            queryParameters.add("migrateCredentials=true");
-        }
-
+        // If opened from notifications, tell Web app to not login automatically, we will pass
+        // mailbox later when loaded (in handleIntent())
         if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
             queryParameters.add("noAutoLogin=true");
         }
-        this.webView.loadUrl(loadUrl + (queryParameters.isEmpty() ? "" : "?" +TextUtils.join("&", queryParameters)));
+
+        // If the old credentials are present in the file system, pass them as an URL parameter
+        final File oldCredentialsFile = new File(getFilesDir(), "config/tutanota.json");
+        if (oldCredentialsFile.exists()) {
+            new AsyncTask<Void, Void, String>() {
+                @Override
+                @Nullable
+                protected String doInBackground(Void... voids) {
+                    try {
+                        String result = Utils.base64ToBase64Url(
+                                Utils.bytesToBase64(Utils.readFile(oldCredentialsFile)));
+                        oldCredentialsFile.delete();
+                        return result;
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(@Nullable String s) {
+                    if (s != null) {
+                        queryParameters.add("migrateCredentials=" + s);
+                    }
+                    startWebApp(queryParameters);
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            startWebApp(queryParameters);
+        }
+    }
+
+    private void startWebApp(List<String> queryParams) {
+        webView.loadUrl(getUrl() +
+                (queryParams.isEmpty() ? "" : "?" +TextUtils.join("&", queryParams)));
         nativeImpl.setup();
     }
 

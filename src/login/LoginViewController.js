@@ -52,20 +52,21 @@ export class LoginViewController {
 
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
-		return showProgressDialog("loading_msg",
-			worker.initialized.then(() => Promise.each(oldCredentials, c => {
-				return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword).then(userPw => {
-					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false).then(newCredentials => {
-						deviceConfig.set(newCredentials)
-					}).catch(ignored => {
-						// prevent reloading the page by ErrorHandler
-					}).finally(() => {
-						worker.logout(false)
-					})
+		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
+			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
+				.then(userPw => {
+					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+						.then(newCredentials => {
+							deviceConfig.set(newCredentials)
+						})
+						.finally(() => worker.logout(false))
 				})
-			}))).return()
+				.catch(ignored => {
+					console.log(ignored)
+					// prevent reloading the page by ErrorHandler
+				})
+		})).return()
 	}
-
 
 	formLogin(): void {
 		if (this._loginPromise.isPending()) return
@@ -221,12 +222,14 @@ export class LoginViewController {
 	}
 
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
-		return worker.deleteSession(credentials.accessToken)
-			.then(() => {
-				// not authenticated error is caught in worker
-				deviceConfig.delete(credentials.mailAddress)
-				this.view._visibleCredentials = deviceConfig.getAllInternal();
-				m.redraw()
-			})
+		return worker.initialized.then(() => {
+			worker.deleteSession(credentials.accessToken)
+				.then(() => {
+					// not authenticated error is caught in worker
+					deviceConfig.delete(credentials.mailAddress)
+					this.view._visibleCredentials = deviceConfig.getAllInternal();
+					m.redraw()
+				})
+		})
 	}
 }

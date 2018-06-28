@@ -71,7 +71,8 @@ interface IUserController {
 	getMailGroupMemberships(): GroupMembership[];
 	getUserMailGroupMembership(): GroupMembership;
 	getLocalAdminGroupMemberships():GroupMembership[];
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):Promise<void>;
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string,
+						operation: OperationTypeEnum):Promise<void>;
 	deleteSession(sync: boolean):Promise<void>;
 }
 
@@ -80,4 +81,5 @@ interface ILoginViewController {
 	autologin(credentials: Credentials):Promise<IUserController>;
 	deleteCredentialsNotLoggedIn(credentials: Credentials):Promise<void>;
 	migrateDeviceConfig(oldCredentials: Object[]):Promise<void>;
+	migrateDeviceConfigFromApp(): Promise<void>;
 }

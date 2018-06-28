@@ -225,8 +225,16 @@ public final class Native {
                     promise.resolve(true);
                     break;
                 case "readFile":
-                    promise.resolve(Utils.bytesToBase64(Utils.readFile(new File(activity.getFilesDir(), args.getString(0)))));
+                    promise.resolve(Utils.bytesToBase64(
+                            Utils.readFile(new File(activity.getFilesDir(), args.getString(0)))));
                     break;
+                case "writeFile": {
+                    final String filename = args.getString(0);
+                    final String contentInBase64 = args.getString(1);
+                    Utils.writeFile(new File(activity.getFilesDir(), filename), Utils.base64ToBytes(contentInBase64));
+                    promise.resolve(true);
+                    break;
+                }
                 default:
                     throw new Exception("unsupported method: " + method);
             }
