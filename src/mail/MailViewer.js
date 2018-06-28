@@ -332,18 +332,20 @@ export class MailViewer {
 	}
 
 	_updateLineHeight() {
-		if (this._domBody) {
-			const width = this._domBody.offsetWidth
-			if (width > 900) {
-				this._bodyLineHeight = size.line_height_l
-			} else if (width > 600) {
-				this._bodyLineHeight = size.line_height_m
+		requestAnimationFrame(() => {
+			if (this._domBody) {
+				const width = this._domBody.offsetWidth
+				if (width > 900) {
+					this._bodyLineHeight = size.line_height_l
+				} else if (width > 600) {
+					this._bodyLineHeight = size.line_height_m
 
-			} else {
-				this._bodyLineHeight = size.line_height
+				} else {
+					this._bodyLineHeight = size.line_height
+				}
+				m.redraw()
 			}
-			m.redraw()
-		}
+		})
 	}
 
 	_confirmSubmit(event: Event) {

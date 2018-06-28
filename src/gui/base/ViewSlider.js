@@ -60,11 +60,13 @@ export class ViewSlider {
 			const show = () => {
 				this.focusedColumn = this.columns[0]
 				this._busy = this._slideForegroundColumn(this.columns[0], true)
+				this._isModalBackgroundVisible = true
 			}
 
 			const hide = () => {
 				this.focusedColumn = this.columns[1]
 				this._busy = this._slideForegroundColumn(this.columns[0], false)
+				this._isModalBackgroundVisible = false
 			}
 
 			if (velocity > 0.8) {
@@ -111,10 +113,6 @@ export class ViewSlider {
 
 			const gestureInfo = this.lastGestureInfo
 			if (gestureInfo && event.touches.length == 1) {
-				if (!this._isModalBackgroundVisible) {
-					this._isModalBackgroundVisible = true;
-					m.redraw()
-				}
 
 				const newTouchPos = event.touches[0].pageX
 				const sideColRect = sideCol.getBoundingClientRect()
@@ -157,17 +155,19 @@ export class ViewSlider {
 
 	_createModalBackground() {
 		if (this._isModalBackgroundVisible) {
-			return [m(".fill-absolute.z2", {
-				oncreate: (vnode) => {
-					animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5))
-				},
-				onbeforeremove: (vnode) => {
-					return animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0))
-				},
-				onclick: (event: MouseEvent) => {
-					this.focus(this._visibleBackgroundColumns[0])
-				}
-			})]
+			return [
+				m(".fill-absolute.z2", {
+					oncreate: (vnode) => {
+						this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
+					},
+					onbeforeremove: (vnode) => {
+						return this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0)))
+					},
+					onclick: (event: MouseEvent) => {
+						this.focus(this._visibleBackgroundColumns[0])
+					}
+				})
+			]
 		} else {
 			return []
 		}
@@ -280,7 +280,6 @@ export class ViewSlider {
 	 */
 	_slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
 		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset), {
-			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {
 			// replace the visible column
