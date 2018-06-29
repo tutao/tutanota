@@ -27,7 +27,7 @@ class PushServiceApp {
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
 						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-								.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier, logins.getUserController().user._id))
+								.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
 						} else {
 							return Promise.resolve()
 						}
@@ -35,7 +35,7 @@ class PushServiceApp {
 				} else {
 					return worker.generateSsePushIdentifer()
 						.then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-						.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier, logins.getUserController().user._id))
+						.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier, ))
 				}
 			}).then(() => nativeApp.invokeNative(new Request("initPushNotifications", [])))
 		} else {
@@ -44,7 +44,8 @@ class PushServiceApp {
 
 	}
 
-	_storePushIdentifierLocally(identifier: string, userId: Id): Promise<void> {
+	_storePushIdentifierLocally(identifier: string): Promise<void> {
+		const userId = logins.getUserController().user._id
 		return nativeApp.invokeNative(new Request("storePushIdentifierLocally", [identifier, userId, getHttpOrigin()]))
 	}
 

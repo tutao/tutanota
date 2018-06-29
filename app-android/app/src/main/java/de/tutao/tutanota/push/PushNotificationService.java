@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -54,6 +55,7 @@ public final class PushNotificationService extends Service {
     private static final int ONGOING_NOTIFICATION_ID = 342;
     private static final String SSE_INFO_EXTRA = "sseInfo";
     public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
+    public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -61,6 +63,7 @@ public final class PushNotificationService extends Service {
             new AtomicReference<>(null);
     private final Crypto crypto = new Crypto(this);
     private volatile SseInfo connectedSseInfo;
+    private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
 
     private final Map<String, Integer> aliasNotification = new ConcurrentHashMap<>();
@@ -188,8 +191,11 @@ public final class PushNotificationService extends Service {
             httpsURLConnection.setRequestProperty("Accept", "text/event-stream");
             httpsURLConnection.setRequestMethod("GET");
 
+            timeoutInSeconds = PreferenceManager.getDefaultSharedPreferences(this)
+                    .getInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, 30);
             httpsURLConnection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(5));
-            httpsURLConnection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(15));
+            httpsURLConnection.setReadTimeout((int) (TimeUnit.SECONDS.toMillis(timeoutInSeconds) * 1.2));
+
             InputStream inputStream = new BufferedInputStream(httpsURLConnection.getInputStream());
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String event;
@@ -201,6 +207,14 @@ public final class PushNotificationService extends Service {
                 event = event.substring(6);
                 if (event.matches("^[0-9]{1,}$"))
                     continue;
+
+                if (event.startsWith("heartbeatTimeout:")) {
+                     timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
+                    PreferenceManager.getDefaultSharedPreferences(this).edit()
+                            .putInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, timeoutInSeconds).apply();
+                    continue;
+                }
+
                 PushMessage pushMessage;
                 try {
                     pushMessage = PushMessage.fromJson(event);
@@ -274,7 +288,8 @@ public final class PushNotificationService extends Service {
             } catch (IOException e) {
                 // ignore Exception when getting status code.
             }
-            int delay = random.nextInt(15) + 15;
+            int delayBoundary = (int) (timeoutInSeconds * 1.5);
+            int delay = (random.nextInt(timeoutInSeconds) + delayBoundary) / 2;
 
             if (this.hasNetworkConnection()) {
                 Log.e(TAG, "error opening sse, rescheduling after " + delay, ignored);
