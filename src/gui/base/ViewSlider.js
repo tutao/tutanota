@@ -115,7 +115,10 @@ export class ViewSlider {
 				event.touches.length == 1 &&
 				(this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)
 			) {
-				event.stopPropagation()
+				// Only stop propogation while the menu is not yet fully visible
+				if (!this.columns[0].isInForeground) {
+					event.stopPropagation()
+				}
 				this.lastGestureInfo = gestureInfoFromTouch(event.touches[0])
 			}
 		},

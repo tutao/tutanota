@@ -3,7 +3,7 @@ import {styles} from "./styles"
 import {size, px} from "./size"
 import {client} from "../misc/ClientDetector"
 import {position_absolute, positionValue, flex, noselect} from "./mixins"
-import {assertMainOrNodeBoot} from "../api/Env"
+import {assertMainOrNodeBoot, isApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
@@ -201,8 +201,7 @@ styles.registerStyle('main', () => {
 		},
 		'.blue': {'background-color': "#2196F3"},
 
-		'.hover-ul:hover': {'text-decoration': 'underline'},
-
+		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
@@ -503,10 +502,10 @@ styles.registerStyle('main', () => {
 			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 
-		'.nav-button:hover': {
-			'text-decoration': 'underline',
-			opacity: 0.7,
-		},
+		'.nav-button:hover': !isApp() ? {
+				'text-decoration': 'underline',
+				opacity: 0.7,
+			} : {},
 		'.nav-button:focus': client.isDesktopDevice() ? {
 				'text-decoration': 'underline',
 				opacity: 0.7,
