@@ -14,7 +14,7 @@ import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {load, setup, erase, loadAll, update} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType, ContactMergeAction} from "../api/common/TutanotaConstants"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -158,80 +158,92 @@ export class ContactView {
 	}
 
 	createFolderMoreButton() {
-		return createDropDownButton("more_label", () => Icons.More, () => [
-			new Button('importVCard_action', () => {
+		return createDropDownButton("more_label", () => Icons.More, () => this._vcardButtons().concat([
+			new Button("merge_action", () => this._mergeAction(), () => Icons.People).setType(ButtonType.Dropdown)
+		]), 250).setColors(ButtonColors.Nav)
+	}
 
-				fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
-					try {
-						if (contactFiles.length > 0) {
-							let vCardsList = contactFiles.map(contactFile => {
-								let vCardFileData = utf8Uint8ArrayToString(contactFile.data)
-								let vCards = vCardFileToVCards(vCardFileData)
-								if (vCards == null) {
-									throw new Error("no vcards found")
-								} else {
-									return vCards
-								}
-							})
-							return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-								let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
-								let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
-								return LazyContactListId.getAsync().then(contactListId => {
-									let promises = []
-									contactList.forEach((contact) => {
-										promises.push(setup(contactListId, contact))
-									})
-									return Promise.all(promises).then(() => {
-										return promises.length
-									})
-								})
-							}))
+	_vcardButtons(): Button[] {
+		if (isApp()) {
+			return []
+		} else {
+			return [
+				new Button('importVCard_action', () => this._importAsVCard(), () => Icons.ContactImport).setType(ButtonType.Dropdown),
+				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown)
+			]
+		}
+	}
+
+	_importAsVCard() {
+		fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
+			try {
+				if (contactFiles.length > 0) {
+					let vCardsList = contactFiles.map(contactFile => {
+						let vCardFileData = utf8Uint8ArrayToString(contactFile.data)
+						let vCards = vCardFileToVCards(vCardFileData)
+						if (vCards == null) {
+							throw new Error("no vcards found")
+						} else {
+							return vCards
 						}
-					} catch (e) {
-						console.log(e)
-						Dialog.error("importVCardError_msg")
-					}
-				}).then(numberOfContacts => {
-					if (numberOfContacts) {
-						Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
-					}
-				})
-			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
-			new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown),
-			new Button("merge_action", () => {
-				return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
-					return loadAll(ContactTypeRef, contactListId)
-				})).then(allContacts => {
-					if (allContacts.length == 0) {
-						Dialog.error("noContacts_msg")
+					})
+					return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+						let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
+						let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
+						return LazyContactListId.getAsync().then(contactListId => {
+							let promises = []
+							contactList.forEach((contact) => {
+								promises.push(setup(contactListId, contact))
+							})
+							return Promise.all(promises).then(() => {
+								return promises.length
+							})
+						})
+					}))
+				}
+			} catch (e) {
+				console.log(e)
+				Dialog.error("importVCardError_msg")
+			}
+		}).then(numberOfContacts => {
+			if (numberOfContacts) {
+				Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+			}
+		})
+	}
+
+	_mergeAction(): Promise<void> {
+		return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
+			return loadAll(ContactTypeRef, contactListId)
+		})).then(allContacts => {
+			if (allContacts.length == 0) {
+				Dialog.error("noContacts_msg")
+			} else {
+				let mergeableAndDuplicates = getMergeableContacts(allContacts)
+				let deletePromise = Promise.resolve()
+				if (mergeableAndDuplicates.deletable.length > 0) {
+					deletePromise = Dialog.confirm(() => lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length})).then((confirmed) => {
+						if (confirmed) {
+							// delete async in the background
+							mergeableAndDuplicates.deletable.forEach((dc) => {
+								erase(dc)
+							})
+						}
+					})
+				}
+				deletePromise.then(() => {
+					if (mergeableAndDuplicates.mergeable.length == 0) {
+						Dialog.error(() => lang.get("noSimilarContacts_msg"))
 					} else {
-						let mergeableAndDuplicates = getMergeableContacts(allContacts)
-						let deletePromise = Promise.resolve()
-						if (mergeableAndDuplicates.deletable.length > 0) {
-							deletePromise = Dialog.confirm(() => lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length})).then((confirmed) => {
-								if (confirmed) {
-									// delete async in the background
-									mergeableAndDuplicates.deletable.forEach((dc) => {
-										erase(dc)
-									})
-								}
-							})
-						}
-						deletePromise.then(() => {
-							if (mergeableAndDuplicates.mergeable.length == 0) {
-								Dialog.error(() => lang.get("noSimilarContacts_msg"))
-							} else {
-								this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
-									if (!canceled) {
-										Dialog.error(() => lang.get("noMoreSimilarContacts_msg"))
-									}
-								})
+						this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
+							if (!canceled) {
+								Dialog.error(() => lang.get("noMoreSimilarContacts_msg"))
 							}
 						})
 					}
 				})
-			}, () => Icons.People).setType(ButtonType.Dropdown),
-		], 250).setColors(ButtonColors.Nav)
+			}
+		})
 	}
 
 	/**
