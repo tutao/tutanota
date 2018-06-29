@@ -158,6 +158,10 @@ styles.registerStyle('main', () => {
 		'.view-columns': {'overflow-x': 'hidden'},
 		'.overflow-x-hidden': {'overflow-x': 'hidden'},
 
+		'.view-column': {'will-change': 'transform'},
+
+		'.will-change-alpha': {'will-change': 'alpha'},
+
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 

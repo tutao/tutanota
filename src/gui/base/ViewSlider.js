@@ -11,6 +11,14 @@ import {assertMainOrNode} from "../../api/Env"
 
 assertMainOrNode()
 
+type GestureInfo = {
+	x: number,
+	time: number,
+	identifier: number
+}
+
+const gestureInfoFromTouch = (touch: Touch) => ({x: touch.pageX, time: Date.now(), identifier: touch.identifier})
+
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
@@ -26,8 +34,8 @@ export class ViewSlider {
 	_busy: Promise<void>;
 	_parentName: string
 	_isModalBackgroundVisible: boolean
-	lastGestureInfo: ?{x:number, time:number}
-	oldGestureInfo: ?{x:number, time:number}
+	lastGestureInfo: ?GestureInfo
+	oldGestureInfo: ?GestureInfo
 
 	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
 	oncreate = () => {
@@ -80,10 +88,13 @@ export class ViewSlider {
 					hide()
 				}
 			}
-			this.lastGestureInfo = null
-			this.oldGestureInfo = null
 
 			this._busy.then(() => m.redraw())
+		}
+
+		if (gestureInfo && gestureInfo.identifier === event.changedTouches[0].identifier) {
+			this.lastGestureInfo = null
+			this.oldGestureInfo = null
 		}
 	}
 
@@ -100,9 +111,12 @@ export class ViewSlider {
 				return
 			}
 			const colRect = mainCol.getBoundingClientRect()
-			if (event.touches.length == 1 && (this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)) {
+			if (
+				event.touches.length == 1 &&
+				(this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)
+			) {
 				event.stopPropagation()
-				this.lastGestureInfo = {x: event.touches[0].pageX, time: Date.now()}
+				this.lastGestureInfo = gestureInfoFromTouch(event.touches[0])
 			}
 		},
 		touchmove: (event: any) => {
@@ -113,13 +127,13 @@ export class ViewSlider {
 
 			const gestureInfo = this.lastGestureInfo
 			if (gestureInfo && event.touches.length == 1) {
-
-				const newTouchPos = event.touches[0].pageX
+				const touch = event.touches[0]
+				const newTouchPos = touch.pageX
 				const sideColRect = sideCol.getBoundingClientRect()
 				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos), sideColRect.width)
 				sideCol.style.transform = `translateX(${newTranslate}px)`
 				this.oldGestureInfo = this.lastGestureInfo
-				this.lastGestureInfo = {x: event.touches[0].pageX, time: Date.now()}
+				this.lastGestureInfo = gestureInfoFromTouch(touch)
 				event.stopPropagation()
 			}
 		},
@@ -156,7 +170,7 @@ export class ViewSlider {
 	_createModalBackground() {
 		if (this._isModalBackgroundVisible) {
 			return [
-				m(".fill-absolute.z2", {
+				m(".fill-absolute.z2.will-change-alpha", {
 					oncreate: (vnode) => {
 						this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
 					},
