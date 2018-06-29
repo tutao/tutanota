@@ -188,10 +188,8 @@ export class ViewSlider {
 	}
 
 	_updateVisibleBackgroundColumns() {
-		this.focusedColumn.isInForeground = false
-		this._isModalBackgroundVisible = false
-		this.focusedColumn = this._mainColumn
-		let visibleColumns: ViewColumn[] = [this._mainColumn]
+		this.focusedColumn = this.focusedColumn || this._mainColumn
+		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType == ColumnType.Background ? this.focusedColumn : this._mainColumn)]
 		let remainingSpace = window.innerWidth - this._mainColumn.minWidth
 
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.columns)
@@ -209,6 +207,15 @@ export class ViewSlider {
 		this.updateOffsets(this.columns)
 
 		this._visibleBackgroundColumns = visibleColumns
+
+		if (this.allColumnsVisible()) {
+			this.focusedColumn.isInForeground = false
+			this._isModalBackgroundVisible = false
+			if (this.columns[0]._domColumn) {
+				this.columns[0]._domColumn.style.transform = ''
+			}
+		}
+
 		window.requestAnimationFrame(() => m.redraw())
 	}
 
