@@ -55,6 +55,7 @@ export class List<T, R:VirtualRow<T>> {
 	_domSwipeSpacerLeft: HTMLElement;
 	_domSwipeSpacerRight: HTMLElement;
 	_domLoadingRow: HTMLElement;
+	_domSpinner: HTMLElement;
 
 	ready: boolean;
 	view: Function;
@@ -177,10 +178,16 @@ export class List<T, R:VirtualRow<T>> {
 							}, virtualRow.render())
 						}),
 						// odd-row is switched directly on the dom element when the number of elements changes
-						m("li.list-loading.list-row.flex-center.items-center.odd-row", {
-							oncreate: (vnode) => this._domLoadingRow = vnode.dom,
-							style: {display: this._loadedCompletely ? 'none' : null}
-						}, progressIcon())
+						m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
+								oncreate: (vnode) => this._domLoadingRow = vnode.dom,
+							},
+							m("", {
+								oncreate: (vnode) => {
+									this._domSpinner = vnode.dom
+									this._domSpinner.style.display = 'none'
+								}
+							}, progressIcon())
+						)
 
 					]
 				),
@@ -421,17 +428,21 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this._loading = this._config.fetch(startId, count).then((newItems: T[]) => {
-			if (newItems.length < count) this.setLoadedCompletely()
-			for (let i = 0; i < newItems.length; i++) {
-				this._loadedEntities[start + i] = newItems[i]
-			}
-			this._loadedEntities.sort(this._config.sortCompare)
-		}).finally(() => {
-			if (this.ready) {
-				this._reposition()
-			}
-		})
+		this._displaySpinner(this._loadedEntities.length == 0)
+		this._loading = this._config.fetch(startId, count)
+			.then((newItems: T[]) => {
+				if (newItems.length < count) this.setLoadedCompletely()
+				for (let i = 0; i < newItems.length; i++) {
+					this._loadedEntities[start + i] = newItems[i]
+				}
+				this._loadedEntities.sort(this._config.sortCompare)
+			}).finally(() => {
+				// this._showSpinner = false
+				this._domSpinner.style.display = 'none'
+				if (this.ready) {
+					this._reposition()
+				}
+			})
 		return neverNull(this._loading)
 	}
 
@@ -446,6 +457,15 @@ export class List<T, R:VirtualRow<T>> {
 			this._domLoadingRow.style.display = 'none'
 		})
 	}
+
+	_displaySpinner(delayed: boolean = true) {
+		setTimeout(() => {
+			if (!this._loading.isFulfilled()) {
+				this._domSpinner.style.display = ''
+			}
+		}, delayed ? DefaultAnimationTime : 5)
+	}
+
 
 	/**
 	 *  updates the virtual elements that belong to the list entries between start and start + count
@@ -487,7 +507,6 @@ export class List<T, R:VirtualRow<T>> {
 				this.ready = true
 				if (client.isTouchSupported()) {
 					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
-					this.initBackground()
 				}
 			})
 		})
@@ -668,21 +687,6 @@ export class List<T, R:VirtualRow<T>> {
 		if (this._domStatus.speed) this._domStatus.speed.textContent = status.speed + ''
 		if (this._domStatus.scrollDiff) this._domStatus.scrollDiff.textContent = status.scrollDiff + ''
 		if (this._domStatus.timeDiff) this._domStatus.timeDiff.textContent = status.timeDiff + ''
-	}
-
-
-	initBackground() {
-		let styles = [document.getElementById("css-main")].map(function (style) {
-			return '<style>' + neverNull(style).innerHTML + '</style>'
-		})
-		let height = this._virtualList.length * this._config.rowHeight
-		let namespace = neverNull(neverNull(document.documentElement).namespaceURI)
-		let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + this._width + '" height="' + height + '">' +
-			'<foreignObject width="100%" height="100%"><div xmlns="' + namespace + '">' + this._domListContainer.innerHTML + '</div>' + styles.join('') +
-			'</foreignObject>' +
-			'</svg>'
-		let html = 'data:image/svg+xml,' + encodeURIComponent(svg.replace(/\r?\n|\r/g, ''))
-		this._domList.style.backgroundImage = 'url("' + html + '")';
 	}
 
 	/**
