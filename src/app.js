@@ -54,7 +54,12 @@ if (location.origin.indexOf("localhost") != -1) {
 	origin += "/client/build/index"
 }
 if (navigator.registerProtocolHandler) {
-	navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
+	try {
+		navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
+	} catch (e) {
+		// Catch SecurityError's and some other cases when we are not allowed to register a handler
+		console.log("Failed to register a mailto: protocol handler ", e)
+	}
 }
 
 let initialized = lang.init(en).then(() => {
