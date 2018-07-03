@@ -4,7 +4,11 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.app.job.JobService;
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -41,7 +45,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.push.PeriodicJobRestartService;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -138,7 +144,7 @@ public class MainActivity extends Activity {
 
     private void startWebApp(List<String> queryParams) {
         webView.loadUrl(getUrl() +
-                (queryParams.isEmpty() ? "" : "?" +TextUtils.join("&", queryParams)));
+                (queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
         nativeImpl.setup();
     }
 
@@ -247,6 +253,13 @@ public class MainActivity extends Activity {
     void setupPushNotifications() {
         startService(PushNotificationService.startIntent(this,
                 new SseStorage(this).getSseInfo()));
+
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        //noinspection ConstantConditions
+        jobScheduler.schedule(
+                new JobInfo.Builder(1, new ComponentName(this, PeriodicJobRestartService.class))
+                        .setPeriodic(TimeUnit.MINUTES.toMillis(15))
+                        .setPersisted(true).build());
     }
 
     /**
