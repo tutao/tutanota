@@ -23,8 +23,7 @@ export const ScrollBuffer = 15 // virtual elements that are used as scroll buffe
 const PageSize = 100
 
 /**
- * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists. The
- * virtual list is rendered as svg background on mobile devices for providing a native scrolling experience.
+ * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists.
  *
  * Generics:
  * * T is the type of the entity

@@ -456,11 +456,11 @@ styles.registerStyle('main', () => {
 
 		// list
 		'.list': {
-			'background-repeat': 'repeat-y',
 			overflow: 'hidden',
 			'list-style': 'none',
 			margin: 0,
 			padding: 0,
+			'background': `repeating-linear-gradient(to bottom, ${theme.list_alternate_bg}, ${theme.list_alternate_bg} ${px(size.list_row_height)},  ${theme.list_bg} ${px(size.list_row_height)}, ${theme.list_bg} ${px(size.list_row_height * 2)})`
 		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
