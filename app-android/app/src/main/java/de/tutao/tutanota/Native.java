@@ -65,7 +65,7 @@ public final class Native {
      * @throws JSONException
      */
     @JavascriptInterface
-    public void invoke(final String msg) throws JSONException {
+    public void invoke(final String msg) {
         new Thread(() -> {
             try {
                 final JSONObject request = new JSONObject(msg);
@@ -236,6 +236,9 @@ public final class Native {
                     promise.resolve(true);
                     break;
                 }
+                case "changeTheme":
+                    activity.changeTheme(args.getString(0));
+                    break;
                 default:
                     throw new Exception("unsupported method: " + method);
             }

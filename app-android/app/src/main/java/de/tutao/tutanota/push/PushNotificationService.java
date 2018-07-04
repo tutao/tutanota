@@ -262,6 +262,8 @@ public final class PushNotificationService extends Service {
                                     notificationId,
                                     openMailboxIntent,
                                     PendingIntent.FLAG_UPDATE_CURRENT))
+                            .setColor(getResources().getColor(R.color.colorPrimary))
+                            .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000)
                             .setAutoCancel(true);
 
                     if (i == 0) {

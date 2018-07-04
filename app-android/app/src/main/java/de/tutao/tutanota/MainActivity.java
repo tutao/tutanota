@@ -54,13 +54,13 @@ import de.tutao.tutanota.push.SseStorage;
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
+    public static final String THEME_PREF = "theme";
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
     private static int requestId = 0;
     private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
     public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
     public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
     public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
-
 
     private WebView webView;
     public Native nativeImpl = new Native(this);
@@ -69,6 +69,9 @@ public class MainActivity extends Activity {
     @SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
+                        .getString(THEME_PREF, "light"));
+
         super.onCreate(savedInstanceState);
 
         this.setupPushNotifications();
@@ -172,6 +175,32 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         webView.saveState(outState);
+    }
+
+    public void changeTheme(String themeName) {
+        runOnUiThread(() -> doChangeTheme(themeName));
+    }
+
+    private void doChangeTheme(String themeName) {
+        int elemsColor;
+        int backgroundRes;
+        switch (themeName) {
+            case "dark":
+                elemsColor = R.color.colorPrimaryDark;
+                backgroundRes = R.drawable.splash_background_dark;
+                break;
+            default:
+                elemsColor = R.color.colorPrimary;
+                backgroundRes = R.drawable.splash_background;
+        }
+        int colorInt = getResources().getColor(elemsColor);
+        getWindow().setNavigationBarColor(colorInt);
+        getWindow().setStatusBarColor(colorInt);
+        getWindow().setBackgroundDrawableResource(backgroundRes);
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putString(THEME_PREF, themeName)
+                .apply();
     }
 
     public void askBatteryOptinmizationsIfNeeded() {

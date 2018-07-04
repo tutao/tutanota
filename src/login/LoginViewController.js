@@ -29,6 +29,8 @@ import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
+import {themeId} from "../gui/theme"
+import {changeColorTheme} from "../native/SystemApp"
 
 assertMainOrNode()
 
@@ -39,6 +41,12 @@ export class LoginViewController {
 	constructor(view: LoginView) {
 		this.view = view;
 		this._loginPromise = Promise.resolve()
+
+		worker.initialized.then(() => {
+			themeId.map((theme) => {
+				changeColorTheme(theme)
+			})
+		})
 	}
 
 	autologin(credentials: Credentials): void {
