@@ -289,7 +289,7 @@ export class MailViewer {
 							m("hr.hr.mt.mb"),
 						]),
 
-						m(".body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), { // set .rel and .overflow-hidden to avoid that nested elements can overlay the header using position: absolute
+						m(".body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
