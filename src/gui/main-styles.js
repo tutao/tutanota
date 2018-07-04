@@ -218,6 +218,11 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
 		},
+		'.scroll-x': {
+			'overflow-x': 'auto',
+			'-webkit-overflow-scrolling': 'touch',
+			'-ms-overflow-style': '-ms-autohiding-scrollbar',
+		},
 		'.center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
 		'.left': {'text-align': 'left'},

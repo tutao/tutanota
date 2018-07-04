@@ -67,6 +67,7 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
+import {client} from "../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -262,10 +263,10 @@ export class MailViewer {
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
 			return [
-				m("#mail-viewer.fill-absolute.scroll.plr-l.pb-floating", {
+				m("#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll" : ".flex.flex-column"), {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
-						m(".header", [
+						m(".header.plr-l", [
 							m(".flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
 									m("small.flex.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
@@ -288,7 +289,7 @@ export class MailViewer {
 							m("hr.hr.mt.mb"),
 						]),
 
-						m(".body.rel.overflow-hidden", { // set .rel and .overflow-hidden to avoid that nested elements can overlay the header using position: absolute
+						m(".body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), { // set .rel and .overflow-hidden to avoid that nested elements can overlay the header using position: absolute
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
