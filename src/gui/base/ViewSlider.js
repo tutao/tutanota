@@ -193,7 +193,7 @@ export class ViewSlider {
 	_updateVisibleBackgroundColumns() {
 		this.focusedColumn = this.focusedColumn || this._mainColumn
 		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType == ColumnType.Background ? this.focusedColumn : this._mainColumn)]
-		let remainingSpace = window.innerWidth - this._mainColumn.minWidth
+		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
 
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.columns)
 		while (nextVisibleColumn && remainingSpace >= nextVisibleColumn.minWidth) {
