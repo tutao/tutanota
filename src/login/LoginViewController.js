@@ -11,7 +11,7 @@ import {
 	NotFoundError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode, isAdmin} from "../api/Env"
+import {Mode, assertMainOrNode, isAdmin, isApp} from "../api/Env"
 import {Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -42,11 +42,14 @@ export class LoginViewController {
 		this.view = view;
 		this._loginPromise = Promise.resolve()
 
-		worker.initialized.then(() => {
-			themeId.map((theme) => {
-				changeColorTheme(theme)
+		if (isApp()) {
+			worker.initialized.then(() => {
+
+				themeId.map((theme) => {
+					changeColorTheme(theme)
+				})
 			})
-		})
+		}
 	}
 
 	autologin(credentials: Credentials): void {

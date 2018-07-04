@@ -194,7 +194,6 @@ public class MainActivity extends Activity {
                 backgroundRes = R.drawable.splash_background;
         }
         int colorInt = getResources().getColor(elemsColor);
-        getWindow().setNavigationBarColor(colorInt);
         getWindow().setStatusBarColor(colorInt);
         getWindow().setBackgroundDrawableResource(backgroundRes);
         PreferenceManager.getDefaultSharedPreferences(this)
