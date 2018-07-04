@@ -151,7 +151,8 @@ export class SettingsView {
 	updateUrl(args: Object) {
 		if (!args.folder) {
 			this._setUrl(this._userFolders[0].url)
-		} else if (args.folder && this._selectedFolder.path != args.folder) {
+		} else if (args.folder && this._selectedFolder.path != args.folder
+			|| !m.route.get().startsWith("/settings")) { // ensure that current viewer will be reinitialized
 			let folder = this._userFolders.find(f => f.path == args.folder)
 			if (!folder && logins.getUserController().isGlobalOrLocalAdmin()) {
 				folder = this._adminFolders.find(f => f.path == args.folder)
