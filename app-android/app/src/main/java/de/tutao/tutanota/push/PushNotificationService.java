@@ -161,7 +161,7 @@ public final class PushNotificationService extends Service {
             this.reschedule(0);
         } else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
             Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
-            connection.disconnect();
+            confirmationThreadPool.execute(connection::disconnect);
         } else {
             Log.d(TAG, "ConnectionRef available, do nothing");
         }
