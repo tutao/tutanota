@@ -240,13 +240,13 @@ public class MainActivity extends Activity {
     }
 
     Promise<Void, Exception, Void> getPermission(String permission) {
-        Deferred p = new DeferredObject();
+        Deferred<Void, Exception, Void> p = new DeferredObject<>();
         if (hasPermission(permission)) {
             p.resolve(null);
         } else {
             int requestCode = getRequestCode();
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
             requests.put(requestCode, p);
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
         }
         return p;
     }

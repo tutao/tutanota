@@ -39,29 +39,27 @@ public class Contact {
 
 
     public Promise<JSONArray, Exception, Void> findSuggestions(String queryString) {
-        final String query ="%" + queryString + "%";
-        return requestContactsPermission().then(new DoneFilter<Void, JSONArray>() {
-            @Override
-            public JSONArray filterDone(Void nothing) {
-                ContentResolver cr = activity.getApplicationContext().getContentResolver();
-                String selection = Email.ADDRESS + " LIKE ? OR " + Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?";
-                Cursor cursor = cr.query(Email.CONTENT_URI, PROJECTION, selection, new String[]{query, query}, Contacts.DISPLAY_NAME_PRIMARY + " ASC ");
-                JSONArray result = new JSONArray();
-                try {
-                    while (cursor.moveToNext()) {
-                        JSONObject c = new JSONObject();
-                        c.put("name", cursor.getString(1));
-                        c.put("mailAddress", cursor.getString(2));
-                        result.put(c);
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    cursor.close();
+        final String query = "%" + queryString + "%";
+        return requestContactsPermission().then((DoneFilter<Void, JSONArray>) nothing -> {
+            ContentResolver cr = activity.getApplicationContext().getContentResolver();
+            String selection = Email.ADDRESS + " LIKE ? OR " + Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?";
+            Cursor cursor = cr.query(Email.CONTENT_URI, PROJECTION, selection, new String[]{query, query}, Contacts.DISPLAY_NAME_PRIMARY + " ASC ");
+            JSONArray result = new JSONArray();
+            if (cursor == null) return result;
+            try {
+                while (cursor.moveToNext()) {
+                    JSONObject c = new JSONObject();
+                    c.put("name", cursor.getString(1));
+                    c.put("mailAddress", cursor.getString(2));
+                    result.put(c);
                 }
-
-                return result;
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            } finally {
+                cursor.close();
             }
+
+            return result;
         });
     }
 }
