@@ -163,7 +163,7 @@ export class List<T, R:VirtualRow<T>> {
 						width: px(this._width),
 					}
 				}, this._config.swipe.renderRightSpacer()),
-				m("ul.list.fill-absolute.click", {
+				m("ul.list.list-alternate-background.fill-absolute.click", {
 						oncreate: (vnode) => this._setDomList(vnode.dom),
 						style: {height: this._calculateListHeight()},
 						className: this._config.className
