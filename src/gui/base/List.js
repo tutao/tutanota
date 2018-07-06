@@ -437,8 +437,8 @@ export class List<T, R:VirtualRow<T>> {
 				this._loadedEntities.sort(this._config.sortCompare)
 			}).finally(() => {
 				// this._showSpinner = false
-				this._domSpinner.style.display = 'none'
 				if (this.ready) {
+					this._domSpinner.style.display = 'none'
 					this._reposition()
 				}
 			})
