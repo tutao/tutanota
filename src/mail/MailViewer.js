@@ -289,7 +289,7 @@ export class MailViewer {
 							m("hr.hr.mt.mb"),
 						]),
 
-						m(".body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), {
+						m("#mail-body.body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()

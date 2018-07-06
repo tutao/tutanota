@@ -715,6 +715,9 @@ styles.registerStyle('main', () => {
 				top: 0,
 				position: "static !important"
 			},
+			".dropdown-panel": {
+				display: 'none'
+			},
 			".fill-absolute": {
 				position: "static !important"
 			},
@@ -729,6 +732,10 @@ styles.registerStyle('main', () => {
 				width: "100% !important",
 			},
 			"#mail-viewer": {
+				overflow: "visible",
+				display: "block"
+			},
+			"#mail-body": {
 				overflow: "visible"
 			},
 			".dialog-header": {
