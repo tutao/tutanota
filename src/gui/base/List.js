@@ -491,24 +491,31 @@ export class List<T, R:VirtualRow<T>> {
 		return e
 	}
 
+	_doRender() {
+		m.redraw()
+		window.requestAnimationFrame(() => {
+			this._domInitialized.resolve()
+			this._domList.style.height = this._calculateListHeight()
+			this._reposition()
+			this.ready = true
+			if (client.isTouchSupported()) {
+				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
+			}
+		})
+	}
+
 	_init(domElement: HTMLElement) {
 		this._domListContainer = domElement
 
 		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 		this._createVirtualElements()
-		window.requestAnimationFrame(() => {
-			m.redraw()
-			window.requestAnimationFrame(() => {
-				this._domInitialized.resolve()
-				this._domList.style.height = this._calculateListHeight()
-				this._reposition()
-				this.ready = true
-				if (client.isTouchSupported()) {
-					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
-				}
-			})
-		})
+
+		if (client.isMobileDevice()) {
+			window.setTimeout(() => this._doRender(), 200)
+		} else {
+			window.requestAnimationFrame(() => this._doRender())
+		}
 	}
 
 	_setDomList(domElement: HTMLElement) {

@@ -25,6 +25,7 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -125,8 +126,13 @@ export class MailListView {
 			}
 		})
 	}
+}
 
-
+const iconGlyphs = {
+	reply: "\uf4c7",
+	forward: "\uf499",
+	confidential: "\uf31d",
+	attach: "\uf28e"
 }
 
 export class MailRow {
@@ -136,11 +142,7 @@ export class MailRow {
 	_domSubject: HTMLElement;
 	_domSender: HTMLElement;
 	_domDate: HTMLElement;
-	_domReplyIcon: HTMLElement;
-	_domForwardIcon: HTMLElement;
-	_domAttachmentIcon: HTMLElement;
-	_domLockIcon: HTMLElement;
-	_domErrorIcon: HTMLElement;
+	_iconsDom: HTMLElement;
 	_showFolderIcon: boolean;
 	_domFolderIcons: {[key:MailFolderTypeEnum]:HTMLElement};
 
@@ -167,34 +169,7 @@ export class MailRow {
 			this.domElement.classList.remove("row-selected")
 		}
 
-		if (mail.replyType === ReplyType.NONE) {
-			this._domReplyIcon.style.display = 'none'
-			this._domForwardIcon.style.display = 'none'
-		} else if (mail.replyType === ReplyType.REPLY) {
-			this._domReplyIcon.style.display = ''  // initial value, "initial" does not work in IE
-			this._domForwardIcon.style.display = 'none'
-		} else if (mail.replyType === ReplyType.FORWARD) {
-			this._domReplyIcon.style.display = 'none'
-			this._domForwardIcon.style.display = ''
-		} else if (mail.replyType === ReplyType.REPLY_FORWARD) {
-			this._domReplyIcon.style.display = ''
-			this._domForwardIcon.style.display = ''
-		}
-		if (mail.confidential) {
-			this._domLockIcon.style.display = ''
-		} else {
-			this._domLockIcon.style.display = 'none'
-		}
-		if (mail.attachments.length > 0) {
-			this._domAttachmentIcon.style.display = ''
-		} else {
-			this._domAttachmentIcon.style.display = 'none'
-		}
-		if (mail._errors) {
-			this._domErrorIcon.style.display = ''
-		} else {
-			this._domErrorIcon.style.display = 'none'
-		}
+		this._iconsDom.textContent = this._iconsText(mail)
 
 		this._domDate.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
 		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
@@ -217,18 +192,41 @@ export class MailRow {
 		}
 	}
 
+	_iconsText(mail: Mail): string {
+		let iconText = mail._errors ? "\uf268" : "";
+		switch (mail.replyType) {
+			case ReplyType.REPLY:
+				iconText += iconGlyphs.reply
+				break
+			case ReplyType.FORWARD:
+				iconText += iconGlyphs.forward
+				break
+			case ReplyType.REPLY_FORWARD:
+				iconText += iconGlyphs.reply
+				iconText += iconGlyphs.forward
+				break
+		}
+		if (mail.confidential) {
+			iconText += iconGlyphs.confidential
+		}
+		if (mail.attachments.length > 0) {
+			iconText += iconGlyphs.attach
+		}
+		return iconText
+	}
+
 	/**
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		let elements = [
+		return [
 			m(".top.flex-space-between", [
 				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
 				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
 			]),
 			m(".bottom.flex-space-between", [
 					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-					m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, // 3px to neutralize the svg icons internal border border
+					m(".flex-fixed", {style: {"margin-right": "-8px"}},
 						(this._showFolderIcon ? Object.keys(MailFolderType).map(folderTypeKey => {
 								return m(Icon, {
 									icon: getFolderIconByType(MailFolderType[folderTypeKey])(),
@@ -237,41 +235,18 @@ export class MailRow {
 									oncreate: (vnode) => this._domFolderIcons[MailFolderType[folderTypeKey]] = vnode.dom,
 								})
 							}) : []).concat([
-							m(Icon, {
-								icon: Icons.Warning,
-								class: "svg-list-accent-fg",
-								style: {display: 'none'},
-								title: lang.get("corrupted_msg"),
-								oncreate: (vnode) => this._domErrorIcon = vnode.dom,
-							}),
-							m(Icon, {
-								icon: Icons.Reply,
-								class: "svg-list-accent-fg",
-								style: {display: 'none'},
-								oncreate: (vnode) => this._domReplyIcon = vnode.dom,
-							}),
-							m(Icon, {
-								icon: Icons.Forward,
-								class: "svg-list-accent-fg",
-								style: {display: 'none'},
-								oncreate: (vnode) => this._domForwardIcon = vnode.dom,
-							}),
-							m(Icon, {
-								icon: Icons.Attachment,
-								class: "svg-list-accent-fg",
-								style: {display: 'none'},
-								oncreate: (vnode) => this._domAttachmentIcon = vnode.dom,
-							}),
-							m(Icon, {
-								icon: Icons.Lock,
-								class: "svg-list-accent-fg",
-								style: {display: 'none'},
-								oncreate: (vnode) => this._domLockIcon = vnode.dom,
-							}),
-						]))
+							m("span.ion", {
+								style: {
+									color: theme.content_accent,
+									"letter-spacing": "8px",
+									"text-align": "right"
+								},
+								oncreate: (vnode) => this._iconsDom = vnode.dom
+							})
+						])
+					)
 				]
 			)
 		]
-		return elements
 	}
 }

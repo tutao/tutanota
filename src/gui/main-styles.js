@@ -10,6 +10,13 @@ assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
+		"@font-face": {
+			"font-family": "'Ionicons'",
+			"src": "url('images/ionicons.ttf') format('truetype')",
+			"font-weight": "normal",
+			"font-style": "normal"
+		},
+
 		/*
 		 Box Sizing
 		 */
@@ -757,5 +764,18 @@ styles.registerStyle('main', () => {
 		"input:-webkit-autofill": {"animation-name": "onAutoFillStart",},
 		"input:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
 
+		".ion": {
+			"display": "inline-block",
+			"font-family": "'Ionicons'",
+			"speak": "none",
+			"font-style": "normal",
+			"font-weight": "normal",
+			"font-variant": "normal",
+			"text-transform": "none",
+			"text-rendering": "auto",
+			"line-height": "1",
+			"-webkit-font-smoothing": "antialiased",
+			"-moz-osx-font-smoothing": "grayscale",
+		},
 	}
 })
