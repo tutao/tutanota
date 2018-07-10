@@ -1,6 +1,5 @@
-import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {compareContacts, formatNewBirthday} from "../../../src/contacts/ContactUtils"
+import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
@@ -75,19 +74,19 @@ o.spec("ContactUtilsTest", function () {
 		bday.month = "10"
 		bday.year = "2009"
 
-		o(formatNewBirthday(bday)).equals("10/12/2009")
+		o(formatBirthdayNumeric(bday)).equals("10/12/2009")
 
 		bday.day = "9"
 		bday.month = "07"
 		bday.year = null
 
-		o(formatNewBirthday(bday)).equals("7/9")
+		o(formatBirthdayNumeric(bday)).equals("7/9")
 
 		bday.day = "09"
 		bday.month = "7"
 		bday.year = null
 
-		o(formatNewBirthday(bday)).equals("7/9")
+		o(formatBirthdayNumeric(bday)).equals("7/9")
 	})
 
 })

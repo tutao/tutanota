@@ -13,7 +13,7 @@ import {
 	getContactAddressTypeLabel,
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel,
-	formatNewBirthday
+	formatBirthdayNumeric
 } from "./ContactUtils"
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
@@ -106,7 +106,7 @@ export class ContactMergeView {
 		let nicknameFields = this._createTextFields(this.contact1.nickname, this.contact2.nickname, "nickname_placeholder")
 		let companyFields = this._createTextFields(this.contact1.company, this.contact2.company, "company_label")
 		let roleFields = this._createTextFields(this.contact1.role, this.contact2.role, "role_placeholder")
-		let birthdayFields = this._createTextFields(this.contact1.birthday ? formatNewBirthday(this.contact1.birthday) : "", this.contact2.birthday ? formatNewBirthday(this.contact2.birthday) : "", "birthday_alt")
+		let birthdayFields = this._createTextFields(this.contact1.birthday ? formatBirthdayNumeric(this.contact1.birthday) : "", this.contact2.birthday ? formatBirthdayNumeric(this.contact2.birthday) : "", "birthday_alt")
 		let presharedPasswordFields = this._createTextFields(this.contact1.presharedPassword && this.contact1.presharedPassword.length > 0 ? "***" : "", this.contact2.presharedPassword && this.contact2.presharedPassword.length > 0 ? "***" : "", "presharedPassword_label")
 
 		let comment1Field = null

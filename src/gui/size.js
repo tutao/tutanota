@@ -17,6 +17,7 @@ export const size = {
 	vpad_xs: 3,
 	vpad: 16,
 	vpad_small: 8,
+	vpad_ml:25,
 	vpad_large: 32,
 	vpad_xl: 48,
 

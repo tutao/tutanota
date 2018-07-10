@@ -3,7 +3,12 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
-import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
+import {
+	getContactAddressTypeLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactSocialTypeLabel,
+	formatBirthdayWithMonthName
+} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
 import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
@@ -18,8 +23,6 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
-import {birthdayToOldBirthday} from "./ContactMergeUtils"
-import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -40,6 +43,7 @@ function insertBetween(array: any[], spacer: Object) {
 export class ContactViewer {
 	view: Function;
 	contact: Contact;
+	contactAppellation: string;
 	mailAddresses: TextField[];
 	phones: TextField[];
 	addresses: TextField[];
@@ -53,7 +57,10 @@ export class ContactViewer {
 		let actions = new ActionBar()
 			.add(new Button('edit_action', () => this.edit(), () => Icons.Edit))
 			.add(new Button('delete_action', () => this.delete(), () => Icons.Trash))
-
+		let title = this.contact.title ? this.contact.title + " " : ""
+		let nickname = (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")
+		let fullName = this.contact.firstName + " " + this.contact.lastName
+		this.contactAppellation = (title + fullName + nickname).trim()
 		this.mailAddresses = this.contact.mailAddresses.map(element => {
 			let textField = new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
 				.setValue(element.address)
@@ -98,17 +105,24 @@ export class ContactViewer {
 		this.view = () => {
 			return [
 				m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating", [
-					m(".flex-space-between.pt", [
-						m(".h2", (this.contact.title ? this.contact.title : "") + " " + this.contact.firstName + " " + this.contact.lastName + (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")),
-						m(actions),
+					m(".header.pt-ml", [
+						m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
+							m(".left.flex-grow-shrink-150", [
+								m(".flex-wrap", [
+									m(".h2", this.contactAppellation),
+								]),
+								m(".flex-wrap", insertBetween([
+										this.contact.company ? m("span.company", this.contact.company) : null,
+										this.contact.role ? m("span.title", this.contact.role) : null,
+										m("span.birthday", this._formatBirthday())], m("span", " | ")
+									)
+								)]),
+							m(".action-bar.align-self-end", [//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
+								m(actions)
+							]),
+						]),
+						m("hr.hr.mt.mb"),
 					]),
-					insertBetween([
-							this.contact.company ? m("span.company", this.contact.company) : null,
-							this.contact.role ? m("span.title", this.contact.role) : null,
-							m("span.birthday", this._formatBirthday())
-						], m("span", " | ")
-					),
-					m("hr.hr.mt-l"),
 
 					this.mailAddresses.length > 0 || this.phones.length > 0 ? m(".wrapping-row", [
 							m(".mail.mt-l", this.mailAddresses.length > 0 ? [
@@ -225,11 +239,7 @@ export class ContactViewer {
 
 	_formatBirthday(): string {
 		if (this.contact.birthday) {
-			if (this.contact.birthday.year) {
-				return formatDateWithMonth(birthdayToOldBirthday(this.contact.birthday))
-			} else {
-				return lang.formats.dateWithoutYear.format(new Date(Number(2011), Number(neverNull(this.contact.birthday).month) - 1, Number(neverNull(this.contact.birthday).day)))
-			}
+			return formatBirthdayWithMonthName(this.contact.birthday)
 		} else {
 			if (this.contact.oldBirthday) {
 				return formatDateWithMonth((this.contact.oldBirthday))

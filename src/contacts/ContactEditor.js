@@ -14,7 +14,7 @@ import {
 	ContactPhoneNumberTypeToLabel,
 	getContactSocialTypeLabel,
 	ContactSocialTypeToLabel,
-	formatNewBirthday,
+	formatBirthdayNumeric,
 	migrateToNewBirthday
 } from "./ContactUtils"
 import {ContactAddressType, GroupType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
@@ -86,10 +86,10 @@ export class ContactEditor {
 			bday.day = "22"
 			bday.month = "9"
 			bday.year = "2000"
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatNewBirthday(bday)})
+			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
-			.setValue(this.contact.birthday ? formatNewBirthday(this.contact.birthday) : "")
+			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")
 			.onUpdate(value => {
 				if (value.trim().length == 0) {
 					this.contact.birthday = null

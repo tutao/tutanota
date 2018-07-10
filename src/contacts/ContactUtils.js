@@ -19,7 +19,7 @@ import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {locator} from "../api/main/MainLocator"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {formatSortableDate} from "../misc/Formatter"
+import {formatSortableDate, formatDateWithMonth, formatDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -188,14 +188,34 @@ export function getContactDisplayName(contact: Contact): string {
 	}
 }
 
-export function formatNewBirthday(birthday: Birthday): string {
+export function formatBirthdayNumeric(birthday: Birthday): string {
 	if (birthday.year) {
-		return lang.formats.simpleDate.format(new Date(Number(neverNull(birthday.year)), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		//in chromimum Intl.DateTimeFormat is buggy for some dates with years the format subtracts a day from the date
+		//example date is 15.8.1911 ->format returns 14.8.1911
+		//this issue does not happen with recent years so the formatting is done with the current year then this year is changed with the original of the birthday
+		let refYear = new Date()
+		let bdayString = formatDate(new Date(refYear.getFullYear(), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		bdayString = bdayString.replace(/\d{4}/g, String(neverNull(birthday).year))
+		return bdayString
 	} else {
 		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
 	}
 }
 
+export function formatBirthdayWithMonthName(birthday: Birthday): string {
+	if (birthday.year) {
+		//todo github issue #414
+		//in chromimum Intl.DateTimeFormat is buggy for some dates with years the format subtracts a day from the date
+		//example date is 15.8.1911 ->format returns 14.8.1911
+		//this issue does not happen with recent years so the formatting is done with the current year then this year is changed with the original of the birthday
+		let refYear = new Date()
+		let bdayString = formatDateWithMonth(new Date(refYear.getFullYear(), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		bdayString = bdayString.replace(/\d{4}/g, String(neverNull(birthday).year))
+		return bdayString
+	} else {
+		return lang.formats.dateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+	}
+}
 /**
  * returns new birthday format from old birthday format
  * Export for testing
