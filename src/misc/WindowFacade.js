@@ -4,6 +4,7 @@ import {Mode, assertMainOrNodeBoot, isApp} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
+import {reloadNative} from "../native/SystemApp"
 
 assertMainOrNodeBoot()
 
@@ -120,6 +121,18 @@ class WindowFacade {
 			}
 			lastCheckTime = newTime
 		}, CHECK_INTERVAL_SECONDS * 1000)
+	}
+
+	reload(args: {[string]:any}) {
+		if (isApp()) {
+			if (!args.hasOwnProperty("noAutoLogin")) {
+				args.noAutoLogin = true
+			}
+			let newQueryString = m.buildQueryString(args)
+			reloadNative(newQueryString.length > 0 ? "?" + newQueryString : "")
+		} else {
+			window.location.reload();
+		}
 	}
 }
 

@@ -28,6 +28,7 @@ import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
+import {windowFacade} from "./WindowFacade"
 
 assertMainOrNode()
 
@@ -68,7 +69,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		Dialog.error("outdatedClient_msg")
 	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
-		window.location.reload()
+		windowFacade.reload({})
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
 			loginDialogActive = true

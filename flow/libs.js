@@ -104,6 +104,7 @@ interface Mithril {
 	redraw():void;
 	trust(html: string):any;
 	withAttr(attrName: string, callback: Function) : Function;
+	buildQueryString(args: {[string]:any}) : string;
 }
 
 interface Attributes {

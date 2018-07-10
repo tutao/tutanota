@@ -159,7 +159,7 @@ public final class Native {
                     }
                     promise.resolve("android");
                     break;
-                case "logout":
+                case "reload":
                     webAppInitialized = new DeferredObject<>();
                     activity.loadMainPage(args.getString(0));
                     break;

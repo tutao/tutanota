@@ -11,8 +11,8 @@ export function openLinkNative(uri: string): Promise<boolean> {
 }
 
 
-export function logout(parameters: string): Promise<void> {
-	return nativeApp.invokeNative(new Request('logout', [parameters]))
+export function reloadNative(queryParameters: string): Promise<void> {
+	return nativeApp.invokeNative(new Request('reload', [queryParameters]))
 }
 
 export function changeColorTheme(theme: string): Promise<void> {
