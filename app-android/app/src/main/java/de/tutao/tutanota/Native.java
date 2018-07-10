@@ -1,5 +1,6 @@
 package de.tutao.tutanota;
 
+import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -177,9 +178,18 @@ public final class Native {
                 case "aesEncryptFile":
                     promise.resolve(crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))));
                     break;
-                case "aesDecryptFile":
-                    promise.resolve(crypto.aesDecryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1)));
+                case "aesDecryptFile": {
+                    String filePath = crypto.aesDecryptFile(Utils.base64ToBytes(args.getString(0)),
+                            args.getString(1));
+                    String filename = files.getName(filePath);
+                    DownloadManager downloadManager =
+                            (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+                    //noinspection ConstantConditions
+                    downloadManager.addCompletedDownload(filename, "Tutanota download", false,
+                            files.getMimeType(filePath), filePath, files.getSize(filePath), true);
+                    promise.resolve(filePath);
                     break;
+                }
                 case "open":
                     return files.openFile(args.getString(0), args.getString(1));
                 case "openFileChooser":
@@ -195,14 +205,13 @@ public final class Native {
                     promise.resolve(files.getMimeType(args.getString(0)));
                     break;
                 case "getSize":
-                    promise.resolve(files.getSize(args.getString(0)));
+                    promise.resolve(files.getSize(args.getString(0)) + "");
                     break;
                 case "upload":
                     promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
                     break;
                 case "download":
-                    promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
-                    break;
+                    return files.download(args.getString(0), args.getString(1), args.getJSONObject(2));
                 case "clearFileData":
                     files.clearFileData();
                     promise.resolve(null);
@@ -232,7 +241,8 @@ public final class Native {
                 case "writeFile": {
                     final String filename = args.getString(0);
                     final String contentInBase64 = args.getString(1);
-                    Utils.writeFile(new File(activity.getFilesDir(), filename), Utils.base64ToBytes(contentInBase64));
+                    Utils.writeFile(new File(activity.getFilesDir(), filename),
+                            Utils.base64ToBytes(contentInBase64));
                     promise.resolve(true);
                     break;
                 }

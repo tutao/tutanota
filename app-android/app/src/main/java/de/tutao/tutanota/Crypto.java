@@ -1,8 +1,11 @@
 package de.tutao.tutanota;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.webkit.MimeTypeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -212,15 +215,13 @@ public final class Crypto {
 
     String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException {
         File inputFile = Utils.uriToFile(context, fileUrl);
-        File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
-        decryptedDir.mkdirs();
+        File decryptedDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File outputFile = new File(decryptedDir, inputFile.getName());
 
         InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
         OutputStream out = new FileOutputStream(outputFile);
         aesDecrypt(key, in, out);
-
-        return Utils.fileToUri(outputFile);
+        return outputFile.getAbsolutePath();
     }
 
     public void aesDecrypt(final byte[] key, InputStream in, OutputStream out) throws IOException,

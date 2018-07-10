@@ -2,7 +2,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isAndroidApp} from "../api/Env"
 import {fileApp} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -14,7 +14,9 @@ export class FileController {
 	downloadAndOpen(tutanotaFile: TutanotaFile): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				return this.open(file)
+				if (!isAndroidApp()) { // on android we store files in the download folder
+					return this.open(file)
+				}
 			})
 		)
 	}
@@ -24,7 +26,9 @@ export class FileController {
 			Promise.map(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
 			}).each((file, index) => {
-				return fileController.open(file)
+				if (!isAndroidApp()) {
+					return fileController.open(file)
+				}
 			})
 		).return()
 	}

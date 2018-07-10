@@ -49,16 +49,7 @@ public class FileUtil {
         // We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
         // access to all permission of that permission group. We still have to declare write access in the manifest.
         // https://developer.android.com/guide/topics/security/permissions.html#perm-groups
-        return activity.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-    }
-
-    private Promise<Void, Exception, Void> requestStoragePermission(String requestedFileName) {
-        String appDir = "file://" + Utils.getDir(activity.getWebView().getContext()).getAbsolutePath();
-        if (requestedFileName.startsWith(appDir)) {
-            return new DeferredObject().resolve(null).promise();
-        } else {
-            return activity.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-        }
+        return activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 
     void delete(final String absolutePath) throws Exception {
@@ -164,8 +155,8 @@ public class FileUtil {
     }
 
 
-    String getSize(String absolutePath) {
-        return Utils.uriToFile(activity.getWebView().getContext(), absolutePath).length() + "";
+    long getSize(String absolutePath) {
+        return Utils.uriToFile(activity.getWebView().getContext(), absolutePath).length();
     }
 
     String getMimeType(String absolutePath) {
@@ -202,28 +193,36 @@ public class FileUtil {
         }
     }
 
-    String download(final String sourceUrl, final String filename, final JSONObject headers) throws IOException, JSONException {
-        HttpURLConnection con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
-        try {
-            con.setConnectTimeout(HTTP_TIMEOUT);
-            con.setReadTimeout(HTTP_TIMEOUT);
-            con.setRequestMethod("GET");
-            con.setDoInput(true);
-            con.setUseCaches(false);
-            addHeadersToRequest(con, headers);
-            con.connect();
+    Promise<String, Exception, Void> download(final String sourceUrl, final String filename, final JSONObject headers) {
+        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
+            HttpURLConnection con = null;
+            try {
+                con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
+                con.setConnectTimeout(HTTP_TIMEOUT);
+                con.setReadTimeout(HTTP_TIMEOUT);
+                con.setRequestMethod("GET");
+                con.setDoInput(true);
+                con.setUseCaches(false);
+                addHeadersToRequest(con, headers);
+                con.connect();
 
-            Context context = activity.getWebView().getContext();
-            File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
-            encryptedDir.mkdirs();
-            File encryptedFile = new File(encryptedDir, filename);
+                Context context = activity.getWebView().getContext();
+                File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
+                encryptedDir.mkdirs();
+                File encryptedFile = new File(encryptedDir, filename);
 
-            IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
+                IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
 
-            return Utils.fileToUri(encryptedFile);
-        } finally {
-            con.disconnect();
-        }
+                return new DeferredObject<String, Exception, Void>()
+                        .resolve(Utils.fileToUri(encryptedFile));
+            } catch (IOException | JSONException e) {
+                return new DeferredObject<String, Exception, Void>().reject(e);
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        });
     }
 
     private static void addHeadersToRequest(URLConnection connection, JSONObject headers) throws JSONException {
