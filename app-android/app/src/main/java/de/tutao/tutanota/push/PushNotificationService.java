@@ -330,10 +330,10 @@ public final class PushNotificationService extends Service {
                                  new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID);
                     } else {
                          notificationBuilder = new Notification.Builder(this)
-                                 .setColor(getResources().getColor(R.color.colorPrimary))
                                  .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
                     }
                     notificationBuilder.setContentTitle(pushMessage.getTitle())
+                            .setColor(getResources().getColor(R.color.colorPrimary))
                             .setContentText(notificationInfo.getAddress())
                             .setNumber(counterPerAlias)
                             .setSmallIcon(R.drawable.ic_status)
