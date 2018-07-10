@@ -255,7 +255,8 @@ public final class Native {
         for (int i = 0; i < addressesArray.length(); i++) {
             //noinspection ConstantConditions
             notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
-            activity.startService(PushNotificationService.notificationDismissedIntent(activity, addressesArray.getString(i)));
+            activity.startService(PushNotificationService.notificationDismissedIntent(activity,
+                    addressesArray.getString(i), "Native"));
         }
     }
 
@@ -271,7 +272,7 @@ public final class Native {
 
     private Promise<JSONObject, Exception, ?> initPushNotifications() {
         activity.runOnUiThread(() -> {
-            activity.askBatteryOptinmizationsIfNeeded();
+//            activity.askBatteryOptinmizationsIfNeeded();
             activity.setupPushNotifications();
         });
         return new DeferredObject().resolve(null);

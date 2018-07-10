@@ -280,7 +280,7 @@ public class MainActivity extends Activity {
 
     void setupPushNotifications() {
         startService(PushNotificationService.startIntent(this,
-                new SseStorage(this).getSseInfo()));
+                new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
 
         JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
         //noinspection ConstantConditions
@@ -325,7 +325,7 @@ public class MainActivity extends Activity {
             return;
         }
         nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
-        startService(PushNotificationService.notificationDismissedIntent(this, address));
+        startService(PushNotificationService.notificationDismissedIntent(this, address, "MainActivity#openMailbox"));
     }
 
     @Override

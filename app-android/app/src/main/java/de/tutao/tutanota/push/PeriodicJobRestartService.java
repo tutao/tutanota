@@ -16,7 +16,7 @@ public final class PeriodicJobRestartService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         Log.i(TAG, "Restarting notification service if needed");
-        startService(new Intent(this, PushNotificationService.class));
+        startService(new Intent(this, PushNotificationService.class).putExtra("sender", "PeriodicJobRestartService"));
 
         // Do not finish the job immediately (return true) but finish it in five seconds.
         // This will give service some time to start. The system is holding a wake lock for us
@@ -26,7 +26,7 @@ public final class PeriodicJobRestartService extends JobService {
                 .postDelayed(() -> {
                     Log.d(TAG, "Finishing job");
                     jobFinished(params, false);
-                }, TimeUnit.SECONDS.toMillis(5));
+                }, TimeUnit.SECONDS.toMillis(15));
         return true;
     }
 

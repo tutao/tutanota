@@ -1,6 +1,8 @@
 package de.tutao.tutanota.push;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -8,14 +10,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -56,6 +62,8 @@ public final class PushNotificationService extends Service {
     private static final String SSE_INFO_EXTRA = "sseInfo";
     public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
     public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
+    public static final String SERVICE_NOTIFICATION_CHANNEL_ID = "service";
+    public static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -77,18 +85,20 @@ public final class PushNotificationService extends Service {
             TimeUnit.SECONDS,
             confirmationWorkQueue);
 
-    public static Intent startIntent(Context context, @Nullable SseInfo sseInfo) {
+    public static Intent startIntent(Context context, @Nullable SseInfo sseInfo, String sender) {
         Intent intent = new Intent(context, PushNotificationService.class);
         if (sseInfo != null) {
             intent.putExtra(SSE_INFO_EXTRA, sseInfo.toJSON());
         }
+        intent.putExtra("sender", sender);
         return intent;
     }
 
 
-    public static Intent notificationDismissedIntent(Context context, String emailAddress) {
+    public static Intent notificationDismissedIntent(Context context, String emailAddress, String sender) {
         Intent deleteIntent = new Intent(context, PushNotificationService.class);
         deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddress);
+        deleteIntent.putExtra("sender", sender);
         return deleteIntent;
     }
 
@@ -120,18 +130,78 @@ public final class PushNotificationService extends Service {
             }
         }, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-        Notification notification = new Notification.Builder(this)
+        if (atLeastOreo()) {
+            createNotificationChannels();
+        }
+//        prepareNotifications();
+    }
+
+    private void prepareNotifications() {
+        Notification.Builder ongoingNotificationBuilder;
+        if (atLeastOreo()) {
+            ongoingNotificationBuilder = new Notification.Builder(this,
+                    SERVICE_NOTIFICATION_CHANNEL_ID);
+        } else {
+            ongoingNotificationBuilder = new Notification.Builder(this)
+                    .setPriority(Notification.PRIORITY_MIN);
+        }
+
+        Intent serviceNotificationIntent;
+        if (atLeastOreo()) {
+            serviceNotificationIntent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
+                    .putExtra(Settings.EXTRA_CHANNEL_ID, SERVICE_NOTIFICATION_CHANNEL_ID);
+        } else {
+            // TODO make support page/screen
+            serviceNotificationIntent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://tutanota.uservoice.com/knowledgebase"));
+        }
+
+        Notification ongoingNotification = ongoingNotificationBuilder
                 .setContentTitle("Tutanota notification service")
+                .setContentText("Tap me to learn how to hide me")
                 .setSmallIcon(R.drawable.ic_status)
-                .setPriority(Notification.PRIORITY_MIN)
+                .setContentIntent(PendingIntent.getActivity(this, 1, serviceNotificationIntent, 0, null))
                 .build();
 
-        startForeground(ONGOING_NOTIFICATION_ID, notification);
+        startForeground(ONGOING_NOTIFICATION_ID, ongoingNotification);
+    }
+
+    private boolean atLeastOreo() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private void createNotificationChannels() {
+//        NotificationChannel serviceChannel = new NotificationChannel(
+//                SERVICE_NOTIFICATION_CHANNEL_ID, "Service notification",
+//                NotificationManager.IMPORTANCE_LOW);
+//        serviceChannel.setShowBadge(false);
+//        serviceChannel.enableVibration(false);
+//        serviceChannel.enableLights(false);
+//        serviceChannel.setDescription("Set my importance to Low to see me less");
+//        getNotificationManager().createNotificationChannel(serviceChannel);
+
+        NotificationChannel notificationsChannel = new NotificationChannel(
+                EMAIL_NOTIFICATION_CHANNEL_ID, getString(R.string.notificationChannelEmail_label),
+                NotificationManager.IMPORTANCE_DEFAULT);
+        notificationsChannel.setShowBadge(true);
+        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        AudioAttributes att = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                .build();
+        notificationsChannel.setSound(ringtoneUri, att);
+        notificationsChannel.setVibrationPattern(new long[]{300, 1000});
+        notificationsChannel.enableLights(true);
+        notificationsChannel.setLightColor(Color.RED);
+        getNotificationManager().createNotificationChannel(notificationsChannel);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Received onStartCommand");
+        Log.d(TAG, "Received onStartCommand, sender: "
+                + (intent == null ? null : intent.getStringExtra("sender")));
 
         if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
             String dissmessAddr = intent.getStringExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
@@ -149,8 +219,16 @@ public final class PushNotificationService extends Service {
         if (sseInfo == null) {
             sseInfo = sseStorage.getSseInfo();
         }
+
         SseInfo oldConnectedInfo = this.connectedSseInfo;
-        this.connectedSseInfo = sseInfo;
+        if (sseInfo == null) {
+            // fix case when both:
+            // 1. SSE info is null in the intent (e.g. PeriodicJobRestartService)
+            // 2. SSE info is null in the SharedPrefs (it is not synchronized between processes yet)
+            Log.d(TAG, "Could not get sse info, using the old one");
+        } else {
+            this.connectedSseInfo = sseInfo;
+        }
 
         Log.d(TAG, "current sseInfo: " + connectedSseInfo);
         Log.d(TAG, "stored sseInfo: " + oldConnectedInfo);
@@ -176,8 +254,7 @@ public final class PushNotificationService extends Service {
             Log.d(TAG, "sse info not available skip reconnect");
             return;
         }
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = getNotificationManager();
 
         Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         try {
@@ -209,7 +286,7 @@ public final class PushNotificationService extends Service {
                     continue;
 
                 if (event.startsWith("heartbeatTimeout:")) {
-                     timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
+                    timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
                     PreferenceManager.getDefaultSharedPreferences(this).edit()
                             .putInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, timeoutInSeconds).apply();
                     continue;
@@ -247,8 +324,16 @@ public final class PushNotificationService extends Service {
                     openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, notificationInfo.getUserId());
 
 
-                    Notification.Builder notificationBuilder = new Notification.Builder(this)
-                            .setContentTitle(pushMessage.getTitle())
+                    Notification.Builder notificationBuilder;
+                    if (atLeastOreo()) {
+                         notificationBuilder =
+                                 new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID);
+                    } else {
+                         notificationBuilder = new Notification.Builder(this)
+                                 .setColor(getResources().getColor(R.color.colorPrimary))
+                                 .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
+                    }
+                    notificationBuilder.setContentTitle(pushMessage.getTitle())
                             .setContentText(notificationInfo.getAddress())
                             .setNumber(counterPerAlias)
                             .setSmallIcon(R.drawable.ic_status)
@@ -262,13 +347,11 @@ public final class PushNotificationService extends Service {
                                     notificationId,
                                     openMailboxIntent,
                                     PendingIntent.FLAG_UPDATE_CURRENT))
-                            .setColor(getResources().getColor(R.color.colorPrimary))
-                            .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000)
                             .setAutoCancel(true);
 
                     if (i == 0) {
                         notificationBuilder.setSound(ringtoneUri);
-                        notificationBuilder.setVibrate(new long[]{3000});
+                        notificationBuilder.setVibrate(new long[]{300, 1000});
                     }
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
@@ -309,6 +392,10 @@ public final class PushNotificationService extends Service {
             }
             httpsURLConnectionRef.set(null);
         }
+    }
+
+    private NotificationManager getNotificationManager() {
+        return (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     private void sendConfirmation(String pushIdentifier, PushMessage pushMessage) {

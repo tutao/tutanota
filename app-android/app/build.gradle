@@ -6,26 +6,26 @@ android {
     defaultConfig {
         applicationId "de.tutao.tutanota"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 335040
         versionName "3.35.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
-            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debug']
-            buildConfigField 'String', 'RES_ADDRESS',  "\"http://" + InetAddress.getLocalHost().getHostName().split("\\.")[0] + ":9000/client/build/app\""
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debug']
+            buildConfigField 'String', 'RES_ADDRESS', "\"http://" + InetAddress.getLocalHost().getHostName().split("\\.")[0] + ":9000/client/build/app\""
             applicationIdSuffix ".debug"
         }
         debugDist {
             initWith debug
-            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider.debugdist']
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
             buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             applicationIdSuffix ".debugdist"
         }
         release {
             minifyEnabled false
-            manifestPlaceholders = [contentProviderAuthority:'de.tutao.fileprovider']
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
             buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

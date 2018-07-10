@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Tutanota</string>
+    <string name="app_name" translatable="false">Tutanota</string>
+    <string name="notificationChannelEmail_label">Email notifications</string>
 </resources>
