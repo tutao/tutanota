@@ -11,13 +11,7 @@ import {ReplyType, MailFolderType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {
-	getSenderOrRecipientHeading,
-	getInboxFolder,
-	getArchiveFolder,
-	getTrashFolder,
-	getFolderIconByType
-} from "./MailUtils"
+import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder, getTrashFolder} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -25,11 +19,22 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
-import {theme} from "../gui/theme"
+import {FontIcons} from "../gui/base/icons/FontIcons"
 
 assertMainOrNode()
 
 const className = "mail-list"
+
+const iconMap: {[MailFolderTypeEnum]:string} = {
+	[MailFolderType.CUSTOM]: FontIcons.Folder,
+	[MailFolderType.INBOX]: FontIcons.Inbox,
+	[MailFolderType.SENT]: FontIcons.Sent,
+	[MailFolderType.TRASH]: FontIcons.Trash,
+	[MailFolderType.ARCHIVE]: FontIcons.Archive,
+	[MailFolderType.SPAM]: FontIcons.Spam,
+	[MailFolderType.DRAFT]: FontIcons.Edit,
+}
+
 
 export class MailListView {
 	listId: Id;
@@ -128,12 +133,6 @@ export class MailListView {
 	}
 }
 
-const iconGlyphs = {
-	reply: "\uf4c7",
-	forward: "\uf499",
-	confidential: "\uf31d",
-	attach: "\uf28e"
-}
 
 export class MailRow {
 	top: number;
@@ -179,38 +178,32 @@ export class MailRow {
 		} else {
 			this._domSubject.classList.remove("b")
 		}
-
-		if (this._showFolderIcon) {
-			let folder = mailModel.getMailFolder(mail._id[0])
-			Object.keys(this._domFolderIcons).forEach(folderType => {
-				if (folder && folderType == folder.folderType) {
-					this._domFolderIcons[folderType].style.display = ''
-				} else {
-					this._domFolderIcons[folderType].style.display = 'none'
-				}
-			})
-		}
 	}
 
 	_iconsText(mail: Mail): string {
-		let iconText = mail._errors ? "\uf268" : "";
+		let iconText = "";
+		if (this._showFolderIcon) {
+			let folder = mailModel.getMailFolder(mail._id[0])
+			iconText += folder ? this._getFolderIcon(folder.folderType) : ""
+		}
+		iconText += mail._errors ? FontIcons.Warning : "";
 		switch (mail.replyType) {
 			case ReplyType.REPLY:
-				iconText += iconGlyphs.reply
+				iconText += FontIcons.Reply
 				break
 			case ReplyType.FORWARD:
-				iconText += iconGlyphs.forward
+				iconText += FontIcons.Forward
 				break
 			case ReplyType.REPLY_FORWARD:
-				iconText += iconGlyphs.reply
-				iconText += iconGlyphs.forward
+				iconText += FontIcons.Reply
+				iconText += FontIcons.Forward
 				break
 		}
 		if (mail.confidential) {
-			iconText += iconGlyphs.confidential
+			iconText += FontIcons.Confidential
 		}
 		if (mail.attachments.length > 0) {
-			iconText += iconGlyphs.attach
+			iconText += FontIcons.Attach
 		}
 		return iconText
 	}
@@ -226,27 +219,16 @@ export class MailRow {
 			]),
 			m(".bottom.flex-space-between", [
 					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-					m(".flex-fixed", {style: {"margin-right": "-8px"}},
-						(this._showFolderIcon ? Object.keys(MailFolderType).map(folderTypeKey => {
-								return m(Icon, {
-									icon: getFolderIconByType(MailFolderType[folderTypeKey])(),
-									class: "svg-list-accent-fg",
-									style: {display: 'none'},
-									oncreate: (vnode) => this._domFolderIcons[MailFolderType[folderTypeKey]] = vnode.dom,
-								})
-							}) : []).concat([
-							m("span.ion", {
-								style: {
-									color: theme.content_accent,
-									"letter-spacing": "8px",
-									"text-align": "right"
-								},
-								oncreate: (vnode) => this._iconsDom = vnode.dom
-							})
-						])
-					)
+					m("span.ion.ml-s.list-font-icons", {
+						oncreate: (vnode) => this._iconsDom = vnode.dom
+					})
+
 				]
 			)
 		]
+	}
+
+	_getFolderIcon(type: MailFolderTypeEnum): string {
+		return iconMap[type];
 	}
 }

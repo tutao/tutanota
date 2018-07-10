@@ -492,6 +492,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_doRender() {
+		this._createVirtualElements()
 		m.redraw()
 		window.requestAnimationFrame(() => {
 			this._domInitialized.resolve()
@@ -509,7 +510,6 @@ export class List<T, R:VirtualRow<T>> {
 
 		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
-		this._createVirtualElements()
 
 		if (client.isMobileDevice()) {
 			window.setTimeout(() => this._doRender(), 200)

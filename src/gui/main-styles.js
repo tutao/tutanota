@@ -110,6 +110,7 @@ styles.registerStyle('main', () => {
 		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
+		'.ml-s': {'margin-left': px(size.vpad_small)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -486,6 +487,28 @@ styles.registerStyle('main', () => {
 		},
 		'.list-loading': {bottom: 0},
 
+		// mail list
+		".ion": {
+			"display": "inline-block",
+			"font-family": "'Ionicons'",
+			"speak": "none",
+			"font-style": "normal",
+			"font-weight": "normal",
+			"font-variant": "normal",
+			"text-transform": "none",
+			"text-rendering": "auto",
+			"line-height": "1",
+			"-webkit-font-smoothing": "antialiased",
+			"-moz-osx-font-smoothing": "grayscale",
+		},
+
+		".list-font-icons": {
+			"letter-spacing": "8px",
+			"text-align": "right",
+			"margin-right": "-8px",
+			"color": theme.content_accent
+		},
+
 
 		// action bar
 		'.action-bar': {width: 'initial', 'margin-left': 'auto'},
@@ -763,19 +786,5 @@ styles.registerStyle('main', () => {
 		// use the animations as hooks for JS to capture 'animationstart' events
 		"input:-webkit-autofill": {"animation-name": "onAutoFillStart",},
 		"input:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
-
-		".ion": {
-			"display": "inline-block",
-			"font-family": "'Ionicons'",
-			"speak": "none",
-			"font-style": "normal",
-			"font-weight": "normal",
-			"font-variant": "normal",
-			"text-transform": "none",
-			"text-rendering": "auto",
-			"line-height": "1",
-			"-webkit-font-smoothing": "antialiased",
-			"-moz-osx-font-smoothing": "grayscale",
-		},
 	}
 })
