@@ -9,6 +9,7 @@ public class TestData {
 	List<EncryptionTestData> rsaEncryptionTests = new LinkedList();
 	List<SignatureTestData> rsaSignatureTests = new LinkedList();
 	List<AesTestData> aes256Tests = new LinkedList();
+	List<AesTestData> aes128MacTests = new LinkedList();
 	List<AesTestData> aes128Tests = new LinkedList();
 	List<EncodingTestData> encodingTests = new LinkedList();
 	List<BcryptTestData> bcrypt128Tests = new LinkedList();
@@ -34,6 +35,11 @@ public class TestData {
 		return this;
 	}
 
+
+	public TestData addAes128MacTest(AesTestData test) {
+		this.aes128MacTests.add(test);
+		return this;
+	}
 
 	public TestData addEncodingTest(EncodingTestData test) {
 		this.encodingTests.add(test);
@@ -64,6 +70,10 @@ public class TestData {
 
 	public List<AesTestData> getAes128Tests() {
 		return aes128Tests;
+	}
+
+	public List<AesTestData> getAes128MacTests() {
+		return aes128MacTests;
 	}
 
 	public List<EncodingTestData> getEncodingTests() {

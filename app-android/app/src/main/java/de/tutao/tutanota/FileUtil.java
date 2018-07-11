@@ -211,7 +211,8 @@ public class FileUtil {
                 encryptedDir.mkdirs();
                 File encryptedFile = new File(encryptedDir, filename);
 
-                IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
+                IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
+                        new byte[1024 * 1000]);
 
                 return new DeferredObject<String, Exception, Void>()
                         .resolve(Utils.fileToUri(encryptedFile));

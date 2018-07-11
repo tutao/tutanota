@@ -24,7 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.NoSuchPaddingException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 @RunWith(AndroidJUnit4.class)
 public class CompatibilityTest {
@@ -47,10 +46,24 @@ public class CompatibilityTest {
         for (AesTestData td : CompatibilityTest.testData.getAes128Tests()) {
             byte[] key = hexToBytes(td.getHexKey());
             ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();
-            crypto.aesEncrypt(key, new ByteArrayInputStream(Utils.base64ToBytes(td.getPlainTextBase64())), encryptedBytes, Utils.base64ToBytes(td.getIvBase64()));
+            crypto.aesEncrypt(key, new ByteArrayInputStream(Utils.base64ToBytes(td.getPlainTextBase64())), encryptedBytes, Utils.base64ToBytes(td.getIvBase64()), false);
             assertEquals(td.getCipherTextBase64(), Utils.bytesToBase64(encryptedBytes.toByteArray()));
             ByteArrayOutputStream decryptedBytes = new ByteArrayOutputStream();
-            crypto.aesDecrypt(key, new ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes);
+            crypto.aesDecrypt(key, new ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size());
+            assertEquals(td.getPlainTextBase64(), Utils.bytesToBase64(decryptedBytes.toByteArray()));
+        }
+    }
+
+    @Test
+    public void aes128Mac() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
+        Crypto crypto = new Crypto(null);
+        for (AesTestData td : CompatibilityTest.testData.getAes128MacTests()) {
+            byte[] key = hexToBytes(td.getHexKey());
+            ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();
+            crypto.aesEncrypt(key, new ByteArrayInputStream(Utils.base64ToBytes(td.getPlainTextBase64())), encryptedBytes, Utils.base64ToBytes(td.getIvBase64()), true);
+            assertEquals(td.getCipherTextBase64(), Utils.bytesToBase64(encryptedBytes.toByteArray()));
+            ByteArrayOutputStream decryptedBytes = new ByteArrayOutputStream();
+            crypto.aesDecrypt(key, new ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size());
             assertEquals(td.getPlainTextBase64(), Utils.bytesToBase64(decryptedBytes.toByteArray()));
         }
     }

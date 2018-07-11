@@ -23,7 +23,7 @@ export class FileController {
 
 	downloadAndOpenAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
-			Promise.map(tutanotaFiles, (tutanotaFile) => {
+			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
 			}).each((file, index) => {
 				if (!isAndroidApp()) {
