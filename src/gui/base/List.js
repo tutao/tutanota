@@ -54,7 +54,6 @@ export class List<T, R:VirtualRow<T>> {
 	_domSwipeSpacerLeft: HTMLElement;
 	_domSwipeSpacerRight: HTMLElement;
 	_domLoadingRow: HTMLElement;
-	_domSpinner: HTMLElement;
 
 	ready: boolean;
 	view: Function;
@@ -178,16 +177,11 @@ export class List<T, R:VirtualRow<T>> {
 						}),
 						// odd-row is switched directly on the dom element when the number of elements changes
 						m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
-								oncreate: (vnode) => this._domLoadingRow = vnode.dom,
-							},
-							m("", {
-								oncreate: (vnode) => {
-									this._domSpinner = vnode.dom
-									this._domSpinner.style.display = 'none'
-								}
-							}, progressIcon())
-						)
-
+							oncreate: (vnode) => {
+								this._domLoadingRow = vnode.dom
+								this._domLoadingRow.style.display = 'none'
+							}
+						}, progressIcon())
 					]
 				),
 				m(this._emptyMessageBox)
@@ -438,7 +432,7 @@ export class List<T, R:VirtualRow<T>> {
 			}).finally(() => {
 				// this._showSpinner = false
 				if (this.ready) {
-					this._domSpinner.style.display = 'none'
+					this._domLoadingRow.style.display = 'none'
 					this._reposition()
 				}
 			})
@@ -460,7 +454,7 @@ export class List<T, R:VirtualRow<T>> {
 	_displaySpinner(delayed: boolean = true) {
 		setTimeout(() => {
 			if (!this._loading.isFulfilled()) {
-				this._domSpinner.style.display = ''
+				this._domLoadingRow.style.display = ''
 			}
 		}, delayed ? DefaultAnimationTime : 5)
 	}
