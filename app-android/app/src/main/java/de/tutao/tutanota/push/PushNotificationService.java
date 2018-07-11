@@ -69,6 +69,7 @@ public final class PushNotificationService extends JobService {
     public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
     public static final String SERVICE_NOTIFICATION_CHANNEL_ID = "service";
     public static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
+    public static final long[] VIBRATION_PATTERN = {100, 200, 100, 200};
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -192,7 +193,7 @@ public final class PushNotificationService extends JobService {
                 .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
                 .build();
         notificationsChannel.setSound(ringtoneUri, att);
-        notificationsChannel.setVibrationPattern(new long[]{300, 1000});
+        notificationsChannel.setVibrationPattern(VIBRATION_PATTERN);
         notificationsChannel.enableLights(true);
         notificationsChannel.setLightColor(Color.RED);
         getNotificationManager().createNotificationChannel(notificationsChannel);
@@ -368,7 +369,7 @@ public final class PushNotificationService extends JobService {
 
                     if (i == 0) {
                         notificationBuilder.setSound(ringtoneUri);
-                        notificationBuilder.setVibrate(new long[]{300, 1000});
+                        notificationBuilder.setVibrate(VIBRATION_PATTERN);
                     }
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
