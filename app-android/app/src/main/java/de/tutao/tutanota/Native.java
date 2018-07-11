@@ -282,7 +282,7 @@ public final class Native {
 
     private Promise<JSONObject, Exception, ?> initPushNotifications() {
         activity.runOnUiThread(() -> {
-//            activity.askBatteryOptinmizationsIfNeeded();
+            activity.askBatteryOptinmizationsIfNeeded();
             activity.setupPushNotifications();
         });
         return new DeferredObject().resolve(null);

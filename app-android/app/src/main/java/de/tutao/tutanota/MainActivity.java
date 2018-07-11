@@ -2,11 +2,8 @@ package de.tutao.tutanota;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.app.job.JobService;
 import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,7 +21,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -32,7 +28,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import org.apache.commons.io.IOUtils;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -47,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import de.tutao.tutanota.push.PeriodicJobRestartService;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -285,8 +279,9 @@ public class MainActivity extends Activity {
         JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
         //noinspection ConstantConditions
         jobScheduler.schedule(
-                new JobInfo.Builder(1, new ComponentName(this, PeriodicJobRestartService.class))
+                new JobInfo.Builder(1, new ComponentName(this, PushNotificationService.class))
                         .setPeriodic(TimeUnit.MINUTES.toMillis(15))
+                        .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                         .setPersisted(true).build());
     }
 

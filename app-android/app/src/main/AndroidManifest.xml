@@ -47,11 +47,7 @@
             android:name=".push.PushNotificationService"
             android:enabled="true"
             android:exported="false"
-            android:process=":pushprocess" />
-
-        <service
-            android:name=".push.PeriodicJobRestartService"
-            android:exported="true"
+            android:process=":pushprocess"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver

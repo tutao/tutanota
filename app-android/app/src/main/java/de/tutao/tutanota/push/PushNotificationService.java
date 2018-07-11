@@ -6,6 +6,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.job.JobParameters;
+import android.app.job.JobService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +16,10 @@ import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -55,7 +60,7 @@ import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 
-public final class PushNotificationService extends Service {
+public final class PushNotificationService extends JobService {
 
     protected static final String TAG = "PushNotificationService";
     private static final int ONGOING_NOTIFICATION_ID = 342;
@@ -100,11 +105,6 @@ public final class PushNotificationService extends Service {
         deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddress);
         deleteIntent.putExtra("sender", sender);
         return deleteIntent;
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 
     @Override
@@ -216,6 +216,11 @@ public final class PushNotificationService extends Service {
             sseInfo = SseInfo.fromJson(intent.getStringExtra(SSE_INFO_EXTRA));
         }
 
+        restartConnectionIfNeeded(sseInfo);
+        return Service.START_STICKY;
+    }
+
+    private void restartConnectionIfNeeded(@Nullable SseInfo sseInfo) {
         if (sseInfo == null) {
             sseInfo = sseStorage.getSseInfo();
         }
@@ -243,7 +248,19 @@ public final class PushNotificationService extends Service {
         } else {
             Log.d(TAG, "ConnectionRef available, do nothing");
         }
-        return Service.START_STICKY;
+    }
+
+    @Override
+    public boolean onStartJob(JobParameters params) {
+        Log.d(TAG, "onStartJob");
+        restartConnectionIfNeeded(null);
+        return true;
+    }
+
+    @Override
+    public boolean onStopJob(JobParameters params) {
+        Log.d(TAG, "The job is finished");
+        return true;
     }
 
     private void connect() {
