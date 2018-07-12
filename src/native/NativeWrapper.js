@@ -29,16 +29,16 @@ class NativeWrapper {
 			}:any))
 			this._nativeQueue.setCommands({
 				updatePushIdentifier: (msg: Request) => {
-					return importModule('src/native/PushServiceApp.js').then(module => {
+					return _asyncImport('src/native/PushServiceApp.js').then(module => {
 						module.pushServiceApp.updatePushIdentifier(msg.args[0])
 					})
 				},
 				createMailEditor: (msg: Request) => {
 					return Promise.all([
-						importModule('src/mail/MailModel.js'),
-						importModule('src/mail/MailEditor.js'),
-						importModule('src/mail/MailUtils.js'),
-						importModule('src/api/main/LoginController.js')
+						_asyncImport('src/mail/MailModel.js'),
+						_asyncImport('src/mail/MailEditor.js'),
+						_asyncImport('src/mail/MailUtils.js'),
+						_asyncImport('src/api/main/LoginController.js')
 					]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
 						return logins.waitForUserLogin().then(() => Promise.all(msg.args[0]
 							.map(uri => Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
@@ -62,19 +62,20 @@ class NativeWrapper {
 					})
 				},
 				handleBackPress: (): Promise<boolean> => {
-					return importModule('src/native/DeviceButtonHandler.js').then(module => {
-							return module.handleBackPress()
-						}
-					)
+					return _asyncImport('src/native/DeviceButtonHandler.js')
+						.then(module => {
+								return module.handleBackPress()
+							}
+						)
 				},
 				showAlertDialog: (msg: Request): Promise<void> => {
-					return importModule('src/gui/base/Dialog.js').then(module => {
+					return _asyncImport('src/gui/base/Dialog.js').then(module => {
 							return module.Dialog.error(msg.args[0])
 						}
 					)
 				},
 				openMailbox: (msg: Request): Promise<void> => {
-					return importModule('src/native/OpenMailboxHandler.js').then(module => {
+					return _asyncImport('src/native/OpenMailboxHandler.js').then(module => {
 							return module.openMailbox(msg.args[0], msg.args[1])
 						}
 					)
@@ -138,7 +139,7 @@ function _createConnectionErrorHandler(rejectFunction) {
 }
 
 
-const importModule = (path): Promise<any> =>
+const _asyncImport = (path): Promise<any> =>
 	asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 
 export const nativeApp = new NativeWrapper()

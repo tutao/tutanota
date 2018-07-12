@@ -25,7 +25,7 @@ const bundles = {}
 
 function getAsyncImports(file) {
 	let appSrc = fs.readFileSync(path.resolve(__dirname, file), 'utf-8')
-	const regExp = /_asyncImport\("(.*)"\)/g
+	const regExp = /_asyncImport\(["|'](.*)["|']\)/g
 	let match = regExp.exec(appSrc)
 	let asyncImports = []
 	while (match != null) {
@@ -50,11 +50,10 @@ clean()
 			builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
 			builder.trace('src/app.js + src/system-resolve.js'),
 			builder.trace('src/gui/theme.js - libs/stream.js'),
-			builder.trace(getAsyncImports('src/app.js').join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js + src/search/SearchBar.js"),
+			builder.trace(getAsyncImports('src/app.js').concat(getAsyncImports('src/native/NativeWrapper.js')).join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js + src/search/SearchBar.js"),
 		]).then(trees => {
 			let workerTree = trees[0]
 			let bootTree = trees[1]
-			printTraceReport(bootTree)
 			let themeTree = trees[2]
 			let mainTree = trees[3]
 
