@@ -255,7 +255,7 @@ public final class PushNotificationService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
-        return true;
+        return false; // All job is done in this thread. Release wakelock
     }
 
     @Override
