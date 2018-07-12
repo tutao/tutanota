@@ -141,8 +141,7 @@ public final class Crypto {
         PublicKey publicKey = jsonToPublicKey(publicKeyJson);
         this.randomizer.setSeed(random);
         byte[] encrypted = rsaEncrypt(key, publicKey, this.randomizer);
-        String encryptedBase64 = Utils.bytesToBase64(encrypted);
-        return encryptedBase64;
+        return Utils.bytesToBase64(encrypted);
     }
 
     private byte[] rsaEncrypt(byte[] key, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -182,7 +181,7 @@ public final class Crypto {
         return new SecretKeySpec(key, "AES");
     }
 
-    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
         File inputFile = Utils.uriToFile(context, fileUrl);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
@@ -195,8 +194,7 @@ public final class Crypto {
         return Utils.fileToUri(outputFile);
     }
 
-    public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv, boolean useMac) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
-            InvalidAlgorithmParameterException, IOException {
+    public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv, boolean useMac) throws CryptoError, IOException {
         InputStream encrypted = null;
         try {
             Cipher cipher = Cipher.getInstance(AES_MODE_PADDING);
@@ -216,6 +214,8 @@ public final class Crypto {
             } else {
                 out.write(tempOut.toByteArray());
             }
+        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
+           throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(encrypted);
@@ -223,7 +223,7 @@ public final class Crypto {
         }
     }
 
-    String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException {
+    String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, CryptoError {
         File inputFile = Utils.uriToFile(context, fileUrl);
         File decryptedDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File outputFile = new File(decryptedDir, inputFile.getName());
@@ -233,16 +233,28 @@ public final class Crypto {
         return outputFile.getAbsolutePath();
     }
 
-    public void aesDecrypt(final byte[] key, InputStream in, OutputStream out, long inputSize) throws IOException,
-            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+    public void aesDecrypt(final byte[] key, InputStream in, OutputStream out, long inputSize) throws IOException, CryptoError {
         InputStream decrypted = null;
         try {
             byte[] cKey = key;
             boolean macIncluded = inputSize % 2 == 1;
             if (macIncluded) {
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                cKey = Arrays.copyOfRange(digest.digest(key), 0, 16);
-                in = new TruncatedInputStream(in, 1, inputSize - 32);
+                SubKeys subKeys = getSubKeys(bytesToKey(key), true);
+                cKey = subKeys.cKey.getEncoded();
+
+                ByteArrayOutputStream tempOut = new ByteArrayOutputStream();
+                IOUtils.copyLarge(in, tempOut);
+                byte[] cipherText = tempOut.toByteArray();
+
+                byte[] cipherTextWithoutMac = Arrays.copyOfRange(cipherText, 1, cipherText.length - 32);
+
+                byte[] providedMacBytes = Arrays.copyOfRange(cipherText, cipherText.length - 32, cipherText.length);
+                byte[] computedMacBytes = hmac256(subKeys.mKey, cipherTextWithoutMac);
+
+                if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
+                    throw new CryptoError("invalid mac");
+                }
+                in = new ByteArrayInputStream(cipherTextWithoutMac);
             }
 
             byte[] iv = new byte[AES_KEY_LENGTH_BYTES];
@@ -252,6 +264,8 @@ public final class Crypto {
             cipher.init(Cipher.DECRYPT_MODE, bytesToKey(cKey), params);
             decrypted = getCipherInputStream(in, cipher);
             IOUtils.copyLarge(decrypted, out, new byte[1024 * 1000]);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(decrypted);
@@ -291,7 +305,7 @@ public final class Crypto {
         return subKeys;
     }
 
-    public static byte[] hmac256(byte[] key, byte[] data) {
+    private static byte[] hmac256(byte[] key, byte[] data) {
         SecretKeySpec macKey = new SecretKeySpec(key, HMAC_256);
         try {
             Mac hmac = Mac.getInstance(HMAC_256);

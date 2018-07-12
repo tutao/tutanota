@@ -6,6 +6,8 @@ import {assertMainOrNode, isAndroidApp} from "../api/Env"
 import {fileApp} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {CryptoError} from "../api/common/error/CryptoError"
+import {lang} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -17,6 +19,12 @@ export class FileController {
 				if (!isAndroidApp()) { // on android we store files in the download folder
 					return this.open(file)
 				}
+			}).catch(err => {
+				if (err instanceof CryptoError) {
+					return Dialog.error("corrupted_msg")
+				} else {
+					return Dialog.error("couldNotAttachFile_msg")
+				}
 			})
 		)
 	}
@@ -25,6 +33,13 @@ export class FileController {
 		return showProgressDialog("pleaseWait_msg",
 			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
+					.catch(err => {
+						if (err instanceof CryptoError) {
+							return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+						} else {
+							return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+						}
+					})
 			}).each((file, index) => {
 				if (!isAndroidApp()) {
 					return fileController.open(file)

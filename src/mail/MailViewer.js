@@ -250,7 +250,9 @@ export class MailViewer {
 			}).then(files => {
 				this._attachments = files
 				this._attachmentButtons = files.map(file => {
-					return new Button(() => file.name, () => fileController.downloadAndOpen(file), () => Icons.Attachment).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+					return new Button(() => file.name,
+						() => fileController.downloadAndOpen(file),
+						() => Icons.Attachment).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 				})
 				if (this._attachmentButtons.length >= 3) {
 					this._attachmentButtons.push(new Button("saveAll_action", () => fileController.downloadAndOpenAll(this._attachments), null).setType(ButtonType.Secondary))

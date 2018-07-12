@@ -209,5 +209,6 @@ const ErrorNameToType = {
 	"javax.net.ssl.SSLException": ConnectionError,
 	"java.io.EOFException": ConnectionError,
 	"java.net.UnknownHostException": ConnectionError,
-	"java.lang.SecurityException": PermissionError
+	"java.lang.SecurityException": PermissionError,
+	"de.tutao.tutanota.CryptoError": CryptoError
 }
