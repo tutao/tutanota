@@ -79,6 +79,12 @@ clean()
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
 			])
+		} else if (process.argv.indexOf("host") !== -1) {
+			const hostname = process.argv[process.argv.indexOf("host") + 1]
+			return Promise.all([
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
+			])
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),

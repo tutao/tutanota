@@ -4,3 +4,4 @@ node_modules
 .gradle
 app/platforms
 app/plugins
+**/.DS_STORE
