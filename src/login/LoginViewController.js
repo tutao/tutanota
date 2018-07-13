@@ -7,10 +7,11 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
-	TooManyRequestsError
+	TooManyRequestsError,
+	NotFoundError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNode, isAdmin, isApp} from "../api/Env"
 import {Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -25,47 +26,84 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {mailModel} from "../mail/MailModel"
+import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
+import {themeId} from "../gui/theme"
+import {changeColorTheme} from "../native/SystemApp"
 
 assertMainOrNode()
 
 export class LoginViewController {
 	view: LoginView;
+	_loginPromise: Promise<void>;
 
 	constructor(view: LoginView) {
 		this.view = view;
+		this._loginPromise = Promise.resolve()
+
+		if (isApp()) {
+			worker.initialized.then(() => {
+
+				themeId.map((theme) => {
+					changeColorTheme(theme)
+				})
+			})
+		}
 	}
 
-	_autologin(credentials: Credentials): void {
-		Dialog.progress("login_msg", worker.initialized.then(() => {
+	autologin(credentials: Credentials): void {
+		if (this._loginPromise.isPending()) return
+		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
 			})
 		}))
 	}
 
-	_formLogin(): void {
+
+	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
+		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
+			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
+				.then(userPw => {
+					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+						.then(newCredentials => {
+							deviceConfig.set(newCredentials)
+						})
+						.finally(() => worker.logout(false))
+				})
+				.catch(ignored => {
+					console.log(ignored)
+					// prevent reloading the page by ErrorHandler
+				})
+		})).return()
+	}
+
+	formLogin(): void {
+		if (this._loginPromise.isPending()) return
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
 		if (mailAddress == "" || pw == "") {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
-			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), this.view.savePassword.checked())
+			let persistentSession = this.view.savePassword.checked()
+			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 				.then(newCredentials => {
 					let storedCredentials = deviceConfig.get(mailAddress)
-					if (newCredentials) {
+					if (persistentSession) {
 						deviceConfig.set(newCredentials)
 					}
 					if (storedCredentials) {
 						return worker.deleteSession(storedCredentials.accessToken)
 							.then(() => {
-								if (!newCredentials) {
+								if (!persistentSession) {
 									deviceConfig.delete(mailAddress)
 								}
-							})
+							}).catch(NotFoundError, e => console.log("session already deleted"))
 					}
 				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			this._handleSession(Dialog.progress("login_msg", createSessionPromise), () => {
+			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
 	}
@@ -113,8 +151,12 @@ export class LoginViewController {
 	}
 
 	_postLoginActions() {
-		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - Tutanota"
+		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
 
+		windowFacade.addResumeAfterSuspendListener(() => {
+			console.log("resume after suspend")
+			worker.tryReconnectEventBus()
+		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
 			worker.tryReconnectEventBus()
@@ -132,13 +174,12 @@ export class LoginViewController {
 		}).then(() => {
 			return this._checkStorageWarningLimit()
 		}).then(() => {
-			if (logins.getUserController().isInternalUser()) {
-				// run this async
-				worker.getContactController().lazyContacts.getAsync()
-			}
-		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
-		})
+		}).then(() => {
+			if (!isAdmin()) {
+				return mailModel.init()
+			}
+		}).then(() => logins.loginComplete())
 	}
 
 	_showUpgradeReminder(): Promise<void> {
@@ -151,9 +192,7 @@ export class LoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/pricing").then(confirm => {
 								if (confirm) {
-									// TODO: Navigate to premium upgrade
-									//tutao.locator.navigator.settings();
-									//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+									UpgradeWizard.show()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
@@ -173,7 +212,7 @@ export class LoginViewController {
 		if (logins.getUserController().isOutlookAccount()) {
 			return Promise.resolve();
 		}
-		if (logins.getUserController().isAdmin()) {
+		if (logins.getUserController().isGlobalAdmin()) {
 			return worker.readUsedCustomerStorage().then(usedStorage => {
 				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
 					return worker.readAvailableCustomerStorage().then(availableStorage => {
@@ -193,13 +232,15 @@ export class LoginViewController {
 
 	}
 
-	_deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
-		return worker.deleteSession(credentials.accessToken)
-			.then(() => {
-				// not authenticated error is caught in worker
-				deviceConfig.delete(credentials.mailAddress)
-				this.view._visibleCredentials = deviceConfig.getAllInternal();
-				m.redraw()
-			})
+	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
+		return worker.initialized.then(() => {
+			worker.deleteSession(credentials.accessToken)
+				.then(() => {
+					// not authenticated error is caught in worker
+					deviceConfig.delete(credentials.mailAddress)
+					this.view._visibleCredentials = deviceConfig.getAllInternal();
+					m.redraw()
+				})
+		})
 	}
 }

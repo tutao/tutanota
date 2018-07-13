@@ -10,8 +10,10 @@ import {exportAsEml} from "./Exporter"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
+import {getFolderName, getFolderIcon, getSortedSystemFolders, getSortedCustomFolders} from "./MailUtils"
+import type {MailboxDetail} from "./MailModel"
+import {mailModel} from "./MailModel"
 
 assertMainOrNode()
 
@@ -25,12 +27,25 @@ export class MultiMailViewer {
 		let emptyMessageBox = new MessageBox(() => this._getMailSelectionMessage(mailView))
 		let actions = new ActionBar()
 		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-			return neverNull(mailView.selectedMailbox).getAllFolders().filter(vm => vm.folder !== mailView.selectedFolder).map(targetVm => {
-				return new Button(() => targetVm.getDisplayName(), () => mailView.moveMails(targetVm, mailView.mailList.list.getSelectedEntities()), targetVm.getDisplayIcon())
-					.setType(ButtonType.Dropdown)
-			})
+			let mails = mailView.mailList.list.getSelectedEntities()
+			let sourceMailboxes = mails.reduce((set, mail) => {
+				let mailBox = mailModel.getMailboxDetails(mail)
+				if (set.indexOf(mailBox) < 0) {
+					set.push(mailBox)
+				}
+				return set
+			}, ([]:MailboxDetail[]))
+
+			if (sourceMailboxes.length != 1) {
+				return []
+			} else {
+				return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
+					return new Button(() => getFolderName(f), () => mailModel.moveMails(mails, f), getFolderIcon(f))
+						.setType(ButtonType.Dropdown)
+				})
+			}
 		}))
-		actions.add(new Button('delete_action', () => mailView.deleteSelected(), () => Icons.Trash))
+		actions.add(new Button('delete_action', () => mailView.deleteSelectedMails(), () => Icons.Trash))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action", () => this._markAll(mailView.mailList.list.getSelectedEntities(), true), () => Icons.NoEye).setType(ButtonType.Dropdown))

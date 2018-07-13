@@ -1,18 +1,28 @@
 // @flow
 import m from "mithril"
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNodeBoot, isApp} from "../api/Env"
 import {lang} from "./LanguageViewModel"
+import type {WorkerClient} from "../api/main/WorkerClient"
+import {asyncImport} from "../api/common/utils/Utils"
+import {reloadNative} from "../native/SystemApp"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?number;
+	windowCloseConfirmation: boolean;
+	_worker: WorkerClient;
 
 	constructor() {
 		this._windowSizeListeners = []
 		this.resizeTimeout = null
+		this.windowCloseConfirmation = false
 		this.init()
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`).then(module => {
+			// load async to reduce size of boot bundle
+			this._worker = module.worker
+		})
 	}
 
 	/**
@@ -51,6 +61,10 @@ class WindowFacade {
 				}, 66)
 			}
 		}
+		if (window.addEventListener && !isApp()) {
+			window.addEventListener("beforeunload", e => this._beforeUnload(e))
+			window.addEventListener("unload", e => this._onUnload())
+		}
 	}
 
 	_resize() {
@@ -65,17 +79,23 @@ class WindowFacade {
 	}
 
 	checkWindowClosing(enable: boolean) {
-		if (enable) {
-			window.addEventListener("beforeunload", this._checkWindowClose)
+		this.windowCloseConfirmation = enable
+	}
+
+	_beforeUnload(e: any) { // BeforeUnloadEvent
+		if (this.windowCloseConfirmation) {
+			let m = lang.get("closeWindowConfirmation_msg")
+			e.returnValue = m
+			return m
 		} else {
-			window.removeEventListener("beforeunload", this._checkWindowClose)
+			this._worker.logout(true)
 		}
 	}
 
-	_checkWindowClose(e: any) { // BeforeUnloadEvent
-		let m = lang.get("closeWindowConfirmation_msg")
-		e.returnValue = m
-		return m
+	_onUnload() {
+		if (this.windowCloseConfirmation) {
+			this._worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+		}
 	}
 
 
@@ -85,6 +105,34 @@ class WindowFacade {
 
 	addOfflineListener(listener: Function) {
 		window.addEventListener("offline", listener)
+	}
+
+	/**
+	 * Runs a setInterval and if more time than expected has passed we assume we resumed after suspend.
+	 */
+	addResumeAfterSuspendListener(listener: Function) {
+		let CHECK_INTERVAL_SECONDS = 10
+		let lastCheckTime = new Date().getTime()
+		setInterval(() => {
+			let newTime = new Date().getTime()
+			// if more than 10 seconds more have passed we assume we resumed from suspend
+			if ((newTime - lastCheckTime - CHECK_INTERVAL_SECONDS * 1000) > 10 * 1000) {
+				listener()
+			}
+			lastCheckTime = newTime
+		}, CHECK_INTERVAL_SECONDS * 1000)
+	}
+
+	reload(args: {[string]:any}) {
+		if (isApp()) {
+			if (!args.hasOwnProperty("noAutoLogin")) {
+				args.noAutoLogin = true
+			}
+			let newQueryString = m.buildQueryString(args)
+			reloadNative(newQueryString.length > 0 ? "?" + newQueryString : "")
+		} else {
+			window.location.reload();
+		}
 	}
 }
 

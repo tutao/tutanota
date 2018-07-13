@@ -1,17 +1,11 @@
 // @flow
 import {getHttpOrigin, assertWorkerOrNode} from "../../Env"
 import {handleRestError, ConnectionError} from "../../common/error/RestError"
-import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {HttpMethod} from "../../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 
 assertWorkerOrNode()
-
-export const MediaType = {
-	Json: 'application/json',
-	Binary: 'application/octet-stream',
-}
-export type MediaTypeEnum = $Values<typeof MediaType>;
 
 export class RestClient {
 	url: string;
@@ -32,7 +26,7 @@ export class RestClient {
 			var xhr = new XMLHttpRequest()
 			xhr.open(method, url)
 			this._setHeaders(xhr, headers, body, responseType);
-			xhr.responseType = responseType === MediaType.Json ? "" : 'arraybuffer'
+			xhr.responseType = responseType === MediaType.Json ? "text" : 'arraybuffer'
 
 			let timeout = setTimeout(() => xhr.abort(), env.timeout)
 			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed

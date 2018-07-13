@@ -47,6 +47,15 @@ global.crypto = {
 
 global.XMLHttpRequest = require('xhr2')
 
+const path = require('path')
+global.System = {
+	'import': function (modulePath) {
+		let systemBaseDir = path.resolve(__dirname, "../../")
+		let absolutePath = path.resolve(systemBaseDir, modulePath)
+		return Promise.resolve(require(absolutePath))
+	}
+}
+
 // provide the mapping of the @hot module (maps in system js to @empty; an empty module)
 const Module = require('module').Module;
 Module._cache['@hot'] = {exports: {module: undefined}}
@@ -75,5 +84,8 @@ process.on("unhandledRejection", function (e) {
 	console.log("Uncaught (in promise) " + e.stack)
 })
 
+window.tutao = {}
+
+require("../../src/api/Env").bootFinished()
 
 require('./Suite.js')

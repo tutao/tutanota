@@ -20,8 +20,8 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"clientToken": {
-			"name": "clientToken",
+		"loginUrl": {
+			"name": "loginUrl",
 			"id": 792,
 			"since": 9,
 			"type": "String",
@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPaymentDataServiceGetReturn(): PaymentDataServiceGetReturn {

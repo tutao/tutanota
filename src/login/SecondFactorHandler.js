@@ -6,18 +6,17 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, SessionState, SecondFactorType} from "../api/common/TutanotaConstants"
-import {worker} from "../api/main/WorkerClient"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
 import {NotAuthenticatedError, BadRequestError, AccessBlockedError} from "../api/common/error/RestError"
-import {SecondFactorImage} from "../gui/base/icons/Icons"
+import {SecondFactorImage, Icons} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Button} from "../gui/base/Button"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -43,7 +42,7 @@ export class SecondFactorHandler {
 	setupAcceptOtherClientLoginListener() {
 		if (!this._otherLoginListenerInitialized) {
 			this._otherLoginListenerInitialized = true
-			worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
+			locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
 				let sessionId = [neverNull(listId), elementId];
 				if (isSameTypeRef(typeRef, SessionTypeRef)) {
 					if (operation == OperationType.CREATE) {
@@ -113,12 +112,12 @@ export class SecondFactorHandler {
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
-				auth.otpCode = otpCode.value()
+				auth.otpCode = otpCode.value().replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
 					.catch(AccessBlockedError, e => Dialog.error("loginFailedOften_msg"))
-			}, () => BootIcons.Login)
+			}, () => Icons.Login)
 			otpCode._injectionsRight = () => m(otpLoginButton)
 			otpCode._keyHandler = key => {
 				switch (key.keyCode) {
@@ -142,8 +141,9 @@ export class SecondFactorHandler {
 						]),
 						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain})) : null
 					])
-				})
-				this._waitingForSecondFactorDialog.show()
+				}).setCloseHandler(() => {
+					// Prevent accidential closing
+				}).show()
 				if (u2fSupport && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {

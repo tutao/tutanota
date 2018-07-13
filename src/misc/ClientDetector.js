@@ -1,6 +1,6 @@
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNodeBoot} from "../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const BrowserType = {
 	CHROME: "Chrome",
@@ -51,25 +51,18 @@ class ClientDetector {
 	}
 
 	/**
-	 * Browsers that provide these features are allowed to use Tutanota but certain
-	 * features are not active and a warning will be displayed.
+	 * Browsers which support these features are supported
 	 */
-	isAccepted(): boolean {
+	isSupported(): boolean {
 		return this.flexbox() &&
 			this.websockets() &&
 			this.xhr2() &&
 			this.randomNumbers() &&
-			this.dateFormat()
-	}
-
-	/**
-	 * Browsers which support these features are fully supported
-	 */
-	isSupported(): boolean {
-		return this.isAccepted() &&
+			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
-			this.randomNumbers()
+			this.randomNumbers() &&
+			this.notIE()
 	}
 
 	isMobileDevice(): boolean {
@@ -125,6 +118,14 @@ class ClientDetector {
 		}
 	}
 
+	localStorage(): boolean {
+		try {
+			return localStorage ? true : false
+		} catch (e) {
+			return false
+		}
+
+	}
 
 	/**
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
@@ -155,6 +156,16 @@ class ClientDetector {
 	 */
 	xhr2(): boolean {
 		return 'XMLHttpRequest' in window && 'withCredentials' in new XMLHttpRequest()
+	}
+
+
+	indexedDb(): boolean {
+		try {
+			indexedDB
+			return true
+		} catch (e) {
+			return false
+		}
 	}
 
 	/**
@@ -300,6 +311,10 @@ class ClientDetector {
 		}
 	}
 
+	isTouchSupported() {
+		return 'ontouchstart' in window
+	}
+
 
 	cssPropertyValueSupported(prop: string, value: string) {
 		let d = (document.createElement('div'):any)
@@ -311,6 +326,10 @@ class ClientDetector {
 		return client.browser + " " + client.device
 	}
 
+
+	notIE() {
+		return this.browser != BrowserType.IE
+	}
 }
 
 export const client: ClientDetector = new ClientDetector()

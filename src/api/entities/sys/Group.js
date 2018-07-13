@@ -85,8 +85,18 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"administratedGroups": {
+			"name": "administratedGroups",
+			"id": 1306,
+			"since": 27,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "AdministratedGroupsRef",
+			"final": true
+		},
 		"keys": {
 			"name": "keys",
+			"id": 13,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -95,6 +105,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"admin": {
 			"name": "admin",
+			"id": 224,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -104,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customer": {
 			"name": "customer",
+			"id": 226,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -113,6 +125,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"groupInfo": {
 			"name": "groupInfo",
+			"id": 227,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -122,6 +135,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"invitations": {
 			"name": "invitations",
+			"id": 228,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -131,6 +145,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"members": {
 			"name": "members",
+			"id": 229,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -140,6 +155,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
+			"id": 225,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -149,7 +165,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createGroup(): Group {

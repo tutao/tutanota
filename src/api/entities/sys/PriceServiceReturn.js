@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"currentPriceNextPeriod": {
 			"name": "currentPriceNextPeriod",
+			"id": 864,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -50,6 +51,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"currentPriceThisPeriod": {
 			"name": "currentPriceThisPeriod",
+			"id": 863,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -58,6 +60,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"futurePriceNextPeriod": {
 			"name": "futurePriceNextPeriod",
+			"id": 865,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -66,7 +69,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPriceServiceReturn(): PriceServiceReturn {

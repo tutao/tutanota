@@ -13,7 +13,7 @@ o.spec("gui > list creation", function () {
 	o("default page size: 100", function (done) {
 		let list = new List({
 			fetch: (start, count) => {
-				o(start).equals("Uzzzzzzzzzzz")
+				o(start).equals("zzzzzzzzzzzz")
 				o(count).equals(100)
 				done()
 				return Promise.resolve(new Array(100))

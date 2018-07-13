@@ -8,7 +8,8 @@ export const GroupType = {
 	External: "4",
 	Mail: "5",
 	Contact: "6",
-	File: "7"
+	File: "7",
+	LocalAdmin: "8"
 }
 export type GroupTypeEnum = $Values<typeof GroupType>;
 
@@ -37,6 +38,7 @@ export const MailFolderType = {
 	SPAM: '5',
 	DRAFT: '6'
 }
+
 export type MailFolderTypeEnum = $Values<typeof MailFolderType>;
 
 export const ReplyType = {
@@ -90,11 +92,15 @@ export const AccountType = {
 }
 export type AccountTypeEnum = $Values<typeof AccountType>;
 
+
+export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
+
 export const ApprovalStatus = {
 	RegistrationApproved: '0',
 	RegistrationApprovalNeeded: '1',
 	SendMailsApproved: '2',
-	InvoiceNotPaid: '3'
+	InvoiceNotPaid: '3',
+	SpamSender: '4'
 }
 export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 
@@ -102,7 +108,12 @@ export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 export const BookingItemFeatureType = {
 	Users: '0',
 	Storage: '1',
-	Alias: '2'
+	Alias: '2',
+	SharedMailGroup: '3',
+	Branding: '4',
+	ContactForm: '5',
+	WhitelabelChild: '6',
+	LocalAdminGroup: '7'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
@@ -114,6 +125,10 @@ export const PaymentMethodType = {
 	Paypal: '3'
 }
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
+
+export const reverse = (objectMap: Object) => Object.keys(objectMap).reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+
+export const ValueToPaymentMethodType = reverse(PaymentMethodType)
 
 
 export const Const = {
@@ -197,7 +212,8 @@ export type SessionStateEnum = $Values<typeof SessionState>;
 export const PushServiceType = {
 	ANDROID: "0",
 	IOS: "1",
-	EMAIL: "2"
+	EMAIL: "2",
+	SSE: "3"
 }
 export type PushServiceTypeEnum = $Values<typeof PushServiceType>;
 
@@ -231,6 +247,72 @@ export const FeatureType = {
 	DisableContacts: "0",
 	DisableMailExport: "1",
 	InternalCommunication: "2",
-	// 3 and 4 are not used on clients
+	DeleteMailsOnPasswordReset: "3",
+	WhitelabelParent: "4",
+	WhitelabelChild: "5",
+	ReplyOnly: "6",
+	DisableDefaultSignature: "7"
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
+
+export const BootstrapFeatureType = {
+	DisableSavePassword: "0",
+}
+export type BootstrapFeatureTypeEnum = $Values<typeof BootstrapFeatureType>;
+
+export const FULL_INDEXED_TIMESTAMP: number = 0
+export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+
+
+export const PaymentDataResultType = {
+	OK: "0",
+	COUNTRY_MISMATCH: "1",
+	INVALID_VATID_NUMBER: "2",
+	CREDIT_CARD_DECLINED: "3",
+	CREDIT_CARD_CVV_INVALID: "4",
+	PAYMENT_PROVIDER_NOT_AVAILABLE: "5",
+	OTHER_PAYMENT_PROVIDER_ERROR: "6",
+	OTHER_PAYMENT_ACCOUNT_REJECTED: "7",
+	COULD_NOT_VERIFY_VATID: "8",
+	CREDIT_CARD_DATE_INVALID: "9",
+	CREDIT_CARD_NUMBER_INVALID: "10"
+}
+
+export const ContactComparisonResult = {
+	Unique: "unique",
+	Similar: "similar",
+	Equal: "equal",
+}
+export type ContactComparisonResultEnum = $Values<typeof ContactComparisonResult>;
+
+export const IndifferentContactComparisonResult = {
+	OneEmpty: "oneEmpty",
+	BothEmpty: "bothEmpty",
+}
+export type IndifferentContactComparisonResultEnum = $Values<typeof IndifferentContactComparisonResult>;
+
+export const ContactMergeAction = {
+	DeleteFirst: "deleteFirst",
+	DeleteSecond: "deleteSecond",
+	Merge: "merge",
+	Skip: "skip",
+	Cancel: "cancel"
+}
+export type ContactMergeActionEnum = $Values<typeof ContactMergeAction>;
+
+
+export const InvoiceStatus = {
+	CREATED: "0",
+	PUBLISHEDFORAUTOMATIC: "1",
+	PUBLISHEDFORMANUAL: "2",
+	PAID: "3",
+	DEBITFAILED: "4",
+	DISPUTED: "5",
+	CANCELLED: "6",
+	PARTNERMANAGED: "7",
+	FIRSTREMINDER: "8",
+	REFUNDED: "9",
+	DISPUTEACCEPTED: "10",
+	SECONDREMINDER: "11"
+}
+export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;

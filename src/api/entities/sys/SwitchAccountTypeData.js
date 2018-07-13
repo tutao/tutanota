@@ -37,11 +37,20 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
+		},
+		"proUpgrade": {
+			"name": "proUpgrade",
+			"id": 1310,
+			"since": 30,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createSwitchAccountTypeData(): SwitchAccountTypeData {

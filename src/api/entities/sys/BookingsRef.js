@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"items": {
 			"name": "items",
+			"id": 724,
 			"since": 9,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createBookingsRef(): BookingsRef {

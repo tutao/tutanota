@@ -1,5 +1,7 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
 import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
+import type {PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
+import {Country} from "../../src/api/common/CountryList"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -50,7 +52,7 @@ type WorkerRequestType = 'setup'
 	| 'signup'
 	| 'createSession'
 	| 'createExternalSession'
-	| 'logout'
+	| 'reset'
 	| 'resumeSession'
 	| 'testEcho'
 	| 'testError'
@@ -68,6 +70,7 @@ type WorkerRequestType = 'setup'
 	| 'entropy'
 	| 'tryReconnectEventBus'
 	| 'changePassword'
+	| 'deleteAccount'
 	| 'setMailAliasStatus'
 	| 'addMailAlias'
 	| 'isMailAddressAvailable'
@@ -77,12 +80,13 @@ type WorkerRequestType = 'setup'
 	| 'readUsedUserStorage'
 	| 'deleteUser'
 	| 'getPrice'
+	| 'getCurrentPrice'
 	| 'loadCustomerServerProperties'
 	| 'addSpamRule'
 	| 'createUser'
 	| 'readUsedGroupStorage'
 	| 'createMailGroup'
-	| 'createTeamGroup'
+	| 'createLocalAdminGroup'
 	| 'addUserToGroup'
 	| 'removeUserFromGroup'
 	| 'deactivateGroup'
@@ -96,10 +100,22 @@ type WorkerRequestType = 'setup'
 	| 'createContactFormUser'
 	| 'generateTotpCode'
 	| 'generateTotpSecret'
+	| 'search'
+	| 'enableMailIndexing'
+	| 'disableMailIndexing'
+	| 'cancelMailIndexing'
+	| 'updateAdminship'
+	| 'switchFreeToPremiumGroup'
+	| 'switchPremiumToFreeGroup'
+	| 'updatePaymentData'
+	| 'downloadInvoice'
+	| 'generateSsePushIdentifer'
+	| 'decryptUserPassword'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
-	|'progress'
+	| 'progress'
+	| 'updateIndexState'
 type NativeRequestType =  'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -117,8 +133,18 @@ type NativeRequestType =  'init'
 	| 'clearFileData'
 	| 'findSuggestions'
 	| 'initPushNotifications'
+	| 'openLink'
+	| 'reload'
+	| 'getPushIdentifier'
+	| 'storePushIdentifierLocally'
+	| 'closePushNotifications'
+	| 'readFile'
+	| 'changeTheme'
+type JsRequestType ='createMailEditor'
 	| 'updatePushIdentifier'
-type JsRequestType = ''
+	| 'handleBackPress'
+	| 'showAlertDialog'
+	| 'openMailbox'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object
@@ -154,6 +180,7 @@ type ModelValue = {
 }
 
 type ModelAssociation = {
+	id: number,
 	type: AssociationTypeEnum,
 	cardinality: CardinalityEnum,
 	refType: string
@@ -167,14 +194,25 @@ type EnvType = {
 	versionNumber : string,
 	timeout: number,
 	rootPathPrefix: string,
+	adminTypes: string[],
 }
 
 declare var env: EnvType
 
+type WhitelabelCustomizations = {
+	theme: ?Theme,
+	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
+	germanLanguageCode: string,
+	registrationDomains: ?String[],
+}
+
+declare var whitelabelCustomizations: ?WhitelabelCustomizations
+
 type Credentials = {
 	mailAddress:string,
-	encryptedPassword:Base64,
+	encryptedPassword: ?Base64, // only set for persistent sessions
 	accessToken: Base64Url,
+	userId: Id
 }
 
 declare function browser(f: Function): Function
@@ -187,8 +225,9 @@ type RecipientInfo = {
 	_type: RecipientInfoName,
 	type: RecipientInfoTypeEnum,
 	mailAddress:string,
-	name: string,
-	contact: ?Contact
+	name:string, // empty string if no name is available
+	contact: ?Contact, // The resolved contact or a new contact instance with the given email address and name. A new contact is used to store a shared password if applicable. Null if no contact shall be resolved.
+	resolveContactPromise:?Promise<?Contact> // Null if resolving contact is finished
 }
 
 type DataFile = {
@@ -211,4 +250,51 @@ type FileReference = {
 type KeyListener = {
 	modifier: number,
 	callback: Function
+}
+export type SearchRestriction = {
+	type: TypeRef<any>;
+	start: ?number; // timestamp
+	end: ?number; // timestamp
+	field:?string; // must be kept in sync with attributeIds
+	attributeIds:?number[]; // must be kept in sync with field
+	listId:?Id;
+}
+
+type SearchResult = {
+	query: string,
+	restriction: SearchRestriction,
+	results: IdTuple[];
+	currentIndexTimestamp: number;
+}
+
+type SearchIndexStateInfo = {
+	initializing:boolean;
+	indexingSupported:boolean;
+	mailIndexEnabled:boolean;
+	progress:number;
+	currentMailIndexTimestamp:number;
+}
+
+type SubscriptionOptions = {
+	businessUse:boolean,
+	paymentInterval: number,
+}
+
+type CreditCardData = {
+	number:string,
+	cvv:string,
+	expirationDate:string
+}
+
+type PayPalData = {
+	account:string
+}
+type InvoiceData = {
+	invoiceAddress:string;
+	country: ?Country;
+	vatNumber:string; // only for EU countries otherwise empty
+}
+type PaymentData = {
+	paymentMethod:PaymentMethodTypeEnum;
+	creditCardData:?CreditCard;
 }

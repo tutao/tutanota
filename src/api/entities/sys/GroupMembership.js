@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"group": {
 			"name": "group",
+			"id": 29,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -60,6 +61,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"groupInfo": {
 			"name": "groupInfo",
+			"id": 30,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -69,6 +71,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"groupMember": {
 			"name": "groupMember",
+			"id": 230,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -78,7 +81,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createGroupMembership(): GroupMembership {

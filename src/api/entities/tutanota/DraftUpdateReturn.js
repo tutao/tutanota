@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"attachments": {
 			"name": "attachments",
+			"id": 525,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createDraftUpdateReturn(): DraftUpdateReturn {

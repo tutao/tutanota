@@ -18,7 +18,7 @@ import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
-export function show() {
+export function show(emailAddressOrDomainName: ?string) {
 	let existingSpamRules: ?EmailSenderListElement[] = null
 	let customDomains: ?string[]
 	worker.loadCustomerServerProperties().then(props => {
@@ -32,7 +32,7 @@ export function show() {
 	})
 
 	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), getSpamRuleTypeNameMapping()[0].value)
-	let valueField = new TextField("emailSenderPlaceholder_label", () => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg"))
+	let valueField = new TextField("emailSenderPlaceholder_label", () => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg")).setValue(emailAddressOrDomainName)
 	let form = {
 		view: () => {
 			return [

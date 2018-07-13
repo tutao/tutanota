@@ -1,9 +1,11 @@
 package de.tutao.tutanota;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
+import android.os.Environment;
+import android.webkit.MimeTypeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -22,6 +24,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -32,18 +35,18 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static de.tutao.tutanota.MainActivity.activity;
-
-public class Crypto {
+public final class Crypto {
     public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
     public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
     private static final String PROVIDER = "BC";
@@ -61,12 +64,17 @@ public class Crypto {
 
     private static final Integer ANDROID_6_SDK_VERSION = 23;
 
+    private final Context context;
+
     static {
         // see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
         PRNGFixes.apply();
     }
 
-    public Crypto() {
+    public static final String HMAC_256 = "HmacSHA256";
+
+    public Crypto(Context context) {
+        this.context = context;
         this.randomizer = new SecureRandom();
     }
 
@@ -133,8 +141,7 @@ public class Crypto {
         PublicKey publicKey = jsonToPublicKey(publicKeyJson);
         this.randomizer.setSeed(random);
         byte[] encrypted = rsaEncrypt(key, publicKey, this.randomizer);
-        String encryptedBase64 = Utils.bytesToBase64(encrypted);
-        return encryptedBase64;
+        return Utils.bytesToBase64(encrypted);
     }
 
     private byte[] rsaEncrypt(byte[] key, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -174,8 +181,7 @@ public class Crypto {
         return new SecretKeySpec(key, "AES");
     }
 
-    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
-        Context context = activity.getWebView().getContext();
+    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
         File inputFile = Utils.uriToFile(context, fileUrl);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
@@ -183,21 +189,33 @@ public class Crypto {
 
         InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
         OutputStream out = new FileOutputStream(outputFile);
-        aesEncrypt(key, in, out, iv);
+        aesEncrypt(key, in, out, iv, true);
 
         return Utils.fileToUri(outputFile);
     }
 
-    public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
-            InvalidAlgorithmParameterException, IOException {
+    public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv, boolean useMac) throws CryptoError, IOException {
         InputStream encrypted = null;
         try {
             Cipher cipher = Cipher.getInstance(AES_MODE_PADDING);
             IvParameterSpec params = new IvParameterSpec(iv);
-            cipher.init(Cipher.ENCRYPT_MODE, bytesToKey(key), params);
+            SubKeys subKeys = getSubKeys(bytesToKey(key), useMac);
+            cipher.init(Cipher.ENCRYPT_MODE, subKeys.cKey, params);
             encrypted = getCipherInputStream(in, cipher);
-            out.write(iv);
-            IOUtils.copy(encrypted, out);
+            ByteArrayOutputStream tempOut = new ByteArrayOutputStream();
+            tempOut.write(iv);
+            IOUtils.copy(encrypted, tempOut);
+            if (useMac) {
+                byte[] data = tempOut.toByteArray();
+                out.write(new byte[]{1});
+                out.write(data);
+                byte[] macBytes = hmac256(subKeys.mKey, data);
+                out.write(macBytes);
+            } else {
+                out.write(tempOut.toByteArray());
+            }
+        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
+           throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(encrypted);
@@ -205,42 +223,58 @@ public class Crypto {
         }
     }
 
-    private String aesDecrypt(final byte[] key, final byte[] cipherText) throws InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IOException {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    aesDecrypt(key, new ByteArrayInputStream(cipherText), out);
-                            return Utils.bytesToBase64(out.toByteArray());
-    }
-
-    String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException {
-        Context context = activity.getWebView().getContext();
+    String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, CryptoError {
         File inputFile = Utils.uriToFile(context, fileUrl);
-        File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
-        decryptedDir.mkdirs();
+        File decryptedDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File outputFile = new File(decryptedDir, inputFile.getName());
-
         InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
         OutputStream out = new FileOutputStream(outputFile);
-        aesDecrypt(key, in, out);
-
-        return Utils.fileToUri(outputFile);
+        aesDecrypt(key, in, out, inputFile.length());
+        return outputFile.getAbsolutePath();
     }
 
-    public void aesDecrypt(final byte[] key, InputStream in, OutputStream out) throws IOException,
-            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+    public void aesDecrypt(final byte[] key, InputStream in, OutputStream out, long inputSize) throws IOException, CryptoError {
         InputStream decrypted = null;
         try {
+            byte[] cKey = key;
+            boolean macIncluded = inputSize % 2 == 1;
+            if (macIncluded) {
+                SubKeys subKeys = getSubKeys(bytesToKey(key), true);
+                cKey = subKeys.cKey.getEncoded();
+
+                ByteArrayOutputStream tempOut = new ByteArrayOutputStream();
+                IOUtils.copyLarge(in, tempOut);
+                byte[] cipherText = tempOut.toByteArray();
+
+                byte[] cipherTextWithoutMac = Arrays.copyOfRange(cipherText, 1, cipherText.length - 32);
+
+                byte[] providedMacBytes = Arrays.copyOfRange(cipherText, cipherText.length - 32, cipherText.length);
+                byte[] computedMacBytes = hmac256(subKeys.mKey, cipherTextWithoutMac);
+
+                if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
+                    throw new CryptoError("invalid mac");
+                }
+                in = new ByteArrayInputStream(cipherTextWithoutMac);
+            }
+
             byte[] iv = new byte[AES_KEY_LENGTH_BYTES];
             IOUtils.read(in, iv);
             Cipher cipher = Cipher.getInstance(AES_MODE_PADDING);
             IvParameterSpec params = new IvParameterSpec(iv);
-            cipher.init(Cipher.DECRYPT_MODE, bytesToKey(key), params);
+            cipher.init(Cipher.DECRYPT_MODE, bytesToKey(cKey), params);
             decrypted = getCipherInputStream(in, cipher);
-            IOUtils.copy(decrypted, out);
+            IOUtils.copyLarge(decrypted, out, new byte[1024 * 1000]);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(decrypted);
             IOUtils.closeQuietly(out);
         }
+    }
+
+    public SecureRandom getRandomizer() {
+        return randomizer;
     }
 
     private InputStream getCipherInputStream(InputStream in, Cipher cipher) {
@@ -253,4 +287,32 @@ public class Crypto {
         }
     }
 
+    private static class SubKeys {
+        public SecretKeySpec cKey;
+        public byte[] mKey;
+    }
+
+    private static SubKeys getSubKeys(SecretKeySpec key, boolean mac) throws NoSuchAlgorithmException {
+        SubKeys subKeys = new SubKeys();
+        if (mac) {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(key.getEncoded());
+            subKeys.cKey = new SecretKeySpec(Arrays.copyOfRange(hash, 0, 16), "AES");
+            subKeys.mKey = Arrays.copyOfRange(hash, 16, 32);
+        } else {
+            subKeys.cKey = key;
+        }
+        return subKeys;
+    }
+
+    private static byte[] hmac256(byte[] key, byte[] data) {
+        SecretKeySpec macKey = new SecretKeySpec(key, HMAC_256);
+        try {
+            Mac hmac = Mac.getInstance(HMAC_256);
+            hmac.init(macKey);
+            return hmac.doFinal(data);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

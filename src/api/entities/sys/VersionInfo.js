@@ -105,6 +105,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"author": {
 			"name": "author",
+			"id": 248,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -114,6 +115,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"authorGroupInfo": {
 			"name": "authorGroupInfo",
+			"id": 249,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -123,7 +125,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createVersionInfo(): VersionInfo {

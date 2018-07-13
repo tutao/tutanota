@@ -60,6 +60,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"message": {
 			"name": "message",
+			"id": 188,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -69,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createRemoteImapSyncInfo(): RemoteImapSyncInfo {

@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"u2f": {
 			"name": "u2f",
+			"id": 1231,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -50,6 +51,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"session": {
 			"name": "session",
+			"id": 1232,
 			"since": 23,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -59,7 +61,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createSecondFactorAuthData(): SecondFactorAuthData {

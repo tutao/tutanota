@@ -69,6 +69,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"freeGroup": {
 			"name": "freeGroup",
+			"id": 880,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -78,6 +79,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"premiumGroup": {
 			"name": "premiumGroup",
+			"id": 881,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -87,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createSystemKeysReturn(): SystemKeysReturn {

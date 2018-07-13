@@ -69,6 +69,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"attachmentKeyData": {
 			"name": "attachmentKeyData",
+			"id": 555,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -77,6 +78,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"internalRecipientKeyData": {
 			"name": "internalRecipientKeyData",
+			"id": 553,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -85,6 +87,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"secureExternalRecipientKeyData": {
 			"name": "secureExternalRecipientKeyData",
+			"id": 554,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -93,6 +96,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mail": {
 			"name": "mail",
+			"id": 556,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -102,7 +106,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createSendDraftData(): SendDraftData {

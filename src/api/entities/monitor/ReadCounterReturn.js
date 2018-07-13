@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "5"
+	"version": "6"
 }
 
 export function createReadCounterReturn(): ReadCounterReturn {

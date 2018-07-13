@@ -3,14 +3,20 @@ import {styles} from "./styles"
 import {size, px} from "./size"
 import {client} from "../misc/ClientDetector"
 import {position_absolute, positionValue, flex, noselect} from "./mixins"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot, isApp} from "../api/Env"
 import {theme} from "./theme.js"
-import {colors} from "./AlternateColors"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
+		"@font-face": {
+			"font-family": "'Ionicons'",
+			"src": "url('images/ionicons.ttf') format('truetype')",
+			"font-weight": "normal",
+			"font-style": "normal"
+		},
+
 		/*
 		 Box Sizing
 		 */
@@ -25,7 +31,10 @@ styles.registerStyle('main', () => {
 		'html, body': {height: '100%', margin: 0},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
 
-		'button, textarea': {padding: 0},
+		'button, textarea': {
+			padding: 0,
+			'text-align': 'left'
+		},
 
 		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
 			overflow: 'hidden',
@@ -50,6 +59,9 @@ styles.registerStyle('main', () => {
 		'.click': {
 			cursor: 'pointer',
 			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
+		},
+		'.click-disabled': {
+			cursor: 'default'
 		},
 		'.text': {
 			cursor: 'text'
@@ -83,6 +95,7 @@ styles.registerStyle('main', () => {
 		//view: position_absolute(0, 0, 0, 0),
 
 		// margins
+		'.m-0': {margin: 0},
 		'.mt': {'margin-top': px(size.vpad)},
 		'.mt-xs': {'margin-top': px(size.vpad_xs)},
 		'.mt-s': {'margin-top': px(size.vpad_small)},
@@ -97,12 +110,15 @@ styles.registerStyle('main', () => {
 		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
+		'.ml-s': {'margin-left': px(size.vpad_small)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
 		'.pt': {'padding-top': px(size.vpad)},
+		'.pt-0': {'padding-top': 0},
 		'.pt-s': {'padding-top': px(size.vpad_small)},
 		'.pt-l': {'padding-top': px(size.vpad_large)},
+		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
@@ -127,7 +143,7 @@ styles.registerStyle('main', () => {
 		'.plr-nav-button': {'padding-left': px(size.hpad_nav_button), 'padding-right': px(size.hpad_nav_button)},
 		'.pl-button': {'padding-left': px(size.hpad_button)},
 
-
+		'.mt-negative-s': {'margin-top': px(-size.hpad_button)},
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
 		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
 		'.ml-negative-l': {'margin-left': px(-size.hpad_large)},
@@ -138,20 +154,27 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
-		'.text-break': {overflow: 'hidden', 'word-break': 'break-all'},
+		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
 		'.text-pre': {'white-space': 'pre'},
 		'.z1': {'z-index': '1'},
 		'.z2': {'z-index': '2'},
 		'.z3': {'z-index': '3'},
 		'.noselect': noselect,
+		'.no-wrap': {'white-space': 'nowrap'},
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
 		'.overflow-x-hidden': {'overflow-x': 'hidden'},
 
+		'.view-column': {'will-change': 'transform'},
+
+		'.will-change-alpha': {'will-change': 'alpha'},
+
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
+
+		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
 
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
@@ -185,14 +208,15 @@ styles.registerStyle('main', () => {
 		'.swipe-spacer path': {
 			fill: '#ffffff',
 		},
-		'.blue': {'background-color': colors.alt_5},
+		'.blue': {'background-color': "#2196F3"},
 
-		'.hover-ul:hover': {'text-decoration': 'underline'},
-
+		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
+		'.sticky': {position: 'sticky'},
+		'.fixed': {position: 'fixed'},
 		'.rel': {position: 'relative'},
 		'.max-width-s': {'max-width': px(360)},
 		'.max-width-m': {'max-width': px(450)},
@@ -203,21 +227,29 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
 		},
+		'.scroll-x': {
+			'overflow-x': 'auto',
+			'-webkit-overflow-scrolling': 'touch',
+			'-ms-overflow-style': '-ms-autohiding-scrollbar',
+		},
 		'.center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
 		'.left': {'text-align': 'left'},
 		'.statusTextColor': {color: theme.content_accent},
 		'.button-height': {height: px(size.button_height)},
+		'.button-height-accent': {height: px(size.button_height_accent) + " !important"},
 		'.button-min-height': {'min-height': px(size.button_height)},
 		'.button-width-fixed': {width: px(size.button_height)},
 		'.large-button-height': {height: px(size.button_floating_size)},
 		'.large-button-width': {width: px(size.button_floating_size)},
 		'.full-height': {height: '100%'},
 		'.full-width': {width: '100%'},
+		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},
 		'.no-text-decoration': {'text-decoration': 'none'},
 
 		// flex box
+		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
 		'.flex-fixed': {flex: "0 0 auto"},
 		'.flex-center': {display: 'flex', 'justify-content': 'center'},
@@ -226,10 +258,12 @@ styles.registerStyle('main', () => {
 		'.flex-v-center': {display: 'flex', 'flex-direction': "column", 'justify-content': 'center'},
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
 		'.flex-column': {'flex-direction': "column"},
+		'.flex-column-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
 		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
+		'.flex-grow-shrink-half': {flex: '1 1 50%'},
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
 		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
@@ -240,6 +274,7 @@ styles.registerStyle('main', () => {
 		'.items-base': {'align-items': 'baseline'},
 		'.items-strech': {'align-items': 'strech'},
 		'.align-self-center': {'align-self': 'center'},
+		'.align-self-end': {'align-self': 'flex-end'},
 		'.justify-center': {'justify-content': 'center'},
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
@@ -248,6 +283,7 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
+		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -272,6 +308,14 @@ styles.registerStyle('main', () => {
 		'.icon > svg': {
 			height: px(size.icon_size_medium),
 			width: px(size.icon_size_medium),
+		},
+		'.icon-progress-search': {
+			height: px(20),
+			width: px(20),
+		},
+		'.icon-progress-search > svg': {
+			height: px(20),
+			width: px(20),
 		},
 		'.icon-large': {
 			height: px(size.icon_size_large),
@@ -353,6 +397,17 @@ styles.registerStyle('main', () => {
 		'.header-right': {position: 'absolute', left: '310px', right: '0', top: 0, bottom: 0},
 		'.header-right > .nav-bar': {width: '100%'},
 
+		'.nav-bar-spacer': {
+			width: "2px",
+			height: "24px",
+			'margin-left': "2px",
+			'margin-top': "10px",
+			"background-color": theme.navigation_border,
+		},
+		'.search-bar > .text-field': {
+			"padding-top": '0 !important'
+		},
+
 
 		// dialogs
 		'.dialog': {'min-width': px(200), width: '100%'},
@@ -364,6 +419,7 @@ styles.registerStyle('main', () => {
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.button_height + 1)
 		},
+		'.dialog-header-line-height': {'line-height': px(size.button_height)},
 		'.dialog-progress': {'text-align': 'center', padding: px(size.hpad_large)},
 		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
 		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
@@ -376,6 +432,7 @@ styles.registerStyle('main', () => {
 			'border-left': `1px solid ${theme.content_border}`,
 			'margin-left': '0'
 		},
+		'.dialog-max-height': {'max-height': 'calc(100vh - 100px)'},
 
 		// mail folder view column
 		' .folder-column': {
@@ -414,11 +471,12 @@ styles.registerStyle('main', () => {
 
 		// list
 		'.list': {
-			'background-repeat': 'repeat-y',
 			overflow: 'hidden',
 			'list-style': 'none',
 			margin: 0,
+			padding: 0,
 		},
+		'.list-alternate-background': {'background': `repeating-linear-gradient(to bottom, ${theme.list_alternate_bg}, ${theme.list_alternate_bg} ${px(size.list_row_height)},  ${theme.list_bg} ${px(size.list_row_height)}, ${theme.list_bg} ${px(size.list_row_height * 2)})`},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
 			'background-color': theme.list_bg,
@@ -430,6 +488,28 @@ styles.registerStyle('main', () => {
 			'background-color': theme.list_alternate_bg,
 		},
 		'.list-loading': {bottom: 0},
+
+		// mail list
+		".ion": {
+			"display": "inline-block",
+			"font-family": "'Ionicons'",
+			"speak": "none",
+			"font-style": "normal",
+			"font-weight": "normal",
+			"font-variant": "normal",
+			"text-transform": "none",
+			"text-rendering": "auto",
+			"line-height": "1",
+			"-webkit-font-smoothing": "antialiased",
+			"-moz-osx-font-smoothing": "grayscale",
+		},
+
+		".list-font-icons": {
+			"letter-spacing": "8px",
+			"text-align": "right",
+			"margin-right": "-8px",
+			"color": theme.content_accent
+		},
 
 
 		// action bar
@@ -459,10 +539,10 @@ styles.registerStyle('main', () => {
 			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 
-		'.nav-button:hover': {
-			'text-decoration': 'underline',
-			opacity: 0.7,
-		},
+		'.nav-button:hover': !isApp() ? {
+				'text-decoration': 'underline',
+				opacity: 0.7,
+			} : {},
 		'.nav-button:focus': client.isDesktopDevice() ? {
 				'text-decoration': 'underline',
 				opacity: 0.7,
@@ -506,12 +586,52 @@ styles.registerStyle('main', () => {
 			color: theme.button_bubble_fg,
 		},
 
+		'.segmentControl': {
+			// same border as for bubble buttons
+			'border-top': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+			'border-bottom': `${px(((size.button_height - size.button_height_bubble) / 2))} solid transparent`,
+		},
+
+		'.segmentControl-border': {
+			'border': `1px solid ${theme.content_border}`,
+			'padding-top': px(1),
+			'padding-bottom': px(1),
+			'padding-left': px(1),
+			'padding-right': px(1),
+		},
+		'.segmentControl-border-active': {
+			'border': `2px solid ${theme.content_accent}`,
+			'padding-top': px(0),
+			'padding-bottom': px(0),
+			'padding-left': px(0),
+			'padding-right': px(0),
+		},
+
+		'.segmentControlItem': {
+			cursor: 'pointer'
+		},
+		'.segmentControlItem:last-child': {
+			'border-bottom-right-radius': px(size.border_radius),
+			'border-top-right-radius': px(size.border_radius),
+		},
+
+		'.segmentControlItem:first-child': {
+			'border-bottom-left-radius': px(size.border_radius),
+			'border-top-left-radius': px(size.border_radius)
+		},
+
 		// contact
 		'.wrapping-row': {display: 'flex', 'flex-flow': 'row wrap', 'margin-right': px(-size.hpad_large)},
 		'.wrapping-row > *': {
 			flex: '1 0 40%',
 			'margin-right': px(size.hpad_large),
 			'min-width': px(200), // makes sure the row is wrapped with too large content
+		},
+
+		'.non-wrapping-row': {display: 'flex', 'flex-flow': 'row', 'margin-right': px(-size.hpad_large)},
+		'.non-wrapping-row > *': {
+			flex: '1 0 40%',
+			'margin-right': px(size.hpad_large),
 		},
 
 		// text input field
@@ -534,6 +654,9 @@ styles.registerStyle('main', () => {
 			overflow: 'hidden',
 			color: theme.content_fg,
 		},
+		'.input-no-clear::-ms-clear': { // remove the clear (x) button from edge input fields
+			display: 'none'
+		},
 
 		// table
 
@@ -543,12 +666,16 @@ styles.registerStyle('main', () => {
 			width: '100%'
 		},
 
-		'.table > tr:first-child': {
+		'.table tr:first-child': {
 			'border-bottom': `1px solid ${theme.content_border}`
 		},
 
-		'.table > td': {
-			'vertical-align': 'middle'
+		'.table td': {
+			'vertical-align': 'middle',
+		},
+
+		'td': {
+			'padding': 0,
 		},
 
 		'.column-width-small': {
@@ -556,6 +683,16 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
+		'.buyOptionBox': {
+			position: 'relative',
+			display: 'inline-block',
+			border: `1px solid ${theme.content_border}`,
+			width: "100%",
+			padding: px(10)
+		},
+		'.buyOptionBox.selected': {
+			border: `1px solid ${theme.content_accent}`,
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
@@ -602,6 +739,54 @@ styles.registerStyle('main', () => {
 			},
 
 			'.custom-logo': {width: px(40)}
-		}
+		},
+
+		"@media print": {
+			".header-nav": {display: 'none'},
+			".main-view": {
+				top: 0,
+				position: "static !important"
+			},
+			".dropdown-panel": {
+				display: 'none'
+			},
+			".fill-absolute": {
+				position: "static !important"
+			},
+			".view-columns": {
+				width: "100% !important",
+				transform: "initial !important",
+			},
+			".view-column:nth-child(1), .view-column:nth-child(2)": {
+				display: 'none'
+			},
+			".view-column": {
+				width: "100% !important",
+			},
+			"#mail-viewer": {
+				overflow: "visible",
+				display: "block"
+			},
+			"#mail-body": {
+				overflow: "visible"
+			},
+			".dialog-header": {
+				display: 'none'
+			},
+			".dialog-container": {
+				overflow: "visible"
+			},
+			"button:not(.print)": {
+				display: 'none'
+			},
+
+		},
+
+		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7
+		"@keyframes onAutoFillStart": {from: {/**/}, to: {/**/}},
+		"@keyframes onAutoFillCancel": {from: {/**/}, to: {/**/}},
+		// use the animations as hooks for JS to capture 'animationstart' events
+		"input:-webkit-autofill": {"animation-name": "onAutoFillStart",},
+		"input:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
 	}
 })

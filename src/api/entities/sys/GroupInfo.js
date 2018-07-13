@@ -83,6 +83,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"groupType": {
+			"name": "groupType",
+			"id": 1286,
+			"since": 27,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"mailAddress": {
 			"name": "mailAddress",
 			"id": 22,
@@ -105,6 +114,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"mailAddressAliases": {
 			"name": "mailAddressAliases",
+			"id": 687,
 			"since": 8,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -113,16 +123,27 @@ export const _TypeModel: TypeModel = {
 		},
 		"group": {
 			"name": "group",
+			"id": 20,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "Group",
 			"final": true,
 			"external": false
+		},
+		"localAdmin": {
+			"name": "localAdmin",
+			"id": 1287,
+			"since": 27,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Group",
+			"final": true,
+			"external": false
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createGroupInfo(): GroupInfo {

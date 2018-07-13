@@ -1,8 +1,9 @@
 // @flow
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {themeId} from "../gui/theme"
+import {client} from "./ClientDetector"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const ConfigVersion = 2
 const LocalStorageKey = 'tutanotaConfig'
@@ -25,7 +26,7 @@ class DeviceConfig {
 
 	_load(): void {
 		this._credentials = []
-		let loadedConfigString = localStorage.getItem(LocalStorageKey)
+		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
@@ -39,6 +40,10 @@ class DeviceConfig {
 
 	get(mailAddress: string): ?Credentials {
 		return this._credentials.find(c => c.mailAddress === mailAddress)
+	}
+
+	getByUserId(id: Id): ?Credentials {
+		return this._credentials.find(c => c.userId == id)
 	}
 
 	set(credentials: Credentials) {
@@ -56,8 +61,18 @@ class DeviceConfig {
 		this._store()
 	}
 
+	deleteByAccessToken(accessToken: string) {
+		this._credentials.splice(this._credentials.findIndex(c => c.accessToken === accessToken), 1)
+		this._store()
+	}
+
 	_store() {
-		localStorage.setItem(LocalStorageKey, JSON.stringify(this))
+		try {
+			localStorage.setItem(LocalStorageKey, JSON.stringify(this))
+		} catch (e) {
+			// may occur in Safari < 11 in incognito mode because it throws a QuotaExceededError
+			console.log("could not store config", e)
+		}
 	}
 
 	getAll(): Credentials[] {

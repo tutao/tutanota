@@ -59,8 +59,10 @@ interface IUserController {
 	user: User;
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
-	sessionElementId: Id;
-	isAdmin():boolean;
+	sessionId: IdTuple;
+	accessToken: string;
+	isGlobalAdmin():boolean;
+	isGlobalOrLocalAdmin():boolean;
 	isFreeAccount(): boolean;
 	isPremiumAccount(): boolean;
 	isOutlookAccount(): boolean;
@@ -68,11 +70,16 @@ interface IUserController {
 	loadCustomer(): Promise<Customer>;
 	getMailGroupMemberships(): GroupMembership[];
 	getUserMailGroupMembership(): GroupMembership;
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void;
+	getLocalAdminGroupMemberships():GroupMembership[];
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string,
+						operation: OperationTypeEnum):Promise<void>;
+	deleteSession(sync: boolean):Promise<void>;
 }
 
 interface ILoginViewController {
-	_formLogin():void;
-	_autologin(credentials: Credentials):Promise<IUserController>;
-	_deleteCredentialsNotLoggedIn(credentials: Credentials):Promise<void>;
+	formLogin():void;
+	autologin(credentials: Credentials):Promise<IUserController>;
+	deleteCredentialsNotLoggedIn(credentials: Credentials):Promise<void>;
+	migrateDeviceConfig(oldCredentials: Object[]):Promise<void>;
+	migrateDeviceConfigFromApp(): Promise<void>;
 }

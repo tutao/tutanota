@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"catchAllMailGroup": {
 			"name": "catchAllMailGroup",
+			"id": 1044,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -60,6 +61,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"certificate": {
 			"name": "certificate",
+			"id": 1135,
 			"since": 22,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -67,18 +69,19 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
-		"theme": {
-			"name": "theme",
+		"whitelabelConfig": {
+			"name": "whitelabelConfig",
+			"id": 1136,
 			"since": 22,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "BrandingTheme",
+			"refType": "WhitelabelConfig",
 			"final": true,
 			"external": false
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createDomainInfo(): DomainInfo {

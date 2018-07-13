@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"events": {
 			"name": "events",
+			"id": 1085,
 			"since": 20,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -59,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createEntityEventBatch(): EntityEventBatch {

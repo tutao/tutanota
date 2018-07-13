@@ -8,29 +8,21 @@ import {Button} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {InvalidDataError} from "../api/common/error/RestError"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {BootIcons} from "../gui/base/icons/BootIcons"
+import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
+import {Icons} from "../gui/base/icons/Icons"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {isDomainName} from "../misc/Formatter"
 
 assertMainOrNode()
 
-/**
- * @pre: customerInfo.domainInfos.length > 0
- */
 export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
-	let selectedDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
-	if (customerInfo.domainInfos.length == 1) {
-		selectedDomainInfo = customerInfo.domainInfos[0]
-	}
+	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
 	let domainField
-	if (selectedDomainInfo) {
-		domainField = new TextField("brandingDomain_label").setValue(selectedDomainInfo.domain).setDisabled()
+	if (brandingDomainInfo) {
+		domainField = new TextField("whitelabelDomain_label").setValue(brandingDomainInfo.domain).setDisabled()
 	} else {
-		let availableItems = customerInfo.domainInfos.map(info => {
-			return {name: info.domain, value: info}
-		})
-		domainField = new DropDownSelector("brandingDomain_label", null, availableItems, availableItems[0].value, 250)
+		domainField = new TextField("whitelabelDomain_label")
 	}
 
 	let certChainFile: ?DataFile = null
@@ -41,7 +33,7 @@ export function show(customerInfo: CustomerInfo): void {
 			certificateChainField.setValue(certChainFile.name)
 			m.redraw()
 		})
-	}, () => BootIcons.Edit)
+	}, () => Icons.Edit)
 	certificateChainField._injectionsRight = () => [m(chooseCertificateChainButton)]
 
 	let privKeyFile: ?DataFile = null
@@ -52,7 +44,7 @@ export function show(customerInfo: CustomerInfo): void {
 			privateKeyField.setValue(privKeyFile.name)
 			m.redraw()
 		})
-	}, () => BootIcons.Edit)
+	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
 	let form = {
@@ -64,19 +56,25 @@ export function show(customerInfo: CustomerInfo): void {
 			]
 		}
 	}
-	let dialog = Dialog.smallActionDialog(lang.get("brandingDomain_label"), form, () => {
+	let dialog = Dialog.smallActionDialog(lang.get("whitelabelDomain_label"), form, () => {
+		let domain = domainField.value().trim().toLowerCase()
 		if (!certChainFile) {
 			Dialog.error("certificateChainInfo_msg")
 		} else if (!privKeyFile) {
 			Dialog.error("privateKeyInfo_msg")
+		} else if (!isDomainName(domain) || domain.split(".").length < 3) {
+			Dialog.error("notASubdomain_msg")
+		} else if (customerInfo.domainInfos.find(d => d.domain == domain && !d.certificate)) {
+			Dialog.error("customDomainErrorDomainNotAvailable_msg")
 		} else {
 			try {
-				let domain = (domainField instanceof TextField) ? domainField.value() : domainField.selectedValue().domain
-				worker.uploadCertificate(domain, utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data)).then(() => {
+				showProgressDialog("pleaseWait_msg", worker.uploadCertificate(domain, utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data)).then(() => {
 					dialog.close()
 				}).catch(InvalidDataError, e => {
 					Dialog.error("certificateError_msg")
-				})
+				}).catch(PreconditionFailedError, e => {
+					Dialog.error("invalidCnameRecord_msg")
+				}))
 			} catch (e) {
 				Dialog.error("certificateError_msg")
 			}

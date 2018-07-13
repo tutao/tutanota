@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"enumValues": {
 			"name": "enumValues",
+			"id": 732,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -50,7 +51,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createInputField(): InputField {

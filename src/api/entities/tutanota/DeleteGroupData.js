@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"group": {
 			"name": "group",
+			"id": 716,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -42,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createDeleteGroupData(): DeleteGroupData {

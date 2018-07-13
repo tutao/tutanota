@@ -7,8 +7,9 @@ import {CustomerTypeRef} from "../entities/sys/Customer"
 import {UserTypeRef} from "../entities/sys/User"
 import {isSameTypeRef, isSameId} from "../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
-import {assertMainOrNode} from "../Env"
+import {assertMainOrNode, getHttpOrigin} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
+import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 
 assertMainOrNode()
 
@@ -16,22 +17,34 @@ export class UserController {
 	user: User;
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
-	sessionElementId: Id;
+	sessionId: IdTuple;
+	accessToken: Base64Url;
+	persistentSession: boolean;
 
-	constructor(user: User, userGroupInfo: GroupInfo, sessionElementId: Id, props: TutanotaProperties) {
+	constructor(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, props: TutanotaProperties, accessToken: Base64Url, persistentSession: boolean) {
 		this.user = user
 		this.userGroupInfo = userGroupInfo
 		this.props = props
-		this.sessionElementId = sessionElementId
+		this.sessionId = sessionId
+		this.accessToken = accessToken
+		this.persistentSession = persistentSession
 	}
 
 	/**
 	 * Checks if the current user is an admin of the customer.
 	 * @return True if the user is an admin
 	 */
-	isAdmin() {
+	isGlobalAdmin() {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.admin) != null
+			return this.user.memberships.find(m => m.groupType == GroupType.Admin) != null
+		} else {
+			return false;
+		}
+	}
+
+	isGlobalOrLocalAdmin() {
+		if (this.isInternalUser()) {
+			return this.user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
 		} else {
 			return false;
 		}
@@ -75,19 +88,54 @@ export class UserController {
 		return this.getMailGroupMemberships()[0]
 	}
 
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) {
+	getLocalAdminGroupMemberships(): GroupMembership[] {
+		return this.user.memberships.filter(membership => membership.groupType == GroupType.LocalAdmin)
+	}
+
+	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
 		if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
-			load(UserTypeRef, this.user._id).then(updatedUser => {
+			return load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser
 			})
 		} else if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
-			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 			})
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
-			loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
+			return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 				this.props = props
 			})
 		}
+		return Promise.resolve()
 	}
+
+	deleteSession(sync: boolean): Promise<void> {
+		if (this.persistentSession) return Promise.resolve()
+		let path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
+
+		return Promise.fromCallback((resolve, reject) => {
+			var xhr = new XMLHttpRequest()
+			xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
+			xhr.setRequestHeader('accessToken', this.accessToken)
+			xhr.setRequestHeader('v', SessionModelType.version)
+			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
+				if (xhr.status === 200) {
+					console.log("deleted session")
+					resolve()
+				} else if (xhr.status == 401) {
+					console.log("authentication failed => session is already deleted")
+					resolve()
+				} else {
+					console.error("could not delete session " + xhr.status)
+					reject("could not delete session " + xhr.status)
+				}
+			}
+			xhr.onerror = function () {
+				console.error("failed to request delete session")
+				reject("failed to request delete session")
+			}
+			xhr.send()
+		})
+	}
+
 }

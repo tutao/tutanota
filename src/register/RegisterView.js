@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button, ButtonType} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
@@ -22,6 +22,8 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {themeId} from "../gui/theme"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 
 assertMainOrNode()
 
@@ -30,14 +32,18 @@ export class RegisterView {
 	isRegisterView: boolean; // just a static value to let app.js notice this view as the register view
 
 	constructor() {
-		let mailAddressForm = new SelectMailAddressForm(TUTANOTA_MAIL_ADDRESS_DOMAINS)
+		let mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())
 		let passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
+		let codeField = new TextField("whitelabelRegistrationCode_label")
 
 		let confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
 			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, lang.get("termsAndConditionsLink_label"))),
 			m("div", m(`a[href=${this._getPrivacyLink()}][target=_blank]`, lang.get("privacyLink_label")))
-		], () => lang.get(confirmStatus().text))
+		])
+		let confirmAge = new Checkbox(() => [
+			m("div", lang.get("ageConfirmation_msg"))
+		])
 		let confirmStatus = confirm.checked.map(checked => {
 			if (!checked) {
 				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
@@ -53,12 +59,21 @@ export class RegisterView {
 				return
 			}
 
-			let authToken = m.route.param()['authToken']
-			if (!authToken) {
-				this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword())
-			} else {
-				// FIXME
+			let p = Promise.resolve(true)
+			if (!confirmAge.checked()) {
+				p = Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			}
+
+			p.then(confirmed => {
+				if (confirmed) {
+					let authToken = m.route.param()['authToken']
+					if (!authToken) {
+						this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
+					} else {
+						// FIXME
+					}
+				}
+			})
 		}
 
 		let signupButton = new Button('createAccount_action', () => _createAccount()).setType(ButtonType.Login)
@@ -72,7 +87,7 @@ export class RegisterView {
 			}
 		}).setType(ButtonType.Secondary)
 
-		let login = new Button('login_label', () => m.route.set('/login')).setType(ButtonType.Secondary)
+		let login = new Button('login_label', () => m.route.set('/login?noAutoLogin=true')).setType(ButtonType.Secondary)
 
 		let panel = {
 			view: () => m(".flex-center.flex-column", [
@@ -88,7 +103,9 @@ export class RegisterView {
 					m("div", [
 						m(mailAddressForm),
 						m(passwordForm),
+						(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
 						m(confirm),
+						m(confirmAge),
 						m(".mt-l.mb-l", m(signupButton)),
 						m(".flex-center", [
 							m(optionsExpander),
@@ -103,18 +120,18 @@ export class RegisterView {
 	}
 
 	_getTermsLink() {
-		return (lang.code == "de") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
+		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
 	}
 
 	_getPrivacyLink() {
-		return (lang.code == "de") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
+		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
 	}
 
 
 	/**
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
-	_signup(mailAddress: string, pw: string): Promise<void> {
+	_signup(mailAddress: string, pw: string, registrationCode: string): Promise<void> {
 		return this._requestCaptcha().then(captchaReturn => {
 			let authToken = captchaReturn.token
 			if (captchaReturn.challenge) {
@@ -126,15 +143,16 @@ export class RegisterView {
 			}
 		}).then(authToken => {
 			if (authToken) {
-				return Dialog.progress("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, lang.code), true).then(() => {
+				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true).then(() => {
 					m.route.set("/login?loginWith=" + mailAddress)
 				})
 			}
 		}).catch(AccessDeactivatedError, e => Dialog.error("createAccountAccessDeactivated_msg"))
+			.catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
 	}
 
 	_requestCaptcha(): Promise<RegistrationCaptchaServiceReturn> {
-		return Dialog.progress("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef))
+		return showProgressDialog("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef))
 	}
 
 	/**
@@ -156,7 +174,7 @@ class CaptchaDialog {
 		this.dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb", [
+				m(".plr-l.pb", [
 					m("img.mt-l", {
 						src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(this.captchaReturn.challenge)),
 						alt: lang.get("captchaDisplay_label")
@@ -167,17 +185,18 @@ class CaptchaDialog {
 		})
 
 		let actionBar = new DialogHeaderBar()
-		actionBar.addLeft(new Button("cancel_action", () => {
+		let cancelAction = () => {
 			this.dialog.close()
 			this.callback(null, null)
-		}).setType(ButtonType.Secondary))
+		}
+		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 		actionBar.addRight(new Button("ok_action", () => {
 			let captchaTime = captchaInput.value().trim()
 			if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
 				let data = createRegistrationCaptchaServiceData()
 				data.token = this.captchaReturn.token
 				data.response = captchaTime
-				Dialog.progress("loading_msg", serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data))
+				showProgressDialog("loading_msg", serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data))
 					.then(() => {
 						this.dialog.close()
 						this.callback(null, this.captchaReturn)
@@ -205,6 +224,7 @@ class CaptchaDialog {
 			}
 		}).setType(ButtonType.Primary))
 			.setMiddle(() => lang.get("captchaDisplay_label"))
+		this.dialog.setCloseHandler(cancelAction)
 	}
 
 	/**

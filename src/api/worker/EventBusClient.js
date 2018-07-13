@@ -1,9 +1,9 @@
 // @flow
-import {loginFacade} from "./facades/LoginFacade"
-import {mailFacade} from "./facades/MailFacade"
-import {workerImpl} from "./WorkerImpl"
+import type {LoginFacade} from "./facades/LoginFacade"
+import type {MailFacade} from "./facades/MailFacade"
+import type {WorkerImpl} from "./WorkerImpl"
 import {encryptAndMapToLiteral, applyMigrations, decryptAndMapToInstance} from "./crypto/CryptoFacade"
-import {getWebsocketOrigin, assertWorkerOrNode, Mode, isIOSApp} from "../Env"
+import {getWebsocketOrigin, assertWorkerOrNode, Mode, isIOSApp, isTest, isAdmin} from "../Env"
 import {createAuthentication} from "../entities/sys/Authentication"
 import {
 	_TypeModel as WebsocketWrapperTypeModel,
@@ -11,7 +11,7 @@ import {
 	createWebsocketWrapper
 } from "../entities/sys/WebsocketWrapper"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import {getEntityRestCache} from "./rest/EntityRestCache"
+import type {EntityRestCache} from "./rest/EntityRestCache"
 import {loadAll, load, loadRange} from "./EntityWorker"
 import {GENERATED_MIN_ID, getLetId, GENERATED_MAX_ID, firstBiggerThanSecond} from "../common/EntityFunctions"
 import {NotFoundError, NotAuthorizedError, ConnectionError, handleRestError} from "../common/error/RestError"
@@ -19,33 +19,48 @@ import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
+import type {Indexer} from "./search/Indexer"
 
 assertWorkerOrNode()
 
 export class EventBusClient {
-
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
 
+	_indexer: Indexer;
+	_cache: EntityRestCache;
+	_worker: WorkerImpl;
+	_mail: MailFacade;
+	_login: LoginFacade;
+
 	_socket: ?WebSocket;
-	_terminated: boolean; // if terminated, never reconnects
+	_terminated: boolean; // if terminated, only reconnects if explicitely connect() is called from outside, but never by automatic reconnects
 	_immediateReconnect: boolean; // if true tries to reconnect immediately after the websocket is closed
 	_lastEntityEventIds: {[key: Id]: Id[]}; // maps group id to last event ids (max. 1000). we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
 	_queueWebsocketEvents: boolean
 
 	_websocketWrapperQueue: WebsocketWrapper[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
-	constructor() {
+	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestCache, mail: MailFacade, login: LoginFacade) {
+		this._worker = worker
+		this._indexer = indexer
+		this._cache = cache
+		this._mail = mail
+		this._login = login
 		this._socket = null
 		this._terminated = false
-		this._immediateReconnect = false
-		this._lastEntityEventIds = {}
-		this._queueWebsocketEvents = false
-		this._websocketWrapperQueue = []
+		this._reset()
 
 		// we store the last 1000 event ids per group, so we know if an event was already processed.
 		// it is not sufficient to check the last event id because a smaller event id may arrive later
 		// than a bigger one if the requests are processed in parallel on the server
 		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
+	}
+
+	_reset(): void {
+		this._immediateReconnect = false
+		this._lastEntityEventIds = {}
+		this._queueWebsocketEvents = false
+		this._websocketWrapperQueue = []
 	}
 
 	/**
@@ -69,8 +84,8 @@ export class EventBusClient {
 			wrapper.modelVersions = WebsocketWrapperTypeModel.version + "." + MailTypeModel.version;
 			wrapper.clientVersion = env.versionNumber;
 			let authenticationData = createAuthentication()
-			let headers = loginFacade.createAuthHeaders()
-			authenticationData.userId = loginFacade.getLoggedInUser()._id
+			let headers = this._login.createAuthHeaders()
+			authenticationData.userId = this._login.getLoggedInUser()._id
 			if (headers.accessToken) {
 				authenticationData.accessToken = headers.accessToken
 			} else {
@@ -83,6 +98,7 @@ export class EventBusClient {
 					const socket = (this._socket:any)
 					if (socket.readyState === 1) {
 						socket.send(JSON.stringify(entityForSending));
+						this._terminated = false
 					} else if (socket.readyState === 0) {
 						setTimeout(sendInitialMsg, 5)
 					}
@@ -102,15 +118,21 @@ export class EventBusClient {
 
 	/**
 	 * Sends a close event to the server and finally closes the connection.
+	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(reconnect: boolean = false) {
 		console.log("ws close: ", new Date(), "reconnect: ", reconnect);
 		if (!reconnect) {
-			this._terminated = true;
+			this._terminate()
 		}
 		if (this._socket && this._socket.close) { // close is undefined in node tests
 			this._socket.close();
 		}
+	}
+
+	_terminate(): void {
+		this._terminated = true
+		this._reset()
 	}
 
 	_error(error: any) {
@@ -147,11 +169,11 @@ export class EventBusClient {
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
 		if (event.code == 4401 || event.code == 4470 || event.code == 4472) {
-			this._terminated = true
-			workerImpl.sendError(handleRestError(event.code - 4000, "web socket error"))
+			this._terminate()
+			this._worker.sendError(handleRestError(event.code - 4000, "web socket error"))
 		}
 
-		if (!this._terminated && loginFacade.isLoggedIn()) {
+		if (!this._terminated && this._login.isLoggedIn()) {
 			if (this._immediateReconnect || isIOSApp()) {
 				this._immediateReconnect = false
 				// on ios devices the close event fires when the app comes back to foreground
@@ -160,7 +182,7 @@ export class EventBusClient {
 				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false);
 			}
-			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(30, 100));
+			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(10, 30));
 		}
 	}
 
@@ -173,7 +195,7 @@ export class EventBusClient {
 			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
-		} else if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this._terminated && loginFacade.isLoggedIn()) {
+		} else if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this._terminated && this._login.isLoggedIn()) {
 			this.connect(true);
 		}
 	}
@@ -188,7 +210,7 @@ export class EventBusClient {
 	 */
 	_setLatestEntityEventIds(): Promise<void> {
 		this._queueWebsocketEvents = true
-		return Promise.each(loginFacade.getAllGroupIds(), groupId => {
+		return Promise.each(this._login.getAllGroupIds(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
 				this._lastEntityEventIds[groupId] = [(batches.length == 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
 			})
@@ -203,13 +225,13 @@ export class EventBusClient {
 	}
 
 	_loadMissedEntityEvents(): Promise<void> {
-		if (loginFacade.isLoggedIn()) {
+		if (this._login.isLoggedIn()) {
 			this._queueWebsocketEvents = true
 			return this._checkIfEntityEventsAreExpired().then(expired => {
 				if (expired) {
-					return workerImpl.sendError(new OutOfSyncError())
+					return this._worker.sendError(new OutOfSyncError())
 				} else {
-					return Promise.each(loginFacade.getAllGroupIds(), groupId => {
+					return Promise.each(this._login.getAllGroupIds(), groupId => {
 						return loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId)).each(eventBatch => {
 							return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
 						})
@@ -248,39 +270,45 @@ export class EventBusClient {
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
 		return Promise.map(events, event => {
-			return this._executeIfNotTerminated(() => getEntityRestCache().entityEventReceived(event))
+			return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
 				.then(() => event)
 				.catch(e => {
 					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 						// skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
 						return null
 					} else {
-						workerImpl.sendError(e)
+						this._worker.sendError(e)
 						throw e // do not continue processing the other events
 					}
 				})
-		}).filter(event => event != null)
-			.each(event => {
-				return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(event))
-					.then(() => this._executeIfNotTerminated(() => mailFacade.entityEventReceived(event)))
-					.then(() => this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event)))
-			}).then(() => {
-				if (!this._lastEntityEventIds[groupId]) {
-					this._lastEntityEventIds[groupId] = []
-				}
-				this._lastEntityEventIds[groupId].push(batchId)
-				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-				this._lastEntityEventIds[groupId].sort((e1, e2) => {
-					if (e1 == e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
-				})
-				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-					this._lastEntityEventIds[groupId].shift()
+		}).filter(event => event != null).then(filteredEvents => {
+			this._executeIfNotTerminated(() => {
+				if (!isTest() && !isAdmin()) {
+					return this._indexer.processEntityEvents(filteredEvents, groupId, batchId)
 				}
 			})
+			return filteredEvents
+		}).each(event => {
+			return this._executeIfNotTerminated(() => this._login.entityEventReceived(event))
+				.then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
+				.then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
+		}).then(() => {
+			if (!this._lastEntityEventIds[groupId]) {
+				this._lastEntityEventIds[groupId] = []
+			}
+			this._lastEntityEventIds[groupId].push(batchId)
+			// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+			this._lastEntityEventIds[groupId].sort((e1, e2) => {
+				if (e1 == e2) {
+					return 0
+				} else {
+					return firstBiggerThanSecond(e1, e2) ? 1 : -1
+				}
+			})
+			if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+				this._lastEntityEventIds[groupId].shift()
+			}
+		})
 	}
 
 	/**
@@ -288,7 +316,7 @@ export class EventBusClient {
 	 * @return True if the events have expired, false otherwise.
 	 */
 	_checkIfEntityEventsAreExpired(): Promise<boolean> {
-		return Promise.each(loginFacade.getAllGroupIds(), groupId => {
+		return Promise.each(this._login.getAllGroupIds(), groupId => {
 			let lastEventBatchId = this._getLastEventBatchIdOrMinIdForGroup(groupId)
 			if (lastEventBatchId != GENERATED_MIN_ID) {
 				return load(EntityEventBatchTypeRef, [groupId, lastEventBatchId])
@@ -301,6 +329,7 @@ export class EventBusClient {
 	}
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
+		// TODO handle lost updates (old event surpassed by newer one, we store the new id and retrieve instances from the newer one on next login
 		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ? this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
 	}
 

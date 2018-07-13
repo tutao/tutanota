@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"targetFolder": {
 			"name": "targetFolder",
+			"id": 577,
 			"since": 12,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -51,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createInboxRule(): InboxRule {

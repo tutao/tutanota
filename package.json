@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "3.24.4",
+  "version": "3.35.7",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
@@ -27,18 +27,19 @@
     "http-server": "0.9.0",
     "mithril": "1.1.4",
     "mithril-node-render": "1.0.1-4",
-    "node-static": "0.7.9",
-    "ospec": "1.2.3",
+    "node-static": "0.7.10",
+    "ospec": "1.4.0",
     "plugman": "1.4.1",
     "server-destroy": "1.0.1",
     "sha": "2.0.1",
     "spdy": "3.3.1",
     "squire-rte": "1.8.9",
-    "systemjs": "0.20.10",
+    "systemjs": "0.20.15",
     "systemjs-builder": "0.16.4",
     "systemjs-hmr": "git+https://github.com/mpfau/systemjs-hmr.git#temp",
     "systemjs-hot-reloader": "git+https://github.com/mpfau/systemjs-hot-reloader.git#temp",
     "systemjs-plugin-babel": "0.0.21",
-    "xhr2": "0.1.3"
+    "xhr2": "0.1.3",
+    "glob": "^7.1.2"
   }
 }

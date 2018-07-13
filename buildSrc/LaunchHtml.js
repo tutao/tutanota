@@ -26,12 +26,14 @@ module.exports.renderHtml = function (scripts, env) {
 				m("head", [
 					m("meta[charset=utf-8]"),
 					env.dist && env.mode === "App" ? m(`meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`) : null,
-					m("title", "Tutanota"),
-					m("meta[name=description][content=Secure email for everyone: Get your encrypted mailbox for free. Now you can show the online spies that you won&#39;t make it easy for them.]"),
-					m("link [rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
 					m("meta[name=apple-mobile-web-app-capable][content=yes]"),
 					m("meta[name=mobile-web-app-capable][content=yes]"),
 					m("meta[name=referrer][content=no-referrer]"),
+					scripts.map(script => m(`script[src=${script}][defer]`)),
+					m.trust("<!-- TutanotaTags -->"), // everything from here to </head> is replaced at runtime for custom domains with defined metaTags
+					m("title", "Tutanota"),
+					m("meta[name=description][content=Secure email for everyone: Get your encrypted mailbox for free. Now you can show the online spies that you won&#39;t make it easy for them.]"),
+					m("link [rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
 					m("meta[name=application-name][content=Tutanota]"),
 					m("link[rel=apple-touch-icon][sizes=152x152][href=/images/logo-favicon-152.png]"),
 					m("link[rel=icon][sizes=192x192][href=/images/logo-favicon-192.png]"),
@@ -58,8 +60,6 @@ module.exports.renderHtml = function (scripts, env) {
 					m("meta[itemprop=image][content=https://tutanota.com/images/share_image.png]"),
 
 					m("meta[name=apple-itunes-app][content=app-id=id922429609, affiliate-data=10lSfb]"),
-
-					scripts.map(script => m(`script[src=${script}][defer]`))
 				]),
 				m("body")
 			])

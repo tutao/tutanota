@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"parentFolder": {
 			"name": "parentFolder",
+			"id": 452,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -51,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createCreateMailFolderData(): CreateMailFolderData {

@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
@@ -15,10 +15,8 @@ import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {worker} from "../api/main/WorkerClient"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {progressIcon} from "../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../mail/MailUtils"
-import {deviceConfig} from "../misc/DeviceConfig"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
@@ -27,6 +25,9 @@ import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm} from "../settings/PasswordForm"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {Icons} from "../gui/base/icons/Icons"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -56,7 +57,7 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => BootIcons.Attachment)
+		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
 		this._subject._injectionsRight = () => {
 			return [m(this._attachFilesButton)]
 		}
@@ -65,7 +66,9 @@ export class ContactFormRequestDialog {
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 
-		let closeButton = new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary)
+		let closeAction = () => this._close()
+
+		let closeButton = new Button('cancel_action', closeAction).setType(ButtonType.Secondary)
 		let sendButton = new Button('send_action', () => this.send()).setType(ButtonType.Primary)
 		let headerBar = new DialogHeaderBar()
 			.addLeft(closeButton)
@@ -117,7 +120,7 @@ export class ContactFormRequestDialog {
 		this._dialog = Dialog.largeDialog(headerBar, this)
 			.addShortcut({
 				key: Keys.ESC,
-				exec: () => closeButton.clickHandler(),
+				exec: closeAction,
 				help: "close_alt"
 			})
 			.addShortcut({
@@ -128,15 +131,19 @@ export class ContactFormRequestDialog {
 					this.send()
 				},
 				help: "send_action"
-			})
+			}).setCloseHandler(closeAction)
 	}
 
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
-		return contactForm.statisticsFields.map(field => {
+		let language = getDefaultContactFormLanguage(contactForm.languages)
+		return language.statisticsFields.map(field => {
 			if (field.type === InputFieldType.ENUM) {
-				let f = new DropDownSelector(() => field.name, null, field.enumValues.map(t => {
+				let items = field.enumValues.map(t => {
 					return {name: t.name, value: t.name}
-				}), null, 250)
+				})
+				// add empty entry
+				items.splice(0, 0, {name: "", value: null})
+				let f = new DropDownSelector(() => field.name, null, items, null, 250)
 				return {component: f, name: field.name, value: f.selectedValue}
 			} else {
 				let f = new TextField(() => field.name)
@@ -210,7 +217,7 @@ export class ContactFormRequestDialog {
 				m.redraw()
 			}, null).setType(ButtonType.Secondary))
 
-			return createDropDownButton(() => file.name, () => BootIcons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
 	}
 
@@ -248,7 +255,7 @@ export class ContactFormRequestDialog {
 				}))
 				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields).then(contactFormResult => {
 					let userEmailAddress = contactFormResult.responseMailAddress
-					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false).then(() => {
+					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false).then(() => {
 						let p = Promise.resolve()
 						if (cleanedNotificationMailAddress) {
 							let pushIdentifier = createPushIdentifier()
@@ -261,35 +268,43 @@ export class ContactFormRequestDialog {
 							p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
 						}
 
-						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "")
+						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "", null, true)
 						return p.then(() => resolveRecipientInfo(recipientInfo).then(r => {
 							let recipientInfos = [r]
 							return worker.createMailDraft(this._subject.value(), this._editor.getValue(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {
 								return worker.sendMailDraft(draft, recipientInfos, lang.code)
 							})
 						}).finally(e => {
-							worker.logout()
+							return worker.logout(false)
 						}))
 					}).then(() => {
 						return {userEmailAddress, password}
 					})
 				})
 
-				return Dialog.progress("sending_msg", sendRequest).then(result => {
-					let requestId = new TextField("mailAddress_label").setValue(result.userEmailAddress).setDisabled()
-					return Dialog.save(() => lang.get("loginCredentials_label"), () => {
-						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {
-							deviceConfig.set(neverNull(credentials))
-						}).then(e => {
-							worker.logout()
-						})
-					}, {
-						view: () => {
-							return [m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)]
-						}
-					})
+				return showProgressDialog("sending_msg", sendRequest).then(result => {
+					return showConfirmDialog(result.userEmailAddress)
 				}).then(() => this._close()).catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
 			}
 		})
 	}
+}
+
+function showConfirmDialog(userEmailAddress: string): Promise<void> {
+	return Promise.fromCallback(cb => {
+		let confirm = new Button("contactFormSubmitConfirm_action", () => {
+			dialog.close()
+			cb()
+		}).setType(ButtonType.Login)
+		let requestId = new TextField("mailAddress_label").setValue(userEmailAddress).setDisabled()
+		let dialog = new Dialog(DialogType.EditMedium, {
+			view: () => m("", [
+				m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
+				m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)),
+				m(confirm)
+			])
+		}).setCloseHandler(() => {
+			// Prevent user from closing accidentally
+		}).show()
+	})
 }

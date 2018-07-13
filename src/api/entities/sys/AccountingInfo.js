@@ -164,6 +164,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
+		"paypalBillingAgreement": {
+			"name": "paypalBillingAgreement",
+			"id": 1312,
+			"since": 30,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
 		"secondCountryInfo": {
 			"name": "secondCountryInfo",
 			"id": 765,
@@ -177,6 +186,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"invoiceInfo": {
 			"name": "invoiceInfo",
+			"id": 771,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -186,7 +196,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createAccountingInfo(): AccountingInfo {

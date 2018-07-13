@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"priceRequest": {
 			"name": "priceRequest",
+			"id": 845,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -41,7 +42,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPriceServiceData(): PriceServiceData {

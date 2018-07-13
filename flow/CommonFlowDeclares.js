@@ -95,6 +95,29 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 	emptyMessage:string;
 }
 
+declare interface TableRow<T> {
+	render: (entity: T, odd: boolean, index: number)=> Children;
+}
+
+declare interface TableHead {
+	render: ()=> Children;
+}
+
+declare interface TableAttrs<T> {
+	row: TableRow<T>; // The component to render all rows
+	head?: TableHead;
+	cache: RowCache<T>; // The cache for this table
+	style?: Object;
+	class?: string;
+}
+
+declare interface RowCache<T> {
+	cache: T[];
+	loadMore():Promise<void>;
+	complete:boolean;
+	loading: ?Promise<void>;
+}
+
 declare interface SwipeConfiguration<T> {
 	renderLeftSpacer(): Children;
 	renderRightSpacer(): Children;
@@ -126,9 +149,10 @@ declare interface View {
 
 declare interface ModalComponent {
 	hideAnimation():Promise<void>;
-	close():void;
+	onClose():void;
 	shortcuts():Shortcut[];
-	view(): Vnode<any>;
+	view(vnode: Vnode<any>): Vnode<any>;
+	backgroundClick(e: MouseEvent):void;
 }
 
 type LogCategory = {[key: string] : string}
@@ -181,3 +205,14 @@ type Status = {
 }
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
+
+declare class Notification {
+	static permission:string;
+	static requestPermission(callback: Function):void;
+	constructor(application: string, options?: Object):void;
+	onshow:any;
+	onclick:any;
+	close:Function;
+}
+
+declare var indexedDB: any;

@@ -121,6 +121,12 @@ export class RestConstraintError extends TutanotaError {
 	}
 }
 
+export class ServiceUnavailableError extends TutanotaError {
+	constructor(msg: string) {
+		super("ServiceUnavailableError", msg)
+	}
+}
+
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
@@ -159,6 +165,8 @@ export function handleRestError(errorCode: number, message: string) {
 			return new LimitReachedError(message);
 		case 500:
 			return new InternalServerError(message);
+		case 503:
+			return new ServiceUnavailableError(message);
 		case 502:
 			return new BadGatewayError(message);
 		case 507:

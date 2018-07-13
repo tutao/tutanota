@@ -10,12 +10,13 @@ import type {Theme} from "../gui/theme"
 import {updateCustomTheme, defaultTheme, theme} from "../gui/theme"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {update} from "../api/main/Entity"
+import {Keys} from "../misc/KeyManager"
 
 assertMainOrNode()
 
 let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
-export function show(brandingTheme: BrandingTheme, themeToEdit: Theme) {
+export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 	let colorFields = Object.keys(defaultTheme).filter(name => name != "logo").sort((a, b) => a.localeCompare(b)).map(colorName => {
 		let value = themeToEdit[colorName]
 		let field = new TextField(() => colorName).setValue(value ? value : "")
@@ -59,7 +60,8 @@ export function show(brandingTheme: BrandingTheme, themeToEdit: Theme) {
 	}
 
 	let actionBar = new DialogHeaderBar()
-	actionBar.addLeft(new Button("cancel_action", () => dialog.close()).setType(ButtonType.Secondary))
+	let cancelAction = () => dialog.close()
+	actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 	actionBar.setMiddle(stream(lang.get("customColors_label")))
 	actionBar.addRight(new Button("ok_action", () => {
 		let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
@@ -74,13 +76,19 @@ export function show(brandingTheme: BrandingTheme, themeToEdit: Theme) {
 				}
 			}
 		}
-		brandingTheme.jsonTheme = JSON.stringify(newTheme)
-		update(brandingTheme)
+		whitelabelConfig.jsonTheme = JSON.stringify(newTheme)
+		update(whitelabelConfig)
 		updateCustomTheme(newTheme)
 		dialog.close()
 	}).setType(ButtonType.Primary))
 
-	let dialog = Dialog.largeDialog(actionBar, form).show()
+	let dialog = Dialog.largeDialog(actionBar, form)
+		.addShortcut({
+			key: Keys.ESC,
+			exec: cancelAction,
+			help: "close_alt"
+		}).setCloseHandler(cancelAction)
+		.show()
 }
 
 function getValidColorValue(field: TextField): ?String {
@@ -108,6 +116,6 @@ function _getDefaultColorLine(field: TextField): VirtualElement {
 			})
 		])
 	} else {
-		return m("", lang.get("invalidInputFormat_msg"))
+		return m(".small", lang.get("invalidInputFormat_msg"))
 	}
 }

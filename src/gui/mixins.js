@@ -1,8 +1,8 @@
 // @flow
 import {px} from "./size"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 
 export const noselect = {
@@ -43,12 +43,6 @@ export function flex(args: string) {
 	}
 }
 
-
-export const limit = {
-	text_overflow: 'ellipsis',
-	overflow: 'hidden',
-	white_space: 'nowrap',
-}
 
 // We apply backface_visibility on all animated elements to increase animation performance on mobile devices
 export const backface_fix = {

@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"newFolder": {
 			"name": "newFolder",
+			"id": 457,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createCreateMailFolderReturn(): CreateMailFolderReturn {

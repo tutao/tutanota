@@ -11,22 +11,23 @@ import {createInboxRule} from "../api/entities/tutanota/InboxRule"
 import {update} from "../api/main/Entity"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {MailBoxController} from "../mail/MailBoxController"
 import {logins} from "../api/main/LoginController"
+import {getFolderName, getInboxFolder, getArchiveFolder} from "../mail/MailUtils"
+import type {MailboxDetail} from "../mail/MailModel"
 
 assertMainOrNode()
 
-export function show(mailboxController: MailBoxController, preselectedInboxRuleType: string, preselectedValue: string) {
+export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: string, preselectedValue: string) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
-	} else if (mailboxController) {
+	} else if (mailBoxDetails) {
 		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), preselectedInboxRuleType)
 		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue() != InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue() != InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
 			.setValue(preselectedValue)
-		let targetFolders = mailboxController.getAllFolders().filter(folderVm => folderVm != mailboxController.getInboxFolder()).map(folderVm => {
-			return {name: folderVm.getDisplayName(), value: folderVm}
+		let targetFolders = mailBoxDetails.folders.filter(folder => folder != getInboxFolder(mailBoxDetails.folders)).map(folder => {
+			return {name: getFolderName(folder), value: folder}
 		})
-		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, mailboxController.getArchiveFolder())
+		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, getArchiveFolder(mailBoxDetails.folders))
 		let form = {
 			view: () => {
 				return [
@@ -41,7 +42,7 @@ export function show(mailboxController: MailBoxController, preselectedInboxRuleT
 				let rule = createInboxRule()
 				rule.type = typeField.selectedValue()
 				rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
-				rule.targetFolder = targetFolderField.selectedValue().folder._id
+				rule.targetFolder = targetFolderField.selectedValue()._id
 				logins.getUserController().props.inboxRules.push(rule)
 				update(logins.getUserController().props)
 			}

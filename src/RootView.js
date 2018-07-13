@@ -2,9 +2,10 @@
 import m from "mithril"
 import {header} from "./gui/base/Header"
 import {modal} from "./gui/base/Modal"
-import {assertMainOrNode} from "./api/Env"
+import {assertMainOrNodeBoot} from "./api/Env"
+import {overlay} from "./gui/base/Overlay"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 class RootView {
 	view: Function;
@@ -15,6 +16,7 @@ class RootView {
 
 		this.view = (vnode): VirtualElement => {
 			return m("#root", [
+				m(overlay),
 				m(header),
 				m(modal),
 				vnode.children

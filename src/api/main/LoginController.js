@@ -1,25 +1,35 @@
 //@flow
-import {neverNull} from "../common/utils/Utils"
-import {getHttpOrigin} from "../Env"
+import {neverNull, defer} from "../common/utils/Utils"
+import {getHttpOrigin, assertMainOrNodeBoot} from "../Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 
-class LoginController {
+assertMainOrNodeBoot()
+
+export class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
 	customizations: ?NumberString[];
+	waitForLogin: {resolve:Function, reject: Function, promise: Promise<void>} = defer()
+
 
 	isUserLoggedIn() {
 		return this._userController != null
 	}
 
+	waitForUserLogin(): Promise<void> {
+		return this.waitForLogin.promise
+	}
+
+	loginComplete(): void {
+		this.waitForLogin.resolve()
+	}
 
 	isInternalUserLoggedIn() {
 		return this.isUserLoggedIn() && this.getUserController().isInternalUser()
 	}
 
-	isAdminUserLoggedIn() {
-		return this.isUserLoggedIn() && this.getUserController().isAdmin()
+	isGlobalAdminUserLoggedIn() {
+		return this.isUserLoggedIn() && this.getUserController().isGlobalAdmin()
 	}
-
 
 	getUserController(): IUserController {
 		return neverNull(this._userController) // only to be used after login (when user is defined)
@@ -31,7 +41,7 @@ class LoginController {
 
 	isProdDisabled() {
 		// we enable certain features only for certain customers in prod
-		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0'
+		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0' && logins._userController.user.customer != 'Jwft3IR--7-0'
 	}
 
 	isEnabled(feature: FeatureTypeEnum): boolean {
@@ -47,6 +57,18 @@ class LoginController {
 			return Promise.resolve()
 		}
 	}
+
+	deleteSession(sync: boolean): Promise<void> {
+		if (this._userController) {
+			return this._userController.deleteSession(sync).then(() => {
+				this.setUserController(null)
+			})
+		} else {
+			console.log("No session to delete")
+			return Promise.resolve()
+		}
+	}
+
 }
 
 export const logins = new LoginController()

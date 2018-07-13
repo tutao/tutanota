@@ -60,6 +60,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"variableAuthInfo": {
 			"name": "variableAuthInfo",
+			"id": 83,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -69,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createUserExternalAuthInfo(): UserExternalAuthInfo {

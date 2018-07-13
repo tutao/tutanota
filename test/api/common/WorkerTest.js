@@ -21,8 +21,8 @@ o.spec("WorkerTest request / response", node(function () {
 	})
 
 	o("login", function (done, timeout) {
-		timeout(2000)
-		worker.createSession("map-free@tutanota.de", "map", "Linux Firefox", false)
+		timeout(5000)
+		worker.createSession("map-free@tutanota.de", "map", "Linux Firefox", false, true)
 			.finally(done)
 	})
 

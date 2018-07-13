@@ -7,7 +7,8 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
-	SessionExpiredError
+	SessionExpiredError,
+	ServiceUnavailableError
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
@@ -24,14 +25,24 @@ import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream/stream.js"
 import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 import {secondFactorHandler} from "../login/SecondFactorHandler"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
+import {windowFacade} from "./WindowFacade"
 
 assertMainOrNode()
 
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
 let loginDialogActive = false
+let isLoggingOut = false
 
 export function handleUncaughtError(e: Error) {
+	if (isLoggingOut) {
+		// ignore all errors while logging out
+		return
+	}
+
 	if (e instanceof ConnectionError) {
 		if (!notConnectedDialogActive) {
 			notConnectedDialogActive = true
@@ -58,7 +69,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		Dialog.error("outdatedClient_msg")
 	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
-		window.location.reload()
+		windowFacade.reload({})
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
 			loginDialogActive = true
@@ -66,7 +77,7 @@ export function handleUncaughtError(e: Error) {
 			let pwInput = new TextField("password_label", errorMessage)
 				.setType(Type.Password)
 			let dialog = Dialog.smallActionDialog(lang.get("login_label"), pwInput, () => {
-				Dialog.progress("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false).then(() => {
+				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false, true).then(() => {
 					dialog.close()
 					loginDialogActive = false
 				}).catch(AccessBlockedError, e => {
@@ -90,13 +101,20 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof OutOfSyncError) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
-		if (logins.getUserController().isAdmin()) {
+		if (logins.getUserController().isGlobalAdmin()) {
 			Dialog.error("insufficientStorageAdmin_msg").then(() => {
 				// tutao.locator.navigator.settings()
 				// tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE)
 			})
 		} else {
 			Dialog.error("insufficientStorageUser_msg")
+		}
+	} else if (e instanceof ServiceUnavailableError) {
+		Dialog.error("serviceUnavailable_msg")
+	} else if (e instanceof IndexingNotSupportedError) {
+		// external users do not search anyway
+		if (logins.isInternalUserLoggedIn()) {
+			Dialog.error("searchDisabled_msg")
 		}
 	} else {
 		if (!unknownErrorDialogActive) {
@@ -115,6 +133,7 @@ export function handleUncaughtError(e: Error) {
 					}
 				})
 			} else {
+				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
 					unknownErrorDialogActive = false
 				})
@@ -137,7 +156,7 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 
 	message = message.split("\n").join("<br>")
 	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " " + type
-	var recipient = createRecipientInfo("support@tutao.de", "")
+	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
 	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, []).then(draft => {
 		return worker.sendMailDraft(draft, [recipient], "de")
 	})
@@ -156,7 +175,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 		if (customer.approvalStatus == ApprovalStatus.RegistrationApprovalNeeded) {
 			return Dialog.error("waitingForApproval_msg").return(false)
 		} else if (customer.approvalStatus == ApprovalStatus.InvoiceNotPaid) {
-			if (logins.getUserController().isAdmin()) {
+			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
 						return lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()})
@@ -184,10 +203,13 @@ export function showNotAvailableForFreeDialog() {
 		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing").then(confirmed => {
 			if (confirmed) {
-				// TODO: Navigate to premium upgrade
-				//tutao.locator.navigator.settings();
-				//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+				UpgradeWizard.show()
 			}
 		})
 	}
+}
+
+export function loggingOut() {
+	isLoggingOut = true
+	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
 }

@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"externalUserAreaGroupInfos": {
 			"name": "externalUserAreaGroupInfos",
+			"id": 999,
 			"since": 17,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -59,6 +60,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"externalGroupInfos": {
 			"name": "externalGroupInfos",
+			"id": 116,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -68,6 +70,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"externalUserReferences": {
 			"name": "externalUserReferences",
+			"id": 117,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -77,7 +80,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createGroupRoot(): GroupRoot {

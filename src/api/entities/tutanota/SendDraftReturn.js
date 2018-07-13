@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"notifications": {
 			"name": "notifications",
+			"id": 561,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -50,6 +51,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sentMail": {
 			"name": "sentMail",
+			"id": 562,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -59,7 +61,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createSendDraftReturn(): SendDraftReturn {

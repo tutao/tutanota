@@ -15,13 +15,7 @@ import {
 	utf8Uint8ArrayToString,
 	uint8ArrayToHex
 } from "../../../src/api/common/utils/Encoding"
-import {
-	aes256Encrypt,
-	aes256Decrypt,
-	aes128Encrypt,
-	aes128Decrypt,
-	aes256EncryptFile
-} from "../../../src/api/worker/crypto/Aes"
+import {aes256Encrypt, aes256Decrypt, aes128Encrypt, aes128Decrypt} from "../../../src/api/worker/crypto/Aes"
 import {generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
 import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
@@ -72,14 +66,15 @@ o.spec("crypto compatibility", function () {
 	o("aes 256", function () {
 		compatibilityTestData.aes256Tests.forEach(td => {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
-			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true)
+			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).deepEquals(td.cipherTextBase64)
 
-			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes))
+			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true, false))
 			o(decryptedBytes).deepEquals(td.plainTextBase64)
 		})
 	})
 
+	/*
 	o("aes 256 webcrypto", browser((done, timeout) => {
 		timeout(2000)
 		Promise.all(
@@ -94,8 +89,9 @@ o.spec("crypto compatibility", function () {
 					o(decrypted).deepEquals(td.plainTextBase64)
 				})
 			})
-		).then(done)
+		).then(() => done())
 	}))
+	*/
 
 
 	o("aes 128", function () {

@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"delegationGroups_removed": {
 			"name": "delegationGroups_removed",
+			"id": 722,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participantGroupInfos": {
 			"name": "participantGroupInfos",
+			"id": 820,
 			"since": 21,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -42,7 +44,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createMailRestriction(): MailRestriction {

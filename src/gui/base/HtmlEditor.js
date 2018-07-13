@@ -26,8 +26,9 @@ export class HtmlEditor {
 	_placeholderDomElement: HTMLElement;
 	_value: stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
+	_htmlMonospace: boolean;
 
-	constructor() {
+	constructor(labelIdOrLabelFunction: string|lazy<string>) {
 		this._editor = new Editor(null)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -37,6 +38,7 @@ export class HtmlEditor {
 		this._placeholderId = null
 		this._value = stream("")
 		this._modeSwitcher = null
+		this._htmlMonospace = true
 
 		this._mode.map(v => {
 			this.setValue(this._value())
@@ -90,11 +92,12 @@ export class HtmlEditor {
 		this.view = () => {
 			return m(".html-editor", [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
+				(labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
 				m((this._showBorders ? ".editor-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
-					m(".wysiwyg", {
+					m(".wysiwyg.rel.overflow-hidden", {
 						style: {display: this._mode() === Mode.WYSIWYG ? '' : 'none'}
 					}, m(this._editor)),
 					m(".html", {
@@ -102,7 +105,14 @@ export class HtmlEditor {
 							display: this._mode() === Mode.HTML ? '' : 'none'
 						}
 					}, m("textarea.input-area", {
-						oncreate: vnode => this._domTextArea = vnode.dom,
+						oncreate: vnode => {
+							this._domTextArea = vnode.dom
+							console.log("create textarea", this._value())
+							if (!this.isEmpty()) {
+
+								this._domTextArea.value = this._value()
+							}
+						},
 						onfocus: e => focus(),
 						onblur: e => blur(),
 						oninput: e => {
@@ -110,7 +120,7 @@ export class HtmlEditor {
 							this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
 						},
 						style: {
-							'font-family': 'monospace',
+							'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 						},
 						disabled: !this._editor._enabled
@@ -155,7 +165,11 @@ export class HtmlEditor {
 				return this._value()
 			}
 		} else {
-			return this._domTextArea.value
+			if (this._domTextArea) {
+				return this._domTextArea.value
+			} else {
+				return this._value()
+			}
 		}
 	}
 
@@ -184,6 +198,16 @@ export class HtmlEditor {
 		if (this._domTextArea) {
 			this._domTextArea.disabled = !enabled
 		}
+		return this
+	}
+
+	setMode(mode: HtmlEditorModeEnum): HtmlEditor {
+		this._mode(mode)
+		return this
+	}
+
+	setHtmlMonospace(monospace: boolean): HtmlEditor {
+		this._htmlMonospace = monospace
 		return this
 	}
 

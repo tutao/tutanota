@@ -1,7 +1,7 @@
 // @flow
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
-import {WorkerClient} from "./WorkerClient"
+import type {WorkerClient} from "./WorkerClient"
 import {assertMainOrNode} from "../Env"
 
 assertMainOrNode()
@@ -22,7 +22,8 @@ export class EntropyCollector {
 	// accessible from test case
 	SEND_INTERVAL: number;
 
-	constructor() {
+	constructor(worker: WorkerClient) {
+		this._worker = worker
 		this.SEND_INTERVAL = 5000
 		this.stopped = true
 		this._entropyCache = []
@@ -68,8 +69,7 @@ export class EntropyCollector {
 		}
 	}
 
-	start(worker: WorkerClient) {
-		this._worker = worker
+	start() {
 		if (window.performance && window.performance.timing) {
 			// get values from window.performance.timing
 			let values = window.performance.timing

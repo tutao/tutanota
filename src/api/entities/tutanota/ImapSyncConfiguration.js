@@ -60,6 +60,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"imapSyncState": {
 			"name": "imapSyncState",
+			"id": 215,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -69,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createImapSyncConfiguration(): ImapSyncConfiguration {

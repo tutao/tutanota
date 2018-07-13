@@ -69,6 +69,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"mail": {
 			"name": "mail",
+			"id": 124,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -78,6 +79,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"previous": {
 			"name": "previous",
+			"id": 123,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -87,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createConversationEntry(): ConversationEntry {

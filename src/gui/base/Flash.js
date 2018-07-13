@@ -1,9 +1,9 @@
 // @flow
 import {animations, opacity} from "../animation/Animations"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {client} from "../../misc/ClientDetector"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in element -> target opacity value
 const PREVENT = (e) => e.preventDefault()

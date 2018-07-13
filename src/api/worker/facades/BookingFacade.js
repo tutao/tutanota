@@ -1,3 +1,4 @@
+import type {BookingItemFeatureTypeEnum} from "../../common/TutanotaConstants"
 // @flow
 import {Const, PaymentMethodType} from "../../common/TutanotaConstants"
 import {createPriceServiceData} from "../../entities/sys/PriceServiceData"
@@ -6,7 +7,16 @@ import {serviceRequest} from "../EntityWorker"
 import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "../../common/utils/Utils"
 import {assertWorkerOrNode} from "../../Env"
-import {HttpMethod} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {restClient} from "../rest/RestClient"
+import {
+	_TypeModel as PdfInvoiceServiceDataTypeModel,
+	createPdfInvoiceServiceData
+} from "../../entities/sys/PdfInvoiceServiceData"
+import {_TypeModel as PdfInvoiceServiceReturnTypeModel} from "../../entities/sys/PdfInvoiceServiceReturn"
+import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
+import {resolveSessionKey, decryptValue, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -20,17 +30,19 @@ export class BookingFacade {
 	 * Provides the price for a given feature type and count.
 	 * @param  type The booking feature type, one of tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_*.
 	 * @param  count Number of items, may be negative.
+	 * @param  reactivate  If true a user or group is reactivated instead of created - not used for aliases, storage or branding
 	 * @param  paymentInterval. If not provided the customers payment interval is used.
 	 * @param  accountType The account type, one of tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_*. If not provided, the customers account type is used.
 	 * @param  business Business or private.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getPrice(type: NumberString, count: number, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		let serviceData = createPriceServiceData()
 		serviceData.date = Const.CURRENT_DATE;
 		let priceRequestData = createPriceRequestData()
 		priceRequestData.featureType = type
 		priceRequestData.count = String(count)
+		priceRequestData.reactivate = reactivate
 		priceRequestData.paymentInterval = paymentInterval ? String(paymentInterval) : null
 		priceRequestData.accountType = accountType ? accountType : null
 		priceRequestData.business = business == undefined ? null : business;
@@ -98,21 +110,6 @@ export class BookingFacade {
 			return neverNull(priceData).items.find(p => p.featureType === featureType);
 		}
 		return null;
-	}
-
-
-	/**
-	 * Returns the price for the feature type from the price data if available. otherwise 0.
-	 * @return The price
-	 */
-	getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
-		let item = this.getPriceItem(priceData, featureType);
-		if (item != null) {
-			return Number(neverNull(item).price);
-		} else {
-			return 0;
-		}
-
 	}
 }
 

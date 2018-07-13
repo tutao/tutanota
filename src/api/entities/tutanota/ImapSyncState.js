@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"folders": {
 			"name": "folders",
+			"id": 201,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -59,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createImapSyncState(): ImapSyncState {

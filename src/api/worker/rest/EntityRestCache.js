@@ -19,7 +19,8 @@ import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
 import EC from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
-import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
+import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 const ValueType = EC.ValueType
 
 assertWorkerOrNode()
@@ -83,7 +84,7 @@ export class EntityRestCache {
 		this._entityRestClient = entityRestClient
 		this._entities = {}
 		this._listEntities = {}
-		this._ignoredTypes = [EntityEventBatchTypeRef, PermissionTypeRef, SessionTypeRef, StatisticLogEntryTypeRef]
+		this._ignoredTypes = [EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef, StatisticLogEntryTypeRef]
 	}
 
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
@@ -421,15 +422,4 @@ export class EntityRestCache {
 			}
 		}
 	}
-}
-
-let entityRestCache: EntityRestCache = new EntityRestCache(new EntityRestClient())
-
-export function getEntityRestCache(): EntityRestCache {
-	return entityRestCache
-}
-
-export function resetEntityRestCache(): void {
-	// create a new instance instead of resetting the db because old server requests might be running when resetting and the result would be put into the new cache
-	entityRestCache = new EntityRestCache(entityRestCache._entityRestClient)
 }

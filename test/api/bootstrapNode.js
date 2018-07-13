@@ -1,4 +1,4 @@
-global.env = require('../../buildSrc/env.js').create(null, "http://localhost:9000", require('../../../package.json').version)
+global.env = require('../../buildSrc/env.js').create(null, "http://localhost:9000", require('../../../package.json').version, "Test")
 
 // node environment: mock a few browser functions
 global.Promise = require("bluebird")
@@ -31,6 +31,14 @@ global.bodyParser = require('body-parser')
 
 global.WebSocket = function () {
 }
+
+var nowOffset = Date.now();
+global.performance = {
+	now: function () {
+		return Date.now() - nowOffset;
+	}
+}
+
 
 const caller = require('caller')
 const path = require('path')
@@ -65,5 +73,7 @@ global.browser = function (func: Function) {
 global.node = function (func: Function) {
 	return func
 }
+
+require("../../src/api/Env").bootFinished()
 
 require('./Suite.js')

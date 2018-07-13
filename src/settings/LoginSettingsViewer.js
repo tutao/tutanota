@@ -3,11 +3,10 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
@@ -20,6 +19,7 @@ import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {showDeleteAccountDialog} from "../subscription/DeleteAccountDialog"
 
 assertMainOrNode()
 
@@ -32,7 +32,7 @@ export class LoginSettingsViewer {
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress).setDisabled()
 		let password = new TextField("password_label").setValue("***").setDisabled()
-		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => BootIcons.Edit)
+		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._activeSessionTable = new Table(["client_label", "lastAccess_label", "IpAddress_label"], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)
@@ -43,7 +43,7 @@ export class LoginSettingsViewer {
 
 		this.view = () => {
 			return [
-				m("#user-settings.fill-absolute.scroll.plr-l", [
+				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
@@ -56,7 +56,7 @@ export class LoginSettingsViewer {
 						m(closedSessionExpander)
 					]),
 					m(closedSessionExpander.panel),
-					m(".small", lang.get("sessionsInfo_msg"))
+					m(".small", lang.get("sessionsInfo_msg")),
 				])
 			]
 		}
@@ -68,7 +68,7 @@ export class LoginSettingsViewer {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 			this._activeSessionTable.updateEntries(sessions.filter(session => session.state == SessionState.SESSION_STATE_ACTIVE).map(session => {
 				let closeSessionButton = null
-				let thisSession = logins.getUserController().sessionElementId == session._id[1]
+				let thisSession = logins.getUserController().sessionId[1] == session._id[1]
 				if (!thisSession) {
 					closeSessionButton = new Button("closeSession_action", () => {
 						erase(session)

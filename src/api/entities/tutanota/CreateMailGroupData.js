@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"groupData": {
 			"name": "groupData",
+			"id": 712,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -59,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createCreateMailGroupData(): CreateMailGroupData {

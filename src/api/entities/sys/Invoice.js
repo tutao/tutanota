@@ -150,6 +150,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bookings": {
 			"name": "bookings",
+			"id": 894,
 			"since": 10,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -159,6 +160,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"changes": {
 			"name": "changes",
+			"id": 895,
 			"since": 10,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -168,7 +170,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createInvoice(): Invoice {

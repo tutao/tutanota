@@ -17,7 +17,7 @@ o.spec("utils", function () {
 		c1._id = ["dummyListId", "dummyId"]
 		c1.firstName = "Donald"
 		c1.lastName = "Duck"
-		c1.birthday = new Date(2017, 5, 23)
+		c1.oldBirthday = new Date(2017, 5, 23)
 		c1.mailAddresses = [address]
 
 		let c2 = clone(c1)

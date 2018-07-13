@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"folders": {
 			"name": "folders",
+			"id": 460,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createDeleteMailFolderData(): DeleteMailFolderData {

@@ -10,24 +10,32 @@ import {
 	stringToNameAndMailAddress,
 	fullNameToFirstAndLastName,
 	mailAddressToFirstAndLastName,
-	isRegularExpression
+	isRegularExpression,
+	formatNameAndAddress,
+	parseBirthday
 } from "../../../src/misc/Formatter"
+import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
-o.spec("FormatterTests", function () {
+o.spec("FormatterTest", function () {
 
 	o("Intl and parse support for all supported locales", browser(function () {
 		let referenceDate = new Date(2017, 5, 23)
-		languages.forEach(l => {
+		languages.concat([{code: 'en_gb', textId: ''}]).forEach(l => {
 			let code = l.code.replace("_", "-")
-			lang.setLanguageTag(code)
+			lang._setLanguageTag(code)
 			let formattedDate = formatDate(referenceDate)
 			let parsedTimestamp = parseDate(formattedDate)
 			o(formatDate(new Date(parsedTimestamp))).equals(formattedDate)(`invalid date parsing for lang ${code}: ${formatDate(new Date(parsedTimestamp))}`)
 		})
 	}))
 
+	o("parse date edge case :-)", browser(function () {
+		lang._setLanguageTag("de")
+		o(parseDate("‎03/‎05/‎2015")).equals(1430604000000) // contains left-to-right characters
+	}))
+
 	o("parse date edge cases", browser(function () {
-		lang.setLanguageTag("de")
+		lang._setLanguageTag("de")
 		try {
 			formatDate(new Date(parseDate("01.2015")))
 			o(false).equals(true)("should have thrown an exception")
@@ -40,15 +48,44 @@ o.spec("FormatterTests", function () {
 		} catch (e) {
 			o(e.message.indexOf("could not parse date")).equals(0)
 		}
+		try {
+			o(formatDate(new Date(parseDate("2015"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("05.05."))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
 
-		o(formatDate(new Date(parseDate("2015")))).equals("1.1.2015")
-		o(formatDate(new Date(parseDate("05.05.")))).equals("5.5.2001")
-
-		lang.setLanguageTag("en")
-		o(formatDate(new Date(parseDate("2015/01")))).equals("1/1/2015")
-		o(formatDate(new Date(parseDate("2015/05/")))).equals("5/1/2015")
-		o(formatDate(new Date(parseDate("2015")))).equals("1/1/2015")
-		o(formatDate(new Date(parseDate("05/05/")))).equals("5/5/2001")
+		lang._setLanguageTag("en")
+		try {
+			o(formatDate(new Date(parseDate("2015/01"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("2015/05/"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("2015"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
+		try {
+			o(formatDate(new Date(parseDate("05/05/"))))
+			o(false).equals(true)("should have thrown an exception")
+		} catch (e) {
+			o(e.message.indexOf("could not parse date")).equals(0)
+		}
 	}))
 
 
@@ -161,5 +198,66 @@ o.spec("FormatterTests", function () {
 		o(isRegularExpression("/\\/")).equals(true)
 		o(isRegularExpression("/\$/")).equals(true)
 	})
+
+
+	o("formatNameAndAddress", function () {
+		o(formatNameAndAddress("", "", null)).equals("")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
+		o(formatNameAndAddress("", "Hanomaghof", null)).equals("Hanomaghof")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", null)).equals("Bernd\nHanomaghof 2\n30449 Hannover")
+		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", "FR")).equals("Bernd\nHanomaghof 2\n30449 Hannover\nFrance")
+		o(formatNameAndAddress("", "", "DE")).equals("Deutschland")
+		o(formatNameAndAddress("a", "", "DE")).equals("a\nDeutschland")
+	})
+
+	o("parseBirthdayGermanLocale", browser(function () {
+		lang._setLanguageTag("de-DE")
+		o(parseBirthday("")).equals(null)
+		o(parseBirthday("a")).equals(null)
+		o(parseBirthday("1.13.1950")).equals(null)
+		o(parseBirthday("a.4.12")).equals(null)
+		o(_checkParseBirthday("1a.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.12.2001", 1, 12, 2001))
+		o(_checkParseBirthday("01.01.2001", 1, 1, 2001))
+		o(_checkParseBirthday("01.12.2001", 1, 12, 2001))
+		o(_checkParseBirthday("1.1.", 1, 1, null))
+		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
+		o(_checkParseBirthday("1.1.18", 1, 1, 2018))
+		o(_checkParseBirthday("1.1.19", 1, 1, 1919))
+	}))
+
+	o("parseBirthdayUsLocale", browser(function () {
+		lang._setLanguageTag("en-US")
+		o(parseBirthday("")).equals(null)
+		o(parseBirthday("a")).equals(null)
+		o(parseBirthday("13/1/1950")).equals(null)
+		o(parseBirthday("a/4/12")).equals(null)
+		o(_checkParseBirthday("1a/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("12/1/2001", 1, 12, 2001))
+		o(_checkParseBirthday("01/01/2001", 1, 1, 2001))
+		o(_checkParseBirthday("12/01/2001", 1, 12, 2001))
+		o(_checkParseBirthday("1/1", 1, 1, null))
+		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
+		o(_checkParseBirthday("1/1/18", 1, 1, 2018))
+		o(_checkParseBirthday("1/1/19", 1, 1, 1919))
+	}))
+
+	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {
+		let expected = createBirthday()
+		expected._id = ""
+		expected.day = String(expectedDay)
+		expected.month = String(expectedMonth)
+		expected.year = expectedYear ? String(expectedYear) : null
+		let result = parseBirthday(text)
+		if (result) {
+			result._id = ""
+			result._type = expected._type
+		}
+		o(result).deepEquals(expected)
+	}
+
 })
 

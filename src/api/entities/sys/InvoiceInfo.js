@@ -56,6 +56,33 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"specialPriceBrandingPerUser": {
+			"name": "specialPriceBrandingPerUser",
+			"id": 1282,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"specialPriceContactFormSingle": {
+			"name": "specialPriceContactFormSingle",
+			"id": 1284,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"specialPriceSharedGroupSingle": {
+			"name": "specialPriceSharedGroupSingle",
+			"id": 1283,
+			"since": 26,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"specialPriceUserSingle": {
 			"name": "specialPriceUserSingle",
 			"id": 758,
@@ -78,6 +105,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"invoices": {
 			"name": "invoices",
+			"id": 760,
 			"since": 9,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -87,7 +115,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createInvoiceInfo(): InvoiceInfo {

@@ -1,48 +1,80 @@
 package de.tutao.tutanota;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ClipData;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.json.JSONArray;
+import org.json.JSONException;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import de.tutao.tutanota.push.GcmRegistrationService;
-
-import static de.tutao.tutanota.ShareActivity.shareActivity;
+import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.SseStorage;
 
 public class MainActivity extends Activity {
 
-    public static MainActivity activity;
-    private static int requestId = 0;
+    private static final String TAG = "MainActivity";
+    public static final String THEME_PREF = "theme";
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
+    private static int requestId = 0;
+    private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
+    public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
+    public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
+    public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
 
     private WebView webView;
-    public Native nativeImpl = new Native();
+    public Native nativeImpl = new Native(this);
+    boolean firstLoaded = false;
 
+    @SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
+                        .getString(THEME_PREF, "light"));
+
         super.onCreate(savedInstanceState);
-        activity = this;
+
+        this.setupPushNotifications();
 
         webView = new WebView(this);
+        webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         setContentView(webView);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.BUILD_TYPE.startsWith("debug")) {
+        final String appUrl = getUrl();
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         WebSettings settings = webView.getSettings();
@@ -51,13 +83,87 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        this.webView.loadUrl(getUrl());
-        nativeImpl.setup();
+        this.nativeImpl.getWebAppInitialized().then(result -> {
+            if (!firstLoaded) {
+                handleIntent(getIntent());
+            }
+            firstLoaded = true;
+        });
+        this.webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith(appUrl)) {
+                    return false;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            }
+        });
 
-        if (shareActivity != null) {
-            shareActivity.share();
+        List<String> queryParameters = new ArrayList<>();
+
+        // If opened from notifications, tell Web app to not login automatically, we will pass
+        // mailbox later when loaded (in handleIntent())
+        if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
+            queryParameters.add("noAutoLogin=true");
+        }
+
+        // If the old credentials are present in the file system, pass them as an URL parameter
+        final File oldCredentialsFile = new File(getFilesDir(), "config/tutanota.json");
+        if (oldCredentialsFile.exists()) {
+            new AsyncTask<Void, Void, String>() {
+                @Override
+                @Nullable
+                protected String doInBackground(Void... voids) {
+                    try {
+                        String result = Utils.base64ToBase64Url(
+                                Utils.bytesToBase64(Utils.readFile(oldCredentialsFile)));
+                        oldCredentialsFile.delete();
+                        return result;
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(@Nullable String s) {
+                    if (s != null) {
+                        queryParameters.add("migrateCredentials=" + s);
+                    }
+                    startWebApp(queryParameters);
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            startWebApp(queryParameters);
         }
     }
+
+    private void startWebApp(List<String> queryParams) {
+        webView.loadUrl(getUrl() +
+                (queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
+        nativeImpl.setup();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent.getAction() != null) {
+            switch (intent.getAction()) {
+                case Intent.ACTION_SEND:
+                case Intent.ACTION_SEND_MULTIPLE:
+                    share(intent);
+                    break;
+                case MainActivity.OPEN_USER_MAILBOX_ACTION:
+                    openMailbox(intent);
+                    break;
+            }
+        }
+    }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -65,15 +171,54 @@ public class MainActivity extends Activity {
         webView.saveState(outState);
     }
 
-    private String getUrl() {
-        switch (BuildConfig.BUILD_TYPE) {
-            case "debug":
-                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/local-app";
-            case "debugDist":
-                return "file:///android_asset/tutanota/local-app.html";
+    public void changeTheme(String themeName) {
+        runOnUiThread(() -> doChangeTheme(themeName));
+    }
+
+    private void doChangeTheme(String themeName) {
+        int elemsColor;
+        int backgroundRes;
+        switch (themeName) {
+            case "dark":
+                elemsColor = R.color.colorPrimaryDark;
+                backgroundRes = R.drawable.splash_background_dark;
+                break;
             default:
-                throw new RuntimeException("illegal build type");
+                elemsColor = R.color.colorPrimary;
+                backgroundRes = R.drawable.splash_background;
         }
+        int colorInt = getResources().getColor(elemsColor);
+        getWindow().setStatusBarColor(colorInt);
+        getWindow().setBackgroundDrawableResource(backgroundRes);
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putString(THEME_PREF, themeName)
+                .apply();
+    }
+
+    public void askBatteryOptinmizationsIfNeeded() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        //noinspection ConstantConditions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+                && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
+                saveAskedBatteryOptimizations(preferences);
+                @SuppressLint("BatteryLife")
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            });
+        }
+    }
+
+    private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
+        preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
+    }
+
+    private String getUrl() {
+        return BuildConfig.RES_ADDRESS;
     }
 
     public WebView getWebView() {
@@ -88,20 +233,20 @@ public class MainActivity extends Activity {
         return requestId;
     }
 
-    static Promise<Void,Exception,Void> getPermission(String permission) {
-        Deferred p = new DeferredObject();
+    Promise<Void, Exception, Void> getPermission(String permission) {
+        Deferred<Void, Exception, Void> p = new DeferredObject<>();
         if (hasPermission(permission)) {
             p.resolve(null);
         } else {
             int requestCode = getRequestCode();
-            ActivityCompat.requestPermissions(activity, new String[]{permission}, requestCode);
             requests.put(requestCode, p);
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
         }
         return p;
     }
 
-    private static boolean hasPermission(String permission) {
-        return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
+    private boolean hasPermission(String permission) {
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -128,44 +273,90 @@ public class MainActivity extends Activity {
     }
 
     void setupPushNotifications() {
-        if (gcmIsAvailable()) {
-            // gcm registration
-            Intent intent = new Intent(MainActivity.this, GcmRegistrationService.class);
-            startService(intent);
-        }
+        startService(PushNotificationService.startIntent(this,
+                new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
+
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        //noinspection ConstantConditions
+        jobScheduler.schedule(
+                new JobInfo.Builder(1, new ComponentName(this, PushNotificationService.class))
+                        .setPeriodic(TimeUnit.MINUTES.toMillis(15))
+                        .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                        .setPersisted(true).build());
     }
 
     /**
-     * @return true, if the GCM is available.
+     * The sharing activity. Either invoked from MainActivity (if the app was not active when the
+     * share occured) or from onCreate.
      */
-    private boolean gcmIsAvailable() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            return false;
+    void share(Intent intent) {
+        String action = intent.getAction();
+        if (Intent.ACTION_SEND.equals(action)) {
+            try {
+                final String file;
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    ClipData.Item item = clipData.getItemAt(0);
+                    file = FileUtil.uriToFile(this, item.getUri());
+                } else {
+                    Uri uri = intent.getData();
+                    file = FileUtil.uriToFile(this, uri);
+                }
+                final JSONArray filesArray = new JSONArray();
+                filesArray.put(file);
+                nativeImpl.sendRequest(JsRequest.createMailEditor, new Object[]{filesArray});
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "could not find file", e);
+            }
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+            // TODO
         }
-        return true;
     }
 
-    public void bringToForeground() {
-        Intent intent = new Intent(this, getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        getApplicationContext().startActivity(intent);
+    public void openMailbox(@NonNull Intent intent) {
+        String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
+        String address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY);
+        if (userId == null || address == null) {
+            return;
+        }
+        nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
+        startService(PushNotificationService.notificationDismissedIntent(this, address, "MainActivity#openMailbox"));
     }
 
-}
+    @Override
 
-interface Callback<T> {
-    void finish(Exception e, T result);
-}
+    public void onBackPressed() {
+        if (nativeImpl.getWebAppInitialized().isResolved()) {
+            nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
+                    .then(result -> {
+                        try {
+                            if (!result.getBoolean("value")) {
+                                goBack();
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error parsing response", e);
+                        }
+                    });
+        } else {
+            goBack();
+        }
+    }
 
-interface ActivityResultCallback {
-    void finish(int resultCode, Intent data);
+    private void goBack() {
+        moveTaskToBack(false);
+    }
+
+    public void loadMainPage(String parameters) {
+        // additional path information like app.html/login are not handled properly by the webview
+        // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+        runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+    }
 }
 
 class ActivityResult {
     int resultCode;
     Intent data;
+
     ActivityResult(int resultCode, Intent data) {
         this.resultCode = resultCode;
         this.data = data;

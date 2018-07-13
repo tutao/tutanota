@@ -78,6 +78,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"u2f": {
 			"name": "u2f",
+			"id": 1177,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -86,7 +87,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createSecondFactor(): SecondFactor {

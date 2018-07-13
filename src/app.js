@@ -4,21 +4,25 @@ import stream from "mithril/stream/stream.js"
 import en from "./translations/en"
 import {lang} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
-import {handleUncaughtError} from "./misc/ErrorHandler"
+import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
 import {styles} from "./gui/styles"
 import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button, ButtonType} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNode} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
 import {asyncImport} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
+import {routeChange} from "./misc/RouteChange"
+import {logout} from "./native/SystemApp"
+import {windowFacade} from "./misc/WindowFacade"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
+bootFinished()
 
 let currentView: ?Component = null
 
@@ -33,7 +37,7 @@ window.tutao = {
 	keyManager,
 	logins,
 	currentView,
-	themeId,
+	themeId
 }
 
 function _asyncImport(path: string) {
@@ -46,6 +50,18 @@ styles.init()
 
 export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
 
+let origin = location.origin
+if (location.origin.indexOf("localhost") != -1) {
+	origin += "/client/build/index"
+}
+if (navigator.registerProtocolHandler) {
+	try {
+		navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
+	} catch (e) {
+		// Catch SecurityError's and some other cases when we are not allowed to register a handler
+		console.log("Failed to register a mailto: protocol handler ", e)
+	}
+}
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
@@ -55,35 +71,39 @@ let initialized = lang.init(en).then(() => {
 			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
-			m("p", m("a[target=_blank][href=http://windows.microsoft.com/de-DE/internet-explorer/download-ie]", "Microsoft Edge (Desktop)")),
+			m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
 		]))))
 		return;
 	}
 
-	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true) {
+	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true, doNotCache: boolean = false) {
 		let cache = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
 				if (requireLogin && !logins.isUserLoggedIn()) {
 					forceLogin(args, requestedPath)
 				} else if (!requireLogin && logins.isUserLoggedIn()) {
+					logginOut()
 					return workerPromise.then(worker => {
-						return worker.logout().then(function () {
-							window.location.reload();
+						return worker.logout(false).then(function () {
+							windowFacade.reload(args)
 						})
 					})
 				} else {
 					let promise
 					if (cache.view == null) {
 						promise = getView().then(view => {
-							cache.view = view
+							if (!doNotCache) {
+								cache.view = view
+							}
 							return view
 						})
 					} else {
 						promise = Promise.resolve(cache.view)
 					}
 					promise.then(view => {
-						view.updateUrl(args)
+						view.updateUrl(args, requestedPath)
+						routeChange({args, requestedPath})
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})
@@ -101,7 +121,8 @@ let initialized = lang.init(en).then(() => {
 	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false)
 	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js").then(module => new module.LoginView()), false)
 	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js").then(module => new module.SettingsView()))
-	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false)
+	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js").then(module => new module.SearchView()))
+	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false, true)
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js").then(module => new module.ContactFormView()), false)
 
 	let start = "/"
@@ -132,6 +153,7 @@ let initialized = lang.init(en).then(() => {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 		"/login": loginViewResolver,
+		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
 		"/mail/:listId/:mailId": mailViewResolver,
@@ -139,6 +161,8 @@ let initialized = lang.init(en).then(() => {
 		"/contact": contactViewResolver,
 		"/contact/:listId": contactViewResolver,
 		"/contact/:listId/:contactId": contactViewResolver,
+		"/search/:category": searchViewResolver,
+		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
 		"/signup": registerViewResolver,
@@ -165,14 +189,16 @@ let initialized = lang.init(en).then(() => {
 	disableBodyTouchScrolling()
 })
 
-function forceLogin(args: string[], requestedPath: string) {
+function forceLogin(args: {[string]:string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else {
-		if (requestedPath.trim() === '/') {
-			m.route.set(`/login`)
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		if (pathWithoutParameter.trim() === '/') {
+			let newQueryString = m.buildQueryString(args)
+			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))
 		} else {
-			m.route.set(`/login?requestedPath=${requestedPath}`)
+			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}
 	}
 }

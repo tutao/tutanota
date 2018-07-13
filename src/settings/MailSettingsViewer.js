@@ -1,53 +1,55 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, Mode} from "../api/Env"
+import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {Table, ColumnWidth} from "../gui/base/Table"
-import {isSameTypeRef, isSameId, HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
+import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, InboxRuleType, PushServiceType} from "../api/common/TutanotaConstants"
-import {load, update, loadAll, erase} from "../api/main/Entity"
+import {OperationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
+import {load, update} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
-import {MailBoxController} from "../mail/MailBoxController"
 import {neverNull, getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {PushIdentifierTypeRef, createPushIdentifier} from "../api/entities/sys/PushIdentifier"
+import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {Button} from "../gui/base/Button"
 import * as EditSignatureDialog from "./EditSignatureDialog"
 import {EditAliasesForm} from "./EditAliasesForm"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {pushServiceApp} from "../native/PushServiceApp"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSenderFromUser} from "../mail/MailUtils"
-import {BootIcons} from "../gui/base/icons/BootIcons"
+import {getDefaultSenderFromUser, getFolderName} from "../mail/MailUtils"
 import {Icons} from "../gui/base/icons/Icons"
-import {getCleanedMailAddress} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {mailModel} from "../mail/MailModel"
+import {locator} from "../api/main/MainLocator"
+import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
 
 assertMainOrNode()
 
 export class MailSettingsViewer {
 	view: Function
 
-	_mailboxController: MailBoxController;
 	_senderName: TextField;
 	_signature: TextField;
 	_defaultSender: DropDownSelector<string>;
 	_defaultUnconfidential: DropDownSelector<boolean>;
 	_sendPlaintext: DropDownSelector<boolean>;
 	_noAutomaticContacts: DropDownSelector<boolean>;
+	_enableMailIndexing: DropDownSelector<boolean>;
 	_aliases: EditAliasesForm;
 	_inboxRulesTable: Table;
-	_pushIdentifiersTable: Table;
+	_notificationViewer: MailSettingNotificationViewer;
+
+	oncreate: Function;
+	onbeforeremove: Function;
 
 	constructor() {
 		this._senderName = new TextField("mailName_label").setValue(logins.getUserController().userGroupInfo.name).setDisabled()
@@ -56,9 +58,9 @@ export class MailSettingsViewer {
 				logins.getUserController().userGroupInfo.name = newName
 				update(logins.getUserController().userGroupInfo)
 			})
-		}, () => BootIcons.Edit)
+		}, () => Icons.Edit)
 
-		this._senderName._injectionsRight = () => logins.getUserController().isAdmin() ? [m(editSenderNameButton)] : []
+		this._senderName._injectionsRight = () => logins.getUserController().isGlobalAdmin() ? [m(editSenderNameButton)] : []
 
 		this._defaultSender = new DropDownSelector("defaultSenderMailAddress_label", () => lang.get("defaultSenderMailAddressInfo_msg"), getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo).map(a => {
 			return {name: a, value: a}
@@ -91,20 +93,32 @@ export class MailSettingsViewer {
 			update(logins.getUserController().props)
 		})
 
+		this._enableMailIndexing = new DropDownSelector("searchMailbox_label", () => lang.get("enableSearchMailbox_msg"), [
+			{name: lang.get("activated_label"), value: true},
+			{name: lang.get("deactivated_label"), value: false}
+		], locator.search.indexState().mailIndexEnabled, 250).setSelectionChangedHandler(mailIndexEnabled => {
+			if (mailIndexEnabled) {
+				if (locator.search.indexState().indexingSupported) {
+					showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
+				} else {
+					Dialog.error("searchDisabled_msg")
+				}
+			} else {
+				showProgressDialog("pleaseWait_msg", worker.disableMailIndexing())
+			}
+		})
+
 		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name).setDisabled()
-		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(), () => BootIcons.Edit)
+		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(logins.getUserController().props), () => Icons.Edit)
 		this._signature._injectionsRight = () => [m(changeSignatureButton)]
 
 		this._aliases = new EditAliasesForm(logins.getUserController().userGroupInfo)
 
-		let addInboxRuleButton = new Button("addInboxRule_action", () => AddInboxRuleDialog.show(this._mailboxController, InboxRuleType.RECIPIENT_TO_EQUALS, ""), () => Icons.Add)
+		let addInboxRuleButton = new Button("addInboxRule_action", () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), InboxRuleType.RECIPIENT_TO_EQUALS, ""), () => Icons.Add)
 		this._inboxRulesTable = new Table(["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true, addInboxRuleButton)
 		let inboxRulesExpander = new ExpanderButton("showInboxRules_action", new ExpanderPanel(this._inboxRulesTable), false)
 
-
-		let addPushIdentifierButton = new Button("emailPushNotification_action", () => this._showAddNotificationEmailAddressDialog(), () => Icons.Add)
-		this._pushIdentifiersTable = new Table(["pushIdentifierDeviceType_label", "pushRecipient_label"], [ColumnWidth.Small, ColumnWidth.Largest], true, addPushIdentifierButton)
-		let pushIdentifiersExpander = new ExpanderButton("show_action", new ExpanderPanel(this._pushIdentifiersTable), false)
+		this._notificationViewer = new MailSettingNotificationViewer()
 
 		this.view = () => {
 			return [
@@ -113,31 +127,41 @@ export class MailSettingsViewer {
 					m(this._defaultSender),
 					m(this._senderName),
 					m(this._signature),
-					m(this._defaultUnconfidential),
-					m(this._sendPlaintext),
-					m(this._noAutomaticContacts),
-					(logins.getUserController().isAdmin()) ? m(this._aliases) : null,
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get('inboxRulesSettings_action')),
-						m(inboxRulesExpander)
-					]),
-					m(inboxRulesExpander.panel),
-					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get('notificationSettings_action')),
-						m(pushIdentifiersExpander)
-					]),
-					m(pushIdentifiersExpander.panel),
-					m(".small", lang.get("pushIdentifierInfoMessage_msg"))
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(this._defaultUnconfidential),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(this._sendPlaintext),
+					logins.isEnabled(FeatureType.DisableContacts) ? null : m(this._noAutomaticContacts),
+					m(this._enableMailIndexing),
+					(logins.getUserController().isGlobalAdmin()) ? m(this._aliases) : null,
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : [
+							m(".flex-space-between.items-center.mt-l.mb-s", [
+								m(".h4", lang.get('inboxRulesSettings_action')),
+								m(inboxRulesExpander)
+							]),
+							m(inboxRulesExpander.panel),
+							m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
+						],
+					m(this._notificationViewer)
 				])
 			]
 		}
-		this._mailboxController = new MailBoxController(logins.getUserController().getUserMailGroupMembership())
-		this._mailboxController.loadMailBox().then(() => {
-			this._updateInboxRules(logins.getUserController().props)
-		})
-		this._loadPushIdentifiers()
+
+		this._updateInboxRules(logins.getUserController().props)
+		this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
+
+		let indexStateWatch = null
+		this.oncreate = () => {
+			indexStateWatch = locator.search.indexState.map((newValue) => {
+				this._enableMailIndexing.selectedValue(newValue.mailIndexEnabled)
+				m.redraw()
+			})
+		}
+		this.onbeforeremove = () => {
+			if (indexStateWatch) {
+				indexStateWatch.end(true)
+			}
+		}
 	}
+
 
 	_updatePropertiesSettings(props: TutanotaProperties) {
 		if (props.defaultSender) {
@@ -151,72 +175,25 @@ export class MailSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties) {
-		this._inboxRulesTable.updateEntries(props.inboxRules.map((rule, index) => {
-			let actionButton = new Button("delete_action", () => {
-				props.inboxRules.splice(index, 1)
-				update(props)
-			}, () => Icons.Cancel)
-			return new TableLine([getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)], actionButton)
-		}))
+		mailModel.init().then(() => {
+			this._inboxRulesTable.updateEntries(props.inboxRules.map((rule, index) => {
+				let actionButton = new Button("delete_action", () => {
+					props.inboxRules.splice(index, 1)
+					update(props)
+				}, () => Icons.Cancel)
+				return new TableLine([getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)], actionButton)
+			}))
+		})
 	}
 
 	_getTextForTarget = function (targetFolderId: IdTuple) {
-		let folder = neverNull(this._mailboxController).getAllFolders().find(folder => isSameId(folder.folder._id, targetFolderId))
+		let folder = mailModel.getUserMailboxDetails().folders.find(folder => isSameId(folder._id, targetFolderId))
 		if (folder) {
-			return folder.getDisplayName()
+			return getFolderName(folder)
 		} else {
 			return "?"
 		}
 	}
-
-	_loadPushIdentifiers() {
-		let list = logins.getUserController().user.pushIdentifierList
-		if (list) {
-			loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-				this._pushIdentifiersTable.updateEntries(identifiers.map(identifier => {
-					let emailTypeName = lang.get("adminEmailSettings_action")
-					let typeName = ["Android", "iOS", emailTypeName][Number(identifier.pushServiceType)]
-					let isCurrentPushIdentifier = env.mode == Mode.App && identifier.identifier == pushServiceApp.currentPushIdentifier;
-					let identifierText = (isCurrentPushIdentifier) ? lang.get("pushIdentifierCurrentDevice_label") + " - " + identifier.identifier : identifier.identifier
-					let actionButton = new Button("delete_action", () => erase(identifier), () => Icons.Cancel)
-					return new TableLine([typeName, identifierText], actionButton)
-				}))
-			})
-		} else {
-			this._pushIdentifiersTable.updateEntries([])
-		}
-	}
-
-
-	_showAddNotificationEmailAddressDialog() {
-		if (logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog()
-		} else {
-
-			let emailAddressInputField = new TextField("mailAddress_label")
-			return Dialog.smallDialog(lang.get("notificationSettings_action"), {
-				view: () => [
-					m(emailAddressInputField),
-					m(".small.mt-s", lang.get("emailPushNotification_msg"))
-				]
-			}, () => {
-				return getCleanedMailAddress(emailAddressInputField.value()) == null ? "mailAddressInvalid_msg" : null // TODO check if it is a Tutanota mail address
-			}).then(ok => {
-				if (ok) {
-					let pushIdentifier = createPushIdentifier()
-					pushIdentifier.identifier = neverNull(getCleanedMailAddress(emailAddressInputField.value()))
-					pushIdentifier.language = lang.code
-					pushIdentifier.pushServiceType = PushServiceType.EMAIL
-					pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-					pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-					pushIdentifier._area = "0" // legacy
-					let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
-					Dialog.progress("pleaseWait_msg", p)
-				}
-			})
-		}
-	}
-
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
@@ -225,13 +202,9 @@ export class MailSettingsViewer {
 				this._updateInboxRules(props)
 			})
 		} else if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
-			let m = new MailBoxController(logins.getUserController().getUserMailGroupMembership())
-			m.loadMailBox().then(() => {
-				this._mailboxController = m
-				this._updateInboxRules(logins.getUserController().props)
-			})
+			this._updateInboxRules(logins.getUserController().props)
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
-			this._loadPushIdentifiers()
+			this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
 		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE && isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
 			load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(groupInfo => {
 				this._senderName.setValue(groupInfo.name)

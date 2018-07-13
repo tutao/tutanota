@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"userData": {
 			"name": "userData",
+			"id": 666,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -41,6 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroupData": {
 			"name": "userGroupData",
+			"id": 667,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -49,7 +51,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createUserAccountCreateData(): UserAccountCreateData {

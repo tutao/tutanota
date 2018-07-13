@@ -1,3 +1,5 @@
+import {bootFinished} from "../../src/api/Env"
+
 window.isBrowser = true
 
 /**
@@ -15,4 +17,7 @@ window.node = function (func: Function) {
 	}
 }
 
+window.tutao = {}
+
+bootFinished()
 System.import('test/api/Suite.js')

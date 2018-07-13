@@ -65,6 +65,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"orderProcessingAgreementNeeded": {
+			"name": "orderProcessingAgreementNeeded",
+			"id": 1347,
+			"since": 31,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"type": {
 			"name": "type",
 			"id": 36,
@@ -78,6 +87,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"auditLog": {
 			"name": "auditLog",
+			"id": 1161,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -86,6 +96,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactFormUserAreaGroups": {
 			"name": "contactFormUserAreaGroups",
+			"id": 1160,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -94,6 +105,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactFormUserGroups": {
 			"name": "contactFormUserGroups",
+			"id": 1159,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -102,6 +114,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customizations": {
 			"name": "customizations",
+			"id": 1256,
 			"since": 25,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -110,14 +123,34 @@ export const _TypeModel: TypeModel = {
 		},
 		"userAreaGroups": {
 			"name": "userAreaGroups",
+			"id": 992,
 			"since": 17,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "UserAreaGroups",
 			"final": true
 		},
+		"whitelabelChildren": {
+			"name": "whitelabelChildren",
+			"id": 1277,
+			"since": 26,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "WhitelabelChildrenRef",
+			"final": true
+		},
+		"whitelabelParent": {
+			"name": "whitelabelParent",
+			"id": 1276,
+			"since": 26,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "WhitelabelParent",
+			"final": true
+		},
 		"adminGroup": {
 			"name": "adminGroup",
+			"id": 37,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -127,6 +160,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"adminGroups": {
 			"name": "adminGroups",
+			"id": 39,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -136,6 +170,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroup": {
 			"name": "customerGroup",
+			"id": 38,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -145,6 +180,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroups": {
 			"name": "customerGroups",
+			"id": 40,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -154,6 +190,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerInfo": {
 			"name": "customerInfo",
+			"id": 160,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -161,8 +198,19 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
+		"orderProcessingAgreement": {
+			"name": "orderProcessingAgreement",
+			"id": 1348,
+			"since": 31,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OrderProcessingAgreement",
+			"final": true,
+			"external": false
+		},
 		"properties": {
 			"name": "properties",
+			"id": 662,
 			"since": 6,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -172,6 +220,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"serverProperties": {
 			"name": "serverProperties",
+			"id": 960,
 			"since": 13,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -181,6 +230,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"teamGroups": {
 			"name": "teamGroups",
+			"id": 42,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -190,6 +240,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroups": {
 			"name": "userGroups",
+			"id": 41,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -199,7 +250,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createCustomer(): Customer {

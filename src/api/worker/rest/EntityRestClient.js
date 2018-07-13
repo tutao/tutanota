@@ -1,6 +1,5 @@
 //@flow
-import {restClient, MediaType} from "./RestClient"
-import {loginFacade} from "../facades/LoginFacade"
+import {restClient} from "./RestClient"
 import {
 	decryptAndMapToInstance,
 	encryptAndMapToLiteral,
@@ -9,8 +8,10 @@ import {
 	setNewOwnerEncSessionKey
 } from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef, HttpMethod} from "../../common/EntityFunctions"
+import {resolveTypeReference, TypeRef, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
+import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
+import type {LoginFacade} from "../facades/LoginFacade"
 
 assertWorkerOrNode()
 
@@ -27,7 +28,10 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
  *
  */
 export class EntityRestClient {
-	constructor() {
+	_login: LoginFacade;
+
+	constructor(login: LoginFacade) {
+		this._login = login
 	}
 
 
@@ -41,7 +45,7 @@ export class EntityRestClient {
 				path += '/' + id
 			}
 			let queryParams = queryParameter == null ? {} : queryParameter
-			let headers = loginFacade.createAuthHeaders()
+			let headers = this._login.createAuthHeaders()
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity:any))
@@ -59,10 +63,16 @@ export class EntityRestClient {
 				return restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
 					let data = JSON.parse((json:string))
 					if (data instanceof Array) {
-						return Promise.all(data.map(instance => resolveSessionKey(model, instance).then(sk => decryptAndMapToInstance(model, instance, sk))))
+						return Promise.map(data, instance => resolveSessionKey(model, instance).catch(SessionKeyNotFoundError, e => {
+							console.log("could not resolve session key", e)
+							return null // will result in _errors being set on the instance
+						}).then(sk => decryptAndMapToInstance(model, instance, sk)), {concurrency: 5})
 					} else {
 						return applyMigrations(typeRef, data).then(data => {
-							return resolveSessionKey(model, data).then(sk => {
+							return resolveSessionKey(model, data).catch(SessionKeyNotFoundError, e => {
+								console.log("could not resolve session key", e)
+								return null // will result in _errors being set on the instance
+							}).then(sk => {
 								return decryptAndMapToInstance(model, data, sk)
 							})
 						})
@@ -74,5 +84,9 @@ export class EntityRestClient {
 				return Promise.reject("Illegal method: " + method)
 			}
 		})
+	}
+
+	entityEventReceived(data: EntityUpdate): Promise<void> { // for the admin area (no cache available)
+		return Promise.resolve()
 	}
 }

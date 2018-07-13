@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"mails": {
 			"name": "mails",
+			"id": 448,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"targetFolder": {
 			"name": "targetFolder",
+			"id": 447,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -42,7 +44,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createMoveMailData(): MoveMailData {

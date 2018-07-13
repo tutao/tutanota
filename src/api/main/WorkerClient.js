@@ -2,23 +2,21 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
-import {EntityEventController} from "./EntityEventController"
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
-import {ContactController} from "./ContactController"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import {EntropyCollector} from "./EntropyCollector"
 import type {
-	OperationTypeEnum,
 	EntropySrcEnum,
 	ConversationTypeEnum,
-	AccountTypeEnum
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum
 } from "../common/TutanotaConstants"
-import type {MediaTypeEnum} from "../worker/rest/RestClient"
+import {initLocator, locator} from "./MainLocator"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -31,15 +29,10 @@ export class WorkerClient {
 	initialized: Promise<void>;
 
 	_queue: Queue;
-	_contactController: ContactController;
-	_entityEventController: EntityEventController;
 	_progressUpdater: ?progressUpdater;
-	_entropyCollector: EntropyCollector;
 
-	constructor(entityEventController: EntityEventController) {
-		this._entityEventController = entityEventController;
-		this._contactController = new ContactController()
-		this._entropyCollector = new EntropyCollector()
+	constructor() {
+		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
 			this._initServices()
@@ -47,7 +40,7 @@ export class WorkerClient {
 		this._queue.setCommands({
 			execNative: (message: any) => nativeApp.invokeNative(new Request(message.args[0], message.args[1])),
 			entityEvent: (message: any) => {
-				this._entityEventController.notificationReceived(message.args[0])
+				locator.entityEvent.notificationReceived(message.args[0])
 				return Promise.resolve()
 			},
 			error: (message: any) => {
@@ -58,9 +51,12 @@ export class WorkerClient {
 					this._progressUpdater(message.args[0])
 				}
 				return Promise.resolve()
+			},
+			updateIndexState: (message: any) => {
+				locator.search.indexState(message.args[0])
+				return Promise.resolve()
 			}
 		})
-		entityEventController.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
 	_initWorker() {
@@ -78,7 +74,7 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [window.env, this._entropyCollector.getInitialEntropy()]))
+			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()]))
 				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -88,8 +84,8 @@ export class WorkerClient {
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			const workerImpl = requireNodeOnly('./../worker/WorkerImpl.js').workerImpl
-
+			const workerModule = requireNodeOnly('./../worker/WorkerImpl.js')
+			const workerImpl = new workerModule.WorkerImpl(this)
 			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
 			this._queue = new Queue(({
 				postMessage: function (msg) {
@@ -103,19 +99,12 @@ export class WorkerClient {
 
 	_initServices() {
 		if (isMain()) {
-			this._entropyCollector.start(this)
+			locator.entropyCollector.start()
 		}
 		nativeApp.init()
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (logins.isUserLoggedIn()) {
-			logins.getUserController().entityEventReceived(typeRef, listId, elementId, operation)
-		}
-		this._contactController.entityEventReceived(typeRef, listId, elementId, operation)
-	}
-
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string): Promise<void> {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<void> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
@@ -127,38 +116,38 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 
-	createWorkerSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id, credentials: ?Credentials}> {
+	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
-		return this.createWorkerSession(username, password, clientIdentifier, returnCredentials).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
+		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin).then(loginData => {
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		})
 	}
 
-	_initUserController(user: User, userGroupInfo: GroupInfo, sessionElementId: Id) {
+	_initUserController(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean): Promise<void> {
 		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
-			logins.setUserController(new UserController(user, userGroupInfo, sessionElementId, props))
+			logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession))
 		})
 	}
 
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
 		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments)).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		}))
 	}
 
-	logout(): Promise<void> {
-		return this._postRequest(new Request('logout', arguments))
-			.finally(() => {
-				logins.setUserController(null)
-			})
+	logout(sync: boolean): Promise<void> {
+		return Promise.all([
+			logins.deleteSession(sync),
+			this._postRequest(new Request('reset', arguments))
+		]).return()
 	}
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
 		return this._postRequest(new Request('resumeSession', arguments)).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId)
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, credentials.accessToken, true)
 		})
 	}
 
@@ -168,6 +157,10 @@ export class WorkerClient {
 
 	changePassword(oldPassword: string, newPassword: string): Promise<void> {
 		return this._postRequest(new Request('changePassword', arguments))
+	}
+
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		return this._postRequest(new Request('deleteAccount', arguments))
 	}
 
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
@@ -198,6 +191,26 @@ export class WorkerClient {
 		return this._postRequest(new Request('changeAdminFlag', arguments))
 	}
 
+	updateAdminship(groupId: Id, newAdminGroupId: Id) {
+		return this._postRequest(new Request('updateAdminship', arguments))
+	}
+
+	switchFreeToPremiumGroup(): Promise<void> {
+		return this._postRequest(new Request('switchFreeToPremiumGroup', arguments))
+	}
+
+	switchPremiumToFreeGroup(): Promise<void> {
+		return this._postRequest(new Request('switchPremiumToFreeGroup', arguments))
+	}
+
+	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+		return this._postRequest(new Request('updatePaymentData', arguments))
+	}
+
+	downloadInvoice(invoice: Invoice): Promise<DataFile> {
+		return this._postRequest(new Request('downloadInvoice', arguments))
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
 		return this._postRequest(new Request('readUsedUserStorage', arguments))
 	}
@@ -214,12 +227,16 @@ export class WorkerClient {
 		return this._postRequest(new Request('createMailGroup', arguments))
 	}
 
-	createTeamGroup(name: string): Promise<void> {
-		return this._postRequest(new Request('createTeamGroup', arguments))
+	createLocalAdminGroup(name: string): Promise<void> {
+		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: NumberString, count: number, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
+	}
+
+	getCurrentPrice(): Promise<PriceServiceReturn> {
+		return this._postRequest(new Request('getCurrentPrice', arguments))
 	}
 
 	tryReconnectEventBus() {
@@ -318,6 +335,22 @@ export class WorkerClient {
 		return this._postRequest(new Request('generateTotpCode', arguments))
 	}
 
+	search(searchString: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+		return this._postRequest(new Request('search', arguments))
+	}
+
+	enableMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('enableMailIndexing', arguments))
+	}
+
+	disableMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('disableMailIndexing', arguments))
+	}
+
+	cancelMailIndexing(): Promise<void> {
+		return this._postRequest(new Request('cancelMailIndexing', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
@@ -337,14 +370,6 @@ export class WorkerClient {
 		return this._queue.postMessage(msg)
 	}
 
-	getEntityEventController() {
-		return this._entityEventController
-	}
-
-	getContactController(): ContactController {
-		return this._contactController
-	}
-
 	registerProgressUpdater(updater: ?progressUpdater) {
 		this._progressUpdater = updater
 	}
@@ -355,6 +380,14 @@ export class WorkerClient {
 			this._progressUpdater = null
 		}
 	}
+
+	generateSsePushIdentifer(): Promise<string> {
+		return this._postRequest(new Request('generateSsePushIdentifer', arguments))
+	}
+
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
+		return this._postRequest(new Request('decryptUserPassword', arguments))
+	}
 }
 
-export const worker = new WorkerClient(new EntityEventController())
+export const worker = new WorkerClient()

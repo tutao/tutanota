@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const Cat: {[key:string]:LogCategory} = {
 	css: {name: 'css', color: 'orange'},

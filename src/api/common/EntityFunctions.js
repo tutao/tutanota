@@ -7,7 +7,8 @@ import {
 	stringToUtf8Uint8Array,
 	base64ToUint8Array
 } from "./utils/Encoding"
-import EC from "./EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import EC from "./EntityConstants"
+import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -20,10 +21,17 @@ export const HttpMethod = {
 }
 export type HttpMethodEnum = $Values<typeof HttpMethod>;
 
+export const MediaType = {
+	Json: 'application/json',
+	Binary: 'application/octet-stream',
+}
+export type MediaTypeEnum = $Values<typeof MediaType>;
+
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  */
-export const GENERATED_MAX_ID = "Uzzzzzzzzzzz"
+export const GENERATED_MAX_ID = "zzzzzzzzzzzz"
+
 /**
  * The minimum ID for elements with generated id stored on the server
  */
@@ -36,6 +44,9 @@ export const GENERATED_ID_BYTES_LENGTH = 9
  * The minimum ID for elements with custom id stored on the server
  */
 export const CUSTOM_MIN_ID = ""
+
+export const RANGE_ITEM_LIMIT = 1000
+
 /**
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
  */
@@ -55,7 +66,12 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	return System.import(`${env.rootPathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
+	let pathPrefix = env.rootPathPrefix
+	if (env.adminTypes.indexOf(typeRef.app + "/" + typeRef.type) !== -1) {
+		pathPrefix = "admin/"
+	}
+
+	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
 		return module._TypeModel
 	})
 }
@@ -187,6 +203,21 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
+export function _loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+	return resolveTypeReference(typeRef).then(typeModel => {
+		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target).filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end)).then(entities => {
+			if (entities.length === RANGE_ITEM_LIMIT) {
+				return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length - 1])[1], end, target).then(remainingEntities => {
+					return entities.concat(remainingEntities)
+				})
+			} else {
+				return entities
+			}
+		})
+	})
+}
+
 export function _verifyType(typeModel: TypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement) throw new Error("only Element and ListElement types are permitted, was: " + typeModel.type)
 }
@@ -221,6 +252,36 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id): boolean {
 		return firstId > secondId;
 	}
 }
+
+export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+	let firstId = (id1 instanceof Array) ? id1[1] : id1
+	let secondId = (id2 instanceof Array) ? id2[1] : id2
+	if (firstId == secondId) {
+		return 0
+	} else {
+		return firstBiggerThanSecond(firstId, secondId) ? -1 : 1
+	}
+}
+
+export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+	let firstId = (id1 instanceof Array) ? id1[1] : id1
+	let secondId = (id2 instanceof Array) ? id2[1] : id2
+	if (firstId == secondId) {
+		return 0
+	} else {
+		return firstBiggerThanSecond(firstId, secondId) ? 1 : -1
+	}
+}
+
+
+export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
+	return compareNewestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+}
+
+export function sortCompareById(entity1: Object, entity2: Object): number {
+	return compareOldestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+}
+
 
 /**
  * Compares the ids of two elements.
@@ -262,3 +323,4 @@ export function stringToCustomId(string: string) {
 export function customIdToString(customId: string) {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
 }
+

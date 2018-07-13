@@ -7,10 +7,9 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-04-02T12:48:29Z",
-	"updated_at": "2017-07-21T09:04:31Z",
+	"updated_at": "2018-01-12T09:56:51Z",
 	"source_locale": null,
 	"keys": {
-		"brandingDomainLinkInfo_msg": "If you have ordered the branding package, you can activate the Tutanota login on your own domain, change the look of Tutanota according to your needs (e.g. corporate identity) and create contact forms for your clients. Please see",
 		"canNotOpenFileOnDevice_msg": "This file cannot be opened on this device.",
 		"catchAllMailbox_label": "Catch-all mailbox",
 		"corrupted_msg": "This element is corrupted and cannot be displayed correctly.",

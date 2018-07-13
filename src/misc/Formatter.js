@@ -2,6 +2,9 @@
 import {lang} from "./LanguageViewModel"
 import {startsWith, pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
+import {getByAbbreviation} from "../api/common/CountryList"
+import {neverNull} from "../api/common/utils/Utils"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 
@@ -44,12 +47,18 @@ export function formatDateTime(date: Date): string {
 	return lang.formats.dateTime.format(date)
 }
 
+/**
+ * Formats as yyyy-mm-dd
+ */
 export function formatSortableDate(date: Date): string {
 	const month = ("0" + (date.getMonth() + 1)).slice(-2)
 	const day = ("0" + date.getDate()).slice(-2)
 	return `${date.getFullYear()}-${month}-${day}`
 }
 
+/**
+ * Formats as yyyy-mm-dd <hh>h-<mm>m-<ss>s
+ */
 export function formatSortableDateTime(date: Date): string {
 	const hours = ("0" + date.getHours()).slice(-2)
 	const minutes = ("0" + date.getMinutes()).slice(-2)
@@ -57,36 +66,131 @@ export function formatSortableDateTime(date: Date): string {
 	return `${formatSortableDate(date)} ${hours}h${minutes}m${seconds}s`
 }
 
-export function parseDate(dateString: string) {
-	if (lang.languageTag === 'bg-bg') {
-		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
+const referenceDate = new Date(2017, 5, 23)
+/**
+ * parses the following formats:
+ *
+ * sq        23.6.2017
+ * hr        23. 06. 2017.
+ * zh-hant    2017/6/23
+ * en        6/23/2017
+ * nl        23-6-2017
+ * de        23.6.2017
+ * el        23/6/2017
+ * fr        23/06/2017
+ * it        23/6/2017
+ * pl        23.06.2017
+ * pt-pt    23/06/2017
+ * pt-br    23/06/2017
+ * ro        23.06.2017
+ * ru        23.06.2017
+ * es        23/6/2017
+ * tr        23.06.2017
+ * fi        23.6.2017
+ * lt-lt    2017-06-23
+ * mk        23.6.2017
+ * sr        23.6.2017.
+ * bg-bg    23.06.2017 г.
+ * cs-cz    23. 6. 2017
+ * da-dk    23/6/2017
+ * et-ee    23.6.2017
+ * fil-ph    6/23/2017
+ * hu        2017. 06. 23.
+ * id        23/6/2017
+ * no        6/23/2017
+ *
+ * @param dateString
+ * @returns The timestamp from the given date string
+ */
+export function parseDate(dateString: string): number {
+	let languageTag = lang.languageTag.toLowerCase()
+
+	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+	// for finding day month and year position of locale date format  in cleanAndSplit array
+	let dayPos = referenceParts.findIndex(e => e == 23)
+	let monthPos = referenceParts.findIndex(e => e == 6)
+	let yearPos = referenceParts.findIndex(e => e == 2017)
+
+	let parts = _cleanupAndSplit(dateString)
+	if (parts.length != 3) {
+		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
 	}
-	dateString = dateString.replace(/ /g, "")
-	if (["hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr", "bg-bg", "cs-cz", "da-dk", "et-ee", "id", "sk-sk", "ta-in", "uk-ua", "vi", "ca-es"].find(t => lang.languageTag.indexOf(t) === 0) != null) {
-		// switch month and date for allowing Date.parse to parse the date
-		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
-		if (parts.length === 3) {
-			dateString = `${parts[2]}-${parts[1]}-${parts[0]}`
-		}
-	}
-	if ("fil-ph" === lang.languageTag) {
-		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
-		if (parts.length === 3) {
-			dateString = `${parts[0]}-${parts[2]}-${parts[1]}`
-		}
-	}
-	let parsed = Date.parse(dateString)
-	if (isNaN(parsed) || parsed < 0) {
-		throw new Error(`could not parse date '${dateString}' for locale ${lang.languageTag}`)
+	// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
+	let day = parts[dayPos]
+	let month = parts[monthPos] - 1
+	let year = parts[yearPos]
+	let parsed = new Date(year, month, day).getTime()
+	if (isNaN(parsed)) {
+		throw new Error(`could not parse date '${dateString}' for locale ${languageTag}`)
 	}
 	return parsed
 }
 
+/**
+ * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
+ * @return A birthday object containing the data form the given text or null if the text could not be parsed.
+ */
+export function parseBirthday(text: string): ?Birthday {
+	try {
+		const referenceDate = new Date(2017, 5, 23)
+		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+		//for finding day month and year position of locale date format  in cleanAndSplit array
+		let dayPos = referenceParts.findIndex(e => e == 23)
+		let monthPos = referenceParts.findIndex(e => e == 6)
+		let yearPos = referenceParts.findIndex(e => e == 2017)
+		let birthdayValues = _cleanupAndSplit(text)
+		let birthday = createBirthday()
+		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
+			if (birthdayValues[dayPos] < 32) {
+				birthday.day = String(birthdayValues[dayPos])
+			} else {
+				return null
+			}
+			if (birthdayValues[monthPos] < 13) {
+				birthday.month = String(birthdayValues[monthPos])
+			} else {
+				return null
+			}
+		} else {
+			return null
+		}
+		if (birthdayValues[yearPos]) {
+			if (String(birthdayValues[yearPos]).length == 4) {
+				birthday.year = String(birthdayValues[yearPos])
+			} else if (String(birthdayValues[yearPos]).length == 2) {
+				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
+					birthday.year = "19" + String(birthdayValues[yearPos])
+				} else {
+					birthday.year = "20" + String(birthdayValues[yearPos])
+				}
+			} else {
+				return null
+			}
+		} else {
+			birthday.year = null
+		}
+		return birthday
+	} catch (e) {
+		return null
+	}
+}
+
+export function _cleanupAndSplit(dateString: string): number[] {
+	let languageTag = lang.languageTag.toLowerCase()
+
+	if (languageTag === 'bg-bg') {
+		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
+	}
+	dateString = dateString.replace(/ /g, "")
+	dateString = dateString.replace(/‎/g, "") // remove left-to-right character (included on Edge)
+	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
+}
+
 export function formatPrice(value: number, includeCurrency: boolean): string {
 	if (includeCurrency) {
-		return lang.formats.priceWithCurrency.format(value)
+		return (value % 1 != 0) ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
 	} else {
-		return lang.formats.priceWithoutCurrency.format(value)
+		return (value % 1 != 0) ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
 	}
 }
 
@@ -273,4 +377,24 @@ export function urlEncodeHtmlTags(text: string) {
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;")
+}
+
+export function formatNameAndAddress(name: string, address: string, countryCode: ?string): string {
+	let result = ""
+	if (name) {
+		result += name
+	}
+	if (address) {
+		if (result) {
+			result += "\n"
+		}
+		result += address
+	}
+	if (countryCode) {
+		if (result) {
+			result += "\n"
+		}
+		result += neverNull(getByAbbreviation(countryCode)).n
+	}
+	return result
 }

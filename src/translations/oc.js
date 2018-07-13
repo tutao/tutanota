@@ -7,11 +7,10 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2017-02-07T10:39:18Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2018-04-25T10:15:16Z",
 	"source_locale": null,
 	"keys": {
 		"accountSettings_label": "Compte",
-		"accountType_label": "Tipe de compte",
 		"activated_label": "Activat",
 		"address_label": "Adreça",
 		"addUsers_action": "Apondre d'utilizaires",
@@ -59,7 +58,6 @@ module.exports = {
 		"created_label": "Creat",
 		"createUsers_label": "Crea d'utilizaires",
 		"creditCardCVV_label": "Còde de seguretat",
-		"creditCardNumber_label": "Numèro",
 		"customDomainErrorDomainNotAvailable_msg": "Domeni pas disponible.",
 		"customers_label": "clients",
 		"custom_label": "Personalizat",
@@ -176,7 +174,7 @@ module.exports = {
 		"mobileNumberNotValid_msg": "Format pas valedor.",
 		"monitor_label": "monitor",
 		"monthly_label": "Mensualament",
-		"monthNames_label": ["Gen", "Feb", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dec"],
+		"monthNames_label": "---\n- Gen\n- Feb\n- Mar\n- Abr\n- Mai\n- Jun\n- Jul\n- Ago\n- Set\n- Oct\n- Nov\n- Dec\n",
 		"moreInfo_msg": "Mai d'informacion:",
 		"more_label": "Mai",
 		"name_label": "Nom",
@@ -257,7 +255,7 @@ module.exports = {
 		"upgradeReminderCancel_action": "Mai tard",
 		"userEmailSignature_label": "Signatura de corrièr electronic:",
 		"userSettings_label": "Utilizaire",
-		"weekDays_label": ["dg", "dl", "dm", "dc", "dj", "dv", "ds"],
+		"weekDays_label": "---\n- dg\n- dl\n- dm\n- dc\n- dj\n- dv\n- ds\n",
 		"welcomeMailBody2_msg": "Convida los amics a Tutanota, aital poiràs enviar aisidament de messatges encriptats de cap a cima . Tamben pòdes encriptar de corrièrs electronics per de personas tèrças amb un senhal. Tutatona encripta l´objècte, lo contengut e los fichièrs junts automaticament. Aquò inclutz tamben los messatges que mandas o recebes sens encriptacion: nòstres servidors ne garantísson l´encriptacion. Rejonh la lucha per la privacitat e subscriu a un compte Premium per solament 1 èuro per mes. Clica sus Premium dins lo menut principal un còp connectat.",
 		"yesterday_label": "ièr"
 	}

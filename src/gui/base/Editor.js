@@ -11,7 +11,6 @@ export class Editor {
 	onremove: Function;
 	initialized: Object;
 	_domElement: HTMLElement;
-	_placeholderDomElement: HTMLElement;
 	_enabled: boolean;
 	_active: boolean;
 	_minHeight: ?number;

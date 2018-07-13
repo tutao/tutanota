@@ -111,9 +111,19 @@ export const _TypeModel: TypeModel = {
 			"encrypted": true
 		}
 	},
-	"associations": {},
+	"associations": {
+		"creditCard": {
+			"name": "creditCard",
+			"id": 1320,
+			"since": 30,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "CreditCard",
+			"final": false
+		}
+	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPaymentDataServicePutData(): PaymentDataServicePutData {

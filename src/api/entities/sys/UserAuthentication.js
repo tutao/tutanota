@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"secondFactors": {
 			"name": "secondFactors",
+			"id": 1209,
 			"since": 23,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -33,6 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sessions": {
 			"name": "sessions",
+			"id": 1208,
 			"since": 23,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -42,7 +44,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createUserAuthentication(): UserAuthentication {

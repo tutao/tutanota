@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"newFile": {
 			"name": "newFile",
+			"id": 494,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -41,6 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"existingFile": {
 			"name": "existingFile",
+			"id": 495,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -50,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createDraftAttachment(): DraftAttachment {

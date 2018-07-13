@@ -1,53 +1,69 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
     defaultConfig {
         applicationId "de.tutao.tutanota"
-        minSdkVersion 16
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 21
+        targetSdkVersion 26
+        versionCode 335070
+        versionName "3.35.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debug']
+            buildConfigField 'String', 'RES_ADDRESS', "\"http://" + InetAddress.getLocalHost().getHostName().split("\\.")[0] + ":9000/client/build/app\""
+            applicationIdSuffix ".debug"
+        }
+        debugDist {
+            initWith debug
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
+            applicationIdSuffix ".debugdist"
+        }
         release {
             minifyEnabled false
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile "com.google.android.gms:play-services-gcm:10.2.1"
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.jdeferred:jdeferred-core:1.2.4'
-    testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.3.2"
-    androidTestCompile 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
-    androidTestCompile 'commons-codec:commons-codec:1.6'
-}
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = new File(output.outputFile.name.replace("app-release.apk", "tutanota-${variant.versionName}.apk"))
+        }
+    }
 
-android {
+    buildTypes.each {
+        it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/ASL2.0'
     }
+}
 
-    buildTypes {
-        debug
-        debugDist {
-            initWith debug
-        }
-        release
-    }
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    implementation 'commons-io:commons-io:2.4'
+    implementation 'org.jdeferred:jdeferred-core:1.2.4'
+    implementation 'com.android.support:support-compat:27.1.1'
+    implementation 'com.android.support:support-core-utils:27.1.1'
 
-    buildTypes.each {
-        it.buildConfigField 'String', 'hostname', '"' + java.net.InetAddress.getLocalHost().getHostName() + '"'
-    }
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.robolectric:robolectric:3.3.2"
+    androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
+    androidTestImplementation 'commons-codec:commons-codec:1.6'
 }

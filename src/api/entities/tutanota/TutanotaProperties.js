@@ -132,6 +132,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"imapSyncConfig": {
 			"name": "imapSyncConfig",
+			"id": 222,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -140,6 +141,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"inboxRules": {
 			"name": "inboxRules",
+			"id": 578,
 			"since": 12,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -148,6 +150,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"lastPushedMail": {
 			"name": "lastPushedMail",
+			"id": 221,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -157,7 +160,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createTutanotaProperties(): TutanotaProperties {

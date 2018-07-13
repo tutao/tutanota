@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"draftData": {
 			"name": "draftData",
+			"id": 521,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -32,6 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"draft": {
 			"name": "draft",
+			"id": 522,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -41,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createDraftUpdateData(): DraftUpdateData {

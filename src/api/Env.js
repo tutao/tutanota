@@ -28,12 +28,24 @@ export function isIOSApp(): boolean {
 	return env.mode == Mode.App && env.platformId == "ios"
 }
 
+export function isAndroidApp(): boolean {
+	return env.mode == Mode.App && env.platformId == "android"
+}
+
+export function isApp(): boolean {
+	return env.mode == Mode.App
+}
+
 
 let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
 let node = (typeof process === 'object' && typeof process.versions === 'object' && typeof process.versions.node !== 'undefined')
 
 export function isMain(): boolean {
 	return !worker && !node
+}
+
+export function isAdmin(): boolean {
+	return env.adminTypes.length > 0
 }
 
 export function isMainOrNode(): boolean {
@@ -48,7 +60,22 @@ export function isWorker(): boolean {
 	return worker
 }
 
+export function isTest(): boolean {
+	return env.mode === Mode.Test
+}
+
+let boot = !isWorker()
+
 export function assertMainOrNode() {
+	if (!isMainOrNode()) {
+		throw new Error("this code must not run in the worker thread")
+	}
+	if (boot) {
+		throw new Error("this main code must not be loaded at boot time")
+	}
+}
+
+export function assertMainOrNodeBoot() {
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
@@ -58,4 +85,8 @@ export function assertWorkerOrNode() {
 	if (!isWorkerOrNode()) {
 		throw new Error("this code must not run in the gui thread")
 	}
+}
+
+export function bootFinished() {
+	boot = false
 }

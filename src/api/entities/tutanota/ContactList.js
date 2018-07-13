@@ -58,8 +58,18 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"photos": {
+			"name": "photos",
+			"id": 856,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "PhotosRef",
+			"final": false
+		},
 		"contacts": {
 			"name": "contacts",
+			"id": 160,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -69,7 +79,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createContactList(): ContactList {

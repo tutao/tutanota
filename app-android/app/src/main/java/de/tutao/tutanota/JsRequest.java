@@ -2,16 +2,16 @@ package de.tutao.tutanota;
 
 public enum JsRequest {
     updatePushIdentifier("updatePushIdentifier"),
-    notify("notify");
+    notify("notify"),
+    createMailEditor("createMailEditor"),
+    handleBackPress("handleBackPress"),
+    showAlertDialog("showAlertDialog"),
+    openMailbox("openMailbox");
 
     private final String name;
 
-    private JsRequest(String s) {
+    JsRequest(String s) {
         name = s;
-    }
-
-    public boolean equalsName(String otherName) {
-        return name.equals(otherName);
     }
 
     public String toString() {

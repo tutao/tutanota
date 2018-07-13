@@ -25,7 +25,7 @@ const bundles = {}
 
 function getAsyncImports(file) {
 	let appSrc = fs.readFileSync(path.resolve(__dirname, file), 'utf-8')
-	const regExp = /_asyncImport\("(.*)"\)/g
+	const regExp = /_asyncImport\(["|'](.*)["|']\)/g
 	let match = regExp.exec(appSrc)
 	let asyncImports = []
 	while (match != null) {
@@ -38,6 +38,7 @@ function getAsyncImports(file) {
 
 clean()
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
+	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
 	.then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
 		let lines = bootstrap.split("\n")
 		lines[0] = `importScripts('libs.js')`
@@ -49,11 +50,10 @@ clean()
 			builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
 			builder.trace('src/app.js + src/system-resolve.js'),
 			builder.trace('src/gui/theme.js - libs/stream.js'),
-			builder.trace(getAsyncImports('src/app.js').join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js"),
+			builder.trace(getAsyncImports('src/app.js').concat(getAsyncImports('src/native/NativeWrapper.js')).join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js + src/search/SearchBar.js"),
 		]).then(trees => {
 			let workerTree = trees[0]
 			let bootTree = trees[1]
-			printTraceReport(bootTree)
 			let themeTree = trees[2]
 			let mainTree = trees[3]
 
@@ -136,6 +136,7 @@ function createHtml(env, bundles) {
 	let imports = ["libs.js", "main-boot.js", `${filenamePrefix}.js`]
 	return Promise.all([
 		_writeFile(`./build/dist/${filenamePrefix}.js`, [
+			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,
@@ -170,15 +171,15 @@ let debName = `tutanota-next-${version}_1_amd64.deb`
 function deb() {
 	if (process.argv.indexOf("deb") !== -1) {
 		console.log("create" + debName)
-		spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
 	}
 }
@@ -186,24 +187,30 @@ function deb() {
 function release() {
 	if (process.argv.indexOf("release") !== -1) {
 		console.log("create git tag and copy .deb")
-		spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
+		exitOnFail(spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
-		spawnSync("/bin/cp", `-f build/${debName} /opt/repository/tutanota/`.split(" "), {
+		exitOnFail(spawnSync("/bin/cp", `-f build/${debName} /opt/repository/tutanota/`.split(" "), {
 			cwd: __dirname,
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
 
 		// user puppet needs to read the deb file from jetty
-		spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debName}`.split(" "), {
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debName}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
-		})
+		}))
+	}
+}
+
+function exitOnFail(result) {
+	if (result.status != 0) {
+		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 }
 

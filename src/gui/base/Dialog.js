@@ -7,18 +7,16 @@ import {animations, opacity, alpha, DefaultAnimationTime, transform} from "../an
 import {ease} from "../animation/Easing"
 import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
-import {TextField} from "./TextField"
+import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Keys} from "../../misc/KeyManager"
-import {mod} from "../../misc/MathUtils"
 import {neverNull} from "../../api/common/utils/Utils"
-import {PasswordIndicator} from "./PasswordIndicator"
-import {worker} from "../../api/main/WorkerClient"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
-import {progressIcon} from "./Icon"
 import {size, px} from "../size"
 import {styles} from "../styles"
+import {focusPrevious, focusNext, INPUT} from "./DropdownN"
+import {HabReminderImage} from "./icons/Icons"
 
 assertMainOrNode()
 
@@ -32,7 +30,6 @@ export const DialogType = {
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
-let TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
 export class Dialog {
 	buttons: Button[];
@@ -40,38 +37,24 @@ export class Dialog {
 	_shortcuts: Shortcut[];
 	view: Function;
 	visible: boolean;
+	_focusOnLoadFunction: Function;
+	_closeHandler: ?()=>void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
 		this.visible = false
+		this._focusOnLoadFunction = this._defaultFocusOnLoad
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => {
-
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[tabbable.length - 1].focus()
-					}
-				},
+				exec: () => focusNext(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
-					let selected = tabbable.find(e => document.activeElement === e)
-					if (selected) {
-						tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
-					} else if (tabbable.length > 0) {
-						tabbable[0].focus()
-					}
-				},
+				exec: () => focusPrevious(this._domDialog),
 				help: "selectNext_action"
 			},
 		]
@@ -79,29 +62,55 @@ export class Dialog {
 			let mobileMargin = px(size.hpad)
 			return m(this._getDialogWrapperStyle(dialogType), [
 					m(this._getDialogStyle(dialogType), {
+						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						style: {
-							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
+							'margin-top': styles.isDesktopLayout() ? '60px' : dialogType === DialogType.EditLarge ? mobileMargin : 0,
 							'margin-left': mobileMargin,
 							'margin-right': mobileMargin
 						},
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
+							let animation = null
 							if (dialogType === DialogType.EditLarge) {
 								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
-								animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
+								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
 							} else {
 								let bgcolor = theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
 								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
-								animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1))
-								animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
+								animation = Promise.all([
+									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
+									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
+								])
 							}
+
+							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
+							window.requestAnimationFrame(() => {
+								if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+							})
+							animation.then(() => {
+								this._focusOnLoadFunction()
+							})
 						},
 					}, m(childComponent))
 				]
 			)
 		}
+	}
+
+	_defaultFocusOnLoad() {
+		let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
+		if (inputs.length > 0) {
+			inputs[0].focus()
+		}
+	}
+
+	/**
+	 * By default the focus is set on the first text field after this dialog is fully visible. This behavor can be overwritten by calling this function.
+	 */
+	setFocusOnLoadFunction(callback: Function): void {
+		this._focusOnLoadFunction = callback
 	}
 
 	_getDialogWrapperStyle(dialogType: DialogTypeEnum) {
@@ -146,6 +155,15 @@ export class Dialog {
 		return this
 	}
 
+	/**
+	 * Sets a close handler to the dialog. If set the handler will be notifed wehn onClose is called on the dialog.
+	 * The handler must is then responsible for closing the dialog.
+	 */
+	setCloseHandler(closeHandler: ?() => void): Dialog {
+		this._closeHandler = closeHandler
+		return this
+	}
+
 	shortcuts() {
 		return this._shortcuts
 	}
@@ -156,10 +174,26 @@ export class Dialog {
 		return this
 	}
 
+	/**
+	 * Removes the dialog from the current view.
+	 */
 	close(): void {
 		this.visible = false
 		modal.remove(this)
 	}
+
+
+	/**
+	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
+	 */
+	onClose(): void {
+		if (this._closeHandler) {
+			this._closeHandler()
+		} else {
+			this.close()
+		}
+	}
+
 
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
@@ -177,61 +211,18 @@ export class Dialog {
 		})
 	}
 
-	static progress<T>(messageIdOrMessageFunction: string|lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
-		let progress = 0
-		let progressIndicator = (showProgress === true) ? new PasswordIndicator(() => progress) : null
-		let progressDialog = new Dialog(DialogType.Progress, {
-			view: () => m("", [
-				m(".flex-center", !showProgress ? progressIcon() : (progressIndicator ? m(progressIndicator) : null)),
-				m("p", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
-			])
-		})
-		let updater: progressUpdater = newProgress => {
-			progress = newProgress
-			m.redraw()
-		}
-		worker.registerProgressUpdater(updater)
-		progressDialog.show()
-		let start = new Date().getTime()
-
-		return Promise.fromCallback(cb => {
-			action.then(result => {
-				let diff = new Date().getTime() - start
-				setTimeout(() => {
-					worker.unregisterProgressUpdater(updater)
-					progressDialog.close()
-					setTimeout(() => cb(null, result), DefaultAnimationTime)
-				}, Math.max(1000 - diff, 0))
-			}).catch(e => {
-				let diff = new Date().getTime() - start
-				setTimeout(() => {
-					worker.unregisterProgressUpdater(updater)
-					progressDialog.close()
-					setTimeout(() => cb(e, null), DefaultAnimationTime)
-				}, Math.max(1000 - diff, 0))
-			})
-		})
-	}
-
-
-	static pending(messageIdOrMessageFunction: string|lazy<string>, image: ?string): Dialog {
-		let dialog = new Dialog(DialogType.Progress, {
-			view: () => m("", [
-				image ? m(".flex-center", m("img[src=" + image + "]")) : m(".flex-center", progressIcon()),
-				m("p", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
-			])
-		})
-		dialog.show()
-		return dialog
+	backgroundClick(e: MouseEvent) {
 	}
 
 	static error(messageIdOrMessageFunction: string|lazy<string>): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("ok_action", () => {
+
+			let closeAction = () => {
 				(dialog:any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			}
+			buttons.push(new Button("ok_action", closeAction).setType(ButtonType.Primary))
 
 			let message = messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)
 			let lines = message.split("\n")
@@ -242,6 +233,7 @@ export class Dialog {
 						m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 					)
 			})
+			dialog.setCloseHandler(closeAction)
 			dialog.show()
 		})
 	}
@@ -250,10 +242,12 @@ export class Dialog {
 	static legacyDownload(filename: string, href: string): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("close_alt", () => {
+			let closeAction = () => {
 				(dialog:any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			}
+
+			buttons.push(new Button("close_alt", closeAction).setType(ButtonType.Primary))
 
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
@@ -271,6 +265,7 @@ export class Dialog {
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(closeAction)
 			dialog.show()
 		})
 	}
@@ -279,32 +274,35 @@ export class Dialog {
 	static confirm(messageIdOrMessageFunction: string|lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("cancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button(confirmId, () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
 			}).setType(ButtonType.Primary))
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
-					m(".dialog-contentButtonsBottom.text-break", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
+					m(".dialog-contentButtonsBottom.text-break.text-prewrap", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
 
-
 	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
-			actionBar.addLeft(new Button("close_alt", () => {
+
+			let closeAction = () => {
 				saveDialog.close()
-				setTimeout(() => cb(null), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+				setTimeout(() => cb(null, false), DefaultAnimationTime)
+			}
+			actionBar.addLeft(new Button("close_alt", closeAction).setType(ButtonType.Secondary))
 			actionBar.addRight(new Button("save_action", () => {
 				saveAction().then(() => {
 					saveDialog.close()
@@ -314,10 +312,11 @@ export class Dialog {
 			let saveDialog = new Dialog(DialogType.EditMedium, {
 				view: () => m("", [
 					m(".dialog-header.plr-l", m(actionBar)),
-					m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+					m(".plr-l.pb.text-break", m(child))
 				])
 			})
 			actionBar.setMiddle(title)
+			saveDialog.setCloseHandler(closeAction)
 			saveDialog.show()
 		})
 	}
@@ -325,10 +324,11 @@ export class Dialog {
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
-			buttons.push(new Button("upgradeReminderCancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			buttons.push(new Button("upgradeReminderCancel_action", cancelAction).setType(ButtonType.Secondary))
 			buttons.push(new Button("upgradeToPremium_action", () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
@@ -340,13 +340,14 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=/graphics/hab.png].dialog-img.pb")
+							m("img[src=" + HabReminderImage + "].dialog - img.pb")
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -359,10 +360,11 @@ export class Dialog {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
 
-			actionBar.addLeft(new Button("cancel_action", () => {
+			let cancelAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}).setType(ButtonType.Secondary))
+			}
+			actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 			actionBar.addRight(new Button("ok_action", () => {
 				if (inputValidator) {
 					let errorMessage = inputValidator()
@@ -378,7 +380,7 @@ export class Dialog {
 			let dialog = new Dialog(DialogType.EditSmall, {
 				view: () => m("", [
 					m(".dialog-header.plr-l", m(actionBar)),
-					m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+					m(".plr-l.pb.text-break", m(child))
 				])
 			})
 
@@ -390,25 +392,45 @@ export class Dialog {
 				}
 			}
 
+			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
 
-	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action"): Dialog {
+	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
-		if (allowCancel) {
-			actionBar.addLeft(new Button("cancel_action", () => {
-				dialog.close()
-			}).setType(ButtonType.Secondary))
+		let doCancel = () => {
+			if (cancelAction) {
+				cancelAction()
+			}
+			dialog.close()
 		}
+
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(DialogType.EditSmall, {
 			view: () => m("", [
 				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-contentButtonsTop.plr-l.pb.text-break", m(child))
+				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
 			])
+		})
+
+		if (allowCancel) {
+			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: doCancel,
+				help: "cancel_action"
+			})
+		}
+
+		dialog.addShortcut({
+			key: Keys.RETURN,
+			shift: false,
+			exec: okAction,
+			help: okActionTextId
 		})
 
 		if (title) {
@@ -419,6 +441,7 @@ export class Dialog {
 			}
 		}
 
+		dialog.setCloseHandler(doCancel)
 		return dialog.show()
 	}
 
@@ -427,9 +450,9 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: string, labelId: string, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
-			let textField = new TextField(labelId, () => {
+			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
 			})
 			textField.value(value)
@@ -443,6 +466,30 @@ export class Dialog {
 			})
 		})
 	}
+
+
+	/**
+	 * Shows a dialog with a text area input and ok/cancel buttons.
+	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
+	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
+	 */
+	static showTextAreaInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+		return Promise.fromCallback(cb => {
+			let textField = new TextField(labelIdOrLabelFunction, () => {
+				return (infoMsgId) ? lang.get(infoMsgId) : ""
+			}).setType(Type.Area)
+			textField.value(value)
+			let inputValidatorWrapper = (inputValidator) ? (() => neverNull(inputValidator)(textField.value())) : null
+			return Dialog.smallDialog(lang.get(titleId), {
+				view: () => m(textField)
+			}, inputValidatorWrapper).then(ok => {
+				if (ok) {
+					cb(null, textField.value())
+				}
+			})
+		})
+	}
+
 
 	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {

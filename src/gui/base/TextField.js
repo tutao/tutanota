@@ -1,14 +1,14 @@
 // @flow
-import {size, px} from "../size"
+import {size, px, inputLineHeight} from "../size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {theme} from "../theme"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const FALSE_CLOSURE = () => {
 	return false
@@ -23,7 +23,7 @@ export const Type = {
 }
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
-const inputLineHeight = size.font_size_base + 8
+
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 
 /**
@@ -35,7 +35,9 @@ export class TextField {
 	value: stream<string>;
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
+	_baseLabel: boolean;
 	active: boolean;
+	webkitAutofill: boolean;
 	disabled: boolean;
 	_injectionsLeft: ?Function; // only used by the BubbleTextField to display bubbles
 	_injectionsRight: ?Function;
@@ -53,18 +55,20 @@ export class TextField {
 	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
+		this.webkitAutofill = false
 		this.disabled = false
 		this.helpLabel = helpLabel
 		this.value = stream("")
 		this.value.map(v => {
 			if (this._domInput) {
-				if (this.type == Type.Area && this.value != this._domInput.value) {
+				if (this.value != this._domInput.value) {
 					this._domInput.value = this.value()
 				}
 			}
 		})
 		this.type = Type.Text
 		this.baseLabelPosition = size.text_field_label_top
+		this._baseLabel = true
 		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
@@ -79,7 +83,8 @@ export class TextField {
 					class: this.active ? "content-accent-fg" : "",
 					oncreate: (vnode) => {
 						this._domLabel = vnode.dom
-						if (this.isEmpty() && !this.disabled) { // if the text field is disabled do not show the label in base position.
+						this._baseLabel = this.isEmpty() && !this.disabled // needed for BubbleTextField in Firefox. BubbleTextField overwrites isEmpty() so it must be called initially
+						if (this._baseLabel) { // if the text field is disabled do not show the label in base position.
 							this._domLabel.style.fontSize = px(size.font_size_base)
 							this._domLabel.style.transform = 'translateY(' + this.baseLabelPosition + "px)"
 						} else {
@@ -127,13 +132,34 @@ export class TextField {
 		} else {
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
-				value: this.value(),
-				oncreate: (vnode) => this._domInput = vnode.dom,
+				oncreate: (vnode) => {
+					this._domInput = vnode.dom
+					if (this.type != Type.Area) {
+						vnode.dom.addEventListener('animationstart', e => {
+							if (e.animationName === "onAutoFillStart") {
+								this.webkitAutofill = true
+								this.animate()
+							} else if (e.animationName === "onAutoFillCancel") {
+								this.webkitAutofill = false
+								this.animate()
+							}
+						})
+					}
+					if (this.type !== Type.Password) {
+						this._domInput.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+					}
+				},
 				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
+					if (this._domInput.value != this.value()) {
+						this.value(this._domInput.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
+						if (this._domInput.value !== "" && !this.active) {
+							this.animate()
+						}
+					}
 					return this._keyHandler != null ? this._keyHandler(key) : true
 				},
 				onremove: e => {
@@ -142,21 +168,21 @@ export class TextField {
 					this._domInput.onblur = null
 				},
 				oninput: e => {
-					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
-						this.animate(true) // animate in case of browser autocompletion
+					if (this.isEmpty() && this._domInput.value !== "" && !this.active && !this.webkitAutofill) {
+						this.animate() // animate in case of browser autocompletion (non-webkit)
 					}
 					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
-					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
-					lineHeight: px(inputLineHeight),
+					"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+					"line-height": px(inputLineHeight),
+					"min-height": px(inputLineHeight),
 				}
 			})
 		}
 	}
 
 	_getTextArea(): VirtualElement {
-
 		if (this.disabled) {
 			return m(".text-prewrap.text-break", {
 				style: {
@@ -179,7 +205,7 @@ export class TextField {
 				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
-						this.animate(true) // animate in case of browser autocompletion
+						this.animate() // animate in case of browser autocompletion
 					}
 					this._domInput.style.height = '0px'
 					this._domInput.style.height = px(this._domInput.scrollHeight)
@@ -211,6 +237,7 @@ export class TextField {
 
 	setDisabled(): TextField {
 		this.disabled = true
+		this._baseLabel = false
 		return this
 	}
 
@@ -222,10 +249,10 @@ export class TextField {
 	focus() {
 		if (!this.isActive() && !this.disabled) {
 			this.active = true
-			this._domInput.focus()
-			this._domWrapper.classList.add("active")
-			if (this.isEmpty()) {
-				this.animate(true)
+			if (this._domInput) {
+				this._domInput.focus()
+				this._domWrapper.classList.add("active")
+				this.animate()
 			}
 		}
 	}
@@ -235,26 +262,33 @@ export class TextField {
 			this._domInput.focus()
 		} else {
 			this._domWrapper.classList.remove("active")
-			if (this.isEmpty()) {
-				this.animate(false)
-			}
+			this.animate()
 			this.active = false
 			this.onblur(e)
 		}
 		this.skipNextBlur = false
 	}
 
-	animate(fadeIn: boolean) {
-		let fontSizes = [size.font_size_base, size.font_size_small]
-		let top = [this.baseLabelPosition, 0]
-		if (!fadeIn) {
-			fontSizes.reverse()
-			top.reverse()
-		}
-		return animations.add(this._domLabel, [
-			fontSize(fontSizes[0], fontSizes[1]),
-			transform(transform.type.translateY, top[0], top[1])
-		], {easing: ease.out})
+	animate() {
+		window.requestAnimationFrame(() => {
+			if (this._baseLabel && ((!this.isEmpty() && !this.disabled) || this.webkitAutofill || this.active)) {
+				let fontSizes = [size.font_size_base, size.font_size_small]
+				let top = [this.baseLabelPosition, 0]
+				this._baseLabel = false
+				return animations.add(this._domLabel, [
+					fontSize(fontSizes[0], fontSizes[1]),
+					transform(transform.type.translateY, top[0], top[1])
+				], {easing: ease.out})
+			} else if (!this._baseLabel && (this.isEmpty() && !this.disabled && !this.webkitAutofill && !this.active)) {
+				let fontSizes = [size.font_size_small, size.font_size_base]
+				let top = [0, this.baseLabelPosition]
+				this._baseLabel = true
+				return animations.add(this._domLabel, [
+					fontSize(fontSizes[0], fontSizes[1]),
+					transform(transform.type.translateY, top[0], top[1])
+				], {easing: ease.out})
+			}
+		})
 	}
 
 	isActive(): boolean {

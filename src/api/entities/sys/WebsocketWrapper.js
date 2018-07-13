@@ -78,6 +78,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"authentication": {
 			"name": "authentication",
+			"id": 476,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -86,6 +87,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"chat": {
 			"name": "chat",
+			"id": 477,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -94,6 +96,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"entityUpdate": {
 			"name": "entityUpdate",
+			"id": 478,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -102,6 +105,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"eventBatch": {
 			"name": "eventBatch",
+			"id": 1089,
 			"since": 20,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -110,6 +114,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"exception": {
 			"name": "exception",
+			"id": 479,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -118,7 +123,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createWebsocketWrapper(): WebsocketWrapper {

@@ -6,14 +6,16 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {formatDate, parseDate} from "../misc/Formatter"
+import {isMailAddress, parseBirthday} from "../misc/Formatter"
 import {
 	getContactAddressTypeLabel,
 	ContactMailAddressTypeToLabel,
 	getContactPhoneNumberTypeLabel,
 	ContactPhoneNumberTypeToLabel,
 	getContactSocialTypeLabel,
-	ContactSocialTypeToLabel
+	ContactSocialTypeToLabel,
+	formatBirthdayNumeric,
+	migrateToNewBirthday
 } from "./ContactUtils"
 import {ContactAddressType, GroupType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {animations, height, DefaultAnimationTime, opacity} from "../gui/animation/Animations"
@@ -31,6 +33,8 @@ import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
+import {createBirthday} from "../api/entities/tutanota/Birthday"
+
 
 assertMainOrNode()
 
@@ -38,10 +42,8 @@ export class ContactEditor {
 	contact: Contact;
 	listId: Id;
 	dialog: Dialog;
-
 	birthday: TextField;
 	invalidBirthday: boolean;
-
 	mailAddressEditors: ContactAggregateEditor[];
 	phoneEditors: ContactAggregateEditor[];
 	addressEditors: ContactAggregateEditor[];
@@ -59,6 +61,8 @@ export class ContactEditor {
 	 */
 	constructor(c: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
 		this.contact = c ? clone(c) : createContact()
+		migrateToNewBirthday(this.contact)
+
 		this._newContactIdReceiver = newContactIdReceiver
 		if (c == null && listId == null) {
 			throw new Error("must provide contact to edit or listId for the new contact")
@@ -68,6 +72,9 @@ export class ContactEditor {
 		let firstName = new TextField("firstName_placeholder")
 			.setValue(this.contact.firstName)
 			.onUpdate(value => this.contact.firstName = value)
+		let nickname = new TextField("nickname_placeholder")
+			.setValue(this.contact.nickname)
+			.onUpdate(value => this.contact.nickname = value)
 		let lastName = new TextField("lastName_placeholder")
 			.setValue(this.contact.lastName)
 			.onUpdate(value => this.contact.lastName = value)
@@ -75,21 +82,26 @@ export class ContactEditor {
 
 		this.invalidBirthday = false
 		let birthdayHelpText = () => {
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
+			let bday = createBirthday()
+			bday.day = "22"
+			bday.month = "9"
+			bday.year = "2000"
+			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
-			.setValue(this.contact.birthday != null ? formatDate((this.contact.birthday:any)) : "")
+			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")
 			.onUpdate(value => {
-				try {
-					if (value.trim().length > 0) {
-						let timestamp = parseDate(value)
-						this.contact.birthday = isNaN(timestamp) ? null : new Date(timestamp)
-					} else {
-						this.contact.birthday = null
-					}
+				if (value.trim().length == 0) {
+					this.contact.birthday = null
 					this.invalidBirthday = false
-				} catch (e) {
-					this.invalidBirthday = true
+				} else {
+					let birthday = parseBirthday(value)
+					if (birthday) {
+						this.contact.birthday = birthday
+						this.invalidBirthday = false
+					} else {
+						this.invalidBirthday = true
+					}
 				}
 			})
 		let comment = new TextField('comment_label')
@@ -100,6 +112,9 @@ export class ContactEditor {
 		let company = new TextField("company_label")
 			.setValue(this.contact.company)
 			.onUpdate(value => this.contact.company = value)
+		let role = new TextField("role_placeholder")
+			.setValue(this.contact.role)
+			.onUpdate(value => this.contact.role = value)
 		let title = new TextField("title_placeholder")
 			.setValue(this.contact.title)
 			.onUpdate(value => this.contact.title = value)
@@ -116,7 +131,7 @@ export class ContactEditor {
 		this.socialEditors = this.contact.socialIds.map(p => new ContactAggregateEditor(p, e => remove(this.socialEditors, e)))
 		this.createNewSocialEditor()
 
-		let presharedPassword = this.contact.presharedPassword != null ? new TextField('passwordsHeading_label')
+		let presharedPassword = this.contact.presharedPassword ? new TextField('password_label')
 				.setValue((this.contact.presharedPassword:any))
 				.onUpdate(value => this.contact.presharedPassword = value) : null
 
@@ -130,12 +145,15 @@ export class ContactEditor {
 				m(lastName)
 			]),
 			m(".wrapping-row", [
+				m(title),
 				m(this.birthday),
-				m(comment)
+
 			]),
 			m(".wrapping-row", [
+				m(role),
 				m(company),
-				m(title)
+				m(nickname),
+				m(comment)
 			]),
 			m(".wrapping-row", [
 				m(".mail.mt-xl", [
@@ -169,7 +187,7 @@ export class ContactEditor {
 
 			presharedPassword ? m(".wrapping-row", [
 					m(".passwords.mt-xl", [
-						m(".h4", lang.get('passwordsHeading_label')),
+						m(".h4", lang.get('passwords_label')),
 						m(presharedPassword)
 					]),
 					m(".spacer")
@@ -188,7 +206,7 @@ export class ContactEditor {
 				ctrl: true,
 				exec: () => this.save(),
 				help: "send_action"
-			})
+			}).setCloseHandler(() => this._close())
 	}
 
 	show() {
@@ -342,7 +360,12 @@ class ContactAggregateEditor {
 			TypeToLabelMap = ContactSocialTypeToLabel
 		}
 
-		this.textfield = new TextField(label)
+		this.textfield = new TextField(label, () => {
+			if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef) && this.textfield.value().trim().length > 0 && !isMailAddress(this.textfield.value().trim(), false)) {
+				return lang.get("invalidInputFormat_msg")
+			}
+			return lang.get("emptyString_msg")
+		})
 			.setValue(value)
 			.onUpdate(onUpdate)
 		if (isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
@@ -352,9 +375,9 @@ class ContactAggregateEditor {
 			return new Button((TypeToLabelMap:any)[key], e => {
 				if (isCustom(key)) {
 					let tagDialogActionBar = new DialogHeaderBar()
+					/* Unused Variable*/
 					let tagName = new TextField("customLabel_label")
 						.setValue(this.aggregate.customTypeName)
-						.onUpdate(onUpdate)
 
 					setTimeout(() => {
 						Dialog.smallDialog(lang.get("customLabel_label"), {

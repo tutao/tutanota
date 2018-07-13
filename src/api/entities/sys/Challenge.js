@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"otp": {
 			"name": "otp",
+			"id": 1247,
 			"since": 24,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -41,6 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"u2f": {
 			"name": "u2f",
+			"id": 1190,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -49,7 +51,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createChallenge(): Challenge {

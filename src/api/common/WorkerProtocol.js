@@ -26,7 +26,8 @@ import {
 	BadGatewayError,
 	ResourceError,
 	InsufficientStorageError,
-	SessionExpiredError
+	SessionExpiredError,
+	ServiceUnavailableError
 } from "./error/RestError"
 import {ProgrammingError} from "./error/ProgrammingError"
 import {RecipientsNotFoundError} from "./error/RecipientsNotFoundError"
@@ -34,6 +35,10 @@ import {CryptoError} from "./error/CryptoError"
 import {PermissionError} from "./error/PermissionError"
 import {OutOfSyncError} from "./error/OutOfSyncError"
 import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
+import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
+import {DbError} from "./error/DbError"
+import {CancelledError} from "./error/CancelledError"
+import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -190,13 +195,20 @@ const ErrorNameToType = {
 	ResourceError,
 	InsufficientStorageError,
 	CryptoError,
+	SessionKeyNotFoundError,
 	ProgrammingError,
 	RecipientsNotFoundError,
+	RecipientNotResolvedError,
 	OutOfSyncError,
 	SecondFactorPendingError,
+	ServiceUnavailableError,
+	DbError,
+	CancelledError,
+	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,
 	"java.io.EOFException": ConnectionError,
 	"java.net.UnknownHostException": ConnectionError,
-	"java.lang.SecurityException": PermissionError
+	"java.lang.SecurityException": PermissionError,
+	"de.tutao.tutanota.CryptoError": CryptoError
 }

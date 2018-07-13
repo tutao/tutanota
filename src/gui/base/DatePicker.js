@@ -1,6 +1,7 @@
 //@flow
 import {TextField} from "./TextField"
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
@@ -20,10 +21,12 @@ export class DatePicker {
 	input: TextField;
 	view: Function;
 	invalidDate: boolean;
-	_date: ?Date;
+	date: stream<?Date>;
 	_domDateInput: HTMLInputElement;
 
-	constructor(labelTextIdOrTextFunction: string|lazy<string>) {
+	constructor(labelTextIdOrTextFunction: string|lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
+		this.date = stream(null)
+
 		let pickerButton = new Button(labelTextIdOrTextFunction, e => {
 			this._domDateInput.click()
 			e.stopPropagation()
@@ -31,10 +34,14 @@ export class DatePicker {
 
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
-			else if (this._date != null) return formatDateWithMonth(this._date)
+			if (this.invalidDate) {
+				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
+			} else if (this.date() != null) {
+				return formatDateWithMonth(this.date())
+			} else {
+				return lang.get(nullSelectionTextId)
+			}
 		})
-		this._date = null
 		this.input._injectionsRight = () => {
 			if (client.isMobileDevice()) {
 				return [m(pickerButton)]
@@ -46,16 +53,21 @@ export class DatePicker {
 				if (value.trim().length > 0) {
 					let timestamp = parseDate(value)
 					if (isNaN(timestamp)) {
-						this._date = null
+						// always set invalidDate first to make sure that functions depending on the date stream can read the current invalidDate value
+						this.invalidDate = false
+						this.date(null)
 						this._domDateInput.value = ""
 					} else {
-						this._date = new Date(timestamp)
-						this._domDateInput.valueAsDate = this._date
+						this.invalidDate = false
+						this.date(new Date(timestamp))
+						if (this._domDateInput) {
+							this._domDateInput.valueAsDate = this.date()
+						}
 					}
 				} else {
-					this._date = null
+					this.invalidDate = false
+					this.date(null)
 				}
-				this.invalidDate = false
 			} catch (e) {
 				this.invalidDate = true
 			}
@@ -68,6 +80,7 @@ export class DatePicker {
 					oncreate: (vnode) => this._domDateInput = vnode.dom,
 					onchange: (e) => this.setDate(this._domDateInput.valueAsDate),
 					style: {
+						display: 'none', // clear (x) button is shown on edge, otherwise
 						visibility: 'hidden',
 						position: 'absolute',
 						z_index: -1,
@@ -78,8 +91,11 @@ export class DatePicker {
 	}
 
 	setDate(date: Date) {
-		this._date = date
-		if (this.input.isEmpty() && this.input._domInput) this.input.animate(true)
+		this.invalidDate = false
+		this.date(date)
+		if (this.input.isEmpty() && this.input._domInput) {
+			this.input.animate()
+		}
 		this.input.value(date != null ? formatDate(date) : "")
 	}
 

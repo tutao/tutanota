@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {List, sortCompareById} from "../gui/base/List"
+import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {GENERATED_MAX_ID, TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
@@ -12,16 +12,17 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, getBrandingDomain} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
 
 assertMainOrNode()
 
@@ -57,7 +58,13 @@ export class ContactFormListView {
 							this._setLoadedCompletely();
 
 							// we return all contact forms because we have already loaded all contact forms and the scroll bar shall have the complete size.
-							return Promise.resolve(contactForms);
+							if (logins.getUserController().isGlobalAdmin()) {
+								return contactForms
+							} else {
+								return getAdministratedGroupIds().then(allAdministratedGroupIds => {
+									return contactForms.filter((cf: ContactForm) => allAdministratedGroupIds.indexOf(cf.targetGroup) != -1)
+								})
+							}
 						})
 					})
 				} else {
@@ -71,7 +78,7 @@ export class ContactFormListView {
 					})
 				})
 			},
-			sortCompare: sortCompareById,
+			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactFormRow(this._customerInfo),
@@ -117,26 +124,38 @@ export class ContactFormListView {
 					}
 					m.redraw()
 				} else {
-					Dialog.error("customDomainNeeded_msg")
+					Dialog.error("whitelabelDomainNeeded_msg")
 				}
 			})
 		}
 	}
 
 	addButtonClicked() {
-		this._customerInfo.getAsync().then(customerInfo => {
-			let brandingDomain = getBrandingDomain(customerInfo)
-			if (brandingDomain) {
-				ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
-			} else {
-				Dialog.error("customDomainNeeded_msg")
-			}
-		})
+		ContactFormEditor.show(null, true, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, ContactFormTypeRef) && this._listId.isLoaded() && listId == this._listId.getLoaded()) {
-			this.list.entityEventReceived(elementId, operation)
+			if (!logins.getUserController().isGlobalAdmin()) {
+				let listEntity = this.list.getEntity(elementId)
+				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(cf => {
+					return getAdministratedGroupIds().then(allAdministratedGroupIds => {
+						if (listEntity) {
+							if (allAdministratedGroupIds.indexOf(cf.targetGroup) == -1) {
+								this.list.entityEventReceived(elementId, OperationType.DELETE)
+							} else {
+								this.list.entityEventReceived(elementId, operation)
+							}
+						} else {
+							if (allAdministratedGroupIds.indexOf(cf.targetGroup) != -1) {
+								this.list.entityEventReceived(elementId, OperationType.CREATE)
+							}
+						}
+					})
+				})
+			} else {
+				this.list.entityEventReceived(elementId, operation)
+			}
 			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded()) && this._settingsView.detailsViewer && operation == OperationType.UPDATE && isSameId(((this._settingsView.detailsViewer:any):ContactFormViewer).contactForm._id, [neverNull(listId), elementId])) {
 				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(updatedContactForm => {
 					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm, neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
@@ -155,10 +174,6 @@ export class ContactFormListView {
 	}
 }
 
-function getBrandingDomain(customerInfo: CustomerInfo): ?string {
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
-	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
-}
 
 export class ContactFormRow {
 	top: number;
@@ -184,7 +199,7 @@ export class ContactFormRow {
 			this.domElement.classList.remove("row-selected")
 		}
 
-		this._domPageTitle.textContent = contactForm.pageTitle
+		this._domPageTitle.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle
 		if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())) {
 			this._domUrl.textContent = getContactFormUrl(neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactForm.path)
 		}

@@ -2,56 +2,74 @@
 import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButton, NavButtonColors} from "./NavButton"
-import stream from "mithril/stream/stream.js"
 import {styles} from "../styles"
 import {neverNull, asyncImport} from "../../api/common/utils/Utils"
 import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
-import {Icons} from "./icons/Icons"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px} from "../size"
+import type {MailEditor} from "../../mail/MailEditor"
+import {Mode, assertMainOrNodeBoot} from "../../api/Env"
+import {BootIcons} from "./icons/BootIcons"
 
-const LogoutUrl = '/login?noAutoLogin=true'
+export const LogoutUrl = '/login?noAutoLogin=true'
+
+assertMainOrNodeBoot()
 
 class Header {
 	buttonBar: NavBar;
-	defaultButtonBar: NavBar;
 	view: Function;
-	contactsUrl: stream<string>;
-	mailsUrl: stream<string>;
-	settingsUrl: stream<string>;
-	_viewSlider: ?IViewSlider;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+	contactsUrl: string;
+	mailsUrl: string;
+	settingsUrl: string;
+	searchUrl: string;
+	_currentView: ?Component;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
+	mailNavButton: NavButton;
 
 	constructor() {
 		this.contactsUrl = '/contact'
 		this.mailsUrl = '/mail'
 		this.settingsUrl = '/settings'
-		this._viewSlider = null
+		this.searchUrl = '/search'
+		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
-		this.defaultButtonBar = new NavBar()
-			.addButton(new NavButton('emails_label', () => Icons.Mail, () => this.mailsUrl, this.mailsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
-			.addButton(new NavButton('contacts_label', () => Icons.Contacts, () => this.contactsUrl, this.contactsUrl)
+		/*
+		 TODO search for mobiles
+		 let searchViewButton = new NavButton("search_label", () => Icons.Search, () => m.route.get(), this.searchUrl)
+		 .setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
+		 .setClickHandler(() => console.log("show search input field"))
+		 */
+
+
+		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
+			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
+		this.buttonBar = new NavBar()
+		//.addButton(searchViewButton, 0, true, false)
+			.addButton(this.mailNavButton, 0, false)
+			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
-			.addButton(new NavButton('upgradePremium_label', () => Icons.Premium, () => premiumUrl, premiumUrl)
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
-			.addButton(new NavButton('invite_alt', () => Icons.Share, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn())
+			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isFreeAccount())
+				.setClickHandler(() => this._showUpgradeDialog()), 0, true)
+			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
-			.addButton(new NavButton('community_label', () => Icons.Heart, 'https://tutanota.com/community')
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()), 0, true)
-			.addButton(new NavButton('settings_label', () => Icons.Settings, () => this.settingsUrl, this.settingsUrl)
+			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()), 0, true)
+			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
-			.addButton(new NavButton('logout_label', () => Icons.Logout, LogoutUrl)
+			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
+				.setClickHandler(() => this._writeSupportMail()), 0, true)
+			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
-		this.buttonBar = this.defaultButtonBar
 
 		this._setupShortcuts()
 
@@ -102,28 +120,57 @@ class Header {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
-	_invite = function () {
-		Promise.join(asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailBoxController.js`), (mailEditorModule, mailBoxControllerModule) => {
-				new mailBoxControllerModule.MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
-					let editor = new mailEditorModule.MailEditor(mc)
-					let username = logins.getUserController().userGroupInfo.name;
-					let body = lang.get("invitationMailBody_msg", {
-						'{registrationLink}': "https://app.tutanota.com/#register",
-						'{username}': username,
-						'{githubLink}': "https://github.com/tutao/tutanota"
-					})
-					editor.initWithTemplate(lang.get("invitationMailSubject_msg"), body, false).then(() => {
-						editor.show()
-					})
-
-				})
+	_invite() {
+		this._createMailEditor().then(editor => {
+			let username = logins.getUserController().userGroupInfo.name;
+			let body = lang.get("invitationMailBody_msg", {
+				'{registrationLink}': "https://app.tutanota.com/#register",
+				'{username}': username,
+				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
+			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+				editor.show()
+			})
+		})
+	}
+
+	_showUpgradeDialog() {
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`).then(upgradeWizard => {
+				return upgradeWizard.show()
+			}
+		)
+	}
+
+	_writeSupportMail() {
+		this._createMailEditor().then(editor => {
+			let signature = "<br><br>--"
+			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "") + " app" : "Browser")
+			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>User agent:<br>" + navigator.userAgent
+			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+				editor.show()
+			})
+		})
+	}
+
+	_createMailEditor(): Promise<MailEditor> {
+		return Promise.join(
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
+			(mailEditorModule, mailModelModule) => {
+				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+			}
+		)
 	}
 
 	_getColumnTitle() {
-		if (this._viewSlider) {
-			return this._viewSlider.focusedColumn.getTitle()
+		const viewSlider = this._getViewSlider()
+		if (viewSlider) {
+			return viewSlider.focusedColumn.getTitle()
+		} else if (m.route.get().startsWith('/login')) {
+			return lang.get("login_label")
+		} else if (m.route.get().startsWith('/signup')) {
+			return lang.get("registrationHeadline_msg")
 		} else {
 			return ""
 		}
@@ -131,12 +178,12 @@ class Header {
 
 
 	_getLeftElements() {
-		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
-			let viewSlider = neverNull(this._viewSlider)
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => Icons.Back, () => m.route.get())
+		const viewSlider = this._getViewSlider()
+		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => viewSlider.focusPreviousColumn())
-				.hideLabel()
+				.setHideLabel(true)
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {
@@ -148,15 +195,14 @@ class Header {
 	}
 
 	updateCurrentView(currentView: Component) {
-		if (currentView.viewSlider) {
-			this._viewSlider = (currentView:any).viewSlider
+		this._currentView = currentView
+	}
+
+	_getViewSlider(): ?IViewSlider {
+		if (this._currentView) {
+			return (this._currentView:any).viewSlider
 		} else {
-			this._viewSlider = null
-		}
-		if (currentView.buttonBar) {
-			this.buttonBar = (currentView:any).buttonBar
-		} else {
-			this.buttonBar = this.defaultButtonBar
+			return null
 		}
 	}
 }

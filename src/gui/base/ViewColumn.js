@@ -44,12 +44,14 @@ export class ViewColumn {
 		this.view = (vnode: VirtualElement) => {
 			let zIndex = this.columnType == ColumnType.Foreground ? ".z3" : ".z1"
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
-					oncreate: (vnode) => this._domColumn = vnode.dom,
+					oncreate: (vnode) => {
+						this._domColumn = vnode.dom
+						this._domColumn.style.transform = this.columnType == ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
+					},
 					style: {
 						width: this.width + 'px',
 						left: this.offset + 'px',
-						transform: this.columnType == ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null,
-					}
+					},
 				},
 				m(this.component))
 

@@ -33,6 +33,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"challenges": {
 			"name": "challenges",
+			"id": 1222,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -41,6 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
+			"id": 1223,
 			"since": 23,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -50,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createCreateSessionReturn(): CreateSessionReturn {

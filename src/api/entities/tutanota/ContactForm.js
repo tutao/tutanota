@@ -47,42 +47,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"footerHtml": {
-			"name": "footerHtml",
-			"id": 742,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"headerHtml": {
-			"name": "headerHtml",
-			"id": 741,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"helpHtml": {
-			"name": "helpHtml",
-			"id": 743,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"pageTitle": {
-			"name": "pageTitle",
-			"id": 740,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"path": {
 			"name": "path",
 			"id": 739,
@@ -94,16 +58,36 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"statisticsFields": {
-			"name": "statisticsFields",
+		"languages": {
+			"name": "languages",
+			"id": 865,
+			"since": 24,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "ContactFormLanguage",
+			"final": false
+		},
+		"statisticsFields_removed": {
+			"name": "statisticsFields_removed",
+			"id": 745,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "InputField",
 			"final": false
 		},
+		"statisticsLog": {
+			"name": "statisticsLog",
+			"id": 878,
+			"since": 25,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "StatisticLogRef",
+			"final": true
+		},
 		"delegationGroups_removed": {
 			"name": "delegationGroups_removed",
+			"id": 747,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -113,6 +97,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participantGroupInfos": {
 			"name": "participantGroupInfos",
+			"id": 822,
 			"since": 21,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -120,27 +105,29 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"external": true
 		},
-		"targetGroupInfo": {
-			"name": "targetGroupInfo",
-			"since": 21,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "GroupInfo",
-			"final": false,
-			"external": true
-		},
-		"targetMailGroup_removed": {
-			"name": "targetMailGroup_removed",
+		"targetGroup": {
+			"name": "targetGroup",
+			"id": 746,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "Group",
 			"final": false,
 			"external": true
+		},
+		"targetGroupInfo": {
+			"name": "targetGroupInfo",
+			"id": 821,
+			"since": 21,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "GroupInfo",
+			"final": false,
+			"external": true
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createContactForm(): ContactForm {

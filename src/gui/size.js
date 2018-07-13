@@ -1,5 +1,5 @@
-import {assertMainOrNode} from "../api/Env"
-assertMainOrNode()
+import {assertMainOrNodeBoot} from "../api/Env"
+assertMainOrNodeBoot()
 
 export const size = {
 	icon_size_xl: 32,
@@ -17,6 +17,7 @@ export const size = {
 	vpad_xs: 3,
 	vpad: 16,
 	vpad_small: 8,
+	vpad_ml:25,
 	vpad_large: 32,
 	vpad_xl: 48,
 
@@ -29,6 +30,7 @@ export const size = {
 	font_size_small: 12,
 
 	button_height: 44,
+	button_height_accent: 40,
 	button_height_bubble: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
@@ -55,6 +57,7 @@ export const size = {
 	line_height_l: 1.8,
 }
 
+export const inputLineHeight = size.font_size_base + 8
 
 export function px(value: number): string {
 	return value + 'px'

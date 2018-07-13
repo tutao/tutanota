@@ -101,6 +101,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"erased": {
+			"name": "erased",
+			"id": 1381,
+			"since": 32,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"includedEmailAliases": {
 			"name": "includedEmailAliases",
 			"id": 1067,
@@ -177,6 +186,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bookings": {
 			"name": "bookings",
+			"id": 727,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -185,6 +195,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"domainInfos": {
 			"name": "domainInfos",
+			"id": 726,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -193,6 +204,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"accountingInfo": {
 			"name": "accountingInfo",
+			"id": 159,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -202,6 +214,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customer": {
 			"name": "customer",
+			"id": 158,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -211,6 +224,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"takeoverCustomer": {
 			"name": "takeoverCustomer",
+			"id": 1076,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -220,7 +234,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createCustomerInfo(): CustomerInfo {

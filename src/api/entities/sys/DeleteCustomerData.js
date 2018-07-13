@@ -20,6 +20,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"authVerifier": {
+			"name": "authVerifier",
+			"id": 1325,
+			"since": 30,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"reason": {
 			"name": "reason",
 			"id": 644,
@@ -51,6 +60,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"customer": {
 			"name": "customer",
+			"id": 645,
 			"since": 5,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -60,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createDeleteCustomerData(): DeleteCustomerData {

@@ -47,6 +47,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"code": {
+			"name": "code",
+			"id": 873,
+			"since": 24,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"date": {
 			"name": "date",
 			"id": 651,
@@ -96,6 +105,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"adminGroupData": {
 			"name": "adminGroupData",
+			"id": 657,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -104,6 +114,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroupData": {
 			"name": "customerGroupData",
+			"id": 658,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -112,6 +123,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userData": {
 			"name": "userData",
+			"id": 653,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -120,6 +132,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroupData": {
 			"name": "userGroupData",
+			"id": 656,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -128,7 +141,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createCustomerAccountCreateData(): CustomerAccountCreateData {

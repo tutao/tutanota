@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"id": {
 			"name": "id",
+			"id": 966,
 			"since": 13,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createCreateCustomerServerPropertiesReturn(): CreateCustomerServerPropertiesReturn {

@@ -105,7 +105,18 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"groupInfo": {
 			"name": "groupInfo",
+			"id": 1113,
 			"since": 22,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "GroupInfo",
+			"final": true,
+			"external": false
+		},
+		"modifiedGroupInfo": {
+			"name": "modifiedGroupInfo",
+			"id": 1307,
+			"since": 27,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "GroupInfo",
@@ -114,7 +125,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createAuditLogEntry(): AuditLogEntry {

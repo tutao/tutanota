@@ -69,6 +69,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"values": {
 			"name": "values",
+			"id": 781,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -77,6 +78,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactForm": {
 			"name": "contactForm",
+			"id": 782,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -86,7 +88,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createStatisticLogEntry(): StatisticLogEntry {

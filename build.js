@@ -1,7 +1,7 @@
 const Promise = require('bluebird')
 const path = require("path")
 const Builder = require('./buildSrc/Builder.js').Builder
-const builder = new Builder('.', path.join(__dirname, "build/"))
+const builder = new Builder(path.join(__dirname, '.'), path.join(__dirname, "build/"))
 const fs = Promise.Promise.promisifyAll(require("fs-extra"))
 const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
@@ -20,23 +20,24 @@ let watch = process.argv.indexOf("watch") === -1 ? undefined : () => {
 
 promise
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/images')))
+	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images/'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/libs'), path.join(__dirname, '/build/libs')))
 	.then(() => {
 		const version = require('./package.json').version
 		if (process.argv.indexOf("test") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.devConfig(), "https://test.tutanota.com", version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(), "https://test.tutanota.com", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "App"))
 			])
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.devConfig(), "https://mail.tutanota.com", version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(), "https://mail.tutanota.com", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App"))
 			])
 		} else {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.devConfig(), null, version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(), "http://" + os.hostname().split(".")[0] + ":9000", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(true), "http://" + os.hostname().split(".")[0] + ":9000", version, "App"))
 			])
 		}
 	})
@@ -57,6 +58,7 @@ function createHtml(env) {
 	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}.js`])
 	return Promise.all([
 		_writeFile(`./build/${filenamePrefix}.js`, [
+			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/bootstrapHotReload.js') })`

@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bigLogo": {
 			"name": "bigLogo",
+			"id": 925,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -50,6 +51,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"smallLogo": {
 			"name": "smallLogo",
+			"id": 924,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -58,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createExternalPropertiesReturn(): ExternalPropertiesReturn {

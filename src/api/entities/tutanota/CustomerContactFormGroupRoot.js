@@ -51,14 +51,25 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"contactFormConversations": {
 			"name": "contactFormConversations",
+			"id": 841,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "DeleteContactFormConversationIndex",
 			"final": true
 		},
+		"statisticsLog": {
+			"name": "statisticsLog",
+			"id": 890,
+			"since": 25,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "UnencryptedStatisticLogRef",
+			"final": true
+		},
 		"contactForms": {
 			"name": "contactForms",
+			"id": 789,
 			"since": 19,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -66,8 +77,9 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
-		"statisticsLog": {
-			"name": "statisticsLog",
+		"statisticsLog_encrypted_removed": {
+			"name": "statisticsLog_encrypted_removed",
+			"id": 790,
 			"since": 19,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -77,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createCustomerContactFormGroupRoot(): CustomerContactFormGroupRoot {

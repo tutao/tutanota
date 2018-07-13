@@ -18,7 +18,8 @@ const dependencyMap = {
 	"dompurify": "./libs/purify.min.js",
 	"autolinker": "./libs/Autolinker.js",
 	"qrcode": "./libs/qrcode-svg.min.js",
-	"@hot": "@empty" // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
+	"@hot": "@empty", // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
+	"util": "@empty" // used by ospec to provide debug output in node
 }
 
 const systemConfigTemplate = {
@@ -30,17 +31,19 @@ const hotReloaderMap = {
 	"systemjs-hmr": "./libs/systemjs-hmr.js"
 }
 
+const hotReloaderDisabledMap = {
+	"systemjs-hot-reloader": "@empty"
+}
 
-function devConfig(bundles) {
+function devConfig(enableHotReload) {
 	return Object.assign({}, systemConfigTemplate, {
-		map: Object.assign({}, systemConfigTemplate.map, hotReloaderMap),
-		bundles
+		map: Object.assign({}, systemConfigTemplate.map, enableHotReload ? hotReloaderMap : hotReloaderDisabledMap),
 	})
 }
 
 function distRuntimeConfig(bundles) {
 	return {
-		map: Object.assign({"systemjs-hot-reloader": "@empty"}, replaceLibsPath(dependencyMap)),
+		map: Object.assign(hotReloaderDisabledMap, replaceLibsPath(dependencyMap)),
 		bundles
 	}
 }

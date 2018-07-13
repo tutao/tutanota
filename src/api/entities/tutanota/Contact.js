@@ -38,21 +38,21 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerEncSessionKey": {
-			"name": "_ownerEncSessionKey",
-			"id": 69,
-			"since": 1,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
 		"_owner": {
 			"name": "_owner",
 			"id": 70,
 			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"_ownerEncSessionKey": {
+			"name": "_ownerEncSessionKey",
+			"id": 69,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
@@ -80,15 +80,6 @@ export const _TypeModel: TypeModel = {
 			"since": 1,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"birthday": {
-			"name": "birthday",
-			"id": 76,
-			"since": 1,
-			"type": "Date",
-			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": true
 		},
@@ -128,6 +119,24 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
+		"nickname": {
+			"name": "nickname",
+			"id": 849,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
+		"oldBirthday": {
+			"name": "oldBirthday",
+			"id": 76,
+			"since": 1,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
 		"presharedPassword": {
 			"name": "presharedPassword",
 			"id": 79,
@@ -137,12 +146,21 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"title": {
-			"name": "title",
+		"role": {
+			"name": "role",
 			"id": 75,
 			"since": 1,
 			"type": "String",
 			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"title": {
+			"name": "title",
+			"id": 850,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": true
 		}
@@ -150,14 +168,25 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"addresses": {
 			"name": "addresses",
+			"id": 82,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "ContactAddress",
 			"final": false
 		},
+		"birthday": {
+			"name": "birthday",
+			"id": 851,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Birthday",
+			"final": false
+		},
 		"mailAddresses": {
 			"name": "mailAddresses",
+			"id": 80,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -166,6 +195,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"phoneNumbers": {
 			"name": "phoneNumbers",
+			"id": 81,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -174,15 +204,26 @@ export const _TypeModel: TypeModel = {
 		},
 		"socialIds": {
 			"name": "socialIds",
+			"id": 83,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "ContactSocialId",
 			"final": false
+		},
+		"photo": {
+			"name": "photo",
+			"id": 852,
+			"since": 23,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "File",
+			"final": false,
+			"external": false
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createContact(): Contact {

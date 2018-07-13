@@ -1,9 +1,9 @@
 //@flow
-import {restClient, MediaType} from "./RestClient"
-import {loginFacade} from "../facades/LoginFacade"
+import {restClient} from "./RestClient"
+import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference, TypeRef, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 
 assertWorkerOrNode()
@@ -12,7 +12,7 @@ export function _service<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorS
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef:any)).then(modelForAppAndVersion => {
 		let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
 		let queryParams = queryParameter != null ? queryParameter : {}
-		let headers = loginFacade.createAuthHeaders()
+		let headers = locator.login.createAuthHeaders()
 		headers['v'] = modelForAppAndVersion.version
 
 		let p: ?Promise<?Object> = null;
@@ -30,7 +30,7 @@ export function _service<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorS
 			return restClient.request(path, method, queryParams, headers, encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json).then(data => {
 				if (responseTypeRef) {
 					return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
-						return decryptAndMapToInstance(responseTypeModel, JSON.parse(((data:any):string)))
+						return decryptAndMapToInstance(responseTypeModel, JSON.parse(((data:any):string)), sk)
 					})
 				}
 			})

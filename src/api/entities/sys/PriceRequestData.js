@@ -64,11 +64,20 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
+		},
+		"reactivate": {
+			"name": "reactivate",
+			"id": 1285,
+			"since": 26,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPriceRequestData(): PriceRequestData {

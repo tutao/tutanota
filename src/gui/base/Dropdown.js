@@ -4,14 +4,14 @@ import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
 import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
-import {backface_fix} from "../mixins"
 import {size, px} from "../size"
 import {Button} from "./Button"
 import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
 import {client} from "../../misc/ClientDetector"
-import {lang} from "../../misc/LanguageViewModel"
+import {assertMainOrNodeBoot} from "../../api/Env"
 
+assertMainOrNodeBoot()
 
 export class Dropdown {
 	children: Array<string|NavButton|Button>;
@@ -41,13 +41,25 @@ export class Dropdown {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix.plr-l", {
+			return m(".dropdown-panel.border-radius.backface_fix.scroll", {
 					oncreate: (vnode) => this.show(vnode.dom),
-				}, m(".dropdown-content", {
-					oncreate: (vnode) => this.setContentHeight(vnode.dom),
+				}, m(".dropdown-content.plr-l", {
+					oncreate: (vnode) => {
+						this.setContentHeight(vnode.dom)
+						window.requestAnimationFrame(() => {
+							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+						})
+					},
+					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
 				},
 				this.children.filter(b => isVisible(b)).map(button => (typeof button == "string") ? m(".flex-v-center.center.button-height.b.text-break.doNotClose", button) : m(button)))
 			)
+		}
+	}
+
+	backgroundClick(e: MouseEvent) {
+		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode == e.target)) {
+			modal.remove(this)
 		}
 	}
 
@@ -102,16 +114,16 @@ export class Dropdown {
 		]
 	}
 
-	closeOnClickAllowed(domElement: HTMLElement): boolean {
-		return !domElement.classList.contains("doNotClose")
-	}
-
 	setOrigin(origin: ClientRect) {
 		this.origin = origin
 	}
 
 	close(): void {
 		modal.remove(this)
+	}
+
+	onClose(): void {
+		this.close()
 	}
 
 	show(domElement: HTMLElement) {
@@ -145,6 +157,7 @@ export class Dropdown {
 			], {easing: ease.out}).then(() => {
 				if (this.maxHeight < buttonsHeight) {
 					if (this._domDropdown) {
+						// do not show the scrollbar during the animation.
 						this._domDropdown.style.overflowY = client.overflowAuto
 					}
 				}

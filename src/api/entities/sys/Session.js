@@ -114,6 +114,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"challenges": {
 			"name": "challenges",
+			"id": 1204,
 			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -122,6 +123,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
+			"id": 1205,
 			"since": 23,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -131,7 +133,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createSession(): Session {

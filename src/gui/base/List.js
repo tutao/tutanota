@@ -15,6 +15,7 @@ import {animations, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
+import {BadRequestError} from "../../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -22,8 +23,7 @@ export const ScrollBuffer = 15 // virtual elements that are used as scroll buffe
 const PageSize = 100
 
 /**
- * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists. The
- * virtual list is rendered as svg background on mobile devices for providing a native scrolling experience.
+ * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists.
  *
  * Generics:
  * * T is the type of the entity
@@ -59,6 +59,7 @@ export class List<T, R:VirtualRow<T>> {
 	view: Function;
 	onbeforeupdate: Function;
 	onremove: Function;
+	_scrollListener: Function;
 
 	_selectedEntities: T[]; // the selected entities must be sorted the same way the loaded entities are sorted
 	_lastMultiSelectWasKeyUp: boolean; // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
@@ -72,22 +73,34 @@ export class List<T, R:VirtualRow<T>> {
 		this._loadedEntities = []
 		function createPromise() {
 			let wrapper = {}
-			wrapper.promise = new Promise.fromCallback(cb => {
+			wrapper.promise = Promise.fromCallback(cb => {
 				wrapper.resolve = cb
 			})
 			return wrapper
 		}
 
 		const updateWidth = () => {
-			window.requestAnimationFrame(() => {
-				this._width = this._domListContainer.clientWidth
-				if (this._swipeHandler) {
-					this._swipeHandler.updateWidth()
-				}
-			})
+			if (this._domListContainer) {
+				window.requestAnimationFrame(() => {
+					this._width = this._domListContainer.clientWidth
+					if (this._swipeHandler) {
+						this._swipeHandler.updateWidth()
+					}
+				})
+			}
+		}
+
+		this._scrollListener = (e) => {
+			this.currentPosition = this._domListContainer.scrollTop
+			if (this.lastPosition !== this.currentPosition) {
+				window.requestAnimationFrame(() => this._scroll())
+			}
 		}
 
 		let reset = () => {
+			if (this._domListContainer) {
+				this._domListContainer.removeEventListener('scroll', this._scrollListener)
+			}
 			this._domInitialized = createPromise()
 
 			this.ready = false
@@ -149,7 +162,7 @@ export class List<T, R:VirtualRow<T>> {
 						width: px(this._width),
 					}
 				}, this._config.swipe.renderRightSpacer()),
-				m("ul.list.fill-absolute.click", {
+				m("ul.list.list-alternate-background.fill-absolute.click", {
 						oncreate: (vnode) => this._setDomList(vnode.dom),
 						style: {height: this._calculateListHeight()},
 						className: this._config.className
@@ -163,11 +176,12 @@ export class List<T, R:VirtualRow<T>> {
 							}, virtualRow.render())
 						}),
 						// odd-row is switched directly on the dom element when the number of elements changes
-						m("li.list-loading.list-row.flex-center.items-center.odd-row", {
-							oncreate: (vnode) => this._domLoadingRow = vnode.dom,
-							style: {display: this._loadedCompletely ? 'none' : null}
+						m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
+							oncreate: (vnode) => {
+								this._domLoadingRow = vnode.dom
+								this._domLoadingRow.style.display = 'none'
+							}
 						}, progressIcon())
-
 					]
 				),
 				m(this._emptyMessageBox)
@@ -303,6 +317,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	selectNext(shiftPressed: boolean) {
+		if (!this._config.multiSelectionAllowed) {
+			shiftPressed = false
+		}
 		if (shiftPressed && this._lastMultiSelectWasKeyUp == true && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the top
 			this._selectedEntities.splice(0, 1)
@@ -327,6 +344,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	selectPrevious(shiftPressed: boolean) {
+		if (!this._config.multiSelectionAllowed) {
+			shiftPressed = false
+		}
 		if (shiftPressed && this._lastMultiSelectWasKeyUp == false && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the bottom
 			this._selectedEntities.splice(-1, 1)
@@ -347,6 +367,14 @@ export class List<T, R:VirtualRow<T>> {
 					this._scrollToLoadedEntityAndSelect(this._loadedEntities[selectedIndex - 1], shiftPressed)
 				}
 			}
+		}
+	}
+
+	selectNone() {
+		if (this._selectedEntities.length > 0) {
+			this._selectedEntities = []
+			this._reposition()
+			this._config.elementSelected([], false, true, false)
 		}
 	}
 
@@ -393,17 +421,21 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this._loading = this._config.fetch(startId, count).then((newItems: T[]) => {
-			if (newItems.length < count) this.setLoadedCompletely()
-			for (let i = 0; i < newItems.length; i++) {
-				this._loadedEntities[start + i] = newItems[i]
-			}
-			this._loadedEntities.sort(this._config.sortCompare)
-		}).finally(() => {
-			if (this.ready) {
-				this._reposition()
-			}
-		})
+		this._displaySpinner(this._loadedEntities.length == 0)
+		this._loading = this._config.fetch(startId, count)
+			.then((newItems: T[]) => {
+				if (newItems.length < count) this.setLoadedCompletely()
+				for (let i = 0; i < newItems.length; i++) {
+					this._loadedEntities[start + i] = newItems[i]
+				}
+				this._loadedEntities.sort(this._config.sortCompare)
+			}).finally(() => {
+				// this._showSpinner = false
+				if (this.ready) {
+					this._domLoadingRow.style.display = 'none'
+					this._reposition()
+				}
+			})
 		return neverNull(this._loading)
 	}
 
@@ -418,6 +450,15 @@ export class List<T, R:VirtualRow<T>> {
 			this._domLoadingRow.style.display = 'none'
 		})
 	}
+
+	_displaySpinner(delayed: boolean = true) {
+		setTimeout(() => {
+			if (!this._loading.isFulfilled()) {
+				this._domLoadingRow.style.display = ''
+			}
+		}, delayed ? DefaultAnimationTime : 5)
+	}
+
 
 	/**
 	 *  updates the virtual elements that belong to the list entries between start and start + count
@@ -444,30 +485,31 @@ export class List<T, R:VirtualRow<T>> {
 		return e
 	}
 
+	_doRender() {
+		this._createVirtualElements()
+		m.redraw()
+		window.requestAnimationFrame(() => {
+			this._domInitialized.resolve()
+			this._domList.style.height = this._calculateListHeight()
+			this._reposition()
+			this.ready = true
+			if (client.isTouchSupported()) {
+				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
+			}
+		})
+	}
+
 	_init(domElement: HTMLElement) {
 		this._domListContainer = domElement
 
 		this._width = this._domListContainer.clientWidth
-		this._domListContainer.addEventListener('scroll', (e) => {
-			this.currentPosition = this._domListContainer.scrollTop
-			if (this.lastPosition !== this.currentPosition) {
-				window.requestAnimationFrame(() => this._scroll())
-			}
-		}, client.passive() ? {passive: true} : false)
-		this._createVirtualElements()
-		window.requestAnimationFrame(() => {
-			m.redraw()
-			window.requestAnimationFrame(() => {
-				this._domInitialized.resolve()
-				this._domList.style.height = this._calculateListHeight()
-				this._reposition()
-				this.ready = true
-				if (client.isMobileDevice()) {
-					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
-					this.initBackground()
-				}
-			})
-		})
+		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
+
+		if (client.isMobileDevice()) {
+			window.setTimeout(() => this._doRender(), 200)
+		} else {
+			window.requestAnimationFrame(() => this._doRender())
+		}
 	}
 
 	_setDomList(domElement: HTMLElement) {
@@ -485,6 +527,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_scroll() {
+		// make sure no scrolling is done if the virtualList was already cleared when unloading this list. on Safari this would lead to an error.
+		if (this._virtualList.length == 0) return
+
 		let up = this.currentPosition < this.lastPosition ? true : false
 		let scrollDiff = up ? this.lastPosition - this.currentPosition : this.currentPosition - this.lastPosition
 
@@ -497,12 +542,7 @@ export class List<T, R:VirtualRow<T>> {
 		let topElement = this._virtualList[0]
 		let bottomElement = this._virtualList[this._virtualList.length - 1]
 
-		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight) - this._visibleElementsHeight * 2
-		if (lastBunchVisible && (this._loading:any).isFulfilled() && !this._loadedCompletely) {
-			this._loadMore().then(() => {
-				this._domList.style.height = this._calculateListHeight()
-			})
-		}
+		this._loadMoreIfNecessary()
 
 		let status = {
 			bufferUp: Math.floor((this.currentPosition - topElement.top) / rowHeight),
@@ -567,6 +607,15 @@ export class List<T, R:VirtualRow<T>> {
 					bottomElement = this._virtualList[this._virtualList.length - 1]
 				}
 			}
+		}
+	}
+
+	_loadMoreIfNecessary() {
+		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight) - this._visibleElementsHeight * 2
+		if (lastBunchVisible && (this._loading:any).isFulfilled() && !this._loadedCompletely) {
+			this._loadMore().then(() => {
+				this._domList.style.height = this._calculateListHeight()
+			})
 		}
 	}
 
@@ -640,21 +689,6 @@ export class List<T, R:VirtualRow<T>> {
 		if (this._domStatus.timeDiff) this._domStatus.timeDiff.textContent = status.timeDiff + ''
 	}
 
-
-	initBackground() {
-		let styles = [document.getElementById("css-main")].map(function (style) {
-			return '<style>' + neverNull(style).innerHTML + '</style>'
-		})
-		let height = this._virtualList.length * this._config.rowHeight
-		let namespace = neverNull(neverNull(document.documentElement).namespaceURI)
-		let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + this._width + '" height="' + height + '">' +
-			'<foreignObject width="100%" height="100%"><div xmlns="' + namespace + '">' + this._domListContainer.innerHTML + '</div>' + styles.join('') +
-			'</foreignObject>' +
-			'</svg>'
-		let html = 'data:image/svg+xml,' + encodeURIComponent(svg.replace(/\r?\n|\r/g, ''))
-		this._domList.style.backgroundImage = 'url("' + html + '")';
-	}
-
 	/**
 	 * Selects the element with the given id and scrolls to it so it becomes visible.
 	 * Immediately selects the element if it is already existing in the list, otherwise waits until it is received via websocket, then selects it.
@@ -692,6 +726,8 @@ export class List<T, R:VirtualRow<T>> {
 						return scrollTarget
 					})
 				})
+			}).catch(BadRequestError, e => {
+				console.log("invalid element id", listElementId, e)
 			})
 		}
 	}
@@ -811,6 +847,8 @@ export class List<T, R:VirtualRow<T>> {
 				if (selectionChanged) {
 					this._config.elementSelected(this.getSelectedEntities(), false, true, !nextElementSelected)
 				}
+				// trigger loading new elements before the scrollbar disappears and no reload can be triggered any more by scrolling
+				this._loadMoreIfNecessary()
 			}
 		})
 	}
@@ -826,7 +864,6 @@ class SwipeHandler {
 	animating: Promise<any>;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
-		if (!this.isSupported()) return
 		this.startPos = {x: 0, y: 0}
 		this.list = list
 		this.xoffset = 0
@@ -884,7 +921,7 @@ class SwipeHandler {
 		}
 	}
 
-	finish(id: Id, swipeActionPromise: Promise<any>) {
+	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
 		if (this.xoffset !== 0) {
 			let ve = neverNull(this.virtualElement)
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
@@ -935,7 +972,7 @@ class SwipeHandler {
 	}
 
 
-	reset() {
+	reset(): Promise<any> {
 		try {
 			if (this.xoffset !== 0) {
 				let ve = this.virtualElement
@@ -975,12 +1012,8 @@ class SwipeHandler {
 		this.reset()
 	}
 
-	isSupported() {
-		return 'ontouchstart' in window
-	}
-
 	updateWidth() {
-		console.log("update", this.list._width)
+		//console.log("update", this.list._width)
 		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
 		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
@@ -989,18 +1022,3 @@ class SwipeHandler {
 }
 
 
-export function sortCompareByReverseId(entity1: Object, entity2: Object) {
-	if (entity1._id[1] == entity2._id[1]) {
-		return 0
-	} else {
-		return firstBiggerThanSecond(entity1._id[1], entity2._id[1]) ? -1 : 1
-	}
-}
-
-export function sortCompareById(entity1: Object, entity2: Object) {
-	if (entity1._id[1] == entity2._id[1]) {
-		return 0
-	} else {
-		return firstBiggerThanSecond(entity1._id[1], entity2._id[1]) ? 1 : -1
-	}
-}

@@ -1,45 +1,51 @@
 // @flow
 import {assertWorkerOrNode} from "../../Env"
-import {customerFacade} from "./CustomerFacade"
 import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array} from "../../common/utils/Encoding"
 import {encryptRsaKey, encryptKey, decryptKey, encryptString} from "../crypto/CryptoFacade"
-import {loginFacade} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import {serviceRequestVoid, load} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {aes128RandomKey} from "../crypto/Aes"
-import {createCreateTeamGroupData} from "../../entities/tutanota/CreateTeamGroupData"
+import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLocalAdminGroupData"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {neverNull} from "../../common/utils/Utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
-
+import {readCounterValue} from "./CounterFacade"
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
 
-	constructor() {
+	_login: LoginFacade;
+
+	constructor(login: LoginFacade) {
+		this._login = login
 	}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
-		return customerFacade.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
+		return readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
 			return Number(usedStorage)
 		})
 	}
 
 	createMailGroup(name: string, mailAddress: string): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
-		let customerGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Customer))
+		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
+		if (adminGroupIds.length == 0) {
+			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
+		}
+		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
+		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let mailGroupKey = aes128RandomKey()
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(mailGroupKey, mailGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(mailGroupData => {
+		return this.generateInternalGroupData(mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey).then(mailGroupData => {
 			let data = createCreateMailGroupData()
 			data.mailAddress = mailAddress
 			data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
@@ -49,25 +55,27 @@ export class GroupManagementFacade {
 		})
 	}
 
-	createTeamGroup(name: string): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
-		let customerGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Customer))
-		let teamGroupKey = aes128RandomKey()
-		let teamGroupInfoSessionKey = aes128RandomKey()
+	createLocalAdminGroup(name: string): Promise<void> {
+		let adminGroupId = this._login.getGroupId(GroupType.Admin)
+		let adminGroupKey = this._login.getGroupKey(adminGroupId)
+		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
+		let groupKey = aes128RandomKey()
+		let groupInfoSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(teamGroupKey, teamGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(mailGroupData => {
-			let data = createCreateTeamGroupData()
-			data.encryptedName = encryptString(teamGroupInfoSessionKey, name)
+		return this.generateInternalGroupData(groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey).then(mailGroupData => {
+			let data = createCreateLocalAdminGroupData()
+			data.encryptedName = encryptString(groupInfoSessionKey, name)
 			data.groupData = mailGroupData
-			return serviceRequestVoid(TutanotaService.TeamGroupService, HttpMethod.POST, data)
+			return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
 		})
 	}
 
-	generateInternalGroupData(groupKey: Aes128Key, groupInfoSessionKey: Aes128Key, adminGroupKey: Aes128Key, ownerGroupKey: Aes128Key): Promise<InternalGroupData> {
+	generateInternalGroupData(groupKey: Aes128Key, groupInfoSessionKey: Aes128Key, adminGroupId: ?Id, adminGroupKey: Aes128Key, ownerGroupKey: Aes128Key): Promise<InternalGroupData> {
 		return generateRsaKey().then(keyPair => {
 			let groupData = createInternalGroupData()
 			groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
 			groupData.groupEncPrivateKey = encryptRsaKey(groupKey, keyPair.privateKey)
+			groupData.adminGroup = adminGroupId
 			groupData.adminEncGroupKey = encryptKey(adminGroupKey, groupKey)
 			groupData.ownerEncGroupInfoSessionKey = encryptKey(ownerGroupKey, groupInfoSessionKey)
 			return groupData
@@ -75,16 +83,19 @@ export class GroupManagementFacade {
 	}
 
 	addUserToGroup(user: User, groupId: Id): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			return load(GroupTypeRef, groupId).then(group => {
-				let groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
-				let data = createMembershipAddData()
-				data.user = user._id
-				data.group = groupId
-				data.symEncGKey = encryptKey(userGroupKey, groupKey)
-				return serviceRequestVoid("membershipservice", HttpMethod.POST, data)
+			this.getAdminGroupKey(userGroup).then(adminGroupKeyForUserGroup => {
+				let userGroupKey = decryptKey(adminGroupKeyForUserGroup, neverNull(userGroup.adminGroupEncGKey))
+				return load(GroupTypeRef, groupId).then(group => {
+					this.getAdminGroupKey(group).then(adminGroupKey => {
+						let groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+						let data = createMembershipAddData()
+						data.user = user._id
+						data.group = groupId
+						data.symEncGKey = encryptKey(userGroupKey, groupKey)
+						return serviceRequestVoid("membershipservice", HttpMethod.POST, data)
+					})
+				})
 			})
 		})
 	}
@@ -101,13 +112,24 @@ export class GroupManagementFacade {
 		data.group = group._id
 		data.restore = restore
 		if (group.type == GroupType.Mail) {
-			return serviceRequestVoid("mailgroupservice", HttpMethod.DELETE, data)
-		} else if (group.type == GroupType.Team) {
-			return serviceRequestVoid("teamgroupservice", HttpMethod.DELETE, data)
+			return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.DELETE, data)
+		} else if (group.type == GroupType.LocalAdmin) {
+			return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.DELETE, data)
 		} else {
 			return Promise.reject(new Error("invalid group type for deactivation"))
 		}
 	}
-}
 
-export var groupManagementFacade: GroupManagementFacade = new GroupManagementFacade()
+	getAdminGroupKey(group: Group): Promise<Aes128Key> {
+		try {
+			// the admin and local admin can retrieve their group keys directly from their memberships
+			let adminGroupKey = (group.type == GroupType.Admin || group.type == GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
+			return Promise.resolve(adminGroupKey)
+		} catch (e) {
+			let globalAdminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+			return load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+				return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
+			})
+		}
+	}
+}

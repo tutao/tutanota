@@ -52,5 +52,5 @@ export function show(customerInfo: CustomerInfo) {
 }
 
 export function getDomainInfoLink(): string {
-	return lang.code == "de" ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
+	return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
 }

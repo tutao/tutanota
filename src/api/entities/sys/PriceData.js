@@ -51,6 +51,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"items": {
 			"name": "items",
+			"id": 858,
 			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -59,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createPriceData(): PriceData {

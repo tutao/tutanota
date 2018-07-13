@@ -42,6 +42,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bucketPermission": {
 			"name": "bucketPermission",
+			"id": 451,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -51,6 +52,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"permission": {
 			"name": "permission",
+			"id": 450,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -60,7 +62,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createUpdatePermissionKeyData(): UpdatePermissionKeyData {

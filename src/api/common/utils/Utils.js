@@ -1,18 +1,21 @@
-import type {GroupTypeEnum} from "../TutanotaConstants"
 // @flow
+import type {GroupTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
-export function defer() {
-	var resolve, reject;
-	var promise = new Promise(function () {
-		resolve = arguments[0];
-		reject = arguments[1];
-	})
+export function defer(): {resolve:Function, reject: Function, promise: Promise<any>} {
+	let cb
+	let promise = Promise.fromCallback(pcb => {
+		cb = pcb
+	});
+
+	const resolve = (a) => cb(null, a)
+	const reject = (e) => cb(e)
+
 	return ({
 		resolve,
 		reject,
 		promise
-	}:any)
+	})
 }
 
 export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<?T> {
@@ -28,8 +31,41 @@ export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayL
 	}, null)
 }
 
+export function asyncFindAndMap<T, R>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<?R>): Promise<?R> {
+	return Promise.reduce(array, (result, item, index, length) => {
+		if (result) {
+			// the item has been found already, so skip all remaining items in the array
+			return result
+		} else {
+			return finder(item, index, length).then(currentResult => {
+				return (currentResult) ? currentResult : null
+			})
+		}
+	}, null)
+}
+
+/**
+ * Calls an executor function for slices of nbrOfElementsInGroup items of the given array until the executor function returns false.
+ */
+export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, executor: (items: T[]) => Promise<boolean>): Promise<void> {
+	if (array.length > 0) {
+		let nextSlice = Math.min(array.length, nbrOfElementsInGroup)
+		return executor(array.slice(0, nextSlice)).then(doContinue => {
+			if (doContinue) {
+				return executeInGroups(array.slice(nextSlice), nbrOfElementsInGroup, executor)
+			}
+		})
+	} else {
+		return Promise.resolve()
+	}
+}
+
 export function neverNull<T>(object: ?T): T {
 	return (object:any)
+}
+
+export function string(object: any): string {
+	return (object:string)
 }
 
 export function clone<T>(instance: T): T {
@@ -100,4 +136,13 @@ export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 	} else {
 		return ""
 	}
+}
+
+export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
+	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
+}
+
+export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
+	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
+	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
 }

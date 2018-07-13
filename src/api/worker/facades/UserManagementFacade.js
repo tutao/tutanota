@@ -2,8 +2,6 @@
 import {assertWorkerOrNode} from "../../Env"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {Const, GroupType, AccountType} from "../../common/TutanotaConstants"
-import {customerFacade} from "./CustomerFacade"
-import {loginFacade} from "./LoginFacade"
 import {load, serviceRequestVoid} from "../EntityWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
@@ -18,56 +16,68 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {createUserDataDelete} from "../../entities/sys/UserDataDelete"
 import {aes128RandomKey} from "../crypto/Aes"
 import {createUserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
-import {workerImpl} from "../WorkerImpl"
 import {createUserAccountCreateData} from "../../entities/tutanota/UserAccountCreateData"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {random} from "../crypto/Randomizer"
-import {groupManagementFacade} from "./GroupManagementFacade"
+import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
+import type {LoginFacade} from "./LoginFacade"
+import type {WorkerImpl} from "../WorkerImpl"
+import {readCounterValue} from "./CounterFacade"
+import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
+import {SysService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
 export class UserManagementFacade {
 
-	constructor() {
+	_worker: WorkerImpl;
+	_login: LoginFacade;
+	_groupManagement: GroupManagementFacade;
+
+	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade) {
+		this._worker = worker
+		this._login = login
+		this._groupManagement = groupManagement
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			let salt = generateRandomSalt()
-			let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-			let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
-			let passwordVerifier = createAuthVerifier(passwordKey)
+			this._groupManagement.getAdminGroupKey(userGroup).then(adminGroupKey => {
+				let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
+				let salt = generateRandomSalt()
+				let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+				let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+				let passwordVerifier = createAuthVerifier(passwordKey)
 
-			let data = createResetPasswordData()
-			data.user = neverNull(userGroup.user)
-			data.salt = salt
-			data.verifier = passwordVerifier
-			data.pwEncUserGroupKey = pwEncUserGroupKey
-			return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
+				let data = createResetPasswordData()
+				data.user = neverNull(userGroup.user)
+				data.salt = salt
+				data.verifier = passwordVerifier
+				data.pwEncUserGroupKey = pwEncUserGroupKey
+				return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
+			})
 		})
 	}
 
 	changeAdminFlag(user: User, admin: boolean): Promise<void> {
-		let adminGroupId = loginFacade.getGroupId(GroupType.Admin)
-		let adminGroupKey = loginFacade.getGroupKey(adminGroupId)
+		let adminGroupId = this._login.getGroupId(GroupType.Admin)
+		let adminGroupKey = this._login.getGroupKey(adminGroupId)
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
 			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			return this._getAccountGroupMembership().then(accountGroupMembership => {
+			return this._getAccountGroupMembership().then(accountGroupMembership => { // accountGroupMembership is the membership in a premium, starter or free group
 				if (admin) {
-					return groupManagementFacade.addUserToGroup(user, adminGroupId).then(() => {
+					return this._groupManagement.addUserToGroup(user, adminGroupId).then(() => {
 						// we can not use addUserToGroup here because the admin is not admin of the account group
 						let addAccountGroup = createMembershipAddData()
 						addAccountGroup.user = user._id
 						addAccountGroup.group = accountGroupMembership.group
-						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(loginFacade.getUserGroupKey(), accountGroupMembership.symEncGKey))
+						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), accountGroupMembership.symEncGKey))
 						return serviceRequestVoid("membershipservice", HttpMethod.POST, addAccountGroup)
 					})
 				} else {
-					return groupManagementFacade.removeUserFromGroup(user._id, adminGroupId).then(() => {
-						return groupManagementFacade.removeUserFromGroup(user._id, accountGroupMembership.group)
+					return this._groupManagement.removeUserFromGroup(user._id, adminGroupId).then(() => {
+						return this._groupManagement.removeUserFromGroup(user._id, accountGroupMembership.group)
 					})
 				}
 			})
@@ -75,8 +85,8 @@ export class UserManagementFacade {
 	}
 
 	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (loginFacade.getLoggedInUser().accountType == AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
-		return asyncFind(loginFacade.getLoggedInUser().memberships, membership => {
+		let mailAddress = (this._login.getLoggedInUser().accountType == AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
+		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
 			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
 				return (groupInfo.mailAddress == mailAddress)
 			})
@@ -85,10 +95,40 @@ export class UserManagementFacade {
 		})
 	}
 
+	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
+		let adminGroupId = this._login.getGroupId(GroupType.Admin)
+		return load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
+			return load(GroupTypeRef, groupId).then(group => {
+				return load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
+					let data = createUpdateAdminshipData()
+					data.group = group._id
+					data.newAdminGroup = newAdminGroup._id
+
+					let adminGroupKey = this._login.getGroupKey(adminGroupId)
+					let groupKey
+					if (oldAdminGroup._id == adminGroupId) {
+						groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+					} else {
+						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
+						groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
+					}
+					if (newAdminGroup._id == adminGroupId) {
+						data.newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
+					} else {
+						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
+						data.newAdminGroupEncGKey = encryptKey(localAdminGroupKey, groupKey)
+					}
+
+					return serviceRequestVoid(SysService.UpdateAdminshipService, HttpMethod.POST, data)
+				})
+			})
+		});
+	}
+
 	readUsedUserStorage(user: User): Promise<number> {
-		return customerFacade.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
-			return customerFacade.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then(contactStorage => {
-				return customerFacade.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then(fileStorage => {
+		return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
+			return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then(contactStorage => {
+				return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then(fileStorage => {
 					return (Number(mailStorage) + Number(contactStorage) + Number(fileStorage));
 				})
 			})
@@ -116,19 +156,24 @@ export class UserManagementFacade {
 	}
 
 	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {
-		let adminGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Admin))
-		let customerGroupKey = loginFacade.getGroupKey(loginFacade.getGroupId(GroupType.Customer))
+		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
+		if (adminGroupIds.length == 0) {
+			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
+		}
+		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
+
+		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(userGroupData => {
-			return workerImpl.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100).then(() => {
+		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey).then(userGroupData => {
+			return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100).then(() => {
 				let data = createUserAccountCreateData()
 				data.date = Const.CURRENT_DATE
 				data.userGroupData = userGroupData
 				data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, name)
 				return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data).then(() => {
-					return workerImpl.sendProgress((userIndex + 1) / overallNbrOfUsersToCreate * 100)
+					return this._worker.sendProgress((userIndex + 1) / overallNbrOfUsersToCreate * 100)
 				})
 			})
 		})
@@ -201,4 +246,3 @@ export class UserManagementFacade {
 }
 
 
-export var userManagementFacade: UserManagementFacade = new UserManagementFacade()

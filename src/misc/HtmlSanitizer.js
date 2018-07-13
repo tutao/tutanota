@@ -2,7 +2,8 @@
 import DOMPurify from "dompurify"
 import {Icons} from "../gui/base/icons/Icons"
 
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + Icons.Warning
+// the svg data string must contain ' instead of " to avoid display errors in Edge
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + Icons.Warning.replace(/\"/g, "'")
 
 
 class HtmlSanitizer {
@@ -25,6 +26,15 @@ class HtmlSanitizer {
 					this._preventExternalImageLoading(currentNode)
 				}
 
+				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
+				if (currentNode.classList) {
+					let cl = currentNode.classList;
+					for (let i = cl.length; i > 0; i--) {
+						if (cl[0] != "tutanota_quote") {
+							cl.remove(cl[0]);
+						}
+					}
+				}
 				// set target="_blank" for all links
 				if (currentNode.tagName && (currentNode.tagName.toLowerCase() == "a" || currentNode.tagName.toLowerCase() == "area" )) {
 					currentNode.setAttribute('rel', 'noopener noreferrer')
@@ -52,7 +62,7 @@ class HtmlSanitizer {
 		let cleanHtml = this.purifier.sanitize(html, {
 			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
 			ADD_URI_SAFE_ATTR: ['poster'], // for video element
-			FORBID_TAGS: ['style'] // prevent loading of external fonts.
+			FORBID_TAGS: ['style'] // prevent loading of external fonts
 		});
 		return {"text": cleanHtml, "externalContent": this._externalContent};
 	}
@@ -89,6 +99,7 @@ class HtmlSanitizer {
 			this._externalContent.push(imageSrcAttr.value)
 			imageSrcAttr.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
 			htmlNode.attributes.setNamedItem(imageSrcAttr);
+			htmlNode.style["max-width"] = "100px"
 		}
 	}
 
@@ -107,8 +118,9 @@ class HtmlSanitizer {
 			value = value.replace(/^url\("*/, "");
 			value = value.replace(/"*\)$/, "");
 			this._externalContent.push(value)
-			let newImage = "url('" + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + "')"
+			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
+			htmlNode.style["max-width"] = "100px"
 		}
 	}
 

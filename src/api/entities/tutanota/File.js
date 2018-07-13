@@ -105,6 +105,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"subFiles": {
 			"name": "subFiles",
+			"id": 26,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -113,6 +114,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"data": {
 			"name": "data",
+			"id": 24,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -122,6 +124,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"parent": {
 			"name": "parent",
+			"id": 25,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -131,7 +134,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createFile(): TutanotaFile {

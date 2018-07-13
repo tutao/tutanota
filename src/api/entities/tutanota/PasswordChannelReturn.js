@@ -24,6 +24,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"phoneNumberChannels": {
 			"name": "phoneNumberChannels",
+			"id": 329,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -32,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createPasswordChannelReturn(): PasswordChannelReturn {

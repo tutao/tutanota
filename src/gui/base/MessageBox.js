@@ -2,6 +2,7 @@
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
+import {px} from "../size"
 
 assertMainOrNode()
 
@@ -13,17 +14,17 @@ export default class MessageBox {
 	_messageNode: HTMLElement;
 	_visible: boolean;
 
-	constructor(messageIdOrMessageFunction: string|lazy<string>, bgClass: string = "content-message-bg") {
+	constructor(messageIdOrMessageFunction: string|lazy<string>, bgClass: string = "content-message-bg", marginTop: number = 100) {
 		this._visible = true
 
 		this.view = (): VirtualElement => {
-			return m(".fill-absolute.justify-center.items-start", {
+			return m("#error-dialog.justify-center.items-start", {
 				oncreate: (vnode) => this._messageNode = vnode.dom,
 				style: {display: (this._visible) ? 'flex' : 'none'}
 			}, [
 				m(".dialog-width-s.pt.pb.plr.mlr", {
 					class: bgClass,
-					style: {'margin-top': "100px"}
+					style: {'margin-top': px(marginTop)}
 				}, (messageIdOrMessageFunction instanceof Function) ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
 			])
 		}

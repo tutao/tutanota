@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {Button, ButtonType} from "../gui/base/Button"
 import {neverNull, asyncImport} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
@@ -9,7 +9,7 @@ import {client, BrowserType} from "./ClientDetector"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const Keys = {
 	NONE: {code: -1, name: ""},
@@ -21,6 +21,10 @@ export const Keys = {
 	ESC: {code: 27, name: "ESC"},
 	UP: {code: 38, name: "↑"},
 	DOWN: {code: 40, name: "↓"},
+	PAGE_UP: {code: 33, name: "Page ↑"},
+	PAGE_DOWN: {code: 34, name: "Page ↓"},
+	HOME: {code: 36, name: "Home"},
+	END: {code: 35, name: "End"},
 	DELETE: {code: 46, name: "DEL"},
 	ONE: {code: 49, name: "1"},
 	TWO: {code: 50, name: "2"},
@@ -30,6 +34,7 @@ export const Keys = {
 	SIX: {code: 54, name: "6"},
 	C: {code: 67, name: "C"},
 	E: {code: 69, name: "E"},
+	F: {code: 70, name: "F"},
 	H: {code: 72, name: "H"},
 	L: {code: 76, name: "L"},
 	M: {code: 77, name: "M"},

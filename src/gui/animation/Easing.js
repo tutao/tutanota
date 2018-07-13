@@ -1,6 +1,6 @@
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const EasingType = {
 	linear: 1,

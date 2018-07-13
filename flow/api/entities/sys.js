@@ -18,6 +18,7 @@ type Group = {
 	external:boolean;
 	type:NumberString;
 
+	administratedGroups:?AdministratedGroupsRef;
 	keys:KeyPair[];
 	admin:?Id;
 	customer:?Id;
@@ -38,11 +39,13 @@ type GroupInfo = {
 	_permissions:Id;
 	created:Date;
 	deleted:?Date;
+	groupType:?NumberString;
 	mailAddress:?string;
 	name:string;
 
 	mailAddressAliases:MailAddressAlias[];
 	group:Id;
+	localAdmin:?Id;
 }
 
 type GroupMembership = {
@@ -65,6 +68,7 @@ type Customer = {
 	_permissions:Id;
 	approvalStatus:NumberString;
 	canceledPremiumAccount:boolean;
+	orderProcessingAgreementNeeded:boolean;
 	type:NumberString;
 
 	auditLog:?AuditLogRef;
@@ -72,11 +76,14 @@ type Customer = {
 	contactFormUserGroups:?UserAreaGroups;
 	customizations:Feature[];
 	userAreaGroups:?UserAreaGroups;
+	whitelabelChildren:?WhitelabelChildrenRef;
+	whitelabelParent:?WhitelabelParent;
 	adminGroup:Id;
 	adminGroups:Id;
 	customerGroup:Id;
 	customerGroups:Id;
 	customerInfo:IdTuple;
+	orderProcessingAgreement:?IdTuple;
 	properties:?Id;
 	serverProperties:?Id;
 	teamGroups:Id;
@@ -255,6 +262,7 @@ type AccountingInfo = {
 	paymentMethod:?NumberString;
 	paymentMethodInfo:?string;
 	paymentProviderCustomerId:?string;
+	paypalBillingAgreement:?string;
 	secondCountryInfo:NumberString;
 
 	invoiceInfo:?Id;
@@ -272,6 +280,7 @@ type CustomerInfo = {
 	deletionReason:?string;
 	deletionTime:?Date;
 	domain:string;
+	erased:boolean;
 	includedEmailAliases:NumberString;
 	includedStorageCapacity:NumberString;
 	promotionEmailAliases:NumberString;
@@ -770,6 +779,7 @@ type PushIdentifierList = {
 type DeleteCustomerData = {
 	_type: TypeRef<DeleteCustomerData>;
 	_format:NumberString;
+	authVerifier:?Uint8Array;
 	reason:string;
 	takeoverMailAddress:?string;
 	undelete:boolean;
@@ -859,7 +869,7 @@ type DomainInfo = {
 
 	catchAllMailGroup:?Id;
 	certificate:?Id;
-	theme:?Id;
+	whitelabelConfig:?Id;
 }
 
 type BookingItem = {
@@ -952,6 +962,9 @@ type InvoiceInfo = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	publishInvoices:boolean;
+	specialPriceBrandingPerUser:?NumberString;
+	specialPriceContactFormSingle:?NumberString;
+	specialPriceSharedGroupSingle:?NumberString;
 	specialPriceUserSingle:?NumberString;
 	specialPriceUserTotal:?NumberString;
 
@@ -963,6 +976,7 @@ type SwitchAccountTypeData = {
 	_format:NumberString;
 	accountType:NumberString;
 	date:?Date;
+	proUpgrade:boolean;
 
 }
 
@@ -993,7 +1007,7 @@ type MailAddressAliasServiceDataDelete = {
 type PaymentDataServiceGetReturn = {
 	_type: TypeRef<PaymentDataServiceGetReturn>;
 	_format:NumberString;
-	clientToken:string;
+	loginUrl:string;
 
 }
 
@@ -1012,6 +1026,7 @@ type PaymentDataServicePutData = {
 	paymentMethodInfo:?string;
 	paymentToken:?string;
 
+	creditCard:?CreditCard;
 }
 
 type PaymentDataServicePutReturn = {
@@ -1029,6 +1044,7 @@ type PriceRequestData = {
 	count:NumberString;
 	featureType:NumberString;
 	paymentInterval:?NumberString;
+	reactivate:boolean;
 
 }
 
@@ -1106,8 +1122,10 @@ type CustomerServerProperties = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	requirePasswordUpdateAfterReset:boolean;
+	whitelabelCode:string;
 
 	emailSenderList:EmailSenderListElement[];
+	whitelabelRegistrationDomains:StringWrapper[];
 	whitelistedDomains:?DomainsRef;
 }
 
@@ -1187,6 +1205,7 @@ type AuditLogEntry = {
 	modifiedEntity:string;
 
 	groupInfo:?IdTuple;
+	modifiedGroupInfo:?IdTuple;
 }
 
 type AuditLogRef = {
@@ -1196,15 +1215,17 @@ type AuditLogRef = {
 	items:Id;
 }
 
-type BrandingTheme = {
-	_type: TypeRef<BrandingTheme>;
+type WhitelabelConfig = {
+	_type: TypeRef<WhitelabelConfig>;
 	_format:NumberString;
 	_id:Id;
 	_ownerGroup:?Id;
 	_permissions:Id;
+	germanLanguageCode:?string;
 	jsonTheme:string;
+	metaTags:string;
 
-	disabledFeatures:DisabledFeature[];
+	bootstrapCustomizations:BootstrapFeature[];
 }
 
 type BrandingDomainData = {
@@ -1352,10 +1373,10 @@ type OtpChallenge = {
 	secondFactors:IdTuple[];
 }
 
-type DisabledFeature = {
-	_type: TypeRef<DisabledFeature>;
+type BootstrapFeature = {
+	_type: TypeRef<BootstrapFeature>;
 	_id:Id;
-	feature:string;
+	feature:NumberString;
 
 }
 
@@ -1364,4 +1385,154 @@ type Feature = {
 	_id:Id;
 	feature:NumberString;
 
+}
+
+type WhitelabelChild = {
+	_type: TypeRef<WhitelabelChild>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	comment:string;
+	createdDate:Date;
+	deletedDate:?Date;
+	mailAddress:string;
+
+	customer:Id;
+}
+
+type WhitelabelChildrenRef = {
+	_type: TypeRef<WhitelabelChildrenRef>;
+	_id:Id;
+
+	items:Id;
+}
+
+type WhitelabelParent = {
+	_type: TypeRef<WhitelabelParent>;
+	_id:Id;
+
+	customer:Id;
+	whitelabelChildInParent:IdTuple;
+}
+
+type UpdateAdminshipData = {
+	_type: TypeRef<UpdateAdminshipData>;
+	_format:NumberString;
+	newAdminGroupEncGKey:Uint8Array;
+
+	group:Id;
+	newAdminGroup:Id;
+}
+
+type AdministratedGroup = {
+	_type: TypeRef<AdministratedGroup>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	groupType:NumberString;
+
+	groupInfo:IdTuple;
+	localAdminGroup:Id;
+}
+
+type AdministratedGroupsRef = {
+	_type: TypeRef<AdministratedGroupsRef>;
+	_id:Id;
+
+	items:Id;
+}
+
+type CreditCard = {
+	_type: TypeRef<CreditCard>;
+	_id:Id;
+	cardHolderName:string;
+	cvv:string;
+	expirationMonth:string;
+	expirationYear:string;
+	number:string;
+
+}
+
+type LocationServiceGetReturn = {
+	_type: TypeRef<LocationServiceGetReturn>;
+	_format:NumberString;
+	country:string;
+
+}
+
+type OrderProcessingAgreement = {
+	_type: TypeRef<OrderProcessingAgreement>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	customerAddress:string;
+	signatureDate:Date;
+	version:string;
+
+	customer:Id;
+	signerUserGroupInfo:IdTuple;
+}
+
+type OrderProcessingAgreements = {
+	_type: TypeRef<OrderProcessingAgreements>;
+	_id:Id;
+
+	agreements:Id;
+}
+
+type SignOrderProcessingAgreementData = {
+	_type: TypeRef<SignOrderProcessingAgreementData>;
+	_format:NumberString;
+	customerAddress:string;
+	version:string;
+
+}
+
+type GeneratedIdWrapper = {
+	_type: TypeRef<GeneratedIdWrapper>;
+	_id:Id;
+	value:Id;
+
+}
+
+type SseConnectData = {
+	_type: TypeRef<SseConnectData>;
+	_format:NumberString;
+	identifier:string;
+
+	userIds:GeneratedIdWrapper[];
+}
+
+type NotificationInfo = {
+	_type: TypeRef<NotificationInfo>;
+	_id:Id;
+	counter:NumberString;
+	mailAddress:string;
+	userId:Id;
+
+}
+
+type MissedNotification = {
+	_type: TypeRef<MissedNotification>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	confirmationId:Id;
+
+	notificationInfos:NotificationInfo[];
+}
+
+type MissedNotifications = {
+	_type: TypeRef<MissedNotifications>;
+	_id:Id;
+
+	notifications:Id;
 }

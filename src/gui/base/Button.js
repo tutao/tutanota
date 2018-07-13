@@ -7,12 +7,12 @@ import {removeFlash, addFlash} from "./Flash"
 import {NavButton} from "./NavButton"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
-import {Dialog} from "./Dialog"
+import {asyncImport} from "../../api/common/utils/Utils"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const ButtonType = {
 	Action: 'action',
@@ -21,6 +21,7 @@ export const ButtonType = {
 	Secondary: 'secondary',
 	Dropdown: 'dropdown',
 	Login: 'login',
+	Accent: 'accent',
 	Floating: 'floating',
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
@@ -64,7 +65,7 @@ function getColors(buttonColors: ButtonColorEnum) {
 export class Button {
 	_type: ButtonTypeEnum;
 	clickHandler: clickHandler;
-	bubble: boolean;
+	propagateClickEvents: boolean;
 	icon: ?lazy<Vnode<IconAttrs>>;
 	isVisible: lazy<boolean>;
 	isSelected: lazy<boolean>;
@@ -84,18 +85,18 @@ export class Button {
 
 		this.isVisible = TRUE_CLOSURE
 		this.isSelected = FALSE_CLOSURE
-		this.bubble = true
+		this.propagateClickEvents = true
 		this.getLabel = labelTextIdOrTextFunction instanceof Function ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
 
-			return m("button.limit-width.noselect", {
+			return m("button.limit-width.noselect" + ((this._type == ButtonType.Bubble) ? ".print" : ""), {
 					class: this.getButtonClasses().join(' '),
-					style: this._type === ButtonType.Login ? {
+					style: (this._type === ButtonType.Login || this._type === ButtonType.Accent) ? {
 							'background-color': theme.content_accent,
 						} : {},
 					onclick: (event: MouseEvent) => this.click(event),
-					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login ? this.getLabel() : "",
+					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login || this._type == ButtonType.Accent ? this.getLabel() : "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
 						addFlash(vnode.dom)
@@ -164,6 +165,8 @@ export class Button {
 		} else if (this._type == ButtonType.Action || this._type == ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
+		} else if (this._type == ButtonType.Accent) {
+			buttonClasses.push("button-height-accent")
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
@@ -180,6 +183,9 @@ export class Button {
 		}
 		if (this._type == ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
+		} else if (this._type == ButtonType.Accent) {
+			wrapperClasses.push("button-height-accent")
+			wrapperClasses.push("mlr")
 		} else {
 			wrapperClasses.push("justify-center")
 		}
@@ -206,10 +212,10 @@ export class Button {
 		let color
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
-		} else if (this._type === ButtonType.Login) {
+		} else if (this._type === ButtonType.Login || this._type === ButtonType.Accent) {
 			color = theme.content_button_icon
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
-			color = theme.content_fg
+			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
 		} else {
 			color = this.isSelected() ? getColors(this._colors).button_selected : getColors(this._colors).button
 		}
@@ -257,7 +263,7 @@ export class Button {
 	}
 
 	disableBubbling() {
-		this.bubble = false
+		this.propagateClickEvents = false
 		return this
 	}
 
@@ -273,10 +279,10 @@ export class Button {
 	click(event: MouseEvent) {
 		this.clickHandler(event)
 		// in IE the activeElement might not be defined and blur might not exist
-		if (document.activeElement && document.activeElement.blur instanceof Function) {
+		if (document.activeElement && typeof document.activeElement.blur == "function") {
 			document.activeElement.blur()
 		}
-		if (!this.bubble) {
+		if (!this.propagateClickEvents) {
 			event.stopPropagation()
 		}
 	}
@@ -289,43 +295,27 @@ export function createDropDownButton(labelTextIdOrTextFunction: string|lazy<stri
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazyAsync<Array<string|NavButton|Button>>, width: number = 200): Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
-		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = Dialog.progress("loading_msg", buttonPromise)
+		let resultPromise = buttonPromise
+		if (!resultPromise.isFulfilled()) {
+			resultPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
+				return module.showProgressDialog("loading_msg", buttonPromise)
+			})
 		}
-		buttonPromise.then(buttons => {
-			let dropdown = new Dropdown(() => buttons, width)
-			if (mainButton._domButton) {
-				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
-				let valueStream = modal.onclick.map(e => {
-					if (valueStream && !mainButton._domButton.contains(e.target) && dropdown.closeOnClickAllowed(e.target)) {
-						valueStream.end(true)
-						modal.remove(dropdown)
-					}
+		resultPromise.then(buttons => {
+			if (buttons.length == 0) {
+				asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
+					return module.Dialog.error("selectionNotAvailable_msg")
 				})
+			} else {
+				let dropdown = new Dropdown(() => buttons, width)
+				if (mainButton._domButton) {
+					let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
+					dropdown.setOrigin(buttonRect)
+					modal.display(dropdown)
+				}
 			}
 		})
 	}:clickHandler), icon)
 	return mainButton
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string|NavButton|Button>>, width: number = 200): NavButton {
-	let dropdown = new Dropdown(lazyButtons, width)
-	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
-		.setClickHandler((() => {
-			if (mainButton._domButton) {
-				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
-				let valueStream = modal.onclick.map(e => {
-					if (valueStream && !mainButton._domButton.contains(e.target) && dropdown.closeOnClickAllowed(e.target)) {
-						valueStream.end(true)
-						modal.remove(dropdown)
-					}
-				})
-			}
-		}:clickHandler))
-		.hideLabel()
-	return mainButton
-}

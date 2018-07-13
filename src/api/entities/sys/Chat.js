@@ -50,7 +50,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "25"
+	"version": "32"
 }
 
 export function createChat(): Chat {

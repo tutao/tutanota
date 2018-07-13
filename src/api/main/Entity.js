@@ -17,7 +17,8 @@ import {
 	getEtId,
 	HttpMethod,
 	CUSTOM_MIN_ID,
-	firstBiggerThanSecond
+	firstBiggerThanSecond,
+	RANGE_ITEM_LIMIT
 } from "../common/EntityFunctions"
 import {createVersionData} from "../entities/sys/VersionData"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
@@ -65,7 +66,6 @@ export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id
 	})
 }
 
-export const RANGE_ITEM_LIMIT = 1000
 function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length == 0) return Promise.resolve(elements)

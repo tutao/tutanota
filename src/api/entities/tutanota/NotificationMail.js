@@ -68,7 +68,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createNotificationMail(): NotificationMail {

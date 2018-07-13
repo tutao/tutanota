@@ -92,6 +92,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
+		"listUnsubscribe": {
+			"name": "listUnsubscribe",
+			"id": 866,
+			"since": 24,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": true
+		},
 		"receivedDate": {
 			"name": "receivedDate",
 			"id": 107,
@@ -159,6 +168,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"bccRecipients": {
 			"name": "bccRecipients",
+			"id": 114,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -167,6 +177,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"ccRecipients": {
 			"name": "ccRecipients",
+			"id": 113,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -175,6 +186,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"replyTos": {
 			"name": "replyTos",
+			"id": 616,
 			"since": 14,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -183,6 +195,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"restrictions": {
 			"name": "restrictions",
+			"id": 723,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -191,6 +204,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sender": {
 			"name": "sender",
+			"id": 111,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -199,6 +213,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"toRecipients": {
 			"name": "toRecipients",
+			"id": 112,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -207,6 +222,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"attachments": {
 			"name": "attachments",
+			"id": 115,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -216,6 +232,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"body": {
 			"name": "body",
+			"id": 116,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -225,6 +242,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"conversationEntry": {
 			"name": "conversationEntry",
+			"id": 117,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -234,6 +252,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"headers": {
 			"name": "headers",
+			"id": 618,
 			"since": 14,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -243,7 +262,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "22"
+	"version": "27"
 }
 
 export function createMail(): Mail {

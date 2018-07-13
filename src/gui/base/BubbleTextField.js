@@ -1,5 +1,5 @@
 // @flow
-import {size} from "../size"
+import {size, px} from "../size"
 import m from "mithril"
 import {TextField} from "./TextField"
 import {Button} from "./Button"
@@ -142,7 +142,7 @@ export class BubbleTextField<T> {
 		return true
 	}
 
-	createBubbles() {
+	createBubbles(): boolean {
 		let value = this.textField.value().trim()
 		if (value === "") return false
 
@@ -161,7 +161,7 @@ export class BubbleTextField<T> {
 			}
 		}
 		m.redraw()
-		return false
+		return false //TODO: explain
 	}
 
 	handleBackspace() {

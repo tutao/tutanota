@@ -1,5 +1,5 @@
 // @flow
-import {serviceRequest, serviceRequestVoid, load, update, loadRoot} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid, load, loadRoot, update} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
 import {
 	base64ToBase64Url,
@@ -11,7 +11,13 @@ import {
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {createAuthVerifierAsBase64Url, createAuthVerifier, base64ToKey, keyToUint8Array} from "../crypto/CryptoUtils"
+import {
+	createAuthVerifierAsBase64Url,
+	createAuthVerifier,
+	base64ToKey,
+	keyToUint8Array,
+	uint8ArrayToKey
+} from "../crypto/CryptoUtils"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType, OperationType, AccountType} from "../../common/TutanotaConstants"
@@ -25,26 +31,35 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {neverNull} from "../../common/utils/Utils"
-import {isSameTypeRef, TypeRef, isSameId, HttpMethod, GENERATED_ID_BYTES_LENGTH} from "../../common/EntityFunctions"
-import {assertWorkerOrNode} from "../../Env"
+import {
+	isSameTypeRef,
+	TypeRef,
+	isSameId,
+	HttpMethod,
+	GENERATED_ID_BYTES_LENGTH,
+	MediaType
+} from "../../common/EntityFunctions"
+import {assertWorkerOrNode, isTest, isAdmin} from "../../Env"
 import {hash} from "../crypto/Sha256"
-import {module as replaced} from "@hot"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {SessionTypeRef, _TypeModel as SessionModelType} from "../../entities/sys/Session"
 import {typeRefToPath} from "../rest/EntityRestClient"
-import {restClient, MediaType} from "../rest/RestClient"
-import {NotAuthenticatedError, ConnectionError} from "../../common/error/RestError"
+import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
-import {workerImpl} from "../WorkerImpl"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
+import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
+import type {WorkerImpl} from "../WorkerImpl"
+import type {Indexer} from "../search/Indexer"
+import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
+import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
+import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 
 assertWorkerOrNode()
 
-export const state = replaced ? replaced.state : {}
 
 export class LoginFacade {
 	_user: ?User;
@@ -53,20 +68,45 @@ export class LoginFacade {
 	_authVerifierAfterNextRequest: ?Base64Url; // needed for password changes
 	groupKeys: {[key:Id] : Aes128Key};
 	_eventBusClient: EventBusClient;
-	_persistentSession: boolean;
+	_worker: WorkerImpl;
+	_indexer: Indexer;
 
-	constructor() {
-		this._reset()
+	constructor(worker: WorkerImpl) {
+		this._worker = worker
+		this.reset()
 	}
 
-	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, returnCredentials: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id, credentials: ?Credentials}> {
+	init(indexer: Indexer, eventBusClient: EventBusClient) {
+		if (indexer) {
+			this._indexer = indexer
+		}
+		if (eventBusClient) {
+			this._eventBusClient = eventBusClient
+		}
+	}
+
+	reset(): Promise<void> {
+		this._user = null
+		this._userGroupInfo = null
+		this._accessToken = null
+		this._authVerifierAfterNextRequest = null
+		this.groupKeys = {}
+		if (this._eventBusClient) {
+			this._eventBusClient.close()
+		}
+		return Promise.resolve()
+	}
+
+	/**
+	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
+	 */
+	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
 			console.log("session already exists, reuse data")
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
 			// check if it is the same user in _initSession()
 		}
 		console.log("createSession worker")
-		this._persistentSession = returnCredentials
 		return this._loadUserPassphraseKey(mailAddress, passphrase).then(userPassphraseKey => {
 			// the verifier is always sent as url parameter, so it must be url encoded
 			let authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
@@ -75,35 +115,29 @@ export class LoginFacade {
 			sessionData.clientIdentifier = clientIdentifier
 			sessionData.authVerifier = authVerifier
 			let accessKey = null
-			if (returnCredentials) {
+			if (persistentSession) {
 				accessKey = aes128RandomKey()
 				sessionData.accessKey = keyToUint8Array(accessKey)
 			}
-			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).catch(ConnectionError, e => {
-				// IE11 shows not connected error when not authenticated is received at login (xmlhttprequest.onerror is called although network view shows 401 response code)
-				if (typeof navigator == "object" && navigator.userAgent && navigator.userAgent.indexOf("Trident/7.0") != -1) {
-					throw new NotAuthenticatedError("not connected error at login in IE -> NotAuthenticatedError")
-				} else {
-					throw e
-				}
-			}).then(createSessionReturn => {
+			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).then(createSessionReturn => {
 				let p = Promise.resolve()
+				let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
 				if (createSessionReturn.challenges.length > 0) {
-					let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
-					workerImpl.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
+					this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
 					p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken)
 				}
 				return p.then(() => {
-					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey).then(() => {
+					return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, permanentLogin).then(() => {
 						return {
 							user: neverNull(this._user),
 							userGroupInfo: neverNull(this._userGroupInfo),
-							sessionElementId: this._getSessionElementId(neverNull(this._accessToken)),
-							credentials: (accessKey) ? {
-									mailAddress,
-									accessToken: neverNull(this._accessToken),
-									encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase))
-								} : null
+							sessionId,
+							credentials: {
+								mailAddress,
+								accessToken: neverNull(this._accessToken),
+								encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+								userId: neverNull(this._user)._id
+							}
 						}
 					})
 				})
@@ -121,7 +155,7 @@ export class LoginFacade {
 		})
 	}
 
-	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, returnCredentials: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id, credentials: ?Credentials}> {
+	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
 			throw new Error("user already logged in")
 		}
@@ -137,21 +171,23 @@ export class LoginFacade {
 		sessionData.clientIdentifier = clientIdentifier
 		sessionData.authVerifier = authVerifier
 		let accessKey = null
-		if (returnCredentials) {
+		if (persistentSession) {
 			accessKey = aes128RandomKey()
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).then(createSessionReturn => {
-			return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey).then(() => {
+			let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
+			return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, true).then(() => {
 				return {
 					user: neverNull(this._user),
 					userGroupInfo: neverNull(this._userGroupInfo),
-					sessionElementId: this._getSessionElementId(neverNull(this._accessToken)),
-					credentials: (accessKey) ? {
-							mailAddress: userId, // we set the external user id because we do not have the mail address
-							accessToken: neverNull(this._accessToken),
-							encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase))
-						} : null
+					sessionId,
+					credentials: {
+						mailAddress: userId, // we set the external user id because we do not have the mail address
+						accessToken: neverNull(this._accessToken),
+						encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+						userId
+					}
 				}
 			})
 		})
@@ -160,10 +196,10 @@ export class LoginFacade {
 	/**
 	 * Resume a session of stored credentials.
 	 */
-	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id}> {
+	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple}> {
 		console.log("resumeSession worker")
 		return this._loadSessionData(credentials.accessToken).then(sessionData => {
-			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(credentials.encryptedPassword)))
+			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
 			let passphraseKeyPromise: Promise<Aes128Key>
 			if (externalUserSalt) {
 				passphraseKeyPromise = Promise.resolve(generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128))
@@ -171,50 +207,54 @@ export class LoginFacade {
 				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.mailAddress, passphrase)
 			}
 			return passphraseKeyPromise.then(userPassphraseKey => {
-				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey).then(() => {
-					this._persistentSession = true
+				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, true).then(() => {
 					return {
 						user: neverNull(this._user),
 						userGroupInfo: neverNull(this._userGroupInfo),
-						sessionElementId: this._getSessionElementId(neverNull(this._accessToken))
+						sessionId: [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
 					}
 				})
 			})
 		})
 	}
 
-	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key): Promise<void> {
-		if (this._user && userId != this._user._id) {
+	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, permanentLogin: boolean): Promise<void> {
+		let userIdFromFormerLogin = (this._user) ? this._user._id : null
+		if (userIdFromFormerLogin && userId != userIdFromFormerLogin) {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 		this._accessToken = accessToken
 		return load(UserTypeRef, userId).then(user => {
-			state.user = user
 			this._user = user
 			this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
 			return load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		}).then(groupInfo => this._userGroupInfo = groupInfo)
+			.then(() => {
+				if (!isTest() && permanentLogin && !isAdmin()) {
+					// index new items in background
+					this._indexer.init(neverNull(this._user), this.getUserGroupKey())
+				}
+			})
 			.then(() => this.loadEntropy())
 			.then(() => this._getInfoMails())
-			.then(() => this._eventBusClient.connect(false))
+			.then(() => {
+				if (permanentLogin) {
+					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
+					// close the event bus and reconnect to make sure we get all missed events
+					if (userIdFromFormerLogin) {
+						this._eventBusClient.tryReconnect(true)
+					} else {
+						this._eventBusClient.connect(false)
+					}
+				}
+			})
+			.then(() => this.storeEntropy())
 			.catch(e => {
-				this._reset()
+				this.reset()
 				throw e
 			})
 	}
 
-	_reset() {
-		this._user = null
-		this._userGroupInfo = null
-		this._accessToken = null
-		this._authVerifierAfterNextRequest = null
-		this.groupKeys = {}
-		if (this._eventBusClient) {
-			this._eventBusClient.close()
-		}
-		this._eventBusClient = new EventBusClient()
-		this._persistentSession = false
-	}
 
 	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
@@ -232,27 +272,6 @@ export class LoginFacade {
 		}
 	}
 
-	logout(): Promise<void> {
-		if (!this._user) {
-			console.log("logout without login")
-			return Promise.resolve()
-		}
-		const user = this._user
-		console.log("logout worker")
-		// close the event bus client before resetting this login facade to make sure the event bus does not try to handle the TutanotaProperties update triggered by storeEntropy()
-		this._eventBusClient.close()
-		return this.storeEntropy()
-			.catch(e => console.log("could not store entropy", e))
-			.finally(() => {
-				let promise = Promise.resolve()
-				if (!this._persistentSession) {
-					promise = this.deleteSession(neverNull(this._accessToken))
-				}
-				return promise.finally(() => {
-					this._reset()
-				})
-			})
-	}
 
 	/**
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
@@ -260,12 +279,15 @@ export class LoginFacade {
 	deleteSession(accessToken: Base64Url): Promise<void> {
 		let path = typeRefToPath(SessionTypeRef) + '/' + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
 		let headers = {
-			'accessToken': accessToken,
+			'accessToken': neverNull(accessToken),
 			"v": SessionModelType.version
 		}
-		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json).catch(NotAuthenticatedError, () => {
-			console.log("authentication failed => session is already deleted")
-		})
+		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json)
+			.catch(NotAuthenticatedError, () => {
+				console.log("authentication failed => session is already closed")
+			}).catch(NotFoundError, () => {
+				console.log("authentication failed => session instance is already deleted")
+			})
 	}
 
 	_getSessionElementId(accessToken: Base64Url): Id {
@@ -306,7 +328,7 @@ export class LoginFacade {
 
 	getAllGroupIds(): Id[] {
 		let groups = this.getLoggedInUser().memberships.map(membership => membership.group)
-		groups.push(loginFacade.getLoggedInUser().userGroup.group)
+		groups.push(this.getLoggedInUser().userGroup.group)
 		return groups
 	}
 
@@ -316,12 +338,12 @@ export class LoginFacade {
 
 	getGroupKey(groupId: Id): Aes128Key {
 		if (!this.groupKeys[groupId]) {
-			this.groupKeys[groupId] = decryptKey(this.groupKeys[this.getUserGroupId()], this._getMembership(groupId).symEncGKey)
+			this.groupKeys[groupId] = decryptKey(this.groupKeys[this.getUserGroupId()], this.getMembership(groupId).symEncGKey)
 		}
 		return this.groupKeys[groupId]
 	}
 
-	_getMembership(groupId: Id): GroupMembership {
+	getMembership(groupId: Id): GroupMembership {
 		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => g.group === groupId)
 		if (!membership) {
 			throw new Error(`No group with groupId ${groupId} found!`)
@@ -349,6 +371,10 @@ export class LoginFacade {
 		}
 	}
 
+	getGroupIds(groupType: GroupTypeEnum): Id[] {
+		return this.getLoggedInUser().memberships.filter(m => m.groupType === groupType).map(gm => gm.group)
+	}
+
 	isExternalUserLoggedIn() {
 		return this._user && this._user.accountType == AccountType.EXTERNAL
 	}
@@ -365,10 +391,10 @@ export class LoginFacade {
 	 * Loads entropy from the last logout.
 	 */
 	loadEntropy(): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, loginFacade.getUserGroupId()).then(tutanotaProperties => {
+		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
-					let entropy = aes128Decrypt(loginFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
+					let entropy = aes128Decrypt(this.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
 					random.addStaticEntropy(entropy)
 				} catch (error) {
 					if (error instanceof CryptoError) {
@@ -380,8 +406,10 @@ export class LoginFacade {
 	}
 
 	storeEntropy(): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, loginFacade.getUserGroupId()).then(tutanotaProperties => {
-			tutanotaProperties.groupEncEntropy = encryptBytes(loginFacade.getUserGroupKey(), random.generateRandomData(32))
+		if (!this._accessToken) return Promise.resolve()
+		console.log("updating stored entropy")
+		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
+			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
 		})
 	}
@@ -418,20 +446,36 @@ export class LoginFacade {
 		return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, service)
 	}
 
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+		let d = createDeleteCustomerData()
+		d.authVerifier = createAuthVerifier(generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128))
+		d.undelete = false
+		d.customer = neverNull(neverNull(this._user).customer)
+		d.reason = reason
+		if (takeover != "") {
+			d.takeoverMailAddress = takeover
+		} else {
+			d.takeoverMailAddress = null
+		}
+		return serviceRequestVoid(SysService.CustomerService, HttpMethod.DELETE, d)
+	}
+
 	tryReconnectEventBus(): Promise<void> {
 		this._eventBusClient.tryReconnect(true);
 		return Promise.resolve()
 	}
-}
 
-
-export var loginFacade: LoginFacade = new LoginFacade()
-
-if (replaced) {
-	Object.assign(loginFacade, replaced.loginFacade)
-	loginFacade._eventBusClient.close()
-	loginFacade._eventBusClient = new EventBusClient()
-	if (loginFacade.isLoggedIn()) {
-		loginFacade._eventBusClient.connect(false)
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
+		const getData = createAutoLoginDataGet()
+		getData.userId = userId
+		getData.deviceToken = deviceToken
+		return serviceRequest(SysService.AutoLoginService, HttpMethod.GET, getData, AutoLoginDataReturnTypeRef, null, null)
+			.then(returnData => {
+				const key = uint8ArrayToKey(returnData.deviceKey)
+				return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
+			})
 	}
 }
+
+
+

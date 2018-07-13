@@ -112,23 +112,27 @@ type Contact = {
 	_area:NumberString;
 	_format:NumberString;
 	_id:IdTuple;
-	_ownerEncSessionKey:?Uint8Array;
 	_owner:Id;
+	_ownerEncSessionKey:?Uint8Array;
 	_ownerGroup:?Id;
 	_permissions:Id;
 	autoTransmitPassword:string;
-	birthday:?Date;
 	comment:string;
 	company:string;
 	firstName:string;
 	lastName:string;
+	nickname:?string;
+	oldBirthday:?Date;
 	presharedPassword:?string;
-	title:string;
+	role:string;
+	title:?string;
 
 	addresses:ContactAddress[];
+	birthday:?Birthday;
 	mailAddresses:ContactMailAddress[];
 	phoneNumbers:ContactPhoneNumber[];
 	socialIds:ContactSocialId[];
+	photo:?IdTuple;
 }
 
 type ConversationEntry = {
@@ -165,6 +169,7 @@ type Mail = {
 	_permissions:Id;
 	confidential:boolean;
 	differentEnvelopeSender:?string;
+	listUnsubscribe:boolean;
 	receivedDate:Date;
 	replyType:NumberString;
 	sentDate:Date;
@@ -244,6 +249,7 @@ type ContactList = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 
+	photos:?PhotosRef;
 	contacts:Id;
 }
 
@@ -728,10 +734,11 @@ type InternalGroupData = {
 	_type: TypeRef<InternalGroupData>;
 	_id:Id;
 	adminEncGroupKey:Uint8Array;
-	ownerEncGroupInfoSessionKey:Uint8Array;
 	groupEncPrivateKey:Uint8Array;
+	ownerEncGroupInfoSessionKey:Uint8Array;
 	publicKey:Uint8Array;
 
+	adminGroup:?Id;
 }
 
 type CustomerAccountCreateData = {
@@ -740,6 +747,7 @@ type CustomerAccountCreateData = {
 	adminEncAccountingInfoSessionKey:Uint8Array;
 	adminEncCustomerServerPropertiesSessionKey:Uint8Array;
 	authToken:string;
+	code:string;
 	date:?Date;
 	lang:string;
 	systemAdminPubEncAccountingInfoSessionKey:Uint8Array;
@@ -786,8 +794,8 @@ type MailboxGroupRoot = {
 	whitelistRequests:Id;
 }
 
-type CreateTeamGroupData = {
-	_type: TypeRef<CreateTeamGroupData>;
+type CreateLocalAdminGroupData = {
+	_type: TypeRef<CreateLocalAdminGroupData>;
 	_format:NumberString;
 	encryptedName:Uint8Array;
 
@@ -842,17 +850,15 @@ type ContactForm = {
 	_id:IdTuple;
 	_ownerGroup:?Id;
 	_permissions:Id;
-	footerHtml:string;
-	headerHtml:string;
-	helpHtml:string;
-	pageTitle:string;
 	path:string;
 
-	statisticsFields:InputField[];
+	languages:ContactFormLanguage[];
+	statisticsFields_removed:InputField[];
+	statisticsLog:?StatisticLogRef;
 	delegationGroups_removed:Id[];
 	participantGroupInfos:IdTuple[];
+	targetGroup:Id;
 	targetGroupInfo:?IdTuple;
-	targetMailGroup_removed:Id;
 }
 
 type ContactFormAccountReturn = {
@@ -916,8 +922,9 @@ type CustomerContactFormGroupRoot = {
 	_permissions:Id;
 
 	contactFormConversations:?DeleteContactFormConversationIndex;
+	statisticsLog:?UnencryptedStatisticLogRef;
 	contactForms:Id;
-	statisticsLog:Id;
+	statisticsLog_encrypted_removed:Id;
 }
 
 type ContactFormAccountData = {
@@ -952,6 +959,68 @@ type DeleteContactFormConversationIndexEntry = {
 
 type DeleteContactFormConversationIndex = {
 	_type: TypeRef<DeleteContactFormConversationIndex>;
+	_id:Id;
+
+	items:Id;
+}
+
+type Birthday = {
+	_type: TypeRef<Birthday>;
+	_id:Id;
+	day:NumberString;
+	month:NumberString;
+	year:?NumberString;
+
+}
+
+type PhotosRef = {
+	_type: TypeRef<PhotosRef>;
+	_id:Id;
+
+	files:Id;
+}
+
+type ContactFormLanguage = {
+	_type: TypeRef<ContactFormLanguage>;
+	_id:Id;
+	code:string;
+	footerHtml:string;
+	headerHtml:string;
+	helpHtml:string;
+	pageTitle:string;
+
+	statisticsFields:InputField[];
+}
+
+type ListUnsubscribeData = {
+	_type: TypeRef<ListUnsubscribeData>;
+	_format:NumberString;
+	headers:string;
+	recipient:string;
+
+	mail:IdTuple;
+}
+
+type StatisticLogRef = {
+	_type: TypeRef<StatisticLogRef>;
+	_id:Id;
+
+	items:Id;
+}
+
+type UnencryptedStatisticLogEntry = {
+	_type: TypeRef<UnencryptedStatisticLogEntry>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	contactFormPath:string;
+	date:Date;
+
+}
+
+type UnencryptedStatisticLogRef = {
+	_type: TypeRef<UnencryptedStatisticLogRef>;
 	_id:Id;
 
 	items:Id;

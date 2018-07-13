@@ -8,20 +8,12 @@ import {decryptAndMapToInstance} from "../crypto/CryptoFacade"
 
 assertWorkerOrNode()
 
-export class ContactFormFacade {
-
-	constructor() {
-	}
-
-	loadContactForm(formId: string): Promise<ContactForm> {
-		return resolveTypeReference(ContactFormTypeRef).then(model => {
-			let path = typeRefToPath(ContactFormTypeRef)
-			return restClient.request(path + "/" + formId, HttpMethod.GET, {}, {v: model.version}, null, "application/json", null).then(json => {
-				let data = JSON.parse((json:string))
-				return decryptAndMapToInstance(model, data)
-			})
+export function loadContactForm(formId: string): Promise<ContactForm> {
+	return resolveTypeReference(ContactFormTypeRef).then(model => {
+		let path = typeRefToPath(ContactFormTypeRef)
+		return restClient.request(path + "/" + formId, HttpMethod.GET, {}, {v: model.version}, null, "application/json", null).then(json => {
+			let data = JSON.parse((json:string))
+			return decryptAndMapToInstance(model, data)
 		})
-	}
+	})
 }
-
-export const contactFormFacade: ContactFormFacade = new ContactFormFacade()

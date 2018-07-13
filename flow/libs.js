@@ -92,6 +92,7 @@ interface Mithril {
 	(selector: string|Component, children?: Children): Vnode<any>;
 	(selector: string|Component, attributes?: Object, children?: Children): Vnode<any>;
 	<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs): Vnode<Attrs>;
+	<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 	<Attrs>(component: MComponent<Attrs>): Vnode<Attrs>;
 
 	route: {
@@ -103,6 +104,7 @@ interface Mithril {
 	redraw():void;
 	trust(html: string):any;
 	withAttr(attrName: string, callback: Function) : Function;
+	buildQueryString(args: {[string]:any}) : string;
 }
 
 interface Attributes {
@@ -136,6 +138,8 @@ type Children = Child | ChildArray;
 
 interface Vnode<Attrs> extends Lifecycle<Attrs> {
 	attrs:Attrs,
+	children:Children,
+	dom: HTMLElement,
 }
 
 interface VnodeDOM<Attrs> extends Vnode<Attrs> {

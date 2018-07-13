@@ -2,33 +2,56 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isAndroidApp} from "../api/Env"
 import {fileApp} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {CryptoError} from "../api/common/error/CryptoError"
+import {lang} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
 export class FileController {
 
 	downloadAndOpen(tutanotaFile: TutanotaFile): Promise<void> {
-		return Dialog.progress("pleaseWait_msg",
+		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				return this.open(file)
+				if (!isAndroidApp()) { // on android we store files in the download folder
+					return this.open(file)
+				}
+			}).catch(err => {
+				if (err instanceof CryptoError) {
+					return Dialog.error("corrupted_msg")
+				} else {
+					return Dialog.error("couldNotAttachFile_msg")
+				}
 			})
 		)
 	}
 
 	downloadAndOpenAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
-		return Dialog.progress("pleaseWait_msg",
-			Promise.map(tutanotaFiles, (tutanotaFile) => {
+		return showProgressDialog("pleaseWait_msg",
+			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
+					.catch(err => {
+						if (err instanceof CryptoError) {
+							return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+						} else {
+							return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+						}
+					})
 			}).each((file, index) => {
-				return fileController.open(file)
+				if (!isAndroidApp()) {
+					return fileController.open(file)
+				}
 			})
 		).return()
 	}
 
-	showFileChooser(multiple: boolean): Promise<Array<DataFile>> {
+	/**
+	 * @param allowedExtensions Array of extensions strings without "."
+	 */
+	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
 		// if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE) {
 		// 	return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
 		// 		return []
@@ -50,6 +73,9 @@ export class FileController {
 			newFileInput.setAttribute("multiple", "multiple")
 		}
 		newFileInput.setAttribute("id", "hiddenFileChooser")
+		if (allowedExtensions) {
+			newFileInput.setAttribute("accept", allowedExtensions.map(e => "." + e).join(","))
+		}
 		newFileInput.style.display = "none"
 
 		let promise = Promise.fromCallback(cb => {

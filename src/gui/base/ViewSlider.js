@@ -11,6 +11,14 @@ import {assertMainOrNode} from "../../api/Env"
 
 assertMainOrNode()
 
+type GestureInfo = {
+	x: number,
+	time: number,
+	identifier: number
+}
+
+const gestureInfoFromTouch = (touch: Touch) => ({x: touch.pageX, time: Date.now(), identifier: touch.identifier})
+
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
@@ -21,14 +29,120 @@ export class ViewSlider {
 	_mainColumn: ViewColumn;
 	focusedColumn: ViewColumn;
 	_visibleBackgroundColumns: ViewColumn[];
-	resizeListener: windowSizeListener;
 	_domSlider: HTMLElement;
 	view: Function;
 	_busy: Promise<void>;
 	_parentName: string
-	oncreate: Function;
-	onremove: Function;
 	_isModalBackgroundVisible: boolean
+	lastGestureInfo: ?GestureInfo
+	oldGestureInfo: ?GestureInfo
+
+	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
+	oncreate = () => {
+		this._updateVisibleBackgroundColumns()
+		windowFacade.addResizeListener(this.resizeListener)
+	}
+
+	/** Removes the registered event listener as soon as this component is unloaded (invoked by mithril)*/
+	onremove = () => windowFacade.removeResizeListener(this.resizeListener)
+
+	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
+
+	_getSideColDom = () => this.columns[0]._domColumn
+
+	_gestureEnd = (event: any) => {
+		const gestureInfo = this.lastGestureInfo
+		const oldGestureInfo = this.oldGestureInfo
+		if (gestureInfo && oldGestureInfo && !this.allColumnsVisible()) {
+			const touch = event.changedTouches[0]
+			const mainCol = this._mainColumn._domColumn
+			const sideCol = this._getSideColDom()
+			if (!mainCol || !sideCol) {
+				return
+			}
+
+			const mainColRect = mainCol.getBoundingClientRect()
+
+			const velocity = (gestureInfo.x - oldGestureInfo.x) / (gestureInfo.time - oldGestureInfo.time)
+
+			const show = () => {
+				this.focusedColumn = this.columns[0]
+				this._busy = this._slideForegroundColumn(this.columns[0], true)
+				this._isModalBackgroundVisible = true
+			}
+
+			const hide = () => {
+				this.focusedColumn = this.columns[1]
+				this._busy = this._slideForegroundColumn(this.columns[0], false)
+				this._isModalBackgroundVisible = false
+			}
+
+			if (velocity > 0.8) {
+				show()
+			} else if (velocity < -0.8) {
+				hide()
+			} else {
+				if (touch.pageX > mainColRect.left + 100) {
+					show()
+				} else {
+					hide()
+				}
+			}
+
+			this._busy.then(() => m.redraw())
+		}
+
+		if (gestureInfo && gestureInfo.identifier === event.changedTouches[0].identifier) {
+			this.lastGestureInfo = null
+			this.oldGestureInfo = null
+		}
+	}
+
+	_eventListners = {
+		touchstart: (event: any) => {
+			if (this.lastGestureInfo) {
+				// Already detecting a gesture, ignore second one
+				return;
+			}
+			const mainCol = this._mainColumn._domColumn
+			const sideCol = this._getSideColDom()
+			if (!mainCol || !sideCol || this.allColumnsVisible()) {
+				this.lastGestureInfo = null
+				return
+			}
+			const colRect = mainCol.getBoundingClientRect()
+			if (
+				event.touches.length == 1 &&
+				(this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)
+			) {
+				// Only stop propogation while the menu is not yet fully visible
+				if (!this.columns[0].isInForeground) {
+					event.stopPropagation()
+				}
+				this.lastGestureInfo = gestureInfoFromTouch(event.touches[0])
+			}
+		},
+		touchmove: (event: any) => {
+			const sideCol = this._getSideColDom()
+			if (!sideCol || !this._mainColumn || this.allColumnsVisible()) {
+				return
+			}
+
+			const gestureInfo = this.lastGestureInfo
+			if (gestureInfo && event.touches.length == 1) {
+				const touch = event.touches[0]
+				const newTouchPos = touch.pageX
+				const sideColRect = sideCol.getBoundingClientRect()
+				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos), sideColRect.width)
+				sideCol.style.transform = `translateX(${newTranslate}px)`
+				this.oldGestureInfo = this.lastGestureInfo
+				this.lastGestureInfo = gestureInfoFromTouch(touch)
+				event.stopPropagation()
+			}
+		},
+		touchend: this._gestureEnd,
+		touchcancel: this._gestureEnd
+	}
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
@@ -40,24 +154,14 @@ export class ViewSlider {
 		this._parentName = parentName
 		this._isModalBackgroundVisible = false
 
-		this.resizeListener = (width, height) => {
-			this._updateVisibleBackgroundColumns()
-		}
-
-		/** Removes the registered event listener as soon as this component is unloaded (invoked by mithril)*/
-		this.onremove = () => {
-			windowFacade.removeResizeListener(this.resizeListener)
-		}
-		/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
-		this.oncreate = () => {
-			this._updateVisibleBackgroundColumns()
-			windowFacade.addResizeListener(this.resizeListener)
-		}
-
 		this.view = (): VirtualElement => {
-			// console.log("viewslider.view")
 			return m(".view-columns.fill-absolute.backface_fix", {
-				oncreate: (vnode) => this._domSlider = vnode.dom,
+				oncreate: (vnode) => {
+					this._domSlider = vnode.dom
+					for (let listener in this._eventListners) {
+						this._domSlider.addEventListener(listener, this._eventListners[listener], true)
+					}
+				},
 				style: {
 					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
 					width: this.getWidth() + 'px'
@@ -68,28 +172,28 @@ export class ViewSlider {
 
 	_createModalBackground() {
 		if (this._isModalBackgroundVisible) {
-			return [m(".fill-absolute.z2", {
-				oncreate: (vnode) => {
-					animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5))
-				},
-				onbeforeremove: (vnode) => {
-					return animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0))
-				},
-				onclick: (event: MouseEvent) => {
-					this.focus(this._visibleBackgroundColumns[0])
-				}
-			})]
+			return [
+				m(".fill-absolute.z2.will-change-alpha", {
+					oncreate: (vnode) => {
+						this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
+					},
+					onbeforeremove: (vnode) => {
+						return this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0)))
+					},
+					onclick: (event: MouseEvent) => {
+						this.focus(this._visibleBackgroundColumns[0])
+					}
+				})
+			]
 		} else {
 			return []
 		}
 	}
 
 	_updateVisibleBackgroundColumns() {
-		this.focusedColumn.isInForeground = false
-		this._isModalBackgroundVisible = false
-		this.focusedColumn = this._mainColumn
-		let visibleColumns: ViewColumn[] = [this._mainColumn]
-		let remainingSpace = window.innerWidth - this._mainColumn.minWidth
+		this.focusedColumn = this.focusedColumn || this._mainColumn
+		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType == ColumnType.Background ? this.focusedColumn : this._mainColumn)]
+		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
 
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.columns)
 		while (nextVisibleColumn && remainingSpace >= nextVisibleColumn.minWidth) {
@@ -106,6 +210,15 @@ export class ViewSlider {
 		this.updateOffsets(this.columns)
 
 		this._visibleBackgroundColumns = visibleColumns
+
+		if (this.allColumnsVisible()) {
+			this.focusedColumn.isInForeground = false
+			this._isModalBackgroundVisible = false
+			if (this.columns[0]._domColumn) {
+				this.columns[0]._domColumn.style.transform = ''
+			}
+		}
+
 		window.requestAnimationFrame(() => m.redraw())
 	}
 
@@ -115,8 +228,6 @@ export class ViewSlider {
 	 * @param allColumns All columns*
 	 */
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ?ViewColumn {
-		let visibleIndexes = visibleColumns.map(column => allColumns.indexOf(column))
-
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
 			return column.columnType == ColumnType.Background && visibleColumns.indexOf(column) < 0
@@ -132,7 +243,7 @@ export class ViewSlider {
 
 	/**
 	 * distributes the remaining space to all visible columns
-	 * @param columns
+	 * @param visibleColumns
 	 * @param remainingSpace
 	 */
 	_distributeRemainingSpace(visibleColumns: ViewColumn[], remainingSpace: number) {
@@ -171,7 +282,6 @@ export class ViewSlider {
 
 
 	focus(viewColumn: ViewColumn) {
-		//console.log("focus", viewColumn)
 		this._busy.then(() => {
 			// hide the foreground column if the column is in foreground
 			if (this.focusedColumn.isInForeground) {
@@ -181,7 +291,6 @@ export class ViewSlider {
 		}).then(() => {
 			this.focusedColumn = viewColumn
 			if (viewColumn.columnType == ColumnType.Background && this._visibleBackgroundColumns.length == 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
-				//console.log("slide start", oldOffset, newOffset)
 				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
 			} else if (viewColumn.columnType == ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
@@ -195,12 +304,10 @@ export class ViewSlider {
 	 */
 	_slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
 		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset), {
-			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {
 			// replace the visible column
 			this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
-			//console.log("slide end")
 		})
 	}
 
@@ -208,18 +315,16 @@ export class ViewSlider {
 	 * Executes a slide animation for the foreground button.
 	 */
 	_slideForegroundColumn(foregroundColumn: ViewColumn, toForeground: boolean): Promise<void> {
-		let oldOffset = foregroundColumn.getOffsetForeground(foregroundColumn.isInForeground)
+		if (!foregroundColumn._domColumn) return Promise.resolve()
+		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
+		const oldOffset = colRect.left + colRect.width
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
 
 		this._isModalBackgroundVisible = toForeground
-		m.redraw() // to animate the modal background in parallel to the sliding animation
-		//console.log("fade in start")
 		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
-			delay: 200,
-			easingFunction: ease.inOut
+			easingFunction: ease.in
 		}).finally(() => {
 			foregroundColumn.isInForeground = toForeground
-			//console.log("fade in end")
 		})
 	}
 
@@ -257,6 +362,10 @@ export class ViewSlider {
 			return this.columns[visibleColumnIndex - 1]
 		}
 		return null
+	}
+
+	allColumnsVisible(): boolean {
+		return this._visibleBackgroundColumns.length == this.columns.length
 	}
 
 }

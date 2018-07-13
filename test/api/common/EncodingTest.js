@@ -13,8 +13,12 @@ import {
 	hexToBase64,
 	timestampToHexGeneratedId,
 	uint8ArrayToArrayBuffer,
-	base64ToHex
+	base64ToHex,
+	base64ExtToBase64,
+	generatedIdToTimestamp,
+	timestampToGeneratedId
 } from "../../../src/api/common/utils/Encoding"
+import {GENERATED_MIN_ID} from "../../../src/api/common/EntityFunctions"
 
 o.spec("Encoding", function () {
 
@@ -97,11 +101,26 @@ o.spec("Encoding", function () {
 	o("Base64ToBase64Ext ", function () {
 		let hexPaddedGeneratedId = "4fc6fbb10000000000"
 		o(base64ToBase64Ext(hexToBase64(hexPaddedGeneratedId))).equals("IwQvgF------")
+		o(base64ExtToBase64("IwQvgF------")).equals(hexToBase64(hexPaddedGeneratedId))
+
+		// roundtrips
+		o(base64ExtToBase64(base64ToBase64Ext("AA=="))).equals("AA==")
+		o(base64ExtToBase64(base64ToBase64Ext("qq8="))).equals("qq8=")
+		o(base64ExtToBase64(base64ToBase64Ext("qqqv"))).equals("qqqv")
 	})
 
 	o("TimestampToHexGeneratedId ", function () {
 		let timestamp = 1370563200000
 		o(timestampToHexGeneratedId(timestamp)).equals("4fc6fbb10000000000")
+	})
+
+	o("generatedIdToTimestamp ", function () {
+		let maxTimestamp = (Math.pow(2, 42) - 1)
+
+		o(generatedIdToTimestamp(GENERATED_MIN_ID)).equals(0)
+		o(generatedIdToTimestamp(timestampToGeneratedId(0))).equals(0)
+		o(generatedIdToTimestamp("zzzzzzzzzzzz")).equals(maxTimestamp)
+		o(generatedIdToTimestamp("IwQvgF------")).equals(1370563200000)
 	})
 
 	o("Uint8ArrayToBase64 ", function () {
