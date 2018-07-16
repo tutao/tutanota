@@ -29,6 +29,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -38,6 +41,14 @@ public class FileUtil {
     private static final int HTTP_TIMEOUT = 15 * 1000;
 
     private final MainActivity activity;
+
+    private final ThreadPoolExecutor networkTasksExecutor = new ThreadPoolExecutor(
+            1, // core pool size
+            4, // max pool size
+            10, // keepalive time
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+    );
 
     public FileUtil(MainActivity activity) {
         this.activity = activity;
@@ -195,34 +206,37 @@ public class FileUtil {
 
     Promise<String, Exception, Void> download(final String sourceUrl, final String filename, final JSONObject headers) {
         return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
-            HttpURLConnection con = null;
-            try {
-                con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
-                con.setConnectTimeout(HTTP_TIMEOUT);
-                con.setReadTimeout(HTTP_TIMEOUT);
-                con.setRequestMethod("GET");
-                con.setDoInput(true);
-                con.setUseCaches(false);
-                addHeadersToRequest(con, headers);
-                con.connect();
+            DeferredObject<String, Exception, Void> result = new DeferredObject<>();
+            networkTasksExecutor.execute(() -> {
+                HttpURLConnection con = null;
+                try {
+                    con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
+                    con.setConnectTimeout(HTTP_TIMEOUT);
+                    con.setReadTimeout(HTTP_TIMEOUT);
+                    con.setRequestMethod("GET");
+                    con.setDoInput(true);
+                    con.setUseCaches(false);
+                    addHeadersToRequest(con, headers);
+                    con.connect();
 
-                Context context = activity.getWebView().getContext();
-                File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
-                encryptedDir.mkdirs();
-                File encryptedFile = new File(encryptedDir, filename);
+                    Context context = activity.getWebView().getContext();
+                    File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
+                    encryptedDir.mkdirs();
+                    File encryptedFile = new File(encryptedDir, filename);
 
-                IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
-                        new byte[1024 * 1000]);
+                    IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
+                            new byte[1024 * 1000]);
 
-                return new DeferredObject<String, Exception, Void>()
-                        .resolve(Utils.fileToUri(encryptedFile));
-            } catch (IOException | JSONException e) {
-                return new DeferredObject<String, Exception, Void>().reject(e);
-            } finally {
-                if (con != null) {
-                    con.disconnect();
+                    result.resolve(Utils.fileToUri(encryptedFile));
+                } catch (IOException | JSONException e) {
+                    result.reject(e);
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
                 }
-            }
+            });
+            return result;
         });
     }
 
