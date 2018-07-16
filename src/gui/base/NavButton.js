@@ -113,7 +113,7 @@ export class NavButton {
 					if (!this._isExternalUrl()) {
 						m.route.link(vnode)
 					}
-					this._domButton.onclick = (event: MouseEvent) => this.click(event)
+					vnode.dom.onclick = (event: MouseEvent) => this.click(event)
 				}
 			},
 			onbeforeremove: (vnode) => {

@@ -35,7 +35,7 @@ export class List<T, R:VirtualRow<T>> {
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 	_domListContainer: HTMLElement;
 	_domList: HTMLElement;
-	_domInitialized: Object;
+	_domInitialized: {resolve: () => void, promise: Promise<void>};
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
@@ -67,6 +67,7 @@ export class List<T, R:VirtualRow<T>> {
 	_idOfEntityToSelectWhenReceived: ?Id;
 
 	_emptyMessageBox: MessageBox;
+	_renderCallback: ?{type: 'timeout'|'frame', id: number}
 
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
@@ -98,6 +99,7 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		let reset = () => {
+			this._cancelRenderCallback()
 			if (this._domListContainer) {
 				this._domListContainer.removeEventListener('scroll', this._scrollListener)
 			}
@@ -216,6 +218,11 @@ export class List<T, R:VirtualRow<T>> {
 				return list
 			}
 		}
+	}
+
+	clear() {
+		this._loadedEntities.length = 0
+		this._loadedCompletely = false
 	}
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
@@ -506,9 +513,21 @@ export class List<T, R:VirtualRow<T>> {
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
 		if (client.isMobileDevice()) {
-			window.setTimeout(() => this._doRender(), 200)
+			const id = window.setTimeout(() => this._doRender(), 200)
+			this._renderCallback = {type: 'timeout', id}
 		} else {
-			window.requestAnimationFrame(() => this._doRender())
+			const id = window.requestAnimationFrame(() => this._doRender())
+			this._renderCallback = {type: 'frame', id}
+		}
+	}
+
+	_cancelRenderCallback() {
+		if (this._renderCallback) {
+			if (this._renderCallback.type === 'timeout') {
+				clearTimeout(this._renderCallback.id)
+			} else {
+				cancelAnimationFrame(this._renderCallback.id)
+			}
 		}
 	}
 
@@ -1013,7 +1032,6 @@ class SwipeHandler {
 	}
 
 	updateWidth() {
-		//console.log("update", this.list._width)
 		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
 		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'

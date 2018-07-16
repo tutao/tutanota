@@ -3,17 +3,25 @@ import m from "mithril"
 import {hexToRgb} from "../animation/Animations"
 import {theme} from "../theme"
 
+export type PositionRect = {
+	top?: ?string,
+	left?: ?string,
+	right?: ?string,
+	width?: ?string,
+	bottom?: ?string
+}
+
 type OverlayAttrs = {
 	component: Component;
-	origin: ClientRect;
+	position: PositionRect;
 }
 
 let attrs: ?OverlayAttrs = null
 let overlayShadow = hexToRgb(theme.modal_bg)
 
-export function displayOverlay(origin: ClientRect, component: Component) {
+export function displayOverlay(position: PositionRect, component: Component) {
 	attrs = {
-		origin,
+		position,
 		component
 	}
 }
@@ -35,10 +43,12 @@ export const overlay = {
 			}
 		}, attrs != null ? m(".abs.list-bg", {
 				style: {
-					width: "350px",
+					width: attrs.position.width,
+					top: attrs.position.top,
+					bottom: attrs.position.bottom,
+					right: attrs.position.right,
+					left: attrs.position.left,
 					'z-index': 200,
-					right: window.innerWidth - attrs.origin.right + "px",
-					top: attrs.origin.bottom + 5 + "px",
 					'box-shadow': `0 2px 12px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.4), 0 10px 40px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.3)`, //0.23 0.19
 				}
 			}, m(attrs.component)) : "no component")

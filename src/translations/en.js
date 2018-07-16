@@ -1074,6 +1074,9 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"searchEmails_placeholder": "Search for mails",
+		"searchContacts_placeholder": "Search for contacts",
+		"searchUsers_placeholder": "Search for users"
 	}
 }

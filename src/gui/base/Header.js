@@ -9,10 +9,13 @@ import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
-import {px} from "../size"
+import {px, size as sizes} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
 import {Mode, assertMainOrNodeBoot} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
+import type {SearchBar} from "../../search/SearchBar"
+import type {MainLocatorType} from "../../api/main/MainLocator"
+import {Icons} from "./icons/Icons"
 
 export const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -30,27 +33,26 @@ class Header {
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
 	mailNavButton: NavButton;
+	searchBar: ?SearchBar
 
 	constructor() {
 		this.contactsUrl = '/contact'
 		this.mailsUrl = '/mail'
 		this.settingsUrl = '/settings'
-		this.searchUrl = '/search'
+		this.searchUrl = '/search/mail'
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
-		/*
-		 TODO search for mobiles
-		 let searchViewButton = new NavButton("search_label", () => Icons.Search, () => m.route.get(), this.searchUrl)
-		 .setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && styles.isDesktopLayout())
-		 .setClickHandler(() => console.log("show search input field"))
-		 */
+		let searchViewButton = new NavButton("search_label", () => Icons.Search, () => this.searchUrl, this.searchUrl)
+			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
+			.setClickHandler(() => console.log("show search input field"))
 
 
 		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
+
 		this.buttonBar = new NavBar()
-		//.addButton(searchViewButton, 0, true, false)
+			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
@@ -78,12 +80,30 @@ class Header {
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),
-				styles.isDesktopLayout() ? null : m(".flex-center.header-middle.items-center.text-ellipsis.b", this._getColumnTitle()),
+				styles.isDesktopLayout() ? null : this._getCenterContent(),
 				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
 					style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
 				}, m(this.buttonBar))
 			])
 		}
+
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
+			.then((searchBarModule) => {
+				this.searchBar = new searchBarModule.SearchBar()
+			})
+	}
+
+
+	_searchBarVisible(): boolean {
+		let route = m.route.get()
+		let locator: ?MainLocatorType = window.tutao.locator
+		return this.searchBar != null
+			&& locator != null
+			&& !locator.search.indexState().initializing
+			&& locator.search.indexState().indexingSupported
+			&& !styles.isDesktopLayout()
+			&& logins.isInternalUserLoggedIn()
+			&& (route.startsWith("/search"))
 	}
 
 	_setupShortcuts() {
@@ -163,19 +183,42 @@ class Header {
 		)
 	}
 
-	_getColumnTitle() {
+	_getCenterContent(): Vnode<mixed> | null {
 		const viewSlider = this._getViewSlider()
-		if (viewSlider) {
-			return viewSlider.focusedColumn.getTitle()
+		const header = (title: string) => m(".flex-center.header-middle.items-center.text-ellipsis.b", title)
+		if (this._searchBarVisible()) {
+			return this._searchBar()
+		} else if (viewSlider) {
+			return header(viewSlider.focusedColumn.getTitle())
 		} else if (m.route.get().startsWith('/login')) {
-			return lang.get("login_label")
+			return header(lang.get("login_label"))
 		} else if (m.route.get().startsWith('/signup')) {
-			return lang.get("registrationHeadline_msg")
+			return header(lang.get("registrationHeadline_msg"))
 		} else {
-			return ""
+			return null
 		}
 	}
 
+	_searchBar(): Vnode<any> {
+		let placeholder;
+		if (m.route.get().startsWith("/search/mail")) {
+			placeholder = lang.get("searchEmails_placeholder")
+		} else if (m.route.get().startsWith("/search/contact")) {
+			placeholder = lang.get("searchContacts_placeholder")
+		} else {
+			placeholder = null
+		}
+		return m(neverNull(this.searchBar), {
+			alwaysExpanded: true,
+			classes: ".flex-center",
+			placeholder,
+			style: {
+				height: "100%",
+				"margin-left": px(sizes.navbar_edge_width_mobile),
+				"margin-right": px(sizes.navbar_edge_width_mobile)
+			}
+		})
+	}
 
 	_getLeftElements() {
 		const viewSlider = this._getViewSlider()

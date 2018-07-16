@@ -12,9 +12,11 @@ assertMainOrNode()
 export class SearchModel {
 	result: stream<?SearchResult>;
 	indexState: stream<SearchIndexStateInfo>;
+	lastQuery: stream<?string>;
 
 	constructor() {
 		this.result = stream()
+		this.lastQuery = stream("")
 		this.indexState = stream({
 			initializing: true,
 			indexingSupported: true,
@@ -30,6 +32,7 @@ export class SearchModel {
 	}
 
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+		this.lastQuery(query)
 		let result = this.result()
 		if (result && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
 			// reset the result in case only the search type has changed

@@ -8,7 +8,9 @@ import {styles} from "../styles"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import {asyncImport} from "../../api/common/utils/Utils"
-
+import {logins} from "../../api/main/LoginController"
+import type {MainLocatorType} from "../../api/main/MainLocator"
+import {lang} from "../../misc/LanguageViewModel"
 assertMainOrNodeBoot()
 
 type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number, hideLabelDefault:boolean}
@@ -48,8 +50,7 @@ export class NavBar {
 			id: Number.MAX_VALUE,
 			priority: MAX_PRIO,
 			button: createDropDownNavButton("more_label", () => BootIcons.MoreVertical, () => {
-				let buttons = this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
-				return buttons
+				return this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
 			}),
 			prefixComponent: styles.isDesktopLayout() ? {
 					view: () => m(".nav-bar-spacer"),
@@ -72,7 +73,6 @@ export class NavBar {
 
 		windowFacade.addResizeListener(this.resizeListener)
 
-		let self = this
 		this.controller = function () {
 			return this
 		}
@@ -81,14 +81,51 @@ export class NavBar {
 			let buttons = this.getVisibleButtons()
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
-			}, [this.searchBar ? m(this.searchBar) : null].concat(buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
-				key: wrapper.id,
-				oncreate: vnode => {
-					wrapper.width = vnode.dom.getBoundingClientRect().width
-				},
-				style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
-			}, m(wrapper.button))])))
+			}, [this._searchBar()].concat(buttons.visible.map((wrapper: ButtonWrapper) =>
+				[wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
+					key: wrapper.id,
+					oncreate: vnode => {
+						wrapper.width = vnode.dom.getBoundingClientRect().width
+					},
+					style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
+				}, m(wrapper.button))])))
 		}
+	}
+
+	_searchBar(): Child {
+		return this._searchBarVisible() ? m(this.searchBar, {
+				spacer: true,
+				placeholder: this._searchPlaceholder(),
+			}) :
+			null
+	}
+
+	_searchPlaceholder(): ?string {
+		const route = m.route.get()
+		if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
+			return lang.get("searchEmails_placeholder")
+		} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
+			return lang.get("searchContacts_placeholder")
+		} else if (route.startsWith("/settings/users")) {
+			return lang.get("searchUsers_placeholder")
+		} else {
+			return null
+		}
+	}
+
+	_searchBarVisible(): boolean {
+		let route = m.route.get()
+		let locator: ?MainLocatorType = window.tutao.locator
+		return this.searchBar != null && locator != null && !locator.search.indexState().initializing
+			&& locator.search.indexState().indexingSupported
+			&& styles.isDesktopLayout()
+			&& logins.isInternalUserLoggedIn()
+			&& (route.startsWith("/search")
+			|| route.startsWith("/mail")
+			|| route.startsWith("/contact")
+			|| route.startsWith("/settings/users")
+			|| route.startsWith("/settings/groups")
+			|| route.startsWith("/settings/whitelabelaccounts"))
 	}
 
 	/**
@@ -143,7 +180,7 @@ export class NavBar {
 		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.button.isVisible())
 		let remainingSpace = this.maxWidth
 
-		if (this.searchBar && this.searchBar.isVisible()) {
+		if (this._searchBarVisible()) {
 			remainingSpace = remainingSpace - this.searchBar.getMaxWidth() // reserve space for expanded search bar
 		}
 
@@ -160,11 +197,12 @@ export class NavBar {
 			if (visible.indexOf(this.more) == -1) {
 				visible.unshift(this.more)
 			}
-			while (remainingSpace - visible[0].width >= 0) {
+			do {
 				remainingSpace -= visible[0].width
 				let move = visible.splice(0, 1)[0]
 				buttons.visible.push(move)
-			}
+			} while (remainingSpace - visible[0].width >= 0)
+
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
