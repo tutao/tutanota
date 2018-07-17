@@ -1074,6 +1074,10 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"searchEmails_placeholder": "Suche nach E-Mails",
+		"searchContacts_placeholder": "Suche nach Kontakten",
+		"searchUsers_placeholder": "Suche nach Benutzern",
+		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen"
 	}
 }

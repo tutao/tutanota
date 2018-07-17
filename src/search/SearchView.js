@@ -257,7 +257,6 @@ export class SearchView {
 			this._mailFieldSelection.selectedValue(),
 			this._mailFolderSelection.selectedValue()
 		)
-		const result = locator.search.result()
 		return getSearchUrl(locator.search.lastQuery(), restriction, selectedId)
 	}
 

@@ -175,7 +175,7 @@ export class SearchListView {
 			}:any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
-			emptyMessage: lang.get("searchNoResults_msg") + "\n" + "You can switch search type in the menu"
+			emptyMessage: lang.get("searchNoResults_msg") + "\n" + lang.get("switchSearchInMenu_label")
 		})
 	}
 

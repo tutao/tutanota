@@ -1077,6 +1077,7 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"searchEmails_placeholder": "Search for mails",
 		"searchContacts_placeholder": "Search for contacts",
-		"searchUsers_placeholder": "Search for users"
+		"searchUsers_placeholder": "Search for users",
+		"switchSearchInMenu_label": "You can switch search type in the menu"
 	}
 }

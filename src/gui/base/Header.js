@@ -45,8 +45,6 @@ class Header {
 
 		let searchViewButton = new NavButton("search_label", () => Icons.Search, () => this.searchUrl, this.searchUrl)
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
-			.setClickHandler(() => console.log("show search input field"))
-
 
 		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())

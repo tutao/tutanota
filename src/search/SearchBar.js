@@ -95,7 +95,7 @@ export class SearchBar {
 		this._results = []
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
-				m(".search-bar.flex-end.items-center", {
+				m(".search-bar.flex-end.flex-grow-shrink-auto.items-center", {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom
 					},
@@ -106,7 +106,6 @@ export class SearchBar {
 						'margin-right': px(styles.isDesktopLayout() ? 15 : 8),
 						'border-bottom': vnode.attrs.alwaysExpanded || this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
 						'align-self': "center",
-						'width': '100%',
 						'max-width': px(400)
 					}
 				}, [
@@ -151,6 +150,7 @@ export class SearchBar {
 						},
 						[this._getInputField(vnode.attrs), m(".closeIconWrapper", {
 							onclick: (e) => this.close(),
+							style: {width: size.icon_size_large}
 						}, this.busy ? m(Icon, {
 								icon: BootIcons.Progress,
 								class: 'flex-center items-center icon-progress-search icon-progress'
@@ -633,6 +633,6 @@ export class SearchBar {
 	}
 
 	getMaxWidth(): number {
-		return SEARCH_INPUT_WIDTH // includes  input width + search icon(21) + margin right(15) + spacer(4)
+		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
 	}
 }

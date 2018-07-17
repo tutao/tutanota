@@ -732,6 +732,7 @@ module.exports = {
 		"yes_label": "Да",
 		"searchEmails_placeholder": "Поиск писем",
 		"searchContacts_placeholder": "Поиск контактов",
-		"searchUsers_placeholder": "Поиск пользователей"
+		"searchUsers_placeholder": "Поиск пользователей",
+		"switchSearchInMenu_label": "Вы можете поменять тип поиска в меню"
 	}
 }
