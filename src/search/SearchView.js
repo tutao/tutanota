@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
-import {header} from "../gui/base/Header"
 import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
@@ -14,7 +13,7 @@ import {
 } from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {NavButton} from "../gui/base/NavButton"
+import {NavButton, NavButtonColors} from "../gui/base/NavButton"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -66,7 +65,9 @@ export class SearchView {
 
 	constructor() {
 		this._mailFolder = new NavButton('emails_label', () => BootIcons.Mail, () => this._getCurrentSearchUrl("mail", null), "/search/mail")
+			.setColors(NavButtonColors.Nav)
 		this._contactFolder = new NavButton('contacts_label', () => BootIcons.Contacts, () => "/search/contact", "/search/contact")
+			.setColors(NavButtonColors.Nav)
 
 		this._startDate = null
 		this._endDate = null
@@ -256,31 +257,31 @@ export class SearchView {
 			this._mailFieldSelection.selectedValue(),
 			this._mailFolderSelection.selectedValue()
 		)
-		return getSearchUrl(header.buttonBar.searchBar.value(), restriction, selectedId)
+		return getSearchUrl(locator.search.lastQuery(), restriction, selectedId)
 	}
 
 	_setupShortcuts() {
 		let shortcuts = [
 			{
 				key: Keys.UP,
-				exec: () => this._searchList.list.selectPrevious(false),
+				exec: () => this._searchList.selectPrevious(false),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.UP,
 				shift: true,
-				exec: () => this._searchList.list.selectPrevious(true),
+				exec: () => this._searchList.selectPrevious(true),
 				help: "addPrevious_action"
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => this._searchList.list.selectNext(false),
+				exec: () => this._searchList.selectNext(false),
 				help: "selectNext_action"
 			},
 			{
 				key: Keys.DOWN,
 				shift: true,
-				exec: () => this._searchList.list.selectNext(true),
+				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"
 			},
 			{
@@ -292,7 +293,6 @@ export class SearchView {
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
 		this.onbeforeremove = () => {
-			console.log("SearchView onbeforeremove")
 			keyManager.unregisterShortcuts(shortcuts)
 		}
 
@@ -302,10 +302,10 @@ export class SearchView {
 		this._viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
 
 		if (entries.length == 1 && m.route.get().startsWith("/search/")) {
-			setSearchUrl(getSearchUrl(header.buttonBar.searchBar.value(), getRestriction(m.route.get()), entries[0]._id[1]))
+			setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
 		}
 		if (!multiSelectOperation && elementClicked) {
-			this._searchList.list._loading.then(() => {
+			this._searchList.loading().then(() => {
 				this.viewSlider.focus(this.resultDetailsColumn)
 			})
 		}
@@ -317,20 +317,22 @@ export class SearchView {
 	 * @param args Object containing the optional parts of the url which are listId and contactId for the contact view.
 	 */
 	updateUrl(args: Object, requestedPath: string) {
-		// only update the query if the search bar is not focused. if it is focused the user may just have changed the query
-		if (args.query && !header.buttonBar.searchBar.focused) {
-			header.buttonBar.searchBar.value(args.query)
-		}
 		let restriction
 		try {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
-			console.log("invalid search url", e)
 			setSearchUrl(getSearchUrl(args.query, createRestriction("mail")))
 			return
 		}
-		if (locator.search.isNewSearch(header.buttonBar.searchBar.value(), restriction)) {
-			locator.search.search(header.buttonBar.searchBar.value(), restriction, 0)
+
+		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
+		if (args.hasOwnProperty('query')) {
+			if (locator.search.isNewSearch(args.query, restriction)) {
+				locator.search.search(args.query, restriction, 0)
+			}
+		} else if (locator.search.isNewSearch(locator.search.lastQuery(), restriction)) {
+			// If query is not set for some reason (e.g. switching search type), use the last query value
+			locator.search.search(locator.search.lastQuery(), restriction, 0)
 		}
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
@@ -342,27 +344,27 @@ export class SearchView {
 			this._doNotUpdateQuery = false
 		}
 
-		if (args.id && this._searchList.list && !this._searchList.list.isEntitySelected(args.id) && this._searchList.list._domList) {
+		if (args.id && this._searchList.isListAvailable() && !this._searchList.isEntitySelected(args.id)) {
 			// the mail list is visible already, just the selected mail is changed
-			this._searchList.list.scrollToIdAndSelect(args.id)
-		} else if (!args.id && this._searchList.list && this._searchList.list.getSelectedEntities().length > 0) {
-			this._searchList.list.selectNone()
+			this._searchList.scrollToIdAndSelect(args.id)
+		} else if (!args.id && this._searchList.isListAvailable() && this._searchList.getSelectedEntities().length > 0) {
+			this._searchList.selectNone()
 		}
 	}
 
 	_deleteSelected(): void {
-		let selected = this._searchList.list.getSelectedEntities()
+		let selected = this._searchList.getSelectedEntities()
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
 				let selectedMail = ((selected[0].entry:any):Mail)
-				mailModel.deleteMails([selectedMail]).then(() => this._searchList.list._deleteLoadedEntity(selected[0]._id[1]))
+				mailModel.deleteMails([selectedMail]).then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
 				let selectedContact = ((selected[0].entry:any):Contact)
 				Dialog.confirm("deleteContacts_msg").then(confirmed => {
 					if (confirmed) {
 						erase(selectedContact).catch(NotFoundError, e => {
 							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}).then(() => this._searchList.list._deleteLoadedEntity(selected[0]._id[1]))
+						}).then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
 					}
 				})
 			}
@@ -379,7 +381,7 @@ export class SearchView {
 		if (isSameTypeRef(typeRef, MailTypeRef) || isSameTypeRef(typeRef, ContactTypeRef)) {
 			let id = [neverNull(listId), elementId]
 			if (this._searchList.isInSearchResult(typeRef, id)) {
-				this._searchList.list.entityEventReceived(elementId, operation).then(() => {
+				this._searchList.entityEventReceived(elementId, operation).then(() => {
 					// run the mail or contact update after the update on the list is finished to avoid parallel loading
 					if (operation == OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
 						load(typeRef, id).then(updatedEntity => {
@@ -391,5 +393,9 @@ export class SearchView {
 				})
 			}
 		}
+	}
+
+	newResultReceived() {
+		this.viewSlider.focus(this.viewSlider._mainColumn);
 	}
 }

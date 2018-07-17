@@ -37,7 +37,8 @@ window.tutao = {
 	keyManager,
 	logins,
 	currentView,
-	themeId
+	themeId,
+	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
 
 function _asyncImport(path: string) {

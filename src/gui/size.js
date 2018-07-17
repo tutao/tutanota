@@ -17,7 +17,7 @@ export const size = {
 	vpad_xs: 3,
 	vpad: 16,
 	vpad_small: 8,
-	vpad_ml:25,
+	vpad_ml: 25,
 	vpad_large: 32,
 	vpad_xl: 48,
 
@@ -39,7 +39,7 @@ export const size = {
 	navbar_height_mobile: 44,
 
 	navbar_button_width: 80,
-	navbar_edge_width_mobile: 82,
+	navbar_edge_width_mobile: 58,
 
 	text_field_label_top: 21,
 

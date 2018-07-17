@@ -8,7 +8,7 @@ import {logins} from "./LoginController"
 
 assertMainOrNode()
 
-type MainLocatorType = {
+export type MainLocatorType = {
 	entityEvent: EntityEventController;
 	entropyCollector: EntropyCollector;
 	search:SearchModel;

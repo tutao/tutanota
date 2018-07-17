@@ -3,13 +3,13 @@ import {Type} from "../gui/base/TextField"
 import m from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
-import {styles} from "../gui/styles"
 import {px, size, inputLineHeight} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import type {PositionRect} from "../gui/base/Overlay"
 import {displayOverlay, closeOverlay} from "../gui/base/Overlay"
 import {NavButton} from "../gui/base/NavButton"
 import {Dropdown} from "../gui/base/Dropdown"
@@ -36,6 +36,7 @@ import {assertMainOrNode} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
+import {styles} from "../gui/styles"
 
 assertMainOrNode()
 
@@ -44,6 +45,14 @@ type ShowMoreAction = {
 	shownCount:number,
 	indexTimestamp:number,
 	allowShowMore:boolean
+}
+
+type SearchBarAttrs = {
+	classes?: string,
+	style?: string,
+	alwaysExpanded?: boolean,
+	spacer?: boolean,
+	placeholder?: ?string
 }
 
 const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
@@ -80,16 +89,13 @@ export class SearchBar {
 				this.expanded = true
 			}
 		})
+		locator.search.lastQuery.map(this.value)
 		let b = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
 		this.dropdown = new Dropdown(() => [b], 250)
 		this._results = []
-		this.view = (): VirtualElement => {
-			return m("", {
-				style: {
-					display: this.isVisible() ? "flex" : 'none'
-				}
-			}, [
-				m(".search-bar.flex-end.items-center", {
+		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
+			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
+				m(".search-bar.flex-end.flex-grow-shrink-auto.items-center", {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom
 					},
@@ -97,61 +103,76 @@ export class SearchBar {
 						'min-height': px(inputLineHeight + 2), // 2 px border
 						'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
 						'padding-top': px(2), // center input field
-						'margin-right': px(15),
-						'border-bottom': this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
-						'align-self': "center"
+						'margin-right': px(styles.isDesktopLayout() ? 15 : 8),
+						'border-bottom': vnode.attrs.alwaysExpanded || this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+						'align-self': "center",
+						'max-width': px(400)
 					}
 				}, [
-					m(".ml-negative-xs.click", {
-						onmousedown: e => {
-							if (this.focused) {
-								this.skipNextBlur = true // avoid closing of overlay when clicking search icon
+					styles.isDesktopLayout() ? m(".ml-negative-xs.click", {
+							onmousedown: (e) => {
+								if (this.focused) {
+									this.skipNextBlur = true // avoid closing of overlay when clicking search icon
+								}
+							},
+							onclick: (e) => {
+								this.handleSearchClick(e)
 							}
-						},
-						onclick: (e) => {
-							this.handleSearchClick(e)
-						}
-					}, m(Icon, {
-						icon: Icons.Search,
-						class: "flex-center items-center icon-large",
-						style: {
-							fill: this.focused ? theme.header_button_selected : theme.header_button,
-							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
-						}
-					})),
-					m(".searchInputWrapper.flex.items-center", {
-						style: {
-							"width": this.expanded ? px(SEARCH_INPUT_WIDTH) : px(0),
-							"transition": `width ${DefaultAnimationTime}ms`,
-							'padding-left': this.expanded ? '10px' : '0px',
-							'padding-top': '3px',
-							'padding-bottom': '3px',
-							'overflow-x': 'hidden'
-						}
-
-					}, [this._getInputField(), m(".closeIconWrapper", {
-						onclick: (e) => this.close(),
-					}, this.busy ? m(Icon, {
-							icon: BootIcons.Progress,
-							class: 'flex-center items-center icon-progress-search icon-progress'
-						}) : m(Icon, {
-							icon: Icons.Close,
+						}, m(Icon, {
+							icon: Icons.Search,
 							class: "flex-center items-center icon-large",
 							style: {
-								fill: theme.header_button,
+								fill: this.focused ? theme.header_button_selected : theme.header_button,
 								//"margin-top": (this._hideLabel) ? "0px" : "-2px"
 							}
-						}))]),
+						})) : null,
+					m(".searchInputWrapper.flex.items-center", {
+							style: (() => {
+								let paddingLeft: string
+								if (this.expanded || vnode.attrs.alwaysExpanded) {
+									if (styles.isDesktopLayout()) {
+										paddingLeft = px(10)
+									} else {
+										paddingLeft = px(6)
+									}
+								} else {
+									paddingLeft = px(0)
+								}
+								return {
+									"width": this.inputWrapperWidth(!!vnode.attrs.alwaysExpanded),
+									"transition": `width ${DefaultAnimationTime}ms`,
+									'padding-left': paddingLeft,
+									'padding-top': '3px',
+									'padding-bottom': '3px',
+									'overflow-x': 'hidden',
+								}
+							})()
+						},
+						[this._getInputField(vnode.attrs), m(".closeIconWrapper", {
+							onclick: (e) => this.close(),
+							style: {width: size.icon_size_large}
+						}, this.busy ? m(Icon, {
+								icon: BootIcons.Progress,
+								class: 'flex-center items-center icon-progress-search icon-progress'
+							}) : m(Icon, {
+								icon: Icons.Close,
+								class: "flex-center items-center icon-large",
+								style: {
+									fill: theme.header_button
+								}
+							}))]
+					),
 
 				]),
-				m(".nav-bar-spacer")
+				(vnode.attrs.spacer ? m(".nav-bar-spacer") : null)
 			])
 		}
+		let shortcuts = null
 
-		let shortcuts = this._setupShortcuts()
 		let indexStateStream
 		let routeChangeStream
 		this.oncreate = () => {
+			shortcuts = this._setupShortcuts()
 			keyManager.registerShortcuts(shortcuts)
 			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
 				this.showIndexingProgress(newState, m.route.get())
@@ -167,7 +188,7 @@ export class SearchBar {
 			})
 		}
 		this.onbeforeremove = () => {
-			keyManager.unregisterShortcuts(shortcuts)
+			shortcuts && keyManager.unregisterShortcuts(shortcuts)
 			if (indexStateStream) {
 				indexStateStream.end(true)
 			}
@@ -178,13 +199,20 @@ export class SearchBar {
 		}
 	}
 
+	inputWrapperWidth(alwaysExpanded: boolean): ?string {
+		if (alwaysExpanded) {
+			return "100%"
+		} else {
+			return this.expanded ? px(SEARCH_INPUT_WIDTH) : px(0)
+		}
+	}
+
 	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
-		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail") ) || (route.startsWith("/search/mail") && newState.progress <= 100))) {
-			let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
+		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail")) || (route.startsWith("/search/mail") && newState.progress <= 100))) {
 			let cancelButton = new Button("cancel_action", () => {
 				worker.cancelMailIndexing()
 			}, () => Icons.Cancel)
-			displayOverlay(buttonRect, {
+			displayOverlay(this._makeOverlayRect(), {
 				view: () => {
 					return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
 						style: {
@@ -201,12 +229,30 @@ export class SearchBar {
 		}
 	}
 
+	_makeOverlayRect(): PositionRect {
+		let overlayRect: PositionRect
+		if (styles.isDesktopLayout()) {
+			const domRect = this._domWrapper.getBoundingClientRect()
+			overlayRect = {
+				top: px(domRect.bottom + 5),
+				right: px(window.innerWidth - domRect.right),
+				width: px(350)
+			}
+		} else {
+			overlayRect = {
+				top: px(size.navbar_height_mobile + 6),
+				left: px(16),
+				right: px(16),
+			}
+		}
+		return overlayRect
+	}
 
 	_setupShortcuts(): Shortcut[] {
 		return [
 			{
 				key: Keys.F,
-				enabled: () => this.isVisible(),
+				enabled: () => true,
 				exec: key => {
 					this.focus()
 					m.redraw()
@@ -261,8 +307,7 @@ export class SearchBar {
 				}
 			}
 			if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
-				let buttonRect: ClientRect = this._domWrapper.getBoundingClientRect()
-				displayOverlay(buttonRect, {
+				displayOverlay(this._makeOverlayRect(), {
 					view: () => {
 						return m("ul.list.click.mail-list", [
 							this._results.map(result => {
@@ -439,6 +484,7 @@ export class SearchBar {
 		} else {
 			if (value.trim() == "") {
 				this.busy = false
+				locator.search.lastQuery("")
 				locator.search.result(null)
 				if (m.route.get().startsWith("/search")) {
 					setSearchUrl(getSearchUrl("", restriction))
@@ -470,6 +516,8 @@ export class SearchBar {
 							this.busy = false
 						}
 					} else if (this.value().trim() == "") {
+						locator.search.lastQuery("")
+						locator.search.result(null)
 						this.busy = false
 					}
 					m.redraw()
@@ -492,8 +540,9 @@ export class SearchBar {
 		}
 	}
 
-	_getInputField(): VirtualElement {
+	_getInputField(attrs: any): VirtualElement {
 		return m("input.input.input-no-clear", {
+			placeholder: attrs.placeholder,
 			type: Type.Text,
 			value: this.value(),
 			oncreate: (vnode) => {
@@ -552,8 +601,7 @@ export class SearchBar {
 				return true
 			},
 			style: {
-				"line-height": px(inputLineHeight),
-				"max-width": '166px' // hack: field is too wide in edge, otherwise
+				"line-height": px(inputLineHeight)
 			}
 		})
 	}
@@ -584,14 +632,7 @@ export class SearchBar {
 		}
 	}
 
-	isVisible() {
-		let route = m.route.get()
-		return !locator.search.indexState().initializing && locator.search.indexState().indexingSupported && styles.isDesktopLayout() && logins.isInternalUserLoggedIn() && (route.startsWith("/search") || route.startsWith("/mail") || route.startsWith("/contact") || route.startsWith("/settings/users") || route.startsWith("/settings/groups") || route.startsWith("/settings/whitelabelaccounts"))
-	}
-
-
 	getMaxWidth(): number {
 		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
 	}
-
 }
