@@ -548,6 +548,10 @@ export class MailEditor {
 
 		promise = promise.then(draft => {
 			this.draft = draft
+			return Promise.map(draft.attachments, fileId => load(FileTypeRef, fileId)).then(attachments => {
+				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
+				this._attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
+			})
 		})
 		if (showProgress) {
 			return showProgressDialog("save_msg", promise)
