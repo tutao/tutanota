@@ -34,12 +34,13 @@ export class MultiMailViewer {
 					set.push(mailBox)
 				}
 				return set
-			}, ([]:MailboxDetail[]))
+			}, ([]: MailboxDetail[]))
 
-			if (sourceMailboxes.length != 1) {
+			if (sourceMailboxes.length !== 1) {
 				return []
 			} else {
-				return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
+				return (getSortedSystemFolders(sourceMailboxes[0].folders)
+					.concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
 					return new Button(() => getFolderName(f), () => mailModel.moveMails(mails, f), getFolderIcon(f))
 						.setType(ButtonType.Dropdown)
 				})
@@ -55,7 +56,8 @@ export class MultiMailViewer {
 		}))
 		this.view = () => {
 			return [
-				m(".fill-absolute.mt-xs.plr-l", (mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0) ? [
+				m(".fill-absolute.mt-xs.plr-l",
+					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0) ? [
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getMailSelectionMessage(mailView)),
@@ -74,7 +76,7 @@ export class MultiMailViewer {
 
 	_markAll(mails: Mail[], unread: boolean) {
 		mails.map(mail => {
-			if (mail.unread != unread) {
+			if (mail.unread !== unread) {
 				mail.unread = unread
 				update(mail)
 			}
@@ -82,10 +84,10 @@ export class MultiMailViewer {
 	}
 
 	_getMailSelectionMessage(mailView: MailView) {
-		var nbrOfSelectedMails = (mailView.mailList) ? mailView.mailList.list.getSelectedEntities().length : 0
-		if (nbrOfSelectedMails == 0) {
+		let nbrOfSelectedMails = (mailView.mailList) ? mailView.mailList.list.getSelectedEntities().length : 0
+		if (nbrOfSelectedMails === 0) {
 			return lang.get("noMail_msg")
-		} else if (nbrOfSelectedMails == 1) {
+		} else if (nbrOfSelectedMails === 1) {
 			return lang.get("oneMailSelected_msg")
 		} else {
 			return lang.get("nbrOfMailsSelected_msg", {"{1}": nbrOfSelectedMails})

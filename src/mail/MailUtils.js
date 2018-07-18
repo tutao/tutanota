@@ -161,7 +161,7 @@ export function getDefaultSignature() {
 }
 
 
-export function parseMailtoUrl(mailtoUrl: string): { to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string } {
+export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
 	let url = new URL(mailtoUrl)
 	let toRecipients = []
 	let ccRecipients = []

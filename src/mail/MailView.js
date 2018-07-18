@@ -72,8 +72,8 @@ export class MailView {
 	mailHeaderInfo: string;
 	oncreate: Function;
 	onbeforeremove: Function;
-	_mailboxExpanders: { [mailGroupId: Id]: MailboxExpander }
-	_folderToUrl: { [folderId: Id]: string };
+	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
+	_folderToUrl: {[folderId: Id]: string};
 
 	constructor() {
 		this.mailViewer = null

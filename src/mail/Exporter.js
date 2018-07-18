@@ -46,7 +46,8 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 			if (mail.bccRecipients.length > 0) {
 				emlArray.push(_formatRecipient("BCC: ", mail.bccRecipients))
 			}
-			let subject = (mail.subject.trim() == "") ? "" : "=?UTF-8?B?" + uint8ArrayToBase64(stringToUtf8Uint8Array(mail.subject)) + "?="
+			let subject = (mail.subject.trim() == "") ? "" : "=?UTF-8?B?"
+				+ uint8ArrayToBase64(stringToUtf8Uint8Array(mail.subject)) + "?="
 			let body = uint8ArrayToBase64(stringToUtf8Uint8Array(sanitizedBodyText)).match(/.{1,78}/g)
 			if (!body) {
 				body = []
@@ -70,8 +71,9 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 			resolve(Promise.map(mail.attachments, fileId => {
 				return load(FileTypeRef, fileId).then(attachment => {
 					return worker.downloadFileContent(attachment).then(file => {
-						let dataFile = ((file:any):DataFile)
-						let base64Filename = "=?UTF-8?B?" + uint8ArrayToBase64(stringToUtf8Uint8Array(attachment.name)) + "?="
+						let dataFile = ((file: any): DataFile)
+						let base64Filename = "=?UTF-8?B?" +
+							uint8ArrayToBase64(stringToUtf8Uint8Array(attachment.name)) + "?="
 						const fileContent = uint8ArrayToBase64(dataFile.data)
 						emlArray = emlArray.concat([
 							"--------------79Bu5A16qPEYcVIZL@tutanota",
@@ -81,7 +83,8 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 							"Content-Disposition: attachment;",
 							" filename=" + base64Filename + "",
 							"",
-							(fileContent.length > 0 ? neverNull(fileContent.match(/.{1,78}/g)).join("\r\n") : fileContent)
+							(fileContent.length > 0 ? neverNull(fileContent.match(/.{1,78}/g))
+								.join("\r\n") : fileContent)
 						])
 					})
 				})
@@ -98,7 +101,9 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 function _formatSmtpDateTime(date) {
 	let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 	let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-	return dayNames[date.getUTCDay()] + ", " + date.getUTCDate() + " " + monthNames[date.getUTCMonth()] + " " + date.getUTCFullYear() + " " + pad(date.getUTCHours(), 2) + ":" + pad(date.getUTCMinutes(), 2) + ":" + pad(date.getUTCSeconds(), 2) + " +0000"
+	return dayNames[date.getUTCDay()] + ", " + date.getUTCDate() + " " + monthNames[date.getUTCMonth()] + " "
+		+ date.getUTCFullYear() + " " + pad(date.getUTCHours(), 2) + ":" + pad(date.getUTCMinutes(), 2) + ":"
+		+ pad(date.getUTCSeconds(), 2) + " +0000"
 }
 
 function _formatRecipient(key, recipients) {

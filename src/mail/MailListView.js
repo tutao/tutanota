@@ -25,7 +25,7 @@ assertMainOrNode()
 
 const className = "mail-list"
 
-const iconMap: {[MailFolderTypeEnum]:string} = {
+const iconMap: {[MailFolderTypeEnum]: string} = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,
 	[MailFolderType.INBOX]: FontIcons.Inbox,
 	[MailFolderType.SENT]: FontIcons.Sent,
@@ -60,13 +60,14 @@ export class MailListView {
 			},
 			loadSingle: (elementId) => {
 				return load(MailTypeRef, [this.listId, elementId]).then((entity) => {
-					return findAndApplyMatchingRule(mailModel.getMailboxDetailsForMailListId(this.listId), entity).then(ruleFound => {
-						if (ruleFound) {
-							return null
-						} else {
-							return entity
-						}
-					})
+					return findAndApplyMatchingRule(mailModel.getMailboxDetailsForMailListId(this.listId), entity)
+						.then(ruleFound => {
+							if (ruleFound) {
+								return null
+							} else {
+								return entity
+							}
+						})
 				}).catch(NotFoundError, (e) => {
 					// we return null if the entity does not exist
 				})
@@ -77,7 +78,10 @@ export class MailListView {
 			showStatus: false,
 			className: className,
 			swipe: ({
-				renderLeftSpacer: () => !logins.isInternalUserLoggedIn() ? [] : [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
+				renderLeftSpacer: () => !logins.isInternalUserLoggedIn() ? [] : [
+					m(Icon, {icon: Icons.Folder}),
+					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
+				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
 				swipeLeft: (listElement: Mail) => mailModel.deleteMails([listElement]),
 				swipeRight: (listElement: Mail) => {
@@ -89,7 +93,7 @@ export class MailListView {
 						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
-			}:any),
+			}: any),
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")
@@ -103,7 +107,8 @@ export class MailListView {
 	targetInbox() {
 		const mailboxDetail = this.mailView.selectedFolder ? mailModel.getMailboxDetailsForMailListId(this.mailView.selectedFolder.mails) : null
 		if (mailboxDetail) {
-			return this.mailView.selectedFolder == getArchiveFolder(mailboxDetail.folders) || this.mailView.selectedFolder == getTrashFolder(mailboxDetail.folders)
+			return this.mailView.selectedFolder == getArchiveFolder(mailboxDetail.folders)
+				|| this.mailView.selectedFolder == getTrashFolder(mailboxDetail.folders)
 		} else {
 			return false
 		}
@@ -118,11 +123,12 @@ export class MailListView {
 				return Promise.filter(mails, (mail) => {
 					return findAndApplyMatchingRule(mailboxDetail, mail).then(ruleFound => !ruleFound)
 				}).then(inboxMails => {
-					if (mails.length == count && inboxMails.length < mails.length) {
+					if (mails.length === count && inboxMails.length < mails.length) {
 						//console.log("load more because of matching inbox rules")
-						return this._loadMailRange(mails[mails.length - 1]._id[1], mails.length - inboxMails.length).then(filteredMails => {
-							return inboxMails.concat(filteredMails)
-						})
+						return this._loadMailRange(mails[mails.length - 1]._id[1], mails.length - inboxMails.length)
+						           .then(filteredMails => {
+							           return inboxMails.concat(filteredMails)
+						           })
 					}
 					return inboxMails
 				})
@@ -143,7 +149,7 @@ export class MailRow {
 	_domDate: HTMLElement;
 	_iconsDom: HTMLElement;
 	_showFolderIcon: boolean;
-	_domFolderIcons: {[key:MailFolderTypeEnum]:HTMLElement};
+	_domFolderIcons: {[key: MailFolderTypeEnum]: HTMLElement};
 
 	constructor(showFolderIcon: boolean) {
 		this.top = 0

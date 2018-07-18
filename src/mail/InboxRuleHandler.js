@@ -16,7 +16,7 @@ import type {MailboxDetail} from "./MailModel"
 assertMainOrNode()
 
 
-export function getInboxRuleTypeNameMapping(): {value:string, name: string}[] {
+export function getInboxRuleTypeNameMapping(): {value: string, name: string}[] {
 	return [
 		{value: InboxRuleType.FROM_EQUALS, name: lang.get("inboxRuleSenderEquals_action")},
 		{value: InboxRuleType.RECIPIENT_TO_EQUALS, name: lang.get("inboxRuleToRecipientEquals_action")},
@@ -37,7 +37,8 @@ export function getInboxRuleTypeName(type: string): string {
  * @returns true if a rule matches otherwise false
  */
 export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
-	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, mail._id[0]) || !logins.getUserController().isPremiumAccount()) {
+	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, mail._id[0])
+		|| !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(false)
 	}
 	return _findMatchingRule(mail).then(inboxRule => {
@@ -72,17 +73,17 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 		}
 		//console.log("find matching rule", inboxRule.value)
 		let ruleType = inboxRule.type;
-		if (ruleType == InboxRuleType.FROM_EQUALS) {
+		if (ruleType === InboxRuleType.FROM_EQUALS) {
 			return _checkEmailAddresses([mail.sender], inboxRule)
-		} else if (ruleType == InboxRuleType.RECIPIENT_TO_EQUALS) {
+		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
 			return _checkEmailAddresses(mail.toRecipients, inboxRule)
-		} else if (ruleType == InboxRuleType.RECIPIENT_CC_EQUALS) {
+		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
 			return _checkEmailAddresses(mail.ccRecipients, inboxRule)
-		} else if (ruleType == InboxRuleType.RECIPIENT_BCC_EQUALS) {
+		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
 			return _checkEmailAddresses(mail.bccRecipients, inboxRule)
-		} else if (ruleType == InboxRuleType.SUBJECT_CONTAINS) {
+		} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
 			return _checkContainsRule(mail.subject, inboxRule)
-		} else if (ruleType == InboxRuleType.MAIL_HEADER_CONTAINS) {
+		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
 			if (mail.headers) {
 				return load(MailHeadersTypeRef, mail.headers).then(mailHeaders => {
 					return _checkContainsRule(mailHeaders.headers, inboxRule)
@@ -106,6 +107,7 @@ function _checkContainsRule(value: string, inboxRule: InboxRule): ?InboxRule {
 		return null
 	}
 }
+
 /** export for test. */
 export function _matchesRegularExpression(value: string, inboxRule: InboxRule): boolean {
 	if (isRegularExpression(inboxRule.value)) {
@@ -122,9 +124,9 @@ function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule
 			return _matchesRegularExpression(cleanMailAddress, inboxRule)
 		} else if (isDomainName(inboxRule.value)) {
 			let domain = cleanMailAddress.split("@")[1];
-			return domain == inboxRule.value
+			return domain === inboxRule.value
 		} else {
-			return cleanMailAddress == inboxRule.value
+			return cleanMailAddress === inboxRule.value
 		}
 	})
 	if (mailAddress) {
