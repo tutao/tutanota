@@ -83,11 +83,15 @@ export function createRecipientInfo(mailAddress: string, name: ?string, contact:
 export function createNewContact(mailAddress: string, name: string): Contact {
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
-	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
+	let firstAndLastName = name.trim()
+	!== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 
 	let contact = createContact()
 	contact._owner = logins.getUserController().user._id
-	contact._ownerGroup = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group
+	contact._ownerGroup = neverNull(logins.getUserController()
+	                                      .user
+	                                      .memberships
+	                                      .find(m => m.groupType === GroupType.Contact)).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 
@@ -104,23 +108,25 @@ export function createNewContact(mailAddress: string, name: string): Contact {
  * @throws TooManyRequestsError if the recipient could not be resolved because of too many requests.
  */
 export function resolveRecipientInfo(recipientInfo: RecipientInfo): Promise<RecipientInfo> {
-	if (recipientInfo.type != recipientInfoType.unknown) {
+	if (recipientInfo.type !== recipientInfoType.unknown) {
 		return Promise.resolve(recipientInfo)
 	} else {
 		let keyData = createPublicKeyData()
 		keyData.mailAddress = recipientInfo.mailAddress
-		return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef).then(publicKeyData => {
-			recipientInfo.type = recipientInfoType.internal
-			return recipientInfo
-		}).catch(NotFoundError, e => {
-			recipientInfo.type = recipientInfoType.external
-			return recipientInfo
-		})
+		return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
+			.then(publicKeyData => {
+				recipientInfo.type = recipientInfoType.internal
+				return recipientInfo
+			})
+			.catch(NotFoundError, e => {
+				recipientInfo.type = recipientInfoType.external
+				return recipientInfo
+			})
 	}
 }
 
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean) {
-	if (name == "") {
+	if (name === "") {
 		return mailAddress;
 	} else if (client.isMobileDevice() || preferNameOnly) {
 		return name
@@ -130,12 +136,13 @@ export function getDisplayText(name: string, mailAddress: string, preferNameOnly
 }
 
 export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
-	if (mail.state == MailState.RECEIVED) {
+	if (mail.state === MailState.RECEIVED) {
 		return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
 	} else {
 		let allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 		if (allRecipients.length > 0) {
-			return getDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + ((allRecipients.length > 1) ? ", ..." : "")
+			return getDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly)
+				+ ((allRecipients.length > 1) ? ", ..." : "")
 		} else {
 			return ""
 		}
@@ -144,15 +151,17 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 
 export function getDefaultSenderFromUser(): string {
 	let props = logins.getUserController().props
-	return (props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
+	return (props.defaultSender
+		&& contains(getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
 }
 
 export function getDefaultSignature() {
-	return "<br><br>" + htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
+	return "<br><br>"
+		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
 }
 
 
-export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAddress[], bcc:MailAddress[], subject:string, body:string} {
+export function parseMailtoUrl(mailtoUrl: string): { to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string } {
 	let url = new URL(mailtoUrl)
 	let toRecipients = []
 	let ccRecipients = []
@@ -181,16 +190,22 @@ export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAdd
 		for (let pair of url.searchParams.entries()) {
 			let paramName = pair[0].toLowerCase()
 			let paramValue = pair[1]
-			if (paramName == "subject") {
+			if (paramName === "subject") {
 				subject = paramValue
-			} else if (paramName == "body") {
+			} else if (paramName === "body") {
 				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
-			} else if (paramName == "cc") {
-				paramValue.split(",").forEach((ccAddress) => ccAddress ? ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))) : null)
-			} else if (paramName == "bcc") {
-				paramValue.split(",").forEach((bccAddress) => bccAddress ? bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))) : null)
-			} else if (paramName == "to") {
-				paramValue.split(",").forEach((toAddress) => toAddress ? toRecipients.push(neverNull(createMailAddressFromString(toAddress))) : null)
+			} else if (paramName === "cc") {
+				paramValue.split(",")
+				          .forEach((ccAddress) => ccAddress
+					          && ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
+			} else if (paramName === "bcc") {
+				paramValue.split(",")
+				          .forEach((bccAddress) => bccAddress
+					          && ccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+			} else if (paramName === "to") {
+				paramValue.split(",")
+				          .forEach((toAddress) => toAddress
+					          && toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
 			}
 		}
 	}
@@ -254,7 +269,7 @@ export function getFolderIcon(folder: MailFolder): () => string {
 
 
 export function getTrashFolder(folders: MailFolder[]): MailFolder {
-	return (folders.find(f => f.folderType === MailFolderType.TRASH):any)
+	return (folders.find(f => f.folderType === MailFolderType.TRASH): any)
 }
 
 
@@ -268,16 +283,16 @@ export function getArchiveFolder(folders: MailFolder[]): MailFolder {
 
 
 export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
-	return (folders.find(f => f.folderType === type):any)
+	return (folders.find(f => f.folderType === type): any)
 }
 
 
 export function getSortedSystemFolders(folders: MailFolder[]): MailFolder[] {
 	return folders.filter(f => f.folderType !== MailFolderType.CUSTOM).sort((folder1, folder2) => {
 		// insert the draft folder after inbox (use type number 1.5 which is after inbox)
-		if (folder1.folderType == MailFolderType.DRAFT) {
+		if (folder1.folderType === MailFolderType.DRAFT) {
 			return 1.5 - Number(folder2.folderType)
-		} else if (folder2.folderType == MailFolderType.DRAFT) {
+		} else if (folder2.folderType === MailFolderType.DRAFT) {
 			return Number(folder1.folderType) - 1.5
 		}
 		return Number(folder1.folderType) - Number(folder2.folderType)
@@ -285,7 +300,7 @@ export function getSortedSystemFolders(folders: MailFolder[]): MailFolder[] {
 }
 
 export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
-	return folders.filter(f => f.folderType == MailFolderType.CUSTOM).sort((folder1, folder2) => {
+	return folders.filter(f => f.folderType === MailFolderType.CUSTOM).sort((folder1, folder2) => {
 		return folder1.name.localeCompare(folder2.name)
 	})
 }
@@ -307,7 +322,8 @@ export function isUserMailbox(mailboxDetails: MailboxDetail) {
 export function getDefaultSender(mailboxDetails: MailboxDetail): string {
 	if (isUserMailbox(mailboxDetails)) {
 		let props = logins.getUserController().props
-		return (props.defaultSender && contains(getEnabledMailAddresses(mailboxDetails), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
+		return (props.defaultSender
+			&& contains(getEnabledMailAddresses(mailboxDetails), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
 		return neverNull(mailboxDetails.mailGroupInfo.mailAddress)
 	}
@@ -318,7 +334,6 @@ export function isFinalDelete(folder: ?MailFolder): boolean {
 }
 
 export function getSenderName(mailboxDetails: MailboxDetail): string {
-	let senderName = ""
 	if (isUserMailbox(mailboxDetails)) {
 		// external users do not have access to the user group info
 		return logins.getUserController().userGroupInfo.name
@@ -329,10 +344,10 @@ export function getSenderName(mailboxDetails: MailboxDetail): string {
 
 export function getEmailSignature(): string {
 	// provide the user signature, even for shared mail groups
-	var type = logins.getUserController().props.emailSignatureType
-	if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+	const type = logins.getUserController().props.emailSignatureType;
+	if (type === TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
 		return getDefaultSignature()
-	} else if (type == TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+	} else if (TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM === type) {
 		return logins.getUserController().props.customEmailSignature
 	} else {
 		return ""

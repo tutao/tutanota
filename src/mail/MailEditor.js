@@ -531,9 +531,10 @@ export class MailEditor {
 
 		let promise = null
 		const body = this._tempBody ? this._tempBody : this.editor.squire.getHTML()
-		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId, attachments, this._isConfidential(), this._replyTos)
-		if (this.draft != null
-		) {
+		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
+			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
+			attachments, this._isConfidential(), this._replyTos)
+		if (this.draft != null) {
 			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(),
 				senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft: any))
 			                .catch(NotFoundError, e => {
@@ -631,13 +632,16 @@ export class MailEditor {
 							                          return logins.getUserController()
 							                                       .loadCustomer()
 							                                       .then(customer => {
-								                                       if (customer.approvalStatus === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
+								                                       if (customer.approvalStatus
+									                                       === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
 									                                       return Dialog.error("tooManyMails_msg")
-								                                       } else if (customer.approvalStatus === ApprovalState.INVOICE_NOT_PAID) {
+								                                       } else if (customer.approvalStatus
+									                                       === ApprovalState.INVOICE_NOT_PAID) {
 									                                       if (logins.getUserController()
 									                                                 .isGlobalAdmin()) {
 										                                       // TODO display payment dialog
-										                                       return Dialog.error(() => lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
+										                                       return Dialog.error(() =>
+											                                       lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
 									                                       } else {
 										                                       return Dialog.error("invoiceNotPaidUser_msg")
 									                                       }
@@ -665,14 +669,14 @@ export class MailEditor {
 		) {
 			if (this._previousMail.replyType === ReplyType.NONE && this.conversationType === ConversationType.REPLY) {
 				this._previousMail.replyType = ReplyType.REPLY
-			} else if (this._previousMail.replyType == ReplyType.NONE && this.conversationType
-				== ConversationType.FORWARD) {
+			} else if (this._previousMail.replyType === ReplyType.NONE
+				&& this.conversationType === ConversationType.FORWARD) {
 				this._previousMail.replyType = ReplyType.FORWARD
-			} else if (this._previousMail.replyType == ReplyType.FORWARD && this.conversationType
-				== ConversationType.REPLY) {
+			} else if (this._previousMail.replyType === ReplyType.FORWARD
+				&& this.conversationType === ConversationType.REPLY) {
 				this._previousMail.replyType = ReplyType.REPLY_FORWARD
-			} else if (this._previousMail.replyType == ReplyType.REPLY && this.conversationType
-				== ConversationType.FORWARD) {
+			} else if (this._previousMail.replyType === ReplyType.REPLY
+				&& this.conversationType === ConversationType.FORWARD) {
 				this._previousMail.replyType = ReplyType.REPLY_FORWARD
 			} else {
 				return Promise.resolve()
@@ -791,8 +795,8 @@ export class MailEditor {
 	}
 
 	_handleEntityEvent(typeRef: TypeRef<any>, listId: ? string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation == OperationType.UPDATE
-			|| operation == OperationType.DELETE)) {
+		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation === OperationType.UPDATE
+			|| operation === OperationType.DELETE)) {
 			let contactId: IdTuple = [neverNull(listId), elementId]
 			let allBubbleLists = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles]
 			allBubbleLists.forEach(bubbles => {
@@ -896,7 +900,7 @@ class MailBubbleHandler {
 			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
 		}).reduce((a, b) => a.concat(b), [])
 		                      .then(suggestions => {
-			                      if (env.mode == Mode.App) {
+			                      if (env.mode === Mode.App) {
 				                      return contactApp.findRecipients(query, 10, suggestions).then(() => suggestions)
 			                      } else {
 				                      return suggestions
