@@ -544,12 +544,9 @@ export class MailEditor {
 		else {
 			promise = createMailDraft()
 		}
-		promise = promise.then(newOrUpdatedDraft => {
-			// keep the current confidential button state. initFromDraft updates it to confidential if there are no external recipients
-			let originalState = this._confidentialButtonState
-			return this.initFromDraft(newOrUpdatedDraft).then(() => {
-				this._confidentialButtonState = originalState
-			})
+
+		promise = promise.then(draft => {
+			this.draft = draft
 		})
 		if (showProgress) {
 			return showProgressDialog("save_msg", promise)
