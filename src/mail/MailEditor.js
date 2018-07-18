@@ -78,7 +78,7 @@ export class MailEditor {
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
-	mailAddressToPasswordField: Map<string,TextField>;
+	mailAddressToPasswordField: Map<string, TextField>;
 	subject: TextField;
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
@@ -88,7 +88,7 @@ export class MailEditor {
 	view: Function;
 	_domElement: HTMLElement;
 	_loadingAttachments: boolean;
-	_attachments: Array<TutanotaFile|DataFile|FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
+	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
 	_previousMail: ?Mail;
 	_entityEventReceived: EntityEventReceived;
@@ -117,9 +117,8 @@ export class MailEditor {
 
 		let props = logins.getUserController().props
 
-		this._senderField = new DropDownSelector("sender_label", null, getEnabledMailAddresses(this._mailboxDetails).map(mailAddress => {
-			return {name: mailAddress, value: mailAddress}
-		}), getDefaultSender(this._mailboxDetails), 250)
+		this._senderField = new DropDownSelector("sender_label", null, getEnabledMailAddresses(this._mailboxDetails)
+			.map(mailAddress => ({name: mailAddress, value: mailAddress})), getDefaultSender(this._mailboxDetails), 250)
 
 		let sortedLanguages = languages.slice()
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
@@ -139,7 +138,10 @@ export class MailEditor {
 
 		this.subject._injectionsRight = () => {
 			if (this._allRecipients().find(r => r.type === recipientInfoType.external)) {
-				return [this._confidentialButtonState ? m(confidentialButton) : m(nonConfidentialButton), m(this._attachFilesButton)]
+				return [
+					this._confidentialButtonState ? m(confidentialButton) : m(nonConfidentialButton),
+					m(this._attachFilesButton)
+				]
 			} else {
 				return [m(this._attachFilesButton)]
 			}
@@ -149,7 +151,8 @@ export class MailEditor {
 		let closeButton = createDropDownButton('close_alt', null, () => {
 			return [
 				new Button('discardChanges_action', () => this._close()).setType(ButtonType.Secondary),
-				new Button('saveDraft_action', () => this.saveDraft(true, true).then(() => this._close())).setType(ButtonType.Secondary)
+				new Button('saveDraft_action', () => this.saveDraft(true, true)
+				                                         .then(() => this._close())).setType(ButtonType.Secondary)
 			]
 		}, 250).setType(ButtonType.Secondary)
 
@@ -178,11 +181,9 @@ export class MailEditor {
 					m(".wrapping-row", [
 						m(this._senderField),
 						m("", (this._confidentialButtonState && this._containsExternalRecipients()) ? m("", {
-								oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-								onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-							}, [
-								m(this._languageCodeField),
-							]) : null)
+							oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+							onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+						}, m(this._languageCodeField)) : null)
 					]),
 				])
 		}), false)
@@ -205,7 +206,7 @@ export class MailEditor {
 				ondrop: (ev) => {
 					if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 						fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
-							this._attachFiles((dataFiles:any))
+							this._attachFiles((dataFiles: any))
 							m.redraw()
 						}).catch(e => {
 							console.log(e)
@@ -219,18 +220,22 @@ export class MailEditor {
 				m(this.toRecipients),
 				m(detailsExpander.panel),
 				this._confidentialButtonState ? m(".external-recipients.overflow-hidden", {
-						oncreate: vnode => this.animate(vnode.dom, true),
-						onbeforeremove: vnode => this.animate(vnode.dom, false)
-					}, this._allRecipients()
-						.filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
-						.map(r => m(this.getPasswordField(r), {
-							oncreate: vnode => this.animate(vnode.dom, true),
-							onbeforeremove: vnode => this.animate(vnode.dom, false)
-						}))) : null,
+					oncreate: vnode => this.animate(vnode.dom, true),
+					onbeforeremove: vnode => this.animate(vnode.dom, false)
+				}, this._allRecipients()
+				       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
+				       .map(r => m(this.getPasswordField(r), {
+					       oncreate: vnode => this.animate(vnode.dom, true),
+					       onbeforeremove: vnode => this.animate(vnode.dom, false)
+				       }))) : null,
 				m(".row", m(this.subject)),
-				m(".flex-start.flex-wrap.ml-negative-bubble", (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
+				m(".flex-start.flex-wrap.ml-negative-bubble",
+					(!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [
+						m(".flex-v-center", progressIcon()),
+						m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
+					]),
 				this._attachmentButtons.length > 0 ? m("hr.hr") : null,
-				m(".pt-l.text", {onclick: () => this.editor.squire.focus()}, m(this.editor)),
+				m(".pt-l.text.scroll-x", {onclick: () => this.editor.squire.focus()}, m(this.editor)),
 				m(".pb")
 			])
 		}
@@ -238,28 +243,28 @@ export class MailEditor {
 		this._entityEventReceived = (typeRef, listId, elementId, operation) => this._handleEntityEvent(typeRef, listId, elementId, operation)
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: () => closeButton.clickHandler(),
-				help: "close_alt"
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				exec: () => {
-					this.saveDraft(true, true)
-				},
-				help: "save_action"
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				shift: true,
-				exec: () => {
-					this.send()
-				},
-				help: "send_action"
-			}).setCloseHandler(() => closeButton.clickHandler())
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: () => closeButton.clickHandler(),
+			                    help: "close_alt"
+		                    })
+		                    .addShortcut({
+			                    key: Keys.S,
+			                    ctrl: true,
+			                    exec: () => {
+				                    this.saveDraft(true, true)
+			                    },
+			                    help: "save_action"
+		                    })
+		                    .addShortcut({
+			                    key: Keys.S,
+			                    ctrl: true,
+			                    shift: true,
+			                    exec: () => {
+				                    this.send()
+			                    },
+			                    help: "send_action"
+		                    }).setCloseHandler(() => closeButton.clickHandler())
 	}
 
 	_focusBodyOnLoad() {
@@ -284,9 +289,9 @@ export class MailEditor {
 	animate(domElement: HTMLElement, fadein: boolean) {
 		let childHeight = domElement.offsetHeight
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-			.then(() => {
-				domElement.style.height = ''
-			})
+		                 .then(() => {
+			                 domElement.style.height = ''
+		                 })
 	}
 
 	getPasswordField(recipientInfo: RecipientInfo): TextField {
@@ -322,7 +327,7 @@ export class MailEditor {
 				bodyText = signature + bodyText
 			}
 		}
-		if (conversationType == ConversationType.REPLY) {
+		if (conversationType === ConversationType.REPLY) {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
 		let previousMessageId: ?string = null
@@ -376,7 +381,7 @@ export class MailEditor {
 			bodyText = htmlSanitizer.sanitize(body.text, false).text
 		})
 		let p2 = load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
-			conversationType = (ce.conversationType:any)
+			conversationType = (ce.conversationType: any)
 			if (ce.previous) {
 				return load(ConversationEntryTypeRef, ce.previous).then(previousCe => {
 					previousMessageId = previousCe.messageId
@@ -414,11 +419,11 @@ export class MailEditor {
 		this._attachments = []
 		this._tempBody = body
 
-		this._attachFiles(((attachments:any):Array<TutanotaFile|DataFile|FileReference>))
+		this._attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
-			if (this.editor.squire.getHTML() != body) {
+			if (this.editor.squire.getHTML() !== body) {
 				this.editor.squire.setHTML(this._tempBody)
 			}
 			this._tempBody = null
@@ -451,20 +456,20 @@ export class MailEditor {
 	_showFileChooserForAttachments() {
 		if (env.mode === Mode.App) {
 			return fileApp.openFileChooser(this._attachFilesButton._domButton.getBoundingClientRect()).then(files => {
-				this._attachFiles((files:any))
+				this._attachFiles((files: any))
 				m.redraw()
 			}).catch(PermissionError, () => {
 				Dialog.error("fileAccessDeniedMobile_msg")
 			})
 		} else {
 			return fileController.showFileChooser(true).then(files => {
-				this._attachFiles((files:any))
+				this._attachFiles((files: any))
 				m.redraw()
 			})
 		}
 	}
 
-	_attachFiles(files: Array<TutanotaFile|DataFile|FileReference>) {
+	_attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
 		let totalSize = 0
 		this._attachments.forEach(file => {
 			totalSize += Number(file.size)
@@ -489,11 +494,11 @@ export class MailEditor {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
 					if (file._type === 'FileReference') {
-						return fileApp.open((file:FileReference))
-					} else if (file._type == "DataFile") {
-						return fileController.open(((file:any):DataFile))
+						return fileApp.open((file: FileReference))
+					} else if (file._type === "DataFile") {
+						return fileController.open(((file: any): DataFile))
 					} else {
-						fileController.downloadAndOpen(((file:any):TutanotaFile))
+						fileController.downloadAndOpen(((file: any): TutanotaFile))
 					}
 
 				}, null).setType(ButtonType.Secondary)
@@ -506,7 +511,9 @@ export class MailEditor {
 				}, null).setType(ButtonType.Secondary)
 			)
 
-			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons)
+				.setType(ButtonType.Bubble)
+				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
 	}
 
@@ -515,7 +522,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 */
-	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise < void > {
+	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
 		let senderName = getSenderName(this._mailboxDetails)
 		let to = this.toRecipients.bubbles.map(bubble => bubble.entity)
@@ -527,10 +534,12 @@ export class MailEditor {
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId, attachments, this._isConfidential(), this._replyTos)
 		if (this.draft != null
 		) {
-			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft:any)).catch(NotFoundError, e => {
-				console.log("draft has been deleted, creating new one")
-				return createMailDraft()
-			})
+			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(),
+				senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft: any))
+			                .catch(NotFoundError, e => {
+				                console.log("draft has been deleted, creating new one")
+				                return createMailDraft()
+			                })
 		}
 		else {
 			promise = createMailDraft()
@@ -567,9 +576,9 @@ export class MailEditor {
 
 	send() {
 		return Promise.resolve().then(() => {
-			if (this.toRecipients.textField.value().trim() != "" ||
-				this.ccRecipients.textField.value().trim() != "" ||
-				this.bccRecipients.textField.value().trim() != "") {
+			if (this.toRecipients.textField.value().trim() !== "" ||
+				this.ccRecipients.textField.value().trim() !== "" ||
+				this.bccRecipients.textField.value().trim() !== "") {
 				throw new UserError("invalidRecipients_msg")
 			} else if (this.toRecipients.bubbles.length === 0 &&
 				this.ccRecipients.bubbles.length === 0 &&
@@ -585,75 +594,88 @@ export class MailEditor {
 			return subjectConfirmPromise.then(confirmed => {
 				if (confirmed) {
 					let send = this.saveDraft(true, false)
-						.then(() => {
-							return this._waitForResolvedRecipients().then(resolvedRecipients => {
-								let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
-								if (this._confidentialButtonState && externalRecipients.length > 0 && externalRecipients.find(r => this.getPasswordField(r).value().trim() !== "") == null) {
-									throw new UserError("noPreSharedPassword_msg")
-								}
+					               .then(() => {
+						               return this._waitForResolvedRecipients().then(resolvedRecipients => {
+							               let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
+							               if (this._confidentialButtonState && externalRecipients.length > 0
+								               && externalRecipients.find(r => this.getPasswordField(r).value().trim()
+									               !== "") == null) {
+								               throw new UserError("noPreSharedPassword_msg")
+							               }
 
-								let sendMail = Promise.resolve(true)
-								if (this._confidentialButtonState && externalRecipients.reduce((min, current) => Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
-									sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-								}
+							               let sendMail = Promise.resolve(true)
+							               if (this._confidentialButtonState
+								               && externalRecipients.reduce((min, current) =>
+									               Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
+								               sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+							               }
 
-								return sendMail.then(ok => {
-									if (ok) {
-										return this._updateContacts(resolvedRecipients)
-											.then(() => worker.sendMailDraft(neverNull(this.draft), resolvedRecipients, this._languageCodeField.selectedValue()))
-											.then(() => this._updatePreviousMail())
-											.then(() => this._close())
-									}
-								})
-							})
-								.catch(RecipientNotResolvedError, e => {
-									return Dialog.error("recipientNotResolvedTooManyRequests_msg")
-								})
-								.catch(RecipientsNotFoundError, e => {
-									let invalidRecipients = e.message.join("\n")
-									return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
-								})
-								.catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
-								.catch(AccessBlockedError, e => {
-									return logins.getUserController().loadCustomer().then(customer => {
-										if (customer.approvalStatus === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
-											return Dialog.error("tooManyMails_msg")
-										} else if (customer.approvalStatus === ApprovalState.INVOICE_NOT_PAID) {
-											if (logins.getUserController().isGlobalAdmin()) {
-												// TODO display payment dialog
-												return Dialog.error(() => lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
-											} else {
-												return Dialog.error("invoiceNotPaidUser_msg")
-											}
-										} else {
-											throw e
-										}
-									})
-								})
-						})
+							               return sendMail.then(ok => {
+								               if (ok) {
+									               return this._updateContacts(resolvedRecipients)
+									                          .then(() => worker.sendMailDraft(neverNull(this.draft),
+										                          resolvedRecipients,
+										                          this._languageCodeField.selectedValue()))
+									                          .then(() => this._updatePreviousMail())
+									                          .then(() => this._close())
+								               }
+							               })
+						               })
+						                          .catch(RecipientNotResolvedError, e => {
+							                          return Dialog.error("recipientNotResolvedTooManyRequests_msg")
+						                          })
+						                          .catch(RecipientsNotFoundError, e => {
+							                          let invalidRecipients = e.message.join("\n")
+							                          return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+								                          + invalidRecipients)
+						                          })
+						                          .catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
+						                          .catch(AccessBlockedError, e => {
+							                          return logins.getUserController()
+							                                       .loadCustomer()
+							                                       .then(customer => {
+								                                       if (customer.approvalStatus === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
+									                                       return Dialog.error("tooManyMails_msg")
+								                                       } else if (customer.approvalStatus === ApprovalState.INVOICE_NOT_PAID) {
+									                                       if (logins.getUserController()
+									                                                 .isGlobalAdmin()) {
+										                                       // TODO display payment dialog
+										                                       return Dialog.error(() => lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
+									                                       } else {
+										                                       return Dialog.error("invoiceNotPaidUser_msg")
+									                                       }
+								                                       } else {
+									                                       throw e
+								                                       }
+							                                       })
+						                          })
+					               })
 
 					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
 			})
 
 		}).catch(UserError, e => Dialog.error(e.message))
-			.catch(e => {
-				console.log(typeof e, e)
-				throw e
-			})
+		              .catch(e => {
+			              console.log(typeof e, e)
+			              throw e
+		              })
 
 	}
 
-	_updatePreviousMail(): Promise < void > {
+	_updatePreviousMail(): Promise<void> {
 		if (this._previousMail
 		) {
-			if (this._previousMail.replyType == ReplyType.NONE && this.conversationType == ConversationType.REPLY) {
+			if (this._previousMail.replyType === ReplyType.NONE && this.conversationType === ConversationType.REPLY) {
 				this._previousMail.replyType = ReplyType.REPLY
-			} else if (this._previousMail.replyType == ReplyType.NONE && this.conversationType == ConversationType.FORWARD) {
+			} else if (this._previousMail.replyType == ReplyType.NONE && this.conversationType
+				== ConversationType.FORWARD) {
 				this._previousMail.replyType = ReplyType.FORWARD
-			} else if (this._previousMail.replyType == ReplyType.FORWARD && this.conversationType == ConversationType.REPLY) {
+			} else if (this._previousMail.replyType == ReplyType.FORWARD && this.conversationType
+				== ConversationType.REPLY) {
 				this._previousMail.replyType = ReplyType.REPLY_FORWARD
-			} else if (this._previousMail.replyType == ReplyType.REPLY && this.conversationType == ConversationType.FORWARD) {
+			} else if (this._previousMail.replyType == ReplyType.REPLY && this.conversationType
+				== ConversationType.FORWARD) {
 				this._previousMail.replyType = ReplyType.REPLY_FORWARD
 			} else {
 				return Promise.resolve()
@@ -671,14 +693,16 @@ export class MailEditor {
 		return Promise.all(resolvedRecipients.map(r => {
 			if (r.contact) {
 				let recipientContact = neverNull(r.contact)
-				if (!recipientContact._id && (!logins.getUserController().props.noAutomaticContacts || (isExternal(r) && this._confidentialButtonState))) {
+				if (!recipientContact._id && (!logins.getUserController().props.noAutomaticContacts
+					|| (isExternal(r) && this._confidentialButtonState))) {
 					if (isExternal(r) && this._confidentialButtonState) {
 						recipientContact.presharedPassword = this.getPasswordField(r).value().trim()
 					}
 					return LazyContactListId.getAsync().then(listId => {
 						return setup(listId, r.contact)
 					})
-				} else if (recipientContact._id && isExternal(r) && this._confidentialButtonState && recipientContact.presharedPassword !== this.getPasswordField(r).value().trim()) {
+				} else if (recipientContact._id && isExternal(r) && this._confidentialButtonState
+					&& recipientContact.presharedPassword !== this.getPasswordField(r).value().trim()) {
 					recipientContact.presharedPassword = this.getPasswordField(r).value().trim()
 					return update(recipientContact)
 				} else {
@@ -692,14 +716,14 @@ export class MailEditor {
 
 	_allRecipients() {
 		return this.toRecipients.bubbles.map(b => b.entity)
-			.concat(this.ccRecipients.bubbles.map(b => b.entity))
-			.concat(this.bccRecipients.bubbles.map(b => b.entity))
+		           .concat(this.ccRecipients.bubbles.map(b => b.entity))
+		           .concat(this.bccRecipients.bubbles.map(b => b.entity))
 	}
 
 	/**
 	 * Makes sure the recipient type and contact are resolved.
 	 */
-	_waitForResolvedRecipients(): Promise < RecipientInfo[] > {
+	_waitForResolvedRecipients(): Promise<RecipientInfo[]> {
 		return Promise.all(this._allRecipients().map(recipientInfo => {
 			return resolveRecipientInfo(recipientInfo).then(recipientInfo => {
 				if (recipientInfo.resolveContactPromise) {
@@ -716,7 +740,7 @@ export class MailEditor {
 	/**
 	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
 	 */
-	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble < RecipientInfo > {
+	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
 		bubbleWrapper.button = createAsyncDropDownButton(() => getDisplayText(recipientInfo.name, mailAddress, false), null, () => {
@@ -752,7 +776,9 @@ export class MailEditor {
 				buttons.push(new Button("createContact_action", () => {
 					LazyContactListId.getAsync().then(contactListId => {
 						new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
-							let bubbles = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles].find(b => contains(b, bubbleResolver()))
+							let bubbles = [
+								this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
+							].find(b => contains(b, bubbleResolver()))
 							if (bubbles) {
 								this._updateBubble(bubbles, bubbleResolver(), [contactListId, contactElementId])
 							}
@@ -767,14 +793,16 @@ export class MailEditor {
 		return buttons
 	}
 
-	_handleEntityEvent(typeRef: TypeRef < any >, listId: ? string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation == OperationType.UPDATE || operation == OperationType.DELETE)) {
+	_handleEntityEvent(typeRef: TypeRef<any>, listId: ? string, elementId: string, operation: OperationTypeEnum): void {
+		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation == OperationType.UPDATE
+			|| operation == OperationType.DELETE)) {
 			let contactId: IdTuple = [neverNull(listId), elementId]
 			let allBubbleLists = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles]
 			allBubbleLists.forEach(bubbles => {
 				bubbles.forEach(bubble => {
-					if (bubble => bubble.entity.contact && bubble.entity.contact._id && isSameId(bubble.entity.contact._id, contactId)) {
-						if (operation == OperationType.UPDATE) {
+					if (bubble => bubble.entity.contact && bubble.entity.contact._id
+						&& isSameId(bubble.entity.contact._id, contactId)) {
+						if (operation === OperationType.UPDATE) {
 							this._updateBubble(bubbles, bubble, contactId)
 						} else {
 							this._removeBubble(bubble)
@@ -785,24 +813,28 @@ export class MailEditor {
 		}
 	}
 
-	_updateBubble(bubbles: Bubble < RecipientInfo > [], oldBubble: Bubble < RecipientInfo >, contactId: IdTuple) {
+	_updateBubble(bubbles: Bubble<RecipientInfo> [], oldBubble: Bubble<RecipientInfo>, contactId: IdTuple) {
 		let emailAddress = oldBubble.entity.mailAddress
 		load(ContactTypeRef, contactId).then(updatedContact => {
-			if (!updatedContact.mailAddresses.find(ma => ma.address.trim().toLowerCase() === emailAddress.trim().toLowerCase())) {
+			if (!updatedContact.mailAddresses.find(ma =>
+				ma.address.trim().toLowerCase() === emailAddress.trim().toLowerCase())) {
 				// the mail address was removed, so remove the bubble
 				remove(bubbles, oldBubble)
 			} else {
 				let newBubble = this.createBubble(`${updatedContact.firstName} ${updatedContact.lastName}`.trim(), emailAddress, updatedContact)
 				replace(bubbles, oldBubble, newBubble)
 				if (updatedContact.presharedPassword && this.mailAddressToPasswordField.has(emailAddress)) {
-					neverNull(this.mailAddressToPasswordField.get(emailAddress)).setValue(updatedContact.presharedPassword)
+					neverNull(this.mailAddressToPasswordField.get(emailAddress))
+						.setValue(updatedContact.presharedPassword)
 				}
 			}
 		})
 	}
 
-	_removeBubble(bubble: Bubble < RecipientInfo >) {
-		let bubbles = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles].find(b => contains(b, bubble))
+	_removeBubble(bubble: Bubble<RecipientInfo>) {
+		let bubbles = [
+			this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
+		].find(b => contains(b, bubble))
 		if (bubbles) {
 			remove(bubbles, bubble)
 		}
@@ -851,7 +883,9 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
-		let contactsPromise = (locator.search.indexState().indexingSupported) ? searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+		let contactsPromise = (locator.search.indexState().indexingSupported) ?
+			searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync()
+			                                                             .then(listId => loadAll(ContactTypeRef, listId))
 		return contactsPromise.map(contact => {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
@@ -864,18 +898,17 @@ class MailBubbleHandler {
 			}
 			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
 		}).reduce((a, b) => a.concat(b), [])
-			.then(suggestions => {
-				if (env.mode == Mode.App) {
-					return contactApp.findRecipients(query, 10, suggestions).then(() => {
-						return suggestions
-					})
-				} else {
-					return suggestions
-				}
-			})
-			.then(suggestions => {
-				return suggestions.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
-			})
+		                      .then(suggestions => {
+			                      if (env.mode == Mode.App) {
+				                      return contactApp.findRecipients(query, 10, suggestions).then(() => suggestions)
+			                      } else {
+				                      return suggestions
+			                      }
+		                      })
+		                      .then(suggestions => {
+			                      return suggestions.sort((suggestion1, suggestion2) =>
+				                      suggestion1.name.localeCompare(suggestion2.name))
+		                      })
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
@@ -883,7 +916,7 @@ class MailBubbleHandler {
 	}
 
 	createBubblesFromText(text: string): Bubble<RecipientInfo>[] {
-		let separator = (text.indexOf(";") != -1) ? ";" : ","
+		let separator = (text.indexOf(";") !== -1) ? ";" : ","
 		let textParts = text.split(separator)
 		let bubbles = []
 
