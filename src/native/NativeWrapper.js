@@ -40,20 +40,24 @@ class NativeWrapper {
 						_asyncImport('src/mail/MailUtils.js'),
 						_asyncImport('src/api/main/LoginController.js')
 					]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
-						return logins.waitForUserLogin().then(() => Promise.all(msg.args[0]
-							.map(uri => Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
-								return {
-									_type: "FileReference",
-									name,
-									mimeType,
-									size,
-									location: uri
-								}
-							}))))
+						const [filesUris, text, addresses, subject] = msg.args
+						return logins.waitForUserLogin().then(() => Promise.all(filesUris
+							.map(uri => Promise.join(getName(uri), getMimeType(uri), getSize(uri),
+								(name, mimeType, size) => {
+									return {
+										_type: "FileReference",
+										name,
+										mimeType,
+										size,
+										location: uri
+									}
+								}))))
 							.then(files => {
 								const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-								return editor.initWithTemplate(null, null, files.length > 0 ? files[0].name : "",
-									mailUtilsModule.getEmailSignature(), null)
+								const address = addresses ? addresses.shift() : null
+								const finalSubject = subject || files.length > 0 ? files[0].name : ""
+								return editor.initWithTemplate(null, address, finalSubject,
+									(text || "") + mailUtilsModule.getEmailSignature(), null)
 									.then(() => {
 										editor._attachFiles(files)
 										editor.show()

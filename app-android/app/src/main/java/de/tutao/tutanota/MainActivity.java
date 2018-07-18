@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
-                        .getString(THEME_PREF, "light"));
+                .getString(THEME_PREF, "light"));
 
         super.onCreate(savedInstanceState);
 
@@ -291,26 +291,85 @@ public class MainActivity extends Activity {
      */
     void share(Intent intent) {
         String action = intent.getAction();
+        String type = intent.getType();
+        ClipData clipData = intent.getClipData();
+
+        JSONArray files;
+        String text = null;
+        String[] addresses = intent.getStringArrayExtra(Intent.EXTRA_EMAIL);
+        String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+
         if (Intent.ACTION_SEND.equals(action)) {
-            try {
-                final String file;
-                ClipData clipData = intent.getClipData();
-                if (clipData != null) {
-                    ClipData.Item item = clipData.getItemAt(0);
-                    file = FileUtil.uriToFile(this, item.getUri());
+            if (type != null && type.startsWith("text")) {
+                if (clipData != null && clipData.getItemCount() > 0) {
+                    text = clipData.getItemAt(0).getHtmlText();
+                    if (text == null) {
+                        text = clipData.getItemAt(0).getText().toString();
+                    }
                 } else {
-                    Uri uri = intent.getData();
-                    file = FileUtil.uriToFile(this, uri);
+                    text = intent.getStringExtra(Intent.EXTRA_TEXT);
                 }
-                final JSONArray filesArray = new JSONArray();
-                filesArray.put(file);
-                nativeImpl.sendRequest(JsRequest.createMailEditor, new Object[]{filesArray});
-            } catch (FileNotFoundException e) {
-                Log.e(TAG, "could not find file", e);
+                files = new JSONArray();
+            } else {
+                files = getFilesFromIntent(intent);
+
             }
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-            // TODO
+            files = getFilesFromIntent(intent);
+        } else {
+            files = new JSONArray();
         }
+
+        nativeImpl.sendRequest(JsRequest.createMailEditor,
+                new Object[]{files, text, addresses, subject});
+    }
+
+    @NonNull
+    private JSONArray getFilesFromIntent(@NonNull Intent intent) {
+        ClipData clipData = intent.getClipData();
+        final JSONArray filesArray = new JSONArray();
+        if (clipData != null) {
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                ClipData.Item item = clipData.getItemAt(0);
+                try {
+                    filesArray.put(FileUtil.uriToFile(this, item.getUri()));
+                } catch (FileNotFoundException e) {
+                    Log.w(TAG, "Could not find file " + item.getUri());
+                }
+            }
+        } else {
+            if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+                //noinspection unchecked
+                @SuppressWarnings("ConstantConditions")
+                ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
+                if (uris != null) {
+                    for (Uri uri : uris) {
+                        try {
+                            filesArray.put(FileUtil.uriToFile(this, uri));
+                        } catch (FileNotFoundException e) {
+                            Log.w(TAG, "Could not find file " + uri);
+                        }
+                    }
+                } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
+                    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    try {
+                        filesArray.put(FileUtil.uriToFile(this, uri));
+                    } catch (FileNotFoundException e) {
+                        Log.w(TAG, "Could not find file " + uri);
+                    }
+                } else if (intent.getData() != null) {
+                    Uri uri = intent.getData();
+                    try {
+                        filesArray.put(FileUtil.uriToFile(this, uri));
+                    } catch (FileNotFoundException e) {
+                        Log.w(TAG, "Could not find file " + uri);
+                    }
+                } else {
+                    Log.w(TAG, "Did not find files in the intent");
+                }
+            }
+        }
+        return filesArray;
     }
 
     public void openMailbox(@NonNull Intent intent) {
