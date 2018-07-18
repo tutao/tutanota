@@ -72,7 +72,8 @@ export class SecondFactorHandler {
 								// close the dialog manually after 1 min because the session is not updated if the other client is closed
 								let sessionId = session._id
 								setTimeout(() => {
-									if (this._otherLoginDialog && isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
+									if (this._otherLoginDialog
+										&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
 										this._otherLoginDialog.close()
 										this._otherLoginSessionId = null
 										this._otherLoginDialog = null
@@ -80,9 +81,11 @@ export class SecondFactorHandler {
 								}, 60 * 1000)
 							}
 						})
-					} else if (operation == OperationType.UPDATE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
+					} else if (operation == OperationType.UPDATE && this._otherLoginSessionId
+						&& isSameId(this._otherLoginSessionId, sessionId)) {
 						return load(SessionTypeRef, sessionId).then(session => {
-							if (session.state != SessionState.SESSION_STATE_PENDING && this._otherLoginDialog && isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
+							if (session.state != SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
+								&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
 								this._otherLoginDialog.close()
 								this._otherLoginSessionId = null
 								this._otherLoginDialog = null
@@ -103,8 +106,8 @@ export class SecondFactorHandler {
 
 	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
 		if (!this._waitingForSecondFactorDialog) {
-			let u2fChallenge = challenges.find(challenge => challenge.type == SecondFactorType.u2f)
-			let otpChallenge = challenges.find(challenge => challenge.type == SecondFactorType.totp)
+			let u2fChallenge = challenges.find(challenge => challenge.type === SecondFactorType.u2f)
+			let otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
 			let u2fClient = new U2fClient()
 			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
 			const otpCode = new TextField("totpCode_label")
@@ -129,17 +132,23 @@ export class SecondFactorHandler {
 			}
 
 			return u2fClient.isSupported().then(u2fSupport => {
-				let keyForThisDomainExisting = keys.filter(key => key.appId == u2fClient.appId).length > 0
-				let otherDomainAppIds = keys.filter(key => key.appId != u2fClient.appId).map(key => key.appId)
+				let keyForThisDomainExisting = keys.filter(key => key.appId === u2fClient.appId).length > 0
+				let otherDomainAppIds = keys.filter(key => key.appId !== u2fClient.appId).map(key => key.appId)
 				let otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
 				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
 					view: () => m("", [
-						(u2fSupport && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage + "]")) : null,
+						(u2fSupport && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage
+							+ "]")) : null,
 						m("p", [
-							((u2fSupport && keyForThisDomainExisting) || otpChallenge != null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg"),
+							((u2fSupport && keyForThisDomainExisting) || otpChallenge
+								!= null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg"),
 							otpChallenge != null ? m(".left.mlr-l", m(otpCode)) : null,
 						]),
-						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain})) : null
+						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {
+							href: "https://" + otherLoginDomain
+						}, lang.get("differentSecurityKeyDomain_msg", {
+							"{domain}": "https://" + otherLoginDomain
+						})) : null
 					])
 				}).setCloseHandler(() => {
 					// Prevent accidential closing
@@ -163,7 +172,10 @@ export class SecondFactorHandler {
 								} else if (e instanceof NotAuthenticatedError) {
 									Dialog.error("loginFailed_msg")
 								}
-								if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
+								if (this._waitingForSecondFactorDialog
+									&& this._waitingForSecondFactorDialog.visible) {
+									registerResumeOnError()
+								}
 							}
 						})
 					}
@@ -180,5 +192,5 @@ export const secondFactorHandler: SecondFactorHandler = new SecondFactorHandler(
 
 export function appIdToLoginDomain(appId: string): string {
 	let domain = appId.split("/")[2]
-	return (domain != "tutanota.com" ? domain : "mail.tutanota.com")
+	return (domain !== "tutanota.com" ? domain : "mail.tutanota.com")
 }

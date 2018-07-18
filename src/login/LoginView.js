@@ -50,18 +50,18 @@ export class LoginView {
 		this.appButtons = [
 			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl(
 				"https://play.google.com/store/apps/details?id=de.tutao.tutanota"), () => BootIcons.Android)
-				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device == DeviceType.ANDROID)
+				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge),
 
 			new Button('appInfoIosImageAlt_alt', () => this.openUrl(
 				"https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb"), () => BootIcons.Apple)
 				.setIsVisibleHandler(() => client.isDesktopDevice() ||
-				(client.device == DeviceType.IPAD || client.device == DeviceType.IPHONE))
+					(client.device == DeviceType.IPAD || client.device == DeviceType.IPHONE))
 				.setType(ButtonType.ActionLarge),
 
 			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl(
 				"http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE"), () => BootIcons.Amazon)
-				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device == DeviceType.ANDROID)
+				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge)
 		]
 
@@ -70,7 +70,7 @@ export class LoginView {
 		this._visibleCredentials = []
 		this._isDeleteCredentials = false;
 
-		this._viewController = asyncImport(typeof module != "undefined" ? module.id : __moduleName,
+		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/login/LoginViewController.js`)
 			.then(module => new module.LoginViewController(this))
 
@@ -87,16 +87,16 @@ export class LoginView {
 
 		let panel = {
 			view: () => (this._visibleCredentials.length > 0 ? [
-					m(".flex-center.flex-column", [
-						m(new Button("loginOtherAccount_action", () => this._showLoginForm("")).setType(
-							ButtonType.Secondary)),
-						m(new Button(this._isDeleteCredentials ? "cancel_action" :
-							"deleteCredentials_action", () => this._switchDeleteCredentialsState()).setType(
-							ButtonType.Secondary))
-					]),
-				] : []).concat(m(".flex-center.flex-column", [
+				m(".flex-center.flex-column", [
+					m(new Button("loginOtherAccount_action", () => this._showLoginForm("")).setType(
+						ButtonType.Secondary)),
+					m(new Button(this._isDeleteCredentials ? "cancel_action" :
+						"deleteCredentials_action", () => this._switchDeleteCredentialsState()).setType(
+						ButtonType.Secondary))
+				]),
+			] : []).concat(m(".flex-center.flex-column", [
 				(isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0) ? m(signup) : null,
-				themeId() != 'custom' ? m(themeSwitch) : null,
+				themeId() !== 'custom' ? m(themeSwitch) : null,
 			]))
 		}
 
@@ -150,7 +150,8 @@ export class LoginView {
 			m(this.mailAddress),
 			m(this.password),
 			(!whitelabelCustomizations ||
-			whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1) ?
+				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword)
+				== -1) ?
 				m(this.savePassword) : null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
@@ -183,8 +184,8 @@ export class LoginView {
 		if (args.migrateCredentials) {
 			try {
 				const oldCredentials = JSON.parse(
-						utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(args.migrateCredentials))))
-						._credentials || []
+					utf8Uint8ArrayToString(
+						base64ToUint8Array(base64UrlToBase64(args.migrateCredentials))))._credentials || []
 
 				promise = showProgressDialog("loading_msg",
 					this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials)))
@@ -207,7 +208,7 @@ export class LoginView {
 			} else {
 				this._visibleCredentials = deviceConfig.getAllInternal()
 				let autoLoginCredentials: ?Credentials = null
-				if (args.noAutoLogin != true) {
+				if (args.noAutoLogin !== true) {
 					if (args.loginWith && deviceConfig.get(args.loginWith)) {
 						// there are credentials for the desired email address existing, so try to auto login
 						autoLoginCredentials = deviceConfig.get(args.loginWith)

@@ -55,11 +55,11 @@ export class ExternalLoginView {
 		this.view = (): VirtualElement => {
 			return m(".main-view.flex-center.scroll.pt-responsive", [
 				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", !this._errorMessageId ? [
-						m(this.password),
-						m(this.savePassword),
-						m(".pt", m(loginButton)),
-						m("p.center.statusTextColor", m("small", this.helpText))
-					] : m("p.center", lang.get(this._errorMessageId)))
+					m(this.password),
+					m(this.savePassword),
+					m(".pt", m(loginButton)),
+					m("p.center.statusTextColor", m("small", this.helpText))
+				] : m("p.center", lang.get(this._errorMessageId)))
 			])
 		}
 	}
@@ -111,26 +111,27 @@ export class ExternalLoginView {
 
 	_formLogin() {
 		let pw = this.password.value()
-		if (pw == "") {
+		if (pw === "") {
 			this.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.helpText = lang.get('login_msg')
 			let clientIdentifier = client.browser + " " + client.device
 			let createSessionPromise = Promise.resolve()
-			// TODO: put auth headers into body of password channel resource
-			// serviceRequest(TutanotaService.PasswordChannelResource, HttpMethod.GET, null, PasswordChannelReturnTypeRef)
-			// .catch(NotAuthenticatedError, e => {
-			// 	this.helpText = lang.get('invalidLink_msg')
-			// })
-			// .catch(BadRequestError, e => {
-			// 	this.helpText = lang.get('invalidLink_msg')
-			// }).catch(ConnectionError, e => {
-			// 	this.helpText = lang.get('emptyString_msg')
-			// 	throw e;
-				.then(passwordChannels => {
-					// TODO add phone number handling
-					return worker.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this.savePassword.checked())
-				}).then(newCredentials => {
+			                                  // TODO: put auth headers into body of password channel resource
+			                                  // serviceRequest(TutanotaService.PasswordChannelResource, HttpMethod.GET, null, PasswordChannelReturnTypeRef)
+			                                  // .catch(NotAuthenticatedError, e => {
+			                                  // 	this.helpText = lang.get('invalidLink_msg')
+			                                  // })
+			                                  // .catch(BadRequestError, e => {
+			                                  // 	this.helpText = lang.get('invalidLink_msg')
+			                                  // }).catch(ConnectionError, e => {
+			                                  // 	this.helpText = lang.get('emptyString_msg')
+			                                  // 	throw e;
+			                                  .then(passwordChannels => {
+				                                  // TODO add phone number handling
+				                                  return worker.createExternalSession(this._userId, pw, this._salt,
+					                                  clientIdentifier, this.savePassword.checked())
+			                                  }).then(newCredentials => {
 					this.password.value("")
 					let storedCredentials = deviceConfig.get(this._userId)
 					if (newCredentials) {
@@ -138,11 +139,11 @@ export class ExternalLoginView {
 					}
 					if (storedCredentials) {
 						return worker.deleteSession(storedCredentials.accessToken)
-							.then(() => {
-								if (!newCredentials) {
-									deviceConfig.delete(this._userId)
-								}
-							})
+						             .then(() => {
+							             if (!newCredentials) {
+								             deviceConfig.delete(this._userId)
+							             }
+						             })
 					}
 				})
 			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
@@ -152,31 +153,31 @@ export class ExternalLoginView {
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._postLoginActions())
-			.then(() => {
-				m.route.set(`/mail${location.hash}`)
-				this.helpText = lang.get('emptyString_msg')
-				m.redraw()
-			})
-			.catch(AccessBlockedError, e => {
-				this.helpText = lang.get('loginFailedOften_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(NotAuthenticatedError, e => {
-				this.helpText = lang.get('invalidPassword_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(AccessDeactivatedError, e => {
-				this.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(ConnectionError, e => {
-				this.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				throw e;
-			})
+		            .then(() => {
+			            m.route.set(`/mail${location.hash}`)
+			            this.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+		            })
+		            .catch(AccessBlockedError, e => {
+			            this.helpText = lang.get('loginFailedOften_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(NotAuthenticatedError, e => {
+			            this.helpText = lang.get('invalidPassword_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(AccessDeactivatedError, e => {
+			            this.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(ConnectionError, e => {
+			            this.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+			            throw e;
+		            })
 	}
 
 	_postLoginActions() {
@@ -191,10 +192,11 @@ export class ExternalLoginView {
 		windowFacade.addOfflineListener(() => {
 			console.log("offline")
 		})
-		return serviceRequest(SysService.ExternalPropertiesService, HttpMethod.GET, null, ExternalPropertiesReturnTypeRef).then(data => {
-			let props = createCustomerProperties()
-			//TODO: set welcome message
-		})
+		return serviceRequest(SysService.ExternalPropertiesService, HttpMethod.GET, null, ExternalPropertiesReturnTypeRef)
+			.then(data => {
+				let props = createCustomerProperties()
+				//TODO: set welcome message
+			})
 
 	}
 }

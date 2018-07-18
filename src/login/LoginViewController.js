@@ -65,17 +65,17 @@ export class LoginViewController {
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
 		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
-				.then(userPw => {
-					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
-						.then(newCredentials => {
-							deviceConfig.set(newCredentials)
-						})
-						.finally(() => worker.logout(false))
-				})
-				.catch(ignored => {
-					console.log(ignored)
-					// prevent reloading the page by ErrorHandler
-				})
+			             .then(userPw => {
+				             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+				                          .then(newCredentials => {
+					                          deviceConfig.set(newCredentials)
+				                          })
+				                          .finally(() => worker.logout(false))
+			             })
+			             .catch(ignored => {
+				             console.log(ignored)
+				             // prevent reloading the page by ErrorHandler
+			             })
 		})).return()
 	}
 
@@ -83,26 +83,27 @@ export class LoginViewController {
 		if (this._loginPromise.isPending()) return
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
-		if (mailAddress == "" || pw == "") {
+		if (mailAddress === "" || pw == "") {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
 			let persistentSession = this.view.savePassword.checked()
 			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
-				.then(newCredentials => {
-					let storedCredentials = deviceConfig.get(mailAddress)
-					if (persistentSession) {
-						deviceConfig.set(newCredentials)
-					}
-					if (storedCredentials) {
-						return worker.deleteSession(storedCredentials.accessToken)
-							.then(() => {
-								if (!persistentSession) {
-									deviceConfig.delete(mailAddress)
-								}
-							}).catch(NotFoundError, e => console.log("session already deleted"))
-					}
-				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			                           .then(newCredentials => {
+				                           let storedCredentials = deviceConfig.get(mailAddress)
+				                           if (persistentSession) {
+					                           deviceConfig.set(newCredentials)
+				                           }
+				                           if (storedCredentials) {
+					                           return worker.deleteSession(storedCredentials.accessToken)
+					                                        .then(() => {
+						                                        if (!persistentSession) {
+							                                        deviceConfig.delete(mailAddress)
+						                                        }
+					                                        })
+					                                        .catch(NotFoundError, e => console.log("session already deleted"))
+				                           }
+			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
@@ -110,38 +111,38 @@ export class LoginViewController {
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
-			.then(() => logins.loadCustomizations())
-			.then(() => this._postLoginActions())
-			.then(() => {
-				m.route.set(this.view._requestedPath)
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-			})
-			.catch(AccessBlockedError, e => {
-				this.view.helpText = lang.get('loginFailedOften_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(NotAuthenticatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(AccessDeactivatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(TooManyRequestsError, e => {
-				this.view.helpText = lang.get('tooManyAttempts_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(ConnectionError, e => {
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				throw e;
-			})
+		            .then(() => logins.loadCustomizations())
+		            .then(() => this._postLoginActions())
+		            .then(() => {
+			            m.route.set(this.view._requestedPath)
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+		            })
+		            .catch(AccessBlockedError, e => {
+			            this.view.helpText = lang.get('loginFailedOften_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(NotAuthenticatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(AccessDeactivatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(TooManyRequestsError, e => {
+			            this.view.helpText = lang.get('tooManyAttempts_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(ConnectionError, e => {
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+			            throw e;
+		            })
 	}
 
 	_enforcePasswordChange() {
@@ -183,11 +184,12 @@ export class LoginViewController {
 	}
 
 	_showUpgradeReminder(): Promise<void> {
-		if (logins.getUserController().isFreeAccount() && env.mode != Mode.App) {
+		if (logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
 			return logins.getUserController().loadCustomer().then(customer => {
 				return load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then(properties => {
 					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-						if (properties.lastUpgradeReminder == null && (customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
+						if (properties.lastUpgradeReminder == null && (customerInfo.creationTime.getTime()
+							+ Const.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
 							let message = lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/pricing").then(confirm => {
@@ -235,12 +237,12 @@ export class LoginViewController {
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
 		return worker.initialized.then(() => {
 			worker.deleteSession(credentials.accessToken)
-				.then(() => {
-					// not authenticated error is caught in worker
-					deviceConfig.delete(credentials.mailAddress)
-					this.view._visibleCredentials = deviceConfig.getAllInternal();
-					m.redraw()
-				})
+			      .then(() => {
+				      // not authenticated error is caught in worker
+				      deviceConfig.delete(credentials.mailAddress)
+				      this.view._visibleCredentials = deviceConfig.getAllInternal();
+				      m.redraw()
+			      })
 		})
 	}
 }

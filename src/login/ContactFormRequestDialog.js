@@ -36,7 +36,7 @@ export class ContactFormRequestDialog {
 	_subject: TextField;
 	_editor: HtmlEditor;
 	view: Function;
-	_attachments: Array<TutanotaFile|DataFile|FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
+	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
 	_attachFilesButton: Button;
 	_loadingAttachments: boolean;
@@ -95,7 +95,7 @@ export class ContactFormRequestDialog {
 				ondrop: (ev) => {
 					if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 						fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
-							this._attachFiles((dataFiles:any))
+							this._attachFiles((dataFiles: any))
 							m.redraw()
 						}).catch(e => {
 							console.log(e)
@@ -107,7 +107,12 @@ export class ContactFormRequestDialog {
 				}
 			}, [
 				m(".row", m(this._subject)),
-				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtons.length > 0 ? ".pt" : ""), (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
+				m(".flex-start.flex-wrap.ml-negative-bubble"
+					+ (this._attachmentButtons.length > 0 ? ".pt" : ""),
+					(!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [
+						m(".flex-v-center", progressIcon()),
+						m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
+					]),
 				this._attachmentButtons.length > 0 ? m("hr") : null,
 				m(this._passwordForm),
 				m(".pt-l.text", m(this._editor)),
@@ -118,20 +123,20 @@ export class ContactFormRequestDialog {
 		}
 
 		this._dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: closeAction,
-				help: "close_alt"
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				shift: true,
-				exec: () => {
-					this.send()
-				},
-				help: "send_action"
-			}).setCloseHandler(closeAction)
+		                     .addShortcut({
+			                     key: Keys.ESC,
+			                     exec: closeAction,
+			                     help: "close_alt"
+		                     })
+		                     .addShortcut({
+			                     key: Keys.S,
+			                     ctrl: true,
+			                     shift: true,
+			                     exec: () => {
+				                     this.send()
+			                     },
+			                     help: "send_action"
+		                     }).setCloseHandler(closeAction)
 	}
 
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
@@ -159,9 +164,9 @@ export class ContactFormRequestDialog {
 	animate(domElement: HTMLElement, fadein: boolean) {
 		let childHeight = domElement.offsetHeight
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-			.then(() => {
-				domElement.style.height = ''
-			})
+		                 .then(() => {
+			                 domElement.style.height = ''
+		                 })
 	}
 
 	show() {
@@ -176,12 +181,12 @@ export class ContactFormRequestDialog {
 
 	_showFileChooserForAttachments() {
 		return fileController.showFileChooser(true).then(files => {
-			this._attachFiles((files:any))
+			this._attachFiles((files: any))
 			m.redraw()
 		})
 	}
 
-	_attachFiles(files: Array<TutanotaFile|DataFile|FileReference>) {
+	_attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
 		let totalSize = 0
 		this._attachments.forEach(file => {
 			totalSize += Number(file.size)
@@ -205,10 +210,10 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = this._attachments.map(file => {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
-				if (file._type == "DataFile") {
-					return fileController.open(((file:any):DataFile))
+				if (file._type === "DataFile") {
+					return fileController.open(((file: any): DataFile))
 				} else {
-					fileController.downloadAndOpen(((file:any):TutanotaFile))
+					fileController.downloadAndOpen(((file: any): TutanotaFile))
 				}
 			}, null).setType(ButtonType.Secondary))
 			lazyButtons.push(new Button("remove_action", () => {
@@ -217,7 +222,9 @@ export class ContactFormRequestDialog {
 				m.redraw()
 			}, null).setType(ButtonType.Secondary))
 
-			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons)
+				.setType(ButtonType.Bubble)
+				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
 	}
 
@@ -253,38 +260,54 @@ export class ContactFormRequestDialog {
 						return null
 					}
 				}))
-				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields).then(contactFormResult => {
-					let userEmailAddress = contactFormResult.responseMailAddress
-					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false).then(() => {
-						let p = Promise.resolve()
-						if (cleanedNotificationMailAddress) {
-							let pushIdentifier = createPushIdentifier()
-							pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
-							pushIdentifier.language = lang.code
-							pushIdentifier.pushServiceType = PushServiceType.EMAIL
-							pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-							pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-							pushIdentifier._area = "0" // legacy
-							p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
-						}
+				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
+				                        .then(contactFormResult => {
+					                        let userEmailAddress = contactFormResult.responseMailAddress
+					                        return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
+					                                     .then(() => {
+						                                     let p = Promise.resolve()
+						                                     if (cleanedNotificationMailAddress) {
+							                                     let pushIdentifier = createPushIdentifier()
+							                                     pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
+							                                     pushIdentifier.language = lang.code
+							                                     pushIdentifier.pushServiceType = PushServiceType.EMAIL
+							                                     pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
+							                                     pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
+							                                     pushIdentifier._area = "0" // legacy
+							                                     p = worker.entityRequest(PushIdentifierTypeRef,
+								                                     HttpMethodEnum.POST,
+								                                     neverNull(logins.getUserController().user.pushIdentifierList).list,
+								                                     null, pushIdentifier);
+						                                     }
 
-						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "", null, true)
-						return p.then(() => resolveRecipientInfo(recipientInfo).then(r => {
-							let recipientInfos = [r]
-							return worker.createMailDraft(this._subject.value(), this._editor.getValue(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {
-								return worker.sendMailDraft(draft, recipientInfos, lang.code)
-							})
-						}).finally(e => {
-							return worker.logout(false)
-						}))
-					}).then(() => {
-						return {userEmailAddress, password}
+						                                     let recipientInfo =
+							                                     createRecipientInfo(contactFormResult.requestMailAddress, "", null, true)
+						                                     return p.then(() => resolveRecipientInfo(recipientInfo)
+							                                     .then(r => {
+								                                     let recipientInfos = [r]
+								                                     return worker.createMailDraft(this._subject.value(),
+									                                     this._editor.getValue(), userEmailAddress, "",
+									                                     recipientInfos, [], [], ConversationType.NEW,
+									                                     null, this._attachments, true, [])
+								                                                  .then(draft => {
+									                                                  return worker.sendMailDraft(draft, recipientInfos, lang.code)
+								                                                  })
+							                                     })
+							                                     .finally(e => {
+								                                     return worker.logout(false)
+							                                     }))
+					                                     })
+					                                     .then(() => {
+						                                     return {userEmailAddress, password}
+					                                     })
+				                        })
+
+				return showProgressDialog("sending_msg", sendRequest)
+					.then(result => {
+						return showConfirmDialog(result.userEmailAddress)
 					})
-				})
-
-				return showProgressDialog("sending_msg", sendRequest).then(result => {
-					return showConfirmDialog(result.userEmailAddress)
-				}).then(() => this._close()).catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
+					.then(() => this._close())
+					.catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
 			}
 		})
 	}
