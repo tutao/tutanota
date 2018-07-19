@@ -25,7 +25,7 @@ module.exports.renderHtml = function (scripts, env) {
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),
-				cors(env),
+				cors(m, env),
 				m("meta[name=apple-mobile-web-app-capable][content=yes]"),
 				m("meta[name=mobile-web-app-capable][content=yes]"),
 				m("meta[name=referrer][content=no-referrer]"),
@@ -69,12 +69,12 @@ module.exports.renderHtml = function (scripts, env) {
 	return html
 }
 
-const cors = (env) => {
+const cors = (m, env) => {
 	if (env.dist && env.mode === "App") {
-		m("meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; " +
+		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; " +
 			`style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`)
 	} else {
-		null
+		return null
 	}
 }
 
