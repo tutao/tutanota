@@ -1,0 +1,25 @@
+Die Open Source App Tutanota macht es dir ganz einfach, Ende-zu-Ende verschlüsselte E-Mails an jeden zu verschicken. Selbst E-Mails ohne Ende-zu-Ende-Verschlüsselung sowie alle deine Kontakte werden verschlüsselt auf den Tutanota-Servern in Deutschland gespeichert.
+
+Nur du mit deinem Passwort hast Zugriff auf deine Daten. So kannst du deine Privatsphäre ganz einfach schützen.
+
+Webseite: https://tutanota.de
+Source Code: https://github.com/tutao/tutanota
+
+- Registriere deinen kostenlosen Tutanota-Account mit 1 GB freien Speicher.
+- Wähle deine E-Mail-Adresse aus den verfügbaren Domains @tutanota.com, @tutanota.de, @tuta.io, @tutamail.com und @keemail.me aus.
+- Sende und empfange Ende-zu-Ende verschlüsselte E-Mails an jeden, an andere Tutanota-Nutzer automatisch und an externe Empfänger geschützt mit einem Passwort.
+- Sende und empfange 'normale' E-Mails (nicht Ende-zu-Ende verschlüsselt). Selbst diese E-Mails werden verschlüsselt auf den Tutanota-Servern gespeichert.
+- Betreff, Inhalt und Anhänge werden automatisch verschlüsselt.
+- Schnelle Benachrichtigung über neue E-Mails mit automatischer Push Funktion.
+- Automatische Vervollständigung der Empfängernamen beim Eintippen (von deinen Tutanota- und Telefonbuchkontakten).
+- Tutanota ist kostenlos und Open Source, so dass jeder die Sicherheit prüfen kann.
+
+Die Tutanota App verlangt möglichst wenige Berechtigungen, damit deine Privatsphäre maximal geschützt wird. Die Berechtigungen werden für folgende Funktionen verwendet:
+
+- Voller Netzwerkzugriff: E-Mails senden und empfangen.
+- Internetdaten erhalten: Benachrichtigung, wenn eine neue E-Mail empfangen wird.
+- Netzwerkverbindungen abrufen: Prüfen, ob eine Internetverbindung besteht.
+- Kontakte lesen: Empfänger aus den Kontakten des Telefons auswählen.
+- Lesen der SD-Karte: Anhänge von der SD-Karte anfügen.
+- Vibration steuern: Vibrationsalarm, wenn eine neue Nachricht empfangen wird.
+- Ruhezustand deaktivieren: Benachrichtigung, wenn eine neue E-Mail empfangen wird.",
