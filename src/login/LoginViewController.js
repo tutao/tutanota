@@ -83,7 +83,7 @@ export class LoginViewController {
 		if (this._loginPromise.isPending()) return
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
-		if (mailAddress === "" || pw == "") {
+		if (mailAddress === "" || pw === "") {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
@@ -104,6 +104,11 @@ export class LoginViewController {
 					                                        .catch(NotFoundError, e => console.log("session already deleted"))
 				                           }
 			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			                           .then(() => {
+				                           if (env.mode === Mode.App) {
+					                           return pushServiceApp.register()
+				                           }
+			                           })
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
@@ -166,9 +171,6 @@ export class LoginViewController {
 			console.log("offline")
 		})
 
-		if (env.mode == Mode.App) {
-			pushServiceApp.register()
-		}
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
 			return this._showUpgradeReminder()
