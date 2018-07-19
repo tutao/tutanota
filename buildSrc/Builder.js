@@ -8,7 +8,15 @@ const chokidar = require('chokidar')
 const babel = Promise.promisifyAll(require("babel-core"))
 
 const srcDir = "src"
-const flow = require('flow-bin')
+
+let flow
+try {
+	flow = require('flow-bin')
+} catch (e) {
+	// we don't have flow on F-Droid
+	console.log("flow-bin not found, stubbing it")
+	flow = 'true'
+}
 const spawn = require('child_process').spawn
 
 class Builder {
