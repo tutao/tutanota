@@ -16,8 +16,6 @@
     "caller": "1.0.1",
     "chokidar": "1.4.3",
     "chokidar-socket-emitter": "0.5.4",
-    "cordova-android": "6.2.0-nightly.2017.3.28.08c80f77",
-    "cordova-ios": "4.3.1",
     "core-js": "2.4.1",
     "debug": "2.2.0",
     "dompurify": "1.0.2",
