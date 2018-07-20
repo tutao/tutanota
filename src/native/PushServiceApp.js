@@ -5,7 +5,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {isIOSApp, isAndroidApp, getHttpOrigin} from "../api/Env"
+import {isIOSApp, isAndroidApp, getHttpOrigin, isApp} from "../api/Env"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
@@ -13,11 +13,9 @@ import {worker} from "../api/main/WorkerClient"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
-	currentPushIdentifier: string;
 
 	constructor() {
 		this._pushNotification = null;
-		this.currentPushIdentifier = "";
 	}
 
 	register(): Promise<void> {
@@ -27,15 +25,15 @@ class PushServiceApp {
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
 						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-								.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
+							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
 						} else {
 							return Promise.resolve()
 						}
 					})
 				} else {
 					return worker.generateSsePushIdentifer()
-						.then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-						.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier, ))
+					             .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
+					             .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier,))
 				}
 			}).then(() => nativeApp.invokeNative(new Request("initPushNotifications", [])))
 		} else {
@@ -61,7 +59,6 @@ class PushServiceApp {
 	updatePushIdentifier(identifier: string) {
 		let identifierType = isIOSApp() ? PushServiceType.IOS : PushServiceType.ANDROID
 		let list = logins.getUserController().user.pushIdentifierList
-		this.currentPushIdentifier = identifier;
 		return loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
 			let existingPushIdentfier = identifiers.find(i => i.identifier == identifier)
 			if (existingPushIdentfier) {
@@ -105,6 +102,14 @@ class PushServiceApp {
 
 	closePushNotification(addresses: string[]) {
 		nativeApp.invokeNative(new Request('closePushNotifications', [addresses]))
+	}
+
+	getPushIdentifier(): Promise<?string> {
+		if (isApp()) {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", []))
+		} else {
+			return Promise.resolve(null)
+		}
 	}
 }
 

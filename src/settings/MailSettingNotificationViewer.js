@@ -31,6 +31,7 @@ class NotificationRowView implements MComponent<NotiificationRowAttrs> {
 		return m(".flex.flex-column.full-width", [
 				m(".flex-space-between.items-center",
 					[m("span", vnode.attrs.name), this._buttonRemove(vnode.attrs.removeClicked)]),
+				vnode.attrs.current ? m(".b.mt-negative-s", lang.get("pushIdentifierCurrentDevice_label")) : null,
 				m(".text-break.small.monospace", neverNull(vnode.attrs.identifier.match(/.{2}/g))
 					.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
 			]
@@ -46,6 +47,7 @@ export class MailSettingNotificationViewer {
 	view: Function;
 	_user: ?User;
 	_identifiers: PushIdentifier[] = [];
+	_currentIdentifier: ?string;
 
 	expanderContent = {
 		view: () => {
@@ -58,10 +60,9 @@ export class MailSettingNotificationViewer {
 			const rows = this._identifiers.map(identifier => m(NotificationRowView, {
 				name: this._identifierTypeName(identifier.pushServiceType),
 				identifier: identifier.identifier,
-				current: env.mode === Mode.App
-				&& identifier.identifier === pushServiceApp.currentPushIdentifier,
+				current: env.mode === Mode.App && identifier.identifier === this._currentIdentifier,
 				removeClicked: () => erase(identifier)
-			}))
+			})).sort((l, r) => r.attrs.current - l.attrs.current)
 			return m(".flex.flex-column.items-end.mb", [rowAdd].concat(rows))
 		},
 	}
@@ -84,11 +85,17 @@ export class MailSettingNotificationViewer {
 		this._user = user
 		const list = user.pushIdentifierList
 		if (list) {
-			loadAll(PushIdentifierTypeRef, list.list).then(identifiers => {
-				this._identifiers = identifiers
-				m.redraw()
-			})
+			Promise.all([loadAll(PushIdentifierTypeRef, list.list), pushServiceApp.getPushIdentifier()])
+			       .spread((identifiers, currentIdentifier) => {
+				       this._identifiers = identifiers;
+				       this._currentIdentifier = currentIdentifier;
+				       m.redraw()
+			       })
 		}
+		pushServiceApp.getPushIdentifier().then((identifier) => {
+			this._currentIdentifier = identifier
+			m.redraw()
+		})
 	}
 
 	_identifierTypeName(type: NumberString): string {
