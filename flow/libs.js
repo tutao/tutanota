@@ -88,12 +88,14 @@ var PushNotification: any;
 
 interface Mithril {
 
-	(selector: string|Component): Vnode<any>;
-	(selector: string|Component, children?: Children): Vnode<any>;
-	(selector: string|Component, attributes?: Object, children?: Children): Vnode<any>;
+	(selector: string | Component): Vnode<any>;
+	(selector: string | Component, children?: Children): Vnode<any>;
+	(selector: string | Component, attributes?: Object, children?: Children): Vnode<any>;
 	<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs): Vnode<Attrs>;
 	<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 	<Attrs>(component: MComponent<Attrs>): Vnode<Attrs>;
+	<Attrs>(component: MComponent<Attrs>, attributes?: Attrs): Vnode<Attrs>;
+	<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
 	route: {
 		set(path: string):void;
@@ -132,18 +134,18 @@ interface MComponent<Attrs> extends Lifecycle<Attrs> {
 	view(vnode: Vnode<Attrs>): Children | null | void;
 }
 
-type Child = Vnode<any> | string | number | boolean | null;
-type ChildArray = Array<Children>;
-type Children = Child | ChildArray;
+export type Child = Vnode<any> | string | number | boolean | null;
+export type ChildArray = Array<Children>;
+export type Children = Child | ChildArray;
 
-interface Vnode<Attrs> extends Lifecycle<Attrs> {
-	attrs:Attrs,
-	children:Children,
+export interface Vnode<Attrs> extends Lifecycle<Attrs> {
+	attrs: Attrs,
+	children: Children,
 	dom: HTMLElement,
 }
 
-interface VnodeDOM<Attrs> extends Vnode<Attrs> {
-	attrs:Attrs,
+export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
+	attrs: Attrs,
 	dom: HTMLElement,
 }
 

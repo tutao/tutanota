@@ -511,6 +511,9 @@ styles.registerStyle('main', () => {
 			"color": theme.content_accent
 		},
 
+		'.monospace': {
+			'font-family': '"Lucida Console", Monaco, monospace'
+		},
 
 		// action bar
 		'.action-bar': {width: 'initial', 'margin-left': 'auto'},
@@ -540,16 +543,16 @@ styles.registerStyle('main', () => {
 		},
 
 		'.nav-button:hover': !isApp() ? {
-				'text-decoration': 'underline',
-				opacity: 0.7,
-			} : {},
+			'text-decoration': 'underline',
+			opacity: 0.7,
+		} : {},
 		'.nav-button:focus': client.isDesktopDevice() ? {
-				'text-decoration': 'underline',
-				opacity: 0.7,
-			} : {},
+			'text-decoration': 'underline',
+			opacity: 0.7,
+		} : {},
 		'button:focus, button:hover': client.isDesktopDevice() ? {
-				opacity: 0.7,
-			} : {},
+			opacity: 0.7,
+		} : {},
 
 
 		'.button-icon': {
