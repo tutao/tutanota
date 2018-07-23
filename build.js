@@ -37,7 +37,7 @@ promise
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(true), "http://" + os.hostname().split(".")[0] + ":9000", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), "http://" + "ivk" + ":9000", version, "App"))
 			])
 		}
 	})
