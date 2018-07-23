@@ -36,6 +36,7 @@ let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
 let loginDialogActive = false
 let isLoggingOut = false
+let serviceUnabailbleDialogActive = false
 
 export function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
@@ -68,7 +69,8 @@ export function handleUncaughtError(e: Error) {
 		}
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		Dialog.error("outdatedClient_msg")
-	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
+	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e
+		instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
 		windowFacade.reload({})
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
@@ -77,23 +79,29 @@ export function handleUncaughtError(e: Error) {
 			let pwInput = new TextField("password_label", errorMessage)
 				.setType(Type.Password)
 			let dialog = Dialog.smallActionDialog(lang.get("login_label"), pwInput, () => {
-				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false, true).then(() => {
-					dialog.close()
-					loginDialogActive = false
-				}).catch(AccessBlockedError, e => {
-					errorMessage(lang.get('loginFailedOften_msg'))
-					m.redraw()
-				}).catch(NotAuthenticatedError, e => {
-					errorMessage(lang.get('loginFailed_msg'))
-					m.redraw()
-				}).catch(AccessDeactivatedError, e => {
-					errorMessage(lang.get('loginFailed_msg'))
-					m.redraw()
-				}).catch(ConnectionError, e => {
-					errorMessage(lang.get('emptyString_msg'))
-					m.redraw()
-					throw e;
-				})).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false, true)
+				                                           .then(() => {
+					                                           dialog.close()
+					                                           loginDialogActive = false
+				                                           })
+				                                           .catch(AccessBlockedError, e => {
+					                                           errorMessage(lang.get('loginFailedOften_msg'))
+					                                           m.redraw()
+				                                           })
+				                                           .catch(NotAuthenticatedError, e => {
+					                                           errorMessage(lang.get('loginFailed_msg'))
+					                                           m.redraw()
+				                                           })
+				                                           .catch(AccessDeactivatedError, e => {
+					                                           errorMessage(lang.get('loginFailed_msg'))
+					                                           m.redraw()
+				                                           })
+				                                           .catch(ConnectionError, e => {
+					                                           errorMessage(lang.get('emptyString_msg'))
+					                                           m.redraw()
+					                                           throw e;
+				                                           }))
+					.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			}, false)
 		}
 	} else if (e instanceof SecondFactorPendingError) {
@@ -110,7 +118,12 @@ export function handleUncaughtError(e: Error) {
 			Dialog.error("insufficientStorageUser_msg")
 		}
 	} else if (e instanceof ServiceUnavailableError) {
-		Dialog.error("serviceUnavailable_msg")
+		if (!serviceUnabailbleDialogActive) {
+			serviceUnabailbleDialogActive = true;
+			Dialog.error("serviceUnavailable_msg").then(() => {
+				serviceUnabailbleDialogActive = false;
+			})
+		}
 	} else if (e instanceof IndexingNotSupportedError) {
 		// external users do not search anyway
 		if (logins.isInternalUserLoggedIn()) {
@@ -143,8 +156,11 @@ export function handleUncaughtError(e: Error) {
 }
 
 function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Promise<void> {
-	let type = neverNull(Object.keys(AccountType).find(typeName => (AccountType[typeName] == logins.getUserController().user.accountType)))
-	message += "\n\n Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "") + " app" : "Browser")
+	let type = neverNull(Object.keys(AccountType)
+	                           .find(typeName => (AccountType[typeName]
+		                           == logins.getUserController().user.accountType)))
+	message += "\n\n Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "")
+		+ " app" : "Browser")
 	message += "\n Type: " + type
 	message += "\n Tutanota version: " + env.versionNumber
 	message += "\n Timestamp (UTC): " + timestamp.toUTCString()
@@ -155,11 +171,13 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 	}
 
 	message = message.split("\n").join("<br>")
-	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " " + type
+	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " "
+		+ type
 	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
-	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, []).then(draft => {
-		return worker.sendMailDraft(draft, [recipient], "de")
-	})
+	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, [])
+	             .then(draft => {
+		             return worker.sendMailDraft(draft, [recipient], "de")
+	             })
 }
 
 /**
@@ -200,12 +218,14 @@ export function showNotAvailableForFreeDialog() {
 	if (env.mode == Mode.App) {
 		Dialog.error("notAvailableInApp_msg")
 	} else {
-		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing").then(confirmed => {
-			if (confirmed) {
-				UpgradeWizard.show()
-			}
-		})
+		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
+			+ lang.get("moreInfo_msg")
+		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
+		      .then(confirmed => {
+			      if (confirmed) {
+				      UpgradeWizard.show()
+			      }
+		      })
 	}
 }
 

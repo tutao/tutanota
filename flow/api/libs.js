@@ -1,16 +1,17 @@
 declare function unescape(s: string): string;
+
 declare function escape(s: string): string;
 
 
 declare class Crypto {
-	subtle:Subtle;
-	getRandomValues(array: Uint8Array|Uint32Array):void;
+	subtle: Subtle;
+	getRandomValues(array: Uint8Array | Uint32Array): void;
 }
 
 declare class Subtle {
-	importKey(format: string, keyData: Uint8Array, algo: string, extractable: boolean, usages: string[]):Promise<CryptoKey>;
-	encrypt(algo: Object, key: CryptoKey, cleartext: Uint8Array):Promise<Uint8Array>;
-	decrypt(algo: Object, key: CryptoKey, ciphertext: Uint8Array):Promise<Uint8Array>;
+	importKey(format: string, keyData: Uint8Array, algo: string, extractable: boolean, usages: string[]): Promise<CryptoKey>;
+	encrypt(algo: Object, key: CryptoKey, cleartext: Uint8Array): Promise<Uint8Array>;
+	decrypt(algo: Object, key: CryptoKey, ciphertext: Uint8Array): Promise<Uint8Array>;
 }
 
 declare class CryptoKey {
@@ -26,9 +27,9 @@ declare class SystemType {
 	loads: Object;
 	import(moduleName: string, normalizedParentName: ?string): Promise<*>;
 	normalizeSync(moduleName: string): string;
-	config(config: Object):void;
-	getConfig():Object;
-	resolveSync(moduleName: string):string;
+	config(config: Object): void;
+	getConfig(): Object;
+	resolveSync(moduleName: string): string;
 }
 
 declare var System: SystemType
@@ -39,9 +40,9 @@ declare var __moduleName: string;
 
 // see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
 declare class DedicatedWorkerGlobalScope {
-	onmessage:Function;
-	navigator:Navigator;
-	postMessage(message: Object):void;
+	onmessage: Function;
+	navigator: Navigator;
+	postMessage(message: Object): void;
 }
 
 type Bluebird$ConcurrencyOption = {
@@ -52,7 +53,7 @@ declare type $Promisable<T> = Promise<T> | T;
 
 declare class Promise<+R> {
 	constructor(callback: (resolve: (result: Promise<R> | R) => void,
-						   reject: (error: any) => void) => mixed): void;
+	                       reject: (error: any) => void) => mixed): void;
 
 	then<U>(onFulfill?: (value: R) => Promise<U> | U, onReject?: (error: any) => Promise<U> | U): Promise<U>;
 
@@ -68,13 +69,15 @@ declare class Promise<+R> {
 	filter<T>(iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 
 	isFulfilled(): boolean;
-	isPending():boolean;
+	isPending(): boolean;
 
 	return<T>(returnValue: T): Promise<T>;
 
 	reduce<T>(mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
 
 	spread<T>(...args: Array<T>): Promise<*>;
+
+	delay<T>(millis: number): Promise<T>;
 
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
@@ -90,8 +93,8 @@ declare class Promise<+R> {
 
 	static reduce<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => any, initialValue: U): Promise<U>;
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
-	static delay<T>(millis: number, value: ?T|Promise<T>): Promise<T>;
-	static any<T>(array: Array<Promise<T>>):Promise<T>;
+	static delay<T>(millis: number, value: ?T | Promise<T>): Promise<T>;
+	static any<T>(array: Array<Promise<T>>): Promise<T>;
 
-	static onPossiblyUnhandledRejection(errorHandler: Function):void;
+	static onPossiblyUnhandledRejection(errorHandler: Function): void;
 }
