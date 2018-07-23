@@ -16,9 +16,9 @@
 //- (void)write:(CDVInvokedUrlCommand*)command;
 //- (void)read:(CDVInvokedUrlCommand*)command;
 //- (void)deleteFile:(CDVInvokedUrlCommand*)command;
-//- (void)getName:(CDVInvokedUrlCommand*)command;
-//- (void)getMimeType:(CDVInvokedUrlCommand*)command;
-//- (void)getSize:(CDVInvokedUrlCommand*)command;
+- (void)getNameForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion;
+- (void)getMimeTypeForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion;
+- (void)getSizeForPath:(NSString *)filePath completion:(void (^)(NSNumber *, NSError *))completion;
 //- (void)upload:(CDVInvokedUrlCommand*)command;
 //- (void)download:(CDVInvokedUrlCommand*)command;
 //- (void)clearFileData:(CDVInvokedUrlCommand*)command;

@@ -10,10 +10,13 @@
 #import <WebKit/WebKit.h>
 #import <UIkit/UIkit.h>
 #import "Crypto.h"
+#import "TutaoFileChooser.h"
 
 @interface ViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property WKWebView *webView;
 @property (readonly) Crypto *crypto;
+@property (readonly) TutaoFileChooser *fileChooser;
+@property (readonly) FileUtil *fileUtil;
 @end
 
 @implementation ViewController
@@ -23,6 +26,8 @@
 	self = [super init];
 	if (self) {
 		_crypto = [Crypto new];
+		_fileChooser = [[TutaoFileChooser alloc] initWithViewController:self];
+		_fileUtil = [FileUtil new];
 	}
 	return self;
 }
@@ -72,6 +77,14 @@
 		[self sendResponseWithId:requestId value:[NSNull null]];
 	} else if ([@"generateRsaKey" isEqualToString:type]) {
 		[_crypto generateRsaKeyWithSeed:arguments[0] completion: sendResponseBlock];
+	} else if ([@"openFileChooser" isEqualToString:type]) {
+		[_fileChooser openWithCompletion:sendResponseBlock];
+	} else if ([@"getName" isEqualToString:type]) {
+		[_fileUtil getNameForPath:arguments[0] completion:sendResponseBlock];
+	} else if ([@"getSize" isEqualToString:type]) {
+		[_fileUtil getSizeForPath:arguments[0] completion:sendResponseBlock];
+	} else if ([@"getMime" isEqualToString:type]) {
+		[_fileUtil getMimeTypeForPath:arguments[0] completion:sendResponseBlock];
 	}
 }
 
@@ -100,8 +113,12 @@
 	[self sendResponseWithId:responseId type:@"response" value:value];
 }
 
-- (void) sendErrorResponseWithId:(NSString*)responseId value:(id)value {
-	[self sendResponseWithId:responseId type:@"requestError" value:value];
+- (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
+	NSDictionary *errorDict = @{
+								@"name":[value domain],
+								@"message":[value.userInfo objectForKey:@"message"]
+								};
+	[self sendResponseWithId:responseId type:@"requestError" value:errorDict];
 }
 
 - (void) sendResponseWithId:(NSString *)responseId type:(NSString *)type value:(id)value {

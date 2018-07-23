@@ -24,7 +24,7 @@
 #include "TutaoEncodingConverter.h"
 #include "FileUtil.h"
 
-static NSString * const CRYPTO_ERROR_DOMAIN = @"tutacrypto";
+static NSString * const CRYPTO_ERROR_DOMAIN = @"tutanota_crypto";
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 @implementation Crypto

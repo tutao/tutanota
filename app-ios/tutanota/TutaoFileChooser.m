@@ -15,6 +15,10 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 
 
+@interface TutaoFileChooser ()
+@property (readonly) UIViewController *sourceController;
+@end
+
 @implementation TutaoFileChooser {
 	UIDocumentMenuViewController *_attachmentTypeMenu;
 	UIImagePickerController *_imagePickerController;
@@ -26,11 +30,12 @@
 	UIImage *_photoLibImage;
 }
 
-- (TutaoFileChooser*) init {
+- (TutaoFileChooser*) initWithViewController:(UIViewController *)viewController {
 	_currentSrcRect = CGRectZero;
 	_supportedUTIs = @[@"public.content"];
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
+	_sourceController = viewController;
 	
 //	_cameraImage = [TutaoUtils createFontImage:@"\ue945" fontName:@"icomoon" size:24];
 //	_photoLibImage = [TutaoUtils createFontImage:@"\ue93c" fontName:@"icomoon" size:24];
@@ -38,19 +43,13 @@
 }
 
 
-- (void)openAt:(NSDictionary *)srcRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler{
+- (void)openWithCompletion:(void(^)(NSString *filePath, NSError *error))completionHandler {
 	if (resultHandler){
 		completionHandler(nil, [TutaoErrorFactory createError:@"file chooser already open"]);
 		return;
 	}
 	resultHandler = completionHandler;
-	_currentSrcRect = CGRectZero;
-	if (srcRect) {
-		_currentSrcRect.origin.x   = [[srcRect valueForKey:@"x"] integerValue];
-        _currentSrcRect.origin.y   = [[srcRect valueForKey:@"y"] integerValue];
-		_currentSrcRect.size.width = [[srcRect valueForKey:@"width"] integerValue];
-		_currentSrcRect.size.height= [[srcRect valueForKey:@"height"] integerValue];
-	}
+	_currentSrcRect = [_sourceController.view frame];
 
 	_attachmentTypeMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:_supportedUTIs inMode:UIDocumentPickerModeImport];
 	_attachmentTypeMenu.delegate = self;
@@ -91,15 +90,14 @@
 	// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
 	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]){
 		[_attachmentTypeMenu addOptionWithTitle:@"Camera" image:_cameraImage order:UIDocumentMenuOrderFirst handler:^void(){
-			[weakSelf openCamera]; // capture the weak reference to avoid reference cycle
+			[weakSelf openCamera]; // capture the weak reference to avoid refFFFFerence cycle
 		}];
 	}
-	// TODO
-//	[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
+	[self->_sourceController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
 }
 
 
--(void) showImagePicker{
+-(void) showImagePicker {
 	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
 	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
 	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
@@ -107,21 +105,21 @@
 	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
 		_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
 		UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
-//		popOverController.sourceView = _cdvPlugin.webView;
+		popOverController.sourceView = _sourceController.view;
 		popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
 		popOverController.sourceRect = _currentSrcRect;
 		popOverController.delegate = self;
 	}
-//	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
+	[_sourceController presentViewController:_imagePickerController animated:YES completion:nil];
 }
 
--(void) openCamera{
+-(void) openCamera {
 	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
 	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
 	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
 	_imagePickerController.allowsEditing = NO;
 	_imagePickerController.showsCameraControls = YES;
-//	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
+	[_sourceController presentViewController:_imagePickerController animated:YES completion:nil];
 }
 
 
@@ -134,7 +132,7 @@
 // from UIDocumentMenuDelegate protocol
 - (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker{
 	documentPicker.delegate = self;
-//	[_cdvPlugin.viewController presentViewController:documentPicker animated:YES completion:nil];
+	[_sourceController presentViewController:documentPicker animated:YES completion:nil];
 }
 // from UIDocumentMenuDelegate protocol
 - (void)documentMenuWasCancelled:(UIDocumentMenuViewController *)documentMenu{
@@ -154,91 +152,84 @@
 
 // from UIImagePickerControllerDelegate protocol
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
-//	[_cdvPlugin.viewController dismissViewControllerAnimated: YES completion: ^{
-//		// we have to copy the file into a folder of this app.
-//		NSError *error=nil;
-//		NSString *targetFolder = [FileUtil getDecryptedFolder:&error];
-//		if(error){
-//			[self sendError:error];
-//			return;
-//		}
-//
-//		if ( _imagePickerController.sourceType == UIImagePickerControllerSourceTypeCamera) {
-//			NSString *mediaType = [info objectForKey: UIImagePickerControllerMediaType];
-//			if ([mediaType isEqualToString:@"public.image"]) {	// Handle a still image capture
-//				UIImage *originalImage, *editedImage, *imageToSave;
-//				editedImage = (UIImage *) [info objectForKey: UIImagePickerControllerEditedImage];
-//				originalImage = (UIImage *) [info objectForKey: UIImagePickerControllerOriginalImage];
-//				if (editedImage) {
-//					imageToSave = editedImage;
-//				} else {
-//					imageToSave = originalImage;
-//				}
-//				NSString *fileName = [self generateFileName:@"img" withExtension:@"jpg"];
-//				NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
-//				if ([UIImageJPEGRepresentation(imageToSave, 0.9) writeToFile:filePath atomically:YES]){
-//					[self sendResult:filePath];
-//				} else {
-//					[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"failed to save captured image to path %@", filePath]]];
-//				}
-//			} else if ([mediaType isEqualToString:@"public.movie"]) { // Handle a movie capture
-//				NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
-//				NSString *fileName = [self generateFileName:@"movie" withExtension:@"mp4"];
-//				[self copyFileToLocalFolderAndSendResult:videoURL fileName:fileName];
-//			} else {
-//				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
-//			}
-//		} else {
-//			NSURL* srcUrl = [info objectForKey:UIImagePickerControllerReferenceURL];
-//
-//			// retrieve the filename of the image or video
-//			PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[srcUrl] options:nil];
-//			PHAsset *assetObject =[result firstObject];
-//			PHAssetResource *assetResource = [[PHAssetResource assetResourcesForAsset:assetObject] firstObject];
-//			if (!assetResource){
-//				[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
-//				return;
-//			}
-//
-//			NSString *fileName = [assetResource originalFilename];
-//			NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
-//
-//			//extracting image from the picker and saving it
-//			NSURL *mediaUrl =[info objectForKey:UIImagePickerControllerMediaURL];
-//			NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
-//			if ([mediaType isEqualToString:@"public.image"]){
-//				[[PHImageManager defaultManager] requestImageDataForAsset:assetObject options:nil resultHandler:^(NSData * imageData, NSString * dataUTI, UIImageOrientation orientation, NSDictionary * info) {
-//					if(!imageData){
-//						[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
-//						return;
-//					}
-//					if(![imageData writeToFile:filePath atomically:YES]){
-//						[self sendError:[TutaoErrorFactory createError:@"failed to write image data"]];
-//						return;
-//					}
-//					[self sendResult:filePath];
-//				}];
-//			} else if (mediaUrl) { // for videos
-//				[self copyFileToLocalFolderAndSendResult:mediaUrl fileName:fileName];
-//			} else {
-//				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
-//			}
-//		}
-//	}];
+	[_sourceController dismissViewControllerAnimated:YES completion: ^{
+		// we have to copy the file into a folder of this app.
+		NSError *error=nil;
+		NSString *targetFolder = [FileUtil getDecryptedFolder:&error];
+		if(error){
+			[self sendError:error];
+			return;
+		}
+
+		if (self->_imagePickerController.sourceType == UIImagePickerControllerSourceTypeCamera) {
+			NSString *mediaType = [info objectForKey: UIImagePickerControllerMediaType];
+			if ([mediaType isEqualToString:@"public.image"]) {	// Handle a still image capture
+				UIImage *originalImage, *editedImage, *imageToSave;
+				editedImage = (UIImage *) [info objectForKey: UIImagePickerControllerEditedImage];
+				originalImage = (UIImage *) [info objectForKey: UIImagePickerControllerOriginalImage];
+				if (editedImage) {
+					imageToSave = editedImage;
+				} else {
+					imageToSave = originalImage;
+				}
+				NSString *fileName = [self generateFileName:@"img" withExtension:@"jpg"];
+				NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
+				if ([UIImageJPEGRepresentation(imageToSave, 0.9) writeToFile:filePath atomically:YES]){
+					[self sendResult:filePath];
+				} else {
+					[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"failed to save captured image to path %@", filePath]]];
+				}
+			} else if ([mediaType isEqualToString:@"public.movie"]) { // Handle a movie capture
+				NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
+				NSString *fileName = [self generateFileName:@"movie" withExtension:@"mp4"];
+				[self copyFileToLocalFolderAndSendResult:videoURL fileName:fileName];
+			} else {
+				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
+			}
+		} else {
+			NSURL* srcUrl = [info objectForKey:UIImagePickerControllerReferenceURL];
+
+			// retrieve the filename of the image or video
+			PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[srcUrl] options:nil];
+			PHAsset *assetObject =[result firstObject];
+			PHAssetResource *assetResource = [[PHAssetResource assetResourcesForAsset:assetObject] firstObject];
+			if (!assetResource){
+				[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
+				return;
+			}
+
+			NSString *fileName = [assetResource originalFilename];
+			NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
+
+			//extracting image from the picker and saving it
+			NSURL *mediaUrl =[info objectForKey:UIImagePickerControllerMediaURL];
+			NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
+			if ([mediaType isEqualToString:@"public.image"]){
+				[[PHImageManager defaultManager] requestImageDataForAsset:assetObject options:nil resultHandler:^(NSData * imageData, NSString * dataUTI, UIImageOrientation orientation, NSDictionary * info) {
+					if(!imageData){
+						[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
+						return;
+					}
+					if(![imageData writeToFile:filePath atomically:YES]){
+						[self sendError:[TutaoErrorFactory createError:@"failed to write image data"]];
+						return;
+					}
+					[self sendResult:filePath];
+				}];
+			} else if (mediaUrl) { // for videos
+				[self copyFileToLocalFolderAndSendResult:mediaUrl fileName:fileName];
+			} else {
+				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
+			}
+		}
+	}];
 };
-
-
-
-
-
-
-
 
 // from UIImagePickerControllerDelegate protocol
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
-//	[_cdvPlugin.viewController dismissViewControllerAnimated: YES completion: ^{
-//		[self sendResult:nil];
-//	}];
+	[_sourceController dismissViewControllerAnimated:YES completion:^{
+		[self sendResult:nil];
+	}];
 };
 
 

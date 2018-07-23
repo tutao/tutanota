@@ -60,6 +60,7 @@
 		3D891F242105BB210031E528 /* FileUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtil.h; sourceTree = "<group>"; };
 		3D891F252105BB210031E528 /* TutaoFileChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoFileChooser.h; sourceTree = "<group>"; };
 		3D891F262105BB210031E528 /* TutaoAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoAes128Facade.h; sourceTree = "<group>"; };
+		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08620F8C6240086EB36 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		3DD4A08720F8C6240086EB36 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -123,6 +124,7 @@
 		3DD4A08520F8C6240086EB36 /* tutanota */ = {
 			isa = PBXGroup;
 			children = (
+				3D891F2A2106132B0031E528 /* tutanota.entitlements */,
 				3D891F1F2105BB200031E528 /* Crypto.h */,
 				3D891F242105BB210031E528 /* FileUtil.h */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
@@ -214,6 +216,11 @@
 				TargetAttributes = {
 					3DD4A08220F8C6240086EB36 = {
 						CreatedOnToolsVersion = 9.4.1;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					3DD4A09A20F8C6260086EB36 = {
 						CreatedOnToolsVersion = 9.4.1;
@@ -425,6 +432,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				HEADER_SEARCH_PATHS = (
@@ -452,6 +460,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				HEADER_SEARCH_PATHS = (

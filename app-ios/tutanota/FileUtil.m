@@ -4,12 +4,13 @@
 #include "FileUtil.h"
 #include "TutaoFileChooser.h"
 
+static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
+
 @implementation FileUtil {
 	TutaoFileChooser *_attachmentChooser;
 	TutaoFileViewer *_viewer;
 	NSMutableSet<NSString*> *_attachmentsForUpload;
 }
-
 
 - (void)pluginInitialize{
 	//UINavigationBar* defaultNavigationBar = [UINavigationBar appearance];
@@ -82,55 +83,49 @@
 //	 }];
 //}
 //
-//- (void)getName:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		CDVPluginResult* pluginResult = nil;
-//		NSString *filePath = [command.arguments objectAtIndex:0];
-//		NSString *fileName = [filePath lastPathComponent];
-//		if ( [FileUtil fileExistsAtPath:filePath]){
-//			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:fileName];
-//		} else {
-//			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"file does not exists"];
-//		}
-//		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//	 }];
-//}
-//
-//- (void)getMimeType:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		CDVPluginResult* pluginResult = nil;
-//
-//		NSString *filePath = [command.arguments objectAtIndex:0];
-//		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
-//		if (mimeType){
-//			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:mimeType];
-//		} else {
-//			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"no mime type available"];
-//		}
-//		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//	 }];
-//}
-//
-//- (void)getSize:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		NSString *filePath = [command.arguments objectAtIndex:0];
-//		NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-//
-//		NSNumber *fileSizeValue = nil;
-//		NSError *fileSizeError = nil;
-//		[fileURL getResourceValue:&fileSizeValue
-//                   forKey:NSURLFileSizeKey
-//                    error:&fileSizeError];
-//
-//		if (fileSizeValue) {
-//			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsNSInteger:[fileSizeValue integerValue]];
-//			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//		} else {
-//			[TutaoUtils sendErrorResult:fileSizeError invokedCommand:command delegate:self.commandDelegate];
-//		}
-//
-//	 }];
-//}
+- (void)getNameForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		NSString *fileName = [filePath lastPathComponent];
+		if ([FileUtil fileExistsAtPath:filePath]){
+			completion(fileName, nil);
+		} else {
+			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
+												code:1
+												userInfo:@{@"message":@"file does not exists"}]);
+		}
+	 });
+}
+
+- (void)getMimeTypeForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
+		if (mimeType) {
+			completion(mimeType, nil);
+		} else {
+			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
+												code:1
+												userInfo:@{@"message":@"Could not determine MIME type"}]);
+		}
+	});
+}
+
+- (void)getSizeForPath:(NSString *)filePath completion:(void (^)(NSNumber *, NSError *))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+		NSNumber *fileSizeValue = nil;
+		NSError *fileSizeError = nil;
+		[fileURL getResourceValue:&fileSizeValue
+						   forKey:NSURLFileSizeKey
+							error:&fileSizeError];
+		if (fileSizeValue) {
+			completion(fileSizeValue, nil);
+		} else {
+			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
+												code:1
+												userInfo:@{@"message":@"Could not determine file size"}]);
+		}
+	});
+}
 //
 //
 //- (void)upload:(CDVInvokedUrlCommand*)command{
