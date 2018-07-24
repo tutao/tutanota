@@ -11,6 +11,7 @@
 #import <UIkit/UIkit.h>
 #import "Crypto.h"
 #import "TutaoFileChooser.h"
+#import <SafariServices/SafariServices.h>
 
 @interface ViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property WKWebView *webView;
@@ -135,12 +136,11 @@
 }
 
 - (void) loadMainPageWithParams:(NSString * _Nullable)params {
-	NSString *path = [[NSBundle mainBundle] pathForResource:@"build/app" ofType:@"html"];
-	NSURL *fileUrl = [NSURL fileURLWithPath:path];
-	NSURL *folderUrl = [NSURL fileURLWithPath:[path stringByDeletingLastPathComponent]];
+	NSURL *fileUrl = [self appUrl];
+	NSURL *folderUrl = [fileUrl URLByDeletingLastPathComponent];
 	if (params != nil) {
 		NSString *newUrlString = [NSString stringWithFormat:@"%@%@", [folderUrl absoluteString], params];
-		folderUrl = [NSURL URLWithString:newUrlString];
+		fileUrl = [NSURL URLWithString:newUrlString];
 	}
 	[_webView loadFileURL:fileUrl allowingReadAccessToURL:folderUrl];
 }
@@ -181,6 +181,24 @@
 	// We need to implement this bridging from native because we don't know if we are an iOS app before the init event
 	[_webView evaluateJavaScript:@"window.nativeApp = {invoke: (message) => window.webkit.messageHandlers.nativeApp.postMessage(message)}"
 			   completionHandler:nil];
+}
+
+- (nonnull NSURL *)appUrl {
+	NSString *path = [[NSBundle mainBundle] pathForResource:@"build/app" ofType:@"html"];
+	return [NSURL fileURLWithPath:path];
+}
+
+- (void)webView:(WKWebView *)webView
+decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+	if ([[navigationAction.request.URL absoluteString] hasPrefix:[self appUrl].absoluteString]) {
+		decisionHandler(WKNavigationActionPolicyAllow);
+	} else {
+		decisionHandler(WKNavigationActionPolicyCancel);
+		[self presentViewController:[[SFSafariViewController alloc] initWithURL:navigationAction.request.URL]
+						   animated:YES
+						 completion:nil];
+	}
 }
 
 @end
