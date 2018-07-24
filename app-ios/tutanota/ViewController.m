@@ -6,6 +6,10 @@
 //  Copyright © 2018 Tutao GmbH. All rights reserved.
 //
 
+// Sweet, sweet sugar
+#import "Swiftier.h"
+#import "PSPDFFastEnumeration.h"
+
 #import "ViewController.h"
 #import <WebKit/WebKit.h>
 #import <UIkit/UIkit.h>
@@ -13,11 +17,18 @@
 #import "TutaoFileChooser.h"
 #import <SafariServices/SafariServices.h>
 
+typedef void(^VoidCallback)(void);
+
 @interface ViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property WKWebView *webView;
-@property (readonly) Crypto *crypto;
-@property (readonly) TutaoFileChooser *fileChooser;
-@property (readonly) FileUtil *fileUtil;
+@property (readonly, nonnull) Crypto *crypto;
+@property (readonly, nonnull) TutaoFileChooser *fileChooser;
+@property (readonly, nonnull) FileUtil *fileUtil;
+@property (readonly, nonnull) NSMutableArray<VoidCallback> *webviewReadyCallbacks;
+@property (readonly) BOOL webViewIsready;
+@property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
+@property NSInteger requestId;
+@property (nullable) NSString *pushToken;
 @end
 
 @implementation ViewController
@@ -29,6 +40,7 @@
 		_crypto = [Crypto new];
 		_fileChooser = [[TutaoFileChooser alloc] initWithViewController:self];
 		_fileUtil = [[FileUtil alloc] initWithViewController:self];
+		_webViewIsready = NO;
 	}
 	return self;
 }
@@ -48,19 +60,24 @@
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
-	NSData *jsonData = [[message body] dataUsingEncoding:NSUTF8StringEncoding];
+	let jsonData = [[message body] dataUsingEncoding:NSUTF8StringEncoding];
 	NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:nil];
 	NSLog(@"Message dict: %@", json);
-	NSString *type = [json valueForKey:@"type"];
-	NSString *requestId = [json valueForKey:@"id"];
-	NSArray *arguments = [json valueForKey:@"args"];
+	NSString *type = json[@"type"];
+	NSString *requestId = json[@"id"];
+	NSArray *arguments = json[@"args"];
 	
 	void (^sendResponseBlock)(id, NSError *) = [self responseBlockForRequestId:requestId];
 
 	if ([@"response" isEqualToString:type]) {
-		NSLog(@"Is a response");
+		id value = json[@"value"];
+		[self handleResponseWithId:requestId value:value];
 	} else if ([@"init" isEqualToString:type]) {
 		[self sendResponseWithId:requestId value:@"ios"];
+		_webViewIsready = YES;
+		foreach(callback, _webviewReadyCallbacks) {
+			callback();
+		}
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
 		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] completeion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {
@@ -118,9 +135,11 @@
 				[self sendResponseWithId:requestId value:NSNull.null];
 			}
 		}];
+	} else if ([@"getPushIdentifier" isEqualToString:type]) {
+		sendResponseBlock(_pushToken ? _pushToken : NSNull.null, nil);
 	} else {
-		NSString *message = [NSString stringWithFormat:@"Unknown command: %@", type];
-		NSError *error = [NSError errorWithDomain:@"tutanota" code:5 userInfo:@{@"message":message}];
+		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
+		let error = [NSError errorWithDomain:@"tutanota" code:5 userInfo:@{@"message":message}];
 		[self sendErrorResponseWithId:requestId value:error];
 	}
 }
@@ -136,8 +155,9 @@
 }
 
 - (void) loadMainPageWithParams:(NSString * _Nullable)params {
-	NSURL *fileUrl = [self appUrl];
-	NSURL *folderUrl = [fileUrl URLByDeletingLastPathComponent];
+	_webViewIsready = NO;
+	var fileUrl = [self appUrl];
+	let folderUrl = [fileUrl URLByDeletingLastPathComponent];
 	if (params != nil) {
 		NSString *newUrlString = [NSString stringWithFormat:@"%@%@", [folderUrl absoluteString], params];
 		fileUrl = [NSURL URLWithString:newUrlString];
@@ -150,29 +170,29 @@
 }
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
-	NSDictionary *errorDict = @{
-								@"name":[value domain],
-								@"message":value.userInfo[@"message"]
-								};
+	let errorDict = @{
+					  @"name":[value domain],
+					  @"message":value.userInfo[@"message"]
+					  };
 	[self sendResponseWithId:responseId type:@"requestError" value:errorDict];
 }
 
 - (void) sendResponseWithId:(NSString *)responseId type:(NSString *)type value:(id)value {
-	NSDictionary *response = @{
-							   @"id":responseId,
-							   @"type":type,
-							   @"value":value
-							   };
-	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:response options:0 error:nil];
-	NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-	NSLog(@"Sending response %@", jsonString);
-	[self postMessage:jsonString];
+	let response = @{
+					 @"id":responseId,
+					 @"type":type,
+					 @"value":value
+					 };
+
+	[self postMessage:response];
 }
 
-- (void) postMessage:(NSString*)message {
+- (void) postMessage:(NSDictionary *)message {
+	let jsonData = [NSJSONSerialization dataWithJSONObject:message options:0 error:nil];
+	let jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		NSString *escapted = [message stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
-		NSString *js = [NSString stringWithFormat:@"tutao.nativeApp.handleMessageFromNative('%@')", escapted];
+		let escapted = [jsonString stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
+		let js = [NSString stringWithFormat:@"tutao.nativeApp.handleMessageFromNative('%@')", escapted];
 		[self->_webView evaluateJavaScript:js completionHandler:nil];
 	});
 }
@@ -184,7 +204,7 @@
 }
 
 - (nonnull NSURL *)appUrl {
-	NSString *path = [[NSBundle mainBundle] pathForResource:@"build/app" ofType:@"html"];
+	let path = [[NSBundle mainBundle] pathForResource:@"build/app" ofType:@"html"];
 	return [NSURL fileURLWithPath:path];
 }
 
@@ -199,6 +219,45 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 						   animated:YES
 						 completion:nil];
 	}
+}
+
+- (void)didRegisterForRemoteNotificationsWithToken:(NSData *)deviceToken {
+	[self doWhenReady:^{
+		let stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
+						   [NSCharacterSet characterSetWithCharactersInString:@"<> "]];
+		[self sendRequestWithType:@"updatePushIdentifier" args:@[stringToken] completion:nil];
+	}];
+}
+
+-(void)doWhenReady:(VoidCallback)callback {
+	if (_webViewIsready) {
+		callback();
+	} else {
+		[_webviewReadyCallbacks addObject:callback];
+	}
+}
+
+-(void)sendRequestWithType:(NSString * _Nonnull)type
+					  args:(NSArray<id> * _Nonnull)args
+				completion:(void(^ _Nullable)(NSDictionary * _Nullable value))completion {
+	let requestId = [NSString stringWithFormat:@"app%ld", (long) _requestId++];
+	if (completion) {
+		_requests[requestId] = completion;
+	}
+	let json = @{
+				 @"id": requestId,
+				 @"type": type,
+				 @"args": args
+				 };
+	[self postMessage:json];
+}
+
+-(void)handleResponseWithId:(NSString *)requestId value:(id)value {
+	let request = _requests[requestId];
+	if (request) {
+		[_requests removeObjectForKey:requestId];
+	}
+	request(value);
 }
 
 @end

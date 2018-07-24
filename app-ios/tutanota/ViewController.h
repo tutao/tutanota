@@ -11,5 +11,7 @@
 
 @interface ViewController : UIViewController
 
+-(void)didRegisterForRemoteNotificationsWithToken:(NSData * _Nonnull)deviceToken;
+
 @end
 

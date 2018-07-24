@@ -8,9 +8,10 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
+#import <UserNotifications/UserNotifications.h>
 
 @interface AppDelegate ()
-
+@property ViewController *viewController;
 @end
 
 @implementation AppDelegate
@@ -19,8 +20,11 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	// Override point for customization after application launch.
 	_window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-	_window.rootViewController = [ViewController new];
+	_viewController = [ViewController new];
+	_window.rootViewController = _viewController;
 	[_window makeKeyAndVisible];
+
+	[self registerForPushNotifications];
 	return YES;
 }
 
@@ -51,5 +55,20 @@
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (void)registerForPushNotifications {
+	[UNUserNotificationCenter.currentNotificationCenter
+	 requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionBadge|UNAuthorizationOptionSound)
+	 completionHandler:^(BOOL granted, NSError * _Nullable error) {
+		 if (!error) {
+			 dispatch_async(dispatch_get_main_queue(), ^{
+				 [UIApplication.sharedApplication registerForRemoteNotifications];
+			 });
+		 }
+	 }];
+}
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+	[_viewController didRegisterForRemoteNotificationsWithToken:deviceToken];
+}
 
 @end
