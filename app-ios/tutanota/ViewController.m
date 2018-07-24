@@ -39,10 +39,6 @@
 	_webView.navigationDelegate = self;
 	[config.userContentController addScriptMessageHandler:self name:@"nativeApp"];
 	self.view = _webView;
-	
-	// We need to implement this bridging from native because we don't know if we are an iOS app before the init event
-	[_webView evaluateJavaScript:@"window.nativeApp = {invoke: (message) => window.webkit.messageHandlers.nativeApp.postMessage(message)}"
-			   completionHandler:nil];
 }
 
 - (void)viewDidLoad {
@@ -179,6 +175,12 @@
 		NSString *js = [NSString stringWithFormat:@"tutao.nativeApp.handleMessageFromNative('%@')", escapted];
 		[self->_webView evaluateJavaScript:js completionHandler:nil];
 	});
+}
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+	// We need to implement this bridging from native because we don't know if we are an iOS app before the init event
+	[_webView evaluateJavaScript:@"window.nativeApp = {invoke: (message) => window.webkit.messageHandlers.nativeApp.postMessage(message)}"
+			   completionHandler:nil];
 }
 
 @end
