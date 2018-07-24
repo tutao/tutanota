@@ -159,7 +159,7 @@ typedef void(^VoidCallback)(void);
 	var fileUrl = [self appUrl];
 	let folderUrl = [fileUrl URLByDeletingLastPathComponent];
 	if (params != nil) {
-		NSString *newUrlString = [NSString stringWithFormat:@"%@%@", [folderUrl absoluteString], params];
+		let newUrlString = [NSString stringWithFormat:@"%@%@", [fileUrl absoluteString], params];
 		fileUrl = [NSURL URLWithString:newUrlString];
 	}
 	[_webView loadFileURL:fileUrl allowingReadAccessToURL:folderUrl];
