@@ -27,7 +27,7 @@
 	if (self) {
 		_crypto = [Crypto new];
 		_fileChooser = [[TutaoFileChooser alloc] initWithViewController:self];
-		_fileUtil = [FileUtil new];
+		_fileUtil = [[FileUtil alloc] initWithViewController:self];
 	}
 	return self;
 }
@@ -78,13 +78,53 @@
 	} else if ([@"generateRsaKey" isEqualToString:type]) {
 		[_crypto generateRsaKeyWithSeed:arguments[0] completion: sendResponseBlock];
 	} else if ([@"openFileChooser" isEqualToString:type]) {
-		[_fileChooser openWithCompletion:sendResponseBlock];
+		[_fileChooser openWithCompletion:^(NSString *filePath, NSError *error) {
+			if (error == nil) {
+				if (filePath != nil) {
+					[self sendResponseWithId:requestId value:@[filePath]];
+				} else {
+					[self sendResponseWithId:requestId value:[NSArray new]];
+				}
+			} else {
+				[self sendErrorResponseWithId:requestId value:error];
+			}
+		}];
 	} else if ([@"getName" isEqualToString:type]) {
 		[_fileUtil getNameForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"getSize" isEqualToString:type]) {
 		[_fileUtil getSizeForPath:arguments[0] completion:sendResponseBlock];
-	} else if ([@"getMime" isEqualToString:type]) {
+	} else if ([@"getMimeType" isEqualToString:type]) {
 		[_fileUtil getMimeTypeForPath:arguments[0] completion:sendResponseBlock];
+	} else if ([@"changeTheme" isEqualToString:type] || [@"closePushNotifications" isEqualToString:type]) {
+		// No-op for now
+		sendResponseBlock(NSNull.null, nil);
+	} else if ([@"aesEncryptFile" isEqualToString:type]) {
+		[_crypto aesEncryptFileWithKey:arguments[0] atPath:arguments[1] completion:sendResponseBlock];
+	} else if ([@"aesDecryptFile" isEqualToString:type]) {
+		[_crypto aesDecryptFileWithKey:arguments[0] atPath:arguments[1] completion:sendResponseBlock];
+	} else if([@"upload" isEqualToString:type]) {
+		[_fileUtil uploadFileAtPath:arguments[0] toUrl:arguments[1] withHeaders:arguments[2] completion:sendResponseBlock];
+	} else if ([@"deleteFile" isEqualToString:type]) {
+		[_fileUtil deleteFileAtPath:arguments[0] completion:^{
+			sendResponseBlock(NSNull.null, nil);
+		}];
+	} else if ([@"download" isEqualToString:type]) {
+		[_fileUtil downloadFileFromUrl:arguments[0]
+							   forName:arguments[1]
+						   withHeaders:arguments[2]
+							completion:sendResponseBlock];
+	} else if ([@"open" isEqualToString:type]) {
+		[_fileUtil openFileAtPath:arguments[0] completion:^(NSError * _Nullable error) {
+			if (error != nil) {
+				[self sendErrorResponseWithId:requestId value:error];
+			} else {
+				[self sendResponseWithId:requestId value:NSNull.null];
+			}
+		}];
+	} else {
+		NSString *message = [NSString stringWithFormat:@"Unknown command: %@", type];
+		NSError *error = [NSError errorWithDomain:@"tutanota" code:5 userInfo:@{@"message":message}];
+		[self sendErrorResponseWithId:requestId value:error];
 	}
 }
 
@@ -116,7 +156,7 @@
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
 	NSDictionary *errorDict = @{
 								@"name":[value domain],
-								@"message":[value.userInfo objectForKey:@"message"]
+								@"message":value.userInfo[@"message"]
 								};
 	[self sendResponseWithId:responseId type:@"requestError" value:errorDict];
 }

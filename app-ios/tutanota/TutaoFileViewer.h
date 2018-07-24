@@ -13,8 +13,8 @@
 
 @interface TutaoFileViewer : NSObject<UIDocumentInteractionControllerDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate>
 
-//- (TutaoFileViewer*) initWithPlugin:(CDVPlugin*) plugin;
-//- (void) openFileAtPath:(NSString*) filePath completionHandler:(void(^)(NSError * error))handler;
+- (instancetype) initWithViewController:(UIViewController *)viewController;
+- (void) openFileAtPath:(NSString*) filePath completion:(void(^)(NSError * error))completion;
 
 @end
 

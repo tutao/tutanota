@@ -6,33 +6,32 @@
 
 static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
-@implementation FileUtil {
-	TutaoFileChooser *_attachmentChooser;
-	TutaoFileViewer *_viewer;
-	NSMutableSet<NSString*> *_attachmentsForUpload;
+@interface FileUtil ()
+@property (readonly) TutaoFileChooser *attachmentChooser;
+@property (readonly) TutaoFileViewer *viewer;
+@property (readonly) NSMutableSet<NSString*> *attachmentsForUpload;
+@end
+
+@implementation FileUtil
+
+- (instancetype)initWithViewController:(UIViewController * _Nonnull)viewController
+{
+    self = [super init];
+    if (self) {
+        _attachmentChooser = [[TutaoFileChooser alloc] init];
+		_viewer = [[TutaoFileViewer alloc] initWithViewController:viewController];
+		_attachmentsForUpload = [[NSMutableSet alloc] init];
+    }
+    return self;
 }
 
-- (void)pluginInitialize{
-	//UINavigationBar* defaultNavigationBar = [UINavigationBar appearance];
-	//[defaultNavigationBar setTintColor:[UIColor redColor]];  //iOS7
-	_attachmentChooser = [[TutaoFileChooser alloc] init];
-	_viewer = [[TutaoFileViewer alloc] init];
-	_attachmentsForUpload = [[NSMutableSet alloc] init];
+
+- (void)openFileAtPath:(NSString * _Nonnull)filePath
+			completion:(void (^ _Nonnull)(NSError * _Nullable))completion {
+	[self->_viewer openFileAtPath:filePath completion:^(NSError * _Nullable error) {
+		completion(error);
+	}];
 }
-
-
-//- (void)open:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		NSString * filePath = [command.arguments objectAtIndex:0];
-//		[_viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
-//			if (error){
-//				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//			} else {
-//				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-//			}
-//		}];
-//	}];
-//}
 //
 //- (void)openFileChooser:(CDVInvokedUrlCommand*)command{
 //	//[self.commandDelegate runInBackground:^{ // FileChooser has to run in main thread.
@@ -72,17 +71,17 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 //	 }];
 //}
 //
-//- (void)deleteFile:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		NSString * filePath = [command.arguments objectAtIndex:0];
-//		// do not delete files if they haven't been uploaded yet.
-//		if (![_attachmentsForUpload containsObject:filePath]){
-//			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-//		}
-//		[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-//	 }];
-//}
-//
+- (void)deleteFileAtPath:(NSString *)filePath
+			  completion:(void (^)(void))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		// do not delete files if they haven't been uploaded yet.
+		if (![self->_attachmentsForUpload containsObject:filePath]) {
+			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+		}
+		completion();
+	 });
+}
+
 - (void)getNameForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSString *fileName = [filePath lastPathComponent];
@@ -91,7 +90,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		} else {
 			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
 												code:1
-												userInfo:@{@"message":@"file does not exists"}]);
+											userInfo:@{@"message":@"file does not exists"}]);
 		}
 	 });
 }
@@ -126,84 +125,79 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		}
 	});
 }
-//
-//
-//- (void)upload:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		NSString * filePath = [command.arguments objectAtIndex:0];
-//		NSURL * url = [NSURL URLWithString:[command.arguments objectAtIndex:1]];
-//		NSDictionary * headers = [command.arguments objectAtIndex:2];
-//
-//		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-//		[request setHTTPMethod:@"PUT"];
-//		[request setValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
-//		[request setAllHTTPHeaderFields:headers];
-//
-//		NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
-//		NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
-//
-//		NSURL *fileUrl = [FileUtil urlFromPath:filePath];
-//		NSURLSessionUploadTask *task = [session uploadTaskWithRequest:request fromFile:fileUrl completionHandler:^(NSData * data, NSURLResponse * response, NSError *error) {
-//			if (error){
-//				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//                return;
-//            }
-//			NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-//			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsNSInteger:[httpResponse statusCode]] callbackId:command.callbackId];
-//		}];
-//		[task resume];
-//	 }];
-//}
-//
-//- (void)download:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		if ([command.arguments objectAtIndex:0] != [NSNull null] && [command.arguments objectAtIndex:1] != [NSNull null] && [command.arguments objectAtIndex:2] != [NSNull null] ) {
-//			NSURL * url = [NSURL URLWithString:[command.arguments objectAtIndex:0]];
-//			NSString * fileName = [command.arguments objectAtIndex:1];
-//			NSDictionary * headers = [command.arguments objectAtIndex:2];
-//			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-//			[request setHTTPMethod:@"GET"];
-//			[request setURL:url];
-//			[request setAllHTTPHeaderFields:headers];
-//
-//			NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
-//			NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
-//
-//			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-//				//NSLog(@"Got response %@ with error %@.\n", response, error);
-//				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-//                if (error){
-//                    [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//                    return;
-//                }
-//				if ([httpResponse statusCode] == 200) {
-//                    NSError *error = nil;
-//					NSString *encryptedPath = [FileUtil getEncryptedFolder: &error];
-//                    if (error) {
-//                        [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//                        return;
-//                    }
-//                    NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
-//					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
-//                    //NSLog(@"Filename: %@", filePath);
-//					if (!error) {
-//						CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
-//						[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
-//					} else {
-//                        [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//                        return;
-//					}
-//				} else {
-//                    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsNSInteger:[httpResponse statusCode]];
-//                    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//				}
-//				//NSLog(@"DATA:\n%@\nEND DATA\n", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-//			}] resume];
-//		} else {
-//			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid arguments"] callbackId:command.callbackId];
-//		}
-//	 }];
-//}
+
+
+- (void)uploadFileAtPath:(NSString *)filePath
+				   toUrl:(NSString *)urlString
+			 withHeaders:(NSDictionary<NSString *, NSString *> *)headers
+			  completion:(void (^)(NSNumber *, NSError *))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		NSURL *url = [NSURL URLWithString:urlString];
+		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+		[request setHTTPMethod:@"PUT"];
+		[request setValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
+		[request setAllHTTPHeaderFields:headers];
+
+		NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
+		NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+
+		NSURL *fileUrl = [FileUtil urlFromPath:filePath];
+		NSURLSessionUploadTask *task = [session uploadTaskWithRequest:request
+															 fromFile:fileUrl
+													completionHandler:^(NSData * data, NSURLResponse * response, NSError *error) {
+														if (error) {
+															completion(nil, error);
+															return;
+														}
+														NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+														completion([NSNumber numberWithInteger:httpResponse.statusCode], nil);
+													}];
+		[task resume];
+	});
+}
+
+- (void)downloadFileFromUrl:(NSString *)urlString
+					forName:(NSString *)fileName
+				withHeaders:(NSDictionary<NSString *, NSString *> *)headers
+				 completion:(void (^)(NSString * filePath, NSError * error))completion {
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+			NSURL * url = [NSURL URLWithString:urlString];
+			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+			[request setHTTPMethod:@"GET"];
+			[request setURL:url];
+			[request setAllHTTPHeaderFields:headers];
+
+			NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
+			NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+
+			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+                if (error){
+					completion(nil, error);
+                    return;
+                }
+				if ([httpResponse statusCode] == 200) {
+                    NSError *error = nil;
+					NSString *encryptedPath = [FileUtil getEncryptedFolder: &error];
+                    if (error) {
+						completion(nil, error);
+                        return;
+                    }
+                    NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
+					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
+					if (!error) {
+						completion(filePath, nil);
+					} else {
+						completion(nil, error);
+					}
+				} else {
+					NSString *message = [NSString stringWithFormat:@"Response code: %ld", (long) httpResponse.statusCode];
+					NSError *error = [NSError errorWithDomain:FILES_ERROR_DOMAIN code:15 userInfo:@{@"message":message}];
+					completion(nil, error);
+				}
+			}] resume];
+		});
+}
 
 //- (void)clearFileData:(CDVInvokedUrlCommand*)command{
 //	NSFileManager *fileManager = [NSFileManager defaultManager];

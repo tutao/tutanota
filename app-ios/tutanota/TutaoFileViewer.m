@@ -12,30 +12,41 @@
 #include "FileUtil.h"
 #include "TutaoErrorFactory.h"
 
-@implementation TutaoFileViewer {
-	NSURL *_fileUrl;
-	QLPreviewController *_previewController;
-	void(^completionHandler)(NSError *error);
+@interface TutaoFileViewer ()
+	@property (readonly) UIViewController *sourceController;
+	@property (readwrite) NSURL *fileUrl;
+	@property (readwrite) QLPreviewController *previewController;
+	@property (readwrite) void(^completionHandler)(NSError *error);
+@end
+
+@implementation TutaoFileViewer
+
+- (instancetype)initWithViewController:(UIViewController *)viewController {
+	self = [super init];
+    if (self) {
+        _sourceController = viewController;
+    }
+    return self;
 }
 
-
-- (void) openFileAtPath:(NSString*) filePath completionHandler:(void(^)(NSError * error))handler{
-	completionHandler = handler;
+- (void) openFileAtPath:(NSString*) filePath completion:(void(^)(NSError * error))completion {
+	_completionHandler = completion;
     _previewController= [[QLPreviewController alloc] init];
     _previewController.dataSource = self;
     _previewController.delegate = self;
-    _fileUrl = [FileUtil urlFromPath:filePath];
-  	if ([QLPreviewController canPreviewItem:_fileUrl]){
-//		// ensure that ui related operations run in main thread
-//		dispatch_async(dispatch_get_main_queue(), ^{
-//			[_cdvPlugin.viewController presentViewController:_previewController animated:YES completion:nil];
-//		});
+	_fileUrl = [FileUtil urlFromPath:filePath];
+	if ([QLPreviewController canPreviewItem:_fileUrl]) {
+		// ensure that ui related operations run in main thread
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self->_sourceController presentViewController:self->_previewController
+												  animated:YES
+												completion:nil];
+			self->_completionHandler(nil);
+		});
 	} else {
-		handler([TutaoErrorFactory createError:@"cannot display files"]);
+		completion([TutaoErrorFactory createError:@"cannot display files"]);
 	}
 }
-
-
 
 /*!
  * @abstract Returns the number of items that the preview controller should preview.
@@ -48,7 +59,6 @@
 
 /*!
  * @abstract Returns the item that the preview controller should preview.
- * @param panel The Preview Controller.
  * @param index The index of the item to preview.
  * @result An item conforming to the QLPreviewItem protocol.
  */
@@ -61,7 +71,7 @@
  * @abstract Invoked after the preview controller is closed.
  */
 - (void)previewControllerDidDismiss:(QLPreviewController *)controller{
-	completionHandler(nil);
+//	_completionHandler(nil);
 }
 
 /*!

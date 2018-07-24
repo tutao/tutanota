@@ -86,8 +86,8 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 	CCCryptorRef cryptor = NULL;
 	CCCryptorStatus cryptorStatus;
 	
-	cryptorStatus = CCCryptorCreate(operation,             // operation
-                           kCCAlgorithmAES,            // algorithim
+	cryptorStatus = CCCryptorCreate(operation,    // operation
+                           kCCAlgorithmAES,       // algorithim
                            kCCOptionPKCS7Padding,
                            key.bytes,             // key
                            key.length,            // keylength
@@ -158,9 +158,5 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 	}
 	return YES;
 }
-
-
-
-
 
 @end
