@@ -10,6 +10,13 @@ assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
+        "*:not(input):not(textarea)": (isApp() ? {
+            "-webkit-user-select": "none", /* disable selection/Copy of UIWebView */
+            "-webkit-touch-callout": "none", /* disable the IOS popup when long-press on a link */
+            "-webkit-user-drag": "none",
+            "-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)"
+        } : {}),
+
 		"@font-face": {
 			"font-family": "'Ionicons'",
 			"src": "url('images/ionicons.ttf') format('truetype')",

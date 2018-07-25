@@ -32,11 +32,12 @@ import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isIOSApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
+import {client, BrowserType} from "../misc/ClientDetector";
 
 assertMainOrNode()
 
@@ -117,6 +118,7 @@ export class SearchBar {
 								}
 							},
 							onclick: (e) => {
+								e.preventDefault()
 								this.handleSearchClick(e)
 							}
 						}, m(Icon, {
@@ -178,6 +180,9 @@ export class SearchBar {
 			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
 				this.showIndexingProgress(newState, m.route.get())
 				m.redraw() // redraw in any case, especially to show the search bar after the db is initialized
+                if (this.focused) {
+				    setTimeout(() => this._domInput.focus(), 50)
+                }
 			})
 			routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
 				if (e.requestedPath.startsWith("/search/mail")) {
@@ -612,10 +617,12 @@ export class SearchBar {
 		if (!this.focused) {
 			this.focused = true
 			this.expanded = true
-			this._domInput.focus()
-			this._domInput.select()
-			this.showIndexingProgress(locator.search.indexState(), m.route.get())
-			this.search()
+            setTimeout(() => {
+                this._domInput.select()
+                this._domInput.focus()
+                this.showIndexingProgress(locator.search.indexState(), m.route.get())
+                this.search()
+            }, client.browser === BrowserType.SAFARI ? 200 : 0)
 			//this._domWrapper.classList.add("active")
 		}
 	}

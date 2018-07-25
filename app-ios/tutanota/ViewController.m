@@ -16,6 +16,7 @@
 #import "Crypto.h"
 #import "TutaoFileChooser.h"
 #import <SafariServices/SafariServices.h>
+#import <objc/message.h>
 
 typedef void(^VoidCallback)(void);
 
@@ -50,8 +51,12 @@ typedef void(^VoidCallback)(void);
 	_webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
 	[_webView.configuration.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
 	_webView.navigationDelegate = self;
+	_webView.scrollView.bounces = false;
+
 	[config.userContentController addScriptMessageHandler:self name:@"nativeApp"];
 	self.view = _webView;
+
+	[self keyboardDisplayDoesNotRequireUserAction];
 }
 
 - (void)viewDidLoad {
@@ -258,6 +263,32 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 		[_requests removeObjectForKey:requestId];
 	}
 	request(value);
+}
+
+// Swizzling WebKit to be show keyboard when we call focus() on fields
+// Work quite slowly so forms should not be focused at the time of animation
+// https://github.com/Telerik-Verified-Plugins/WKWebView/commit/04e8296adeb61f289f9c698045c19b62d080c7e3#L609-L620
+- (void) keyboardDisplayDoesNotRequireUserAction {
+   Class class = NSClassFromString(@"WKContentView");
+    NSOperatingSystemVersion iOS_11_3_0 = (NSOperatingSystemVersion){11, 3, 0};
+
+    if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion: iOS_11_3_0]) {
+        SEL selector = sel_getUid("_startAssistingNode:userIsInteracting:blurPreviousNode:changingActivityState:userObject:");
+        Method method = class_getInstanceMethod(class, selector);
+        IMP original = method_getImplementation(method);
+        IMP override = imp_implementationWithBlock(^void(id me, void* arg0, BOOL arg1, BOOL arg2, BOOL arg3, id arg4) {
+            ((void (*)(id, SEL, void*, BOOL, BOOL, BOOL, id))original)(me, selector, arg0, TRUE, arg2, arg3, arg4);
+        });
+        method_setImplementation(method, override);
+    } else {
+        SEL selector = sel_getUid("_startAssistingNode:userIsInteracting:blurPreviousNode:userObject:");
+        Method method = class_getInstanceMethod(class, selector);
+        IMP original = method_getImplementation(method);
+        IMP override = imp_implementationWithBlock(^void(id me, void* arg0, BOOL arg1, BOOL arg2, id arg3) {
+            ((void (*)(id, SEL, void*, BOOL, BOOL, id))original)(me, selector, arg0, TRUE, arg2, arg3);
+        });
+        method_setImplementation(method, override);
+    }
 }
 
 @end
