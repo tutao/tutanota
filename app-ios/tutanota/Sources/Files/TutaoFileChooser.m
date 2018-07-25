@@ -11,8 +11,8 @@
 #import <UIKit/UIViewController.h>
 #import "FileUtil.h"
 #import <Photos/Photos.h>
-#include "TutaoErrorFactory.h"
 #import <MobileCoreServices/MobileCoreServices.h>
+#import "TutaoErrorFactory.h"
 
 
 @interface TutaoFileChooser ()
@@ -37,8 +37,6 @@
 	_imagePickerController.delegate = self;
 	_sourceController = viewController;
 	
-//	_cameraImage = [TutaoUtils createFontImage:@"\ue945" fontName:@"icomoon" size:24];
-//	_photoLibImage = [TutaoUtils createFontImage:@"\ue93c" fontName:@"icomoon" size:24];
 	return self;
 }
 
