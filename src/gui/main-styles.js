@@ -267,6 +267,7 @@ styles.registerStyle('main', () => {
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
 		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
+		'.flex-no-grow': {flex: "0"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},

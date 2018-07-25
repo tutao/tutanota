@@ -49,7 +49,7 @@ type ShowMoreAction = {
 
 type SearchBarAttrs = {
 	classes?: string,
-	style?: string,
+	style?: {[string]:string},
 	alwaysExpanded?: boolean,
 	spacer?: boolean,
 	placeholder?: ?string
@@ -94,8 +94,8 @@ export class SearchBar {
 		this.dropdown = new Dropdown(() => [b], 250)
 		this._results = []
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
-			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
-				m(".search-bar.flex-end.flex-grow-shrink-auto.items-center", {
+			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
+				m(".search-bar.flex-end.items-center", {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom
 					},
@@ -106,7 +106,8 @@ export class SearchBar {
 						'margin-right': px(styles.isDesktopLayout() ? 15 : 8),
 						'border-bottom': vnode.attrs.alwaysExpanded || this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
 						'align-self': "center",
-						'max-width': px(400)
+						'max-width': px(400),
+						'flex': "1"
 					}
 				}, [
 					styles.isDesktopLayout() ? m(".ml-negative-xs.click", {
