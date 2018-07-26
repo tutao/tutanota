@@ -333,10 +333,11 @@ export class MailViewer {
 									m(".flex-v-center.pl-button", progressIcon()),
 									m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
 								]),
-							m("hr.hr.mt.mb"),
+							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.plr-l.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"), {
+						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating"
+							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
