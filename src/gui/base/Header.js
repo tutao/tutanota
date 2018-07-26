@@ -43,8 +43,18 @@ class Header {
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
-		let searchViewButton = new NavButton("search_label", () => Icons.Search, () => this.searchUrl, this.searchUrl)
+		let searchViewButton = new NavButton("search_label", () => Icons.Search, this.searchUrl, "/search")
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
+			.setClickHandler(() => {
+				const route = m.route.get()
+				let url
+				if (route.startsWith(this.contactsUrl) || route.startsWith("/search/contact")) {
+					url = "/search/contact"
+				} else {
+					url = "/search/mail"
+				}
+				m.route.set(url)
+			})
 
 		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
@@ -53,9 +63,11 @@ class Header {
 			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()
+					&& !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isFreeAccount())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
+				                                                                       .isFreeAccount())
 				.setClickHandler(() => this._showUpgradeDialog()), 0, true)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
@@ -65,7 +77,8 @@ class Header {
 			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
 			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
+				                                                                       .isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
@@ -85,7 +98,8 @@ class Header {
 			])
 		}
 
-		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
+		asyncImport(typeof module != "undefined" ?
+			module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
 			.then((searchBarModule) => {
 				this.searchBar = new searchBarModule.SearchBar()
 			})
@@ -153,16 +167,19 @@ class Header {
 	}
 
 	_showUpgradeDialog() {
-		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`).then(upgradeWizard => {
-				return upgradeWizard.show()
-			}
-		)
+		asyncImport(typeof module != "undefined" ?
+			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
+			.then(upgradeWizard => {
+					return upgradeWizard.show()
+				}
+			)
 	}
 
 	_writeSupportMail() {
 		this._createMailEditor().then(editor => {
 			let signature = "<br><br>--"
-			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "") + " app" : "Browser")
+			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "")
+				+ " app" : "Browser")
 			signature += "<br>Tutanota version: " + env.versionNumber
 			signature += "<br>User agent:<br>" + navigator.userAgent
 			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
@@ -173,8 +190,10 @@ class Header {
 
 	_createMailEditor(): Promise<MailEditor> {
 		return Promise.join(
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
+			asyncImport(typeof module != "undefined" ?
+				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
+			asyncImport(typeof module != "undefined" ?
+				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
 			(mailEditorModule, mailModelModule) => {
 				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
 			}
@@ -221,7 +240,8 @@ class Header {
 	_getLeftElements() {
 		const viewSlider = this._getViewSlider()
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => BootIcons.Back, () => m.route.get())
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn())
+				.getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => viewSlider.focusPreviousColumn())
 				.setHideLabel(true)
@@ -241,7 +261,7 @@ class Header {
 
 	_getViewSlider(): ?IViewSlider {
 		if (this._currentView) {
-			return (this._currentView:any).viewSlider
+			return (this._currentView: any).viewSlider
 		} else {
 			return null
 		}
