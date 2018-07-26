@@ -62,7 +62,9 @@ export class GroupListView {
 							if (logins.getUserController().isGlobalAdmin()) {
 								return allGroupInfos
 							} else {
-								let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+								let localAdminGroupIds = logins.getUserController()
+								                               .getLocalAdminGroupMemberships()
+								                               .map(gm => gm.group)
 								return allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
 							}
 						})
@@ -89,7 +91,7 @@ export class GroupListView {
 				renderRightSpacer: () => [],
 				swipeLeft: (listElement) => Promise.resolve(),
 				swipeRight: (listElement) => Promise.resolve(),
-			}:any),
+			}: any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
@@ -144,7 +146,9 @@ export class GroupListView {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(elementId)
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
-					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					let localAdminGroupIds = logins.getUserController()
+					                               .getLocalAdminGroupMemberships()
+					                               .map(gm => gm.group)
 					if (listEntity) {
 						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
 							this.list.entityEventReceived(elementId, OperationType.DELETE)
@@ -161,11 +165,15 @@ export class GroupListView {
 				this.list.entityEventReceived(elementId, operation)
 			}
 		} else if (!logins.getUserController().isGlobalAdmin() && isSameTypeRef(typeRef, GroupMemberTypeRef)) {
-			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] === elementId)
-			let newLocalAdminGroupMembership = logins.getUserController().getLocalAdminGroupMemberships().find(gm => gm.groupMember[1] === elementId)
+			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1]
+				=== elementId)
+			let newLocalAdminGroupMembership = logins.getUserController()
+			                                         .getLocalAdminGroupMemberships()
+			                                         .find(gm => gm.groupMember[1] === elementId)
 			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
 				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
-			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
+			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership
+				&& !newLocalAdminGroupMembership) {
 				this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
 			}
 			this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()

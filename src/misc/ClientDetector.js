@@ -178,7 +178,7 @@ class ClientDetector {
 				get passive() {
 					supportsPassive = true
 				}
-			}:any));
+			}: any));
 		} catch (e) {
 		}
 		return supportsPassive
@@ -317,7 +317,7 @@ class ClientDetector {
 
 
 	cssPropertyValueSupported(prop: string, value: string) {
-		let d = (document.createElement('div'):any)
+		let d = (document.createElement('div'): any)
 		d.style[prop] = value
 		return d.style[prop] === value
 	}

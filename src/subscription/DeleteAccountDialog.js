@@ -29,11 +29,13 @@ function deleteAccount(reason: string, takeover: string, password: string) {
 		return
 	}
 	takeover = neverNull(getCleanedMailAddress(takeover))
-	Dialog.confirm(() => takeover === "" ? lang.get("deleteAccountConfirm_msg") : lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": takeover})).then(ok => {
-		if (ok) {
-			worker.deleteAccount(password, reason, takeover)
-				.catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))
-				.catch(InvalidDataError, e => Dialog.error("takeoverAccountInvalid_msg"))
-		}
-	})
+	Dialog.confirm(() => takeover === "" ?
+		lang.get("deleteAccountConfirm_msg") : lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": takeover}))
+	      .then(ok => {
+		      if (ok) {
+			      worker.deleteAccount(password, reason, takeover)
+			            .catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))
+			            .catch(InvalidDataError, e => Dialog.error("takeoverAccountInvalid_msg"))
+		      }
+	      })
 }

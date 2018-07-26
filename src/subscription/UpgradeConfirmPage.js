@@ -42,9 +42,10 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 			serviceData.accountType = AccountType.PREMIUM
 			serviceData.proUpgrade = data.proUpgrade
 			serviceData.date = Const.CURRENT_DATE
-			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
-				return worker.switchFreeToPremiumGroup()
-			})).then(() => {
+			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
+				.then(() => {
+					return worker.switchFreeToPremiumGroup()
+				})).then(() => {
 				this._pageActionHandler.showNext(this._upgradeData)
 			}).catch(PreconditionFailedError, e => {
 				Dialog.error("paymentProviderTransactionFailedError_msg")
@@ -65,7 +66,8 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 					m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}}))
 			]),
-			m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))]
+			m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))
+		]
 	}
 
 	headerTitle(): string {
@@ -88,9 +90,11 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 	updateWizardData(wizardData: UpgradeSubscriptionData) {
 		this._upgradeData = wizardData
 		this._orderField.setValue((this._upgradeData.proUpgrade ? "Pro" : "Premium"))
-		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval === 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
+		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval
+		=== 12 ? lang.get("yearly_label") : lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
 		const netOrGross = this._upgradeData.subscriptionOptions.businessUse ? lang.get("net_label") : lang.get("gross_label")
-		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12 ? lang.get("perYear_label") : lang.get("perMonth_label")) + " (" + netOrGross + ")")
+		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval
+		=== 12 ? lang.get("perYear_label") : lang.get("perMonth_label")) + " (" + netOrGross + ")")
 		this._paymentMethodField.setValue(getPaymentMethodName(this._upgradeData.paymentData.paymentMethod))
 	}
 

@@ -62,7 +62,7 @@ export class ContactViewer {
 		let fullName = this.contact.firstName + " " + this.contact.lastName
 		this.contactAppellation = (title + fullName + nickname).trim()
 		this.mailAddresses = this.contact.mailAddresses.map(element => {
-			let textField = new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
+			let textField = new TextField(() => getContactAddressTypeLabel((element.type: any), element.customTypeName))
 				.setValue(element.address)
 				.setDisabled()
 			let newMailButton = new Button('sendMail_alt', () => this._writeMail(element.address), () => BootIcons.Mail)
@@ -70,7 +70,8 @@ export class ContactViewer {
 			return textField
 		})
 		this.phones = this.contact.phoneNumbers.map(element => {
-			let textField = new TextField(() => getContactPhoneNumberTypeLabel((element.type:any), element.customTypeName))
+			let textField = new TextField(() =>
+				getContactPhoneNumberTypeLabel((element.type: any), element.customTypeName))
 				.setValue(element.number)
 				.setDisabled()
 			let callButton = new Button('callNumber_alt', () => null, () => Icons.Call)
@@ -78,7 +79,8 @@ export class ContactViewer {
 			return textField
 		})
 		this.addresses = this.contact.addresses.map(element => {
-			let showAddress = new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
+			let showAddress = new TextField(() =>
+				getContactAddressTypeLabel((element.type: any), element.customTypeName))
 				.setType(Type.Area)
 				.setValue(element.address)
 				.setDisabled()
@@ -114,9 +116,11 @@ export class ContactViewer {
 								m(".flex-wrap", insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
-										m("span.birthday", this._formatBirthday())], m("span", " | ")
+										m("span.birthday", this._formatBirthday())
+									], m("span", " | ")
 									)
-								)]),
+								)
+							]),
 							m(".action-bar.align-self-end", [//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
 								m(actions)
 							]),
@@ -125,35 +129,35 @@ export class ContactViewer {
 					]),
 
 					this.mailAddresses.length > 0 || this.phones.length > 0 ? m(".wrapping-row", [
-							m(".mail.mt-l", this.mailAddresses.length > 0 ? [
-									m(".h4", lang.get('email_label')),
-									m(".aggregateEditors", [
-										this.mailAddresses.map(ma => m(ma)),
-									])
-								] : null),
-							m(".phone.mt-l", this.phones.length > 0 ? [
-									m(".h4", lang.get('phone_label')),
-									m(".aggregateEditors", [
-										this.phones.map(ma => m(ma)),
-									])
-								] : null),
-						]) : null,
+						m(".mail.mt-l", this.mailAddresses.length > 0 ? [
+							m(".h4", lang.get('email_label')),
+							m(".aggregateEditors", [
+								this.mailAddresses.map(ma => m(ma)),
+							])
+						] : null),
+						m(".phone.mt-l", this.phones.length > 0 ? [
+							m(".h4", lang.get('phone_label')),
+							m(".aggregateEditors", [
+								this.phones.map(ma => m(ma)),
+							])
+						] : null),
+					]) : null,
 
 					this.addresses.length > 0 || this.socials.length > 0 ? m(".wrapping-row", [
-							m(".address.mt-l", this.addresses.length > 0 ? [
-									m(".h4", lang.get('address_label')),
-									m(".aggregateEditors", this.addresses.map(ma => m(ma)))
-								] : null),
-							m(".social.mt-l", this.socials.length > 0 ? [
-									m(".h4", lang.get('social_label')),
-									m(".aggregateEditors", this.socials.map(ma => m(ma)))
-								] : null),
-						]) : null,
+						m(".address.mt-l", this.addresses.length > 0 ? [
+							m(".h4", lang.get('address_label')),
+							m(".aggregateEditors", this.addresses.map(ma => m(ma)))
+						] : null),
+						m(".social.mt-l", this.socials.length > 0 ? [
+							m(".h4", lang.get('social_label')),
+							m(".aggregateEditors", this.socials.map(ma => m(ma)))
+						] : null),
+					]) : null,
 
 					this.contact.comment && this.contact.comment.trim().length > 0 ? [
-							m("hr.hr.mt-l"),
-							m("p.mt-l.text-prewrap.text-break", this.contact.comment),
-						] : null,
+						m("hr.hr.mt-l"),
+						m("p.mt-l.text-prewrap.text-break", this.contact.comment),
+					] : null,
 
 				]),
 
@@ -205,9 +209,11 @@ export class ContactViewer {
 
 	_writeMail(mailAddress: string) {
 		let editor = new MailEditor(mailModel.getUserMailboxDetails())
-		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "", getEmailSignature(), null).then(() => {
-			editor.show()
-		})
+		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "",
+			getEmailSignature(), null)
+		      .then(() => {
+			      editor.show()
+		      })
 	}
 
 	_setupShortcuts() {

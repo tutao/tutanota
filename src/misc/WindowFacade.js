@@ -19,10 +19,12 @@ class WindowFacade {
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
 		this.init()
-		asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`).then(module => {
-			// load async to reduce size of boot bundle
-			this._worker = module.worker
-		})
+		asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+			`${env.rootPathPrefix}src/api/main/WorkerClient.js`)
+			.then(module => {
+				// load async to reduce size of boot bundle
+				this._worker = module.worker
+			})
 	}
 
 	/**
@@ -123,7 +125,7 @@ class WindowFacade {
 		}, CHECK_INTERVAL_SECONDS * 1000)
 	}
 
-	reload(args: {[string]:any}) {
+	reload(args: {[string]: any}) {
 		if (isApp()) {
 			if (!args.hasOwnProperty("noAutoLogin")) {
 				args.noAutoLogin = true

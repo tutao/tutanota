@@ -33,17 +33,19 @@ export function show(): Promise<void> {
 				]
 			}
 		}
-		return Dialog.smallDialog(lang.get("addUsers_action"), form, () => mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId()).then(okClicked => {
+		return Dialog.smallDialog(lang.get("addUsers_action"), form, () => mailAddressForm.getErrorMessageId()
+			|| passwordForm.getErrorMessageId()).then(okClicked => {
 			if (okClicked) {
-				return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false)).then(accepted => {
-					if (accepted) {
-						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						return showProgressDialog(() => lang.get("createActionStatus_msg", {
-							"{index}": 0,
-							"{count}": 1
-						}), p, true)
-					}
-				})
+				return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
+					.then(accepted => {
+						if (accepted) {
+							let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
+							return showProgressDialog(() => lang.get("createActionStatus_msg", {
+								"{index}": 0,
+								"{count}": 1
+							}), p, true)
+						}
+					})
 			}
 		})
 	})
@@ -52,7 +54,8 @@ export function show(): Promise<void> {
 export function getAvailableDomains(): Promise<string[]> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			let availableDomains = customerInfo.domainInfos.filter(info => info.certificate == null).map(info => info.domain)
+			let availableDomains = customerInfo.domainInfos.filter(info => info.certificate == null)
+			                                   .map(info => info.domain)
 			if (logins.getUserController().user.accountType !== AccountType.STARTER) {
 				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
 			}

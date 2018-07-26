@@ -26,7 +26,8 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethod === PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
+		return accountingInfo.paymentMethod === PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " "
+			+ neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
 	} else {
 		return ""
 	}
@@ -100,7 +101,8 @@ export function getInvoiceStatusText(invoice: Invoice): string {
 		|| invoice.status === InvoiceStatus.PUBLISHEDFORMANUAL
 		|| invoice.status === InvoiceStatus.CREATED) {
 		return lang.get('invoiceStateOpen_label')
-	} else if (invoice.status === InvoiceStatus.DEBITFAILED || invoice.status === InvoiceStatus.FIRSTREMINDER || invoice.status === InvoiceStatus.SECONDREMINDER) {
+	} else if (invoice.status === InvoiceStatus.DEBITFAILED || invoice.status === InvoiceStatus.FIRSTREMINDER
+		|| invoice.status === InvoiceStatus.SECONDREMINDER) {
 		return lang.get('invoiceStatePaymentFailed_label')
 	} else if (invoice.status === InvoiceStatus.PAID) {
 		return lang.get('invoiceStatePaid_label')

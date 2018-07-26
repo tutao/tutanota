@@ -15,7 +15,8 @@ export function isExternal(recipientInfo: RecipientInfo): boolean {
 
 export function isExternalSecureRecipient(recipientInfo: RecipientInfo): boolean {
 	return isExternal(recipientInfo) &&
-		recipientInfo.contact != null && recipientInfo.contact.presharedPassword != null && recipientInfo.contact.presharedPassword.trim() != ""
+		recipientInfo.contact != null && recipientInfo.contact.presharedPassword != null
+		&& recipientInfo.contact.presharedPassword.trim() != ""
 }
 
 export function isExternalRecipientWithoutPassphrase(recipientInfo: RecipientInfo, password: string): boolean {

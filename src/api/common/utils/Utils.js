@@ -2,7 +2,7 @@
 import type {GroupTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
-export function defer(): {resolve:Function, reject: Function, promise: Promise<any>} {
+export function defer(): {resolve: Function, reject: Function, promise: Promise<any>} {
 	let cb
 	let promise = Promise.fromCallback(pcb => {
 		cb = pcb
@@ -61,11 +61,11 @@ export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, exe
 }
 
 export function neverNull<T>(object: ?T): T {
-	return (object:any)
+	return (object: any)
 }
 
 export function string(object: any): string {
-	return (object:string)
+	return (object: string)
 }
 
 export function clone<T>(instance: T): T {
@@ -74,14 +74,14 @@ export function clone<T>(instance: T): T {
 	} else if (instance instanceof Array) {
 		return instance.map(i => clone(i))
 	} else if (instance instanceof Date) {
-		return (new Date(instance.getTime()):any)
+		return (new Date(instance.getTime()): any)
 	} else if (instance instanceof Object) {
 		let copy = {}
 		Object.assign(copy, instance)
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
 		}
-		return (copy:any)
+		return (copy: any)
 	} else {
 		return instance
 	}
@@ -97,15 +97,15 @@ export function clone<T>(instance: T): T {
  */
 export function asyncImport(importer: string, moduleName: string): Promise<*> {
 	return System.import(moduleName)
-		.then(module => {
-			if (System.loads) {
-				if (!System.loads[System.resolveSync(importer)].depMap[moduleName]) {
-					System.loads[System.resolveSync(importer)].deps.push(moduleName)
-					System.loads[System.resolveSync(importer)].depMap[moduleName] = System.resolveSync(moduleName)
-				}
-			}
-			return module
-		})
+	             .then(module => {
+		             if (System.loads) {
+			             if (!System.loads[System.resolveSync(importer)].depMap[moduleName]) {
+				             System.loads[System.resolveSync(importer)].deps.push(moduleName)
+				             System.loads[System.resolveSync(importer)].depMap[moduleName] = System.resolveSync(moduleName)
+			             }
+		             }
+		             return module
+	             })
 }
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {

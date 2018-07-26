@@ -32,7 +32,7 @@ export function erase<T>(instance: T): Promise<void> {
 	return _eraseEntity(instance, locator.cache)
 }
 
-export function load<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params): Promise<T> {
+export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
 	return _loadEntity(typeRef, id, queryParams, locator.cache)
 }
 
@@ -49,6 +49,7 @@ export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise
 }
 
 const RANGE_ITEM_LIMIT = 1000
+
 function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length === RANGE_ITEM_LIMIT) {
@@ -79,16 +80,16 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 }
 
 
-export function serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
+export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
 	return _service(service, method, requestEntity, responseTypeRef, queryParams, sk)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
+export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
 	return _service(service, method, requestEntity, null, queryParams, sk)
 }
 
 export class EntityWorker {
-	load<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params): Promise<T> {
+	load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
 		return load(typeRef, id, queryParams)
 	}
 
@@ -108,7 +109,7 @@ export class EntityWorker {
 		return _loadEntityRange(typeRef, listId, start, count, reverse, target)
 	}
 
-	_loadEntity<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
+	_loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
 		return _loadEntity(typeRef, id, queryParams, target)
 	}
 

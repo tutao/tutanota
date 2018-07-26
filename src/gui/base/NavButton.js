@@ -19,7 +19,7 @@ const TRUE_CLOSURE = (): lazy<boolean> => true
 
 export class NavButton {
 	icon: lazy<SVG>;
-	href: string|lazy<string>;
+	href: string | lazy<string>;
 	clickHandler: ?clickHandler;
 
 	isVisible: lazy<boolean>;
@@ -35,7 +35,7 @@ export class NavButton {
 	_hideLabel: boolean;
 
 
-	constructor(label: string|lazy<string>, icon: lazy<SVG>, href: string|Function, selectedPrefix: ?string) {
+	constructor(label: string | lazy<string>, icon: lazy<SVG>, href: string | Function, selectedPrefix: ?string) {
 		this._hideLabel = false
 		this.icon = icon
 		this.href = href
@@ -59,13 +59,14 @@ export class NavButton {
 			// allow nav button without label for registration button on mobile devices
 			return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(), [
 				this.icon() ? m(Icon, {
-						icon: this.icon(),
-						class: this._getIconClass(),
-						style: {
-							fill: (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button,
-							"margin-top": (this._hideLabel) ? "0px" : "-2px"
-						}
-					}) : null,
+					icon: this.icon(),
+					class: this._getIconClass(),
+					style: {
+						fill: (this.isSelected() || this._draggedOver) ?
+							getColors(this._colors).button_selected : getColors(this._colors).button,
+						"margin-top": (this._hideLabel) ? "0px" : "-2px"
+					}
+				}) : null,
 				(!this._hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel()) : null
 			])
 		}
@@ -96,7 +97,10 @@ export class NavButton {
 	createButtonAttributes() {
 		let attr: any = {
 			href: this._getUrl(),
-			style: {color: (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button},
+			style: {
+				color: (this.isSelected() || this._draggedOver) ?
+					getColors(this._colors).button_selected : getColors(this._colors).button
+			},
 			title: this.getLabel(),
 			target: this._isExternalUrl() ? "_blank" : undefined,
 			oncreate: (vnode: VirtualElement) => {
@@ -220,7 +224,7 @@ function getColors(buttonColors: NavButtonColorEnum) {
 	}
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string|NavButton|Button>>, width: number = 200): NavButton {
+export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): NavButton {
 	let dropdown = new Dropdown(lazyButtons, width)
 	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
 		.setClickHandler((() => {
@@ -229,7 +233,7 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 				dropdown.setOrigin(buttonRect)
 				modal.display(dropdown)
 			}
-		}:clickHandler))
+		}: clickHandler))
 		.setHideLabel(true)
 	return mainButton
 }
@@ -237,5 +241,6 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 export function isSelectedPrefix(buttonHref: string): boolean {
 	let current = m.route.get()
 	// don't just check current.indexOf(buttonHref) because other buttons may also start with this href
-	return (buttonHref !== "") && (current === buttonHref || (current.indexOf(buttonHref + "/") === 0) || (current.indexOf(buttonHref + "?") === 0))
+	return (buttonHref !== "") && (current === buttonHref || (current.indexOf(buttonHref + "/") === 0)
+		|| (current.indexOf(buttonHref + "?") === 0))
 }

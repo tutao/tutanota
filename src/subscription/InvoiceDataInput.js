@@ -54,15 +54,16 @@ export class InvoiceDataInput {
 		]
 
 		this.oncreate = () => {
-			serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef).then((location: LocationServiceGetReturn) => {
-				if (!this.selectedCountry()) {
-					let country = Countries.find(c => c.a === location.country)
-					if (country) {
-						this.selectedCountry(country)
-						m.redraw()
+			serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef)
+				.then((location: LocationServiceGetReturn) => {
+					if (!this.selectedCountry()) {
+						let country = Countries.find(c => c.a === location.country)
+						if (country) {
+							this.selectedCountry(country)
+							m.redraw()
+						}
 					}
-				}
-			})
+				})
 		}
 	}
 
@@ -88,7 +89,8 @@ export class InvoiceDataInput {
 	}
 
 	_isVatIdFieldVisible(): boolean {
-		return this._subscriptionOptions.businessUse && this.selectedCountry() != null && this.selectedCountry().t === CountryType.EU
+		return this._subscriptionOptions.businessUse && this.selectedCountry() != null && this.selectedCountry().t
+			=== CountryType.EU
 	}
 
 	getInvoiceData(): InvoiceData {
@@ -96,7 +98,8 @@ export class InvoiceDataInput {
 		return {
 			invoiceAddress: address,
 			country: this.selectedCountry(),
-			vatNumber: (this.selectedCountry() && this.selectedCountry().t === CountryType.EU) ? this._vatNumberField.value() : ""
+			vatNumber: (this.selectedCountry() && this.selectedCountry().t
+				=== CountryType.EU) ? this._vatNumberField.value() : ""
 		}
 	}
 

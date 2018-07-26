@@ -26,7 +26,7 @@ class NativeWrapper {
 				postMessage: function (msg: Request) {
 					window.nativeApp.invoke(JSON.stringify(msg))
 				}
-			}:any))
+			}: any))
 			this._nativeQueue.setCommands({
 				updatePushIdentifier: (msg: Request) => {
 					return _asyncImport('src/native/PushServiceApp.js').then(module => {
@@ -52,17 +52,17 @@ class NativeWrapper {
 										location: uri
 									}
 								}))))
-							.then(files => {
-								const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-								const address = addresses ? addresses.shift() : null
-								const finalSubject = subject || files.length > 0 ? files[0].name : ""
-								return editor.initWithTemplate(null, address, finalSubject,
-									(text || "") + mailUtilsModule.getEmailSignature(), null)
-									.then(() => {
-										editor._attachFiles(files)
-										editor.show()
-									})
-							})
+						             .then(files => {
+							             const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+							             const address = addresses ? addresses.shift() : null
+							             const finalSubject = subject || files.length > 0 ? files[0].name : ""
+							             return editor.initWithTemplate(null, address, finalSubject,
+								             (text || "") + mailUtilsModule.getEmailSignature(), null)
+							                          .then(() => {
+								                          editor._attachFiles(files)
+								                          editor.show()
+							                          })
+						             })
 					})
 				},
 				handleBackPress: (): Promise<boolean> => {

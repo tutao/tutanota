@@ -99,7 +99,9 @@ export class PaymentViewer {
 		}, () => Icons.Edit)
 
 
-		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true)
+		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [
+			ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small
+		], true)
 		this._invoiceExpanderButton = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
 
 
@@ -111,7 +113,8 @@ export class PaymentViewer {
 				]),
 				//m(".small", lang.get("invoiceAddress_label")),
 				m(this._invoiceAddressField),
-				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0) ? m(this._invoiceVatNumber) : null,
+				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length
+					> 0) ? m(this._invoiceVatNumber) : null,
 				m(this._paymentMethodField),
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoices_label')),
@@ -144,7 +147,8 @@ export class PaymentViewer {
 		this._accountingInfo = accountingInfo
 		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
-		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " " + getPaymentMethodInfoText(accountingInfo))
+		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " "
+			+ getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}
 
@@ -169,14 +173,17 @@ export class PaymentViewer {
 			} else {
 				invoiceButton = downloadButton
 			}
-			return new TableLine([formatDate(invoice.date), getInvoiceStatusText(invoice), formatPrice(Number(invoice.grandTotal), true)], invoiceButton)
+			return new TableLine([
+				formatDate(invoice.date), getInvoiceStatusText(invoice), formatPrice(Number(invoice.grandTotal), true)
+			], invoiceButton)
 		}))
 		this._invoiceExpanderButton.setShowWarning(showExpanderWarning)
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
-			load(AccountingInfoTypeRef, elementId).then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
+			load(AccountingInfoTypeRef, elementId)
+				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
 		} else if (isSameTypeRef(typeRef, InvoiceTypeRef) && operation !== OperationType.DELETE) {
 			load(InvoiceTypeRef, [neverNull(listId), elementId]).then(invoice => {
 				if (operation === OperationType.UPDATE) {
@@ -192,7 +199,8 @@ export class PaymentViewer {
 
 
 	_isPayButtonVisible(invoice: Invoice): boolean {
-		return (invoice.paymentMethod === PaymentMethodType.CreditCard || invoice.paymentMethod === PaymentMethodType.Paypal)
+		return (invoice.paymentMethod === PaymentMethodType.CreditCard || invoice.paymentMethod
+			=== PaymentMethodType.Paypal)
 			&& (invoice.status === InvoiceStatus.FIRSTREMINDER || invoice.status === InvoiceStatus.SECONDREMINDER)
 	}
 
@@ -205,24 +213,27 @@ export class PaymentViewer {
 			"{invoiceNumber}": invoice.number,
 			"{invoiceDate}": formatDate(invoice.date)
 		})
-		return _showPayInvoiceConfirmDialog(invoice.number, invoice.date, Number(invoice.grandTotal)).then(confirmed => {
-			if (confirmed) {
-				let service = createDebitServicePutData()
-				service.invoice = invoice._id
-				return showProgressDialog("invoiceUpdateProgress", serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
-					.catch(PreconditionFailedError, error => {
-						return "paymentProviderTransactionFailedError_msg"
-					}).catch(BadGatewayError, error => {
-						return "paymentProviderNotAvailableError_msg"
-					}).catch(TooManyRequestsError, error => {
-						return "tooManyAttempts_msg"
-					}), false)
-			}
-		}).then(errorId => {
-			if (errorId) {
-				return Dialog.error(errorId)
-			}
-		}).finally(() => this._paymentBusy = false)
+		return _showPayInvoiceConfirmDialog(invoice.number, invoice.date, Number(invoice.grandTotal))
+			.then(confirmed => {
+				if (confirmed) {
+					let service = createDebitServicePutData()
+					service.invoice = invoice._id
+					return showProgressDialog("invoiceUpdateProgress", serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
+						.catch(PreconditionFailedError, error => {
+							return "paymentProviderTransactionFailedError_msg"
+						}).catch(BadGatewayError, error => {
+							return "paymentProviderNotAvailableError_msg"
+						}).catch(TooManyRequestsError, error => {
+							return "tooManyAttempts_msg"
+						}), false)
+				}
+			})
+			.then(errorId => {
+				if (errorId) {
+					return Dialog.error(errorId)
+				}
+			})
+			.finally(() => this._paymentBusy = false)
 	}
 }
 
@@ -257,6 +268,6 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
 
 		dialog.setCloseHandler(cancelAction)
-			.show()
+		      .show()
 	})
 }

@@ -11,6 +11,7 @@ import {DomainMailAddressAvailabilityReturnTypeRef} from "../../entities/sys/Dom
 import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddressAvailabilityReturn"
 import {MailAddressAliasServiceReturnTypeRef} from "../../entities/sys/MailAddressAliasServiceReturn"
 import {SysService} from "../../entities/sys/Services"
+
 assertWorkerOrNode()
 
 export class MailAddressFacade {
@@ -29,11 +30,13 @@ export class MailAddressFacade {
 		if (this._login.isLoggedIn()) {
 			let data = createDomainMailAddressAvailabilityData()
 			data.mailAddress = mailAddress
-			return _service(SysService.DomainMailAddressAvailabilityService, HttpMethod.GET, data, DomainMailAddressAvailabilityReturnTypeRef).then(result => result.available)
+			return _service(SysService.DomainMailAddressAvailabilityService, HttpMethod.GET, data, DomainMailAddressAvailabilityReturnTypeRef)
+				.then(result => result.available)
 		} else {
 			let data = createMailAddressAvailabilityData()
 			data.mailAddress = mailAddress
-			return _service(SysService.MailAddressAvailabilityService, HttpMethod.GET, data, MailAddressAvailabilityReturnTypeRef).then(result => result.available)
+			return _service(SysService.MailAddressAvailabilityService, HttpMethod.GET, data, MailAddressAvailabilityReturnTypeRef)
+				.then(result => result.available)
 		}
 	}
 

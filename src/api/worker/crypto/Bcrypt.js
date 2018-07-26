@@ -29,7 +29,7 @@ export function generateRandomSalt(): Uint8Array {
  * @param keyLengthType Defines the length of the key that shall be generated.
  * @return resolved with the key
  */
-export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLengthEnum): Aes128Key|Aes256Key {
+export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLengthEnum): Aes128Key | Aes256Key {
 	// hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same _salt is used
 	let passphraseBytes = hash(stringToUtf8Uint8Array(passphrase))
 	let bytes = crypt_raw(passphraseBytes, salt, logRounds)

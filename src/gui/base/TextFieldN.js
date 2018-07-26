@@ -12,7 +12,7 @@ import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
 
 export type TextFieldAttrs = {
-	label: string|lazy<string>,
+	label: string | lazy<string>,
 	value: stream<string>,
 	type?: TextFieldTypeEnum;
 	helpLabel?: lazy<string>,
@@ -22,7 +22,7 @@ export type TextFieldAttrs = {
 	keyHandler?: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	onblur?: Function;
 	class?: string,
-	disabled?:boolean,
+	disabled?: boolean,
 }
 
 export const Type = {
@@ -99,10 +99,10 @@ export class _TextField {
 				]),
 			]),
 			a.helpLabel ? m("small.noselect.click", {
-					onclick: () => {
-						if (this._domInput) this._domInput.focus()
-					}
-				}, a.helpLabel()) : []
+				onclick: () => {
+					if (this._domInput) this._domInput.focus()
+				}
+			}, a.helpLabel()) : []
 		])
 	}
 
@@ -145,7 +145,8 @@ export class _TextField {
 					this._domInput.onblur = null
 				},
 				oninput: e => {
-					if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active && !this.webkitAutofill) {
+					if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
+						&& !this.webkitAutofill) {
 						this.animate(true) // animate in case of browser autocompletion (non-webkit)
 					}
 					a.value(this._domInput.value) // update the input on each change
@@ -252,10 +253,11 @@ export function editableTextField(label: string, value: ?string, updateHandler: 
 		injectionsRight: () => m(ButtonN, {
 			label: () => "update",
 			icon: () => Icons.Edit,
-			click: () => (area ? Dialog.showTextAreaInputDialog : Dialog.showTextInputDialog)("edit_action", () => label, null, value ? value : "").then(value => updateHandler(value).catch(e => {
-				Dialog.error(() => `Could not update "${label}" with value ${value}`)
-				console.log(e)
-			}))
+			click: () => (area ? Dialog.showTextAreaInputDialog : Dialog.showTextInputDialog)("edit_action", () => label, null, value ? value : "")
+				.then(value => updateHandler(value).catch(e => {
+					Dialog.error(() => `Could not update "${label}" with value ${value}`)
+					console.log(e)
+				}))
 		})
 	})
 }
@@ -296,10 +298,10 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 							date = new Date(parseDate(dateValue()))
 						}
 						updateHandler(date).then(() => dialog.close())
-							.catch(e => {
-								Dialog.error(() => `Could not update "${label}" with value ${dateValue()}`)
-								console.log(e)
-							})
+						                   .catch(e => {
+							                   Dialog.error(() => `Could not update "${label}" with value ${dateValue()}`)
+							                   console.log(e)
+						                   })
 					} catch (e) {
 						Dialog.error(() => helpText())
 					}

@@ -30,13 +30,18 @@ export class LoginSettingsViewer {
 	_secondFactorsForm: EditSecondFactorsForm;
 
 	constructor() {
-		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress).setDisabled()
+		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress)
+		                                                    .setDisabled()
 		let password = new TextField("password_label").setValue("***").setDisabled()
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
 
-		this._activeSessionTable = new Table(["client_label", "lastAccess_label", "IpAddress_label"], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)
-		this._closedSessionTable = new Table(["client_label", "lastAccess_label", "IpAddress_label"], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)
+		this._activeSessionTable = new Table([
+			"client_label", "lastAccess_label", "IpAddress_label"
+		], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)
+		this._closedSessionTable = new Table([
+			"client_label", "lastAccess_label", "IpAddress_label"
+		], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)
 		let closedSessionExpander = new ExpanderButton("show_action", new ExpanderPanel(this._closedSessionTable), false)
 
 		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
@@ -47,7 +52,8 @@ export class LoginSettingsViewer {
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
-					(logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount()) ? m(this._secondFactorsForm) : null,
+					(logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount()) ?
+						m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(this._activeSessionTable),
 					m(".small", lang.get("sessionsInfo_msg")),
@@ -66,19 +72,27 @@ export class LoginSettingsViewer {
 	_updateSessions() {
 		loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
-			this._activeSessionTable.updateEntries(sessions.filter(session => session.state === SessionState.SESSION_STATE_ACTIVE).map(session => {
-				let closeSessionButton = null
-				let thisSession = logins.getUserController().sessionId[1] === session._id[1]
-				if (!thisSession) {
-					closeSessionButton = new Button("closeSession_action", () => {
-						erase(session)
-					}, () => Icons.Cancel)
-				}
-				let identifier = (thisSession) ? lang.get("thisClient_label") : session.clientIdentifier
-				return new TableLine([identifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress], closeSessionButton)
-			}))
-			this._closedSessionTable.updateEntries(sessions.filter(session => session.state !== SessionState.SESSION_STATE_ACTIVE).map(session => {
-				return new TableLine([session.clientIdentifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress])
+			this._activeSessionTable.updateEntries(sessions
+				.filter(session => session.state === SessionState.SESSION_STATE_ACTIVE)
+				.map(session => {
+					let closeSessionButton = null
+					let thisSession = logins.getUserController().sessionId[1] === session._id[1]
+					if (!thisSession) {
+						closeSessionButton = new Button("closeSession_action", () => {
+							erase(session)
+						}, () => Icons.Cancel)
+					}
+					let identifier = (thisSession) ? lang.get("thisClient_label") : session.clientIdentifier
+					return new TableLine([
+						identifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress
+					], closeSessionButton)
+				}))
+			this._closedSessionTable.updateEntries(sessions.filter(session => session.state
+				!== SessionState.SESSION_STATE_ACTIVE).map(session => {
+				return new TableLine([
+					session.clientIdentifier, formatDateTimeFromYesterdayOn(session.lastAccessTime),
+					session.loginIpAddress
+				])
 			}))
 		})
 	}

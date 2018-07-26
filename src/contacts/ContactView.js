@@ -133,7 +133,7 @@ export class ContactView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this.createNewContact():any),
+				exec: () => (this.createNewContact(): any),
 				enabled: () => this._contactList,
 				help: "newContact_action"
 			},
@@ -147,10 +147,12 @@ export class ContactView {
 		let folderMoreButton = this.createFolderMoreButton()
 		let folderButton = new NavButton('all_contacts_label', () => BootIcons.Contacts, () => m.route.get())
 		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
-				view: () => m(".folders", [m(".folder-row.flex-space-between.plr-l.row-selected", [
-					m(folderButton),
-					m(folderMoreButton)
-				])])
+				view: () => m(".folders", [
+					m(".folder-row.flex-space-between.plr-l.row-selected", [
+						m(folderButton),
+						m(folderMoreButton)
+					])
+				])
 			}), false, {}, theme.navigation_button
 		)
 		contactExpander.toggle()
@@ -189,7 +191,11 @@ export class ContactView {
 					})
 					return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 						let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
-						let contactList = vCardListToContacts(flatvCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
+						let contactList = vCardListToContacts(flatvCards,
+							neverNull(logins.getUserController()
+							                .user
+							                .memberships
+							                .find(m => m.groupType === GroupType.Contact)).group)
 						return LazyContactListId.getAsync().then(contactListId => {
 							let promises = []
 							contactList.forEach((contact) => {
@@ -222,14 +228,16 @@ export class ContactView {
 				let mergeableAndDuplicates = getMergeableContacts(allContacts)
 				let deletePromise = Promise.resolve()
 				if (mergeableAndDuplicates.deletable.length > 0) {
-					deletePromise = Dialog.confirm(() => lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length})).then((confirmed) => {
-						if (confirmed) {
-							// delete async in the background
-							mergeableAndDuplicates.deletable.forEach((dc) => {
-								erase(dc)
-							})
-						}
-					})
+					deletePromise = Dialog.confirm(() =>
+						lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length}))
+					                      .then((confirmed) => {
+						                      if (confirmed) {
+							                      // delete async in the background
+							                      mergeableAndDuplicates.deletable.forEach((dc) => {
+								                      erase(dc)
+							                      })
+						                      }
+					                      })
 				}
 				deletePromise.then(() => {
 					if (mergeableAndDuplicates.mergeable.length === 0) {
@@ -318,11 +326,12 @@ export class ContactView {
 				if (args.listId !== contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {
-					this._contactList = new ContactListView(args.listId, (this:any)) // cast to avoid error in WebStorm
+					this._contactList = new ContactListView(args.listId, (this: any)) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
 				}
 			}).then(m.redraw)
-		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId && !this._contactList.list.isEntitySelected(args.contactId)) {
+		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId
+			&& !this._contactList.list.isEntitySelected(args.contactId)) {
 			this._contactList.list.scrollToIdAndSelect(args.contactId)
 		}
 	}
@@ -355,7 +364,8 @@ export class ContactView {
 			let keptContact = this._contactList.list.getSelectedEntities()[0]
 			let goodbyeContact = this._contactList.list.getSelectedEntities()[1]
 
-			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || (keptContact.presharedPassword === goodbyeContact.presharedPassword)) {
+			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword
+				|| (keptContact.presharedPassword === goodbyeContact.presharedPassword)) {
 				Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
@@ -390,7 +400,8 @@ export class ContactView {
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, ContactTypeRef) && this._contactList && listId === this._contactList.listId) {
 			this._contactList.list.entityEventReceived(elementId, operation).then(() => {
-				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id, [neverNull(listId), elementId])) {
+				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id,
+					[neverNull(listId), elementId])) {
 					load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
 						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()

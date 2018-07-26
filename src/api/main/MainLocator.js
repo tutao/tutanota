@@ -11,10 +11,10 @@ assertMainOrNode()
 export type MainLocatorType = {
 	entityEvent: EntityEventController;
 	entropyCollector: EntropyCollector;
-	search:SearchModel;
+	search: SearchModel;
 }
 
-export const locator: MainLocatorType = ({}:any)
+export const locator: MainLocatorType = ({}: any)
 
 if (typeof window !== "undefined") {
 	window.tutao.locator = locator

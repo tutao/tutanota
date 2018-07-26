@@ -98,7 +98,7 @@ export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePad
 }
 
 
-function verifyKeySize(key: Aes128Key|Aes256Key, bitLength: number) {
+function verifyKeySize(key: Aes128Key | Aes256Key, bitLength: number) {
 	if (sjcl.bitArray.bitLength(key) !== bitLength) {
 		throw new CryptoError(`Illegal key length: ${sjcl.bitArray.bitLength(key)} (expected: ${bitLength})`)
 	}
@@ -146,7 +146,7 @@ export function aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array,
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
-	export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
+export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_128)
 
 	let useMac = encryptedBytes.length % 2 == 1
@@ -176,7 +176,7 @@ export function aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array,
 	}
 }
 
-function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:Aes128Key} {
+function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey: ?Aes128Key, cKey: Aes128Key} {
 	if (mac) {
 		let hashedKey = hash(bitArrayToUint8Array(key));
 		return {
@@ -191,7 +191,7 @@ function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:
 	}
 }
 
-function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey:?Aes256Key, cKey:Aes256Key} {
+function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey: ?Aes256Key, cKey: Aes256Key} {
 	if (mac) {
 		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
 		// let hashedKey = hash512(bitArrayToUint8Array(key));

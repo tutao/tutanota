@@ -22,7 +22,9 @@ export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLan
 }
 
 export function getAdministratedGroupIds(): Promise<Id[]> {
-	return Promise.all(logins.getUserController().getLocalAdminGroupMemberships().map(gm => load(GroupTypeRef, gm.group))).map(localAdminGroup => {
+	return Promise.all(logins.getUserController()
+	                         .getLocalAdminGroupMemberships()
+	                         .map(gm => load(GroupTypeRef, gm.group))).map(localAdminGroup => {
 		if (localAdminGroup.administratedGroups) {
 			return loadAll(AdministratedGroupTypeRef, localAdminGroup.administratedGroups.items).map(ag => {
 				return ag._id[1]

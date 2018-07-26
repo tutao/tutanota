@@ -9,7 +9,7 @@ import {oldBirthdayToBirthday, migrateToNewBirthday} from "./ContactUtils"
  * contacts are never returned in both "mergable" and "deletable"
  * contact similarity is checked transitively, i.e. if a similar to b and b similar to c, then a similar to c
  */
-export function getMergeableContacts(inputContacts: Contact[]): {mergeable:Contact[][], deletable: Contact[]} {
+export function getMergeableContacts(inputContacts: Contact[]): {mergeable: Contact[][], deletable: Contact[]} {
 	let mergableContacts = []
 	let duplicateContacts = []
 	let contacts = inputContacts.slice()
@@ -96,16 +96,30 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
 	let birthdayResult = _compareBirthdays(contact1, contact2)
 	let residualContactFieldsEqual = _areResidualContactFieldsEqual(contact1, contact2)
 
-	if ((birthdayResult !== ContactComparisonResult.Unique) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword === contact2.presharedPassword))) {
-		if ((nameResult === ContactComparisonResult.Equal || nameResult === IndifferentContactComparisonResult.BothEmpty) && (mailResult === ContactComparisonResult.Equal || mailResult === IndifferentContactComparisonResult.BothEmpty) && (phoneResult === ContactComparisonResult.Equal || phoneResult === IndifferentContactComparisonResult.BothEmpty) && residualContactFieldsEqual) {
-			if (birthdayResult === IndifferentContactComparisonResult.BothEmpty || birthdayResult === ContactComparisonResult.Equal) {
+	if ((birthdayResult !== ContactComparisonResult.Unique)
+		&& (!contact1.presharedPassword || !contact2.presharedPassword
+			|| (contact1.presharedPassword === contact2.presharedPassword))) {
+		if ((nameResult === ContactComparisonResult.Equal
+			|| nameResult === IndifferentContactComparisonResult.BothEmpty)
+			&& (mailResult === ContactComparisonResult.Equal
+				|| mailResult === IndifferentContactComparisonResult.BothEmpty)
+			&& (phoneResult === ContactComparisonResult.Equal
+				|| phoneResult === IndifferentContactComparisonResult.BothEmpty)
+			&& residualContactFieldsEqual) {
+			if (birthdayResult === IndifferentContactComparisonResult.BothEmpty || birthdayResult
+				=== ContactComparisonResult.Equal) {
 				return ContactComparisonResult.Equal
 			} else {
 				return ContactComparisonResult.Similar
 			}
 		} else if (nameResult === ContactComparisonResult.Equal || nameResult === ContactComparisonResult.Similar) {
 			return ContactComparisonResult.Similar
-		} else if ((nameResult === IndifferentContactComparisonResult.BothEmpty || nameResult === IndifferentContactComparisonResult.OneEmpty) && (mailResult === ContactComparisonResult.Similar || phoneResult === ContactComparisonResult.Similar || mailResult === ContactComparisonResult.Equal || phoneResult === ContactComparisonResult.Equal)) {
+		} else if ((nameResult === IndifferentContactComparisonResult.BothEmpty
+			|| nameResult === IndifferentContactComparisonResult.OneEmpty)
+			&& (mailResult === ContactComparisonResult.Similar
+				|| phoneResult === ContactComparisonResult.Similar
+				|| mailResult === ContactComparisonResult.Equal
+				|| phoneResult === ContactComparisonResult.Equal)) {
 			return ContactComparisonResult.Similar
 		} else {
 			return ContactComparisonResult.Unique
@@ -122,15 +136,19 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
  * Export for testing
  */
 export function _compareFullName(contact1: Contact, contact2: Contact): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
-	if (contact1.firstName === contact2.firstName && contact1.lastName === contact2.lastName && (contact1.lastName || contact1.firstName)) {
+	if (contact1.firstName === contact2.firstName && contact1.lastName === contact2.lastName
+		&& (contact1.lastName || contact1.firstName)) {
 		return ContactComparisonResult.Equal
 	} else if ((!contact1.firstName && !contact1.lastName) && (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.BothEmpty
 	} else if ((!contact1.firstName && !contact1.lastName) || (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.OneEmpty
-	} else if (contact1.firstName.toLowerCase() === contact2.firstName.toLowerCase() && contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() && contact1.lastName) {
+	} else if (contact1.firstName.toLowerCase() === contact2.firstName.toLowerCase()
+		&& contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() && contact1.lastName) {
 		return ContactComparisonResult.Similar
-	} else if (((!contact1.firstName || !contact2.firstName) && (contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase())) && contact1.lastName) {
+	} else if (((!contact1.firstName || !contact2.firstName)
+		&& (contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase()))
+		&& contact1.lastName) {
 		return ContactComparisonResult.Similar
 	} else {
 		return ContactComparisonResult.Unique
@@ -233,6 +251,7 @@ export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: Co
 	})
 	return addresses1.concat(filteredAddresses2)
 }
+
 /**
  * Export for testing
  */
@@ -243,7 +262,8 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 		if (contact1.birthday.day === contact2.birthday.day && contact1.birthday.month === contact2.birthday.month) {
 			if (contact1.birthday.year === contact2.birthday.year) {
 				return ContactComparisonResult.Equal
-			} else if (contact1.birthday.year && contact2.birthday.year && contact1.birthday.year !== contact2.birthday.year) {
+			} else if (contact1.birthday.year && contact2.birthday.year
+				&& contact1.birthday.year !== contact2.birthday.year) {
 				return ContactComparisonResult.Unique
 			} else {
 				return ContactComparisonResult.Similar
@@ -268,7 +288,8 @@ function _compareValues(values1: string[], values2: string[]): ContactComparison
 	if (values1.length === values2.length && values1.length === equalAddresses.length) {
 		return ContactComparisonResult.Equal
 	}
-	let equalAddressesInsensitive = values2.filter(c2 => values1.find(c1 => c1.trim().toLowerCase() === c2.trim().toLowerCase()))
+	let equalAddressesInsensitive = values2.filter(c2 =>
+		values1.find(c1 => c1.trim().toLowerCase() === c2.trim().toLowerCase()))
 	if (equalAddressesInsensitive.length > 0) {
 		return ContactComparisonResult.Similar
 	}
@@ -316,7 +337,8 @@ export function birthdayToOldBirthday(newBirthday: Birthday): Date {
 /**
  * Export for testing
  */
-export function _getMergedBirthdays(oldBirthday1: ?Date, oldBirthday2: ?Date, newBirthday1: ?Birthday, newBirthday2: ?Birthday): {oldBDay:?Date, newBDay:?Birthday} {
+export function _getMergedBirthdays(oldBirthday1: ?Date, oldBirthday2: ?Date, newBirthday1: ?Birthday,
+                                    newBirthday2: ?Birthday): {oldBDay: ?Date, newBDay: ?Birthday} {
 	if (newBirthday1 && newBirthday2) {
 		if (newBirthday1.year) {
 			return {oldBDay: null, newBDay: newBirthday1}

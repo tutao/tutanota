@@ -63,7 +63,8 @@ export class GroupViewer {
 		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
 		let editNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.Team && newName.trim() === "") {
+				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.Team && newName.trim()
+					=== "") {
 					return "enterName_msg"
 				} else {
 					return null
@@ -81,10 +82,12 @@ export class GroupViewer {
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		localAdminGroupInfoModel.init().filter(groupInfo => !groupInfo.deleted).then(localAdminGroupInfos => {
-			let adminGroupIdToName: {name: string, value: ?Id}[] = [{
-				name: lang.get("globalAdmin_label"),
-				value: null
-			}].concat(localAdminGroupInfos.map(gi => {
+			let adminGroupIdToName: {name: string, value: ?Id}[] = [
+				{
+					name: lang.get("globalAdmin_label"),
+					value: null
+				}
+			].concat(localAdminGroupInfos.map(gi => {
 				return {
 					name: getGroupInfoDisplayName(gi),
 					value: gi.group
@@ -95,7 +98,12 @@ export class GroupViewer {
 					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
 				} else {
 					showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-						let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
+						let newAdminGroupId = localAdminId ?
+							localAdminId :
+							neverNull(logins.getUserController()
+							                .user
+							                .memberships
+							                .find(gm => gm.groupType === GroupType.Admin)).group
 						return worker.updateAdminship(this.groupInfo.group, newAdminGroupId)
 					}))
 				}
@@ -112,33 +120,43 @@ export class GroupViewer {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
 				} else {
-					let bookingItemType = (this.groupInfo.groupType === GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
-					return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
-						if (confirmed) {
-							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate).catch(PreconditionFailedError, e => {
-								Dialog.error("localAdminGroupAssignedError_msg")
-							}))
-						}
-					}))
+					let bookingItemType = (this.groupInfo.groupType
+						=== GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
+					return showProgressDialog("pleaseWait_msg",
+						BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate)
+						         .then(confirmed => {
+							         if (confirmed) {
+								         return this._group.getAsync()
+								                    .then(group => worker.deactivateGroup(group, !deactivate)
+								                                         .catch(PreconditionFailedError, e => {
+									                                         Dialog.error("localAdminGroupAssignedError_msg")
+								                                         }))
+							         }
+						         }))
 				}
 			})
 		})
 
 		let addUserButton = new Button("addUserToGroup_label", () => this._showAddMember(), () => Icons.Add)
-		this._membersTable = new Table(["name_label", "mailAddress_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addUserButton)
+		this._membersTable = new Table(["name_label", "mailAddress_label"], [
+			ColumnWidth.Largest, ColumnWidth.Largest
+		], true, addUserButton)
 		this._updateMembers()
 
 		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 			this._administratedGroups = new LazyLoaded(() => {
 				return this._group.getAsync().then(group => {
 					// load only up to 200 members to avoid too long loading, like for account groups
-					return loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true).map(administratedGroup => {
-						return load(GroupInfoTypeRef, administratedGroup.groupInfo)
-					})
+					return loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
+						.map(administratedGroup => {
+							return load(GroupInfoTypeRef, administratedGroup.groupInfo)
+						})
 				})
 			})
 
-			this._administratedGroupsTable = new Table(["type_label", "name_label", "mailAddress_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true)
+			this._administratedGroupsTable = new Table([
+				"type_label", "name_label", "mailAddress_label"
+			], [ColumnWidth.Largest, ColumnWidth.Largest], true)
 			this._updateAdministratedGroups()
 		}
 
@@ -152,21 +170,22 @@ export class GroupViewer {
 					]),
 					m("", [
 						m(this._name),
-						(logins.getUserController().isGlobalAdmin() && this._administratedBy) ? m(this._administratedBy) : null,
+						(logins.getUserController().isGlobalAdmin() && this._administratedBy) ?
+							m(this._administratedBy) : null,
 						m(this._deactivated)
 					]),
 					(!this.groupInfo.deleted) ? m(".h4.mt-l.mb-s", lang.get('groupMembers_label')) : null,
 					(!this.groupInfo.deleted) ? m(this._membersTable) : null,
 					(this._isMailGroup()) ? m(".h4.mt-l", lang.get("mailSettings_label")) : null,
 					(this._isMailGroup()) ? m(".wrapping-row", [
-							m("", [
-								m(mailAddress),
-							])
-						]) : null,
+						m("", [
+							m(mailAddress),
+						])
+					]) : null,
 					this.groupInfo.groupType !== GroupType.LocalAdmin ? null : [
-							m(".h4.mt-l.mb-s", lang.get('administratedGroups_label')),
-							m(this._administratedGroupsTable)
-						]
+						m(".h4.mt-l.mb-s", lang.get('administratedGroups_label')),
+						m(this._administratedGroupsTable)
+					]
 				]),
 			]
 		}
@@ -196,11 +215,12 @@ export class GroupViewer {
 						view: () => m(d)
 					}, null).then(ok => {
 						if (ok) {
-							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, d.selectedValue().group).then(userGroup => {
-								return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-									worker.addUserToGroup(user, this.groupInfo.group)
-								})
-							}))
+							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, d.selectedValue().group)
+								.then(userGroup => {
+									return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+										worker.addUserToGroup(user, this.groupInfo.group)
+									})
+								}))
 						}
 					})
 				}
@@ -212,9 +232,11 @@ export class GroupViewer {
 		this._members.reset()
 		this._members.getAsync().map(userGroupInfo => {
 			let removeButton = new Button("remove_action", () => {
-				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group))).catch(NotAuthorizedError, e => {
-					Dialog.error("removeUserFromGroupNotAdministratedError_msg")
-				})
+				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group)
+					.then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
+					.catch(NotAuthorizedError, e => {
+						Dialog.error("removeUserFromGroupNotAdministratedError_msg")
+					})
 			}, () => Icons.Cancel)
 			return new TableLine([userGroupInfo.name, neverNull(userGroupInfo.mailAddress)], removeButton)
 		}).then(tableLines => {
@@ -229,12 +251,17 @@ export class GroupViewer {
 			if (logins.getUserController().isGlobalAdmin()) {
 				removeButton = new Button("remove_action", () => {
 					showProgressDialog("pleaseWait_msg", load(GroupTypeRef, groupInfo.group).then(userGroup => {
-						let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Admin)).group
+						let adminGroupId = neverNull(logins.getUserController()
+						                                   .user
+						                                   .memberships
+						                                   .find(m => m.groupType === GroupType.Admin)).group
 						return worker.updateAdminship(groupInfo.group, adminGroupId)
 					}))
 				}, () => Icons.Cancel)
 			}
-			return new TableLine([getGroupTypeName(groupInfo.groupType), groupInfo.name, neverNull(groupInfo.mailAddress)], removeButton)
+			return new TableLine([
+				getGroupTypeName(groupInfo.groupType), groupInfo.name, neverNull(groupInfo.mailAddress)
+			], removeButton)
 		}).then(tableLines => {
 			this._administratedGroupsTable.updateEntries(tableLines)
 		})
@@ -274,10 +301,13 @@ export class GroupViewer {
 					this._updateMembers()
 				}
 			})
-		} else if (isSameTypeRef(typeRef, GroupMemberTypeRef) && this._group.isLoaded() && this._group.getLoaded().members === neverNull(listId)) {
+		} else if (isSameTypeRef(typeRef, GroupMemberTypeRef) && this._group.isLoaded()
+			&& this._group.getLoaded().members === neverNull(listId)) {
 			// the members have changed
 			this._updateMembers()
-		} else if (isSameTypeRef(typeRef, AdministratedGroupTypeRef) && this._group.isLoaded() && this._group.getLoaded().administratedGroups && neverNull(this._group.getLoaded().administratedGroups).items === neverNull(listId)) {
+		} else if (isSameTypeRef(typeRef, AdministratedGroupTypeRef) && this._group.isLoaded()
+			&& this._group.getLoaded().administratedGroups
+			&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(listId)) {
 			this._updateAdministratedGroups()
 		}
 	}

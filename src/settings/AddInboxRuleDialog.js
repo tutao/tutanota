@@ -22,11 +22,14 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetails) {
 		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), preselectedInboxRuleType)
-		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue() !== InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue() !== InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
+		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue()
+			!== InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue()
+			!== InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
 			.setValue(preselectedValue)
-		let targetFolders = mailBoxDetails.folders.filter(folder => folder !== getInboxFolder(mailBoxDetails.folders)).map(folder => {
-			return {name: getFolderName(folder), value: folder}
-		})
+		let targetFolders = mailBoxDetails.folders.filter(folder => folder !== getInboxFolder(mailBoxDetails.folders))
+		                                  .map(folder => {
+			                                  return {name: getFolderName(folder), value: folder}
+		                                  })
 		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, getArchiveFolder(mailBoxDetails.folders))
 		let form = {
 			view: () => {
@@ -37,28 +40,32 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 				]
 			}
 		}
-		return Dialog.smallDialog(lang.get("addInboxRule_action"), form, () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value())).then(okClicked => {
-			if (okClicked) {
-				let rule = createInboxRule()
-				rule.type = typeField.selectedValue()
-				rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
-				rule.targetFolder = targetFolderField.selectedValue()._id
-				logins.getUserController().props.inboxRules.push(rule)
-				update(logins.getUserController().props)
-			}
-		})
+		return Dialog.smallDialog(lang.get("addInboxRule_action"), form, () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value()))
+		             .then(okClicked => {
+			             if (okClicked) {
+				             let rule = createInboxRule()
+				             rule.type = typeField.selectedValue()
+				             rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
+				             rule.targetFolder = targetFolderField.selectedValue()._id
+				             logins.getUserController().props.inboxRules.push(rule)
+				             update(logins.getUserController().props)
+			             }
+		             })
 	}
 }
 
 export function isRuleExistingForType(cleanValue: string, type: string) {
-	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value)) != null
+	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value))
+		!= null
 }
 
 function _validateInboxRuleInput(type: string, value: string) {
 	let currentCleanedValue = _getCleanedValue(type, value)
 	if (currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
-	} else if (type !== InboxRuleType.SUBJECT_CONTAINS && type !== InboxRuleType.MAIL_HEADER_CONTAINS && !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue) && !isMailAddress(currentCleanedValue, false)) {
+	} else if (type !== InboxRuleType.SUBJECT_CONTAINS && type !== InboxRuleType.MAIL_HEADER_CONTAINS
+		&& !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue)
+		&& !isMailAddress(currentCleanedValue, false)) {
 		return "inboxRuleInvalidEmailAddress_msg"
 	} else if (isRuleExistingForType(currentCleanedValue, type)) {
 		return "inboxRuleAlreadyExists_msg"

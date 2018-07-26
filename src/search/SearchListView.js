@@ -22,9 +22,9 @@ assertMainOrNode()
 
 export class SearchResultListEntry {
 	_id: IdTuple;
-	entry: Mail|Contact;
+	entry: Mail | Contact;
 
-	constructor(entry: Mail|Contact) {
+	constructor(entry: Mail | Contact) {
 		this._id = entry._id
 		this.entry = entry
 	}
@@ -76,13 +76,14 @@ export class SearchListView {
 		}
 	}
 
-	_loadInitial(list: List<*,*>) {
+	_loadInitial(list: List<*, *>) {
 		let selectedId = m.route.param()["id"]
 		list.loadInitial(selectedId)
 	}
 
 	isInSearchResult(typeRef: TypeRef<any>, id: IdTuple): boolean {
-		return locator.search.result() && isSameTypeRef(typeRef, locator.search.result().restriction.type) && locator.search.result().results.find(r => isSameId(r, id))
+		return locator.search.result() && isSameTypeRef(typeRef, locator.search.result().restriction.type)
+			&& locator.search.result().results.find(r => isSameId(r, id))
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
@@ -116,19 +117,19 @@ export class SearchListView {
 							.then(instance => new SearchResultListEntry(instance))
 							.catch(NotFoundError, () => console.log("mail not found")),
 						{concurrency: 5})
-						.then(sr => sr.filter(r => r)) // filter not found instances
-						.finally(() => m.redraw())
+					              .then(sr => sr.filter(r => r)) // filter not found instances
+					              .finally(() => m.redraw())
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
 					return Promise.map(resultIds, (id) => load(result.restriction.type, id)
 							.then(instance => new SearchResultListEntry(instance))
 							.catch(NotFoundError, () => console.log("contact not found")),
 						{concurrency: 5})
-						.then(sr => sr.filter(r => r)) // filter not found instances
-						.finally(() => {
-							this.list && this.list.setLoadedCompletely()
-							m.redraw()
-						})
+					              .then(sr => sr.filter(r => r)) // filter not found instances
+					              .finally(() => {
+						              this.list && this.list.setLoadedCompletely()
+						              m.redraw()
+					              })
 				} else {
 					// this type is not shown in the search view, e.g. group info
 					return Promise.resolve([])
@@ -155,7 +156,7 @@ export class SearchListView {
 
 			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
 				if (isSameTypeRef(o1.entry._type, ContactTypeRef)) {
-					return compareContacts((o1.entry:any), (o2.entry:any))
+					return compareContacts((o1.entry: any), (o2.entry: any))
 				} else {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
@@ -164,7 +165,8 @@ export class SearchListView {
 			elementSelected: (entities: SearchResultListEntry[], elementClicked, selectionChanged, multiSelectionActive) => {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] === 'mail' ? new MailRow(true) : new ContactRow()),
+			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] === 'mail' ?
+				new MailRow(true) : new ContactRow()),
 			showStatus: false,
 			className: m.route.param()['category'] === 'mail' ? "mail-list" : "contact-list",
 			swipe: ({
@@ -172,7 +174,7 @@ export class SearchListView {
 				renderRightSpacer: () => [],
 				swipeLeft: listElement => Promise.resolve(),
 				swipeRight: listElement => Promise.resolve(),
-			}:any),
+			}: any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("searchNoResults_msg") + "\n" + lang.get("switchSearchInMenu_label")
@@ -249,9 +251,9 @@ export class SearchResultListRow {
 	top: number;
 	domElement: HTMLElement; // set from List
 	entity: ?SearchResultListEntry;
-	_delegate: MailRow|ContactRow
+	_delegate: MailRow | ContactRow
 
-	constructor(delegate: MailRow|ContactRow) {
+	constructor(delegate: MailRow | ContactRow) {
 		this._delegate = delegate
 		this.top = 0
 		this.entity = null
@@ -259,7 +261,7 @@ export class SearchResultListRow {
 
 	update(entry: SearchResultListEntry, selected: boolean): void {
 		this._delegate.domElement = this.domElement
-		this._delegate.update((entry.entry:any), selected)
+		this._delegate.update((entry.entry: any), selected)
 	}
 
 	render(): Children {

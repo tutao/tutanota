@@ -9,8 +9,8 @@ export type EncryptedSearchIndexEntry = [Uint8Array, Uint8Array] // first entry 
 export type ElementData = [Id, Uint8Array, Id] // first element of value is listId (we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail), second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
 
 export type GroupData = {
-	lastBatchIds:Id[];
-	indexTimestamp:number;
+	lastBatchIds: Id[];
+	indexTimestamp: number;
 	groupType: GroupTypeEnum;
 }
 
@@ -20,8 +20,8 @@ type EncIndexKey = Uint8Array
 type EncInstanceId = Uint8Array;
 export type B64EncInstanceId = Base64;
 
-export type AttributeHandler ={
-	attribute: ModelValue|ModelAssociation;
+export type AttributeHandler = {
+	attribute: ModelValue | ModelAssociation;
 	value: lazy<string>;
 }
 
@@ -36,21 +36,21 @@ export type KeyToEncryptedIndexEntries = {
 }
 
 export type SearchIndexEntry = {
-	id:Id;
-	app:number; // we have app and type on SearchIndexEntry instead of ElementData to be able to filter them before loading ElementData for each found instance
-	type:number;
+	id: Id;
+	app: number; // we have app and type on SearchIndexEntry instead of ElementData to be able to filter them before loading ElementData for each found instance
+	type: number;
 	attribute: number;
-	positions:number[];
+	positions: number[];
 	// encId and is only set for entries that are retrived from the db (see decryptSearchIndexEntry)
 	encId?: Uint8Array;
 }
 
 export type IndexUpdate = {
-	groupId:Id;
+	groupId: Id;
 	batchId: ?IdTuple;
-	indexTimestamp:?number;
-	create : {
-		encInstanceIdToElementData: Map<B64EncInstanceId,ElementData>;
+	indexTimestamp: ?number;
+	create: {
+		encInstanceIdToElementData: Map<B64EncInstanceId, ElementData>;
 		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
 	};
 	move: {
@@ -66,7 +66,7 @@ export type IndexUpdate = {
 export type Db = {
 	key: Aes256Key; // @pre: must not be accessed before initialized promise is resolved.
 	dbFacade: DbFacade;
-	initialized:Promise<void>;
+	initialized: Promise<void>;
 }
 
 

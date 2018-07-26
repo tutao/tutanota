@@ -29,14 +29,18 @@ export class WhitelabelChildViewer {
 		this.whitelabelChild = whitelabelChild
 
 		this._mailAddress = new TextField("mailAddress_label").setValue(whitelabelChild.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(whitelabelChild.createdDate)).setDisabled()
-		this._comment = new TextField("comment_label").setType(Type.Area).setValue(whitelabelChild.comment).setDisabled()
+		let created = new TextField("created_label").setValue(formatDateWithMonth(whitelabelChild.createdDate))
+		                                            .setDisabled()
+		this._comment = new TextField("comment_label").setType(Type.Area)
+		                                              .setValue(whitelabelChild.comment)
+		                                              .setDisabled()
 
 		let editCommentButton = new Button("edit_action", () => {
-			Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this._comment.value()).then(newComment => {
-				this.whitelabelChild.comment = newComment
-				update(this.whitelabelChild)
-			})
+			Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this._comment.value())
+			      .then(newComment => {
+				      this.whitelabelChild.comment = newComment
+				      update(this.whitelabelChild)
+			      })
 		}, () => Icons.Edit)
 
 		this._comment._injectionsRight = () => [m(editCommentButton)]
@@ -63,7 +67,8 @@ export class WhitelabelChildViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && operation === OperationType.UPDATE && isSameId(this.whitelabelChild._id, [neverNull(listId), elementId])) {
+		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && operation === OperationType.UPDATE
+			&& isSameId(this.whitelabelChild._id, [neverNull(listId), elementId])) {
 			load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
 				this.whitelabelChild = updatedWhitelabelChild
 				this._mailAddress.setValue(updatedWhitelabelChild.mailAddress)

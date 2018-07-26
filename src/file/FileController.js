@@ -33,13 +33,14 @@ export class FileController {
 		return showProgressDialog("pleaseWait_msg",
 			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
-					.catch(err => {
-						if (err instanceof CryptoError) {
-							return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-						} else {
-							return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
-						}
-					})
+				             .catch(err => {
+					             if (err instanceof CryptoError) {
+						             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+					             } else {
+						             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " "
+							             + tutanotaFile.name)
+					             }
+				             })
 			}).each((file, index) => {
 				if (!isAndroidApp()) {
 					return fileController.open(file)
@@ -80,7 +81,7 @@ export class FileController {
 
 		let promise = Promise.fromCallback(cb => {
 			newFileInput.addEventListener("change", e => {
-				this.readLocalFiles((e.target:any).files).then(dataFiles => {
+				this.readLocalFiles((e.target: any).files).then(dataFiles => {
 					cb(null, dataFiles)
 				}).catch(e => {
 					console.log(e)
@@ -108,7 +109,7 @@ export class FileController {
 			return Promise.fromCallback(cb => {
 				let reader = new FileReader()
 				reader.onloadend = function (evt) {
-					if (evt.target.readyState === (FileReader:any).DONE && evt.target.result) { // DONE == 2
+					if (evt.target.readyState === (FileReader: any).DONE && evt.target.result) { // DONE == 2
 						cb(null, createDataFile(nativeFile, new Uint8Array(evt.target.result)))
 					} else {
 						cb(new Error("could not load file"), null)
@@ -121,19 +122,21 @@ export class FileController {
 
 	open(file: DataFile | FileReference): Promise<void> {
 		if (file._type === 'FileReference') {
-			let fileReference = ((file:any):FileReference)
+			let fileReference = ((file: any): FileReference)
 			return fileApp.open(fileReference)
 		} else {
-			let dataFile = ((file:any):DataFile)
-			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs || (navigator:any).saveBlob || (navigator:any).msSaveOrOpenBlob || (navigator:any).msSaveBlob || (navigator:any).mozSaveBlob || (navigator:any).webkitSaveBlob
+			let dataFile = ((file: any): DataFile)
+			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
+				|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
+				|| (navigator: any).mozSaveBlob || (navigator: any).webkitSaveBlob
 			if (saveFunction) {
 				let blob = new Blob([dataFile.data], {"type": dataFile.mimeType})
 				try {
 					// in IE the save function must be called directly, otherwise an error is thrown
 					if (navigator.msSaveOrOpenBlob) {
-						(navigator:any).msSaveOrOpenBlob(blob, dataFile.name)
+						(navigator: any).msSaveOrOpenBlob(blob, dataFile.name)
 					} else if (navigator.msSaveBlob) {
-						(navigator:any).msSaveBlob(blob, dataFile.name)
+						(navigator: any).msSaveBlob(blob, dataFile.name)
 					} else {
 						saveFunction(blob, dataFile.name)
 					}

@@ -17,21 +17,26 @@ assertMainOrNode()
 let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
-	let colorFields = Object.keys(defaultTheme).filter(name => name !== "logo").sort((a, b) => a.localeCompare(b)).map(colorName => {
-		let value = themeToEdit[colorName]
-		let field = new TextField(() => colorName).setValue(value ? value : "")
-		field._injectionsRight = () => {
-			return [m("", {
-				style: {
-					width: "106px", // 100 + 6px negative margin
-					height: "20px",
-					"margin-bottom": "2px",
-					"background-color": getValidColorValue(field) || theme.content_bg
-				}
-			})]
-		}
-		return field
-	})
+	let colorFields = Object.keys(defaultTheme)
+	                        .filter(name => name !== "logo")
+	                        .sort((a, b) => a.localeCompare(b))
+	                        .map(colorName => {
+		                        let value = themeToEdit[colorName]
+		                        let field = new TextField(() => colorName).setValue(value ? value : "")
+		                        field._injectionsRight = () => {
+			                        return [
+				                        m("", {
+					                        style: {
+						                        width: "106px", // 100 + 6px negative margin
+						                        height: "20px",
+						                        "margin-bottom": "2px",
+						                        "background-color": getValidColorValue(field) || theme.content_bg
+					                        }
+				                        })
+			                        ]
+		                        }
+		                        return field
+	                        })
 
 	let nbrOfLeftColors = Math.ceil(colorFields.length / 2.0)
 	let leftColumns = colorFields.slice(0, nbrOfLeftColors)
@@ -69,7 +74,7 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 			let colorValue = colorFields[i].value().trim()
 			if (colorValue) {
 				if (COLOR_FORMAT.test(colorValue)) {
-					newTheme[(colorFields[i]:any).label()] = colorValue
+					newTheme[(colorFields[i]: any).label()] = colorValue
 				} else {
 					Dialog.error("correctValues_msg")
 					return
@@ -83,12 +88,12 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 	}).setType(ButtonType.Primary))
 
 	let dialog = Dialog.largeDialog(actionBar, form)
-		.addShortcut({
-			key: Keys.ESC,
-			exec: cancelAction,
-			help: "close_alt"
-		}).setCloseHandler(cancelAction)
-		.show()
+	                   .addShortcut({
+		                   key: Keys.ESC,
+		                   exec: cancelAction,
+		                   help: "close_alt"
+	                   }).setCloseHandler(cancelAction)
+	                   .show()
 }
 
 function getValidColorValue(field: TextField): ?String {
@@ -103,7 +108,7 @@ function getValidColorValue(field: TextField): ?String {
 function _getDefaultColorLine(field: TextField): VirtualElement {
 	let colorValue = getValidColorValue(field)
 	if (!field.value().trim() || colorValue) {
-		let colorName = (field:any).label()
+		let colorName = (field: any).label()
 		return m(".small.flex-space-between", [
 			m("", lang.get("defaultColor_label", {"{1}": defaultTheme[colorName]})),
 			m("", {

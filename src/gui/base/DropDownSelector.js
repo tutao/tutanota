@@ -15,7 +15,7 @@ export class DropDownSelector<T> {
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number, icon: ?string) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T> | T, dropdownWidth: ?number, icon: ?string) {
 		this.selectedValue = selectedValue instanceof Function ? selectedValue : stream(selectedValue)
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
@@ -25,7 +25,8 @@ export class DropDownSelector<T> {
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
-				console.log(`Dropdown ${this._field.label instanceof Function ? this._field.label() : this._field.label} couldn't find element for value: ${value}`)
+				console.log(`Dropdown ${this._field.label instanceof Function ?
+					this._field.label() : this._field.label} couldn't find element for value: ${value}`)
 			}
 		})
 		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => icon ? icon : Icons.Edit, () => {

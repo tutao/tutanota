@@ -37,6 +37,7 @@ import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
+
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -47,15 +48,22 @@ assertWorkerOrNode()
 // stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 // so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
 // this especially improves the performance when indexing mail bodys
-let mailBodySessionKeyCache: {[key: string] : Aes128Key} = {};
+let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
 
 export function valueToDefault(type: ValueTypeEnum) {
-	if (type === ValueType.String) return ""
-	else if (type === ValueType.Number) return "0"
-	else if (type === ValueType.Bytes) return new Uint8Array(0)
-	else if (type === ValueType.Date) return new Date()
-	else if (type === ValueType.Boolean) return false
-	else throw new ProgrammingError(`${type} is not a valid value type`)
+	if (type === ValueType.String) {
+		return ""
+	} else if (type === ValueType.Number) {
+		return "0"
+	} else if (type === ValueType.Bytes) {
+		return new Uint8Array(0)
+	} else if (type === ValueType.Date) {
+		return new Date()
+	} else if (type === ValueType.Boolean) {
+		return false
+	} else {
+		throw new ProgrammingError(`${type} is not a valid value type`)
+	}
 }
 
 export const fixedIv = hexToUint8Array('88888888888888888888888888888888')
@@ -64,7 +72,7 @@ export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array
 	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
 }
 
-export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key|Aes256Key {
+export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key | Aes256Key {
 	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
 }
 
@@ -87,12 +95,14 @@ export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uin
 export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
 	if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 		//FIXME: do we still need this?
-		let customerGroupMembership = (locator.login.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer):any)
+		let customerGroupMembership = (locator.login.getLoggedInUser()
+		                                      .memberships
+		                                      .find((g: GroupMembership) => g.groupType === GroupType.Customer): any)
 		let customerGroupKey = locator.login.getGroupKey(customerGroupMembership.group)
 		return loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
 			let customerGroupPermission = listPermissions.find(p => p.group === customerGroupMembership.group)
 			if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
-			let listKey = decryptKey(customerGroupKey, (customerGroupPermission:any).symEncSessionKey)
+			let listKey = decryptKey(customerGroupKey, (customerGroupPermission: any).symEncSessionKey)
 			let groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
 			data._ownerGroup = customerGroupMembership.getGroup()
 			data._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(customerGroupKey, groupInfoSk))
@@ -106,15 +116,18 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
 		migrationData.properties = data._id
 		migrationData.symEncSessionKey = groupEncSessionKey
-		return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData).then(() => (data:any))
+		return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData)
+			.then(() => (data: any))
 	}
 	return Promise.resolve(data)
 }
 
 interface ResolveSessionKeyLoaders {
-	loadPermissions(listId: Id):Promise<Permission[]>;
-	loadBucketPermissions(listId: Id):Promise<BucketPermission[]>;
-	loadGroup(groupId: Id):Promise<Group>;
+	loadPermissions(listId: Id): Promise<Permission[]>;
+
+	loadBucketPermissions(listId: Id): Promise<BucketPermission[]>;
+
+	loadGroup(groupId: Id): Promise<Group>;
 }
 
 const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
@@ -143,12 +156,14 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 		if (!typeModel.encrypted) {
 			return Promise.resolve(null)
-		} else if (isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailBodyTypeRef) && mailBodySessionKeyCache[instance._id]) {
+		} else if (isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailBodyTypeRef)
+			&& mailBodySessionKeyCache[instance._id]) {
 			let sessionKey = mailBodySessionKeyCache[instance._id]
 			// the mail body instance is cached, so the session key is not needed any more
 			delete mailBodySessionKeyCache[instance._id]
 			return sessionKey
-		} else if (instance._ownerEncSessionKey && locator.login.isLoggedIn() && locator.login.hasGroup(instance._ownerGroup)) {
+		} else if (instance._ownerEncSessionKey && locator.login.isLoggedIn()
+			&& locator.login.hasGroup(instance._ownerGroup)) {
 			let gk = locator.login.getGroupKey(instance._ownerGroup)
 			let key = instance._ownerEncSessionKey
 			if (typeof key === "string") {
@@ -168,66 +183,74 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		} else {
 			return loaders.loadPermissions(instance._permissions).then((listPermissions: Permission[]) => {
 				let userGroupIds = locator.login.getAllGroupIds()
-				let p: ?Permission = listPermissions.find(p => (p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) && p._ownerGroup && userGroupIds.indexOf(p._ownerGroup) !== -1)
+				let p: ?Permission = listPermissions.find(p => (p.type === PermissionType.Public_Symmetric || p.type
+					=== PermissionType.Symmetric) && p._ownerGroup && userGroupIds.indexOf(p._ownerGroup) !== -1)
 				if (p) {
-					let gk = locator.login.getGroupKey((p._ownerGroup:any))
-					return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey:any)))
+					let gk = locator.login.getGroupKey((p._ownerGroup: any))
+					return Promise.resolve(decryptKey(gk, (p._ownerEncSessionKey: any)))
 				}
-				p = (listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External):any)
+				p = (listPermissions.find(p => p.type === PermissionType.Public || p.type
+					=== PermissionType.External): any)
 				if (p == null) {
 					throw new SessionKeyNotFoundError("could not find permission")
 				}
 				let permission = neverNull(p)
-				return loaders.loadBucketPermissions((permission.bucket:any).bucketPermissions).then((bucketPermissions: BucketPermission[]) => {
-					let bp = bucketPermissions.find(bp => (bp.type === BucketPermissionType.Public || bp.type === BucketPermissionType.External) && permission._ownerGroup === bp._ownerGroup) // find the bucket permission with the same group as the permission and public type
-					if (bp == null) {
-						throw new SessionKeyNotFoundError("no corresponding bucket permission found");
-					}
-					let bucketPermission = bp;
-					if (bp.type === BucketPermissionType.External) {
-						let bucketKey
-						if (bp.ownerEncBucketKey != null) {
-							bucketKey = decryptKey(locator.login.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
-						} else if (bp.symEncBucketKey) {
-							bucketKey = decryptKey(locator.login.getUserGroupKey(), neverNull(bp.symEncBucketKey))
-						} else {
-							throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
-						}
-						return decryptKey(bucketKey, neverNull(permission.bucketEncSessionKey))
-					} else {
-						return loaders.loadGroup(bp.group).then(group => {
-							let keypair = group.keys[0]
-							let privKey
-							try {
-								privKey = decryptRsaKey(locator.login.getGroupKey(group._id), keypair.symEncPrivKey)
-							} catch (e) {
-								console.log("failed to decrypt rsa key for group with id " + group._id)
-								throw e
-							}
-							let pubEncBucketKey = bucketPermission.pubEncBucketKey
-							if (pubEncBucketKey == null) {
-								throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
-							}
-							return rsaDecrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
-								let bucketKey = uint8ArrayToBitArray(decryptedBytes)
+				return loaders.loadBucketPermissions((permission.bucket: any).bucketPermissions)
+				              .then((bucketPermissions: BucketPermission[]) => {
+					              let bp = bucketPermissions.find(bp => (bp.type === BucketPermissionType.Public
+						              || bp.type === BucketPermissionType.External) && permission._ownerGroup
+						              === bp._ownerGroup) // find the bucket permission with the same group as the permission and public type
+					              if (bp == null) {
+						              throw new SessionKeyNotFoundError("no corresponding bucket permission found");
+					              }
+					              let bucketPermission = bp;
+					              if (bp.type === BucketPermissionType.External) {
+						              let bucketKey
+						              if (bp.ownerEncBucketKey != null) {
+							              bucketKey = decryptKey(locator.login.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
+						              } else if (bp.symEncBucketKey) {
+							              bucketKey = decryptKey(locator.login.getUserGroupKey(), neverNull(bp.symEncBucketKey))
+						              } else {
+							              throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+						              }
+						              return decryptKey(bucketKey, neverNull(permission.bucketEncSessionKey))
+					              } else {
+						              return loaders.loadGroup(bp.group).then(group => {
+							              let keypair = group.keys[0]
+							              let privKey
+							              try {
+								              privKey = decryptRsaKey(locator.login.getGroupKey(group._id), keypair.symEncPrivKey)
+							              } catch (e) {
+								              console.log("failed to decrypt rsa key for group with id " + group._id)
+								              throw e
+							              }
+							              let pubEncBucketKey = bucketPermission.pubEncBucketKey
+							              if (pubEncBucketKey == null) {
+								              throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+							              }
+							              return rsaDecrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
+								              let bucketKey = uint8ArrayToBitArray(decryptedBytes)
 
-								let bucketEncSessionKey = permission.bucketEncSessionKey;
-								if (bucketEncSessionKey == null) {
-									throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
-								}
-								let sk = decryptKey(bucketKey, bucketEncSessionKey)
+								              let bucketEncSessionKey = permission.bucketEncSessionKey;
+								              if (bucketEncSessionKey == null) {
+									              throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+								              }
+								              let sk = decryptKey(bucketKey, bucketEncSessionKey)
 
-								let bucketPermissionOwnerGroupKey = locator.login.getGroupKey(neverNull(bucketPermission._ownerGroup))
-								let bucketPermissionGroupKey = locator.login.getGroupKey(bucketPermission.group)
-								return _updateWithSymPermissionKey(typeModel, instance, permission, bucketPermission, bucketPermissionOwnerGroupKey, bucketPermissionGroupKey, sk)
-									.catch(NotFoundError, e => {
-										console.log("w> could not find instance to update permission")
-									})
-									.then(() => sk)
-							})
-						})
-					}
-				})
+								              let bucketPermissionOwnerGroupKey = locator
+									              .login.getGroupKey(neverNull(bucketPermission._ownerGroup))
+								              let bucketPermissionGroupKey = locator.login.getGroupKey(bucketPermission.group)
+								              return _updateWithSymPermissionKey(typeModel, instance, permission,
+									              bucketPermission, bucketPermissionOwnerGroupKey,
+									              bucketPermissionGroupKey, sk)
+									              .catch(NotFoundError, e => {
+										              console.log("w> could not find instance to update permission")
+									              })
+									              .then(() => sk)
+							              })
+						              })
+					              }
+				              })
 			})
 		}
 	}).then(sessionKey => {
@@ -259,7 +282,8 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 	if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
 		instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(permissionOwnerGroupKey, sessionKey))
 		// we have to call the rest client directly because instance is still the encrypted server-side version
-		let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/' + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
+		let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/'
+			+ (instance._id instanceof Array ? instance._id.join("/") : instance._id)
 
 		let headers = locator.login.createAuthHeaders()
 		headers["v"] = typeModel.version
@@ -291,8 +315,8 @@ export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes
 	}
 }
 
-if (!('toJSON' in Error.prototype))
-	Object.defineProperty((Error.prototype:any), 'toJSON', {
+if (!('toJSON' in Error.prototype)) {
+	Object.defineProperty((Error.prototype: any), 'toJSON', {
 		value: function () {
 			var alt = {};
 
@@ -305,6 +329,7 @@ if (!('toJSON' in Error.prototype))
 		configurable: true,
 		writable: true
 	});
+}
 
 
 /**
@@ -341,24 +366,26 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 	}
 	return Promise.map(Object.keys(model.associations), (associationName) => {
 		if (model.associations[associationName].type === AssociationType.Aggregation) {
-			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType)).then((aggregateTypeModel) => {
-				let aggregation = model.associations[associationName]
-				if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
-					decrypted[associationName] = null
-				} else if (instance[associationName] == null) {
-					throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
-				} else if (aggregation.cardinality === Cardinality.Any) {
-					return Promise.map(instance[associationName], (aggregate) => {
-						return decryptAndMapToInstance(aggregateTypeModel, aggregate, sk)
-					}).then((decryptedAggregates) => {
-						decrypted[associationName] = decryptedAggregates
-					})
-				} else {
-					return decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk).then((decryptedAggregate) => {
-						decrypted[associationName] = decryptedAggregate
-					})
-				}
-			})
+			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
+				.then((aggregateTypeModel) => {
+					let aggregation = model.associations[associationName]
+					if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
+						decrypted[associationName] = null
+					} else if (instance[associationName] == null) {
+						throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
+					} else if (aggregation.cardinality === Cardinality.Any) {
+						return Promise.map(instance[associationName], (aggregate) => {
+							return decryptAndMapToInstance(aggregateTypeModel, aggregate, sk)
+						}).then((decryptedAggregates) => {
+							decrypted[associationName] = decryptedAggregates
+						})
+					} else {
+						return decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk)
+							.then((decryptedAggregate) => {
+								decrypted[associationName] = decryptedAggregate
+							})
+					}
+				})
 		} else {
 			decrypted[associationName] = instance[associationName]
 		}
@@ -369,7 +396,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 
 export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Aes128Key): Object {
 	let encrypted = {}
-	let i = (instance:any)
+	let i = (instance: any)
 
 	for (let key of Object.keys(model.values)) {
 		let valueType = model.values[key]
@@ -389,24 +416,26 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 	}
 	return Promise.map(Object.keys(model.associations), (associationName) => {
 		if (model.associations[associationName].type === AssociationType.Aggregation) {
-			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType)).then((aggregateTypeModel) => {
-				let aggregation = model.associations[associationName]
-				if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
-					encrypted[associationName] = null
-				} else if (i[associationName] == null) {
-					throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
-				} else if (aggregation.cardinality === Cardinality.Any) {
-					return Promise.map(i[associationName], (aggregate) => {
-						return encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
-					}).then((encryptedAggregates) => {
-						encrypted[associationName] = encryptedAggregates
-					})
-				} else {
-					return encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk).then((encryptedAggregate) => {
-						encrypted[associationName] = encryptedAggregate
-					})
-				}
-			})
+			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
+				.then((aggregateTypeModel) => {
+					let aggregation = model.associations[associationName]
+					if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
+						encrypted[associationName] = null
+					} else if (i[associationName] == null) {
+						throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
+					} else if (aggregation.cardinality === Cardinality.Any) {
+						return Promise.map(i[associationName], (aggregate) => {
+							return encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
+						}).then((encryptedAggregates) => {
+							encrypted[associationName] = encryptedAggregates
+						})
+					} else {
+						return encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk)
+							.then((encryptedAggregate) => {
+								encrypted[associationName] = encryptedAggregate
+							})
+					}
+				})
 		} else {
 			encrypted[associationName] = i[associationName]
 		}
@@ -428,13 +457,14 @@ export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key):
 		if (valueType.type !== ValueType.Bytes) {
 			bytes = stringToUtf8Uint8Array(convertJsToDbType(valueType.type, value))
 		}
-		return uint8ArrayToBase64(aes128Encrypt((sk:any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
+		return uint8ArrayToBase64(aes128Encrypt((sk: any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true,
+			ENABLE_MAC))
 	} else {
 		return convertJsToDbType(valueType.type, value)
 	}
 }
 
-export function decryptValue(valueType: ModelValue, value: ?Base64|String, sk: ?Aes128Key): any {
+export function decryptValue(valueType: ModelValue, value: ?Base64 | String, sk: ?Aes128Key): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
@@ -444,20 +474,20 @@ export function decryptValue(valueType: ModelValue, value: ?Base64|String, sk: ?
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially
 	} else if (valueType.encrypted) {
-		let decryptedBytes = aes128Decrypt((sk:any), base64ToUint8Array((value:any)))
+		let decryptedBytes = aes128Decrypt((sk: any), base64ToUint8Array((value: any)))
 		if (valueType.type === ValueType.Bytes) {
 			return decryptedBytes
 		} else {
 			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
 	} else {
-		return convertDbToJsType(valueType.type, (value:any))
+		return convertDbToJsType(valueType.type, (value: any))
 	}
 }
 
 function convertDbToJsType(type: ValueType, value: string): any {
 	if (type === ValueType.Bytes && value != null && !(value instanceof Uint8Array)) {
-		return base64ToUint8Array((value:any))
+		return base64ToUint8Array((value: any))
 	} else if (type === ValueType.Boolean) {
 		return value !== '0'
 	} else if (type === ValueType.Date) {
@@ -467,9 +497,9 @@ function convertDbToJsType(type: ValueType, value: string): any {
 	}
 }
 
-function convertJsToDbType(type: ValueType, value: any): Base64|string {
+function convertJsToDbType(type: ValueType, value: any): Base64 | string {
 	if (type === ValueType.Bytes && value != null) {
-		return uint8ArrayToBase64((value:any))
+		return uint8ArrayToBase64((value: any))
 	} else if (type === ValueType.Boolean) {
 		return value ? '1' : '0'
 	} else if (type === ValueType.Date) {

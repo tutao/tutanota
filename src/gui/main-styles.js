@@ -10,12 +10,12 @@ assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
-        "*:not(input):not(textarea)": (isApp() ? {
-            "-webkit-user-select": "none", /* disable selection/Copy of UIWebView */
-            "-webkit-touch-callout": "none", /* disable the IOS popup when long-press on a link */
-            "-webkit-user-drag": "none",
-            "-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)"
-        } : {}),
+		"*:not(input):not(textarea)": (isApp() ? {
+			"-webkit-user-select": "none", /* disable selection/Copy of UIWebView */
+			"-webkit-touch-callout": "none", /* disable the IOS popup when long-press on a link */
+			"-webkit-user-drag": "none",
+			"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)"
+		} : {}),
 
 		"@font-face": {
 			"font-family": "'Ionicons'",
@@ -484,7 +484,10 @@ styles.registerStyle('main', () => {
 			margin: 0,
 			padding: 0,
 		},
-		'.list-alternate-background': {'background': `repeating-linear-gradient(to bottom, ${theme.list_alternate_bg}, ${theme.list_alternate_bg} ${px(size.list_row_height)},  ${theme.list_bg} ${px(size.list_row_height)}, ${theme.list_bg} ${px(size.list_row_height * 2)})`},
+		'.list-alternate-background': {
+			'background': `repeating-linear-gradient(to bottom, ${theme.list_alternate_bg}, ${theme.list_alternate_bg} ${px(size.list_row_height)},  ${theme.list_bg} ${px(size.list_row_height)}, ${theme.list_bg} ${px(size.list_row_height
+				* 2)})`
+		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
 			'background-color': theme.list_bg,

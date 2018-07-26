@@ -15,9 +15,10 @@ export class ExpanderButton {
 	view: Function;
 	_showWarning: boolean;
 
-	constructor(labelTextIdOrLabelFunction: string|lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
+	constructor(labelTextIdOrLabelFunction: string | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
 		this.panel = panel
-		this.getLabel = labelTextIdOrLabelFunction instanceof Function ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
+		this.getLabel = labelTextIdOrLabelFunction
+		instanceof Function ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
 		if (typeof style.color === 'undefined') {
 			style.color = color
 		}
@@ -34,9 +35,9 @@ export class ExpanderButton {
 				onbeforeremove: (vnode) => removeFlash(vnode.dom),
 			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
 				(this._showWarning) ? m(Icon, {
-						icon: Icons.Warning,
-						style: {fill: color}
-					}) : null,
+					icon: Icons.Warning,
+					style: {fill: color}
+				}) : null,
 				m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
 				m(Icon, {
 					icon: BootIcons.Expand,
@@ -77,32 +78,32 @@ export class ExpanderPanel {
 		this.expanded = false
 		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden", [
 			this.expanded ? m("div", {
-					oncreate: vnode => {
-						this._domPanel = vnode.dom
-						vnode.dom.style.height = 0
-						this._animate(true)
-					},
-					onbeforeremove: vnode => this._animate(false),
-				}, m(this.child)) : null
+				oncreate: vnode => {
+					this._domPanel = vnode.dom
+					vnode.dom.style.height = 0
+					this._animate(true)
+				},
+				onbeforeremove: vnode => this._animate(false),
+			}, m(this.child)) : null
 		])
 	}
 
 	_animate(fadeIn: boolean) {
 		animations.add(this._domPanel, fadeIn ? opacity(0, 1, true) : opacity(1, 0, true))
 		let childHeight = Array.from(this._domPanel.children)
-			.map((domElement: HTMLElement) => domElement.offsetHeight)
-			.reduce((current: number, previous: number) => current + previous, 0)
+		                       .map((domElement: HTMLElement) => domElement.offsetHeight)
+		                       .reduce((current: number, previous: number) => current + previous, 0)
 		return animations.add(this._domPanel, height(fadeIn ? 0 : childHeight, fadeIn ? childHeight : 0))
-			.then(() => {
-				if (fadeIn) {
-					this._domPanel.style.height = ''
-				}
-			})
+		                 .then(() => {
+			                 if (fadeIn) {
+				                 this._domPanel.style.height = ''
+			                 }
+		                 })
 	}
 
 	setExpanded(expanded: boolean) {
 		this.expanded = expanded
-		let c = (this.child:any)
+		let c = (this.child: any)
 		if (c['setExpanded']) {
 			c['setExpanded'](expanded)
 		}

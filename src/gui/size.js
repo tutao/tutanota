@@ -1,4 +1,5 @@
 import {assertMainOrNodeBoot} from "../api/Env"
+
 assertMainOrNodeBoot()
 
 export const size = {

@@ -82,13 +82,13 @@ export class Queue {
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
-	_queue: {[key:string]: Callback};
-	_commands: {[key: WorkerRequestType|MainRequestType|NativeRequestType | JsRequestType]: Command};
+	_queue: {[key: string]: Callback};
+	_commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command};
 	_transport: Worker | DedicatedWorkerGlobalScope;
 
 	constructor(transport: ?Worker | ?DedicatedWorkerGlobalScope) {
 		this._queue = {}
-		this._transport = (transport:any)
+		this._transport = (transport: any)
 
 		if (this._transport != null) { // only undefined in case of node unit tests (is overridden from WorkerClient, in this case)
 			this._transport.onmessage = (msg: any) => this._handleMessage(msg.data)
@@ -109,14 +109,14 @@ export class Queue {
 
 	_handleMessage(message: Response | Request | RequestError) {
 		if (message.type === 'response') {
-			this._queue[message.id](null, (message:any).value)
+			this._queue[message.id](null, (message: any).value)
 			delete this._queue[message.id]
 		} else if (message.type === 'requestError') {
-			this._queue[message.id](objToError((message:any).error), null)
+			this._queue[message.id](objToError((message: any).error), null)
 			delete this._queue[message.id]
 		} else {
 			let command = this._commands[message.type]
-			let request = (message:any)
+			let request = (message: any)
 			if (command != null) {
 				command(request).then(value => {
 					this._transport.postMessage(new Response(request, value))
@@ -135,7 +135,7 @@ export class Queue {
 	}
 
 
-	setCommands(commands: {[key: WorkerRequestType|MainRequestType|NativeRequestType | JsRequestType]: Command}) {
+	setCommands(commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command}) {
 		this._commands = commands
 	}
 }
@@ -158,16 +158,16 @@ function _createRequestId() {
 // Serialize error stack traces, when they are sent via the websocket.
 export function errorToObj(error: Error) {
 	return {
-		name: (error:any)['name'],
-		message: (error:any)['message'],
-		stack: (error:any)['stack'],
-		data: (error:any)['data']
+		name: (error: any)['name'],
+		message: (error: any)['message'],
+		stack: (error: any)['stack'],
+		data: (error: any)['data']
 	}
 }
 
 export function objToError(o: Object) {
 	let errorType = ErrorNameToType[o.name]
-	let e = (errorType != null ? new errorType(o.message) : new Error(o.message):any)
+	let e = (errorType != null ? new errorType(o.message) : new Error(o.message): any)
 	e.name = o.name
 	e.stack = o.stack
 	e.data = o.data

@@ -19,7 +19,7 @@ export function copyToClipboard(text: string): void {
 		fallbackCopyTextToClipboard(text);
 		return;
 	}
-	(navigator : any).clipboard.writeText(text).catch((err) => {
+	(navigator: any).clipboard.writeText(text).catch((err) => {
 		console.error('Async: Could not copy text: ', err);
 	})
 }

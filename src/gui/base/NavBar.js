@@ -11,9 +11,10 @@ import {asyncImport} from "../../api/common/utils/Utils"
 import {logins} from "../../api/main/LoginController"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import {lang} from "../../misc/LanguageViewModel"
+
 assertMainOrNodeBoot()
 
-type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number, hideLabelDefault:boolean}
+type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width: number, hideLabelDefault: boolean}
 
 type SortedButtons = {visible: ButtonWrapper[], hidden: ButtonWrapper[]}
 
@@ -53,17 +54,19 @@ export class NavBar {
 				return this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
 			}),
 			prefixComponent: styles.isDesktopLayout() ? {
-					view: () => m(".nav-bar-spacer"),
-				} : undefined,
+				view: () => m(".nav-bar-spacer"),
+			} : undefined,
 			width: size.button_height + styles.isDesktopLayout() ? 4 : 0, // spacer width is 4px
 			hideLabelDefault: true
 		}
 		this.more.button.setColors(NavButtonColors.Header)
 
 		if (!isAdmin()) {
-			asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
-				this.searchBar = new searchBarModule.SearchBar()
-			})
+			asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+				`${env.rootPathPrefix}src/search/SearchBar.js`)
+				.then((searchBarModule) => {
+					this.searchBar = new searchBarModule.SearchBar()
+				})
 		}
 
 		this.maxWidth = 0;
@@ -82,13 +85,15 @@ export class NavBar {
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
 			}, [this._searchBar()].concat(buttons.visible.map((wrapper: ButtonWrapper) =>
-				[wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
+				[
+					wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
 					key: wrapper.id,
 					oncreate: vnode => {
 						wrapper.width = vnode.dom.getBoundingClientRect().width
 					},
 					style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
-				}, m(wrapper.button))])))
+				}, m(wrapper.button))
+				])))
 		}
 	}
 
@@ -121,11 +126,11 @@ export class NavBar {
 			&& styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()
 			&& (route.startsWith("/search")
-			|| route.startsWith("/mail")
-			|| route.startsWith("/contact")
-			|| route.startsWith("/settings/users")
-			|| route.startsWith("/settings/groups")
-			|| route.startsWith("/settings/whitelabelaccounts"))
+				|| route.startsWith("/mail")
+				|| route.startsWith("/contact")
+				|| route.startsWith("/settings/users")
+				|| route.startsWith("/settings/groups")
+				|| route.startsWith("/settings/whitelabelaccounts"))
 	}
 
 	/**

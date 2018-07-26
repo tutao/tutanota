@@ -24,8 +24,9 @@ export class Checkbox {
 	_disabledTextId: string;
 
 
-	constructor(labelTextIdOrTextFunction: string|lazy<string>, helpLabel: lazy<String>) {
-		this.getLabel = labelTextIdOrTextFunction instanceof Function ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, helpLabel: lazy<String>) {
+		this.getLabel = labelTextIdOrTextFunction instanceof Function ?
+			labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 		this.helpLabel = helpLabel
 		this.checked = stream(false)
 		this.focused = stream(false)

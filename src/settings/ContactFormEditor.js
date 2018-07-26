@@ -75,13 +75,15 @@ export class ContactFormEditor {
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 		if (!logins.getUserController().isGlobalAdmin()) {
 			let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-			allSharedMailboxGroupInfos = allSharedMailboxGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
+			allSharedMailboxGroupInfos = allSharedMailboxGroupInfos.filter(gi =>
+				localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
 			allUserGroupInfos = allUserGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
 		}
 		allSharedMailboxGroupInfos.sort(compareGroupInfos)
 		allUserGroupInfos.sort(compareGroupInfos)
 
-		let selectedTargetGroupInfo = allSharedMailboxGroupInfos.length > 0 ? allSharedMailboxGroupInfos[0] : (allUserGroupInfos.length > 0 ? allUserGroupInfos[0] : null)
+		let selectedTargetGroupInfo = allSharedMailboxGroupInfos.length
+		> 0 ? allSharedMailboxGroupInfos[0] : (allUserGroupInfos.length > 0 ? allUserGroupInfos[0] : null)
 		if (this._contactForm.targetGroupInfo) {
 			let groupInfo = allSharedMailboxGroupInfos.find(groupInfo => isSameId(neverNull(this._contactForm.targetGroupInfo), groupInfo._id))
 			if (!groupInfo) {
@@ -96,7 +98,8 @@ export class ContactFormEditor {
 		this._receivingMailbox = stream(selectedTargetGroupInfo)
 		this._receivingMailbox.map(groupInfo => {
 			if (groupInfo) {
-				let prefix = (groupInfo.groupType === GroupType.User ? lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
+				let prefix = (groupInfo.groupType === GroupType.User ?
+					lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
 				this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
 			}
 		})
@@ -106,7 +109,7 @@ export class ContactFormEditor {
 				this._updateParticipantGroupInfosTable()
 				this._receivingMailbox(gi)
 			}).setType(ButtonType.Dropdown)
-				.setSelected(() => this._receivingMailbox() === gi))
+			  .setSelected(() => this._receivingMailbox() === gi))
 		}, 250)
 		let groupsDropdown = null
 		if (allSharedMailboxGroupInfos.length > 0) {
@@ -116,12 +119,15 @@ export class ContactFormEditor {
 					.setSelected(() => this._receivingMailbox() === gi))
 			}, 250)
 		}
-		this._receivingMailboxField._injectionsRight = () => (groupsDropdown) ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]
+		this._receivingMailboxField._injectionsRight = () => (groupsDropdown) ? [
+			m(userDropdown), m(groupsDropdown)
+		] : [m(userDropdown)]
 
 		// remove all groups that do not exist any more
 		this._participantGroupInfoList = mapAndFilterNull(this._contactForm.participantGroupInfos, groupInfoId => allUserGroupInfos.find(g => isSameId(g._id, groupInfoId)))
 		let addParticipantMailGroupButton = new Button("addResponsiblePerson_label", () => {
-			let availableGroupInfos = allUserGroupInfos.filter(g => this._participantGroupInfoList.find(alreadyAdded => isSameId(alreadyAdded._id, g._id)) == null)
+			let availableGroupInfos = allUserGroupInfos.filter(g =>
+				this._participantGroupInfoList.find(alreadyAdded => isSameId(alreadyAdded._id, g._id)) == null)
 			if (availableGroupInfos.length > 0) {
 				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
@@ -152,7 +158,9 @@ export class ContactFormEditor {
 		this._language = stream(language)
 		this._languageField = new TextField("language_label").setDisabled()
 		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
-			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code), e => this._language(l)).setType(ButtonType.Dropdown)).sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
+			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code),
+				e => this._language(l)).setType(ButtonType.Dropdown))
+			                  .sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
 			buttons.push(new Button("addLanguage_action", e => {
 				let additionalLanguages = languages.filter(t => {
 					if (t.code.endsWith('_sie')) {
@@ -197,13 +205,18 @@ export class ContactFormEditor {
 		this._footerField = new HtmlEditor().setModeSwitcher("footer_label").setMinHeight(200).showBorders()
 		this._helpField = new HtmlEditor().setModeSwitcher("helpPage_label").setMinHeight(200).showBorders()
 
-		let addStatisticsFieldButton = new Button("addStatisticsField_action", () => AddStatisticsFieldDialog.show().then(inputField => {
-			if (inputField) {
-				this._statisticsFields.push(inputField)
-				this._updateStatisticsFieldTable()
-			}
-		}), () => Icons.Add)
-		this._statisticsFieldsTable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addStatisticsFieldButton)
+		let addStatisticsFieldButton = new Button("addStatisticsField_action",
+			() => AddStatisticsFieldDialog.show()
+			                              .then(inputField => {
+				                              if (inputField) {
+					                              this._statisticsFields.push(inputField)
+					                              this._updateStatisticsFieldTable()
+				                              }
+			                              }),
+			() => Icons.Add)
+		this._statisticsFieldsTable = new Table(["name_label", "type_label"], [
+			ColumnWidth.Largest, ColumnWidth.Largest
+		], true, addStatisticsFieldButton)
 
 		this._language.map((l: ContactFormLanguage) => {
 			if (previousLanguage && l !== previousLanguage) {
@@ -229,9 +242,9 @@ export class ContactFormEditor {
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
 			(this._receivingMailbox() && this._receivingMailbox().groupType === GroupType.User) ? null : m(".mt-l", [
-					m(this._participantGroupInfosTable),
-					m(".small", lang.get("responsiblePersonsInfo_msg"))
-				]),
+				m(this._participantGroupInfosTable),
+				m(".small", lang.get("responsiblePersonsInfo_msg"))
+			]),
 			m(".h4.mt-l", lang.get("display_action")),
 			m(this._pathField),
 			m(this._languageField),
@@ -243,11 +256,11 @@ export class ContactFormEditor {
 			m(this._statisticsFieldsTable)
 		])
 		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: cancelAction,
-				help: "close_alt"
-			}).setCloseHandler(cancelAction)
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: cancelAction,
+			                    help: "close_alt"
+		                    }).setCloseHandler(cancelAction)
 	}
 
 	updateLanguageFromFields(language: ContactFormLanguage) {
@@ -288,70 +301,81 @@ export class ContactFormEditor {
 			Dialog.error("pleaseEnterValidPath_msg")
 		} else {
 			// check that the path is unique
-			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-					return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
-						if (!this._receivingMailbox()) {
-							return Dialog.error("noReceivingMailbox_label")
-						}
-						let contactFormsListId = root.contactForms
-						let customElementIdFromPath = stringToCustomId(this._pathField.value())
-						let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath]
-						let samePathFormCheck = Promise.resolve(false)
-						// only compare the path if this is a new contact form or it is a different existing contact form
-						if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
-							samePathFormCheck = load(ContactFormTypeRef, contactFormIdFromPath).then(cf => true).catch(NotFoundError, e => false)
-						}
-						return samePathFormCheck.then(samePathForm => {
-							if (samePathForm) {
-								return Dialog.error("pathAlreadyExists_msg")
-							} else {
-								// check if the target mail group is already referenced by a different contact form
-								return load(GroupTypeRef, this._receivingMailbox().group).then(group => {
-									if (group.user) {
-										return load(UserTypeRef, group.user).then(user => {
-											return neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
-										})
-									} else {
-										return group._id
-									}
-								}).then(mailGroupId => {
-									return load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
-										let contactFormIdToCheck = (this._createNew) ? contactFormIdFromPath : this._contactForm._id
-										if (mailboxGroupRoot.targetMailGroupContactForm && !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
-											return Dialog.error("receivingMailboxAlreadyUsed_msg")
-										} else {
-											this._contactForm._ownerGroup = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Customer)).group
-											this._contactForm.targetGroup = this._receivingMailbox().group
-											this._contactForm.targetGroupInfo = this._receivingMailbox()._id
-											this._contactForm.participantGroupInfos = this._participantGroupInfoList.map(groupInfo => groupInfo._id)
-											this._contactForm.path = this._pathField.value()
-											this.updateLanguageFromFields(this._language())
-											this._contactForm.languages = this._languages
-
-											let p
-											if (this._createNew) {
-												this._contactForm._id = contactFormIdFromPath
-												p = BuyDialog.show(BookingItemFeatureType.ContactForm, 1, 0, false).then(accepted => {
-													if (accepted) {
-														return setup(contactFormsListId, this._contactForm).then(contactFormId => {
-															this._newContactFormIdReceiver(customElementIdFromPath)
-														})
-													}
-												})
-											} else {
-												p = update(this._contactForm).then(() => {
-													this._newContactFormIdReceiver(customElementIdFromPath)
-												})
-											}
-											return p.then(() => this._close())
-										}
-									})
-								})
+			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => {
+						return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
+							if (!this._receivingMailbox()) {
+								return Dialog.error("noReceivingMailbox_label")
 							}
+							let contactFormsListId = root.contactForms
+							let customElementIdFromPath = stringToCustomId(this._pathField.value())
+							let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath]
+							let samePathFormCheck = Promise.resolve(false)
+							// only compare the path if this is a new contact form or it is a different existing contact form
+							if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
+								samePathFormCheck = load(ContactFormTypeRef, contactFormIdFromPath)
+									.then(cf => true)
+									.catch(NotFoundError, e => false)
+							}
+							return samePathFormCheck.then(samePathForm => {
+								if (samePathForm) {
+									return Dialog.error("pathAlreadyExists_msg")
+								} else {
+									// check if the target mail group is already referenced by a different contact form
+									return load(GroupTypeRef, this._receivingMailbox().group).then(group => {
+										if (group.user) {
+											return load(UserTypeRef, group.user).then(user => {
+												return neverNull(user.memberships.find(m => m.groupType
+													=== GroupType.Mail)).group
+											})
+										} else {
+											return group._id
+										}
+									}).then(mailGroupId => {
+										return load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
+											let contactFormIdToCheck = (this._createNew) ? contactFormIdFromPath : this._contactForm._id
+											if (mailboxGroupRoot.targetMailGroupContactForm
+												&& !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
+												return Dialog.error("receivingMailboxAlreadyUsed_msg")
+											} else {
+												this._contactForm._ownerGroup = neverNull(logins.getUserController()
+												                                                .user
+												                                                .memberships
+												                                                .find(m => m.groupType
+													                                                === GroupType.Customer)).group
+												this._contactForm.targetGroup = this._receivingMailbox().group
+												this._contactForm.targetGroupInfo = this._receivingMailbox()._id
+												this._contactForm.participantGroupInfos = this._participantGroupInfoList.map(groupInfo => groupInfo._id)
+												this._contactForm.path = this._pathField.value()
+												this.updateLanguageFromFields(this._language())
+												this._contactForm.languages = this._languages
+
+												let p
+												if (this._createNew) {
+													this._contactForm._id = contactFormIdFromPath
+													p = BuyDialog.show(BookingItemFeatureType.ContactForm, 1, 0, false)
+													             .then(accepted => {
+														             if (accepted) {
+															             return setup(contactFormsListId, this._contactForm)
+																             .then(contactFormId => {
+																	             this._newContactFormIdReceiver(customElementIdFromPath)
+																             })
+														             }
+													             })
+												} else {
+													p = update(this._contactForm).then(() => {
+														this._newContactFormIdReceiver(customElementIdFromPath)
+													})
+												}
+												return p.then(() => this._close())
+											}
+										})
+									})
+								}
+							})
 						})
-					})
-				}
-			))
+					}
+				))
 		}
 	}
 }
@@ -366,19 +390,22 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 			let brandingDomain = getBrandingDomain(customerInfo)
 			if (brandingDomain) {
 				//ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
-				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups).filter(g => !g.deleted).then(userGroupInfos => {
-					let globalAdmin = logins.getUserController().isGlobalAdmin()
-					return getAdministratedGroupIds().then(adminGroupIds => {
-						// get and separate all enabled shared mail groups and shared team groups
-						return loadAll(GroupInfoTypeRef, customer.teamGroups)
-							.filter(g => !g.deleted)
-							.filter(teamGroupInfo => teamGroupInfo.groupType === GroupType.Mail).then(sharedMailGroupInfos => {
-								let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, neverNull(brandingDomain))
-								editor.dialog.show()
-								windowFacade.checkWindowClosing(true)
-							})
-					})
-				}))
+				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
+					.filter(g => !g.deleted)
+					.then(userGroupInfos => {
+						let globalAdmin = logins.getUserController().isGlobalAdmin()
+						return getAdministratedGroupIds().then(adminGroupIds => {
+							// get and separate all enabled shared mail groups and shared team groups
+							return loadAll(GroupInfoTypeRef, customer.teamGroups)
+								.filter(g => !g.deleted)
+								.filter(teamGroupInfo => teamGroupInfo.groupType === GroupType.Mail)
+								.then(sharedMailGroupInfos => {
+									let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, neverNull(brandingDomain))
+									editor.dialog.show()
+									windowFacade.checkWindowClosing(true)
+								})
+						})
+					}))
 			} else {
 				Dialog.error("whitelabelDomainNeeded_msg")
 			}

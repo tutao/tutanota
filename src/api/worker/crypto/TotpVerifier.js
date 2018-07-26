@@ -60,6 +60,10 @@ export class TotpVerifier {
 	}
 
 	readableKey(key: Uint8Array): Base32 {
-		return base32.fromBits(uint8ArrayToBitArray(key)).toLowerCase().replace(/(.{4})/g, "$1 ").replace(/=/g, "").trim()
+		return base32.fromBits(uint8ArrayToBitArray(key))
+		             .toLowerCase()
+		             .replace(/(.{4})/g, "$1 ")
+		             .replace(/=/g, "")
+		             .trim()
 	}
 }

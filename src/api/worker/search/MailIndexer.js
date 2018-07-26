@@ -89,7 +89,8 @@ export class MailIndexer {
 			}, {
 				attribute: MailModel.associations["attachments"],
 				value: () => files.map(file => file.name).join(" ")
-			}])
+			}
+		])
 		this._core._indexingTime += (getPerformanceTimestamp() - startTimeIndex)
 		return keyToIndexEntries
 	}
@@ -144,16 +145,18 @@ export class MailIndexer {
 		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
 				if (!enabled) {
-					return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then(spamFolders => {
-						this._excludedListIds = spamFolders.map(folder => folder.mails)
-						this.mailIndexingEnabled = true
-						return this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS]).then(t2 => {
-							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-							this.indexMailboxes(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
-							return t2.wait()
-						})
-					})
+					return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership))
+					              .then(spamFolders => {
+						              this._excludedListIds = spamFolders.map(folder => folder.mails)
+						              this.mailIndexingEnabled = true
+						              return this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
+						                         .then(t2 => {
+							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
+							                         this.indexMailboxes(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
+							                         return t2.wait()
+						                         })
+					              })
 				} else {
 					return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 						this.mailIndexingEnabled = true
@@ -195,41 +198,46 @@ export class MailIndexer {
 		this._core.queue.queue()
 		this.mailboxIndexingPromise = Promise.each(Promise.resolve(memberships), (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
-			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId).then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-					return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-						let progressCount = 1
-						if (!groupData) {
-							progressCount++
-							// group data is not available if group has been added. group will be indexed after login.
-							return;
-						} else {
-							return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-								let startId = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
-								return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
-									this._worker.sendIndexState({
-										initializing: false,
-										indexingSupported: this._core.indexingSupported,
-										mailIndexEnabled: this.mailIndexingEnabled,
-										progress: Math.round(100 * (progressCount++) / count),
-										currentMailIndexTimestamp: this.currentIndexTimestamp
-									})
-									return finishedMailList
-								})
-							}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
-								return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
-									return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-										groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing === false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
-										t2.put(GroupDataOS, mailGroupId, groupData)
-										return t2.wait()
-									})
-								})
-							})
-						}
+			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId)
+			           .then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			           .then(mbox => {
+				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+					           return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+						           let progressCount = 1
+						           if (!groupData) {
+							           progressCount++
+							           // group data is not available if group has been added. group will be indexed after login.
+							           return;
+						           } else {
+							           return this._loadMailListIds(mbox).map((mailListId, i, count) => {
+								           let startId = groupData.indexTimestamp
+								           === NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+								           return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp))
+								                      .then((finishedMailList) => {
+									                      this._worker.sendIndexState({
+										                      initializing: false,
+										                      indexingSupported: this._core.indexingSupported,
+										                      mailIndexEnabled: this.mailIndexingEnabled,
+										                      progress: Math.round(100 * (progressCount++) / count),
+										                      currentMailIndexTimestamp: this.currentIndexTimestamp
+									                      })
+									                      return finishedMailList
+								                      })
+							           }, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
+								           return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
+									           return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+										           groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing
+											           === false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
+										           t2.put(GroupDataOS, mailGroupId, groupData)
+										           return t2.wait()
+									           })
+								           })
+							           })
+						           }
 
-					})
-				})
-			})
+					           })
+				           })
+			           })
 		}).then(() => {
 			this._core.printStatus()
 			console.log("finished indexing")
@@ -256,42 +264,47 @@ export class MailIndexer {
 	}
 
 	/**@return returns true if the mail list has been fully indexed. */
-	_indexMailList(mailbox: MailBox, mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise <boolean> {
+	_indexMailList(mailbox: MailBox, mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise<boolean> {
 		let startTimeLoad = getPerformanceTimestamp()
 		if (this._indexingCancelled) return Promise.reject(new CancelledError("cancelled indexing"))
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 
-		return this._entity._loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient).then(mails => {
-			if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
-			let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
-			return Promise.map(filteredMails, mail => {
-				if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
-				return Promise.all([
-					Promise.map(mail.attachments, attachmentId => this._entity.load(FileTypeRef, attachmentId)),
-					this._entity._loadEntity(MailBodyTypeRef, mail.body, null, this._entityRestClient)
-				]).spread((files, body) => {
-					return {mail, body, files}
-				})
-			}, {concurrency: 5}).then((mailWithBodyAndFiles: {mail:Mail, body:MailBody, files:TutanotaFile[]}[]) => {
-				let indexUpdate = _createNewIndexUpdate(mailGroupId)
-				this._core._downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
-				this._core._mailcount += mailWithBodyAndFiles.length
-				return Promise.each(mailWithBodyAndFiles, element => {
-					let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
-					this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-				}).then(() => this._core.writeIndexUpdate(indexUpdate))
-			}).return(mails).then((mails) => {
-				if (filteredMails.length === 500) { // not filtered and more emails are available
-					console.log("completed indexing range from", startId, "to", endId, "of mail list id", mailListId)
-					this._core.printStatus()
-					return this._indexMailList(mailbox, mailGroupId, mailListId, mails[mails.length - 1]._id[1], endId)
-				} else {
-					console.log("completed indexing of mail list id", mailListId)
-					this._core.printStatus()
-					return filteredMails.length === mails.length
-				}
-			})
-		})
+		return this._entity._loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient)
+		           .then(mails => {
+			           if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
+			           let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
+			           return Promise.map(filteredMails, mail => {
+				           if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
+				           return Promise.all([
+					           Promise.map(mail.attachments, attachmentId => this._entity.load(FileTypeRef, attachmentId)),
+					           this._entity._loadEntity(MailBodyTypeRef, mail.body, null, this._entityRestClient)
+				           ]).spread((files, body) => {
+					           return {mail, body, files}
+				           })
+			           }, {concurrency: 5})
+			                         .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
+				                         let indexUpdate = _createNewIndexUpdate(mailGroupId)
+				                         this._core._downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
+				                         this._core._mailcount += mailWithBodyAndFiles.length
+				                         return Promise.each(mailWithBodyAndFiles, element => {
+					                         let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
+					                         this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+				                         }).then(() => this._core.writeIndexUpdate(indexUpdate))
+			                         })
+			                         .return(mails)
+			                         .then((mails) => {
+				                         if (filteredMails.length === 500) { // not filtered and more emails are available
+					                         console.log("completed indexing range from", startId, "to", endId, "of mail list id", mailListId)
+					                         this._core.printStatus()
+					                         return this._indexMailList(mailbox, mailGroupId, mailListId, mails[mails.length
+					                         - 1]._id[1], endId)
+				                         } else {
+					                         console.log("completed indexing of mail list id", mailListId)
+					                         this._core.printStatus()
+					                         return filteredMails.length === mails.length
+				                         }
+			                         })
+		           })
 	}
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
@@ -319,18 +332,24 @@ export class MailIndexer {
 	 */
 	_loadMailListIds(mailbox: MailBox): Promise<Id[]> {
 		let mailListIds = []
-		return loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders).filter(f => !contains(this._excludedListIds, f.mails)).map(folder => {
-			mailListIds.push(folder.mails)
-			return loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
+		return loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
+			.filter(f => !contains(this._excludedListIds, f.mails))
+			.map(folder => {
 				mailListIds.push(folder.mails)
+				return loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
+					mailListIds.push(folder.mails)
+				})
 			})
-		}).then(() => mailListIds)
+			.then(() => mailListIds)
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
-		return load(MailboxGroupRootTypeRef, mailGroup.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)).then(mbox => {
-			return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders).then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
-		})
+		return load(MailboxGroupRootTypeRef, mailGroup.group)
+			.then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			.then(mbox => {
+				return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders)
+					.then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
+			})
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
@@ -378,7 +397,8 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 			currentIndexTimestamp = t
 		} else if (t === NOTHING_INDEXED_TIMESTAMP) {
 			// skip new group memberships
-		} else if (t === FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== NOTHING_INDEXED_TIMESTAMP) {
+		} else if (t === FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP
+			&& currentIndexTimestamp !== NOTHING_INDEXED_TIMESTAMP) {
 			// skip full index timestamp if this is not the first mail group
 		} else if (currentIndexTimestamp === FULL_INDEXED_TIMESTAMP && t !== currentIndexTimestamp) { // find the oldest timestamp
 			// mail index ist not fully indexed if one of the mailboxes is not fully indexed

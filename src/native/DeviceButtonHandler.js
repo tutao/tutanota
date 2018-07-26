@@ -5,6 +5,7 @@ import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
 
 assertMainOrNode()
+
 /**
  * Handles press of the android back button. Returns true if the action has been processed by the application.
  * False if the caller must handle the button press (quit the application)
@@ -20,7 +21,8 @@ export function handleBackPress(): boolean {
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back
 			viewSlider.focusPreviousColumn()
 			return true
-		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings") || currentRoute.startsWith("/search")) {
+		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
+			|| currentRoute.startsWith("/search")) {
 			m.route.set(window.tutao.header.mailNavButton._getUrl())
 			return true
 		} else if (m.route.get().startsWith("/mail/")) {

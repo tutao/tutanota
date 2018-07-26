@@ -17,12 +17,12 @@ import {formatNameAndAddress} from "../misc/Formatter"
 assertMainOrNode()
 
 export type UpgradeSubscriptionData = {
-	subscriptionOptions:SubscriptionOptions,
-	invoiceData:InvoiceData,
-	paymentData:PaymentData,
-	proUpgrade:boolean,
-	price:string,
-	accountingInfo:AccountingInfo
+	subscriptionOptions: SubscriptionOptions,
+	invoiceData: InvoiceData,
+	paymentData: PaymentData,
+	proUpgrade: boolean,
+	price: string,
+	accountingInfo: AccountingInfo
 }
 
 export function show(): void {

@@ -229,6 +229,7 @@ export function verifySignature(publicKey: PublicKey, bytes: Uint8Array, signatu
 function _uint8ArrayToByteArray(uint8Array) {
 	return [].slice.call(uint8Array)
 }
+
 function _bytesToHex(bytes) {
 	return uint8ArrayToHex(new Uint8Array(bytes))
 }
@@ -250,7 +251,8 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
 		throw new CryptoError("invalid seed length: " + seed.length + ". expected: " + hashLength + " bytes!")
 	}
 	if (value.length > (keyLength / 8 - hashLength - 1)) {
-		throw new CryptoError("invalid value length: " + value.length + ". expected: max. " + (keyLength / 8 - hashLength - 1))
+		throw new CryptoError("invalid value length: " + value.length + ". expected: max. "
+			+ (keyLength / 8 - hashLength - 1))
 	}
 
 	let block = _getPSBlock(value, keyLength)
@@ -279,7 +281,8 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
 export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
 	if (value.length != keyLength / 8 - 1) {
-		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1) + " bytes!")
+		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1)
+			+ " bytes!")
 	}
 
 	let seedMask = mgf1(value.slice(hashLength, value.length), hashLength)
@@ -409,10 +412,12 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 	try {
 
 		if (encodedMessage.length < minEncodedLength) {
-			throw new Error("invalid length of encoded message: " + encodedMessage.length + ". expected: > " + minEncodedLength + " bytes!")
+			throw new Error("invalid length of encoded message: " + encodedMessage.length + ". expected: > "
+				+ minEncodedLength + " bytes!")
 		}
 		if (encodedMessage[encodedMessage.length - 1] != 188) {
-			throw new Error("rightmost octet of EM must be 188 (0xbc) but was " + encodedMessage[encodedMessage.length - 1])
+			throw new Error("rightmost octet of EM must be 188 (0xbc) but was " + encodedMessage[encodedMessage.length
+			- 1])
 		}
 
 		var maskedDB = encodedMessage.slice(0, emLen - hashLength - 1)
@@ -439,7 +444,8 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 		}
 
 		if (db[emLen - hashLength - saltLength - 2] != 1) {
-			throw new Error("inconsistent octet value in db. Expected 1 (0x01) but was " + db[emLen - hashLength - saltLength - 1])
+			throw new Error("inconsistent octet value in db. Expected 1 (0x01) but was " + db[emLen - hashLength
+			- saltLength - 1])
 		}
 
 		var salt = db.slice(db.length - saltLength)

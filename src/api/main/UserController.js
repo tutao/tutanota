@@ -44,7 +44,8 @@ export class UserController {
 
 	isGlobalOrLocalAdmin() {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+			return this.user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType
+				=== GroupType.LocalAdmin) != null
 		} else {
 			return false;
 		}
@@ -93,11 +94,13 @@ export class UserController {
 	}
 
 	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
-		if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
+		if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef)
+			&& isSameId(this.user._id, elementId)) {
 			return load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser
 			})
-		} else if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
+		} else if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef)
+			&& isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
 			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 			})

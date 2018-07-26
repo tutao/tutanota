@@ -41,7 +41,7 @@ export function focusPrevious(dom: HTMLElement) {
 }
 
 export class DropdownN {
-	children: Array<string|NavButton|Button>;
+	children: Array<string | NavButton | Button>;
 	_domDropdown: HTMLElement;
 	origin: ?ClientRect;
 	maxHeight: number;
@@ -52,7 +52,7 @@ export class DropdownN {
 	_buttonsHeight: number;
 
 
-	constructor(lazyChildren: lazy<Array<string|NavButtonAttrs|ButtonAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
@@ -74,26 +74,29 @@ export class DropdownN {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
 						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur()
+							if (document.activeElement && typeof document.activeElement.blur === "function") {
+								document.activeElement.blur()
+							}
 						})
 					},
 					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
 				},
-				(this.children.filter(b => isVisible((b:any))).map(child => {
+				(this.children.filter(b => isVisible((b: any))).map(child => {
 					if (typeof child === "string") {
 						return m(".flex-v-center.center.button-height.b.text-break.doNotClose", child)
 					} else if (typeof child.href !== 'undefined') {
-						return m(NavButtonN, ((child:any):NavButtonAttrs))
+						return m(NavButtonN, ((child: any): NavButtonAttrs))
 					} else {
-						return m(ButtonN, ((child:any):ButtonAttrs))
+						return m(ButtonN, ((child: any): ButtonAttrs))
 					}
-				}):any))
+				}): any))
 			)
 		}
 	}
 
 	backgroundClick(e: MouseEvent) {
-		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode === e.target)) {
+		if (!(e.target: any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target: any))
+			|| this._domDropdown.parentNode === e.target)) {
 			modal.remove(this)
 		}
 	}
@@ -164,8 +167,10 @@ export class DropdownN {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			this._buttonsHeight = this.children.filter(b => isVisible((b:any))).reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
-			this.maxHeight = Math.min(this._buttonsHeight, (top < bottom ? window.innerHeight - top : window.innerHeight - bottom) - 10)
+			this._buttonsHeight = this.children.filter(b => isVisible((b: any)))
+			                          .reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
+			this.maxHeight = Math.min(this._buttonsHeight, (top < bottom ? window.innerHeight - top :
+				window.innerHeight - bottom) - 10)
 			return animations.add(domElement, [
 				width(0, this._width),
 				height(0, this.maxHeight)
@@ -202,6 +207,6 @@ export class DropdownN {
 
 }
 
-function isVisible(dropDownElement: string|NavButtonAttrs|ButtonAttrs) {
+function isVisible(dropDownElement: string | NavButtonAttrs | ButtonAttrs) {
 	return (typeof dropDownElement.isVisible !== "function") || dropDownElement.isVisible()
 }

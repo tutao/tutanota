@@ -37,11 +37,13 @@ export class GroupInfoIndexer {
 			}, {
 				attribute: GroupInfoModel.associations["mailAddressAliases"],
 				value: () => groupInfo.mailAddressAliases.map(maa => maa.mailAddress).join(","),
-			}])
+			}
+		])
 	}
 
 	_getSuggestionWords(groupInfo: GroupInfo): string[] {
-		return tokenize(groupInfo.name + " " + (groupInfo.mailAddress ? groupInfo.mailAddress : "") + " " + groupInfo.mailAddressAliases.map(alias => alias.mailAddress).join(" "))
+		return tokenize(groupInfo.name + " " + (groupInfo.mailAddress ? groupInfo.mailAddress : "") + " "
+			+ groupInfo.mailAddressAliases.map(alias => alias.mailAddress).join(" "))
 	}
 
 
@@ -76,7 +78,9 @@ export class GroupInfoIndexer {
 									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
 								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-								return Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
+								return Promise.all([
+									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+								])
 							})
 						}
 					})

@@ -44,7 +44,7 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			error: (message: any) => {
-				throw objToError((message:any).args[0])
+				throw objToError((message: any).args[0])
 			},
 			progress: (message: any) => {
 				if (this._progressUpdater) {
@@ -74,8 +74,10 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()]))
-				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
+			this.initialized = this._queue.postMessage(new Request('setup', [
+				window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()
+			]))
+			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
@@ -92,7 +94,7 @@ export class WorkerClient {
 					workerImpl._queue._handleMessage(msg)
 
 				}
-			}:any))
+			}: any))
 			this.initialized = Promise.resolve()
 		}
 	}
@@ -116,14 +118,16 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 
-	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
 	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
-		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
-		})
+		return this.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin)
+		           .then(loginData => {
+			           return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession)
+			                      .then(() => loginData.credentials)
+		           })
 	}
 
 	_initUserController(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean): Promise<void> {
@@ -133,9 +137,11 @@ export class WorkerClient {
 	}
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
-		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments)).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
-		}))
+		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments))
+		                                       .then(loginData => {
+			                                       return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession)
+			                                                  .then(() => loginData.credentials)
+		                                       }))
 	}
 
 	logout(sync: boolean): Promise<void> {
@@ -167,11 +173,11 @@ export class WorkerClient {
 		return this._postRequest(new Request('createMailFolder', arguments))
 	}
 
-	createMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], conversationType: ConversationTypeEnum, previousMessageId: ?Id, attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, replyTos: RecipientInfo[]): Promise<Mail> {
+	createMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], conversationType: ConversationTypeEnum, previousMessageId: ?Id, attachments: ?Array<TutanotaFile | DataFile | FileReference>, confidential: boolean, replyTos: RecipientInfo[]): Promise<Mail> {
 		return this._postRequest(new Request('createMailDraft', arguments))
 	}
 
-	updateMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
+	updateMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], attachments: ?Array<TutanotaFile | DataFile | FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
 		return this._postRequest(new Request('updateMailDraft', arguments))
 	}
 
@@ -179,7 +185,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('sendMailDraft', arguments))
 	}
 
-	downloadFileContent(file: TutanotaFile): Promise<DataFile|FileReference> {
+	downloadFileContent(file: TutanotaFile): Promise<DataFile | FileReference> {
 		return this._postRequest(new Request('downloadFileContent', arguments))
 	}
 
@@ -303,7 +309,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('loadContactFormByPath', arguments))
 	}
 
-	restRequest<T>(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string|?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
+	restRequest<T>(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
 		return this._postRequest(new Request('restRequest', Array.from(arguments)))
 	}
 
@@ -355,7 +361,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 
-	serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
+	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}
 

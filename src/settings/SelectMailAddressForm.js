@@ -48,7 +48,8 @@ export class SelectMailAddressForm {
 			this._messageId = "mailAddressNeutral_msg"
 			m.redraw()
 			return
-		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
+		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress)
+			&& cleanUsername.length < 3)) {
 			this._messageId = "mailAddressInvalid_msg"
 			m.redraw()
 			return

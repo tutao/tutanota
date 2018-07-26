@@ -71,9 +71,11 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		pathPrefix = "admin/"
 	}
 
-	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
-		return module._TypeModel
-	})
+	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+		`${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`)
+		.then(module => {
+			return module._TypeModel
+		})
 }
 
 export function create(typeModel: TypeModel): any {
@@ -81,7 +83,7 @@ export function create(typeModel: TypeModel): any {
 		_type: new TypeRef(typeModel.app, typeModel.name)
 	}
 	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
-		(i:any)._errors = {}
+		(i: any)._errors = {}
 	}
 	for (let valueName of Object.keys(typeModel.values)) {
 		let value = typeModel.values[valueName]
@@ -128,54 +130,54 @@ function _getDefaultValue(value: ModelValue): any {
 }
 
 export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface): Promise<Id> {
-	return resolveTypeReference((instance:any)._type).then(typeModel => {
+	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (typeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		return target.entityRequest((instance:any)._type, HttpMethod.POST, listId, null, instance).then(val => {
-			return ((val:any):Id)
+		return target.entityRequest((instance: any)._type, HttpMethod.POST, listId, null, instance).then(val => {
+			return ((val: any): Id)
 		})
 	})
 }
 
 export function _updateEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
-	return resolveTypeReference((instance:any)._type).then(typeModel => {
+	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
-		if (!(instance:any)._id) throw new Error("Id must be defined")
+		if (!(instance: any)._id) throw new Error("Id must be defined")
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance:any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).return()
 	})
 }
 
 export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
-	return resolveTypeReference((instance:any)._type).then(typeModel => {
+	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance:any)._type, HttpMethod.DELETE, ids.listId, ids.id).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).return()
 	})
 }
 
-export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
+export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
 		let listId = null
 		let elementId = null
 		if (typeModel.type === Type.ListElement) {
 			if ((!(id instanceof Array) || id.length !== 2)) {
-				throw new Error("Illegal IdTuple for LET: " + (id:any))
+				throw new Error("Illegal IdTuple for LET: " + (id: any))
 			}
 			listId = id[0]
 			elementId = id[1]
 		} else if (typeof id === "string") {
 			elementId = id
 		} else {
-			throw new Error("Illegal Id for ET: " + (id:any))
+			throw new Error("Illegal Id for ET: " + (id: any))
 		}
 		return target.entityRequest(typeRef, HttpMethod.GET, listId, elementId, null, queryParams).then((val) => {
-			return ((val:any):T)
+			return ((val: any): T)
 		})
 	})
 }
@@ -187,7 +189,7 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 		let queryParams = {
 			ids: elementIds.join(",")
 		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams):any)
+		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
 	})
 }
 
@@ -199,27 +201,34 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 			count: count + "",
 			reverse: reverse.toString()
 		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams):any)
+		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
 	})
 }
 
 export function _loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target).filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end)).then(entities => {
-			if (entities.length === RANGE_ITEM_LIMIT) {
-				return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length - 1])[1], end, target).then(remainingEntities => {
-					return entities.concat(remainingEntities)
-				})
-			} else {
-				return entities
-			}
-		})
+		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target)
+			.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
+			.then(entities => {
+				if (entities.length === RANGE_ITEM_LIMIT) {
+					return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length
+					- 1])[1], end, target).then(remainingEntities => {
+						return entities.concat(remainingEntities)
+					})
+				} else {
+					return entities
+				}
+			})
 	})
 }
 
 export function _verifyType(typeModel: TypeModel) {
-	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement) throw new Error("only Element and ListElement types are permitted, was: " + typeModel.type)
+	if (typeModel.type !== Type.Element && typeModel.type
+		!== Type.ListElement) {
+		throw new Error("only Element and ListElement types are permitted, was: "
+			+ typeModel.type)
+	}
 }
 
 function _getIds(instance: any, typeModel) {
@@ -253,7 +262,7 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id): boolean {
 	}
 }
 
-export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number {
 	let firstId = (id1 instanceof Array) ? id1[1] : id1
 	let secondId = (id2 instanceof Array) ? id2[1] : id2
 	if (firstId === secondId) {
@@ -263,7 +272,7 @@ export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 	}
 }
 
-export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
+export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number {
 	let firstId = (id1 instanceof Array) ? id1[1] : id1
 	let secondId = (id2 instanceof Array) ? id2[1] : id2
 	if (firstId === secondId) {
@@ -275,11 +284,11 @@ export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 
 
 export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
-	return compareNewestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+	return compareNewestFirst((entity1._id[1]: any), (entity2._id[1]: any))
 }
 
 export function sortCompareById(entity1: Object, entity2: Object): number {
-	return compareOldestFirst((entity1._id[1]:any), (entity2._id[1]:any))
+	return compareOldestFirst((entity1._id[1]: any), (entity2._id[1]: any))
 }
 
 
@@ -290,24 +299,24 @@ export function sortCompareById(entity1: Object, entity2: Object): number {
  * @param entity2
  * @returns True if the ids are the same, false otherwise
  */
-export function isSameId(id1: Id|IdTuple, id2: Id|IdTuple) {
+export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple) {
 	if (id1 instanceof Array && id2 instanceof Array) {
 		return id1[0] === id2[0] && id1[1] === id2[1]
 	} else {
-		return (id1:any) === (id2:any)
+		return (id1: any) === (id2: any)
 	}
 }
 
-export function containsId(ids: Array<Id|IdTuple>, id: Id|IdTuple) {
+export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple) {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 
 export function getEtId(entity: any): Id {
-	return (entity:any)._id
+	return (entity: any)._id
 }
 
 export function getLetId(entity: any): IdTuple {
-	return (entity:any)._id
+	return (entity: any)._id
 }
 
 /**

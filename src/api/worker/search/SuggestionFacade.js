@@ -7,7 +7,7 @@ import {random} from "../crypto/Randomizer"
 import {TypeRef} from "../../common/EntityFunctions"
 
 export type SuggestionsType = {
-	[key:string] : string[]
+	[key: string]: string[]
 }
 
 export class SuggestionFacade<T> {

@@ -35,7 +35,8 @@ export class WhitelabelChildIndexer {
 			{
 				attribute: WhitelabelChildModel.values["comment"],
 				value: () => whitelabelChild.comment,
-			}])
+			}
+		])
 	}
 
 	_getSuggestionWords(whitelabelChild: WhitelabelChild): string[] {
@@ -44,15 +45,17 @@ export class WhitelabelChildIndexer {
 
 
 	processNewWhitelabelChild(event: EntityUpdate): Promise<?{whitelabelChild: WhitelabelChild, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
-		return this._entity.load(WhitelabelChildTypeRef, [event.instanceListId, event.instanceId]).then(whitelabelChild => {
-			let keyToIndexEntries = this.createWhitelabelChildIndexEntries(whitelabelChild)
-			return this.suggestionFacade.store().then(() => {
-				return {whitelabelChild, keyToIndexEntries}
-			})
-		}).catch(NotFoundError, () => {
-			console.log("tried to index non existing whitelabel child")
-			return null
-		})
+		return this._entity.load(WhitelabelChildTypeRef, [event.instanceListId, event.instanceId])
+		           .then(whitelabelChild => {
+			           let keyToIndexEntries = this.createWhitelabelChildIndexEntries(whitelabelChild)
+			           return this.suggestionFacade.store().then(() => {
+				           return {whitelabelChild, keyToIndexEntries}
+			           })
+		           })
+		           .catch(NotFoundError, () => {
+			           console.log("tried to index non existing whitelabel child")
+			           return null
+		           })
 	}
 
 	/**
@@ -75,7 +78,9 @@ export class WhitelabelChildIndexer {
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
 								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-								return Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()]).return()
+								return Promise.all([
+									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+								]).return()
 							})
 						}
 					})

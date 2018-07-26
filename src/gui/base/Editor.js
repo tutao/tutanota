@@ -49,7 +49,7 @@ export class Editor {
 	}
 
 	initSquire(domElement: HTMLElement) {
-		let squire = new (SquireEditor:any)(domElement, {}).addEventListener('keyup', (e) => {
+		let squire = new (SquireEditor: any)(domElement, {}).addEventListener('keyup', (e) => {
 			if (e.which === 32) {
 				let blocks = []
 				squire.forEachBlock((block) => {

@@ -15,13 +15,13 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getPriceFromPriceData} from "./PriceUtils"
 
 type UpgradePrices = {
-	premiumPrice:number,
-	proPrice:number
+	premiumPrice: number,
+	proPrice: number
 }
 
 type UpgradeBox = {
-	buyOptionBox:BuyOptionBox;
-	paymentInterval:stream<SegmentControlItem<number>>
+	buyOptionBox: BuyOptionBox;
+	paymentInterval: stream<SegmentControlItem<number>>
 }
 
 export class SubscriptionSelector {
@@ -35,13 +35,23 @@ export class SubscriptionSelector {
 
 		let freeTypeBox = new BuyOptionBox(() => "Free", "select_action",
 			freeAction,
-			() => this._getOptions(["comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"], "Free"), 230, 240)
+			() => this._getOptions([
+				"comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"
+			], "Free"), 230, 240)
 		freeTypeBox.setValue("0 €")
 		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport"])
-		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"])
+		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [
+			this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
+			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
+			"comparisonSupport"
+		])
+		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [
+			this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
+			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
+			"comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"
+		])
 
 		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
 		this._monthlyPrice = new LazyLoaded(() => {
@@ -99,9 +109,15 @@ export class SubscriptionSelector {
 
 		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
 			if (paymentIntervalItem.value === 12) {
-				this._yearlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice ) + " €")).then(() => m.redraw())
+				this._yearlyPrice.getAsync()
+				    .then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice)
+					    + " €"))
+				    .then(() => m.redraw())
 			} else {
-				this._monthlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")).then(() => m.redraw())
+				this._monthlyPrice.getAsync()
+				    .then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false)
+					    + " €"))
+				    .then(() => m.redraw())
 			}
 			upgradeBox.paymentInterval(paymentIntervalItem)
 		})
@@ -111,14 +127,18 @@ export class SubscriptionSelector {
 
 	_getPrices(current: AccountTypeEnum, paymentInterval: number): Promise<UpgradePrices> {
 		return Promise.join(
-			worker.getPrice(BookingItemFeatureType.Users, current === AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Users, current
+			=== AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),
 			(userReturn, aliasReturn, storageReturn, brandingReturn) => {
 				return {
 					premiumPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)),
-					proPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)) + Number(getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias)) + Number(getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage)) + Number(neverNull(getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)))
+					proPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users))
+					+ Number(getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias))
+					+ Number(getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage))
+					+ Number(neverNull(getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)))
 				}
 			})
 	}

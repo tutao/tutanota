@@ -15,7 +15,7 @@ export function concat(...arrays: Uint8Array): Uint8Array {
  * @param {Array} a2 The second array.
  * @return {boolean} True if the arrays are equal, false otherwise.
  */
-export function arrayEquals(a1: Uint8Array|Array<string>, a2: Uint8Array|Array<string>) {
+export function arrayEquals(a1: Uint8Array | Array<string>, a2: Uint8Array | Array<string>) {
 	if (a1.length === a2.length) {
 		for (var i = 0; i < a1.length; i++) {
 			if (a1[i] !== a2[i]) {

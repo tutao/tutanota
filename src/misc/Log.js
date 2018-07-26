@@ -4,7 +4,7 @@ import {assertMainOrNodeBoot} from "../api/Env"
 
 assertMainOrNodeBoot()
 
-export const Cat: {[key:string]:LogCategory} = {
+export const Cat: {[key: string]: LogCategory} = {
 	css: {name: 'css', color: 'orange'},
 	mithril: {name: 'mithril', color: 'darkgreen'},
 	error: {name: 'error', color: 'red'},
@@ -24,7 +24,9 @@ export function log(category: LogCategory, message: string, ...args: any[]) {
 }
 
 export function timer(category: LogCategory): Function {
-	if (activeCategories.indexOf(category) === -1) return function () {
+	if (activeCategories.indexOf(category) === -1) {
+		return function () {
+		}
 	}
 	let start = window.performance.now()
 	return function () {

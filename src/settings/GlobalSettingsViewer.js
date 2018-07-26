@@ -46,11 +46,14 @@ export class GlobalSettingsViewer {
 
 	constructor() {
 		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
 		let addSpamRuleButton = new Button("addSpamRule_action", () => AddSpamRuleDialog.show(), () => Icons.Add)
-		this._spamRulesTable = new Table(["emailSenderRule_label", "emailSender_label"], [ColumnWidth.Small, ColumnWidth.Largest], true, addSpamRuleButton)
+		this._spamRulesTable = new Table(["emailSenderRule_label", "emailSender_label"], [
+			ColumnWidth.Small, ColumnWidth.Largest
+		], true, addSpamRuleButton)
 		let spamRulesExpander = new ExpanderButton("show_action", new ExpanderPanel(this._spamRulesTable), false)
 
 		this._props = stream()
@@ -63,7 +66,9 @@ export class GlobalSettingsViewer {
 				this._customerInfo.getAsync().then(customerInfo => AddDomainDialog.show(customerInfo))
 			}
 		}, () => Icons.Add)
-		this._domainsTable = new Table(["adminCustomDomain_label", "catchAllMailbox_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addDomainButton)
+		this._domainsTable = new Table(["adminCustomDomain_label", "catchAllMailbox_label"], [
+			ColumnWidth.Largest, ColumnWidth.Largest
+		], true, addDomainButton)
 		let domainsExpander = new ExpanderButton("show_action", new ExpanderPanel(this._domainsTable), false)
 
 		let requirePasswordUpdateAfterReset = stream(false)
@@ -75,7 +80,9 @@ export class GlobalSettingsViewer {
 			update(Object.assign({}, this._props(), {requirePasswordUpdateAfterReset: v}))
 		})
 
-		this._auditLogTable = new Table(["action_label", "modified_label", "time_label"], [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small], true)
+		this._auditLogTable = new Table(["action_label", "modified_label", "time_label"], [
+			ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small
+		], true)
 		let auditLogExpander = new ExpanderButton("show_action", new ExpanderPanel(this._auditLogTable), false)
 
 		this.view = () => {
@@ -95,19 +102,20 @@ export class GlobalSettingsViewer {
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
 					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
-					logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount() ? m(".mt-l", [
-							m(".h4", lang.get('security_title')),
-							m(requirePasswordUpdateAfterResetDropdown),
-							this._customer() ?
-								m(".mt-l", [
-									m(".flex-space-between.items-center.mb-s", [
-										m(".h4", lang.get('auditLog_title')),
-										m(auditLogExpander)
-									]),
-									m(auditLogExpander.panel),
-									m("small", lang.get("auditLogInfo_msg")),
-								]) : null
-						]) : null,
+					logins.getUserController().isGlobalAdmin() && logins.getUserController()
+					                                                    .isPremiumAccount() ? m(".mt-l", [
+						m(".h4", lang.get('security_title')),
+						m(requirePasswordUpdateAfterResetDropdown),
+						this._customer() ?
+							m(".mt-l", [
+								m(".flex-space-between.items-center.mb-s", [
+									m(".h4", lang.get('auditLog_title')),
+									m(auditLogExpander)
+								]),
+								m(auditLogExpander.panel),
+								m("small", lang.get("auditLogInfo_msg")),
+							]) : null
+					]) : null,
 				]),
 			]
 		}
@@ -118,7 +126,8 @@ export class GlobalSettingsViewer {
 	}
 
 	_getSpamRulesInfoLink(): string {
-		return (lang.code === "de" || lang.code === "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
+		return (lang.code === "de" || lang.code
+			=== "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
 	}
 
 	_updateCustomerServerProperties(): void {
@@ -129,7 +138,9 @@ export class GlobalSettingsViewer {
 					props.emailSenderList.splice(index, 1)
 					update(props)
 				}, () => Icons.Cancel)
-				return new TableLine([neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value], actionButton)
+				return new TableLine([
+					neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value
+				], actionButton)
 			}))
 		})
 	}
@@ -137,60 +148,67 @@ export class GlobalSettingsViewer {
 	_updateAuditLog() {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			this._customer(customer)
-			loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then(auditLog => {
-				this._auditLogTable.updateEntries(auditLog.map(line => {
-					let showDetails = new Button("showMore_action", () => {
-						let modifiedGroupInfo = stream()
-						let groupInfo = stream()
-						let groupInfoLoadingPromises = []
-						if (line.modifiedGroupInfo) {
-							groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.modifiedGroupInfo).then(gi => {
-								modifiedGroupInfo(gi)
-							}).catch(NotAuthorizedError, e => {
-								// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-							}))
-						}
-						if (line.groupInfo) {
-							groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.groupInfo).then(gi => {
-								groupInfo(gi)
-							}).catch(NotAuthorizedError, e => {
-								// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-							}))
-						}
-						Promise.all(groupInfoLoadingPromises).then(() => {
-							let dialog = Dialog.smallActionDialog(lang.get("auditLog_title"), {
-								view: () => m("table.pt", [
-									m("tr", [
-										m("td", lang.get("action_label")),
-										m("td.pl", line.action)
-									]),
-									m("tr", [
-										m("td", lang.get("actor_label")),
-										m("td.pl", line.actorMailAddress)
-									]),
-									m("tr", [
-										m("td", lang.get("IpAddress_label")),
-										m("td.pl", line.actorIpAddress)
-									]),
-									m("tr", [
-										m("td", lang.get("modified_label")),
-										m("td.pl", (modifiedGroupInfo() && this._getGroupInfoDisplayText(modifiedGroupInfo())) ? this._getGroupInfoDisplayText(modifiedGroupInfo()) : line.modifiedEntity),
-									]),
-									groupInfo() ? m("tr", [
+			loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+				.then(auditLog => {
+					this._auditLogTable.updateEntries(auditLog.map(line => {
+						let showDetails = new Button("showMore_action", () => {
+							let modifiedGroupInfo = stream()
+							let groupInfo = stream()
+							let groupInfoLoadingPromises = []
+							if (line.modifiedGroupInfo) {
+								groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.modifiedGroupInfo)
+									.then(gi => {
+										modifiedGroupInfo(gi)
+									})
+									.catch(NotAuthorizedError, e => {
+										// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+									}))
+							}
+							if (line.groupInfo) {
+								groupInfoLoadingPromises.push(load(GroupInfoTypeRef, line.groupInfo).then(gi => {
+									groupInfo(gi)
+								}).catch(NotAuthorizedError, e => {
+									// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+								}))
+							}
+							Promise.all(groupInfoLoadingPromises).then(() => {
+								let dialog = Dialog.smallActionDialog(lang.get("auditLog_title"), {
+									view: () => m("table.pt", [
+										m("tr", [
+											m("td", lang.get("action_label")),
+											m("td.pl", line.action)
+										]),
+										m("tr", [
+											m("td", lang.get("actor_label")),
+											m("td.pl", line.actorMailAddress)
+										]),
+										m("tr", [
+											m("td", lang.get("IpAddress_label")),
+											m("td.pl", line.actorIpAddress)
+										]),
+										m("tr", [
+											m("td", lang.get("modified_label")),
+											m("td.pl", (modifiedGroupInfo()
+												&& this._getGroupInfoDisplayText(modifiedGroupInfo())) ? this._getGroupInfoDisplayText(modifiedGroupInfo()) : line.modifiedEntity),
+										]),
+										groupInfo() ? m("tr", [
 											m("td", lang.get("group_label")),
-											m("td.pl", customer.adminGroup === groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
+											m("td.pl", customer.adminGroup
+											=== groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
 										]) : null,
-									m("tr", [
-										m("td", lang.get("time_label")),
-										m("td.pl", formatDateTime(line.date)),
-									]),
-								])
-							}, () => dialog.close(), false)
-						})
-					}, () => Icons.More)
-					return new TableLine([line.action, line.modifiedEntity, formatDateTimeFromYesterdayOn(line.date)], showDetails)
-				}))
-			})
+										m("tr", [
+											m("td", lang.get("time_label")),
+											m("td.pl", formatDateTime(line.date)),
+										]),
+									])
+								}, () => dialog.close(), false)
+							})
+						}, () => Icons.More)
+						return new TableLine([
+							line.action, line.modifiedEntity, formatDateTimeFromYesterdayOn(line.date)
+						], showDetails)
+					}))
+				})
 		})
 	}
 
@@ -216,41 +234,50 @@ export class GlobalSettingsViewer {
 					let actionButton = createDropDownButton("action_label", () => Icons.More, () => {
 						let buttons = []
 						buttons.push(new Button("setCatchAllMailbox_action", () => {
-							showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-								return loadEnabledTeamMailGroups(customer).then(teamMailGroups => loadEnabledUserMailGroups(customer).then(userMailGroups => {
-									let allMailGroups = teamMailGroups.concat(userMailGroups)
-									let options = [
-										{name: lang.get("comboBoxSelectionNone_msg"), value: null}
-									].concat(allMailGroups.map(groupData => {
-										return {name: groupData.displayName, value: groupData.groupId}
-									}))
-									let selectedPromise = Promise.resolve(null) // default is no selection
-									if (domainInfo.catchAllMailGroup) {
-										// the catch all group may be a user group, so load the mail group in that case
-										selectedPromise = load(GroupTypeRef, domainInfo.catchAllMailGroup).then(catchAllGroup => {
-											if (catchAllGroup.type === GroupType.User) {
-												return load(UserTypeRef, neverNull(catchAllGroup.user)).then(user => {
-													return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+							showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+								.then(customer => {
+									return loadEnabledTeamMailGroups(customer)
+										.then(teamMailGroups => loadEnabledUserMailGroups(customer)
+											.then(userMailGroups => {
+												let allMailGroups = teamMailGroups.concat(userMailGroups)
+												let options = [
+													{name: lang.get("comboBoxSelectionNone_msg"), value: null}
+												].concat(allMailGroups.map(groupData => {
+													return {name: groupData.displayName, value: groupData.groupId}
+												}))
+												let selectedPromise = Promise.resolve(null) // default is no selection
+												if (domainInfo.catchAllMailGroup) {
+													// the catch all group may be a user group, so load the mail group in that case
+													selectedPromise = load(GroupTypeRef, domainInfo.catchAllMailGroup)
+														.then(catchAllGroup => {
+															if (catchAllGroup.type === GroupType.User) {
+																return load(UserTypeRef, neverNull(catchAllGroup.user))
+																	.then(user => {
+																		return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+																	})
+															} else {
+																return domainInfo.catchAllMailGroup
+															}
+														})
+												}
+												return selectedPromise.then(catchAllMailGroupId => {
+													let selected = allMailGroups.find(g => g.groupId
+														=== catchAllMailGroupId)
+													return {available: options, selected: selected}
 												})
-											} else {
-												return domainInfo.catchAllMailGroup
-											}
-										})
-									}
-									return selectedPromise.then(catchAllMailGroupId => {
-										let selected = allMailGroups.find(g => g.groupId === catchAllMailGroupId)
-										return {available: options, selected: selected}
-									})
-								}))
-							})).then(availableAndSelectedGroupDatas => {
-								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null, 250).then(selectedMailGroupId => {
-									return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
-								})
+											}))
+								})).then(availableAndSelectedGroupDatas => {
+								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null, 250)
+								             .then(selectedMailGroupId => {
+									             return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+								             })
 							})
 						}).setType(ButtonType.Dropdown))
 						buttons.push(new Button("delete_action", () => {
 							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
-								let registrationDomains = this._props() != null ? this._props().whitelabelRegistrationDomains.map(domainWrapper => domainWrapper.value) : []
+								let registrationDomains = this._props() != null ? this._props()
+								                                                      .whitelabelRegistrationDomains
+								                                                      .map(domainWrapper => domainWrapper.value) : []
 								if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
 									Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 								} else {
@@ -278,7 +305,7 @@ export class GlobalSettingsViewer {
 	}
 }
 
-export function getSpamRuleTypeNameMapping(): {value:string, name: string}[] {
+export function getSpamRuleTypeNameMapping(): {value: string, name: string}[] {
 	return [
 		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},

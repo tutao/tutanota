@@ -238,7 +238,7 @@ sjcl.cipher.aes.prototype = {
 
 		// Compute double and third tables
 		for (i = 0; i < 256; i++) {
-			th[( d[i] = i << 1 ^ (i >> 7) * 283 ) ^ i] = i;
+			th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
 		}
 
 		for (x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
@@ -1034,14 +1034,15 @@ sjcl.hash.sha256.prototype = {
 			if (i < 16) {
 				tmp = w[i];
 			} else {
-				a = w[(i + 1 ) & 15];
+				a = w[(i + 1) & 15];
 				b = w[(i + 14) & 15];
 				tmp = w[i & 15] = ((a >>> 7 ^ a >>> 18 ^ a >>> 3 ^ a << 25 ^ a << 14) +
 					(b >>> 17 ^ b >>> 19 ^ b >>> 10 ^ b << 15 ^ b << 13) +
 					w[i & 15] + w[(i + 9) & 15]) | 0;
 			}
 
-			tmp = (tmp + h7 + (h4 >>> 6 ^ h4 >>> 11 ^ h4 >>> 25 ^ h4 << 26 ^ h4 << 21 ^ h4 << 7) + (h6 ^ h4 & (h5 ^ h6)) + k[i]); // | 0;
+			tmp = (tmp + h7 + (h4 >>> 6 ^ h4 >>> 11 ^ h4 >>> 25 ^ h4 << 26 ^ h4 << 21 ^ h4 << 7) + (h6 ^ h4 & (h5 ^ h6))
+				+ k[i]); // | 0;
 
 			// shift register
 			h7 = h6;
@@ -1052,7 +1053,8 @@ sjcl.hash.sha256.prototype = {
 			h2 = h1;
 			h1 = h0;
 
-			h0 = (tmp + ((h1 & h2) ^ (h3 & (h1 ^ h2))) + (h1 >>> 2 ^ h1 >>> 13 ^ h1 >>> 22 ^ h1 << 30 ^ h1 << 19 ^ h1 << 10)) | 0;
+			h0 = (tmp + ((h1 & h2) ^ (h3 & (h1 ^ h2))) + (h1 >>> 2 ^ h1 >>> 13 ^ h1 >>> 22 ^ h1 << 30 ^ h1 << 19 ^ h1
+				<< 10)) | 0;
 		}
 
 		h[0] = h[0] + h0 | 0;
@@ -1137,14 +1139,14 @@ sjcl.hash.sha1.prototype = {
 			var c = new Uint32Array(b);
 			var j = 0;
 			for (i = this.blockSize + ol - ((this.blockSize + ol) & (this.blockSize - 1)); i <= nl;
-				 i += this.blockSize) {
+			     i += this.blockSize) {
 				this._block(c.subarray(16 * j, 16 * (j + 1)));
 				j += 1;
 			}
 			b.splice(0, 16 * j);
 		} else {
 			for (i = this.blockSize + ol - ((this.blockSize + ol) & (this.blockSize - 1)); i <= nl;
-				 i += this.blockSize) {
+			     i += this.blockSize) {
 				this._block(b.splice(0, 16));
 			}
 		}
@@ -1369,7 +1371,7 @@ sjcl.mode.cbc = {
 			}
 			bo = bi * 0x1010101;
 			if (!w.equal(w.bitSlice([bo, bo, bo, bo], 0, bi * 8),
-					w.bitSlice(output, output.length * 32 - bi * 8, output.length * 32))) {
+				w.bitSlice(output, output.length * 32 - bi * 8, output.length * 32))) {
 				throw new sjcl.exception.corrupt("pkcs#5 padding corrupt");
 			}
 
@@ -1737,7 +1739,8 @@ sjcl.prng.prototype = {
 	},
 
 	setDefaultParanoia: function (paranoia, allowZeroParanoia) {
-		if (paranoia === 0 && allowZeroParanoia !== "Setting paranoia=0 will ruin your security; use it only for testing") {
+		if (paranoia === 0 && allowZeroParanoia
+			!== "Setting paranoia=0 will ruin your security; use it only for testing") {
 			throw new sjcl.exception.invalid("Setting paranoia=0 will ruin your security; use it only for testing");
 		}
 
@@ -1767,7 +1770,7 @@ sjcl.prng.prototype = {
 		if (robin === undefined) {
 			robin = this._robins[source] = 0;
 		}
-		this._robins[source] = ( this._robins[source] + 1 ) % this._pools.length;
+		this._robins[source] = (this._robins[source] + 1) % this._pools.length;
 
 		switch (typeof(data)) {
 
@@ -2085,7 +2088,8 @@ sjcl.prng.prototype = {
 		}
 	},
 	_accelerometerCollector: function (ev) {
-		var ac = ev.accelerationIncludingGravity.x || ev.accelerationIncludingGravity.y || ev.accelerationIncludingGravity.z;
+		var ac = ev.accelerationIncludingGravity.x || ev.accelerationIncludingGravity.y
+			|| ev.accelerationIncludingGravity.z;
 		if (window.orientation) {
 			var or = window.orientation;
 			if (typeof or === "number") {
@@ -2275,14 +2279,14 @@ sjcl.codec.arrayBuffer = {
 
 		for (var i = 0; i < stringBufferView.byteLength; i += 2) {
 			if (i % 16 == 0) string += ('\n' + (i).toString(16) + '\t');
-			string += ( pad(stringBufferView.getUint16(i).toString(16), 4) + ' ');
+			string += (pad(stringBufferView.getUint16(i).toString(16), 4) + ' ');
 		}
 
 		if (typeof console === undefined) {
 			console = console || {
-					log: function () {
-					}
-				}; //fix for IE
+				log: function () {
+				}
+			}; //fix for IE
 		}
 		console.log(string.toUpperCase());
 	}

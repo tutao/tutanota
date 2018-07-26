@@ -35,54 +35,64 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 				} else {
 
 					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-						return load(AccountingInfoTypeRef, customerInfo.accountingInfo).catch(NotAuthorizedError, e => {/* local admin */
-						}).then(accountingInfo => {
-							if (accountingInfo && !accountingInfo.invoiceCountry) {
-								return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
-									if (confirm) {
-										return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.").then(ok => {
-											if (ok) {
-												window.open("https://app.tutanota.com/", null, null, false)
-											}
-											return false
-										})
-									}
-									return false
-								})
-							} else {
-								let buy = _isBuy(price, featureType)
-								let orderField = new TextField("bookingOrder_label").setValue(_getBookingText(price, featureType, count, freeAmount)).setDisabled()
-								let buyField = (buy) ? new TextField("subscription_label", () => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price)).setDisabled() : null
-								let priceField = new TextField("price_label", () => _getPriceInfoText(price, featureType)).setValue(_getPriceText(price, featureType)).setDisabled()
-
-								return Promise.fromCallback(cb => {
-									let actionBar = new DialogHeaderBar()
-									let cancelAction = () => {
-										dialog.close()
-										cb(null, false)
-									}
-									actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-									actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-									actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
-										dialog.close()
-										cb(null, true)
-									}).setType(ButtonType.Primary))
-
-									let dialog = new Dialog(DialogType.EditSmall, {
-										view: (): Children => [
-											m(".dialog-header.plr-l", m(actionBar)),
-											m(".plr-l.pb", m("", [
-												m(orderField),
-												buyField ? m(buyField) : null,
-												m(priceField),
-											]))
-										]
+						return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+							.catch(NotAuthorizedError, e => {/* local admin */
+							})
+							.then(accountingInfo => {
+								if (accountingInfo && !accountingInfo.invoiceCountry) {
+									return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
+										if (confirm) {
+											return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.")
+											             .then(ok => {
+												             if (ok) {
+													             window.open("https://app.tutanota.com/", null, null, false)
+												             }
+												             return false
+											             })
+										}
+										return false
 									})
-									dialog.setCloseHandler(cancelAction)
-									dialog.show()
-								})
-							}
-						})
+								} else {
+									let buy = _isBuy(price, featureType)
+									let orderField = new TextField("bookingOrder_label")
+										.setValue(_getBookingText(price, featureType, count, freeAmount))
+										.setDisabled()
+									let buyField = (buy) ? new TextField("subscription_label",
+										() => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price))
+									                                          .setDisabled() : null
+									let priceField = new TextField("price_label",
+										() => _getPriceInfoText(price, featureType))
+										.setValue(_getPriceText(price, featureType))
+										.setDisabled()
+
+									return Promise.fromCallback(cb => {
+										let actionBar = new DialogHeaderBar()
+										let cancelAction = () => {
+											dialog.close()
+											cb(null, false)
+										}
+										actionBar.setMiddle(() => lang.get("bookingSummary_label"))
+										actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
+										actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
+											dialog.close()
+											cb(null, true)
+										}).setType(ButtonType.Primary))
+
+										let dialog = new Dialog(DialogType.EditSmall, {
+											view: (): Children => [
+												m(".dialog-header.plr-l", m(actionBar)),
+												m(".plr-l.pb", m("", [
+													m(orderField),
+													buyField ? m(buyField) : null,
+													m(priceField),
+												]))
+											]
+										})
+										dialog.setCloseHandler(cancelAction)
+										dialog.show()
+									})
+								}
+							})
 					})
 				}
 			})
@@ -173,7 +183,8 @@ function _getSubscriptionInfoText(price: PriceServiceReturn): string {
 
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
 	let netGrossText = neverNull(price.futurePriceNextPeriod).taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") ? lang.get('perYear_label') : lang.get('perMonth_label')
+	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval === "12")
+		? lang.get('perYear_label') : lang.get('perMonth_label')
 	let futurePriceNextPeriod = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 	let currentPriceNextPeriod = _getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 
@@ -196,15 +207,18 @@ function _getPriceInfoText(price: PriceServiceReturn, featureType: NumberString)
 }
 
 function _isPriceChange(price: PriceServiceReturn, featureType: NumberString): boolean {
-	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) !== _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
+	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
+		!== _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
 
 function _isBuy(price: PriceServiceReturn, featureType: NumberString): boolean {
-	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) < _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
+	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
+		< _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
 
 function _isUnbuy(price: PriceServiceReturn, featureType: NumberString): boolean {
-	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) > _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
+	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
+		> _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
 
 function _isSinglePriceType(currentPriceData: ?PriceData, futurePriceData: ?PriceData, featureType: NumberString): boolean {

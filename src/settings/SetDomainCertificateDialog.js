@@ -26,7 +26,8 @@ export function show(customerInfo: CustomerInfo): void {
 	}
 
 	let certChainFile: ?DataFile = null
-	let certificateChainField = new TextField("certificateChain_label", () => lang.get("certificateChainInfo_msg")).setValue("").setDisabled()
+	let certificateChainField = new TextField("certificateChain_label",
+		() => lang.get("certificateChainInfo_msg")).setValue("").setDisabled()
 	let chooseCertificateChainButton = new Button("edit_action", () => {
 		fileController.showFileChooser(false).then(files => {
 			certChainFile = files[0]
@@ -37,7 +38,8 @@ export function show(customerInfo: CustomerInfo): void {
 	certificateChainField._injectionsRight = () => [m(chooseCertificateChainButton)]
 
 	let privKeyFile: ?DataFile = null
-	let privateKeyField = new TextField("privateKey_label", () => lang.get("privateKeyInfo_msg")).setValue("").setDisabled()
+	let privateKeyField = new TextField("privateKey_label",
+		() => lang.get("privateKeyInfo_msg")).setValue("").setDisabled()
 	let choosePrivateKeyButton = new Button("edit_action", () => {
 		fileController.showFileChooser(false).then(files => {
 			privKeyFile = files[0]
@@ -68,13 +70,18 @@ export function show(customerInfo: CustomerInfo): void {
 			Dialog.error("customDomainErrorDomainNotAvailable_msg")
 		} else {
 			try {
-				showProgressDialog("pleaseWait_msg", worker.uploadCertificate(domain, utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data)).then(() => {
-					dialog.close()
-				}).catch(InvalidDataError, e => {
-					Dialog.error("certificateError_msg")
-				}).catch(PreconditionFailedError, e => {
-					Dialog.error("invalidCnameRecord_msg")
-				}))
+				showProgressDialog("pleaseWait_msg",
+					worker.uploadCertificate(domain,
+						utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data))
+					      .then(() => {
+						      dialog.close()
+					      })
+					      .catch(InvalidDataError, e => {
+						      Dialog.error("certificateError_msg")
+					      })
+					      .catch(PreconditionFailedError, e => {
+						      Dialog.error("invalidCnameRecord_msg")
+					      }))
 			} catch (e) {
 				Dialog.error("certificateError_msg")
 			}

@@ -51,17 +51,19 @@ export function show(): Promise<void> {
 			}).then(okClicked => {
 				if (okClicked) {
 					if (typeField.selectedValue() === GroupType.Mail) {
-						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
-							if (accepted) {
-								return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
-							}
-						}))
+						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false)
+						                                                     .then(accepted => {
+							                                                     if (accepted) {
+								                                                     return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
+							                                                     }
+						                                                     }))
 					} else if (typeField.selectedValue() === GroupType.LocalAdmin) {
-						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false).then(accepted => {
-							if (accepted) {
-								return worker.createLocalAdminGroup(nameField.value())
-							}
-						}))
+						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false)
+						                                                     .then(accepted => {
+							                                                     if (accepted) {
+								                                                     return worker.createLocalAdminGroup(nameField.value())
+							                                                     }
+						                                                     }))
 					}
 				}
 			})

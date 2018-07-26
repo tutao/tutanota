@@ -53,12 +53,13 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country)).then(success => {
-					if (success) {
-						dialog.close()
-						cb(null, true)
-					}
-				})
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country))
+					.then(success => {
+						if (success) {
+							dialog.close()
+							cb(null, true)
+						}
+					})
 			}
 		}
 

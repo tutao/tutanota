@@ -47,7 +47,9 @@ export class EditSecondFactorsForm {
 	constructor(user: LazyLoaded<User>) {
 		this._user = user
 		let add2FAButton = new Button("addSecondFactor_action", () => this._showAddSecondFactorDialog(), () => Icons.Add)
-		this._2FATable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, add2FAButton)
+		this._2FATable = new Table(["name_label", "type_label"], [
+			ColumnWidth.Largest, ColumnWidth.Largest
+		], true, add2FAButton)
 		this.view = () => {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
@@ -60,7 +62,9 @@ export class EditSecondFactorsForm {
 	}
 
 	_get2FAInfoLink(): string {
-		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+		return (lang.code === "de" || lang.code === "de_sie")
+			? "https://tutanota.uservoice.com/knowledgebase/articles/1201945"
+			: "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
 	}
 
 	_updateSecondFactors(): void {
@@ -78,7 +82,9 @@ export class EditSecondFactorsForm {
 					let removeButton = new Button("remove_action", () => {
 						Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
 							if (confirmed) {
-								showProgressDialog("pleaseWait_msg", erase(f).catch(NotFoundError, e => console.log("could not delete second factor (has already been deleted)", e)))
+								showProgressDialog("pleaseWait_msg", erase(f)
+									.catch(NotFoundError, e =>
+										console.log("could not delete second factor (has already been deleted)", e)))
 							}
 						})
 					}, () => Icons.Cancel)
@@ -86,7 +92,9 @@ export class EditSecondFactorsForm {
 					if (u2f && differentDomainAppIds.length > 1) {
 						domainInfo = ((f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId)
 					}
-					return new TableLine([f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])], logins.getUserController().isGlobalOrLocalAdmin() ? removeButton : null)
+					return new TableLine([
+						f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])
+					], logins.getUserController().isGlobalOrLocalAdmin() ? removeButton : null)
 				})
 				this._2FATable.updateEntries(tableLines)
 			})
@@ -102,7 +110,8 @@ export class EditSecondFactorsForm {
 				let issuer = isTutanotaDomain() ? "Tutanota" : location.hostname
 				let account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
 				let cleanSecret = secret.replace(/ /g, "")
-				return otpAuthUrlPrefix + account + "?secret=" + cleanSecret + "&issuer=" + issuer + "&algorithm=SHA1&digits=6&period=30"
+				return otpAuthUrlPrefix + account + "?secret=" + cleanSecret + "&issuer=" + issuer
+					+ "&algorithm=SHA1&digits=6&period=30"
 			})
 		})
 	}
@@ -112,157 +121,168 @@ export class EditSecondFactorsForm {
 		let totpPromise = worker.generateTotpSecret()
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
-		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise])).spread((totpKeys, u2fSupport, user) => {
-			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).filter(k => (k === SecondFactorType.u2f && !u2fSupport) ? false : true).map(key => {
-				return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
-			}), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
-			let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
-			let u2fRegistrationData = stream(null)
+		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise]))
+			.spread((totpKeys, u2fSupport, user) => {
+				let type = new DropDownSelector("type_label", null,
+					Object.keys(SecondFactorTypeToNameTextId)
+					      .filter(k => (k === SecondFactorType.u2f
+						      && !u2fSupport) ? false : true)
+					      .map(key => {
+						      return {
+							      name: lang.get(SecondFactorTypeToNameTextId[key]),
+							      value: key
+						      }
+					      }), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
+				let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
+				let u2fRegistrationData = stream(null)
 
-			let totpSecret = new TextField("totpSecret_label",
-				() => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"))
-				.setDisabled()
-			totpSecret.value(totpKeys.readableKey)
-			let button = new Button("copy_action",
-				() => copyToClipboard(totpKeys.readableKey),
-				() => Icons.Copy
-			)
-			totpSecret._injectionsRight = () => m(button)
-			let totpSvg
-			let authUrl
-			this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
-				if (!isApp()) {
-					let qrcodeGenerator = new QRCode({
-						height: 150,
-						width: 150,
-						content: optAuthUrl
-					})
-					totpSvg = qrcodeGenerator.svg()
-				}
-				authUrl = optAuthUrl
-			})
-
-			let totpCode = new TextField("totpCode_label")
-			let openTOTPApp = new Button("addOpenOTPApp_action", () => {
-				openLinkNative(authUrl).then(successful => {
-					if (!successful) {
-						Dialog.error("noAppAvailable_msg")
+				let totpSecret = new TextField("totpSecret_label",
+					() => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"))
+					.setDisabled()
+				totpSecret.value(totpKeys.readableKey)
+				let button = new Button("copy_action",
+					() => copyToClipboard(totpKeys.readableKey),
+					() => Icons.Copy
+				)
+				totpSecret._injectionsRight = () => m(button)
+				let totpSvg
+				let authUrl
+				this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
+					if (!isApp()) {
+						let qrcodeGenerator = new QRCode({
+							height: 150,
+							width: 150,
+							content: optAuthUrl
+						})
+						totpSvg = qrcodeGenerator.svg()
 					}
+					authUrl = optAuthUrl
 				})
-			}).setType(ButtonType.Login)
 
-			let verificationStatus = stream(VerificationStatus.Progress)
-			verificationStatus.map(() => m.redraw())
-			u2fRegistrationData.map(registrationData => {
-				if (registrationData) {
-					verificationStatus(VerificationStatus.Success)
-				} else {
-					verificationStatus(VerificationStatus.Progress)
-				}
-			})
-			totpCode.value.map(v => {
-				let cleanedValue = v.replace(/ /g, "")
-				if (cleanedValue.length === 6) {
-					worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key).then(number => {
-						if (number === cleanedValue) {
-							verificationStatus(VerificationStatus.Success)
-						} else {
-							verificationStatus(VerificationStatus.Failed)
+				let totpCode = new TextField("totpCode_label")
+				let openTOTPApp = new Button("addOpenOTPApp_action", () => {
+					openLinkNative(authUrl).then(successful => {
+						if (!successful) {
+							Dialog.error("noAppAvailable_msg")
 						}
 					})
-				} else {
-					verificationStatus(VerificationStatus.Progress)
-				}
-			})
+				}).setType(ButtonType.Login)
 
-			function statusIcon() {
-				if (verificationStatus() === VerificationStatus.Progress) {
-					return progressIcon()
-				} else if (verificationStatus() === VerificationStatus.Success) {
-					return m(Icon, {
-						icon: Icons.Checkmark,
-						large: true,
-						style: {fill: theme.content_accent}
-					})
-				} else {
-					return m(Icon, {
-						icon: Icons.Cancel,
-						large: true,
-						style: {fill: theme.content_accent}
-					})
-				}
-			}
-
-			let saveAction = () => {
-				let sf = createSecondFactor()
-				sf._ownerGroup = user._ownerGroup
-				sf.name = name.value()
-				sf.type = type.selectedValue()
-				if (type.selectedValue() === SecondFactorType.u2f) {
-					if (verificationStatus !== VerificationStatus.Success) {
-						Dialog.error("unrecognizedU2fDevice_msg")
-						return
+				let verificationStatus = stream(VerificationStatus.Progress)
+				verificationStatus.map(() => m.redraw())
+				u2fRegistrationData.map(registrationData => {
+					if (registrationData) {
+						verificationStatus(VerificationStatus.Success)
 					} else {
-						sf.u2f = u2fRegistrationData()
+						verificationStatus(VerificationStatus.Progress)
 					}
-				} else if (type.selectedValue() === SecondFactorType.totp) {
-					if (verificationStatus !== VerificationStatus.Success) {
-						Dialog.error("totpCodeEnter_msg")
-						return
+				})
+				totpCode.value.map(v => {
+					let cleanedValue = v.replace(/ /g, "")
+					if (cleanedValue.length === 6) {
+						worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key)
+						      .then(number => {
+							      if (number === cleanedValue) {
+								      verificationStatus(VerificationStatus.Success)
+							      } else {
+								      verificationStatus(VerificationStatus.Failed)
+							      }
+						      })
 					} else {
-						sf.otpSecret = totpKeys.key
+						verificationStatus(VerificationStatus.Progress)
 					}
-				}
-				showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
-			}
+				})
 
-			function statusMessage() {
-				if (type.selectedValue() === SecondFactorType.u2f) {
-					return verificationStatus() === VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
-				} else {
-					if (verificationStatus() === VerificationStatus.Success) {
-						return lang.get("totpCodeConfirmed_msg")
-					} else if (verificationStatus() === VerificationStatus.Failed) {
-						return lang.get("totpCodeWrong_msg")
+				function statusIcon() {
+					if (verificationStatus() === VerificationStatus.Progress) {
+						return progressIcon()
+					} else if (verificationStatus() === VerificationStatus.Success) {
+						return m(Icon, {
+							icon: Icons.Checkmark,
+							large: true,
+							style: {fill: theme.content_accent}
+						})
 					} else {
-						return lang.get("totpCodeEnter_msg")
+						return m(Icon, {
+							icon: Icons.Cancel,
+							large: true,
+							style: {fill: theme.content_accent}
+						})
 					}
 				}
-			}
 
-			let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
-				view: () => m("", [
-					m(type),
-					m(name),
-					type.selectedValue() === SecondFactorType.totp ? m(".mb", [
+				let saveAction = () => {
+					let sf = createSecondFactor()
+					sf._ownerGroup = user._ownerGroup
+					sf.name = name.value()
+					sf.type = type.selectedValue()
+					if (type.selectedValue() === SecondFactorType.u2f) {
+						if (verificationStatus !== VerificationStatus.Success) {
+							Dialog.error("unrecognizedU2fDevice_msg")
+							return
+						} else {
+							sf.u2f = u2fRegistrationData()
+						}
+					} else if (type.selectedValue() === SecondFactorType.totp) {
+						if (verificationStatus !== VerificationStatus.Success) {
+							Dialog.error("totpCodeEnter_msg")
+							return
+						} else {
+							sf.otpSecret = totpKeys.key
+						}
+					}
+					showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf))
+						.then(() => dialog.close())
+				}
+
+				function statusMessage() {
+					if (type.selectedValue() === SecondFactorType.u2f) {
+						return verificationStatus()
+						=== VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
+					} else {
+						if (verificationStatus() === VerificationStatus.Success) {
+							return lang.get("totpCodeConfirmed_msg")
+						} else if (verificationStatus() === VerificationStatus.Failed) {
+							return lang.get("totpCodeWrong_msg")
+						} else {
+							return lang.get("totpCodeEnter_msg")
+						}
+					}
+				}
+
+				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
+					view: () => m("", [
+						m(type),
+						m(name),
+						type.selectedValue() === SecondFactorType.totp ? m(".mb", [
 							m(totpSecret),
 							isApp() ? m(".pt", m(openTOTPApp)) : m(".flex-center", m.trust(totpSvg)),
 							m(totpCode)
 						]) : null,
-					m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
-					m(".small", lang.get("secondFactorInfoOldClient_msg"))
-				])
-			}, saveAction, true, "save_action")
+						m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
+						m(".small", lang.get("secondFactorInfoOldClient_msg"))
+					])
+				}, saveAction, true, "save_action")
 
 
-			function registerResumeOnTimeout() {
-				u2f.register()
-					.catch((e) => {
-						if (e instanceof U2fError) {
-							Dialog.error("u2fUnexpectedError_msg").then(() => {
-								if (dialog.visible) {
-									dialog.close()
-								}
-							})
-						} else {
-							registerResumeOnTimeout()
-						}
-					})
-					.then(registrationData => u2fRegistrationData(registrationData))
-			}
+				function registerResumeOnTimeout() {
+					u2f.register()
+					   .catch((e) => {
+						   if (e instanceof U2fError) {
+							   Dialog.error("u2fUnexpectedError_msg").then(() => {
+								   if (dialog.visible) {
+									   dialog.close()
+								   }
+							   })
+						   } else {
+							   registerResumeOnTimeout()
+						   }
+					   })
+					   .then(registrationData => u2fRegistrationData(registrationData))
+				}
 
-			if (u2fSupport) registerResumeOnTimeout()
-		})
+				if (u2fSupport) registerResumeOnTimeout()
+			})
 	}
 
 

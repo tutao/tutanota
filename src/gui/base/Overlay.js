@@ -42,16 +42,16 @@ export const overlay = {
 				display: attrs ? "" : 'none' // display: null not working for IE11
 			}
 		}, attrs != null ? m(".abs.list-bg", {
-				style: {
-					width: attrs.position.width,
-					top: attrs.position.top,
-					bottom: attrs.position.bottom,
-					right: attrs.position.right,
-					left: attrs.position.left,
-					'z-index': 200,
-					'box-shadow': `0 2px 12px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.4), 0 10px 40px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.3)`, //0.23 0.19
-				}
-			}, m(attrs.component)) : "no component")
+			style: {
+				width: attrs.position.width,
+				top: attrs.position.top,
+				bottom: attrs.position.bottom,
+				right: attrs.position.right,
+				left: attrs.position.left,
+				'z-index': 200,
+				'box-shadow': `0 2px 12px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.4), 0 10px 40px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.3)`, //0.23 0.19
+			}
+		}, m(attrs.component)) : "no component")
 	}
 }
 

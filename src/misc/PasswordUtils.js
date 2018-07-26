@@ -3,11 +3,18 @@ import {assertMainOrNode} from "../api/Env"
 
 assertMainOrNode()
 
-export const _BAD_SEQUENCES = ["^1234567890ß´", "°!\"§$%&/()=?`", "qwertzuiopü+", "QWERTZUIOPÜ*", "asdfghjklöä#", "ASDFGHJKLÖÄ'", "<yxcvbnm,.-", ">YXCVBNM:_",
-	"`1234567890-=", "~!@#$%^&*()_+", "qwertyuiop[]", "QWERTYUIOP{}", "asdfghjkl'\\", "ASDFGHJKL:\"|", "\\zxcvbnm,./", "|ZXCVBNM<>?",
-	"abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+export const _BAD_SEQUENCES = [
+	"^1234567890ß´", "°!\"§$%&/()=?`", "qwertzuiopü+", "QWERTZUIOPÜ*", "asdfghjklöä#", "ASDFGHJKLÖÄ'", "<yxcvbnm,.-",
+	">YXCVBNM:_",
+	"`1234567890-=", "~!@#$%^&*()_+", "qwertyuiop[]", "QWERTYUIOP{}", "asdfghjkl'\\", "ASDFGHJKL:\"|", "\\zxcvbnm,./",
+	"|ZXCVBNM<>?",
+	"abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+]
 
-const _BAD_STRINGS = ["passwort", "Passwort", "password", "Password", "tutanota", "Tutanota", "free", "Free", "starter", "Starter", "Test", "test"]
+const _BAD_STRINGS = [
+	"passwort", "Passwort", "password", "Password", "tutanota", "Tutanota", "free", "Free", "starter", "Starter",
+	"Test", "test"
+]
 
 /**
  * Checks how secure the given password is. The following password characteristics decrease the password strength:

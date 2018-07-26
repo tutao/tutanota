@@ -42,7 +42,8 @@ export class Table {
 					)
 				]),
 				(this._loading) ? m(".flex-center.items-center.button-height", progressIcon()) : null,
-				(!this._loading && this._lines.length === 0) ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null
+				(!this._loading && this._lines.length
+					=== 0) ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null
 			])
 		}
 	}
@@ -54,7 +55,8 @@ export class Table {
 	}
 
 	_createLine(texts: string[], showActionButtonColumn: boolean, actionButton: ?Button, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
-		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + ((bold) ? ".b" : ""), {
+		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index]
+			+ ((bold) ? ".b" : ""), {
 			title: text, // show the text as tooltip, so ellipsed lines can be shown
 		}, text))
 		if (showActionButtonColumn) {

@@ -73,7 +73,8 @@ class _ViewSlider {
 					style: {
 						width: column.width + 'px',
 						left: column.offset + 'px',
-						transform: column.columnType === ColumnType.Foreground ? 'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
+						transform: column.columnType === ColumnType.Foreground ?
+							'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
 						'z-index': this.columnType === ColumnType.Foreground ? "3" : "1"
 					}
 				},
@@ -83,17 +84,19 @@ class _ViewSlider {
 
 	_createModalBackground() {
 		if (this._isModalBackgroundVisible) {
-			return [m(".fill-absolute.z2", {
-				oncreate: (vnode) => {
-					animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5))
-				},
-				onbeforeremove: (vnode) => {
-					return animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0))
-				},
-				onclick: (event: MouseEvent) => {
-					this.focus(this._visibleBackgroundColumns[0])
-				}
-			})]
+			return [
+				m(".fill-absolute.z2", {
+					oncreate: (vnode) => {
+						animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5))
+					},
+					onbeforeremove: (vnode) => {
+						return animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0))
+					},
+					onclick: (event: MouseEvent) => {
+						this.focus(this._visibleBackgroundColumns[0])
+					}
+				})
+			]
 		} else {
 			return []
 		}
@@ -180,7 +183,8 @@ class _ViewSlider {
 		let foreGroundColumn = columns.find(column => column.columnType === ColumnType.Foreground)
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large;
-			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
+			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth
+				- foreGroundColumn.minWidth)
 			foreGroundColumn.setWidth(foreGroundColumn.minWidth + additionalSpaceForColumn)
 		}
 	}
@@ -196,10 +200,12 @@ class _ViewSlider {
 			}
 		}).then(() => {
 			this.focusedColumn = viewColumn
-			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1
+				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				//console.log("slide start", oldOffset, newOffset)
 				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
-			} else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			} else if (viewColumn.columnType === ColumnType.Foreground
+				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;
@@ -279,7 +285,7 @@ class _ViewSlider {
 
 export const ViewSliderN: Class<MComponent<ViewSliderAttrs>> = _ViewSlider
 
-type ColumnTypeEnum =  0 | 1
+type ColumnTypeEnum = 0 | 1
 
 export const ColumnType = {
 	Background: 1,
@@ -287,7 +293,7 @@ export const ColumnType = {
 }
 
 export class ViewColumnN {
-	component: Component|Class<MComponent<void>>;
+	component: Component | Class<MComponent<void>>;
 	columnType: ColumnTypeEnum;
 	minWidth: number;
 	maxWidth: number;
@@ -305,7 +311,7 @@ export class ViewColumnN {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param title A function that returns the translated title text for a column.
 	 */
-	constructor(component: Component|Class<MComponent<void>>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>) {
+	constructor(component: Component | Class<MComponent<void>>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth

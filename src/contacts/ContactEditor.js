@@ -186,27 +186,27 @@ export class ContactEditor {
 			]),
 
 			presharedPassword ? m(".wrapping-row", [
-					m(".passwords.mt-xl", [
-						m(".h4", lang.get('passwords_label')),
-						m(presharedPassword)
-					]),
-					m(".spacer")
-				]) : null,
+				m(".passwords.mt-xl", [
+					m(".h4", lang.get('passwords_label')),
+					m(presharedPassword)
+				]),
+				m(".spacer")
+			]) : null,
 			m(".pb")
 		])
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: () => this._close(),
-				help: "closeDialog_msg"
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				exec: () => this.save(),
-				help: "send_action"
-			}).setCloseHandler(() => this._close())
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: () => this._close(),
+			                    help: "closeDialog_msg"
+		                    })
+		                    .addShortcut({
+			                    key: Keys.S,
+			                    ctrl: true,
+			                    exec: () => this.save(),
+			                    help: "send_action"
+		                    }).setCloseHandler(() => this._close())
 	}
 
 	show() {
@@ -224,10 +224,14 @@ export class ContactEditor {
 			Dialog.error("invalidBirthday_msg")
 			return
 		}
-		this.contact.mailAddresses = this.mailAddressEditors.filter(e => e.isInitialized).map(e => ((e.aggregate:any):ContactMailAddress))
-		this.contact.phoneNumbers = this.phoneEditors.filter(e => e.isInitialized).map(e => ((e.aggregate:any):ContactPhoneNumber))
-		this.contact.addresses = this.addressEditors.filter(e => e.isInitialized).map(e => ((e.aggregate:any):ContactAddress))
-		this.contact.socialIds = this.socialEditors.filter(e => e.isInitialized).map(e => ((e.aggregate:any):ContactSocialId))
+		this.contact.mailAddresses = this.mailAddressEditors.filter(e => e.isInitialized)
+		                                 .map(e => ((e.aggregate: any): ContactMailAddress))
+		this.contact.phoneNumbers = this.phoneEditors.filter(e => e.isInitialized)
+		                                .map(e => ((e.aggregate: any): ContactPhoneNumber))
+		this.contact.addresses = this.addressEditors.filter(e => e.isInitialized)
+		                             .map(e => ((e.aggregate: any): ContactAddress))
+		this.contact.socialIds = this.socialEditors.filter(e => e.isInitialized)
+		                             .map(e => ((e.aggregate: any): ContactSocialId))
 
 		let promise
 		if (this.contact._id) {
@@ -236,7 +240,10 @@ export class ContactEditor {
 			this.contact._area = "0" // legacy
 			this.contact.autoTransmitPassword = "" // legacy
 			this.contact._owner = logins.getUserController().user._id
-			this.contact._ownerGroup = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group
+			this.contact._ownerGroup = neverNull(logins.getUserController()
+			                                           .user
+			                                           .memberships
+			                                           .find(m => m.groupType === GroupType.Contact)).group
 			promise = setup(this.listId, this.contact).then(contactId => {
 				if (this._newContactIdReceiver) {
 					this._newContactIdReceiver(contactId)
@@ -319,7 +326,7 @@ export class ContactEditor {
 }
 
 class ContactAggregateEditor {
-	aggregate: ContactMailAddress|ContactPhoneNumber|ContactAddress|ContactSocialId;
+	aggregate: ContactMailAddress | ContactPhoneNumber | ContactAddress | ContactSocialId;
 	textfield: TextField;
 	isInitialized: boolean;
 	animateCreate: boolean;
@@ -328,7 +335,9 @@ class ContactAggregateEditor {
 	id: Id;
 	view: Function;
 
-	constructor(aggregate: ContactMailAddress|ContactPhoneNumber|ContactAddress|ContactSocialId, cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false, allowCancel: boolean = true) {
+	constructor(aggregate: ContactMailAddress | ContactPhoneNumber | ContactAddress | ContactSocialId,
+	            cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false,
+	            allowCancel: boolean = true) {
 		this.aggregate = aggregate
 		this.isInitialized = allowCancel
 		this.animateCreate = animateCreate
@@ -340,28 +349,30 @@ class ContactAggregateEditor {
 		let label = ""
 		let isCustom = (type) => false
 		let TypeToLabelMap = {}
-		if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef) || isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
-			value = (aggregate:any).address
-			onUpdate = value => (aggregate:any).address = value
-			label = () => getContactAddressTypeLabel((this.aggregate.type:any), this.aggregate.customTypeName)
+		if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef)
+			|| isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
+			value = (aggregate: any).address
+			onUpdate = value => (aggregate: any).address = value
+			label = () => getContactAddressTypeLabel((this.aggregate.type: any), this.aggregate.customTypeName)
 			isCustom = type => type === ContactAddressType.CUSTOM
 			TypeToLabelMap = ContactMailAddressTypeToLabel
 		} else if (isSameTypeRef(aggregate._type, ContactPhoneNumberTypeRef)) {
-			value = (aggregate:any).number
-			onUpdate = value => (aggregate:any).number = value
-			label = () => getContactPhoneNumberTypeLabel((this.aggregate.type:any), this.aggregate.customTypeName)
+			value = (aggregate: any).number
+			onUpdate = value => (aggregate: any).number = value
+			label = () => getContactPhoneNumberTypeLabel((this.aggregate.type: any), this.aggregate.customTypeName)
 			isCustom = type => type === ContactPhoneNumberType.CUSTOM
 			TypeToLabelMap = ContactPhoneNumberTypeToLabel
 		} else if (isSameTypeRef(aggregate._type, ContactSocialIdTypeRef)) {
-			value = (aggregate:any).socialId
-			onUpdate = value => (aggregate:any).socialId = value
-			label = () => getContactSocialTypeLabel((this.aggregate.type:any), this.aggregate.customTypeName)
+			value = (aggregate: any).socialId
+			onUpdate = value => (aggregate: any).socialId = value
+			label = () => getContactSocialTypeLabel((this.aggregate.type: any), this.aggregate.customTypeName)
 			isCustom = type => type === ContactSocialType.CUSTOM
 			TypeToLabelMap = ContactSocialTypeToLabel
 		}
 
 		this.textfield = new TextField(label, () => {
-			if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef) && this.textfield.value().trim().length > 0 && !isMailAddress(this.textfield.value().trim(), false)) {
+			if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef) && this.textfield.value().trim().length > 0
+				&& !isMailAddress(this.textfield.value().trim(), false)) {
 				return lang.get("invalidInputFormat_msg")
 			}
 			return lang.get("emptyString_msg")
@@ -371,37 +382,43 @@ class ContactAggregateEditor {
 		if (isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
 			this.textfield.setType(Type.Area)
 		}
-		let typeButton = createDropDownButton("more_label", () => Icons.More, () => Object.keys(TypeToLabelMap).map(key => {
-			return new Button((TypeToLabelMap:any)[key], e => {
-				if (isCustom(key)) {
-					let tagDialogActionBar = new DialogHeaderBar()
-					/* Unused Variable*/
-					let tagName = new TextField("customLabel_label")
-						.setValue(this.aggregate.customTypeName)
+		let typeButton = createDropDownButton("more_label",
+			() => Icons.More,
+			() => Object.keys(TypeToLabelMap)
+			            .map(key => {
+				            return new Button((TypeToLabelMap: any)[key], e => {
+					            if (isCustom(key)) {
+						            let tagDialogActionBar = new DialogHeaderBar()
+						            /* Unused Variable*/
+						            let tagName = new TextField("customLabel_label")
+							            .setValue(this.aggregate.customTypeName)
 
-					setTimeout(() => {
-						Dialog.smallDialog(lang.get("customLabel_label"), {
-							view: () => m(tagName)
-						}).then(ok => {
-							if (ok) {
-								this.aggregate.customTypeName = tagName.value()
-								this.aggregate.type = key
-							}
-						})
-					}, DefaultAnimationTime)// wait till the dropdown is hidden
-				} else {
-					this.aggregate.type = key
-				}
-			}).setType(ButtonType.Dropdown)
-		}))
+						            setTimeout(() => {
+							            Dialog.smallDialog(lang.get("customLabel_label"), {
+								            view: () => m(tagName)
+							            })
+							                  .then(ok => {
+								                  if (ok) {
+									                  this.aggregate.customTypeName = tagName.value()
+									                  this.aggregate.type = key
+								                  }
+							                  })
+						            }, DefaultAnimationTime)// wait till the dropdown is hidden
+					            } else {
+						            this.aggregate.type = key
+					            }
+				            }).setType(ButtonType.Dropdown)
+			            }))
 
 
 		let cancelButton = new Button('cancel_action', () => cancelAction(this), () => Icons.Cancel)
 
 		this.textfield._injectionsRight = () => {
-			return [m(typeButton), this.isInitialized ? m(cancelButton, {
+			return [
+				m(typeButton), this.isInitialized ? m(cancelButton, {
 					oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
-				}) : null]
+				}) : null
+			]
 		}
 
 		this.oncreate = vnode => {
@@ -418,9 +435,9 @@ class ContactAggregateEditor {
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
 			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-				.then(() => {
-					domElement.style.height = ''
-				})
+			          .then(() => {
+				          domElement.style.height = ''
+			          })
 		])
 	}
 }

@@ -51,23 +51,28 @@ export class PaymentMethodInput {
 		}
 		this._payPalComponent = {
 			view: () => {
-				return [m(".flex-center", {style: {'margin-top': "50px"}},
-					m(".button-height.flex.items-center.plr.border.border-radius", {
-						style: {
-							cursor: "pointer"
-						},
-						onclick: () => {
-							if (this._payPalRequestUrl.isLoaded()) {
-								window.open(this._payPalRequestUrl.getSync())
-							} else {
-								showProgressDialog("payPalRedirect_msg", this._payPalRequestUrl.getAsync()).then(url => window.open(url))
+				return [
+					m(".flex-center", {style: {'margin-top': "50px"}},
+						m(".button-height.flex.items-center.plr.border.border-radius", {
+							style: {
+								cursor: "pointer"
+							},
+							onclick: () => {
+								if (this._payPalRequestUrl.isLoaded()) {
+									window.open(this._payPalRequestUrl.getSync())
+								} else {
+									showProgressDialog("payPalRedirect_msg", this._payPalRequestUrl.getAsync())
+										.then(url => window.open(url))
+								}
 							}
-						}
-					}, m("img[src=" + PayPalLogo + "]")),
-				), m(".small.pt.center", this.isPaypalAssigned() ? lang.get("paymentDataPayPalFinished_msg", {"{accountAddress}": neverNull(this._accountingInfo).paymentMethodInfo}) : lang.get("paymentDataPayPalLogin_msg"))]
+						}, m("img[src=" + PayPalLogo + "]")),
+					),
+					m(".small.pt.center", this.isPaypalAssigned() ? lang.get("paymentDataPayPalFinished_msg", {"{accountAddress}": neverNull(this._accountingInfo).paymentMethodInfo}) : lang.get("paymentDataPayPalLogin_msg"))
+				]
 			},
 		}
-		const messageBox = new MessageBox(() => (this._selectedCountry() && this._selectedCountry().t === CountryType.OTHER) ? lang.get("paymentMethodNotAvailable_msg") : lang.get("paymentMethodOnAccount_msg"), "content-message-bg", 16)
+		const messageBox = new MessageBox(() => (this._selectedCountry() && this._selectedCountry().t
+			=== CountryType.OTHER) ? lang.get("paymentMethodNotAvailable_msg") : lang.get("paymentMethodOnAccount_msg"), "content-message-bg", 16)
 		this._invoiceComponent = {
 			view: () => {
 				return m(".flex-center", m(messageBox))
@@ -76,7 +81,8 @@ export class PaymentMethodInput {
 
 
 		this._payPalRequestUrl = new LazyLoaded(() => {
-			return serviceRequest(SysService.PaymentDataService, HttpMethod.GET, null, PaymentDataServiceGetReturnTypeRef).then((result) => result.loginUrl)
+			return serviceRequest(SysService.PaymentDataService, HttpMethod.GET, null, PaymentDataServiceGetReturnTypeRef)
+				.then((result) => result.loginUrl)
 		}, null)
 		this._currentPaymentMethodComponent = this._creditCardComponent
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard
@@ -108,7 +114,8 @@ export class PaymentMethodInput {
 				return "creditCardCardHolderName_msg"
 			} else if (cc.cvv = "") {
 				return "creditCardCVVFormat_label"
-			} else if (cc.expirationMonth.length !== 2 || (cc.expirationYear.length !== 4 && cc.expirationYear.length !== 2)) {
+			} else if (cc.expirationMonth.length !== 2 || (cc.expirationYear.length !== 4
+				&& cc.expirationYear.length !== 2)) {
 				return "creditCardExprationDateInvalid_msg"
 			}
 		}
@@ -134,11 +141,12 @@ export class PaymentMethodInput {
 	getPaymentData(): PaymentData {
 		return {
 			paymentMethod: this._selectedPaymentMethod,
-			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ? this._creditCardComponent.getCreditCardData() : null,
+			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ?
+				this._creditCardComponent.getCreditCardData() : null,
 		}
 	}
 
-	getAvailablePaymentMethods(): Array<{name:string, value:PaymentMethodTypeEnum}> {
+	getAvailablePaymentMethods(): Array<{name: string, value: PaymentMethodTypeEnum}> {
 		const availablePaymentMethods = [
 			{name: lang.get("paymentMethodCreditCard_label"), value: PaymentMethodType.CreditCard},
 			{name: "PayPal", value: PaymentMethodType.Paypal}

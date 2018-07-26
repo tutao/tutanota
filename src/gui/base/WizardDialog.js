@@ -14,17 +14,23 @@ import {lang} from "../../misc/LanguageViewModel"
 assertMainOrNode()
 
 export interface WizardPage<T> extends Component {
-	headerTitle():string;
-	nextAction():Promise<?T>;
-	isNextAvailable():boolean;
-	getUncheckedWizardData():T;
-	setPageActionHandler(handler: WizardPageActionHandler<T>):void;
-	updateWizardData(wizardData: T):void;
+	headerTitle(): string;
+
+	nextAction(): Promise<?T>;
+
+	isNextAvailable(): boolean;
+
+	getUncheckedWizardData(): T;
+
+	setPageActionHandler(handler: WizardPageActionHandler<T>): void;
+
+	updateWizardData(wizardData: T): void;
 }
 
 export interface WizardPageActionHandler<T> {
-	cancel():void;
-	showNext(wizardData: T):void
+	cancel(): void;
+
+	showNext(wizardData: T): void
 }
 
 export class WizardDialog<T> {
@@ -57,8 +63,11 @@ export class WizardDialog<T> {
 			return this._pages.indexOf(this._currentPage) === 0 ? lang.get("cancel_action") : lang.get("back_action")
 		}, backAction).setType(ButtonType.Secondary)
 
-		this._nextButton = new Button("next_action", () => this._nextAction()).setType(ButtonType.Secondary)
-			.setIsVisibleHandler(() => this._currentPage.isNextAvailable() && this._pages.indexOf(this._currentPage) !== (this._pages.length - 1))
+		this._nextButton = new Button("next_action", () => this._nextAction())
+			.setType(ButtonType.Secondary)
+			.setIsVisibleHandler(() => this._currentPage.isNextAvailable()
+				&& this._pages.indexOf(this._currentPage)
+				!== (this._pages.length - 1))
 
 		let pagingButtons: Component[] = wizardPages.map((page, index) => new WizardPagingButton(index, () => this._pages.indexOf(this._currentPage), (index) => this._backAction(index)))
 
@@ -78,11 +87,11 @@ export class WizardDialog<T> {
 			]
 		)
 		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: () => this._close(),
-				help: "closeDialog_msg"
-			}).setCloseHandler(backAction)
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: () => this._close(),
+			                    help: "closeDialog_msg"
+		                    }).setCloseHandler(backAction)
 	}
 
 
@@ -127,7 +136,7 @@ export class WizardDialog<T> {
 class WizardPagingButton {
 	view: Function;
 
-	constructor(pageIndex: number, getSelectedPageIndex: ()=>number, navigateBackHandler: (pageIndex: number)=>void) {
+	constructor(pageIndex: number, getSelectedPageIndex: () => number, navigateBackHandler: (pageIndex: number) => void) {
 		this.view = () => {
 			const selectedPageIndex = getSelectedPageIndex()
 			return m(".button-content.flex-center.items-center", {
@@ -142,18 +151,19 @@ class WizardPagingButton {
 					}
 				}, m(".button-icon.flex-center.items-center", {
 					style: {
-						border: selectedPageIndex === pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_button}`,
+						border: selectedPageIndex === pageIndex ?
+							`2px solid ${theme.content_accent}` : `1px solid ${theme.content_button}`,
 						color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
 						'background-color': (pageIndex < selectedPageIndex) ? theme.content_button : theme.content_bg,
 
 					}
 				}, pageIndex < selectedPageIndex ? m(Icon, {
-						icon: Icons.Checkmark,
-						style: {
-							fill: theme.content_button_icon,
-							'background-color': theme.content_button
-						}
-					}) : "" + (pageIndex + 1))
+					icon: Icons.Checkmark,
+					style: {
+						fill: theme.content_button_icon,
+						'background-color': theme.content_button
+					}
+				}) : "" + (pageIndex + 1))
 			)
 		}
 

@@ -8,7 +8,7 @@ assertMainOrNodeBoot()
 export class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
 	customizations: ?NumberString[];
-	waitForLogin: {resolve:Function, reject: Function, promise: Promise<void>} = defer()
+	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
 
 
 	isUserLoggedIn() {
@@ -41,7 +41,9 @@ export class LoginController {
 
 	isProdDisabled() {
 		// we enable certain features only for certain customers in prod
-		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null && logins._userController.user.customer !== 'Kq3X5tF--7-0' && logins._userController.user.customer !== 'Jwft3IR--7-0'
+		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null
+			&& logins._userController.user.customer !== 'Kq3X5tF--7-0' && logins._userController.user.customer
+			!== 'Jwft3IR--7-0'
 	}
 
 	isEnabled(feature: FeatureTypeEnum): boolean {

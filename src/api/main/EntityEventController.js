@@ -29,7 +29,8 @@ export class EntityEventController {
 		let promise = Promise.resolve()
 		if (this._logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			promise = this._logins.getUserController().entityEventReceived(typeRef, entityUpdate.instanceListId, entityUpdate.instanceId, entityUpdate.operation)
+			promise = this._logins.getUserController()
+			              .entityEventReceived(typeRef, entityUpdate.instanceListId, entityUpdate.instanceId, entityUpdate.operation)
 		}
 		promise.then(() => {
 			this._listeners.forEach(listener => {

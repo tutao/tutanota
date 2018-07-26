@@ -7,7 +7,7 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 assertMainOrNodeBoot()
 
 class _Icon {
-	view(vnode: Vnode<IconAttrs>): Children | null| void {
+	view(vnode: Vnode<IconAttrs>): Children | null | void {
 		return m("span.icon", {
 			class: this.getClass(vnode.attrs),
 			style: this.getStyle(vnode.attrs.style)

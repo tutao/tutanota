@@ -86,7 +86,7 @@ export class WhitelabelChildrenListView {
 				renderRightSpacer: () => [],
 				swipeLeft: (listElement) => Promise.resolve(),
 				swipeRight: (listElement) => Promise.resolve(),
-			}:any),
+			}: any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")

@@ -76,21 +76,23 @@ export class SearchView {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
 			} else {
-				showDatePickerDialog((this._startDate) ? this._startDate : new Date(), (this._endDate) ? this._endDate : this._getCurrentMailIndexDate(), false).then(dates => {
-					if (dates.start && isToday(dates.start)) {
-						this._startDate = null
-					} else {
-						this._startDate = dates.start
-					}
-					let current = this._getCurrentMailIndexDate()
-					if (dates.end && current && isSameDay(current, neverNull(dates.end))) {
-						this._endDate = null
-					} else {
-						this._endDate = dates.end
-					}
+				showDatePickerDialog((this._startDate) ? this._startDate : new Date(),
+					(this._endDate) ? this._endDate : this._getCurrentMailIndexDate(), false)
+					.then(dates => {
+						if (dates.start && isToday(dates.start)) {
+							this._startDate = null
+						} else {
+							this._startDate = dates.start
+						}
+						let current = this._getCurrentMailIndexDate()
+						if (dates.end && current && isSameDay(current, neverNull(dates.end))) {
+							this._endDate = null
+						} else {
+							this._endDate = dates.end
+						}
 
-					this._searchAgain()
-				})
+						this._searchAgain()
+					})
 			}
 		}, () => Icons.Edit)
 		this._time._injectionsRight = () => [m(changeTimeButton)]
@@ -117,10 +119,12 @@ export class SearchView {
 				{name: lang.get("all_label"), value: null}
 			]
 			mailboxes.forEach((mailbox, mailboxIndex) => {
-				(getSortedSystemFolders(mailbox.folders).concat(getSortedCustomFolders(mailbox.folders))).forEach(folder => {
+				(getSortedSystemFolders(mailbox.folders)
+					.concat(getSortedCustomFolders(mailbox.folders))).forEach(folder => {
 					if (folder.folderType !== MailFolderType.SPAM) {
 						mailFolders.push({
-							name: getFolderName(folder) + ((mailboxIndex === 0) ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							name: getFolderName(folder) + ((mailboxIndex === 0) ? "" : " ("
+								+ getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
 							value: folder.mails
 						})
 					}
@@ -147,19 +151,25 @@ export class SearchView {
 
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
-				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}}, lang.get("search_label").toLocaleUpperCase())]),
+				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+					m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+						lang.get("search_label").toLocaleUpperCase())
+				]),
 				m(".folders", [
 					m(".folder-row.plr-l", {class: this._mailFolder.isSelected() ? "row-selected" : ""}, m(this._mailFolder)),
 					m(".folder-row.plr-l", {class: this._contactFolder.isSelected() ? "row-selected" : ""}, m(this._contactFolder)),
 				]),
 				this._mailFolder.isSelected() ? m("", [
-						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}}, lang.get("filter_label").toLocaleUpperCase())]),
-						m(".plr-l.mt-negative-s", [
-							m(this._getUpdatedTimeField()),
-							m(this._mailFieldSelection),
-							m(this._mailFolderSelection),
-						])
-					]) : null
+					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+							lang.get("filter_label").toLocaleUpperCase())
+					]),
+					m(".plr-l.mt-negative-s", [
+						m(this._getUpdatedTimeField()),
+						m(this._mailFieldSelection),
+						m(this._mailFolderSelection),
+					])
+				]) : null
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
 
@@ -177,7 +187,9 @@ export class SearchView {
 			return
 		})
 
-		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider([
+			this.folderColumn, this.resultListColumn, this.resultDetailsColumn
+		], "ContactView")
 
 		this.view = (): VirtualElement => {
 			return m("#search.main-view", m(this.viewSlider))
@@ -229,8 +241,9 @@ export class SearchView {
 			}
 		}
 		let text = start + " - " + end
-		if (this._time.value() !== text)
+		if (this._time.value() !== text) {
 			this._time.setValue(text)
+		}
 		return this._time
 	}
 
@@ -347,7 +360,8 @@ export class SearchView {
 		if (args.id && this._searchList.isListAvailable() && !this._searchList.isEntitySelected(args.id)) {
 			// the mail list is visible already, just the selected mail is changed
 			this._searchList.scrollToIdAndSelect(args.id)
-		} else if (!args.id && this._searchList.isListAvailable() && this._searchList.getSelectedEntities().length > 0) {
+		} else if (!args.id && this._searchList.isListAvailable()
+			&& this._searchList.getSelectedEntities().length > 0) {
 			this._searchList.selectNone()
 		}
 	}
@@ -356,10 +370,11 @@ export class SearchView {
 		let selected = this._searchList.getSelectedEntities()
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMail = ((selected[0].entry:any):Mail)
-				mailModel.deleteMails([selectedMail]).then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
+				let selectedMail = ((selected[0].entry: any): Mail)
+				mailModel.deleteMails([selectedMail])
+				         .then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContact = ((selected[0].entry:any):Contact)
+				let selectedContact = ((selected[0].entry: any): Contact)
 				Dialog.confirm("deleteContacts_msg").then(confirmed => {
 					if (confirmed) {
 						erase(selectedContact).catch(NotFoundError, e => {

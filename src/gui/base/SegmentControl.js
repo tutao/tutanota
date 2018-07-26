@@ -4,10 +4,11 @@ import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {addFlash} from "./Flash"
 import {px} from "../size"
+
 assertMainOrNode()
 
 export type SegmentControlItem<T> = {
-	name:string,
+	name: string,
 	value: T
 }
 
@@ -21,23 +22,27 @@ export class SegmentControl<T> {
 		this._items = items
 		this.selectedValue = selectedValue
 		this.view = () => {
-			return [m(".segmentControl.flex-center.button-height",
-				this._items.map(item => m(".segmentControlItem.flex-center.items-center.text-ellipsis.small" + (item === this.selectedValue() ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"), {
-					style: {
-						flex: "0 1 " + px(itemMaxWidth)
-					},
-					onclick: (event: MouseEvent) => {
-						if (this._changeHandler) {
-							this._changeHandler(item)
-						} else {
-							this.selectedValue(item)
-							m.redraw()
+			return [
+				m(".segmentControl.flex-center.button-height",
+					this._items.map(item => m(".segmentControlItem.flex-center.items-center.text-ellipsis.small"
+						+ (item === this.selectedValue() ?
+							".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"), {
+						style: {
+							flex: "0 1 " + px(itemMaxWidth)
+						},
+						onclick: (event: MouseEvent) => {
+							if (this._changeHandler) {
+								this._changeHandler(item)
+							} else {
+								this.selectedValue(item)
+								m.redraw()
+							}
+						},
+						oncreate: (vnode) => {
+							addFlash(vnode.dom)
 						}
-					},
-					oncreate: (vnode) => {
-						addFlash(vnode.dom)
-					}
-				}, item.name)))]
+					}, item.name)))
+			]
 		}
 	}
 

@@ -20,7 +20,9 @@ export function show(props: TutanotaProperties) {
 	}
 
 	let previousType = logins.getUserController().props.emailSignatureType
-	let editor = new HtmlEditor("preview_label").showBorders().setMinHeight(200).setValue(getSignature(previousType, currentCustomSignature))
+	let editor = new HtmlEditor("preview_label").showBorders()
+	                                            .setMinHeight(200)
+	                                            .setValue(getSignature(previousType, currentCustomSignature))
 
 	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), previousType)
 	typeField.selectedValue.map(type => {
@@ -56,7 +58,8 @@ export function getSignatureTypes(props: TutanotaProperties): {name: string, val
 		{name: lang.get("emailSignatureTypeCustom_msg"), value: EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM},
 		{name: lang.get("comboBoxSelectionNone_msg"), value: EmailSignatureType.EMAIL_SIGNATURE_TYPE_NONE},
 	]
-	if (!logins.isEnabled(FeatureType.DisableDefaultSignature) || props.emailSignatureType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+	if (!logins.isEnabled(FeatureType.DisableDefaultSignature) || props.emailSignatureType
+		=== EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
 		signatureTypes.splice(0, 0, {
 			name: lang.get("emailSignatureTypeDefault_msg"),
 			value: EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT

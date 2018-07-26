@@ -13,9 +13,9 @@ export const rsaApp = {
 
 function generateRsaKey(seed: Uint8Array) {
 	return nativeApp.invokeNative(new Request("generateRsaKey", [uint8ArrayToBase64(seed)]))
-		.catch(e => {
-			throw new CryptoError(e)
-		})
+	                .catch(e => {
+		                throw new CryptoError(e)
+	                })
 }
 
 /**
@@ -24,10 +24,10 @@ function generateRsaKey(seed: Uint8Array) {
 function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
 	let encodedBytes = uint8ArrayToBase64(bytes);
 	return nativeApp.invokeNative(new Request("rsaEncrypt", [publicKey, encodedBytes, uint8ArrayToBase64(seed)]))
-		.then(base64 => base64ToUint8Array(base64))
-		.catch(e => {
-			throw new CryptoError(e)
-		})
+	                .then(base64 => base64ToUint8Array(base64))
+	                .catch(e => {
+		                throw new CryptoError(e)
+	                })
 }
 
 /**
@@ -36,8 +36,8 @@ function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): 
 function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
 	let encodedBytes = uint8ArrayToBase64(bytes);
 	return nativeApp.invokeNative(new Request("rsaDecrypt", [privateKey, encodedBytes]))
-		.then(base64 => base64ToUint8Array(base64))
-		.catch(e => {
-			throw new CryptoError(e)
-		})
+	                .then(base64 => base64ToUint8Array(base64))
+	                .catch(e => {
+		                throw new CryptoError(e)
+	                })
 }

@@ -8,7 +8,8 @@ export function readCounterValue(monitorValue: string, ownerId: Id) {
 	let counterData = createReadCounterData()
 	counterData.monitor = monitorValue
 	counterData.owner = ownerId
-	return serviceRequest("counterservice", HttpMethod.GET, counterData, ReadCounterReturnTypeRef).then(counterReturn => {
-		return counterReturn.value;
-	})
+	return serviceRequest("counterservice", HttpMethod.GET, counterData, ReadCounterReturnTypeRef)
+		.then(counterReturn => {
+			return counterReturn.value;
+		})
 }

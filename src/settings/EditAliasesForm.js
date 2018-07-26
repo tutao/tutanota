@@ -45,7 +45,9 @@ export class EditAliasesForm {
 			})
 		})
 		let addAliasButton = new Button("addEmailAlias_label", () => this._showAddAliasDialog(), () => Icons.Add)
-		this._aliasesTable = new Table(["emailAlias_label", "state_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, addAliasButton)
+		this._aliasesTable = new Table(["emailAlias_label", "state_label"], [
+			ColumnWidth.Largest, ColumnWidth.Small
+		], true, addAliasButton)
 		let expander = new ExpanderButton("showEmailAliases_action", new ExpanderPanel(this._aliasesTable), false)
 
 		this.view = () => {
@@ -55,7 +57,9 @@ export class EditAliasesForm {
 					m(expander)
 				]),
 				m(expander.panel),
-				m(".small", (this._nbrOfAliases === 0) ? lang.get("adminMaxNbrOfAliasesReached_msg") : lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliases}))
+				m(".small", (this._nbrOfAliases === 0) ?
+					lang.get("adminMaxNbrOfAliasesReached_msg")
+					: lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliases}))
 			]
 		}
 
@@ -65,7 +69,8 @@ export class EditAliasesForm {
 	_updateNbrOfAliasesMessage() {
 		this._customerInfo.getAsync().then(() => {
 			return worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
-				this._nbrOfAliases = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.usedAliases))
+				this._nbrOfAliases = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
+					- Number(mailAddressAliasServiceReturn.usedAliases))
 				m.redraw()
 			})
 		})
@@ -76,7 +81,8 @@ export class EditAliasesForm {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
 			} else {
-				Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " " + lang.get("orderAliasesConfirm_msg")).then(confirmed => {
+				Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " "
+					+ lang.get("orderAliasesConfirm_msg")).then(confirmed => {
 					if (confirmed) {
 						// TODO: Navigate to alias upgrade
 						//tutao.locator.navigator.settings();
@@ -96,11 +102,13 @@ export class EditAliasesForm {
 					return form.getErrorMessageId()
 				}).then(ok => {
 					if (ok) {
-						let p = worker.addMailAlias(this._userGroupInfo.group, form.getCleanMailAddress()).catch(InvalidDataError, () => {
-							Dialog.error("mailAddressNA_msg")
-						}).catch(LimitReachedError, () => {
-							Dialog.error("adminMaxNbrOfAliasesReached_msg")
-						})
+						let p = worker.addMailAlias(this._userGroupInfo.group, form.getCleanMailAddress())
+						              .catch(InvalidDataError, () => {
+							              Dialog.error("mailAddressNA_msg")
+						              })
+						              .catch(LimitReachedError, () => {
+							              Dialog.error("adminMaxNbrOfAliasesReached_msg")
+						              })
 						showProgressDialog("pleaseWait_msg", p)
 					}
 				})
@@ -142,7 +150,9 @@ export class EditAliasesForm {
 					}).setType(ButtonType.Dropdown).setSelected(() => !alias.enabled)
 				]
 			})
-			return new TableLine([alias.mailAddress, alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")], actionButton)
+			return new TableLine([
+				alias.mailAddress, alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")
+			], actionButton)
 		}))
 		this._updateNbrOfAliasesMessage()
 	}
@@ -156,9 +166,10 @@ export class EditAliasesForm {
 		}
 		promise.then(confirmed => {
 			if (confirmed) {
-				let p = worker.setMailAliasStatus(this._userGroupInfo.group, alias.mailAddress, restore).catch(LimitReachedError, e => {
-					Dialog.error("adminMaxNbrOfAliasesReached_msg")
-				})
+				let p = worker.setMailAliasStatus(this._userGroupInfo.group, alias.mailAddress, restore)
+				              .catch(LimitReachedError, e => {
+					              Dialog.error("adminMaxNbrOfAliasesReached_msg")
+				              })
 				showProgressDialog("pleaseWait_msg", p)
 			}
 		})

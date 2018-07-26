@@ -133,7 +133,8 @@ export class ViewSlider {
 				const touch = event.touches[0]
 				const newTouchPos = touch.pageX
 				const sideColRect = sideCol.getBoundingClientRect()
-				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos), sideColRect.width)
+				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
+					sideColRect.width)
 				sideCol.style.transform = `translateX(${newTranslate}px)`
 				this.oldGestureInfo = this.lastGestureInfo
 				this.lastGestureInfo = gestureInfoFromTouch(touch)
@@ -192,7 +193,9 @@ export class ViewSlider {
 
 	_updateVisibleBackgroundColumns() {
 		this.focusedColumn = this.focusedColumn || this._mainColumn
-		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this._mainColumn)]
+		let visibleColumns: ViewColumn[] = [
+			(this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this._mainColumn)
+		]
 		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
 
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.columns)
@@ -275,7 +278,8 @@ export class ViewSlider {
 		let foreGroundColumn = this.columns.find(column => column.columnType === ColumnType.Foreground)
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large;
-			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
+			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth
+				- foreGroundColumn.minWidth)
 			foreGroundColumn.setWidth(foreGroundColumn.minWidth + additionalSpaceForColumn)
 		}
 	}
@@ -290,9 +294,11 @@ export class ViewSlider {
 			}
 		}).then(() => {
 			this.focusedColumn = viewColumn
-			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1
+				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
-			} else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			} else if (viewColumn.columnType === ColumnType.Foreground
+				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;

@@ -43,7 +43,8 @@ export type Theme = {
 	navigation_button_icon_selected: string,
 }
 
-let customTheme: ?Theme = typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme ? whitelabelCustomizations.theme : null
+let customTheme: ?Theme = typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations
+&& whitelabelCustomizations.theme ? whitelabelCustomizations.theme : null
 export const themeId: stream<ThemeId> = stream(getThemeId())
 export var theme: Theme = getTheme()
 export var defaultTheme: Theme = getLightTheme()
@@ -67,7 +68,7 @@ function getThemeId(): ThemeId {
 function getTheme(): Theme {
 	switch (themeId()) {
 		case 'custom':
-			return (Object.assign({}, getLightTheme(), customTheme):any)
+			return (Object.assign({}, getLightTheme(), customTheme): any)
 		case 'dark':
 			return getDarkTheme() // getD()
 		default:

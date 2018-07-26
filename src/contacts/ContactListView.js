@@ -56,7 +56,7 @@ export class ContactListView {
 				renderRightSpacer: () => [],
 				swipeLeft: listElement => Promise.resolve(),
 				swipeRight: listElement => Promise.resolve(),
-			}:any),
+			}: any),
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noContacts_msg")
@@ -92,7 +92,8 @@ export class ContactRow {
 		}
 
 		this._domName.textContent = contact.firstName + " " + contact.lastName
-		this._domAddress.textContent = (contact.mailAddresses && contact.mailAddresses.length > 0) ? contact.mailAddresses[0].address : ""
+		this._domAddress.textContent = (contact.mailAddresses && contact.mailAddresses.length > 0) ?
+			contact.mailAddresses[0].address : ""
 	}
 
 

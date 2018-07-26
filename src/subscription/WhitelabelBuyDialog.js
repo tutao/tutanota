@@ -22,6 +22,7 @@ export function buyWhitelabel(enable: boolean) {
 		return Dialog.error("whitelabelDomainExisting_msg").return(false)
 	})
 }
+
 /**
  * Shows the buy dialog to enable or disable the whitelabel package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
@@ -29,11 +30,12 @@ export function buyWhitelabel(enable: boolean) {
  */
 export function show(enable: boolean): Promise<boolean> {
 	const amount = enable ? 1 : 0
-	return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, amount, 0, false)).then(accepted => {
-		if (accepted) {
-			return buyWhitelabel(enable)
-		} else {
-			return false
-		}
-	})
+	return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Branding, amount, 0, false))
+		.then(accepted => {
+			if (accepted) {
+				return buyWhitelabel(enable)
+			} else {
+				return false
+			}
+		})
 }

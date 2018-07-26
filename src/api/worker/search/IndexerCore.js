@@ -136,19 +136,21 @@ export class IndexerCore {
 
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = getPerformanceTimestamp()
-		return this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS]).then(transaction => {
-			return Promise.resolve()
-				.then(() => this._moveIndexedInstance(indexUpdate, transaction))
-				.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
-				.then(() => this._insertNewElementData(indexUpdate, transaction))
-				.then(keysToUpdate => keysToUpdate != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
-				.then(() => this._updateGroupData(indexUpdate, transaction))
-				.then(() => {
-					return transaction.wait().then(() => {
-						this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
-					})
-				})
-		})
+		return this.db.dbFacade.createTransaction(false, [SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS])
+		           .then(transaction => {
+			           return Promise.resolve()
+			                         .then(() => this._moveIndexedInstance(indexUpdate, transaction))
+			                         .then(() => this._deleteIndexedInstance(indexUpdate, transaction))
+			                         .then(() => this._insertNewElementData(indexUpdate, transaction))
+			                         .then(keysToUpdate => keysToUpdate
+			                         != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
+			                         .then(() => this._updateGroupData(indexUpdate, transaction))
+			                         .then(() => {
+				                         return transaction.wait().then(() => {
+					                         this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
+				                         })
+			                         })
+		           })
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
@@ -171,7 +173,8 @@ export class IndexerCore {
 			return transaction.getAsList(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
 				if (encryptedSearchIndexEntries.length > 0) {
 					let promises = indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId))
-					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) === encInstanceId) == null)
+					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0])
+						=== encInstanceId) == null)
 					if (newEntries.length > 0) {
 						promises.push(transaction.put(SearchIndexOS, encWord, newEntries))
 					} else {
@@ -186,10 +189,10 @@ export class IndexerCore {
 	/**
 	 * @return a map that contains all new encrypted instance ids
 	 */
-	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]:boolean}> {
+	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]: boolean}> {
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only for FF)
 
-		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
+		let keysToUpdate: {[B64EncInstanceId]: boolean} = {}
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
@@ -205,10 +208,11 @@ export class IndexerCore {
 		return Promise.all(promises).return(keysToUpdate)
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]:boolean}, transaction: DbTransaction): ?Promise<void> {
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<void> {
 		let promises = []
 		indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
-			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] === true)
+			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry: any)[0])]
+				=== true)
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
 				promises.push(transaction.get(SearchIndexOS, b64EncIndexKey).then((result) => {
@@ -223,7 +227,8 @@ export class IndexerCore {
 					}
 					value = value.concat(filteredEncryptedEntries)
 					this._largestColumn = value.length > this._largestColumn ? value.length : this._largestColumn
-					this._storedBytes += filteredEncryptedEntries.reduce((sum, e) => (sum + (e:any)[0].length + (e:any)[1].length), 0)
+					this._storedBytes += filteredEncryptedEntries.reduce((sum, e) => (sum + (e: any)[0].length
+						+ (e: any)[1].length), 0)
 					return transaction.put(SearchIndexOS, b64EncIndexKey, value)
 				}))
 			}
@@ -274,6 +279,8 @@ export class IndexerCore {
 	}
 
 	printStatus() {
-		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime + this._storageTime + this._downloadingTime + this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
+		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime
+			+ this._storageTime + this._downloadingTime
+			+ this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
 	}
 }

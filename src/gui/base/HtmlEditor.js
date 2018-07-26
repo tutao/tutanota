@@ -28,7 +28,7 @@ export class HtmlEditor {
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
 
-	constructor(labelIdOrLabelFunction: string|lazy<string>) {
+	constructor(labelIdOrLabelFunction: string | lazy<string>) {
 		this._editor = new Editor(null)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -81,18 +81,20 @@ export class HtmlEditor {
 
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
-						oncreate: vnode => this._placeholderDomElement = vnode.dom,
-						onclick: () => this._mode() === Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
-					},
-					(this._placeholderId ? lang.get(this._placeholderId) : "")
-				) : null
+					oncreate: vnode => this._placeholderDomElement = vnode.dom,
+					onclick: () => this._mode()
+					=== Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
+				},
+				(this._placeholderId ? lang.get(this._placeholderId) : "")
+			) : null
 		}
 
 
 		this.view = () => {
 			return m(".html-editor", [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
-				(labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
+				(labelIdOrLabelFunction) ? m(".small.mt-form", labelIdOrLabelFunction
+				instanceof Function ? labelIdOrLabelFunction() : lang.get(labelIdOrLabelFunction)) : null,
 				m((this._showBorders ? ".editor-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
@@ -124,13 +126,14 @@ export class HtmlEditor {
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 						},
 						disabled: !this._editor._enabled
-					}))])
+					}))
+				])
 			])
 		}
 	}
 
 
-	setModeSwitcher(label: string|lazy<string>) {
+	setModeSwitcher(label: string | lazy<string>) {
 		this._modeSwitcher = new DropDownSelector(label, null, [
 			{name: lang.get("richText_label"), value: Mode.WYSIWYG},
 			{name: lang.get("htmlSourceCode_label"), value: Mode.HTML}

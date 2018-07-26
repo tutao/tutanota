@@ -84,7 +84,7 @@ export class BookingFacade {
 	 * Provides the name of the given payment method.
 	 * @param  paymentMethod One of tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_*.
 	 */
-	getPaymentMethodNameTextId(paymentMethod: NumberString): string|lazy<string> {
+	getPaymentMethodNameTextId(paymentMethod: NumberString): string | lazy<string> {
 		if (paymentMethod === PaymentMethodType.Invoice) {
 			return "paymentMethodOnAccount_label";
 		} else if (paymentMethod === PaymentMethodType.CreditCard) {

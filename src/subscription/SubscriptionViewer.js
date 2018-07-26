@@ -38,6 +38,7 @@ import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessi
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
+
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -78,14 +79,20 @@ export class SubscriptionViewer {
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show())
 			.setType(ButtonType.Accent)
-		this._subscriptionField._injectionsRight = () => (logins.getUserController().isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController().isPremiumAccount() && !this._isCancelled ? [m(subscriptionAction)] : null)
-		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._subscriptionField._injectionsRight = () => (logins.getUserController()
+		                                                        .isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController()
+		                                                                                                                                                       .isPremiumAccount()
+		&& !this._isCancelled ? [m(subscriptionAction)] : null)
+		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg"))
+		                                                                    .setDisabled()
 		let usageTypeAction = new Button("businessUse_label", () => {
 			this._switchToBusinessUse()
 		}, () => Icons.Edit)
-		this._usageTypeField._injectionsRight = () => this._accountingInfo && !this._accountingInfo.business ? m(usageTypeAction) : null
+		this._usageTypeField._injectionsRight = () => this._accountingInfo
+		&& !this._accountingInfo.business ? m(usageTypeAction) : null
 
-		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg")).setDisabled()
+		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg"))
+		                                                                                                                               .setDisabled()
 		let signOrderAgreementAction = new Button("sign_action", () => {
 			SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo))
 		}, () => Icons.Edit)
@@ -125,8 +132,11 @@ export class SubscriptionViewer {
 		})
 
 
-		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg")).setDisabled()
-		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
+		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg"))
+		                                                                                                                                                                                .setDisabled()
+		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {
+			"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))
+		}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
 		const addUserActionButton = createNotAvailableForFreeButton("addUsers_action", () => AddUserDialog.show(), () => Icons.Add);
@@ -139,7 +149,8 @@ export class SubscriptionViewer {
 		}, () => Icons.Edit)
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
-		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg"))
+		                                                                 .setDisabled()
 		const changeEmailAliasPackageButton = createNotAvailableForFreeButton("emailAlias_label", () => {
 			EmailAliasOptionsDialog.show()
 		}, () => Icons.Edit)
@@ -163,7 +174,8 @@ export class SubscriptionViewer {
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
 		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit)
 		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel)
-		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) === 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
+		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking)
+			=== 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
 
 		let deleteButton = new Button("adminDeleteAccount_action", () => {
 			showDeleteAccountDialog()
@@ -177,7 +189,8 @@ export class SubscriptionViewer {
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
 				m(this._subscriptionField),
 				this._showPriceData() ? m(this._usageTypeField) : null,
-				((logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()) && this._accountingInfo && this._accountingInfo.business) ? m(this._orderAgreementField) : null,
+				((logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount())
+					&& this._accountingInfo && this._accountingInfo.business) ? m(this._orderAgreementField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
 				(this._showPriceData() && this._nextPeriodPriceVisible) ? m(this._nextPriceField) : null,
@@ -255,8 +268,10 @@ export class SubscriptionViewer {
 			return;
 		}
 		worker.getCurrentPrice().then(priceServiceReturn => {
-			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-				if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
+			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod
+				!= null) {
+				if (priceServiceReturn.currentPriceThisPeriod.price
+					!== priceServiceReturn.currentPriceNextPeriod.price) {
 					this._currentPriceField.setValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
 					this._nextPriceField.setValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
 					this._nextPeriodPriceVisible = true
@@ -279,8 +294,10 @@ export class SubscriptionViewer {
 	}
 
 	_updateSubscriptionField(cancelled: boolean) {
-		let cancelledText = !cancelled ? "" : " " + lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
-		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro) + cancelledText).setDisabled()
+		let cancelledText = !cancelled ? "" : " "
+			+ lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
+		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro)
+			+ cancelledText).setDisabled()
 	}
 
 	_updatePro(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking) {
@@ -292,21 +309,22 @@ export class SubscriptionViewer {
 	_updateBookings() {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
-					this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-					this._isCancelled = customer.canceledPremiumAccount
-					this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
-					this._updateSubscriptionField(this._isCancelled)
-					Promise.all([
-							this._updateUserField(),
-							this._updateStorageField(customer, customerInfo),
-							this._updateAliasField(customer, customerInfo),
-							this._updateGroupsField(),
-							this._updateWhitelabelField(),
-							this._updateContactFormsField()
-						]
-					).then(() => m.redraw())
-				})
+				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+					.then(bookings => {
+						this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+						this._isCancelled = customer.canceledPremiumAccount
+						this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+						this._updateSubscriptionField(this._isCancelled)
+						Promise.all([
+								this._updateUserField(),
+								this._updateStorageField(customer, customerInfo),
+								this._updateAliasField(customer, customerInfo),
+								this._updateGroupsField(),
+								this._updateWhitelabelField(),
+								this._updateContactFormsField()
+							]
+						).then(() => m.redraw())
+					})
 			})
 		})
 	}
@@ -320,7 +338,8 @@ export class SubscriptionViewer {
 	_updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
 		return worker.readUsedCustomerStorage().then(usedStorage => {
 			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
-			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR)
+			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this._lastBooking)
+				* Const.MEMORY_GB_FACTOR)
 			this._storageField.setValue(lang.get("amountUsedOf_label", {
 				"{amount}": usedStorageFormatted,
 				"{totalAmount}": totalStorageFormatted
@@ -334,13 +353,15 @@ export class SubscriptionViewer {
 			this._emailAliasField.setValue("0")
 			return Promise.resolve()
 		} else {
-			return serviceRequest(SysService.MailAddressAliasService, HttpMethod.GET, null, MailAddressAliasServiceReturnTypeRef).then(aliasServiceReturn => {
-				this._emailAliasField.setValue(lang.get("amountUsedAndActivatedOf_label", {
-					"{used}": aliasServiceReturn.usedAliases,
-					"{active}": aliasServiceReturn.enabledAliases,
-					"{totalAmount}": totalAmount
-				}))
-			}).return()
+			return serviceRequest(SysService.MailAddressAliasService, HttpMethod.GET, null, MailAddressAliasServiceReturnTypeRef)
+				.then(aliasServiceReturn => {
+					this._emailAliasField.setValue(lang.get("amountUsedAndActivatedOf_label", {
+						"{used}": aliasServiceReturn.usedAliases,
+						"{active}": aliasServiceReturn.enabledAliases,
+						"{totalAmount}": totalAmount
+					}))
+				})
+				.return()
 		}
 	}
 

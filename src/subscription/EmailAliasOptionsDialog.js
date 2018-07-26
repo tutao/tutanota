@@ -27,9 +27,10 @@ export function buyAliases(amount: number): Promise<void> {
 	bookingData.amount = amount.toString()
 	bookingData.featureType = BookingItemFeatureType.Alias
 	bookingData.date = Const.CURRENT_DATE
-	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).catch(PreconditionFailedError, error => {
-		return Dialog.error("emailAliasesTooManyActivatedForBooking_msg")
-	})
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+		.catch(PreconditionFailedError, error => {
+			return Dialog.error("emailAliasesTooManyActivatedForBooking_msg")
+		})
 }
 
 export function show(): Promise<void> {
@@ -59,7 +60,8 @@ export function show(): Promise<void> {
 					createEmailAliasPackageBox(20, freeEmailAliases, changeEmailAliasPackageAction),
 					createEmailAliasPackageBox(40, freeEmailAliases, changeEmailAliasPackageAction),
 					createEmailAliasPackageBox(100, freeEmailAliases, changeEmailAliasPackageAction),
-				].filter(aliasPackage => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases).map(scb => scb.buyOptionBox) // filter needless buy options
+				].filter(aliasPackage => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases)
+				 .map(scb => scb.buyOptionBox) // filter needless buy options
 
 				const headerBar = new DialogHeaderBar()
 					.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
@@ -83,7 +85,7 @@ export function show(): Promise<void> {
 		})
 }
 
-function createEmailAliasPackageBox(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount:number, buyOptionBox:BuyOptionBox} {
+function createEmailAliasPackageBox(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount: number, buyOptionBox: BuyOptionBox} {
 	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "select_action",
 		() => buyAction(amount),
 		() => [], 230, 240)

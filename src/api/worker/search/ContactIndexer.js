@@ -61,13 +61,15 @@ export class ContactIndexer {
 			}, {
 				attribute: ContactModel.associations["socialIds"],
 				value: () => contact.socialIds.map(s => s.socialId).join(","),
-			}])
+			}
+		])
 		this.suggestionFacade.addSuggestions(this._getSuggestionWords(contact))
 		return keyToIndexEntries
 	}
 
 	_getSuggestionWords(contact: Contact): string[] {
-		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address).join(" "))
+		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address)
+		                                                                          .join(" "))
 	}
 
 	processNewContact(event: EntityUpdate): Promise<?{contact: Contact, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
@@ -101,7 +103,9 @@ export class ContactIndexer {
 								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 							})
 							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
-							return Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
+							return Promise.all([
+								this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+							])
 						})
 					}
 				})

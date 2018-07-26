@@ -126,7 +126,8 @@ export const PaymentMethodType = {
 }
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 
-export const reverse = (objectMap: Object) => Object.keys(objectMap).reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+export const reverse = (objectMap: Object) => Object.keys(objectMap)
+                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
 
 export const ValueToPaymentMethodType = reverse(PaymentMethodType)
 

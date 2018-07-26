@@ -93,19 +93,23 @@ export class Indexer {
 				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
 						if (!userEncDbKey) {
-							return this._loadGroupData(user).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
-								return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS]).then(t2 => {
-									this.db.key = aes256RandomKey()
-									t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
-									t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
-									t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
-									return this._initGroupData(groupBatches, t2)
-								})
-							}).then(() => {
-								return this._updateIndexedGroups()
-							}).then(() => {
-								this._dbInitializedCallback()
-							})
+							return this._loadGroupData(user)
+							           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
+								           return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
+								                      .then(t2 => {
+									                      this.db.key = aes256RandomKey()
+									                      t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
+									                      t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
+									                      t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
+									                      return this._initGroupData(groupBatches, t2)
+								                      })
+							           })
+							           .then(() => {
+								           return this._updateIndexedGroups()
+							           })
+							           .then(() => {
+								           this._dbInitializedCallback()
+							           })
 						} else {
 							this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
 							return Promise.all([
@@ -115,7 +119,9 @@ export class Indexer {
 								t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 									this._mail._excludedListIds = excludedListIds
 								}),
-								this._loadGroupDiff(user).then(groupDiff => this._updateGroups(user, groupDiff)).then(() => this._mail.updateCurrentIndexTimestamp(user))
+								this._loadGroupDiff(user)
+								    .then(groupDiff => this._updateGroups(user, groupDiff))
+								    .then(() => this._mail.updateCurrentIndexTimestamp(user))
 							]).then(() => {
 								return this._updateIndexedGroups()
 							}).then(() => {
@@ -141,14 +147,15 @@ export class Indexer {
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
 				})
 				return this._contact.indexFullContactList(user.userGroup.group)
-					.then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
-					.then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
-					.then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)))
-					.then(() => this._loadPersistentGroupData(user).then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
-					.catch(OutOfSyncError, e => {
-						console.log("out of sync - delete database and disable mail indexing")
-						return this.disableMailIndexing()
-					})
+				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
+				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
+				           .then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)))
+				           .then(() => this._loadPersistentGroupData(user)
+				                           .then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
+				           .catch(OutOfSyncError, e => {
+					           console.log("out of sync - delete database and disable mail indexing")
+					           return this.disableMailIndexing()
+				           })
 			}).catch(CancelledError, e => {
 				// mail or contact group has been removed from user, disable mail indexing and init index again
 				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
@@ -198,10 +205,11 @@ export class Indexer {
 
 	_updateIndexedGroups(): Promise<void> {
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS])
-			.then(t => t.getAll(GroupDataOS).map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
-			.then(indexedGroupIds => {
-				this._indexedGroupIds = indexedGroupIds
-			})
+		           .then(t => t.getAll(GroupDataOS)
+		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
+		           .then(indexedGroupIds => {
+			           this._indexedGroupIds = indexedGroupIds
+		           })
 	}
 
 
@@ -233,11 +241,12 @@ export class Indexer {
 		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
 			return Promise.reject(new CancelledError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
-			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id)).then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
-				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then(t => {
-					return this._initGroupData(groupBatches, t)
-				})
-			})
+			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id))
+			           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
+				           return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then(t => {
+					           return this._initGroupData(groupBatches, t)
+				           })
+			           })
 		}
 		return Promise.resolve()
 	}
@@ -251,19 +260,21 @@ export class Indexer {
 			memberships = memberships.filter(membership => contains(restrictToTheseGroups, membership.group))
 		}
 		return Promise.map(memberships, (membership: GroupMembership) => {
-			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true).then(eventBatches => {
-				return {
-					groupId: membership.group,
-					groupData: ({
-						lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
-						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						groupType: neverNull(membership.groupType)
-					}:GroupData)
-				}
-			}).catch(NotAuthorizedError, e => {
-				console.log("could not download entity updates => lost permission on list")
-				return null
-			})
+			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true)
+			           .then(eventBatches => {
+				           return {
+					           groupId: membership.group,
+					           groupData: ({
+						           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
+						           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						           groupType: neverNull(membership.groupType)
+					           }: GroupData)
+				           }
+			           })
+			           .catch(NotAuthorizedError, e => {
+				           console.log("could not download entity updates => lost permission on list")
+				           return null
+			           })
 		}).filter(r => r != null)
 	}
 
@@ -277,36 +288,39 @@ export class Indexer {
 		return t2.wait()
 	}
 
-	_loadNewEntities(groupIdToEventBatches: {groupId:Id, eventBatchIds:Id[]}[]): Promise<void> {
+	_loadNewEntities(groupIdToEventBatches: {groupId: Id, eventBatchIds: Id[]}[]): Promise<void> {
 		this._core.queue.queue()
 		return Promise.map(groupIdToEventBatches, (groupIdToEventBatch) => {
 			if (groupIdToEventBatch.eventBatchIds.length > 0) {
 				let lastBatchId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
 				// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
 				let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
-				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
-					let processedEntityEvents = eventBatches.filter((batch) => groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) !== -1)
-					if (processedEntityEvents.length === 0) {
-						throw new OutOfSyncError()
-					}
-					return Promise.map(eventBatches, batch => {
-						if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) === -1) {
-							return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
-						}
-					}, {concurrency: 5})
-				}).catch(NotAuthorizedError, e => {
-					console.log("could not download entity updates => lost permission on list")
-				})
+				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
+				           .then(eventBatches => {
+					           let processedEntityEvents = eventBatches.filter((batch) =>
+						           groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) !== -1)
+					           if (processedEntityEvents.length === 0) {
+						           throw new OutOfSyncError()
+					           }
+					           return Promise.map(eventBatches, batch => {
+						           if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) === -1) {
+							           return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
+						           }
+					           }, {concurrency: 5})
+				           })
+				           .catch(NotAuthorizedError, e => {
+					           console.log("could not download entity updates => lost permission on list")
+				           })
 			}
 		}, {concurrency: 1})
-			.finally(() => this._core.queue.processNext())
-			.return()
+		              .finally(() => this._core.queue.processNext())
+		              .return()
 	}
 
 	/**
 	 * @private a map from group id to event batches
 	 */
-	_loadPersistentGroupData(user: User): Promise<{groupId:Id, eventBatchIds:Id[]}[]> {
+	_loadPersistentGroupData(user: User): Promise<{groupId: Id, eventBatchIds: Id[]}[]> {
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 			return Promise.all(filterIndexMemberships(user).map(membership => {
 				return t.get(GroupDataOS, membership.group).then((groupData: GroupData) => {
@@ -337,7 +351,7 @@ export class Indexer {
 			}
 			let indexUpdate = _createNewIndexUpdate(groupId)
 			indexUpdate.batchId = [groupId, batchId]
-			let groupedEvents: Map<TypeRef<any>,EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>,EntityUpdate[]>, update: EntityUpdate) => {
+			let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
 				let type = new TypeRef(update.application, update.type)
 				if (isSameTypeRef(type, MailTypeRef)) {
 					neverNull(all.get(MailTypeRef)).push(update)
@@ -351,7 +365,10 @@ export class Indexer {
 					neverNull(all.get(WhitelabelChildTypeRef)).push(update)
 				}
 				return all
-			}, new Map([[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []], [WhitelabelChildTypeRef, []]]))
+			}, new Map([
+				[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []],
+				[WhitelabelChildTypeRef, []]
+			]))
 
 			this._core.queue.queue()
 			return Promise.all([

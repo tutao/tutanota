@@ -44,7 +44,8 @@ export function show(customerInfo: CustomerInfo) {
 					} else {
 						errorMessageId = "customDomainErrorDomainNotAvailable_msg"
 					}
-					Dialog.error(() => lang.get(errorMessageId) + "\n" + status.invalidDnsRecords.map(r => r.value).join("\n"))
+					Dialog.error(() => lang.get(errorMessageId) + "\n" + status.invalidDnsRecords.map(r => r.value)
+					                                                           .join("\n"))
 				}
 			})
 		}
@@ -52,5 +53,6 @@ export function show(customerInfo: CustomerInfo) {
 }
 
 export function getDomainInfoLink(): string {
-	return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
+	return (lang.code === "de" || lang.code
+		=== "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
 }

@@ -75,7 +75,7 @@ export class Button {
 	_staticRightText: ?string;
 	_colors: ButtonColorEnum;
 
-	constructor(labelTextIdOrTextFunction: string|lazy<string>, click: clickHandler, icon: ?lazy<SVG>) {
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, click: clickHandler, icon: ?lazy<SVG>) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
@@ -86,17 +86,20 @@ export class Button {
 		this.isVisible = TRUE_CLOSURE
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
-		this.getLabel = labelTextIdOrTextFunction instanceof Function ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+		this.getLabel = labelTextIdOrTextFunction instanceof Function
+			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
 
 			return m("button.limit-width.noselect" + ((this._type === ButtonType.Bubble) ? ".print" : ""), {
 					class: this.getButtonClasses().join(' '),
 					style: (this._type === ButtonType.Login || this._type === ButtonType.Accent) ? {
-							'background-color': theme.content_accent,
-						} : {},
+						'background-color': theme.content_accent,
+					} : {},
 					onclick: (event: MouseEvent) => this.click(event),
-					title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type === ButtonType.Dropdown) || this._type === ButtonType.Login || this._type === ButtonType.Accent ? this.getLabel() : "",
+					title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble
+						|| this._type === ButtonType.Dropdown) || this._type === ButtonType.Login
+					|| this._type === ButtonType.Accent ? this.getLabel() : "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
 						addFlash(vnode.dom)
@@ -115,13 +118,13 @@ export class Button {
 
 	getIcon() {
 		return (this.icon instanceof Function && this.icon()) ? m(Icon, {
-				icon: this.icon(),
-				class: this.getIconClass(),
-				style: {
-					fill: this.getIconColor(),
-					'background-color': this.getIconBackgroundColor()
-				}
-			}) : null
+			icon: this.icon(),
+			class: this.getIconClass(),
+			style: {
+				fill: this.getIconColor(),
+				'background-color': this.getIconBackgroundColor()
+			}
+		}) : null
 	}
 
 	getIconColor() {
@@ -288,24 +291,28 @@ export class Button {
 	}
 }
 
-export function createDropDownButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string|NavButton|Button>>, width: number = 200): Button {
+export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width)
 }
 
-export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazyAsync<Array<string|NavButton|Button>>, width: number = 200): Button {
+export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazyAsync<Array<string | NavButton | Button>>, width: number = 200): Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
 		if (!resultPromise.isFulfilled()) {
-			resultPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
-				return module.showProgressDialog("loading_msg", buttonPromise)
-			})
+			resultPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+				.then(module => {
+					return module.showProgressDialog("loading_msg", buttonPromise)
+				})
 		}
 		resultPromise.then(buttons => {
 			if (buttons.length === 0) {
-				asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
-					return module.Dialog.error("selectionNotAvailable_msg")
-				})
+				asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+					`${env.rootPathPrefix}src/gui/base/Dialog.js`)
+					.then(module => {
+						return module.Dialog.error("selectionNotAvailable_msg")
+					})
 			} else {
 				let dropdown = new Dropdown(() => buttons, width)
 				if (mainButton._domButton) {
@@ -315,7 +322,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 				}
 			}
 		})
-	}:clickHandler), icon)
+	}: clickHandler), icon)
 	return mainButton
 }
 

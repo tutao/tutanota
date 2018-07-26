@@ -38,7 +38,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?()=>void;
+	_closeHandler: ?() => void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
@@ -64,7 +64,8 @@ export class Dialog {
 					m(this._getDialogStyle(dialogType), {
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						style: {
-							'margin-top': styles.isDesktopLayout() ? '60px' : dialogType === DialogType.EditLarge ? mobileMargin : 0,
+							'margin-top': styles.isDesktopLayout() ? '60px'
+								: dialogType === DialogType.EditLarge ? mobileMargin : 0,
 							'margin-left': mobileMargin,
 							'margin-right': mobileMargin
 						},
@@ -87,7 +88,9 @@ export class Dialog {
 
 							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
 							window.requestAnimationFrame(() => {
-								if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur()
+								if (document.activeElement && typeof document.activeElement.blur === "function") {
+									document.activeElement.blur()
+								}
 							})
 							animation.then(() => {
 								this._focusOnLoadFunction()
@@ -115,7 +118,8 @@ export class Dialog {
 
 	_getDialogWrapperStyle(dialogType: DialogTypeEnum) {
 		let dialogWrapperStyle = ".fill-absolute.flex-center"
-		if (dialogType === DialogType.Progress || dialogType === DialogType.Alert || dialogType === DialogType.EditSmall || dialogType === DialogType.EditMedium) {
+		if (dialogType === DialogType.Progress || dialogType === DialogType.Alert || dialogType === DialogType.EditSmall
+			|| dialogType === DialogType.EditMedium) {
 			dialogWrapperStyle += ".items-center"
 		}
 		if (dialogType === DialogType.Reminder) {
@@ -214,17 +218,18 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: string|lazy<string>): Promise<void> {
+	static error(messageIdOrMessageFunction: string | lazy<string>): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 
 			let closeAction = () => {
-				(dialog:any).close()
+				(dialog: any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
 			}
 			buttons.push(new Button("ok_action", closeAction).setType(ButtonType.Primary))
 
-			let message = messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)
+			let message = messageIdOrMessageFunction instanceof Function ?
+				messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)
 			let lines = message.split("\n")
 
 			let dialog = new Dialog(DialogType.Alert, {
@@ -243,7 +248,7 @@ export class Dialog {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 			let closeAction = () => {
-				(dialog:any).close()
+				(dialog: any).close()
 				setTimeout(() => cb(null), DefaultAnimationTime)
 			}
 
@@ -271,7 +276,7 @@ export class Dialog {
 	}
 
 
-	static confirm(messageIdOrMessageFunction: string|lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
+	static confirm(messageIdOrMessageFunction: string | lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 			let cancelAction = () => {
@@ -285,7 +290,9 @@ export class Dialog {
 			}).setType(ButtonType.Primary))
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
-					m(".dialog-contentButtonsBottom.text-break.text-prewrap", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
+					m(".dialog-contentButtonsBottom.text-break.text-prewrap",
+						messageIdOrMessageFunction instanceof Function ?
+							messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
 			})
@@ -356,7 +363,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked. Must return null if the input is valid so the dialog is closed or an error messageId if the input is invalid, so an error message is shown and the dialog stays.
 	 * @deprecated user Dialog.smallActionDialog
 	 */
-	static smallDialog(title: stream<string>|string, child: Component, inputValidator: ?validator): Promise<boolean> {
+	static smallDialog(title: stream<string> | string, child: Component, inputValidator: ?validator): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
 
@@ -397,7 +404,7 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
+	static smallActionDialog(title: stream<string> | string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
 		let actionBar = new DialogHeaderBar()
 
 		let doCancel = () => {
@@ -450,7 +457,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: string, labelIdOrLabelFunction: string | lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
 			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
@@ -473,7 +480,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextAreaInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextAreaInputDialog(titleId: string, labelIdOrLabelFunction: string | lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
 			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
@@ -491,7 +498,7 @@ export class Dialog {
 	}
 
 
-	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T> | T, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
 			return Dialog.smallDialog(lang.get(titleId), {

@@ -85,7 +85,8 @@ export class UserManagementFacade {
 	}
 
 	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (this._login.getLoggedInUser().accountType === AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
+		let mailAddress = (this._login.getLoggedInUser().accountType
+			=== AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
 		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
 			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
 				return (groupInfo.mailAddress === mailAddress)
@@ -127,11 +128,13 @@ export class UserManagementFacade {
 
 	readUsedUserStorage(user: User): Promise<number> {
 		return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
-			return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then(contactStorage => {
-				return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then(fileStorage => {
-					return (Number(mailStorage) + Number(contactStorage) + Number(fileStorage));
+			return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact))
+				.then(contactStorage => {
+					return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File))
+						.then(fileStorage => {
+							return (Number(mailStorage) + Number(contactStorage) + Number(fileStorage));
+						})
 				})
-			})
 		})
 	}
 
@@ -166,17 +169,21 @@ export class UserManagementFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey).then(userGroupData => {
-			return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100).then(() => {
-				let data = createUserAccountCreateData()
-				data.date = Const.CURRENT_DATE
-				data.userGroupData = userGroupData
-				data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, name)
-				return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data).then(() => {
-					return this._worker.sendProgress((userIndex + 1) / overallNbrOfUsersToCreate * 100)
-				})
-			})
-		})
+		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
+		           .then(userGroupData => {
+			           return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
+			                      .then(() => {
+				                      let data = createUserAccountCreateData()
+				                      data.date = Const.CURRENT_DATE
+				                      data.userGroupData = userGroupData
+				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, name)
+				                      return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
+					                      .then(() => {
+						                      return this._worker.sendProgress((userIndex + 1)
+							                      / overallNbrOfUsersToCreate * 100)
+					                      })
+			                      })
+		           })
 	}
 
 	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string, userName: string): UserAccountUserData {

@@ -95,7 +95,7 @@ export class EventBusClient {
 			wrapper.authentication = authenticationData
 			encryptAndMapToLiteral(WebsocketWrapperTypeModel, wrapper, null).then(entityForSending => {
 				const sendInitialMsg = () => {
-					const socket = (this._socket:any)
+					const socket = (this._socket: any)
 					if (socket.readyState === 1) {
 						socket.send(JSON.stringify(entityForSending));
 						this._terminated = false
@@ -141,7 +141,7 @@ export class EventBusClient {
 
 	_message(message: MessageEvent): Promise<void> {
 		console.log("ws message: ", message.data);
-		return applyMigrations(WebsocketWrapperTypeRef, JSON.parse((message.data:any))).then(data => {
+		return applyMigrations(WebsocketWrapperTypeRef, JSON.parse((message.data: any))).then(data => {
 			return decryptAndMapToInstance(WebsocketWrapperTypeModel, data, null).then(wrapper => {
 				if (wrapper.type === 'entityUpdate') {
 					// When an event batch is received only process it if there is no other event batch currently processed. Otherwise put it into the cache. After processing an event batch we
@@ -150,13 +150,16 @@ export class EventBusClient {
 						this._websocketWrapperQueue.push(wrapper)
 					} else {
 						this._queueWebsocketEvents = true
-						return this._processEntityEvents(wrapper.eventBatch, neverNull(wrapper.eventBatchOwner), neverNull(wrapper.eventBatchId)).then(() => {
-							if (this._websocketWrapperQueue.length > 0) {
-								return this._processQueuedEvents()
-							}
-						}).finally(() => {
-							this._queueWebsocketEvents = false
-						})
+						return this._processEntityEvents(wrapper.eventBatch, neverNull(wrapper.eventBatchOwner),
+							neverNull(wrapper.eventBatchId))
+						           .then(() => {
+							           if (this._websocketWrapperQueue.length > 0) {
+								           return this._processQueuedEvents()
+							           }
+						           })
+						           .finally(() => {
+							           this._queueWebsocketEvents = false
+						           })
 					}
 				}
 			})
@@ -190,12 +193,14 @@ export class EventBusClient {
 	 * Tries to reconnect the websocket if it is not connected.
 	 */
 	tryReconnect(closeIfOpen: boolean) {
-		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + ((this._socket) ? this._socket.readyState : "null"));
+		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
+			+ ((this._socket) ? this._socket.readyState : "null"));
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
 			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
-		} else if ((this._socket == null || this._socket.readyState === WebSocket.CLOSED) && !this._terminated && this._login.isLoggedIn()) {
+		} else if ((this._socket == null || this._socket.readyState === WebSocket.CLOSED) && !this._terminated
+			&& this._login.isLoggedIn()) {
 			this.connect(true);
 		}
 	}
@@ -212,7 +217,9 @@ export class EventBusClient {
 		this._queueWebsocketEvents = true
 		return Promise.each(this._login.getAllGroupIds(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				this._lastEntityEventIds[groupId] = [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
+				this._lastEntityEventIds[groupId] = [
+					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
+				]
 			})
 		}).then(() => {
 			return this._processQueuedEvents()
@@ -232,9 +239,10 @@ export class EventBusClient {
 					return this._worker.sendError(new OutOfSyncError())
 				} else {
 					return Promise.each(this._login.getAllGroupIds(), groupId => {
-						return loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId)).each(eventBatch => {
-							return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
-						})
+						return loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
+							.each(eventBatch => {
+								return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
+							})
 					}).then(() => {
 						return this._processQueuedEvents()
 					})
@@ -271,16 +279,16 @@ export class EventBusClient {
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
 		return Promise.map(events, event => {
 			return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
-				.then(() => event)
-				.catch(e => {
-					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-						// skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
-						return null
-					} else {
-						this._worker.sendError(e)
-						throw e // do not continue processing the other events
-					}
-				})
+			           .then(() => event)
+			           .catch(e => {
+				           if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+					           // skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
+					           return null
+				           } else {
+					           this._worker.sendError(e)
+					           throw e // do not continue processing the other events
+				           }
+			           })
 		}).filter(event => event != null).then(filteredEvents => {
 			this._executeIfNotTerminated(() => {
 				if (!isTest() && !isAdmin()) {
@@ -290,8 +298,8 @@ export class EventBusClient {
 			return filteredEvents
 		}).each(event => {
 			return this._executeIfNotTerminated(() => this._login.entityEventReceived(event))
-				.then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
-				.then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
+			           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
+			           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
 		}).then(() => {
 			if (!this._lastEntityEventIds[groupId]) {
 				this._lastEntityEventIds[groupId] = []
@@ -330,12 +338,14 @@ export class EventBusClient {
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
 		// TODO handle lost updates (old event surpassed by newer one, we store the new id and retrieve instances from the newer one on next login
-		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ? this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
+		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ?
+			this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
 	}
 
 	_isAlreadyProcessed(groupId: Id, eventId: Id): boolean {
 		if (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) {
-			return firstBiggerThanSecond(this._lastEntityEventIds[groupId][0], eventId) || contains(this._lastEntityEventIds[groupId], eventId)
+			return firstBiggerThanSecond(this._lastEntityEventIds[groupId][0], eventId)
+				|| contains(this._lastEntityEventIds[groupId], eventId)
 		} else {
 			return false
 		}

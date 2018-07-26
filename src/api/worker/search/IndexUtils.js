@@ -9,8 +9,10 @@ import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string): Base64 {
-	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length))
+	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false)
+		.slice(fixedIv.length))
 }
+
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length)
 }
@@ -54,7 +56,8 @@ export function userIsGlobalAdmin(user: User): boolean {
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin)
+	return user.memberships.filter(m => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact
+		|| m.groupType === GroupType.Customer || m.groupType === GroupType.Admin)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {
@@ -71,8 +74,9 @@ export function byteLength(str: ?string) {
 	var s = str.length;
 	for (var i = str.length - 1; i >= 0; i--) {
 		var code = str.charCodeAt(i);
-		if (code > 0x7f && code <= 0x7ff) s++;
-		else if (code > 0x7ff && code <= 0xffff) s += 2;
+		if (code > 0x7f && code <= 0x7ff) {
+			s++;
+		} else if (code > 0x7ff && code <= 0xffff) s += 2;
 		if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
 	}
 	return s;

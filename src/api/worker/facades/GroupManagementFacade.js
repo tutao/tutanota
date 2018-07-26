@@ -18,6 +18,7 @@ import {neverNull} from "../../common/utils/Utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {readCounterValue} from "./CounterFacade"
+
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
@@ -45,14 +46,15 @@ export class GroupManagementFacade {
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey).then(mailGroupData => {
-			let data = createCreateMailGroupData()
-			data.mailAddress = mailAddress
-			data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
-			data.mailEncMailboxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
-			data.groupData = mailGroupData
-			return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.POST, data)
-		})
+		return this.generateInternalGroupData(mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
+		           .then(mailGroupData => {
+			           let data = createCreateMailGroupData()
+			           data.mailAddress = mailAddress
+			           data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
+			           data.mailEncMailboxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
+			           data.groupData = mailGroupData
+			           return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.POST, data)
+		           })
 	}
 
 	createLocalAdminGroup(name: string): Promise<void> {
@@ -62,12 +64,13 @@ export class GroupManagementFacade {
 		let groupKey = aes128RandomKey()
 		let groupInfoSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey).then(mailGroupData => {
-			let data = createCreateLocalAdminGroupData()
-			data.encryptedName = encryptString(groupInfoSessionKey, name)
-			data.groupData = mailGroupData
-			return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
-		})
+		return this.generateInternalGroupData(groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey)
+		           .then(mailGroupData => {
+			           let data = createCreateLocalAdminGroupData()
+			           data.encryptedName = encryptString(groupInfoSessionKey, name)
+			           data.groupData = mailGroupData
+			           return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
+		           })
 	}
 
 	generateInternalGroupData(groupKey: Aes128Key, groupInfoSessionKey: Aes128Key, adminGroupId: ?Id, adminGroupKey: Aes128Key, ownerGroupKey: Aes128Key): Promise<InternalGroupData> {
@@ -123,7 +126,8 @@ export class GroupManagementFacade {
 	getAdminGroupKey(group: Group): Promise<Aes128Key> {
 		try {
 			// the admin and local admin can retrieve their group keys directly from their memberships
-			let adminGroupKey = (group.type === GroupType.Admin || group.type === GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
+			let adminGroupKey = (group.type === GroupType.Admin || group.type
+				=== GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
 			return Promise.resolve(adminGroupKey)
 		} catch (e) {
 			let globalAdminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))

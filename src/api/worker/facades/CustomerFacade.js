@@ -85,19 +85,23 @@ export class CustomerFacade {
 	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain === domainName && info.certificate)
-				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
-					let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
-					let sessionKey = aes128RandomKey()
-					return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
-						let data = createBrandingDomainData()
-						data.domain = domainName
-						data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
-						data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
-						data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
-						return serviceRequestVoid(SysService.BrandingDomainService, (existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)
+				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain === domainName
+					&& info.certificate)
+				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+					.then(keyData => {
+						let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+						let sessionKey = aes128RandomKey()
+						return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+							.then(systemAdminPubEncAccountingInfoSessionKey => {
+								let data = createBrandingDomainData()
+								data.domain = domainName
+								data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
+								data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
+								data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
+								return serviceRequestVoid(SysService.BrandingDomainService,
+									(existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)
+							})
 					})
-				})
 			})
 		})
 	}
@@ -151,9 +155,11 @@ export class CustomerFacade {
 				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 				let data = createCreateCustomerServerPropertiesData()
 				data.adminGroupEncSessionKey = groupEncSessionKey
-				p = serviceRequest("createcustomerserverproperties", HttpMethod.POST, data, CreateCustomerServerPropertiesReturnTypeRef).then(returnData => {
-					return returnData.id
-				})
+				p = serviceRequest("createcustomerserverproperties", HttpMethod.POST, data,
+					CreateCustomerServerPropertiesReturnTypeRef)
+					.then(returnData => {
+						return returnData.id
+					})
 			}
 			return p.then(cspId => {
 				return load(CustomerServerPropertiesTypeRef, cspId)
@@ -174,58 +180,66 @@ export class CustomerFacade {
 	}
 
 	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string) {
-		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
-			let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
-			let userGroupKey = aes128RandomKey()
-			let adminGroupKey = aes128RandomKey()
-			let customerGroupKey = aes128RandomKey()
-			let userGroupInfoSessionKey = aes128RandomKey()
-			let adminGroupInfoSessionKey = aes128RandomKey()
-			let customerGroupInfoSessionKey = aes128RandomKey()
-			let accountingInfoSessionKey = aes128RandomKey()
-			let customerServerPropertiesSessionKey = aes128RandomKey()
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+			.then(keyData => {
+				let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+				let userGroupKey = aes128RandomKey()
+				let adminGroupKey = aes128RandomKey()
+				let customerGroupKey = aes128RandomKey()
+				let userGroupInfoSessionKey = aes128RandomKey()
+				let adminGroupInfoSessionKey = aes128RandomKey()
+				let customerGroupInfoSessionKey = aes128RandomKey()
+				let accountingInfoSessionKey = aes128RandomKey()
+				let customerServerPropertiesSessionKey = aes128RandomKey()
 
-			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-			return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
-				return this._worker.sendProgress(5).then(() => {
-					return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(userGroupData => {
-						return this._worker.sendProgress(35).then(() => {
-							return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(adminGroupData => {
-								return this._worker.sendProgress(65).then(() => {
-									return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey).then(customerGroupData => {
-										return this._worker.sendProgress(95).then(() => {
-											let data = createCustomerAccountCreateData()
-											data.authToken = authToken
-											data.date = Const.CURRENT_DATE
-											data.lang = currentLanguage
-											data.code = registrationCode
-											data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
-											data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
-											data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
-											data.userGroupData = userGroupData
-											data.adminGroupData = adminGroupData
-											data.customerGroupData = customerGroupData
-											data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
-											data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
-											data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
-											return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
-										})
-									})
-								})
-							})
+				// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
+				return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
+					.then(systemAdminPubEncAccountingInfoSessionKey => {
+						return this._worker.sendProgress(5).then(() => {
+							return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+							           .then(userGroupData => {
+								           return this._worker.sendProgress(35).then(() => {
+									           return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+									                      .then(adminGroupData => {
+										                      return this._worker.sendProgress(65).then(() => {
+											                      return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+											                                 .then(customerGroupData => {
+												                                 return this._worker.sendProgress(95)
+												                                            .then(() => {
+													                                            let data = createCustomerAccountCreateData()
+													                                            data.authToken = authToken
+													                                            data.date = Const.CURRENT_DATE
+													                                            data.lang = currentLanguage
+													                                            data.code = registrationCode
+													                                            data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
+													                                            data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
+													                                            data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
+													                                            data.userGroupData = userGroupData
+													                                            data.adminGroupData = adminGroupData
+													                                            data.customerGroupData = customerGroupData
+													                                            data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
+													                                            data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
+													                                            data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
+													                                            return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
+												                                            })
+											                                 })
+										                      })
+									                      })
+								           })
+							           })
 						})
 					})
-				})
 			})
-		})
 	}
 
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey).then(userGroupData => {
-			return {userGroupKey, userGroupData}
-		})
+		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey,
+			userGroupInfoSessionKey, null, userGroupKey, userGroupKey)
+		                                    .then(userGroupData => {
+			                                    return {userGroupKey, userGroupData}
+		                                    })
 		return Promise.resolve()
 	}
 
@@ -244,31 +258,33 @@ export class CustomerFacade {
 				let data = createContactFormAccountData()
 				data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
 				return this._worker.sendProgress(95).then(() => {
-					return serviceRequest(SysService.CustomerPublicKeyService, HttpMethod.GET, null, PublicKeyReturnTypeRef).then(publicKeyData => {
-						let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+					return serviceRequest(SysService.CustomerPublicKeyService, HttpMethod.GET, null, PublicKeyReturnTypeRef)
+						.then(publicKeyData => {
+							let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
 
-						let sessionKey = aes128RandomKey()
-						let bucketKey = aes128RandomKey()
-						return rsaEncrypt(publicKey, bitArrayToUint8Array(bucketKey)).then(customerPubEncBucketKey => {
-							let stats = createContactFormStatisticEntry()
-							stats.customerPubEncBucketKey = customerPubEncBucketKey
-							stats.bucketEncSessionKey = encryptKey(bucketKey, sessionKey)
-							stats.customerPubKeyVersion = publicKeyData.pubKeyVersion
+							let sessionKey = aes128RandomKey()
+							let bucketKey = aes128RandomKey()
+							return rsaEncrypt(publicKey, bitArrayToUint8Array(bucketKey))
+								.then(customerPubEncBucketKey => {
+									let stats = createContactFormStatisticEntry()
+									stats.customerPubEncBucketKey = customerPubEncBucketKey
+									stats.bucketEncSessionKey = encryptKey(bucketKey, sessionKey)
+									stats.customerPubKeyVersion = publicKeyData.pubKeyVersion
 
-							stats.statisticFields = statisticFields.map(sf => {
-								let esf = createContactFormStatisticField()
-								esf.encryptedName = encryptString(sessionKey, sf.name)
-								esf.encryptedValue = encryptString(sessionKey, sf.value)
-								return esf
-							})
+									stats.statisticFields = statisticFields.map(sf => {
+										let esf = createContactFormStatisticField()
+										esf.encryptedName = encryptString(sessionKey, sf.name)
+										esf.encryptedValue = encryptString(sessionKey, sf.value)
+										return esf
+									})
 
-							data.userGroupData = userGroupData
-							data.contactForm = contactFormId
-							data.statistics = stats
-							return serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+									data.userGroupData = userGroupData
+									data.contactForm = contactFormId
+									data.statistics = stats
+									return serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+								})
+
 						})
-
-					})
 				})
 			})
 		}).then((result) => {
@@ -289,41 +305,45 @@ export class CustomerFacade {
 
 
 	switchFreeToPremiumGroup(): Promise<void> {
-		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
-			let membershipAddData = createMembershipAddData()
-			membershipAddData.user = this._login.getLoggedInUser()._id
-			membershipAddData.group = neverNull(keyData.premiumGroup)
-			membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+			.then(keyData => {
+				let membershipAddData = createMembershipAddData()
+				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.group = neverNull(keyData.premiumGroup)
+				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
 
-			return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
-				let membershipRemoveData = createMembershipRemoveData()
-				membershipRemoveData.user = this._login.getLoggedInUser()._id
-				membershipRemoveData.group = neverNull(keyData.freeGroup)
-				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+					let membershipRemoveData = createMembershipRemoveData()
+					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.group = neverNull(keyData.freeGroup)
+					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				})
 			})
-		}).catch(e => {
-			console.log(e)
-			throw new Error("error switching free to premium group")
-		})
+			.catch(e => {
+				console.log(e)
+				throw new Error("error switching free to premium group")
+			})
 	}
 
 	switchPremiumToFreeGroup(): Promise<void> {
-		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
-			let membershipAddData = createMembershipAddData()
-			membershipAddData.user = this._login.getLoggedInUser()._id
-			membershipAddData.group = neverNull(keyData.freeGroup)
-			membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+			.then(keyData => {
+				let membershipAddData = createMembershipAddData()
+				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.group = neverNull(keyData.freeGroup)
+				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
 
-			return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
-				let membershipRemoveData = createMembershipRemoveData()
-				membershipRemoveData.user = this._login.getLoggedInUser()._id
-				membershipRemoveData.group = neverNull(keyData.premiumGroup)
-				return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+					let membershipRemoveData = createMembershipRemoveData()
+					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.group = neverNull(keyData.premiumGroup)
+					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				})
 			})
-		}).catch(e => {
-			console.log(e)
-			throw new Error("error switching free to premium group")
-		})
+			.catch(e => {
+				console.log(e)
+				throw new Error("error switching free to premium group")
+			})
 	}
 
 	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
@@ -357,16 +377,17 @@ export class CustomerFacade {
 		let data = createPdfInvoiceServiceData()
 		data.invoice = invoice._id
 		return resolveSessionKey(InvoiceTypeModel, invoice).then(invoiceSessionKey => {
-			return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef, null, invoiceSessionKey).then(returnData => {
-				return {
-					_type: 'DataFile',
-					name: String(invoice.number) + ".pdf",
-					mimeType: "application/pdf",
-					data: returnData.data,
-					size: returnData.data.byteLength,
-					id: null
-				}
-			})
+			return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef, null, invoiceSessionKey)
+				.then(returnData => {
+					return {
+						_type: 'DataFile',
+						name: String(invoice.number) + ".pdf",
+						mimeType: "application/pdf",
+						data: returnData.data,
+						size: returnData.data.byteLength,
+						id: null
+					}
+				})
 		})
 	}
 }

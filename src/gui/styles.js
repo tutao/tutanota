@@ -77,6 +77,7 @@ function objectToCss(indent, key, o) {
 	cssString += ` \n${indent}} \n`
 	return cssString
 }
+
 function toCss(obj, indent = '') {
 	let ret = Object.keys(obj).map(key => {
 		if (obj[key] instanceof Array) {

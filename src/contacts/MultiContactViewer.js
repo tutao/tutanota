@@ -25,11 +25,14 @@ export class MultiContactViewer {
 		actions.add(new Button('delete_action', () => contactView._deleteSelected(), () => Icons.Trash))
 		this.view = () => {
 			return [
-				m(".fill-absolute.mt-xs.plr-l", (contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
+				m(".fill-absolute.mt-xs.plr-l",
+					(contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-							m((contactView._contactList && contactView._contactList.list.getSelectedEntities().length === 2) ? actionsWithManualMerge : actions)
+							m((contactView._contactList
+								&& contactView._contactList.list.getSelectedEntities().length === 2) ?
+								actionsWithManualMerge : actions)
 						])
 					] : [m(emptyMessageBox)])
 			]

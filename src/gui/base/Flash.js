@@ -34,7 +34,7 @@ export function removeFlash(target: any) {
 }
 
 export function flashIn(event: MouseEvent) {
-	let target = (event.currentTarget:any)
+	let target = (event.currentTarget: any)
 	let computedValue = getComputedOpacity(target) // use the computed value as begin value because hover only changes the computed opacity
 	// keep the opacity value for the flash animation to avoid flicker on element
 	animations.add(target, opacity(computedValue, 0.4, true))
@@ -42,10 +42,11 @@ export function flashIn(event: MouseEvent) {
 }
 
 export function flashOut(event: MouseEvent) {
-	let target = (event.currentTarget:any)
+	let target = (event.currentTarget: any)
 	let computedValue = flashedIn.get(target)
 	flashOutElement(target, computedValue)
 }
+
 export function flashOutElement(target: HTMLElement, computedOpacity: ?number) {
 	if (computedOpacity) {
 		flashedIn.delete(target)
@@ -59,7 +60,7 @@ function getComputedOpacity(target: HTMLElement) {
 	if (window.getComputedStyle) {
 		computedValue = Number(window.getComputedStyle(target).opacity)
 	} else if (target.currentStyle) {
-		computedValue = Number((target.currentStyle:any).opacity)
+		computedValue = Number((target.currentStyle: any).opacity)
 	}
 	return computedValue;
 }

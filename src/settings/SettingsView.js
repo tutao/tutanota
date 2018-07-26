@@ -98,13 +98,15 @@ export class SettingsView {
 			view: () => (this.detailsViewer) ? m(this.detailsViewer) : m("")
 		}, ColumnType.Background, 600, 2400, () => lang.get("settings_label"))
 
-		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
+		this.viewSlider = new ViewSlider([
+			this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn
+		], "SettingsView")
 
 		let newAction = new Button('add_action', () => {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
 			} else {
-				(this._currentViewer:any).addButtonClicked()
+				(this._currentViewer: any).addButtonClicked()
 			}
 		}, () => Icons.Add)
 			.setType(ButtonType.Floating)
@@ -112,7 +114,9 @@ export class SettingsView {
 		this.view = (): Vnode<any> => {
 			return m("#settings.main-view", [
 				m(this.viewSlider),
-				(this._currentViewer && this._currentViewer.addButtonClicked && !(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path === "users")) ? m(newAction) : null
+				(this._currentViewer && this._currentViewer.addButtonClicked &&
+					!(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path === "users")) ?
+					m(newAction) : null
 			])
 		}
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
@@ -129,9 +133,8 @@ export class SettingsView {
 			return button
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
-			view: () => m(".folders", buttons.map(fb => fb.isVisible() ? m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-					m(fb)
-				]) : null))
+			view: () => m(".folders", buttons.map(fb => fb.isVisible() ?
+				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [m(fb)]) : null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander
@@ -175,7 +178,8 @@ export class SettingsView {
 	}
 
 	_isGlobalOrLocalAdmin(user: User): boolean {
-		return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+		return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
+			!= null
 	}
 
 	focusSettingsDetailsColumn() {
@@ -186,7 +190,8 @@ export class SettingsView {
 		if (isSameTypeRef(typeRef, UserTypeRef) && isSameId(elementId, logins.getUserController().user._id)) {
 			load(UserTypeRef, elementId).then(user => {
 				// the user admin status might have changed
-				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer && this._adminFolders.find(f => f.isActive())) {
+				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer
+					&& this._adminFolders.find(f => f.isActive())) {
 					this._setUrl(this._userFolders[0].url)
 				}
 				m.redraw()

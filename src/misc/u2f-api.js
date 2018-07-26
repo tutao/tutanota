@@ -186,7 +186,7 @@ u2f.GetJsApiVersionResponse;
  * available mechanisms.
  * @param {function((MessagePort|u2f.WrappedChromeRuntimePort_))} callback
  */
-u2f.getMessagePort = function(callback) {
+u2f.getMessagePort = function (callback) {
 	if (typeof chrome !== 'undefined' && chrome.runtime) {
 		// The actual message here does not matter, but we need to get a reply
 		// for the callback to run. Thus, send an empty signature request

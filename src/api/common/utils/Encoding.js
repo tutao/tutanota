@@ -65,6 +65,7 @@ export function base64ToBase64Ext(base64: Base64): Base64Ext {
 	}
 	return base64ext.join("")
 }
+
 /**
  * Converts a Base64Ext string to a Base64 string and appends the padding if needed.
  * @param base64ext The base64Ext string

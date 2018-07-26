@@ -91,15 +91,15 @@ export class U2fClient {
 				}
 			], [], (r) => this._handleError(r, cb), TIMEOUT);
 		}).then(rawRegisterResponse => this._decodeRegisterResponse(rawRegisterResponse))
-			.then(registerResponse => {
-				let u2fDevice = createU2fRegisteredDevice()
-				u2fDevice.keyHandle = registerResponse.keyHandle
-				u2fDevice.appId = this.appId
-				u2fDevice.publicKey = registerResponse.userPublicKey
-				u2fDevice.compromised = false
-				u2fDevice.counter = "-1"
-				return u2fDevice
-			})
+		              .then(registerResponse => {
+			              let u2fDevice = createU2fRegisteredDevice()
+			              u2fDevice.keyHandle = registerResponse.keyHandle
+			              u2fDevice.appId = this.appId
+			              u2fDevice.publicKey = registerResponse.userPublicKey
+			              u2fDevice.compromised = false
+			              u2fDevice.counter = "-1"
+			              return u2fDevice
+		              })
 	}
 
 	_handleError(rawResponse: Object, cb: Callback) {
@@ -145,7 +145,8 @@ export class U2fClient {
 		const keyHandleEnd = 67 + msg[66]
 		const reservedByte = msg[0]
 		if (reservedByte !== REGISTRATION_RESERVED_BYTE_VALUE) {
-			throw new BadRequestError("Incorrect value of reserved byte. Expected: " + REGISTRATION_RESERVED_BYTE_VALUE + ". Was: " + reservedByte)
+			throw new BadRequestError("Incorrect value of reserved byte. Expected: " + REGISTRATION_RESERVED_BYTE_VALUE
+				+ ". Was: " + reservedByte)
 		}
 		return {
 			userPublicKey: msg.slice(1, 66),
@@ -154,6 +155,7 @@ export class U2fClient {
 	}
 
 }
+
 const REGISTRATION_RESERVED_BYTE_VALUE = 0x05
 
 export class U2fTimeoutError extends TutanotaError {

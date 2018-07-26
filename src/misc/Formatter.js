@@ -189,9 +189,13 @@ export function _cleanupAndSplit(dateString: string): number[] {
 
 export function formatPrice(value: number, includeCurrency: boolean): string {
 	if (includeCurrency) {
-		return (value % 1 !== 0) ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
+		return (value % 1 !== 0) ?
+			lang.formats.priceWithCurrency.format(value)
+			: lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
 	} else {
-		return (value % 1 !== 0) ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
+		return (value % 1 !== 0) ?
+			lang.formats.priceWithoutCurrency.format(value)
+			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
 	}
 }
 

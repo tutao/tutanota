@@ -1,6 +1,7 @@
 //@flow
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
+
 /**
  * Open the link
  * @param uri The uri

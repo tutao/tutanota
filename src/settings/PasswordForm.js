@@ -83,14 +83,16 @@ export class PasswordForm {
 	_getPasswordStrength() {
 		let reserved = []
 		if (logins.isUserLoggedIn()) {
-			reserved = getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo).concat(logins.getUserController().userGroupInfo.name)
+			reserved = getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
+				.concat(logins.getUserController().userGroupInfo.name)
 		}
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
 		return Math.min(100, (getPasswordStrength(this._newPasswordField.value(), reserved) / 0.8 * 1))
 	}
 
 	getErrorMessageId(): ?string {
-		return this._oldPasswordFieldStatus.getErrorMessageId() || this._newPasswordFieldStatus.getErrorMessageId() || this._repeatedPasswordFieldStatus.getErrorMessageId()
+		return this._oldPasswordFieldStatus.getErrorMessageId() || this._newPasswordFieldStatus.getErrorMessageId()
+			|| this._repeatedPasswordFieldStatus.getErrorMessageId()
 	}
 
 	getOldPassword(): string {
@@ -115,15 +117,18 @@ export class PasswordForm {
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("pleaseWait_msg", worker.changePassword(form.getOldPassword(), form.getNewPassword())).then(() => {
-					deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
-					Dialog.error("pwChangeValid_msg")
-					dialog.close()
-				}).catch(NotAuthenticatedError, e => {
-					Dialog.error("oldPasswordInvalid_msg")
-				}).catch(e => {
-					Dialog.error("passwordResetFailed_msg")
-				})
+				showProgressDialog("pleaseWait_msg", worker.changePassword(form.getOldPassword(), form.getNewPassword()))
+					.then(() => {
+						deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
+						Dialog.error("pwChangeValid_msg")
+						dialog.close()
+					})
+					.catch(NotAuthenticatedError, e => {
+						Dialog.error("oldPasswordInvalid_msg")
+					})
+					.catch(e => {
+						Dialog.error("passwordResetFailed_msg")
+					})
 			}
 		}, allowCancel)
 	}

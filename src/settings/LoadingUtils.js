@@ -46,16 +46,20 @@ export function loadEnabledTeamMailGroups(customer: Customer): Promise<GroupData
 }
 
 export function loadEnabledUserMailGroups(customer: Customer): Promise<GroupData[]> {
-	return loadAll(GroupInfoTypeRef, customer.userGroups).filter(g => !g.deleted).map(userGroupInfo => load(GroupTypeRef, userGroupInfo.group).then(userGroup => load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-		return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
-	})))
+	return loadAll(GroupInfoTypeRef, customer.userGroups)
+		.filter(g => !g.deleted)
+		.map(userGroupInfo => load(GroupTypeRef, userGroupInfo.group)
+			.then(userGroup => load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+				return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
+			})))
 }
 
 export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {
 	let groupedParticipantGroupInfos = _groupByListId(groupInfoIds)
 	return Promise.reduce(Object.keys(groupedParticipantGroupInfos).map(listId => {
-		return loadMultiple(GroupInfoTypeRef, listId, groupedParticipantGroupInfos[listId]).then((groupInfos: GroupInfo[]) => groupInfos)
-	}), (all, value) => all.concat(value), ([]:GroupInfo[]))
+		return loadMultiple(GroupInfoTypeRef, listId, groupedParticipantGroupInfos[listId])
+			.then((groupInfos: GroupInfo[]) => groupInfos)
+	}), (all, value) => all.concat(value), ([]: GroupInfo[]))
 }
 
 function _groupByListId(array: IdTuple[]): {[key: Id]: Id[]} {

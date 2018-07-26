@@ -53,7 +53,8 @@ export class RegisterView {
 		})
 
 		let _createAccount = () => {
-			let errorMessageId = mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId() || ((confirmStatus().type !== "valid") ? confirmStatus().text : null)
+			let errorMessageId = mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId()
+				|| ((confirmStatus().type !== "valid") ? confirmStatus().text : null)
 			if (errorMessageId) {
 				Dialog.error(errorMessageId)
 				return
@@ -120,11 +121,13 @@ export class RegisterView {
 	}
 
 	_getTermsLink() {
-		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
+		return (lang.code === "de" || lang.code === "de_sie") ?
+			"https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
 	}
 
 	_getPrivacyLink() {
-		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
+		return (lang.code === "de" || lang.code === "de_sie") ?
+			"https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
 	}
 
 
@@ -143,12 +146,13 @@ export class RegisterView {
 			}
 		}).then(authToken => {
 			if (authToken) {
-				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true).then(() => {
-					m.route.set("/login?loginWith=" + mailAddress)
-				})
+				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true)
+					.then(() => {
+						m.route.set("/login?loginWith=" + mailAddress)
+					})
 			}
 		}).catch(AccessDeactivatedError, e => Dialog.error("createAccountAccessDeactivated_msg"))
-			.catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
+		           .catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
 	}
 
 	_requestCaptcha(): Promise<RegistrationCaptchaServiceReturn> {
@@ -169,7 +173,8 @@ class CaptchaDialog {
 
 	constructor(registerView: RegisterView, captchaReturn: RegistrationCaptchaServiceReturn) {
 		this.captchaReturn = captchaReturn
-		let captchaInput = new TextField(() => lang.get("captchaInput_label") + ' (hh:mm)', () => lang.get("captchaInfo_msg"))
+		let captchaInput = new TextField(() => lang.get("captchaInput_label")
+			+ ' (hh:mm)', () => lang.get("captchaInfo_msg"))
 
 		this.dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
@@ -223,7 +228,7 @@ class CaptchaDialog {
 				Dialog.error("captchaEnter_msg")
 			}
 		}).setType(ButtonType.Primary))
-			.setMiddle(() => lang.get("captchaDisplay_label"))
+		         .setMiddle(() => lang.get("captchaDisplay_label"))
 		this.dialog.setCloseHandler(cancelAction)
 	}
 

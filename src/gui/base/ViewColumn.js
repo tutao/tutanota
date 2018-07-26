@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../../api/Env"
 
 assertMainOrNode()
 
-type ColumnTypeEnum =  0 | 1
+type ColumnTypeEnum = 0 | 1
 
 export const ColumnType = {
 	Background: 1,
@@ -46,7 +46,8 @@ export class ViewColumn {
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
-						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
+						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ?
+							'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
 					},
 					style: {
 						width: this.width + 'px',

@@ -29,7 +29,10 @@ export const SEARCH_MAIL_FIELDS = [
 	{
 		textId: "to_label",
 		field: "to",
-		attributeIds: [MailModel.associations["toRecipients"].id, MailModel.associations["ccRecipients"].id, MailModel.associations["bccRecipients"].id]
+		attributeIds: [
+			MailModel.associations["toRecipients"].id, MailModel.associations["ccRecipients"].id,
+			MailModel.associations["bccRecipients"].id
+		]
 	},
 	{textId: "attachmentName_label", field: "attachment", attributeIds: [MailModel.associations["attachments"].id]}
 ]
@@ -156,7 +159,8 @@ function getValueFromRoute(route: string, name: string): ?string {
 	if (keyIndex !== -1) {
 		let valueStartIndex = keyIndex + key.length
 		let valueEndIndex = route.indexOf("&", valueStartIndex)
-		let value = (valueEndIndex === -1) ? route.substring(valueStartIndex) : route.substring(valueStartIndex, valueEndIndex)
+		let value = (valueEndIndex
+			=== -1) ? route.substring(valueStartIndex) : route.substring(valueStartIndex, valueEndIndex)
 		return decodeURIComponent(value)
 	} else {
 		return null

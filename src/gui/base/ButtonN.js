@@ -58,7 +58,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 }
 
 export type ButtonAttrs = {
-	label: string|lazy<string>,
+	label: string | lazy<string>,
 	click: clickHandler,
 	icon?: lazy<SVG>,
 	type?: ButtonTypeEnum,
@@ -66,7 +66,7 @@ export type ButtonAttrs = {
 	isVisible?: lazy<boolean>,
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
-	staticRightText? : string,
+	staticRightText?: string,
 }
 
 /**
@@ -80,10 +80,11 @@ class _Button {
 		return m("button.limit-width.noselect", {
 				class: this.getButtonClasses(a).join(' '),
 				style: this._type === ButtonType.Login ? {
-						'background-color': theme.content_accent,
-					} : {},
+					'background-color': theme.content_accent,
+				} : {},
 				onclick: (event: MouseEvent) => this.click(event, a),
-				title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type === ButtonType.Dropdown) || this._type === ButtonType.Login ? this.getLabel() : "",
+				title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type
+					=== ButtonType.Dropdown) || this._type === ButtonType.Login ? this.getLabel() : "",
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
 					addFlash(vnode.dom)
@@ -99,7 +100,7 @@ class _Button {
 		)
 	}
 
-	getLabel(label: string|lazy<string>) {
+	getLabel(label: string | lazy<string>) {
 		return label instanceof Function ? label() : lang.get.bind(lang, label)
 	}
 
@@ -109,13 +110,13 @@ class _Button {
 
 	getIcon(a: ButtonAttrs) {
 		return (a.icon instanceof Function && a.icon()) ? m(Icon, {
-				icon: a.icon(),
-				class: this.getIconClass(a),
-				style: {
-					fill: this.getIconColor(a),
-					'background-color': this.getIconBackgroundColor(a)
-				}
-			}) : null
+			icon: a.icon(),
+			class: this.getIconClass(a),
+			style: {
+				fill: this.getIconColor(a),
+				'background-color': this.getIconBackgroundColor(a)
+			}
+		}) : null
 	}
 
 	getIconColor(a: ButtonAttrs) {
@@ -240,17 +241,19 @@ class _Button {
 
 export const ButtonN: Class<MComponent<ButtonAttrs>> = _Button
 
-export function createDropDown(lazyButtons: lazy<Array<string|NavButtonAttrs|ButtonAttrs>>, width: number = 200): clickHandler {
+export function createDropDown(lazyButtons: lazy<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number = 200): clickHandler {
 	return createAsyncDropDown(() => Promise.resolve(lazyButtons()), width)
 }
 
-export function createAsyncDropDown(lazyButtons: lazyAsync<Array<string|NavButtonAttrs|ButtonAttrs>>, width: number = 200): clickHandler {
+export function createAsyncDropDown(lazyButtons: lazyAsync<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number = 200): clickHandler {
 	return ((e) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
-				return module.showProgressDialog("loading_msg", buttonPromise)
-			})
+			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+				.then(module => {
+					return module.showProgressDialog("loading_msg", buttonPromise)
+				})
 		}
 		buttonPromise.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)
@@ -260,9 +263,9 @@ export function createAsyncDropDown(lazyButtons: lazyAsync<Array<string|NavButto
 				modal.display(dropdown)
 			}
 		})
-	}:clickHandler)
+	}: clickHandler)
 }
 
-export function isVisible(a: NavButtonAttrs|ButtonAttrs) {
+export function isVisible(a: NavButtonAttrs | ButtonAttrs) {
 	return a.isVisible ? a.isVisible() : true
 }

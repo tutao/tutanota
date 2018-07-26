@@ -12,9 +12,9 @@ import {styles} from "../styles"
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
 export type NavButtonAttrs = {
-	label: string|lazy<string>,
+	label: string | lazy<string>,
 	icon: lazy<SVG>,
-	href: string|lazy<string>,
+	href: string | lazy<string>,
 	isSelectedPrefix?: string,
 	click?: clickHandler,
 	colors?: NavButtonColorEnum,
@@ -42,12 +42,13 @@ class _NavButton {
 		// allow nav button without label for registration button on mobile devices
 		return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(a), [
 			a.icon() ? m(Icon, {
-					icon: a.icon(),
-					class: this._getIconClass(a),
-					style: {
-						fill: (this.isSelected() || this._draggedOver) ? getColors(a.colors).button_selected : getColors(a.colors).button,
-					}
-				}) : null,
+				icon: a.icon(),
+				class: this._getIconClass(a),
+				style: {
+					fill: (this.isSelected() || this._draggedOver) ?
+						getColors(a.colors).button_selected : getColors(a.colors).button,
+				}
+			}) : null,
 			(!a.hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel(a.label)) : null
 		])
 	}
@@ -55,20 +56,21 @@ class _NavButton {
 	isSelected() {
 		if (this._isSelectedPrefix) {
 			let current = m.route.get()
-			return this._isSelectedPrefix && (current === this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix + "/") === 0))
+			return this._isSelectedPrefix && (current === this._isSelectedPrefix
+				|| (current.indexOf(this._isSelectedPrefix + "/") === 0))
 		}
 		return false
 	}
 
-	getLabel(label: string|lazy<string>) {
+	getLabel(label: string | lazy<string>) {
 		return label instanceof Function ? label() : lang.get(label)
 	}
 
-	_getUrl(href: string|lazy<string>): string {
+	_getUrl(href: string | lazy<string>): string {
 		return (href instanceof Function) ? href() : href
 	}
 
-	_getIconClass(a:NavButtonAttrs) {
+	_getIconClass(a: NavButtonAttrs) {
 		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center icon-xl" + (this.isSelected() ? " selected" : "")
 		} else {
@@ -76,7 +78,7 @@ class _NavButton {
 		}
 	}
 
-	_isExternalUrl(href: string|lazy<string>) {
+	_isExternalUrl(href: string | lazy<string>) {
 		let url = this._getUrl(href)
 		return url != null ? url.indexOf("http") === 0 : false
 	}
@@ -84,7 +86,10 @@ class _NavButton {
 	createButtonAttributes(a: NavButtonAttrs) {
 		let attr: any = {
 			href: this._getUrl(a.href),
-			style: {color: (this.isSelected() || this._draggedOver) ? getColors(a.colors).button_selected : getColors(a.colors).button},
+			style: {
+				color: (this.isSelected() || this._draggedOver) ?
+					getColors(a.colors).button_selected : getColors(a.colors).button
+			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
 			oncreate: (vnode: VirtualElement) => {

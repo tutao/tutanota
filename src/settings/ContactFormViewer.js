@@ -45,27 +45,36 @@ export class ContactFormViewer {
 			.add(new Button('copy_action', () => this._copy(brandingDomain), () => Icons.Copy))
 			.add(new Button('delete_action', () => this._delete(), () => Icons.Trash))
 
-		let urlField = new TextField("url_label").setValue(getContactFormUrl(brandingDomain, contactForm.path)).setDisabled()
+		let urlField = new TextField("url_label").setValue(getContactFormUrl(brandingDomain, contactForm.path))
+		                                         .setDisabled()
 		let mailGroupField = new TextField("receivingMailbox_label").setValue(lang.get("loading_msg")).setDisabled()
 		load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
 			mailGroupField.setValue(getGroupInfoDisplayName(groupInfo))
 			m.redraw()
 		})
 		let participantMailGroupsField = null
-		loadGroupInfos(contactForm.participantGroupInfos).map(groupInfo => getGroupInfoDisplayName(groupInfo)).then(mailGroupNames => {
-			if (mailGroupNames.length > 0) {
-				participantMailGroupsField = new TextField("responsiblePersons_label").setValue(mailGroupNames.join("; ")).setDisabled()
-				m.redraw()
-			}
-		})
+		loadGroupInfos(contactForm.participantGroupInfos)
+			.map(groupInfo => getGroupInfoDisplayName(groupInfo))
+			.then(mailGroupNames => {
+				if (mailGroupNames.length > 0) {
+					participantMailGroupsField = new TextField("responsiblePersons_label")
+						.setValue(mailGroupNames.join("; "))
+						.setDisabled()
+					m.redraw()
+				}
+			})
 
 		let language = getDefaultContactFormLanguage(this.contactForm.languages)
 		let pageTitleField = new TextField("pageTitle_label").setValue(language.pageTitle).setDisabled()
 
 		let statisticsFieldsTable = null
 		if (language.statisticsFields.length > 0) {
-			statisticsFieldsTable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], false)
-			statisticsFieldsTable.updateEntries(language.statisticsFields.map(f => new TableLine([f.name, statisticsFieldTypeToString(f)])))
+			statisticsFieldsTable = new Table(["name_label", "type_label"], [
+				ColumnWidth.Largest, ColumnWidth.Largest
+			], false)
+			statisticsFieldsTable.updateEntries(language.statisticsFields.map(f => new TableLine([
+				f.name, statisticsFieldTypeToString(f)
+			])))
 		}
 
 		let contactFormReportFrom = new DatePicker("dateFrom_label")
@@ -83,8 +92,8 @@ export class ContactFormViewer {
 					]),
 					m(mailGroupField),
 					participantMailGroupsField ? m(".mt-l", [
-							m(participantMailGroupsField),
-						]) : null,
+						m(participantMailGroupsField),
+					]) : null,
 					m(".h4.mt-l", lang.get("display_action")),
 					m(urlField),
 					m(pageTitleField),
@@ -118,11 +127,12 @@ export class ContactFormViewer {
 	_delete() {
 		Dialog.confirm("confirmDeleteContactForm_msg").then(confirmed => {
 			if (confirmed) {
-				showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.ContactForm, -1, 0, false).then(accepted => {
-					if (accepted) {
-						return erase(this.contactForm)
-					}
-				}))
+				showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.ContactForm, -1, 0, false)
+				                                              .then(accepted => {
+					                                              if (accepted) {
+						                                              return erase(this.contactForm)
+					                                              }
+				                                              }))
 			}
 		})
 	}
@@ -131,12 +141,18 @@ export class ContactFormViewer {
 		if ((from == null || to == null) || from.getTime() > to.getTime()) {
 			Dialog.error("dateInvalidRange_msg")
 		} else {
-			showProgressDialog("loading_msg", loadAll(StatisticLogEntryTypeRef, neverNull(this.contactForm.statisticsLog).items, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS))
+			showProgressDialog("loading_msg", loadAll(StatisticLogEntryTypeRef,
+				neverNull(this.contactForm.statisticsLog).items, timestampToGeneratedId(neverNull(from).getTime()),
+				timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS))
 				.then(logEntries => {
-					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
+					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name))
+					                                           .reduce((a, b) => a.concat(b), [])))
 					let titleRow = `contact form,path,date,${columns.map(columnName => `"${columnName}"`).join(",")}`
 					let rows = logEntries.map(entry => {
-						let row = [`"${this._getContactFormTitle(this.contactForm)}"`, this.contactForm.path, formatSortableDate(entry.date)]
+						let row = [
+							`"${this._getContactFormTitle(this.contactForm)}"`, this.contactForm.path,
+							formatSortableDate(entry.date)
+						]
 						row.length = 3 + columns.length
 						for (let v of entry.values) {
 							row[3 + columns.indexOf(v.name)] = `"${v.value}"`

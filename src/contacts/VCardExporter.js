@@ -41,6 +41,7 @@ export function exportAsVCard(): Promise<void> {
 		}
 	})
 }
+
 /**
  * Turns given contacts separately into a vCard version 3.0 compatible string then the string is concatenated into a multiple contact vCard string witch is then returned
  */
@@ -72,7 +73,8 @@ export function _contactToVCard(contact: Contact): string {
 	nString += contact.title ? _getVCardEscaped(contact.title) + ";" : ";"
 	contactToVCardString += _getFoldedString(nString) + "\n"
 
-	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname)) + "\n" : ""
+	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname))
+		+ "\n" : ""
 	//adds oldBirthday converted into a string if present else if available new birthday format is added to contactToVCardString
 	if (contact.birthday) {
 		let day = Number(neverNull(contact.birthday).day)
@@ -94,12 +96,13 @@ export function _contactToVCard(contact: Contact): string {
 	contactToVCardString += "END:VCARD\n\n" //must be included in vCard3.0
 	return contactToVCardString
 }
+
 /**
  * export for testing
  * Works for mail addresses the same as for addresses
  * Returns all mail-addresses/addresses and their types in an object array
  */
-export function _addressesToVCardAddresses(addresses: ContactMailAddress[]|ContactAddress[]): {KIND: string, CONTENT: string}[] {
+export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): {KIND: string, CONTENT: string}[] {
 	return addresses.map(ad => {
 		let kind = ""
 		switch (ad.type) {
@@ -114,6 +117,7 @@ export function _addressesToVCardAddresses(addresses: ContactMailAddress[]|Conta
 		return {KIND: kind, CONTENT: ad.address}
 	})
 }
+
 /**
  * export for testing
  * Returns all phone numbers and their types in an object array
@@ -139,6 +143,7 @@ export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]):
 		return {KIND: kind, CONTENT: num.number}
 	})
 }
+
 /**
  *  export for testing
  *  Returns all socialIds as a vCard Url in an object array
@@ -150,6 +155,7 @@ export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {KIND
 		return {KIND: "", CONTENT: sId.socialId}
 	})
 }
+
 /**
  * export for testing
  * Returns a multiple line string from the before created object arrays of addresses, mail addresses and socialIds
@@ -157,7 +163,8 @@ export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {KIND
 export function _vCardFormatArrayToString(typeAndContentArray: {KIND: string, CONTENT: string}[], tagContent: string): string {
 	return typeAndContentArray.reduce((result, elem) => {
 		if (elem.KIND) {
-			return result + _getFoldedString(tagContent + ";TYPE=" + elem.KIND + ":" + _getVCardEscaped(elem.CONTENT)) + "\n"
+			return result + _getFoldedString(tagContent + ";TYPE=" + elem.KIND + ":" + _getVCardEscaped(elem.CONTENT))
+				+ "\n"
 		} else {
 			return result + _getFoldedString(tagContent + ":" + _getVCardEscaped(elem.CONTENT)) + "\n"
 		}

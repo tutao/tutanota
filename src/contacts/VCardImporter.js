@@ -23,7 +23,8 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 	vCardFileData = vCardFileData.replace(/end:vcard/g, "END:VCARD")
 	vCardFileData = vCardFileData.replace(/version:2.1/g, "VERSION:2.1")
 	let vCardList = []
-	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1) {
+	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1
+		|| vCardFileData.indexOf(V2) > -1) {
 		vCardFileData = vCardFileData.replace(/\r/g, "")
 		vCardFileData = vCardFileData.replace(/\n /g, "") //folding symbols removed
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n\n/g, "")
@@ -48,6 +49,7 @@ export function vCardEscapingSplit(details: string): string[] {
 	})
 	return array
 }
+
 export function vCardReescapingArray(details: string[]): string[] {
 	return details.map(a => {
 		a = a.replace(/\-\-bslashbslash\+\+/g, "\\")

@@ -101,7 +101,7 @@ export class DbFacade {
 
 type DbRequest = {
 	action: Function;
-	objectStore:string;
+	objectStore: string;
 }
 
 /**
@@ -129,11 +129,11 @@ export class DbTransaction {
 		})
 	}
 
-	getAll(objectStore: string): Promise<{key:string, value: any}[]> {
+	getAll(objectStore: string): Promise<{key: string, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
-				let request = (this._transaction.objectStore(objectStore):any).openCursor()
+				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
 					callback(new DbError("IDB Unable to retrieve data from database!", event))
 				}

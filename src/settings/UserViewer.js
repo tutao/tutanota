@@ -65,18 +65,21 @@ export class UserViewer {
 			})
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
-		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync().then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
+		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
+		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
 		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
-			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value()).then(newName => {
-				this.userGroupInfo.name = newName
-				update(this.userGroupInfo)
-			})
+			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
+			      .then(newName => {
+				      this.userGroupInfo.name = newName
+				      update(this.userGroupInfo)
+			      })
 		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
 		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created)).setDisabled()
+		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created))
+		                                            .setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._admin = new DropDownSelector("globalAdmin_label", null, [
@@ -90,7 +93,8 @@ export class UserViewer {
 			} else if (this.userGroupInfo.localAdmin != null) {
 				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
-				showProgressDialog("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
+				showProgressDialog("pleaseWait_msg", this._user.getAsync()
+				                                         .then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -116,13 +120,17 @@ export class UserViewer {
 		this._teamGroupInfos.getAsync().then(availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {
 				let addGroupButton = new Button("addGroup_label", () => this._showAddUserToGroupDialog(), () => Icons.Add)
-				this._groupsTable = new Table(["name_label", "groupType_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, addGroupButton)
+				this._groupsTable = new Table(["name_label", "groupType_label"], [
+					ColumnWidth.Largest, ColumnWidth.Small
+				], true, addGroupButton)
 				this._updateGroups()
 
-				let adminGroupIdToName: {name: string, value: ?Id}[] = [{
-					name: lang.get("globalAdmin_label"),
-					value: null
-				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin).map(gi => {
+				let adminGroupIdToName: {name: string, value: ?Id}[] = [
+					{
+						name: lang.get("globalAdmin_label"),
+						value: null
+					}
+				].concat(availableTeamGroupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin).map(gi => {
 					return {
 						name: getGroupInfoDisplayName(gi),
 						value: gi.group
@@ -138,7 +146,11 @@ export class UserViewer {
 							Dialog.error("updateAdminshipGlobalAdmin_msg")
 						} else {
 							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
+								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController()
+								                                                                    .user
+								                                                                    .memberships
+								                                                                    .find(gm => gm.groupType
+									                                                                    === GroupType.Admin)).group
 								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
@@ -153,7 +165,9 @@ export class UserViewer {
 				loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
 						let contactFormsAddButton = new Button("addResponsiblePerson_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
-						this._contactFormsTable = new Table(["contactForms_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, contactFormsAddButton)
+						this._contactFormsTable = new Table(["contactForms_label"], [
+							ColumnWidth.Largest, ColumnWidth.Small
+						], true, contactFormsAddButton)
 						this._updateContactForms()
 					}
 				})
@@ -177,22 +191,23 @@ export class UserViewer {
 						m(this._senderName),
 						m(password),
 						!logins.getUserController().isGlobalAdmin() ? null : [
-								m(this._admin),
-								this._administratedBy ? m(this._administratedBy) : null,
-							],
+							m(this._admin),
+							this._administratedBy ? m(this._administratedBy) : null,
+						],
 						m(this._deactivated)
 					]),
-					(logins.getUserController().isPremiumAccount() || logins.getUserController().isFreeAccount()) ? m(this._secondFactorsForm) : null,
+					(logins.getUserController().isPremiumAccount() || logins.getUserController()
+					                                                        .isFreeAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 					(this._groupsTable) ? m(this._groupsTable) : null,
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(this._aliases),
 					!logins.getUserController().isPremiumAccount() ? null : [
-							m(".h4.mt-l", lang.get('mailSettings_label')),
-							(this._whitelistProtection) ? m(this._whitelistProtection) : null,
-							m(this._notificationViewer),
-						]
+						m(".h4.mt-l", lang.get('mailSettings_label')),
+						(this._whitelistProtection) ? m(this._whitelistProtection) : null,
+						m(this._notificationViewer),
+					]
 				]),
 			]
 		}
@@ -253,11 +268,14 @@ export class UserViewer {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
-								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group)).catch(NotAuthorizedError, e => {
-									Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
-								})
+								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
+									.catch(NotAuthorizedError, e => {
+										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
+									})
 							}, () => Icons.Cancel)
-							return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
+							return new TableLine([
+								getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))
+							], removeButton)
 						})
 					}).then(tableLines => {
 						if (this._groupsTable) {
@@ -338,7 +356,7 @@ export class UserViewer {
 							view: () => m(d)
 						}, null).then(ok => {
 							if (ok) {
-								let cf = (d.selectedValue():ContactForm)
+								let cf = (d.selectedValue(): ContactForm)
 								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
 									cf.participantGroupInfos.push(user.userGroup.groupInfo)
 								}
@@ -375,20 +393,23 @@ export class UserViewer {
 
 	_deleteUser(restore: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg", load(GroupTypeRef, this.userGroupInfo.group).then(group => {
-			return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
-				if (confirmed) {
-					return this._user.getAsync().then(user => {
-						return worker.deleteUser(user, restore)
-					})
-				}
-			})).catch(PreconditionFailedError, e => {
+			return showProgressDialog("pleaseWait_msg",
+				BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore)
+				         .then(confirmed => {
+					         if (confirmed) {
+						         return this._user.getAsync().then(user => {
+							         return worker.deleteUser(user, restore)
+						         })
+					         }
+				         })).catch(PreconditionFailedError, e => {
 				Dialog.error("emailAddressInUse_msg")
 			})
 		}))
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE
+			&& isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
 			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 				this._senderName.setValue(updatedUserGroupInfo.name)
@@ -399,7 +420,8 @@ export class UserViewer {
 				}
 				m.redraw()
 			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && this._user.isLoaded() && isSameId(this._user.getLoaded()._id, elementId)) {
+		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && this._user.isLoaded()
+			&& isSameId(this._user.getLoaded()._id, elementId)) {
 			this._user.reset()
 			this._updateUsedStorageAndAdminFlag()
 			this._updateGroups()

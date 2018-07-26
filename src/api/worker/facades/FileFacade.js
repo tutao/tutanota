@@ -18,6 +18,7 @@ import {aesEncryptFile, aesDecryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
 import {createDataFile} from "../../common/DataFile"
+
 assertWorkerOrNode()
 
 export class FileFacade {
@@ -52,9 +53,10 @@ export class FileFacade {
 						})
 					})
 				} else {
-					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary).then(data => {
-						return createDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
-					})
+					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)
+					                 .then(data => {
+						                 return createDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
+					                 })
 				}
 			})
 		})
@@ -65,37 +67,44 @@ export class FileFacade {
 		let fileData = createFileDataDataPost()
 		fileData.size = dataFile.data.byteLength.toString()
 		fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
-		return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
-			// upload the file content
-			let fileDataId = fileDataPostReturn.fileData
-			let headers = this._login.createAuthHeaders()
-			headers['v'] = FileDataDataReturnTypeModel.version
-			return restClient.request("/rest/tutanota/filedataservice", HttpMethod.PUT, {fileDataId: fileDataId}, headers, encryptedData, MediaType.Binary).then(() => fileDataId)
-		})
-	}
-
-	uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
-		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16)).then(encryptedFileLocation => {
-			let fileData = createFileDataDataPost()
-			fileData.size = fileReference.size + ""
-			fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
-			return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
+		return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
+			.then(fileDataPostReturn => {
+				// upload the file content
 				let fileDataId = fileDataPostReturn.fileData
 				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataReturnTypeModel.version
-				let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
-				return fileApp.upload(encryptedFileLocation, url, headers).then(responseCode => {
-					if (responseCode === 200) {
-						return fileDataId;
-					} else {
-						throw new handleRestError(responseCode, "failed to natively upload attachment");
-					}
-				})
-			}).finally(() => {
-				return fileApp.deleteFile(encryptedFileLocation)
+				return restClient.request("/rest/tutanota/filedataservice", HttpMethod.PUT,
+					{fileDataId: fileDataId}, headers, encryptedData, MediaType.Binary)
+				                 .then(() => fileDataId)
 			})
-		}).finally(() => {
-			return fileApp.deleteFile(fileReference.location)
-		})
+	}
+
+	uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
+		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
+			.then(encryptedFileLocation => {
+				let fileData = createFileDataDataPost()
+				fileData.size = fileReference.size + ""
+				fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
+				return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
+					.then(fileDataPostReturn => {
+						let fileDataId = fileDataPostReturn.fileData
+						let headers = this._login.createAuthHeaders()
+						headers['v'] = FileDataDataReturnTypeModel.version
+						let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
+						return fileApp.upload(encryptedFileLocation, url, headers).then(responseCode => {
+							if (responseCode === 200) {
+								return fileDataId;
+							} else {
+								throw new handleRestError(responseCode, "failed to natively upload attachment");
+							}
+						})
+					})
+					.finally(() => {
+						return fileApp.deleteFile(encryptedFileLocation)
+					})
+			})
+			.finally(() => {
+				return fileApp.deleteFile(fileReference.location)
+			})
 	}
 }

@@ -32,7 +32,9 @@ export function show(emailAddressOrDomainName: ?string) {
 	})
 
 	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), getSpamRuleTypeNameMapping()[0].value)
-	let valueField = new TextField("emailSenderPlaceholder_label", () => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg")).setValue(emailAddressOrDomainName)
+	let valueField = new TextField("emailSenderPlaceholder_label",
+		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)
+			|| "emptyString_msg")).setValue(emailAddressOrDomainName)
 	let form = {
 		view: () => {
 			return [
@@ -41,11 +43,13 @@ export function show(emailAddressOrDomainName: ?string) {
 			]
 		}
 	}
-	return Dialog.smallDialog(lang.get("addSpamRule_action"), form, () => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)).then(okClicked => {
-		if (okClicked) {
-			worker.addSpamRule(typeField.selectedValue(), valueField.value())
-		}
-	})
+	return Dialog.smallDialog(lang.get("addSpamRule_action"), form,
+		() => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains))
+	             .then(okClicked => {
+		             if (okClicked) {
+			             worker.addSpamRule(typeField.selectedValue(), valueField.value())
+		             }
+	             })
 }
 
 function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
@@ -67,7 +71,8 @@ function _getInputInvalidMessage(type: NumberString, value: string, existingRule
 function _isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainName(value)) {
-			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
+			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value)
+				|| contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {
 			let domain = value.split("@")[1]
 			return domain === "tutao.de" || contains(customDomains, domain)

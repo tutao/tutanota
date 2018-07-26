@@ -11,14 +11,14 @@ import {Icons} from "./icons/Icons"
 assertMainOrNode()
 
 export type DropDownSelectorAttrs<T> = {
-	label: string|lazy<string>,
+	label: string | lazy<string>,
 	items: {name: string, value: T}[],
 	selectedValue: stream<?T>,
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
 	 */
-		selectionChangedHandler?: handler<T>,
+	selectionChangedHandler?: handler<T>,
 	helpLabel?: lazy<string>,
 	dropdownWidth?: number,
 	icon?: SVG,

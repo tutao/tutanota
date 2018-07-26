@@ -42,7 +42,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean)
 		exec: cancelAction,
 		help: "closeDialog_msg"
 	}).setCloseHandler(cancelAction)
-		.show()
+	                     .show()
 
 }
 

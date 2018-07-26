@@ -46,23 +46,25 @@ export function show(): Promise<?InputField> {
 			])
 		}
 	}
-	return Dialog.smallDialog(lang.get("addStatisticsField_action"), form, () => _validate(nameField.value(), typeField.selectedValue(), enumNames)).then(okClicked => {
-		if (okClicked) {
-			let f = createInputField()
-			f.name = nameField.value()
-			f.type = typeField.selectedValue()
-			if (typeField.selectedValue() === InputFieldType.ENUM) {
-				f.enumValues = enumNames.map(name => {
-					let n = createName()
-					n.name = name
-					return n
-				})
-			}
-			return f
-		} else {
-			Promise.resolve(null)
-		}
-	})
+	return Dialog.smallDialog(lang.get("addStatisticsField_action"), form,
+		() => _validate(nameField.value(), typeField.selectedValue(), enumNames))
+	             .then(okClicked => {
+		             if (okClicked) {
+			             let f = createInputField()
+			             f.name = nameField.value()
+			             f.type = typeField.selectedValue()
+			             if (typeField.selectedValue() === InputFieldType.ENUM) {
+				             f.enumValues = enumNames.map(name => {
+					             let n = createName()
+					             n.name = name
+					             return n
+				             })
+			             }
+			             return f
+		             } else {
+			             Promise.resolve(null)
+		             }
+	             })
 }
 
 function _updateEnumTable(enumTable: Table, enumNames: string[]) {

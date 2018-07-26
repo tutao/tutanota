@@ -15,7 +15,10 @@ let resolve = System.__proto__.resolve
 System.__proto__.resolve = function (key, parent) {
 	let config = System.getConfig()
 	if (config.map[key] === '@empty') return Promise.resolve(config.map[key]) // see https://github.com/systemjs/systemjs/issues/1620
-	if ((key.indexOf('core-js') === 0 || config.map[key] == null) && key.indexOf(".js") !== key.length - ".js".length) key += ".js"
+	if ((key.indexOf('core-js') === 0 || config.map[key] == null) && key.indexOf(".js") !== key.length
+		- ".js".length) {
+		key += ".js"
+	}
 	return resolve.apply(System, [key, parent])
 }.bind(System)
 

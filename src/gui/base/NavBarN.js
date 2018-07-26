@@ -97,7 +97,7 @@ class _NavBar {
 	}
 
 	createButton(wrapper) {
-		return m(NavButtonN, ((wrapper.buttonAttrs:any):NavButtonAttrs))
+		return m(NavButtonN, ((wrapper.buttonAttrs: any): NavButtonAttrs))
 	}
 
 	/**

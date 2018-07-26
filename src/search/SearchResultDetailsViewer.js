@@ -16,7 +16,7 @@ assertMainOrNode()
 
 export class SearchResultDetailsViewer {
 	_listView: SearchListView;
-	_viewer: ?MailViewer|ContactViewer;
+	_viewer: ?MailViewer | ContactViewer;
 	_messageBox: MessageBox;
 	_viewerEntityId: ?IdTuple;
 
@@ -42,17 +42,18 @@ export class SearchResultDetailsViewer {
 
 	showEntity(entity: Object, entitySelected: boolean): void {
 		if (isSameTypeRef(MailTypeRef, entity._type)) {
-			let mail = ((entity:any):Mail)
+			let mail = ((entity: any): Mail)
 			this._viewer = new MailViewer(mail, true)
 			this._viewerEntityId = mail._id
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false
-				update(mail).catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
+				update(mail)
+					.catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
 			}
 			m.redraw()
 		}
 		if (isSameTypeRef(ContactTypeRef, entity._type)) {
-			let contact = ((entity:any):Contact)
+			let contact = ((entity: any): Contact)
 			this._viewer = new ContactViewer(contact)
 			this._viewerEntityId = contact._id
 			m.redraw()

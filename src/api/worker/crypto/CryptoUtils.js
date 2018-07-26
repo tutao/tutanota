@@ -39,12 +39,12 @@ export function unpad(bytes: Uint8Array): Uint8Array {
  * @param passwordKey The key.
  * @returns The auth verifier
  */
-export function createAuthVerifier(passwordKey: Aes128Key|Aes256Key): Uint8Array {
+export function createAuthVerifier(passwordKey: Aes128Key | Aes256Key): Uint8Array {
 	// FIXME Compatibility Test
 	return hash(bitArrayToUint8Array(passwordKey))
 }
 
-export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key|Aes256Key): Base64Url {
+export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key | Aes256Key): Base64Url {
 	return base64ToBase64Url(uint8ArrayToBase64(createAuthVerifier(passwordKey)))
 }
 
@@ -54,7 +54,7 @@ export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key|Aes256Key):
  * @returns True if the key length is 128, false if the key length is 256 bit.
  * @throws If the key is not 128 bit and not 256 bit.
  */
-export function checkIs128BitKey(key: Aes128Key|Aes256Key): boolean {
+export function checkIs128BitKey(key: Aes128Key | Aes256Key): boolean {
 	let bitLength = sjcl.bitArray.bitLength(key)
 	if (bitLength === 128) {
 		return true

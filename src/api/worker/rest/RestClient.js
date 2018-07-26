@@ -14,7 +14,7 @@ export class RestClient {
 		this.url = getHttpOrigin()
 	}
 
-	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string|?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
+	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
 		return new Promise((resolve, reject) => {
 			if (method === HttpMethod.GET && typeof body === "string") {
 				if (!queryParams) {
@@ -82,7 +82,7 @@ export class RestClient {
 		})
 	}
 
-	_setHeaders(xhr: XMLHttpRequest, headers: Params, body: ?string|?Uint8Array, responseType: ?MediaTypeEnum) {
+	_setHeaders(xhr: XMLHttpRequest, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum) {
 		if (body instanceof Uint8Array) {
 			headers["Content-Type"] = MediaType.Binary
 		} else if (typeof body === 'string') {

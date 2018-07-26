@@ -62,8 +62,11 @@ export class UserListView {
 								if (logins.getUserController().isGlobalAdmin()) {
 									return allUserGroupInfos
 								} else {
-									let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1);
+									let localAdminGroupIds = logins.getUserController()
+									                               .getLocalAdminGroupMemberships()
+									                               .map(gm => gm.group)
+									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin
+										&& localAdminGroupIds.indexOf(gi.localAdmin) !== -1);
 								}
 							})
 						})
@@ -90,7 +93,7 @@ export class UserListView {
 				renderRightSpacer: () => [],
 				swipeLeft: (listElement) => Promise.resolve(),
 				swipeRight: (listElement) => Promise.resolve(),
-			}:any),
+			}: any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
@@ -119,7 +122,10 @@ export class UserListView {
 	}
 
 	_loadAdmins(): Promise<void> {
-		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)
+		let adminGroupMembership = logins.getUserController()
+		                                 .user
+		                                 .memberships
+		                                 .find(gm => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) return Promise.resolve()
 		return loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0]).map(adminGroupMember => {
 			return adminGroupMember.userGroupInfo[1]
@@ -158,7 +164,9 @@ export class UserListView {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(elementId)
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
-					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					let localAdminGroupIds = logins.getUserController()
+					                               .getLocalAdminGroupMemberships()
+					                               .map(gm => gm.group)
 					if (listEntity) {
 						if (localAdminGroupIds.indexOf(gi.localAdmin) === -1) {
 							this.list.entityEventReceived(elementId, OperationType.DELETE)

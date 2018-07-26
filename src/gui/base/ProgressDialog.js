@@ -10,13 +10,14 @@ import {PasswordIndicator} from "./PasswordIndicator"
 
 assertMainOrNode()
 
-export function showProgressDialog<T>(messageIdOrMessageFunction: string|lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
+export function showProgressDialog<T>(messageIdOrMessageFunction: string | lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
 	let progress = 0
 	let progressIndicator = (showProgress === true) ? new PasswordIndicator(() => progress) : null
 	let progressDialog = new Dialog(DialogType.Progress, {
 		view: () => m("", [
 			m(".flex-center", !showProgress ? progressIcon() : (progressIndicator ? m(progressIndicator) : null)),
-			m("p", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
+			m("p", messageIdOrMessageFunction instanceof Function ?
+				messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
 		])
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event

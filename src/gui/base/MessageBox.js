@@ -14,7 +14,7 @@ export default class MessageBox {
 	_messageNode: HTMLElement;
 	_visible: boolean;
 
-	constructor(messageIdOrMessageFunction: string|lazy<string>, bgClass: string = "content-message-bg", marginTop: number = 100) {
+	constructor(messageIdOrMessageFunction: string | lazy<string>, bgClass: string = "content-message-bg", marginTop: number = 100) {
 		this._visible = true
 
 		this.view = (): VirtualElement => {
@@ -25,7 +25,8 @@ export default class MessageBox {
 				m(".dialog-width-s.pt.pb.plr.mlr", {
 					class: bgClass,
 					style: {'margin-top': px(marginTop), 'white-space': 'pre-wrap', 'text-align': 'center'}
-				}, (messageIdOrMessageFunction instanceof Function) ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
+				}, (messageIdOrMessageFunction instanceof Function) ?
+					messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
 			])
 		}
 	}

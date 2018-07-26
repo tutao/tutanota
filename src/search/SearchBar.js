@@ -42,15 +42,15 @@ import {client, BrowserType} from "../misc/ClientDetector";
 assertMainOrNode()
 
 type ShowMoreAction = {
-	resultCount:number,
-	shownCount:number,
-	indexTimestamp:number,
-	allowShowMore:boolean
+	resultCount: number,
+	shownCount: number,
+	indexTimestamp: number,
+	allowShowMore: boolean
 }
 
 type SearchBarAttrs = {
 	classes?: string,
-	style?: {[string]:string},
+	style?: {[string]: string},
 	alwaysExpanded?: boolean,
 	spacer?: boolean,
 	placeholder?: ?string
@@ -67,11 +67,11 @@ export class SearchBar {
 	expanded: boolean;
 	dropdown: Dropdown;
 	skipNextBlur: boolean;
-	_results: Array<Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction>;
+	_results: Array<Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction>;
 	oncreate: Function;
 	onbeforeremove: Function;
 	busy: boolean;
-	_selected: ?Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction;
+	_selected: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction;
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: stream<WhitelabelChild>;
@@ -105,30 +105,31 @@ export class SearchBar {
 						'padding-bottom': this.expanded ? (this.focused ? px(0) : px(1)) : px(2),
 						'padding-top': px(2), // center input field
 						'margin-right': px(styles.isDesktopLayout() ? 15 : 8),
-						'border-bottom': vnode.attrs.alwaysExpanded || this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+						'border-bottom': vnode.attrs.alwaysExpanded
+						|| this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
 						'align-self': "center",
 						'max-width': px(400),
 						'flex': "1"
 					}
 				}, [
 					styles.isDesktopLayout() ? m(".ml-negative-xs.click", {
-							onmousedown: (e) => {
-								if (this.focused) {
-									this.skipNextBlur = true // avoid closing of overlay when clicking search icon
-								}
-							},
-							onclick: (e) => {
-								e.preventDefault()
-								this.handleSearchClick(e)
+						onmousedown: (e) => {
+							if (this.focused) {
+								this.skipNextBlur = true // avoid closing of overlay when clicking search icon
 							}
-						}, m(Icon, {
-							icon: Icons.Search,
-							class: "flex-center items-center icon-large",
-							style: {
-								fill: this.focused ? theme.header_button_selected : theme.header_button,
-								//"margin-top": (this._hideLabel) ? "0px" : "-2px"
-							}
-						})) : null,
+						},
+						onclick: (e) => {
+							e.preventDefault()
+							this.handleSearchClick(e)
+						}
+					}, m(Icon, {
+						icon: Icons.Search,
+						class: "flex-center items-center icon-large",
+						style: {
+							fill: this.focused ? theme.header_button_selected : theme.header_button,
+							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
+						}
+					})) : null,
 					m(".searchInputWrapper.flex.items-center", {
 							style: (() => {
 								let paddingLeft: string
@@ -151,19 +152,21 @@ export class SearchBar {
 								}
 							})()
 						},
-						[this._getInputField(vnode.attrs), m(".closeIconWrapper", {
+						[
+							this._getInputField(vnode.attrs), m(".closeIconWrapper", {
 							onclick: (e) => this.close(),
 							style: {width: size.icon_size_large}
 						}, this.busy ? m(Icon, {
-								icon: BootIcons.Progress,
-								class: 'flex-center items-center icon-progress-search icon-progress'
-							}) : m(Icon, {
-								icon: Icons.Close,
-								class: "flex-center items-center icon-large",
-								style: {
-									fill: theme.header_button
-								}
-							}))]
+							icon: BootIcons.Progress,
+							class: 'flex-center items-center icon-progress-search icon-progress'
+						}) : m(Icon, {
+							icon: Icons.Close,
+							class: "flex-center items-center icon-large",
+							style: {
+								fill: theme.header_button
+							}
+						}))
+						]
 					),
 
 				]),
@@ -181,9 +184,9 @@ export class SearchBar {
 				this.showIndexingProgress(newState, m.route.get())
 				m.redraw() // redraw in any case, especially to show the search bar after the db is initialized
 				// Fix bug in current Safari with losing focus
-                if (this.focused) {
-				    setTimeout(() => this._domInput.focus(), 50)
-                }
+				if (this.focused) {
+					setTimeout(() => this._domInput.focus(), 50)
+				}
 			})
 			routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
 				if (e.requestedPath.startsWith("/search/mail")) {
@@ -215,7 +218,8 @@ export class SearchBar {
 	}
 
 	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
-		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail")) || (route.startsWith("/search/mail") && newState.progress <= 100))) {
+		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail"))
+			|| (route.startsWith("/search/mail") && newState.progress <= 100))) {
 			let cancelButton = new Button("cancel_action", () => {
 				worker.cancelMailIndexing()
 			}, () => Icons.Cancel)
@@ -227,7 +231,8 @@ export class SearchBar {
 						}
 					}, [
 						m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
-						newState.progress !== 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
+						newState.progress !== 100
+							? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
 					])
 				}
 			})
@@ -279,32 +284,38 @@ export class SearchBar {
 	showDropdown(searchResult: SearchResult) {
 		let newResults = []
 		Promise.all([
-			Promise.map(searchResult.results.slice(0, 10), r => load(searchResult.restriction.type, r)
-				.catch(NotFoundError, () => console.log("mail from search index not found", r))
-				.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
-			).then(resultInstances => {
-				let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
+				Promise.map(searchResult.results.slice(0, 10), r => load(searchResult.restriction.type, r)
+					.catch(NotFoundError, () => console.log("mail from search index not found", r))
+					.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
+				).then(resultInstances => {
+					let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
 
-				// filter group infos for local admins
-				if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController().isGlobalAdmin()) {
-					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-					filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
-				}
-				if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
-					filteredInstances.sort((o1, o2) => compareContacts((o1:any), (o2:any)))
-				}
-				newResults = newResults.concat(filteredInstances)
-			})]
+					// filter group infos for local admins
+					if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController()
+					                                                                             .isGlobalAdmin()) {
+						let localAdminGroupIds = logins.getUserController()
+						                               .getLocalAdminGroupMemberships()
+						                               .map(gm => gm.group)
+						filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
+					}
+					if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
+						filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
+					}
+					newResults = newResults.concat(filteredInstances)
+				})
+			]
 		).then(() => {
 			if (this.value() === searchResult.query) {
 				this._results = newResults
 				let resultCount = (searchResult.results.length)
-				if (resultCount === 0 || resultCount > 10 || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
+				if (resultCount === 0 || resultCount > 10 || searchResult.currentIndexTimestamp
+					!== FULL_INDEXED_TIMESTAMP) {
 					this._results.push({
 						resultCount: resultCount,
 						shownCount: this._results.length,
 						indexTimestamp: searchResult.currentIndexTimestamp,
-						allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef) && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
+						allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
+						&& !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
 					}) // add SearchMoreAction
 				}
 				if (this._results.length > 0) {
@@ -337,31 +348,37 @@ export class SearchBar {
 		})
 	}
 
-	renderResult(result: Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction) {
+	renderResult(result: Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
 		let type: ?TypeRef = result._type ? result._type : null
 		if (!type) { // show more action
-			let showMoreAction = ((result:any):ShowMoreAction)
+			let showMoreAction = ((result: any): ShowMoreAction)
 			let infoText
 			if (showMoreAction.resultCount === 0) {
 				infoText = lang.get("searchNoResults_msg")
 			} else if (showMoreAction.allowShowMore) {
 				infoText = lang.get("showMore_action")
 			} else {
-				infoText = lang.get("moreResultsFound_msg", {"{1}": showMoreAction.resultCount - showMoreAction.shownCount})
+				infoText = lang.get("moreResultsFound_msg", {
+					"{1}": showMoreAction.resultCount - showMoreAction.shownCount
+				})
 			}
 
 			let indexInfo
 			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP) {
-				indexInfo = lang.get("searchedUntil_msg") + " " + formatDateWithWeekday(new Date(showMoreAction.indexTimestamp))
+				indexInfo = lang.get("searchedUntil_msg") + " "
+					+ formatDateWithWeekday(new Date(showMoreAction.indexTimestamp))
 			}
-			return indexInfo ? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			return indexInfo ? [
+				m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)
+			] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
 
 		} else if (isSameTypeRef(MailTypeRef, type)) {
-			let mail = ((result:any):Mail)
-			return [m(".top.flex-space-between", [
-				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
-				m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
-			]),
+			let mail = ((result: any): Mail)
+			return [
+				m(".top.flex-space-between", [
+					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
+					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
+				]),
 				m(".bottom.flex-space-between", [
 					m(".text-ellipsis", mail.subject),
 					m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
@@ -378,17 +395,18 @@ export class SearchBar {
 				])
 			]
 		} else if (isSameTypeRef(ContactTypeRef, type)) {
-			let contact = ((result:any):Contact)
+			let contact = ((result: any): Contact)
 			return [
 				m(".top.flex-space-between",
 					m(".name", contact.firstName + " " + contact.lastName),
 				),
 				m(".bottom.flex-space-between",
-					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length > 0) ? contact.mailAddresses[0].address : ""),
+					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length
+						> 0) ? contact.mailAddresses[0].address : ""),
 				)
 			]
 		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-			let groupInfo = ((result:any):GroupInfo)
+			let groupInfo = ((result: any): GroupInfo)
 			return [
 				m(".top.flex-space-between",
 					m(".name", groupInfo.name),
@@ -397,22 +415,22 @@ export class SearchBar {
 					m("small.mail-address", groupInfo.mailAddress),
 					m(".icons.flex", [
 						(groupInfo.deleted) ? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-							}) : null,
+							icon: Icons.Trash,
+							class: "svg-list-accent-fg",
+						}) : null,
 						(!groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-								icon: BootIcons.Settings,
-								class: "svg-list-accent-fg",
-							}) : null,
+							icon: BootIcons.Settings,
+							class: "svg-list-accent-fg",
+						}) : null,
 						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-								icon: BootIcons.Mail,
-								class: "svg-list-accent-fg",
-							}) : null
+							icon: BootIcons.Mail,
+							class: "svg-list-accent-fg",
+						}) : null
 					])
 				])
 			]
 		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-			let whitelabelChild = ((result:any):WhitelabelChild)
+			let whitelabelChild = ((result: any): WhitelabelChild)
 			return [
 				m(".top.flex-space-between",
 					m(".name", whitelabelChild.mailAddress),
@@ -421,9 +439,9 @@ export class SearchBar {
 					m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
 					m(".icons.flex", [
 						(whitelabelChild.deletedDate) ? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-							}) : null
+							icon: Icons.Trash,
+							class: "svg-list-accent-fg",
+						}) : null
 					])
 				])
 			]
@@ -439,7 +457,7 @@ export class SearchBar {
 		}
 	}
 
-	_selectResult(result: ?Mail|Contact|GroupInfo|WhitelabelChild|ShowMoreAction) {
+	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
 		if (result != null) {
 			closeOverlay()
 			this._domInput.blur()
@@ -449,10 +467,10 @@ export class SearchBar {
 					setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get())))
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				let mail = ((result:any):Mail)
+				let mail = ((result: any): Mail)
 				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), mail._id[1]))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				let contact = ((result:any):Contact)
+				let contact = ((result: any): Contact)
 				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), contact._id[1]))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
 				this.lastSelectedGroupInfoResult(result)
@@ -477,7 +495,8 @@ export class SearchBar {
 			restriction.listId = this._groupInfoRestrictionListId
 		}
 
-		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
+		if (!locator.search.indexState().mailIndexEnabled && restriction
+			&& isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
@@ -619,12 +638,12 @@ export class SearchBar {
 			this.focused = true
 			this.expanded = true
 			// setTimeout to fix bug in current Safari with losing focus
-            setTimeout(() => {
-                this._domInput.select()
-                this._domInput.focus()
-                this.showIndexingProgress(locator.search.indexState(), m.route.get())
-                this.search()
-            }, client.browser === BrowserType.SAFARI ? 200 : 0)
+			setTimeout(() => {
+				this._domInput.select()
+				this._domInput.focus()
+				this.showIndexingProgress(locator.search.indexState(), m.route.get())
+				this.search()
+			}, client.browser === BrowserType.SAFARI ? 200 : 0)
 			//this._domWrapper.classList.add("active")
 		}
 	}

@@ -44,7 +44,7 @@ export function erase<T>(instance: T): Promise<void> {
 	return _eraseEntity(instance, worker)
 }
 
-export function load<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams: ?Params): Promise<T> {
+export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
@@ -87,14 +87,14 @@ function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Prom
 }
 
 export function loadVersion<T>(instance: T, version: Id): Promise<T> {
-	return resolveTypeReference((instance:any)._type).then(typeModel => {
+	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version")
-		return load((instance:any)._type, (instance:any)._id, {version})
+		return load((instance: any)._type, (instance: any)._id, {version})
 	})
 }
 
 export function loadVersionInfo<T>(instance: T): Promise<VersionReturn> {
-	return resolveTypeReference((instance:any)._type).then(typeModel => {
+	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version info")
 		_verifyType(typeModel)
 		let versionData = createVersionData()
@@ -119,10 +119,10 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	})
 }
 
-export function serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
+export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
 	return worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
+export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
 	return worker.serviceRequest(service, method, requestEntity, null, queryParams, sk)
 }

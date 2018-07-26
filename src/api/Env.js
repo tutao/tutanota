@@ -38,7 +38,8 @@ export function isApp(): boolean {
 
 
 let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-let node = (typeof process === 'object' && typeof process.versions === 'object' && typeof process.versions.node !== 'undefined')
+let node = (typeof process === 'object' && typeof process.versions === 'object'
+	&& typeof process.versions.node !== 'undefined')
 
 export function isMain(): boolean {
 	return !worker && !node

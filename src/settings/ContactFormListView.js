@@ -44,7 +44,8 @@ export class ContactFormListView {
 			})
 		})
 		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._customerInfo.getAsync() // trigger loading so it is available later
 
@@ -62,7 +63,8 @@ export class ContactFormListView {
 								return contactForms
 							} else {
 								return getAdministratedGroupIds().then(allAdministratedGroupIds => {
-									return contactForms.filter((cf: ContactForm) => allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1)
+									return contactForms.filter((cf: ContactForm) =>
+										allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1)
 								})
 							}
 						})
@@ -93,7 +95,7 @@ export class ContactFormListView {
 				swipeRight: (listElement) => {
 					return Promise.resolve()
 				},
-			}:any),
+			}: any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
@@ -135,7 +137,8 @@ export class ContactFormListView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactFormTypeRef) && this._listId.isLoaded() && listId === this._listId.getLoaded()) {
+		if (isSameTypeRef(typeRef, ContactFormTypeRef) && this._listId.isLoaded()
+			&& listId === this._listId.getLoaded()) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(elementId)
 				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(cf => {
@@ -156,17 +159,24 @@ export class ContactFormListView {
 			} else {
 				this.list.entityEventReceived(elementId, operation)
 			}
-			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded()) && this._settingsView.detailsViewer && operation === OperationType.UPDATE && isSameId(((this._settingsView.detailsViewer:any):ContactFormViewer).contactForm._id, [neverNull(listId), elementId])) {
+			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())
+				&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
+				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
+					neverNull(listId), elementId
+				])) {
 				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(updatedContactForm => {
 					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm, neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 					m.redraw()
 				})
 			}
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && this._customerInfo.isLoaded() && isSameId(this._customerInfo.getLoaded()._id, [neverNull(listId), elementId]) && operation === OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && this._customerInfo.isLoaded()
+			&& isSameId(this._customerInfo.getLoaded()._id, [neverNull(listId), elementId])
+			&& operation === OperationType.UPDATE) {
 			// a domain may have been added
 			this._customerInfo.reset()
 			this._customerInfo.getAsync()
-		} else if (isSameTypeRef(typeRef, CustomerTypeRef) && this._customerInfo.isLoaded() && operation === OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerTypeRef) && this._customerInfo.isLoaded()
+			&& operation === OperationType.UPDATE) {
 			// the customer info may have been moved in case of premium upgrade/downgrade
 			this._customerInfo.reset()
 			this._customerInfo.getAsync()

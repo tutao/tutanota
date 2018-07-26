@@ -69,8 +69,8 @@ class LanguageViewModel {
 	formats: {
 		simpleDate: DateTimeFormat,
 		dateWithMonth: DateTimeFormat,
-		dateWithoutYear:DateTimeFormat,
-		simpleDateWithoutYear:DateTimeFormat,
+		dateWithoutYear: DateTimeFormat,
+		simpleDateWithoutYear: DateTimeFormat,
 		dateWithWeekday: DateTimeFormat,
 		dateWithWeekdayAndYear: DateTimeFormat,
 		time: DateTimeFormat,
@@ -78,7 +78,7 @@ class LanguageViewModel {
 		priceWithCurrency: NumberFormat,
 		priceWithCurrencyWithoutFractionDigits: NumberFormat,
 		priceWithoutCurrency: NumberFormat,
-		priceWithoutCurrencyWithoutFractionDigits:NumberFormat
+		priceWithoutCurrencyWithoutFractionDigits: NumberFormat
 	};
 
 	constructor() {
@@ -104,10 +104,12 @@ class LanguageViewModel {
 		if (this.code === lang.code) {
 			return Promise.resolve()
 		}
-		return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${lang.code}.js`).then(translations => {
-			this.translations = translations
-			this.code = lang.code
-		})
+		return asyncImport(typeof module
+		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${lang.code}.js`)
+			.then(translations => {
+				this.translations = translations
+				this.code = lang.code
+			})
 	}
 
 	/**
@@ -118,47 +120,51 @@ class LanguageViewModel {
 		this.languageTag = tag
 		if (client.dateFormat()) {
 			this.formats = {
-				simpleDate: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
-				dateWithMonth: new (Intl.DateTimeFormat:any)(tag, {
+				simpleDate: new (Intl.DateTimeFormat: any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
+				dateWithMonth: new (Intl.DateTimeFormat: any)(tag, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric'
 				}),
-				dateWithoutYear: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'short'}),
-				simpleDateWithoutYear: new (Intl.DateTimeFormat:any)(tag, {
+				dateWithoutYear: new (Intl.DateTimeFormat: any)(tag, {day: 'numeric', month: 'short'}),
+				simpleDateWithoutYear: new (Intl.DateTimeFormat: any)(tag, {
 					day: 'numeric', month: 'numeric'
 				}),
-				dateWithWeekday: new (Intl.DateTimeFormat:any)(tag, {weekday: 'short', day: 'numeric', month: 'short'}),
-				dateWithWeekdayAndYear: new (Intl.DateTimeFormat:any)(tag, {
+				dateWithWeekday: new (Intl.DateTimeFormat: any)(tag, {
+					weekday: 'short',
+					day: 'numeric',
+					month: 'short'
+				}),
+				dateWithWeekdayAndYear: new (Intl.DateTimeFormat: any)(tag, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric'
 				}),
-				time: new (Intl.DateTimeFormat:any)(tag, {hour: 'numeric', minute: 'numeric'}),
-				dateTime: new (Intl.DateTimeFormat:any)(tag, {
+				time: new (Intl.DateTimeFormat: any)(tag, {hour: 'numeric', minute: 'numeric'}),
+				dateTime: new (Intl.DateTimeFormat: any)(tag, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric',
 					hour: 'numeric',
 					minute: 'numeric'
 				}),
-				priceWithCurrency: new (Intl.NumberFormat:any)(tag, {
+				priceWithCurrency: new (Intl.NumberFormat: any)(tag, {
 					style: 'currency',
 					currency: 'EUR',
 					minimumFractionDigits: 2
 				}),
-				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat: any)(tag, {
 					style: 'currency',
 					currency: 'EUR',
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
 				}),
-				priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
+				priceWithoutCurrency: new (Intl.NumberFormat: any)(tag, {
 					style: 'decimal',
 					minimumFractionDigits: 2
 				}),
-				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat:any)(tag, {
+				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat: any)(tag, {
 					style: 'decimal',
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
@@ -203,17 +209,21 @@ class LanguageViewModel {
 		// navigator.languages can be an empty array on android 5.x devices
 		let languageTags
 		if (typeof navigator !== 'undefined') {
-			languageTags = (navigator.languages && navigator.languages.length > 0) ? navigator.languages : [navigator.language]
+			languageTags = (navigator.languages && navigator.languages.length
+				> 0) ? navigator.languages : [navigator.language]
 		}
 		if (languageTags) {
 			for (let tag of languageTags) {
 				let code = tag.toLowerCase().replace("-", "_")
-				let language = languages.find(l => l.code === code && (restrictions == null || restrictions.indexOf(l.code) !== -1))
+				let language = languages.find(l => l.code === code && (restrictions == null
+					|| restrictions.indexOf(l.code) !== -1))
 				if (language == null) {
-					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) !== -1))
+					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null
+						|| restrictions.indexOf(l.code) !== -1))
 				}
 				if (language) {
-					if (language.code === 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+					if (language.code === 'de' && whitelabelCustomizations
+						&& whitelabelCustomizations.germanLanguageCode) {
 						return {code: whitelabelCustomizations.germanLanguageCode, languageTag: tag}
 					} else {
 						return {code: language.code, languageTag: tag}

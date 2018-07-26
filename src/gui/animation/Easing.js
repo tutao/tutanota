@@ -17,7 +17,7 @@ const EasingType = {
  * @see: http://easings.net/
  * @see: http://robertpenner.com/easing/
  */
-export const ease: {[key:string]: EasingFunction} = {
+export const ease: {[key: string]: EasingFunction} = {
 	in: function (percent: number): number {
 		return Math.pow(percent, EasingType.cubic) // cubic
 	},

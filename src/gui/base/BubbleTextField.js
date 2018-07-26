@@ -77,7 +77,8 @@ export class BubbleTextField<T> {
 		let query = value.trim()
 		if (this.loading != null) {
 
-		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.suggestions.length === 0)) {
+		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0
+			&& this.suggestions.length === 0)) {
 			this.loading = this.bubbleHandler.getSuggestions(query).then(newSuggestions => {
 				this.loading = null
 				// Only update search result if search query has not been changed during search and update in all other cases
@@ -167,7 +168,7 @@ export class BubbleTextField<T> {
 	handleBackspace() {
 		let selected = this.bubbles.find(b => b.button.isSelected())
 		if (selected) {
-			let selectedIndex = this.bubbles.indexOf((selected:any))
+			let selectedIndex = this.bubbles.indexOf((selected: any))
 			this.deleteSelectedBubbles()
 			if (selectedIndex > 0) {
 				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
@@ -183,7 +184,7 @@ export class BubbleTextField<T> {
 	handleDelete() {
 		let selected = this.bubbles.find(b => b.button.isSelected())
 		if (selected) {
-			let selectedIndex = this.bubbles.indexOf((selected:any))
+			let selectedIndex = this.bubbles.indexOf((selected: any))
 			this.deleteSelectedBubbles()
 			if (selectedIndex >= 0 && selectedIndex < this.bubbles.length) {
 				this.bubbles[selectedIndex].button.setSelected(() => true)
@@ -196,7 +197,7 @@ export class BubbleTextField<T> {
 	handleLeftArrow() {
 		let selected = this.bubbles.find(b => b.button.isSelected())
 		if (selected) {
-			let selectedIndex = this.bubbles.indexOf((selected:any))
+			let selectedIndex = this.bubbles.indexOf((selected: any))
 			if (selectedIndex > 0) {
 				selected.button.setSelected(() => false)
 				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
@@ -210,7 +211,7 @@ export class BubbleTextField<T> {
 	handleRightArrow() {
 		let selected = this.bubbles.find(b => b.button.isSelected())
 		if (selected) {
-			let selectedIndex = this.bubbles.indexOf((selected:any))
+			let selectedIndex = this.bubbles.indexOf((selected: any))
 			selected.button.setSelected(() => false)
 			if (selectedIndex >= 0 && selectedIndex < this.bubbles.length - 1) {
 				this.bubbles[selectedIndex + 1].button.setSelected(() => true)
@@ -272,8 +273,9 @@ export class BubbleTextField<T> {
 	}
 
 	selectLastBubble() {
-		if (this.bubbles.length > 0)
+		if (this.bubbles.length > 0) {
 			this.bubbles[this.bubbles.length - 1].button.setSelected(() => true)
+		}
 	}
 }
 

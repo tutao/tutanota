@@ -45,7 +45,7 @@ class Animations {
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
-	add(targets: HTMLElement|HTMLElement[]|HTMLCollection<HTMLElement>, mutations: DomMutation|DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?:number}): Promise<void> {
+	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): Promise<void> {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
@@ -66,7 +66,8 @@ class Animations {
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				this.activeAnimations.push(new Animation(target[i], mutation, i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
+				this.activeAnimations.push(new Animation(target[i], mutation,
+					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
 			}
 			if (start) {
 				window.requestAnimationFrame(this._animate)
@@ -74,7 +75,7 @@ class Animations {
 		})
 	}
 
-	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration:number} {
+	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration: number} {
 		return Object.assign({}, InitializedOptions, options)
 	}
 
@@ -127,6 +128,7 @@ export function transform(type: TransformEnum, begin: number, end: number): DomT
 	}
 	return {updateDom, chain}
 }
+
 transform.type = {
 	translateX: 'translateX', // movement along X-Axis
 	translateY: 'translateY', // movement along Y-Axis
@@ -151,7 +153,7 @@ const TransformUnits = {
 
 function buildTransformString(values: TransformValues, percent: number, easing: EasingFunction) {
 	let transform = []
-	let types: TransformEnum[] = (Object.keys(TransformUnits) : any[]) // the order is important (e.g. 'rotateY(45deg) translateX(10px)' leads to other results than 'translateX(10px) rotateY(45deg)'
+	let types: TransformEnum[] = (Object.keys(TransformUnits): any[]) // the order is important (e.g. 'rotateY(45deg) translateX(10px)' leads to other results than 'translateX(10px) rotateY(45deg)'
 	for (let type of types) {
 		if (values[type]) {
 			let value = calculateValue(percent, values[type].begin, values[type].end, easing)
@@ -170,7 +172,7 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
  *
  * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
  */
-export function hexToRgb(hexColor: string): {r:number, g:number, b:number} {
+export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
 	hexColor = hexColor.substring(1)
 	let split = hexColor.match(/.{1,2}/g)
 	if (split && split.length === 3) {
@@ -183,7 +185,7 @@ export function hexToRgb(hexColor: string): {r:number, g:number, b:number} {
 	throw new Error("illegal color definition")
 }
 
-export function rgbToHex(color: {r:number, g:number, b:number}) {
+export function rgbToHex(color: {r: number, g: number, b: number}) {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
 }
 
@@ -201,6 +203,7 @@ export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: num
 		}
 	}
 }
+
 alpha.type = {
 	backgroundColor: 'backgroundColor',
 	color: 'color'

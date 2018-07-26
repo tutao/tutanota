@@ -24,7 +24,7 @@ export class DatePicker {
 	date: stream<?Date>;
 	_domDateInput: HTMLInputElement;
 
-	constructor(labelTextIdOrTextFunction: string|lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
 		this.date = stream(null)
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, e => {

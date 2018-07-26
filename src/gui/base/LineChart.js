@@ -11,7 +11,7 @@ type AxisLabel = {
 
 export type LineChartAttrs = {
 	data: {
-		name: string, color: string, line: boolean, scatter: boolean, coordinates:[number, number][], // x,y
+		name: string, color: string, line: boolean, scatter: boolean, coordinates: [number, number][], // x,y
 		maxX: ?number, maxY: ?number, minX: ?number, minY: ?number,
 	}[];
 	maxX: number;
@@ -47,8 +47,8 @@ class _LineChart {
 	_mousePosition: ?number[];
 	_domPositions: HTMLElement;
 	_zoom: number;
-	_pos: [number,number];
-	_offset: [number,number];
+	_pos: [number, number];
+	_offset: [number, number];
 	_moving: boolean;
 	_viewBox: {x: number, y: number, width: number, height: number};
 	_bounds: {x: number, y: number, width: number, height: number};
@@ -118,7 +118,8 @@ class _LineChart {
 									const height = coordinateSystemWidth * a.heightFactor
 									const xFactor = coordinateSystemWidth / ((a.maxX - a.minX))
 									const yFactor = height / ((a.maxY - a.minY))
-									this._domPositions.innerHTML = a.yLabel.formatExact(a.maxY - (y / yFactor)) + "<br>" + a.xLabel.formatExact(a.minX + (x / xFactor))
+									this._domPositions.innerHTML = a.yLabel.formatExact(a.maxY - (y / yFactor)) + "<br>"
+										+ a.xLabel.formatExact(a.minX + (x / xFactor))
 								}
 								this._domSvg.addEventListener("mousemove", moveListener)
 								this._domSvg.addEventListener("mousedown", (e: MouseEvent) => this._move(e))
@@ -140,53 +141,57 @@ class _LineChart {
 							},
 							// good viewbox introduction: https://sarasoueidan.com/blog/svg-coordinate-systems/
 							//viewBox: `${this.data.minX} ${this.data.minY} ${this.data.maxX - this.data.minX} ${this.data.maxY - this.data.minY}`
-							viewBox: `${this._pos[0]} ${this._pos[1]} ${this._viewBox.width / this._zoom} ${this._viewBox.height / this._zoom}`,
+							viewBox: `${this._pos[0]} ${this._pos[1]} ${this._viewBox.width / this._zoom} ${this._viewBox.height
+							/ this._zoom}`,
 						},
 						this._domSvg === null ? [] : m("g",
-								{
-									oncreate: vnode => {
-										this._domAll = vnode.dom
-									},
-								}, [
-									m("circle", {
-										oncreate: vnode => this._circle = vnode.dom,
-										style: {display: 'none'},
-										x: 0,
-										y: 0,
-										r: 2.5 * this._scale / this._zoom
+							{
+								oncreate: vnode => {
+									this._domAll = vnode.dom
+								},
+							}, [
+								m("circle", {
+									oncreate: vnode => this._circle = vnode.dom,
+									style: {display: 'none'},
+									x: 0,
+									y: 0,
+									r: 2.5 * this._scale / this._zoom
+								}),
+								m("g.coordinate-system", [
+									m("path", {
+										stroke: theme.content_accent,
+										fill: 'none',
+										'stroke-width': 2 * this._scale / this._zoom,
+										d: `M0,0 L0,${height} L${coordinateSystemWidth},${height}`
 									}),
-									m("g.coordinate-system", [
-										m("path", {
-											stroke: theme.content_accent,
-											fill: 'none',
-											'stroke-width': 2 * this._scale / this._zoom,
-											d: `M0,0 L0,${height} L${coordinateSystemWidth},${height}`
-										}),
-										m("g.y-labels", this.renderYLabel(a, height, yFactor)),
-										m("g.x-labels", this.renderXLabel(a, height, xFactor)),
-									]),
-									a.data.map((d, index) => {
-										return d.coordinates.length == 0 ? null : [
-												d.line ? m("g", {
-															stroke: d.color,
-															'stroke-width': 1 * this._scale / this._zoom,
-															fill: 'none',
-														},
-														m("path", {
-															d: d.coordinates.map((xy, i) => {
-																return [(i === 0 ? 'M' : 'L') + calculateX(xy[0], a, xFactor) + ',' + calculateY(height, xy[1], a, yFactor)]
-															}).join(' ')
-														}),
-													) : null,
-												d.scatter ? m("g", d.coordinates.map(xy => m("circle", {
-														fill: d.color,
-														cx: calculateX(xy[0], a, xFactor),
-														cy: calculateY(height, xy[1], a, yFactor),
-														r: 2.5 * this._scale / this._zoom
-													}))) : null,
-											]
-									}),
-								])
+									m("g.y-labels", this.renderYLabel(a, height, yFactor)),
+									m("g.x-labels", this.renderXLabel(a, height, xFactor)),
+								]),
+								a.data.map((d, index) => {
+									return d.coordinates.length == 0 ? null : [
+										d.line ? m("g", {
+												stroke: d.color,
+												'stroke-width': 1 * this._scale / this._zoom,
+												fill: 'none',
+											},
+											m("path", {
+												d: d.coordinates.map((xy, i) => {
+													return [
+														(i === 0 ? 'M' : 'L') + calculateX(xy[0], a, xFactor) + ','
+														+ calculateY(height, xy[1], a, yFactor)
+													]
+												}).join(' ')
+											}),
+										) : null,
+										d.scatter ? m("g", d.coordinates.map(xy => m("circle", {
+											fill: d.color,
+											cx: calculateX(xy[0], a, xFactor),
+											cy: calculateY(height, xy[1], a, yFactor),
+											r: 2.5 * this._scale / this._zoom
+										}))) : null,
+									]
+								}),
+							])
 					)
 				]
 			)
@@ -201,11 +206,11 @@ class _LineChart {
 			let y = calculateY(height, a.minY + i * a.yLabel.interval, a, yFactor)
 			return [
 				i > 0 ? m("path", {
-						stroke: theme.content_border,
-						fill: 'none',
-						'stroke-width': 0.5 * this._scale / this._zoom,
-						d: `M0,${y} L${coordinateSystemWidth},${y}`
-					}) : null,
+					stroke: theme.content_border,
+					fill: 'none',
+					'stroke-width': 0.5 * this._scale / this._zoom,
+					d: `M0,${y} L${coordinateSystemWidth},${y}`
+				}) : null,
 				m("text", {
 					dy: 7,
 					y: y,
@@ -221,26 +226,26 @@ class _LineChart {
 		return [...Array(Math.round((a.maxX - a.minX) / a.xLabel.interval)).keys()].map(i => {
 			let x = calculateX(a.minX + i * a.xLabel.interval, a, xFactor)
 			return i > 0 ? [
-					m("path", {
-						stroke: theme.content_border,
-						fill: 'none',
-						'stroke-width': 0.5 * this._scale / this._zoom,
-						d: `M${x},0 L${x},${height}`
-					}),
-					m("text", {
-						dy: 25,
-						y: height,
-						x: x,
-						'font-size': size.font_size_base * this._scale / this._zoom,
-						'alignment-baseline': 'hanging',
-						'text-anchor': 'middle'
-					}, [m.trust("&nbsp"), a.xLabel.formatLabel(i * a.xLabel.interval), m.trust("&nbsp")]),
-				] : null
+				m("path", {
+					stroke: theme.content_border,
+					fill: 'none',
+					'stroke-width': 0.5 * this._scale / this._zoom,
+					d: `M${x},0 L${x},${height}`
+				}),
+				m("text", {
+					dy: 25,
+					y: height,
+					x: x,
+					'font-size': size.font_size_base * this._scale / this._zoom,
+					'alignment-baseline': 'hanging',
+					'text-anchor': 'middle'
+				}, [m.trust("&nbsp"), a.xLabel.formatLabel(i * a.xLabel.interval), m.trust("&nbsp")]),
+			] : null
 		})
 	}
 
 	getMousePosition(e: MouseEvent) {
-		let offset = (e.currentTarget:any).getBoundingClientRect()
+		let offset = (e.currentTarget: any).getBoundingClientRect()
 		return {
 			x: ((e.clientX - offset.left) * this._scale / this._zoom) + this._pos[0],
 			y: ((e.clientY - offset.top) * this._scale / this._zoom) + this._pos[1]
@@ -250,11 +255,12 @@ class _LineChart {
 	setPosition(x, y) {
 		this._pos = [x, y]
 		//this._domAll.style.transform = `translate(${x}px,${y}px) scale(${this._zoom})`
-		this._domSvg.setAttribute("viewBox", `${x} ${y} ${this._viewBox.width / this._zoom} ${this._viewBox.height / this._zoom}`)
+		this._domSvg.setAttribute("viewBox", `${x} ${y} ${this._viewBox.width / this._zoom} ${this._viewBox.height
+		/ this._zoom}`)
 	}
 
 	zoom(e: MouseEvent, step: number) {
-		let offset = (e.currentTarget:any).getBoundingClientRect()
+		let offset = (e.currentTarget: any).getBoundingClientRect()
 		let currentMousePosition = {
 			x: ((e.clientX - offset.left) * this._scale / this._zoom),
 			y: ((e.clientY - offset.top) * this._scale / this._zoom)
@@ -276,10 +282,10 @@ class _LineChart {
 		}
 	}
 
-	init(vnode: Vnode < LineChartAttrs >) {
+	init(vnode: Vnode<LineChartAttrs>) {
 		const a = vnode.attrs
 		this._domSvg = vnode.dom
-		this._bounds = (this._domSvg:any).getBBox()
+		this._bounds = (this._domSvg: any).getBBox()
 		this._pos = [this._bounds.x, this._bounds.y]
 		this._viewBox = this._bounds
 		this._offset = [this._domWrapper.offsetLeft, this._domWrapper.offsetTop]

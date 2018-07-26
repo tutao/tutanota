@@ -24,18 +24,20 @@ import {formatSortableDate, formatDateWithMonth, formatDate} from "../misc/Forma
 assertMainOrNode()
 
 export const LazyContactListId: LazyLoaded<Id> = new LazyLoaded(() => {
-	return loadRoot(ContactListTypeRef, logins.getUserController().user.userGroup.group).then((contactList: ContactList) => {
-		return contactList.contacts
-	}).catch(NotFoundError, e => {
-		if (!logins.getUserController().isInternalUser()) {
-			return null // external users have no contact list.
-		} else {
-			throw e
-		}
-	})
+	return loadRoot(ContactListTypeRef, logins.getUserController().user.userGroup.group)
+		.then((contactList: ContactList) => {
+			return contactList.contacts
+		})
+		.catch(NotFoundError, e => {
+			if (!logins.getUserController().isInternalUser()) {
+				return null // external users have no contact list.
+			} else {
+				throw e
+			}
+		})
 })
 
-export const ContactMailAddressTypeToLabel: {[key: ContactAddressTypeEnum]:string} = {
+export const ContactMailAddressTypeToLabel: {[key: ContactAddressTypeEnum]: string} = {
 	[ContactAddressType.PRIVATE]: "private_label",
 	[ContactAddressType.WORK]: "work_label",
 	[ContactAddressType.OTHER]: "other_label",
@@ -50,7 +52,7 @@ export function getContactAddressTypeLabel(type: ContactAddressTypeEnum, custom:
 	}
 }
 
-export const ContactPhoneNumberTypeToLabel: {[key: ContactPhoneNumberTypeEnum]:string} = {
+export const ContactPhoneNumberTypeToLabel: {[key: ContactPhoneNumberTypeEnum]: string} = {
 	[ContactPhoneNumberType.PRIVATE]: "private_label",
 	[ContactPhoneNumberType.WORK]: "work_label",
 	[ContactPhoneNumberType.MOBILE]: "mobile_label",
@@ -67,7 +69,7 @@ export function getContactPhoneNumberTypeLabel(type: ContactPhoneNumberTypeEnum,
 	}
 }
 
-export const ContactSocialTypeToLabel: {[key: ContactSocialTypeEnum]:string} = {
+export const ContactSocialTypeToLabel: {[key: ContactSocialTypeEnum]: string} = {
 	[ContactSocialType.TWITTER]: "twitter_label",
 	[ContactSocialType.FACEBOOK]: "facebook_label",
 	[ContactSocialType.XING]: "xing_label",
@@ -123,7 +125,8 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 				// see Multiselect with shift and up arrow not working properly #152 at github
 				return sortCompareByReverseId(contact1, contact2)
 			} else {
-				result = contact1.mailAddresses[0].address.trim().localeCompare(contact2.mailAddresses[0].address.trim())
+				result = contact1.mailAddresses[0].address.trim()
+				                                  .localeCompare(contact2.mailAddresses[0].address.trim())
 				if (result === 0) {
 					// see Multiselect with shift and up arrow not working properly #152 at github
 					return sortCompareByReverseId(contact1, contact2)
@@ -141,16 +144,17 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
  * @pre locator.search.indexState().indexingSupported
  */
 export function searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount).then(result => {
-		// load one by one because they may be in different lists when we have different lists
-		return Promise.map(result.results, idTuple => {
-			return load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
-				return null
-			}).catch(NotAuthorizedError, e => {
-				return null
-			})
-		}).filter(contact => contact != null)
-	})
+	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
+	             .then(result => {
+		             // load one by one because they may be in different lists when we have different lists
+		             return Promise.map(result.results, idTuple => {
+			             return load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
+				             return null
+			             }).catch(NotAuthorizedError, e => {
+				             return null
+			             })
+		             }).filter(contact => contact != null)
+	             })
 }
 
 /**
@@ -159,13 +163,15 @@ export function searchForContacts(query: string, field: string, minSuggestionCou
 export function searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
 	let cleanMailAddress = mailAddress.trim().toLowerCase()
 	if (locator.search.indexState().indexingSupported) {
-		return worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
+		return worker.search("\"" + cleanMailAddress + "\"",
+			createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
 			// the result is sorted from newest to oldest, but we want to return the oldest first like before
 			result.results.sort(compareOldestFirst)
 			return asyncFindAndMap(result.results, contactId => {
 				return load(ContactTypeRef, contactId).then(contact => {
 					// look for the exact match in the contacts
-					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() === cleanMailAddress)) ? contact : null
+					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase()
+						=== cleanMailAddress)) ? contact : null
 				}).catch(NotFoundError, e => {
 					return null
 				}).catch(NotAuthorizedError, e => {
@@ -175,7 +181,8 @@ export function searchForContactByMailAddress(mailAddress: string): Promise<?Con
 		})
 	} else {
 		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId)).then(contacts => {
-			return contacts.find(contact => contact.mailAddresses.find(a => a.address.trim().toLowerCase() === cleanMailAddress) != null)
+			return contacts.find(contact => contact.mailAddresses.find(a =>
+				a.address.trim().toLowerCase() === cleanMailAddress) != null)
 		})
 	}
 }
@@ -194,11 +201,13 @@ export function formatBirthdayNumeric(birthday: Birthday): string {
 		//example date is 15.8.1911 ->format returns 14.8.1911
 		//this issue does not happen with recent years so the formatting is done with the current year then this year is changed with the original of the birthday
 		let refYear = new Date()
-		let bdayString = formatDate(new Date(refYear.getFullYear(), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		let bdayString = formatDate(new Date(refYear.getFullYear(), Number(neverNull(birthday).month)
+			- 1, Number(neverNull(birthday).day)))
 		bdayString = bdayString.replace(/\d{4}/g, String(neverNull(birthday).year))
 		return bdayString
 	} else {
-		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month)
+			- 1, Number(neverNull(birthday).day)))
 	}
 }
 
@@ -209,13 +218,16 @@ export function formatBirthdayWithMonthName(birthday: Birthday): string {
 		//example date is 15.8.1911 ->format returns 14.8.1911
 		//this issue does not happen with recent years so the formatting is done with the current year then this year is changed with the original of the birthday
 		let refYear = new Date()
-		let bdayString = formatDateWithMonth(new Date(refYear.getFullYear(), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		let bdayString = formatDateWithMonth(new Date(refYear.getFullYear(), Number(neverNull(birthday).month) - 1,
+			Number(neverNull(birthday).day)))
 		bdayString = bdayString.replace(/\d{4}/g, String(neverNull(birthday).year))
 		return bdayString
 	} else {
-		return lang.formats.dateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		return lang.formats.dateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1,
+			Number(neverNull(birthday).day)))
 	}
 }
+
 /**
  * returns new birthday format from old birthday format
  * Export for testing

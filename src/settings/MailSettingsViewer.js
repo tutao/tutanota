@@ -52,19 +52,23 @@ export class MailSettingsViewer {
 	onbeforeremove: Function;
 
 	constructor() {
-		this._senderName = new TextField("mailName_label").setValue(logins.getUserController().userGroupInfo.name).setDisabled()
+		this._senderName = new TextField("mailName_label").setValue(logins.getUserController().userGroupInfo.name)
+		                                                  .setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
-			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value()).then(newName => {
-				logins.getUserController().userGroupInfo.name = newName
-				update(logins.getUserController().userGroupInfo)
-			})
+			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
+			      .then(newName => {
+				      logins.getUserController().userGroupInfo.name = newName
+				      update(logins.getUserController().userGroupInfo)
+			      })
 		}, () => Icons.Edit)
 
-		this._senderName._injectionsRight = () => logins.getUserController().isGlobalAdmin() ? [m(editSenderNameButton)] : []
+		this._senderName._injectionsRight = () => logins.getUserController()
+		                                                .isGlobalAdmin() ? [m(editSenderNameButton)] : []
 
-		this._defaultSender = new DropDownSelector("defaultSenderMailAddress_label", () => lang.get("defaultSenderMailAddressInfo_msg"), getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo).map(a => {
-			return {name: a, value: a}
-		}), getDefaultSenderFromUser(), 250).setSelectionChangedHandler(v => {
+		this._defaultSender = new DropDownSelector("defaultSenderMailAddress_label", () => lang.get("defaultSenderMailAddressInfo_msg"), getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
+			.map(a => {
+				return {name: a, value: a}
+			}), getDefaultSenderFromUser(), 250).setSelectionChangedHandler(v => {
 			logins.getUserController().props.defaultSender = v
 			update(logins.getUserController().props)
 		})
@@ -108,14 +112,17 @@ export class MailSettingsViewer {
 			}
 		})
 
-		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name).setDisabled()
+		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name)
+		                                                           .setDisabled()
 		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(logins.getUserController().props), () => Icons.Edit)
 		this._signature._injectionsRight = () => [m(changeSignatureButton)]
 
 		this._aliases = new EditAliasesForm(logins.getUserController().userGroupInfo)
 
 		let addInboxRuleButton = new Button("addInboxRule_action", () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), InboxRuleType.RECIPIENT_TO_EQUALS, ""), () => Icons.Add)
-		this._inboxRulesTable = new Table(["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true, addInboxRuleButton)
+		this._inboxRulesTable = new Table([
+			"inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"
+		], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true, addInboxRuleButton)
 		let inboxRulesExpander = new ExpanderButton("showInboxRules_action", new ExpanderPanel(this._inboxRulesTable), false)
 
 		this._notificationViewer = new MailSettingNotificationViewer()
@@ -133,13 +140,13 @@ export class MailSettingsViewer {
 					m(this._enableMailIndexing),
 					(logins.getUserController().isGlobalAdmin()) ? m(this._aliases) : null,
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : [
-							m(".flex-space-between.items-center.mt-l.mb-s", [
-								m(".h4", lang.get('inboxRulesSettings_action')),
-								m(inboxRulesExpander)
-							]),
-							m(inboxRulesExpander.panel),
-							m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
-						],
+						m(".flex-space-between.items-center.mt-l.mb-s", [
+							m(".h4", lang.get('inboxRulesSettings_action')),
+							m(inboxRulesExpander)
+						]),
+						m(inboxRulesExpander.panel),
+						m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
+					],
 					m(this._notificationViewer)
 				])
 			]
@@ -181,7 +188,9 @@ export class MailSettingsViewer {
 					props.inboxRules.splice(index, 1)
 					update(props)
 				}, () => Icons.Cancel)
-				return new TableLine([getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)], actionButton)
+				return new TableLine([
+					getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)
+				], actionButton)
 			}))
 		})
 	}
@@ -205,11 +214,13 @@ export class MailSettingsViewer {
 			this._updateInboxRules(logins.getUserController().props)
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
 			this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
-		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE && isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
+		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE
+			&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
 			load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(groupInfo => {
 				this._senderName.setValue(groupInfo.name)
 			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
+		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE
+			&& isSameId(logins.getUserController().user._id, elementId)) {
 			// for editing sender name and email aliases
 			m.redraw()
 		}

@@ -11,8 +11,9 @@ assertWorkerOrNode()
 export function loadContactForm(formId: string): Promise<ContactForm> {
 	return resolveTypeReference(ContactFormTypeRef).then(model => {
 		let path = typeRefToPath(ContactFormTypeRef)
-		return restClient.request(path + "/" + formId, HttpMethod.GET, {}, {v: model.version}, null, "application/json", null).then(json => {
-			let data = JSON.parse((json:string))
+		return restClient.request(path + "/" + formId, HttpMethod.GET, {}, {v: model.version}, null,
+			"application/json", null).then(json => {
+			let data = JSON.parse((json: string))
 			return decryptAndMapToInstance(model, data)
 		})
 	})
