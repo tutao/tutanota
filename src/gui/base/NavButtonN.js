@@ -55,7 +55,7 @@ class _NavButton {
 	isSelected() {
 		if (this._isSelectedPrefix) {
 			let current = m.route.get()
-			return this._isSelectedPrefix && (current == this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix + "/") === 0))
+			return this._isSelectedPrefix && (current === this._isSelectedPrefix || (current.indexOf(this._isSelectedPrefix + "/") === 0))
 		}
 		return false
 	}
@@ -69,7 +69,7 @@ class _NavButton {
 	}
 
 	_getIconClass(a:NavButtonAttrs) {
-		if (a.colors == NavButtonColors.Header && !styles.isDesktopLayout()) {
+		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center icon-xl" + (this.isSelected() ? " selected" : "")
 		} else {
 			return "flex-center items-center icon-large" + (this.isSelected() ? " selected" : "")
@@ -78,7 +78,7 @@ class _NavButton {
 
 	_isExternalUrl(href: string|lazy<string>) {
 		let url = this._getUrl(href)
-		return url != null ? url.indexOf("http") == 0 : false
+		return url != null ? url.indexOf("http") === 0 : false
 	}
 
 	createButtonAttributes(a: NavButtonAttrs) {
@@ -116,7 +116,7 @@ class _NavButton {
 			}
 			attr.ondragleave = (ev) => {
 				this._dropCounter--
-				if (this._dropCounter == 0) {
+				if (this._dropCounter === 0) {
 					this._draggedOver = false
 				}
 				ev.preventDefault()
@@ -145,7 +145,7 @@ class _NavButton {
 					a.click(event)
 				}
 				// in IE the activeElement might not be defined and blur might not exist
-				if (document.activeElement && typeof document.activeElement.blur == "function") {
+				if (document.activeElement && typeof document.activeElement.blur === "function") {
 					document.activeElement.blur()
 				}
 				event.preventDefault()

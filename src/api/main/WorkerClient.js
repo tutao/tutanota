@@ -65,7 +65,7 @@ export class WorkerClient {
 			if (env.dist) {
 				worker = new Worker(System.getConfig().baseURL + "WorkerBootstrap.js")
 			} else {
-				let url = System.normalizeSync(typeof module != "undefined" ? module.id : __moduleName)
+				let url = System.normalizeSync(typeof module !== "undefined" ? module.id : __moduleName)
 				let workerUrl = url.substring(0, url.lastIndexOf('/')) + '/../worker/WorkerBootstrap.js'
 				worker = new Worker(workerUrl)
 			}
@@ -376,7 +376,7 @@ export class WorkerClient {
 
 	unregisterProgressUpdater(updater: ?progressUpdater) {
 		// another one might have been registered in the mean time
-		if (this._progressUpdater == updater) {
+		if (this._progressUpdater === updater) {
 			this._progressUpdater = null
 		}
 	}

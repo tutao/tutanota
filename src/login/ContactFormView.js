@@ -93,7 +93,7 @@ export class ContactFormView {
 	}
 
 	updateUrl(args: Object) {
-		if (this._formId != args.formId) {
+		if (this._formId !== args.formId) {
 			this._formId = args.formId
 			this._loading = true
 			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {

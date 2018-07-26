@@ -20,7 +20,7 @@ export function pad(num: number, size: number): string {
  * @return True if string begins with substring, false otherwise.
  */
 export function startsWith(string: string, substring: string): boolean {
-	return string.indexOf(substring) == 0;
+	return string.indexOf(substring) === 0;
 }
 
 /**
@@ -31,5 +31,5 @@ export function startsWith(string: string, substring: string): boolean {
  */
 export function endsWith(string: string, substring: string): boolean {
 	var pos = string.lastIndexOf(substring);
-	return (pos != -1 && pos == (string.length - substring.length));
+	return (pos !== -1 && pos === (string.length - substring.length));
 }

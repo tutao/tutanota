@@ -43,7 +43,7 @@ class DeviceConfig {
 	}
 
 	getByUserId(id: Id): ?Credentials {
-		return this._credentials.find(c => c.userId == id)
+		return this._credentials.find(c => c.userId === id)
 	}
 
 	set(credentials: Credentials) {

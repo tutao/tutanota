@@ -85,10 +85,10 @@ export class UserManagementFacade {
 	}
 
 	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (this._login.getLoggedInUser().accountType == AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
+		let mailAddress = (this._login.getLoggedInUser().accountType === AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
 		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
 			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
-				return (groupInfo.mailAddress == mailAddress)
+				return (groupInfo.mailAddress === mailAddress)
 			})
 		}).then(membership => {
 			return neverNull(membership)
@@ -106,13 +106,13 @@ export class UserManagementFacade {
 
 					let adminGroupKey = this._login.getGroupKey(adminGroupId)
 					let groupKey
-					if (oldAdminGroup._id == adminGroupId) {
+					if (oldAdminGroup._id === adminGroupId) {
 						groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
 					} else {
 						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
 						groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
 					}
-					if (newAdminGroup._id == adminGroupId) {
+					if (newAdminGroup._id === adminGroupId) {
 						data.newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
 					} else {
 						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
@@ -144,7 +144,7 @@ export class UserManagementFacade {
 	}
 
 	_getGroupId(user: User, groupType: GroupTypeEnum): Id {
-		if (groupType == GroupType.User) {
+		if (groupType === GroupType.User) {
 			return user.userGroup.group
 		} else {
 			let membership = user.memberships.find(m => m.groupType === groupType)
@@ -157,7 +157,7 @@ export class UserManagementFacade {
 
 	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {
 		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
-		if (adminGroupIds.length == 0) {
+		if (adminGroupIds.length === 0) {
 			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
 		}
 		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])

@@ -63,7 +63,7 @@ export class WhitelabelChildViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && operation == OperationType.UPDATE && isSameId(this.whitelabelChild._id, [neverNull(listId), elementId])) {
+		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && operation === OperationType.UPDATE && isSameId(this.whitelabelChild._id, [neverNull(listId), elementId])) {
 			load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
 				this.whitelabelChild = updatedWhitelabelChild
 				this._mailAddress.setValue(updatedWhitelabelChild.mailAddress)

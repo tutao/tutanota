@@ -21,19 +21,19 @@ export function getHttpOrigin(): string {
 
 export function isTutanotaDomain(): boolean {
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
-	return location.hostname.endsWith("tutanota.com") || location.hostname.indexOf(".") == -1
+	return location.hostname.endsWith("tutanota.com") || location.hostname.indexOf(".") === -1
 }
 
 export function isIOSApp(): boolean {
-	return env.mode == Mode.App && env.platformId == "ios"
+	return env.mode === Mode.App && env.platformId === "ios"
 }
 
 export function isAndroidApp(): boolean {
-	return env.mode == Mode.App && env.platformId == "android"
+	return env.mode === Mode.App && env.platformId === "android"
 }
 
 export function isApp(): boolean {
-	return env.mode == Mode.App
+	return env.mode === Mode.App
 }
 
 

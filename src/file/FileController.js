@@ -108,7 +108,7 @@ export class FileController {
 			return Promise.fromCallback(cb => {
 				let reader = new FileReader()
 				reader.onloadend = function (evt) {
-					if (evt.target.readyState == (FileReader:any).DONE && evt.target.result) { // DONE == 2
+					if (evt.target.readyState === (FileReader:any).DONE && evt.target.result) { // DONE == 2
 						cb(null, createDataFile(nativeFile, new Uint8Array(evt.target.result)))
 					} else {
 						cb(new Error("could not load file"), null)
@@ -120,7 +120,7 @@ export class FileController {
 	}
 
 	open(file: DataFile | FileReference): Promise<void> {
-		if (file._type == 'FileReference') {
+		if (file._type === 'FileReference') {
 			let fileReference = ((file:any):FileReference)
 			return fileApp.open(fileReference)
 		} else {
@@ -148,7 +148,7 @@ export class FileController {
 					let blob = new Blob([dataFile.data], {type: dataFile.mimeType})
 					let url = URL.createObjectURL(blob)
 					let a = document.createElement("a")
-					if (typeof a.download != "undefined") {
+					if (typeof a.download !== "undefined") {
 						a.href = url
 						a.download = dataFile.name
 						a.style.display = "none"

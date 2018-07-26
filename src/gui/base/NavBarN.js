@@ -92,7 +92,7 @@ class _NavBar {
 			oncreate: vnode => {
 				wrapper.width = vnode.dom.getBoundingClientRect().width
 			},
-			style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
+			style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
 		}, this.createButton(wrapper))))
 	}
 
@@ -110,7 +110,7 @@ class _NavBar {
 	_setButtonBarWidth() {
 		if (this._domNavBar) {
 			let newMaxWidth = Math.floor(this._domNavBar.getBoundingClientRect().width)
-			if (this.maxWidth != newMaxWidth) {
+			if (this.maxWidth !== newMaxWidth) {
 				this.maxWidth = newMaxWidth
 			}
 		}

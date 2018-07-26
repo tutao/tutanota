@@ -51,7 +51,7 @@ class PushServiceApp {
 	_loadPushIdentifier(identifier: string): Promise<?PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
 		return loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-			return identifiers.find(i => i.identifier == identifier)
+			return identifiers.find(i => i.identifier === identifier)
 		})
 	}
 
@@ -60,9 +60,9 @@ class PushServiceApp {
 		let identifierType = isIOSApp() ? PushServiceType.IOS : PushServiceType.ANDROID
 		let list = logins.getUserController().user.pushIdentifierList
 		return loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-			let existingPushIdentfier = identifiers.find(i => i.identifier == identifier)
+			let existingPushIdentfier = identifiers.find(i => i.identifier === identifier)
 			if (existingPushIdentfier) {
-				if (existingPushIdentfier.language != lang.code) {
+				if (existingPushIdentfier.language !== lang.code) {
 					existingPushIdentfier.language = lang.code
 					update(existingPushIdentfier)
 				}

@@ -196,7 +196,7 @@ export class MailFacade {
 			let attachments = neverNull(providedFiles)
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
-				if (!attachments.find(attachment => (attachment._type != "DataFile") && isSameId(getLetId(attachment), fileId))) {
+				if (!attachments.find(attachment => (attachment._type !== "DataFile") && isSameId(getLetId(attachment), fileId))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})
@@ -211,14 +211,14 @@ export class MailFacade {
 		if (providedFiles) {
 			return Promise.map((providedFiles:any), providedFile => {
 				// check if this is a new attachment or an existing one
-				if (providedFile._type == "DataFile") {
+				if (providedFile._type === "DataFile") {
 					// user added attachment
 					let fileSessionKey = aes128RandomKey()
 					let dataFile = ((providedFile:any):DataFile)
 					return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
 						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
 					})
-				} else if (providedFile._type == "FileReference") {
+				} else if (providedFile._type === "FileReference") {
 					let fileSessionKey = aes128RandomKey()
 					let fileRef = ((providedFile:any):FileReference)
 					return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
@@ -298,7 +298,7 @@ export class MailFacade {
 	_addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipientInfos: RecipientInfo[], senderMailGroupId: Id): Promise<void> {
 		let notFoundRecipients = []
 		return Promise.all(recipientInfos.map(recipientInfo => {
-				if (recipientInfo.mailAddress == "system@tutanota.de" || !recipientInfo) {
+				if (recipientInfo.mailAddress === "system@tutanota.de" || !recipientInfo) {
 					notFoundRecipients.push(recipientInfo.mailAddress)
 					return Promise.resolve()
 				}
@@ -308,7 +308,7 @@ export class MailFacade {
 				if (recipientInfo.type === recipientInfoType.external && recipientInfo.contact) {
 					let password = recipientInfo.contact.presharedPassword
 					let preshared = true
-					if (password == null && recipientInfo.contact.autoTransmitPassword != "") {
+					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
 						password = recipientInfo.contact.autoTransmitPassword
 						let preshared = false
 					}
@@ -421,7 +421,7 @@ export class MailFacade {
 	}
 
 	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (this._deferredDraftUpdate && this._deferredDraftId && data.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), MailTypeRef) && isSameId(this._deferredDraftId, [data.instanceListId, data.instanceId])) {
+		if (this._deferredDraftUpdate && this._deferredDraftId && data.operation === OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), MailTypeRef) && isSameId(this._deferredDraftId, [data.instanceListId, data.instanceId])) {
 			return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
 				let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
 				this._deferredDraftUpdate = null
@@ -452,7 +452,7 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 			}
 		})
 	}).then(filteredMemberships => {
-		if (filteredMemberships.length == 1) {
+		if (filteredMemberships.length === 1) {
 			return filteredMemberships[0].group
 		} else {
 			throw new NotFoundError("group for mail address not found " + mailAddress)

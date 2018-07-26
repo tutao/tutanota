@@ -19,10 +19,10 @@ export function tokenize(text: ?string): string[] {
 }
 
 function addCurrentWord(currentWord: string[], words: string[]) {
-	while (currentWord.length > 0 && currentWord[0] == "'") {
+	while (currentWord.length > 0 && currentWord[0] === "'") {
 		currentWord.shift()
 	}
-	while (currentWord.length > 0 && currentWord[currentWord.length - 1] == "'") {
+	while (currentWord.length > 0 && currentWord[currentWord.length - 1] === "'") {
 		currentWord.pop()
 	}
 	if (currentWord.length > 0) {

@@ -52,7 +52,7 @@ export class GroupListView {
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				if (startId == GENERATED_MAX_ID) {
+				if (startId === GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
 						return loadAll(GroupInfoTypeRef, listId).then(allGroupInfos => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
@@ -105,7 +105,7 @@ export class GroupListView {
 			header.buttonBar.searchBar.setGroupInfoRestrictionListId(listId)
 		})
 		this._searchResultStreamDependency = header.buttonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
-			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {
+			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
 		})
@@ -122,10 +122,10 @@ export class GroupListView {
 	}
 
 	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (groupInfos.length == 0 && this._settingsView.detailsViewer) {
+		if (groupInfos.length === 0 && this._settingsView.detailsViewer) {
 			this._settingsView.detailsViewer = null
 			m.redraw()
-		} else if (groupInfos.length == 1 && selectionChanged) {
+		} else if (groupInfos.length === 1 && selectionChanged) {
 			this._settingsView.detailsViewer = new GroupViewer(groupInfos[0])
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()
@@ -140,7 +140,7 @@ export class GroupListView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() === listId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(elementId)
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
@@ -161,11 +161,11 @@ export class GroupListView {
 				this.list.entityEventReceived(elementId, operation)
 			}
 		} else if (!logins.getUserController().isGlobalAdmin() && isSameTypeRef(typeRef, GroupMemberTypeRef)) {
-			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] == elementId)
-			let newLocalAdminGroupMembership = logins.getUserController().getLocalAdminGroupMemberships().find(gm => gm.groupMember[1] == elementId)
-			if (operation == OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
+			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] === elementId)
+			let newLocalAdminGroupMembership = logins.getUserController().getLocalAdminGroupMemberships().find(gm => gm.groupMember[1] === elementId)
+			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
 				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
-			} else if (operation == OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
+			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
 				this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
 			}
 			this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()

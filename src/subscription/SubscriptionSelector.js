@@ -40,8 +40,8 @@ export class SubscriptionSelector {
 		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [this._premiumUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport"])
-		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [this._proUpgradeBox.paymentInterval().value == 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"])
+		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport"])
+		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules", "comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"])
 
 		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
 		this._monthlyPrice = new LazyLoaded(() => {
@@ -98,7 +98,7 @@ export class SubscriptionSelector {
 		}
 
 		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
-			if (paymentIntervalItem.value == 12) {
+			if (paymentIntervalItem.value === 12) {
 				this._yearlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice ) + " €")).then(() => m.redraw())
 			} else {
 				this._monthlyPrice.getAsync().then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")).then(() => m.redraw())
@@ -111,7 +111,7 @@ export class SubscriptionSelector {
 
 	_getPrices(current: AccountTypeEnum, paymentInterval: number): Promise<UpgradePrices> {
 		return Promise.join(
-			worker.getPrice(BookingItemFeatureType.Users, current == AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Users, current === AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),

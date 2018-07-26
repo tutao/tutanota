@@ -44,7 +44,7 @@ export class SelectMailAddressForm {
 	_verifyMailAddress() {
 		let cleanMailAddress = this.getCleanMailAddress()
 		let cleanUsername = this._username.value().trim().toLowerCase()
-		if (cleanUsername == "") {
+		if (cleanUsername === "") {
 			this._messageId = "mailAddressNeutral_msg"
 			m.redraw()
 			return
@@ -56,10 +56,10 @@ export class SelectMailAddressForm {
 		this._messageId = "mailAddressBusy_msg"
 		m.redraw()
 		setTimeout(() => {
-			if (this.getCleanMailAddress() == cleanMailAddress) {
+			if (this.getCleanMailAddress() === cleanMailAddress) {
 				worker.initialized.then(() => {
 					worker.isMailAddressAvailable(cleanMailAddress).then(available => {
-						if (this.getCleanMailAddress() == cleanMailAddress) {
+						if (this.getCleanMailAddress() === cleanMailAddress) {
 							if (available) {
 								this._messageId = VALID_MESSAGE_ID
 							} else {
@@ -84,7 +84,7 @@ export class SelectMailAddressForm {
 	 * @return null if the entered email address is valid, the corresponding error message otherwise
 	 */
 	getErrorMessageId(): ?string {
-		return (this._messageId == VALID_MESSAGE_ID) ? null : this._messageId
+		return (this._messageId === VALID_MESSAGE_ID) ? null : this._messageId
 	}
 }
 

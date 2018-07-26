@@ -37,32 +37,32 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 }
 
 export function getAppId(typeRef: TypeRef<any>): number {
-	if (typeRef.app == "sys") {
+	if (typeRef.app === "sys") {
 		return 0
-	} else if (typeRef.app == "tutanota") {
+	} else if (typeRef.app === "tutanota") {
 		return 1
 	}
 	throw new Error("non indexed application " + typeRef.app)
 }
 
 export function userIsLocalOrGlobalAdmin(user: User): boolean {
-	return user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
+	return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
 }
 
 export function userIsGlobalAdmin(user: User): boolean {
-	return user.memberships.find(m => m.groupType == GroupType.Admin) != null
+	return user.memberships.find(m => m.groupType === GroupType.Admin) != null
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType == GroupType.Mail || m.groupType == GroupType.Contact || m.groupType == GroupType.Customer || m.groupType == GroupType.Admin)
+	return user.memberships.filter(m => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType == GroupType.Mail)
+	return user.memberships.filter(m => m.groupType === GroupType.Mail)
 }
 
 export function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation == type && event.instanceId == elementId).length > 0
+	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
 }
 
 export function byteLength(str: ?string) {

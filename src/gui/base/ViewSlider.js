@@ -112,7 +112,7 @@ export class ViewSlider {
 			}
 			const colRect = mainCol.getBoundingClientRect()
 			if (
-				event.touches.length == 1 &&
+				event.touches.length === 1 &&
 				(this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)
 			) {
 				// Only stop propogation while the menu is not yet fully visible
@@ -129,7 +129,7 @@ export class ViewSlider {
 			}
 
 			const gestureInfo = this.lastGestureInfo
-			if (gestureInfo && event.touches.length == 1) {
+			if (gestureInfo && event.touches.length === 1) {
 				const touch = event.touches[0]
 				const newTouchPos = touch.pageX
 				const sideColRect = sideCol.getBoundingClientRect()
@@ -146,7 +146,7 @@ export class ViewSlider {
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
-		this._mainColumn = neverNull(viewColumns.find((column) => column.columnType == ColumnType.Background)) // the first background column is the main column
+		this._mainColumn = neverNull(viewColumns.find((column) => column.columnType === ColumnType.Background)) // the first background column is the main column
 		this.focusedColumn = this._mainColumn
 		this._visibleBackgroundColumns = []
 		this._updateVisibleBackgroundColumns()
@@ -192,7 +192,7 @@ export class ViewSlider {
 
 	_updateVisibleBackgroundColumns() {
 		this.focusedColumn = this.focusedColumn || this._mainColumn
-		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType == ColumnType.Background ? this.focusedColumn : this._mainColumn)]
+		let visibleColumns: ViewColumn[] = [(this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this._mainColumn)]
 		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
 
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.columns)
@@ -230,12 +230,12 @@ export class ViewSlider {
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ?ViewColumn {
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
-			return column.columnType == ColumnType.Background && visibleColumns.indexOf(column) < 0
+			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
 		})
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
 			nextColumn = allColumns.find((column) => {
-				return column.columnType == ColumnType.Foreground && visibleColumns.indexOf(column) < 0
+				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
 			})
 		}
 		return nextColumn
@@ -249,7 +249,7 @@ export class ViewSlider {
 	_distributeRemainingSpace(visibleColumns: ViewColumn[], remainingSpace: number) {
 		let spacePerColumn = remainingSpace / visibleColumns.length
 		visibleColumns.forEach((visibleColumn: ViewColumn, index) => {
-			if ((visibleColumns.length - 1) == index) {
+			if ((visibleColumns.length - 1) === index) {
 				// ignore max width for the last visible column
 				visibleColumn.setWidth(visibleColumn.minWidth + remainingSpace)
 			} else {
@@ -263,16 +263,16 @@ export class ViewSlider {
 
 	_setWidthForHiddenColumns(visibleColumns: ViewColumn[]) {
 		// if all columns are visible there is no need to set the width
-		if (this.columns.length == visibleColumns.length) {
+		if (this.columns.length === visibleColumns.length) {
 			return;
 		}
 		// if only one column is visible set the same width for all columns ignoring max width
-		if (visibleColumns.length == 1) {
+		if (visibleColumns.length === 1) {
 			this.columns.forEach(column => column.setWidth(visibleColumns[0].width))
 		}
 
 		// Reduce the width of the foreground button to keep always a small part of the background button visible.
-		let foreGroundColumn = this.columns.find(column => column.columnType == ColumnType.Foreground)
+		let foreGroundColumn = this.columns.find(column => column.columnType === ColumnType.Foreground)
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large;
 			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
@@ -290,9 +290,9 @@ export class ViewSlider {
 			}
 		}).then(() => {
 			this.focusedColumn = viewColumn
-			if (viewColumn.columnType == ColumnType.Background && this._visibleBackgroundColumns.length == 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
-			} else if (viewColumn.columnType == ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			} else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;
@@ -365,7 +365,7 @@ export class ViewSlider {
 	}
 
 	allColumnsVisible(): boolean {
-		return this._visibleBackgroundColumns.length == this.columns.length
+		return this._visibleBackgroundColumns.length === this.columns.length
 	}
 
 }

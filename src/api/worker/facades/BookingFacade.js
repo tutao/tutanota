@@ -70,9 +70,9 @@ export class BookingFacade {
 	formatPrice(price: number, includeCurrency: boolean, decimalSeparator: string): string {
 		let string = price.toFixed(2).replace(".", decimalSeparator);
 		let currency = includeCurrency ? (" " + Const.CURRENCY_SYMBOL_EUR) : "";
-		if (string.indexOf(decimalSeparator) == -1) {
+		if (string.indexOf(decimalSeparator) === -1) {
 			return string + decimalSeparator + "00" + currency;
-		} else if (string.indexOf(decimalSeparator) == string.length - 2) {
+		} else if (string.indexOf(decimalSeparator) === string.length - 2) {
 			return string + "0" + currency;
 		} else {
 			return string + currency;
@@ -85,13 +85,13 @@ export class BookingFacade {
 	 * @param  paymentMethod One of tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_*.
 	 */
 	getPaymentMethodNameTextId(paymentMethod: NumberString): string|lazy<string> {
-		if (paymentMethod == PaymentMethodType.Invoice) {
+		if (paymentMethod === PaymentMethodType.Invoice) {
 			return "paymentMethodOnAccount_label";
-		} else if (paymentMethod == PaymentMethodType.CreditCard) {
+		} else if (paymentMethod === PaymentMethodType.CreditCard) {
 			return "paymentMethodCreditCard_label";
-		} else if (paymentMethod == PaymentMethodType.Sepa) {
+		} else if (paymentMethod === PaymentMethodType.Sepa) {
 			return () => "SEPA";
-		} else if (paymentMethod == PaymentMethodType.Paypal) {
+		} else if (paymentMethod === PaymentMethodType.Paypal) {
 			return () => "PayPal";
 		} else {
 			return () => "";

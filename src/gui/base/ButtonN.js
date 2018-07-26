@@ -83,7 +83,7 @@ class _Button {
 						'background-color': theme.content_accent,
 					} : {},
 				onclick: (event: MouseEvent) => this.click(event, a),
-				title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login ? this.getLabel() : "",
+				title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type === ButtonType.Dropdown) || this._type === ButtonType.Login ? this.getLabel() : "",
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
 					addFlash(vnode.dom)
@@ -119,7 +119,7 @@ class _Button {
 	}
 
 	getIconColor(a: ButtonAttrs) {
-		if (this.getType(a.type) == ButtonType.Bubble) {
+		if (this.getType(a.type) === ButtonType.Bubble) {
 			return theme.button_bubble_fg
 		} else if (this.isSelected(a) || this.getType(a.type) === ButtonType.Floating) {
 			return getColors(a.colors).icon_selected
@@ -130,7 +130,7 @@ class _Button {
 
 	getIconBackgroundColor(a: ButtonAttrs) {
 		const type = this.getType(a.type)
-		if (type == ButtonType.Bubble) {
+		if (type === ButtonType.Bubble) {
 			return 'initial'
 		} else if (this.isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
@@ -141,13 +141,13 @@ class _Button {
 
 	getIconClass(a: ButtonAttrs) {
 		const type = this.getType(a.type)
-		if (type == ButtonType.ActionLarge) {
+		if (type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
 		} else if (type === ButtonType.Floating) {
 			return "flex-center items-center button-icon floating icon-large"
 		} else if (type === ButtonType.Bubble) {
 			return "pr-s"
-		} else if (a.colors == ButtonColors.Header && !styles.isDesktopLayout()) {
+		} else if (a.colors === ButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center button-icon icon-xl"
 		} else {
 			return "flex-center items-center button-icon"
@@ -157,17 +157,17 @@ class _Button {
 	getButtonClasses(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let buttonClasses = ["bg-transparent"]
-		if (type == ButtonType.Floating) {
+		if (type === ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
-		} else if (type == ButtonType.Action || type == ButtonType.ActionLarge) {
+		} else if (type === ButtonType.Action || type === ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
-		if (type == ButtonType.Login) {
+		if (type === ButtonType.Login) {
 			buttonClasses.push("full-width")
 		}
 		return buttonClasses
@@ -176,10 +176,10 @@ class _Button {
 	getWrapperClasses(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let wrapperClasses = ["button-content", "flex", "items-center", type]
-		if (type != ButtonType.Floating && type != ButtonType.TextBubble) {
+		if (type !== ButtonType.Floating && type !== ButtonType.TextBubble) {
 			wrapperClasses.push("plr-button")
 		}
-		if (type == ButtonType.Dropdown) {
+		if (type === ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
 		} else {
 			wrapperClasses.push("justify-center")
@@ -190,7 +190,7 @@ class _Button {
 	_getLabelElement(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let classes = ["text-ellipsis"]
-		if (type == ButtonType.Dropdown) {
+		if (type === ButtonType.Dropdown) {
 			classes.push("pl-m")
 		}
 		if ([ButtonType.Action, ButtonType.Floating].indexOf(type) === -1) {
@@ -218,14 +218,14 @@ class _Button {
 		}
 		return {
 			color,
-			'font-weight': (type == ButtonType.Primary) ? 'bold' : 'normal'
+			'font-weight': (type === ButtonType.Primary) ? 'bold' : 'normal'
 		}
 	}
 
 	click(event: MouseEvent, a: ButtonAttrs) {
 		a.click(event)
 		// in IE the activeElement might not be defined and blur might not exist
-		if (document.activeElement && typeof document.activeElement.blur == "function") {
+		if (document.activeElement && typeof document.activeElement.blur === "function") {
 			document.activeElement.blur()
 		}
 		if (a.noBubble) {
@@ -248,7 +248,7 @@ export function createAsyncDropDown(lazyButtons: lazyAsync<Array<string|NavButto
 	return ((e) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
+			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
 				return module.showProgressDialog("loading_msg", buttonPromise)
 			})
 		}

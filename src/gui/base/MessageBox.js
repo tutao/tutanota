@@ -31,7 +31,7 @@ export default class MessageBox {
 	}
 
 	setVisible(visible: boolean) {
-		if (this._visible != visible) {
+		if (this._visible !== visible) {
 			this._visible = visible
 			if (this._messageNode) {
 				// the message box is used in the List, so we do not get redraw() calls and have to set the style display manually

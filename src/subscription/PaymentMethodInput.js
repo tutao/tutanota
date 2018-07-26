@@ -67,7 +67,7 @@ export class PaymentMethodInput {
 				), m(".small.pt.center", this.isPaypalAssigned() ? lang.get("paymentDataPayPalFinished_msg", {"{accountAddress}": neverNull(this._accountingInfo).paymentMethodInfo}) : lang.get("paymentDataPayPalLogin_msg"))]
 			},
 		}
-		const messageBox = new MessageBox(() => (this._selectedCountry() && this._selectedCountry().t == CountryType.OTHER) ? lang.get("paymentMethodNotAvailable_msg") : lang.get("paymentMethodOnAccount_msg"), "content-message-bg", 16)
+		const messageBox = new MessageBox(() => (this._selectedCountry() && this._selectedCountry().t === CountryType.OTHER) ? lang.get("paymentMethodNotAvailable_msg") : lang.get("paymentMethodOnAccount_msg"), "content-message-bg", 16)
 		this._invoiceComponent = {
 			view: () => {
 				return m(".flex-center", m(messageBox))
@@ -92,23 +92,23 @@ export class PaymentMethodInput {
 	validatePaymentData(): ?string {
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
-		} else if (this._selectedPaymentMethod == PaymentMethodType.Invoice) {
-			if (this._subscriptionOptions.businessUse && this._selectedCountry().t == CountryType.OTHER) {
+		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
+			if (this._subscriptionOptions.businessUse && this._selectedCountry().t === CountryType.OTHER) {
 				return "paymentMethodNotAvailable_msg"
 			} else if (!this._subscriptionOptions.businessUse) {
 				return "paymentMethodNotAvailable_msg"
 			}
-		} else if (this._selectedPaymentMethod == PaymentMethodType.Paypal) {
+		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return this.isPaypalAssigned() ? null : "paymentDataPayPalLogin_msg"
-		} else if (this._selectedPaymentMethod == PaymentMethodType.CreditCard) {
+		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
 			let cc = this._creditCardComponent.getCreditCardData()
-			if (cc.number == "") {
+			if (cc.number === "") {
 				return "creditCardNumberFormat_msg"
-			} else if (cc.cardHolderName == "") {
+			} else if (cc.cardHolderName === "") {
 				return "creditCardCardHolderName_msg"
 			} else if (cc.cvv = "") {
 				return "creditCardCVVFormat_label"
-			} else if (cc.expirationMonth.length != 2 || (cc.expirationYear.length != 4 && cc.expirationYear.length != 2)) {
+			} else if (cc.expirationMonth.length !== 2 || (cc.expirationYear.length !== 4 && cc.expirationYear.length !== 2)) {
 				return "creditCardExprationDateInvalid_msg"
 			}
 		}
@@ -116,15 +116,15 @@ export class PaymentMethodInput {
 
 	updatePaymentMethod(value: PaymentMethodTypeEnum, paymentData: ?PaymentData) {
 		this._selectedPaymentMethod = value
-		if (value == PaymentMethodType.CreditCard) {
+		if (value === PaymentMethodType.CreditCard) {
 			this._currentPaymentMethodComponent = this._creditCardComponent
 			if (paymentData) {
 				this._creditCardComponent.setCreditCardData(paymentData.creditCardData)
 			}
-		} else if (value == PaymentMethodType.Paypal) {
+		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalRequestUrl.getAsync().then(() => m.redraw())
 			this._currentPaymentMethodComponent = this._payPalComponent
-		} else if (value == PaymentMethodType.Invoice) {
+		} else if (value === PaymentMethodType.Invoice) {
 			this._currentPaymentMethodComponent = this._invoiceComponent
 		}
 		m.redraw()
@@ -134,7 +134,7 @@ export class PaymentMethodInput {
 	getPaymentData(): PaymentData {
 		return {
 			paymentMethod: this._selectedPaymentMethod,
-			creditCardData: this._selectedPaymentMethod == PaymentMethodType.CreditCard ? this._creditCardComponent.getCreditCardData() : null,
+			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ? this._creditCardComponent.getCreditCardData() : null,
 		}
 	}
 

@@ -18,7 +18,7 @@ export function formatDateWithMonth(date: Date): string {
 }
 
 export function formatDateWithWeekday(date: Date): string {
-	if (date.getFullYear() == new Date().getFullYear()) {
+	if (date.getFullYear() === new Date().getFullYear()) {
 		return lang.formats.dateWithWeekday.format(date)
 	} else {
 		return lang.formats.dateWithWeekdayAndYear.format(date)
@@ -67,6 +67,7 @@ export function formatSortableDateTime(date: Date): string {
 }
 
 const referenceDate = new Date(2017, 5, 23)
+
 /**
  * parses the following formats:
  *
@@ -107,12 +108,12 @@ export function parseDate(dateString: string): number {
 
 	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
 	// for finding day month and year position of locale date format  in cleanAndSplit array
-	let dayPos = referenceParts.findIndex(e => e == 23)
-	let monthPos = referenceParts.findIndex(e => e == 6)
-	let yearPos = referenceParts.findIndex(e => e == 2017)
+	let dayPos = referenceParts.findIndex(e => e === 23)
+	let monthPos = referenceParts.findIndex(e => e === 6)
+	let yearPos = referenceParts.findIndex(e => e === 2017)
 
 	let parts = _cleanupAndSplit(dateString)
-	if (parts.length != 3) {
+	if (parts.length !== 3) {
 		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
 	}
 	// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
@@ -135,9 +136,9 @@ export function parseBirthday(text: string): ?Birthday {
 		const referenceDate = new Date(2017, 5, 23)
 		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
 		//for finding day month and year position of locale date format  in cleanAndSplit array
-		let dayPos = referenceParts.findIndex(e => e == 23)
-		let monthPos = referenceParts.findIndex(e => e == 6)
-		let yearPos = referenceParts.findIndex(e => e == 2017)
+		let dayPos = referenceParts.findIndex(e => e === 23)
+		let monthPos = referenceParts.findIndex(e => e === 6)
+		let yearPos = referenceParts.findIndex(e => e === 2017)
 		let birthdayValues = _cleanupAndSplit(text)
 		let birthday = createBirthday()
 		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
@@ -155,9 +156,9 @@ export function parseBirthday(text: string): ?Birthday {
 			return null
 		}
 		if (birthdayValues[yearPos]) {
-			if (String(birthdayValues[yearPos]).length == 4) {
+			if (String(birthdayValues[yearPos]).length === 4) {
 				birthday.year = String(birthdayValues[yearPos])
-			} else if (String(birthdayValues[yearPos]).length == 2) {
+			} else if (String(birthdayValues[yearPos]).length === 2) {
 				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
 					birthday.year = "19" + String(birthdayValues[yearPos])
 				} else {
@@ -188,9 +189,9 @@ export function _cleanupAndSplit(dateString: string): number[] {
 
 export function formatPrice(value: number, includeCurrency: boolean): string {
 	if (includeCurrency) {
-		return (value % 1 != 0) ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
+		return (value % 1 !== 0) ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
 	} else {
-		return (value % 1 != 0) ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
+		return (value % 1 !== 0) ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
 	}
 }
 
@@ -200,15 +201,15 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
  * @param string The string to check.
  * @return an object with the attributes "name" and "mailAddress" or null if nothing was found.
  */
-export function stringToNameAndMailAddress(string: string): ?{name:string, mailAddress:string} {
+export function stringToNameAndMailAddress(string: string): ?{name: string, mailAddress: string} {
 	string = string.trim()
-	if (string == "") {
+	if (string === "") {
 		return null
 	}
 	var startIndex = string.indexOf("<")
-	if (startIndex != -1) {
+	if (startIndex !== -1) {
 		var endIndex = string.indexOf(">", startIndex)
-		if (endIndex == -1) {
+		if (endIndex === -1) {
 			return null
 		}
 		var cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
@@ -256,7 +257,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
 	// check trailing whitespaces because they are not covered by the following regexp
 	// allow uppercase addresses in input check, convert them before sending to server.
-	if (string == null || string != string.trim()) {
+	if (string == null || string !== string.trim()) {
 		return false
 	}
 	if (string.indexOf("-") === 0) {
@@ -284,7 +285,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
  * @return {boolean} If the string is a domain name.
  */
 export function isDomainName(domainName: string): boolean {
-	if (domainName == null || domainName != domainName.trim()) {
+	if (domainName == null || domainName !== domainName.trim()) {
 		return false
 	}
 	if (startsWith(domainName, "-")) {
@@ -304,13 +305,13 @@ export function isRegularExpression(value: string) {
  * @param fullName The full name to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function fullNameToFirstAndLastName(fullName: string): {firstName:string, lastName:string} {
+export function fullNameToFirstAndLastName(fullName: string): {firstName: string, lastName: string} {
 	fullName = fullName.trim()
-	if (fullName == "") {
+	if (fullName === "") {
 		return {firstName: "", lastName: ""}
 	}
 	var separator = fullName.indexOf(" ")
-	if (separator != -1) {
+	if (separator !== -1) {
 		return {firstName: fullName.substring(0, separator), lastName: fullName.substring(separator + 1)}
 	} else {
 		return {firstName: fullName, lastName: ""}
@@ -322,14 +323,14 @@ export function fullNameToFirstAndLastName(fullName: string): {firstName:string,
  * @param mailAddress The email address to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function mailAddressToFirstAndLastName(mailAddress: string): {firstName:string, lastName:string} {
+export function mailAddressToFirstAndLastName(mailAddress: string): {firstName: string, lastName: string} {
 	var addr = mailAddress.substring(0, mailAddress.indexOf("@"))
 	var nameData = []
-	if (addr.indexOf(".") != -1) {
+	if (addr.indexOf(".") !== -1) {
 		nameData = addr.split(".")
-	} else if (addr.indexOf("_") != -1) {
+	} else if (addr.indexOf("_") !== -1) {
 		nameData = addr.split("_")
-	} else if (addr.indexOf("-") != -1) {
+	} else if (addr.indexOf("-") !== -1) {
 		nameData = addr.split("-")
 	} else {
 		nameData = [addr]
@@ -347,7 +348,7 @@ export function getDomainWithoutSubdomains(mailAddress: string): string {
 	var domain = mailAddress.substring(mailAddress.indexOf("@") + 1).toLowerCase()
 	var lastDot = domain.lastIndexOf(".")
 	var lastButOneDot = domain.lastIndexOf(".", lastDot - 1)
-	if (lastButOneDot == -1) {
+	if (lastButOneDot === -1) {
 		return domain
 	} else {
 		return domain.substring(lastButOneDot + 1)

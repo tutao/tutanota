@@ -327,7 +327,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 				if (valueType.final) {
 					// we have to store the encrypted value to be able to restore it when updating the instance. this is not needed for data transfer types, but it does not hurt
 					decrypted["_finalEncrypted_" + valueType.name] = value
-				} else if (value == "") {
+				} else if (value === "") {
 					// we have to store the default value to make sure that updates do not cause more storage use
 					decrypted["_defaultEncrypted_" + valueType.name] = decrypted[valueType.name]
 				}
@@ -384,7 +384,7 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 			encrypted[valueType.name] = encryptValue(valueType, value, sk)
 		}
 	}
-	if (model.type == Type.Aggregated && !encrypted._id) {
+	if (model.type === Type.Aggregated && !encrypted._id) {
 		encrypted._id = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 	}
 	return Promise.map(Object.keys(model.associations), (associationName) => {

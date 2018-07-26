@@ -42,11 +42,11 @@ export class ViewColumn {
 		this.isInForeground = false
 
 		this.view = (vnode: VirtualElement) => {
-			let zIndex = this.columnType == ColumnType.Foreground ? ".z3" : ".z1"
+			let zIndex = this.columnType === ColumnType.Foreground ? ".z3" : ".z1"
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
-						this._domColumn.style.transform = this.columnType == ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
+						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
 					},
 					style: {
 						width: this.width + 'px',

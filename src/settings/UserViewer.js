@@ -122,7 +122,7 @@ export class UserViewer {
 				let adminGroupIdToName: {name: string, value: ?Id}[] = [{
 					name: lang.get("globalAdmin_label"),
 					value: null
-				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType == GroupType.LocalAdmin).map(gi => {
+				}].concat(availableTeamGroupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin).map(gi => {
 					return {
 						name: getGroupInfoDisplayName(gi),
 						value: gi.group
@@ -138,7 +138,7 @@ export class UserViewer {
 							Dialog.error("updateAdminshipGlobalAdmin_msg")
 						} else {
 							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
 								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
@@ -303,7 +303,7 @@ export class UserViewer {
 			let globalAdmin = logins.isGlobalAdminUserLoggedIn()
 			let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 			let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => {
-				if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) == -1) {
+				if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
 					return false
 				} else {
 					return !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null
@@ -366,11 +366,11 @@ export class UserViewer {
 	}
 
 	_getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
-		return user.memberships.filter(m => m.groupInfo[0] == customer.teamGroups)
+		return user.memberships.filter(m => m.groupInfo[0] === customer.teamGroups)
 	}
 
 	_isAdmin(user: User): boolean {
-		return user.memberships.find(m => m.groupType == GroupType.Admin) != null
+		return user.memberships.find(m => m.groupType === GroupType.Admin) != null
 	}
 
 	_deleteUser(restore: boolean): Promise<void> {
@@ -388,7 +388,7 @@ export class UserViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
 			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 				this._senderName.setValue(updatedUserGroupInfo.name)
@@ -399,7 +399,7 @@ export class UserViewer {
 				}
 				m.redraw()
 			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE && this._user.isLoaded() && isSameId(this._user.getLoaded()._id, elementId)) {
+		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && this._user.isLoaded() && isSameId(this._user.getLoaded()._id, elementId)) {
 			this._user.reset()
 			this._updateUsedStorageAndAdminFlag()
 			this._updateGroups()

@@ -40,7 +40,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 	}
 	let cancelButton = new Button("cancel_action", cancelAction).setType(ButtonType.Secondary)
 
-	let version = "1_" + ((lang.code == "de") ? "de" : "en")
+	let version = "1_" + ((lang.code === "de") ? "de" : "en")
 
 	let addressEditor = new HtmlEditor()
 		.setMinHeight(120)

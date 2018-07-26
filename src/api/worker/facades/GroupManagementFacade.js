@@ -36,7 +36,7 @@ export class GroupManagementFacade {
 
 	createMailGroup(name: string, mailAddress: string): Promise<void> {
 		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
-		if (adminGroupIds.length == 0) {
+		if (adminGroupIds.length === 0) {
 			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
 		}
 		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
@@ -111,9 +111,9 @@ export class GroupManagementFacade {
 		let data = createDeleteGroupData()
 		data.group = group._id
 		data.restore = restore
-		if (group.type == GroupType.Mail) {
+		if (group.type === GroupType.Mail) {
 			return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.DELETE, data)
-		} else if (group.type == GroupType.LocalAdmin) {
+		} else if (group.type === GroupType.LocalAdmin) {
 			return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.DELETE, data)
 		} else {
 			return Promise.reject(new Error("invalid group type for deactivation"))
@@ -123,7 +123,7 @@ export class GroupManagementFacade {
 	getAdminGroupKey(group: Group): Promise<Aes128Key> {
 		try {
 			// the admin and local admin can retrieve their group keys directly from their memberships
-			let adminGroupKey = (group.type == GroupType.Admin || group.type == GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
+			let adminGroupKey = (group.type === GroupType.Admin || group.type === GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
 			return Promise.resolve(adminGroupKey)
 		} catch (e) {
 			let globalAdminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))

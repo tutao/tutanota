@@ -25,21 +25,21 @@ export function show(customerInfo: CustomerInfo) {
 		let cleanDomainName = domainName.value().trim().toLowerCase()
 		if (!isDomainName(cleanDomainName)) {
 			Dialog.error("customDomainNeutral_msg")
-		} else if (customerInfo.domainInfos.find(info => info.domain == cleanDomainName)) {
+		} else if (customerInfo.domainInfos.find(info => info.domain === cleanDomainName)) {
 			Dialog.error("customDomainDomainAssigned_msg")
 		} else {
 			worker.addDomain(cleanDomainName).then(status => {
-				if (status.statusCode == CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_OK) {
+				if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_OK) {
 					dialog.close()
 				} else {
 					let errorMessageId
-					if (status.statusCode == CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED) {
+					if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED) {
 						errorMessageId = "customDomainErrorDnsLookupFailure_msg"
-					} else if (status.statusCode == CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD) {
+					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD) {
 						errorMessageId = "customDomainErrorInvalidDnsRecord_msg"
-					} else if (status.statusCode == CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD) {
+					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD) {
 						errorMessageId = "customDomainErrorMissingMxEntry_msg"
-					} else if (status.statusCode == CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD) {
+					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD) {
 						errorMessageId = "customDomainErrorMissingSpfEntry_msg"
 					} else {
 						errorMessageId = "customDomainErrorDomainNotAvailable_msg"
@@ -52,5 +52,5 @@ export function show(customerInfo: CustomerInfo) {
 }
 
 export function getDomainInfoLink(): string {
-	return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
+	return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/666070" : "https://tutanota.uservoice.com/knowledgebase/articles/666088"
 }

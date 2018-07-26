@@ -6,7 +6,7 @@ import {logins} from "../api/main/LoginController"
 
 
 export function openMailbox(userId: Id, mailAddress: string): void {
-	if (logins.isUserLoggedIn() && logins.getUserController().user._id == userId) {
+	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
 		m.route.set("/mail/" + getInboxFolder(mailModel.mailboxDetails()[0].folders).mails)
 	} else {
 		m.route.set(`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}`)

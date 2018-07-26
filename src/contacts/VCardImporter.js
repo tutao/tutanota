@@ -100,7 +100,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					contact.title = nameDetails[3]
 					break
 				case "FN"://Thunderbird can export FULLNAME tag if that is given with the email address automatic contact creation. If there is no first name or second name the namestring will be saved as full name.
-					if (contact.firstName == "" && contact.lastName == "" && contact.title == null) {
+					if (contact.firstName === "" && contact.lastName === "" && contact.title == null) {
 
 						let fullName = vCardReescapingArray(vCardEscapingSplit(tagValue))
 						contact.firstName = fullName.join(" ").replace(/"/g, "") //Thunderbird saves the Fullname in "quoteations marks" they are deleted here
@@ -114,7 +114,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						bDayDetails.month = tagValue.substring(2, 4)
 						bDayDetails.day = tagValue.substring(4, 6)
 					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
-						let bDay = tagValue.substring(0, (indexOfT != -1) ? indexOfT : tagValue.length).split("-")
+						let bDay = tagValue.substring(0, (indexOfT !== -1) ? indexOfT : tagValue.length).split("-")
 						bDayDetails = createBirthday()
 						bDayDetails.year = bDay[0].trim()
 						bDayDetails.month = bDay[1].trim()
@@ -125,7 +125,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						bDayDetails.month = tagValue.substring(4, 6)
 						bDayDetails.day = tagValue.substring(6, 8)
 					}
-					if (bDayDetails && bDayDetails.year == "1111") {
+					if (bDayDetails && bDayDetails.year === "1111") {
 						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
 						bDayDetails.year = null
 					}

@@ -30,13 +30,13 @@ class HtmlSanitizer {
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
-						if (cl[0] != "tutanota_quote") {
+						if (cl[0] !== "tutanota_quote") {
 							cl.remove(cl[0]);
 						}
 					}
 				}
 				// set target="_blank" for all links
-				if (currentNode.tagName && (currentNode.tagName.toLowerCase() == "a" || currentNode.tagName.toLowerCase() == "area" )) {
+				if (currentNode.tagName && (currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase() === "area" )) {
 					currentNode.setAttribute('rel', 'noopener noreferrer')
 					currentNode.setAttribute('target', '_blank')
 				}

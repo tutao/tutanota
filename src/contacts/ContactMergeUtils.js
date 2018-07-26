@@ -23,15 +23,15 @@ export function getMergeableContacts(inputContacts: Contact[]): {mergeable:Conta
 		// run through all contacts after the first and compare them with the first (+ all others already in the currentMergableArray)
 		while (secondContactIndex < contacts.length) {
 			let secondContact = contacts[secondContactIndex]
-			if (firstContact._id[1] != secondContact._id[1]) { // should not happen, just to be safe
+			if (firstContact._id[1] !== secondContact._id[1]) { // should not happen, just to be safe
 				let overallResult = ContactComparisonResult.Unique
 				// compare the current second contact with all in the currentMergableArray to find out if the overall comparison result is equal, similar or unique
 				for (let i = 0; i < currentMergableContacts.length; i++) {
 					let result = _compareContactsForMerge(currentMergableContacts[i], secondContact)
-					if (result == ContactComparisonResult.Equal) {
+					if (result === ContactComparisonResult.Equal) {
 						overallResult = ContactComparisonResult.Equal
 						break // equal is always the final result
-					} else if (result == ContactComparisonResult.Similar) {
+					} else if (result === ContactComparisonResult.Similar) {
 						overallResult = ContactComparisonResult.Similar
 						// continue checking the other contacts in currentMergableContacts to see if there is an equal one
 					} else {
@@ -39,10 +39,10 @@ export function getMergeableContacts(inputContacts: Contact[]): {mergeable:Conta
 						break
 					}
 				}
-				if (overallResult == ContactComparisonResult.Equal) {
+				if (overallResult === ContactComparisonResult.Equal) {
 					duplicateContacts.push(secondContact)
 					contacts.splice(secondContactIndex, 1)
-				} else if (overallResult == ContactComparisonResult.Similar) {
+				} else if (overallResult === ContactComparisonResult.Similar) {
 					currentMergableContacts.push(secondContact)
 					contacts.splice(secondContactIndex, 1)
 				} else {
@@ -96,16 +96,16 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
 	let birthdayResult = _compareBirthdays(contact1, contact2)
 	let residualContactFieldsEqual = _areResidualContactFieldsEqual(contact1, contact2)
 
-	if ((birthdayResult != ContactComparisonResult.Unique) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword == contact2.presharedPassword))) {
-		if ((nameResult == ContactComparisonResult.Equal || nameResult == IndifferentContactComparisonResult.BothEmpty) && (mailResult == ContactComparisonResult.Equal || mailResult == IndifferentContactComparisonResult.BothEmpty) && (phoneResult == ContactComparisonResult.Equal || phoneResult == IndifferentContactComparisonResult.BothEmpty) && residualContactFieldsEqual) {
-			if (birthdayResult == IndifferentContactComparisonResult.BothEmpty || birthdayResult == ContactComparisonResult.Equal) {
+	if ((birthdayResult !== ContactComparisonResult.Unique) && (!contact1.presharedPassword || !contact2.presharedPassword || (contact1.presharedPassword === contact2.presharedPassword))) {
+		if ((nameResult === ContactComparisonResult.Equal || nameResult === IndifferentContactComparisonResult.BothEmpty) && (mailResult === ContactComparisonResult.Equal || mailResult === IndifferentContactComparisonResult.BothEmpty) && (phoneResult === ContactComparisonResult.Equal || phoneResult === IndifferentContactComparisonResult.BothEmpty) && residualContactFieldsEqual) {
+			if (birthdayResult === IndifferentContactComparisonResult.BothEmpty || birthdayResult === ContactComparisonResult.Equal) {
 				return ContactComparisonResult.Equal
 			} else {
 				return ContactComparisonResult.Similar
 			}
-		} else if (nameResult == ContactComparisonResult.Equal || nameResult == ContactComparisonResult.Similar) {
+		} else if (nameResult === ContactComparisonResult.Equal || nameResult === ContactComparisonResult.Similar) {
 			return ContactComparisonResult.Similar
-		} else if ((nameResult == IndifferentContactComparisonResult.BothEmpty || nameResult == IndifferentContactComparisonResult.OneEmpty) && (mailResult == ContactComparisonResult.Similar || phoneResult == ContactComparisonResult.Similar || mailResult == ContactComparisonResult.Equal || phoneResult == ContactComparisonResult.Equal)) {
+		} else if ((nameResult === IndifferentContactComparisonResult.BothEmpty || nameResult === IndifferentContactComparisonResult.OneEmpty) && (mailResult === ContactComparisonResult.Similar || phoneResult === ContactComparisonResult.Similar || mailResult === ContactComparisonResult.Equal || phoneResult === ContactComparisonResult.Equal)) {
 			return ContactComparisonResult.Similar
 		} else {
 			return ContactComparisonResult.Unique
@@ -122,15 +122,15 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
  * Export for testing
  */
 export function _compareFullName(contact1: Contact, contact2: Contact): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
-	if (contact1.firstName == contact2.firstName && contact1.lastName == contact2.lastName && (contact1.lastName || contact1.firstName)) {
+	if (contact1.firstName === contact2.firstName && contact1.lastName === contact2.lastName && (contact1.lastName || contact1.firstName)) {
 		return ContactComparisonResult.Equal
 	} else if ((!contact1.firstName && !contact1.lastName) && (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.BothEmpty
 	} else if ((!contact1.firstName && !contact1.lastName) || (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.OneEmpty
-	} else if (contact1.firstName.toLowerCase() == contact2.firstName.toLowerCase() && contact1.lastName.toLowerCase() == contact2.lastName.toLowerCase() && contact1.lastName) {
+	} else if (contact1.firstName.toLowerCase() === contact2.firstName.toLowerCase() && contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() && contact1.lastName) {
 		return ContactComparisonResult.Similar
-	} else if (((!contact1.firstName || !contact2.firstName) && (contact1.lastName.toLowerCase() == contact2.lastName.toLowerCase())) && contact1.lastName) {
+	} else if (((!contact1.firstName || !contact2.firstName) && (contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase())) && contact1.lastName) {
 		return ContactComparisonResult.Similar
 	} else {
 		return ContactComparisonResult.Unique
@@ -166,7 +166,7 @@ export function _compareMailAddresses(contact1MailAddresses: ContactMailAddress[
  */
 export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
 	let filteredMailAddresses2 = mailAddresses2.filter(ma2 => {
-		return !mailAddresses1.find(ma1 => ma1.address.toLowerCase() == ma2.address.toLowerCase())
+		return !mailAddresses1.find(ma1 => ma1.address.toLowerCase() === ma2.address.toLowerCase())
 	})
 	return mailAddresses1.concat(filteredMailAddresses2)
 }
@@ -183,7 +183,7 @@ export function _comparePhoneNumbers(contact1PhoneNumbers: ContactPhoneNumber[],
  */
 export function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
 	let filteredNumbers2 = phoneNumbers2.filter(ma2 => {
-		return !phoneNumbers1.find(ma1 => ma1.number == ma2.number)
+		return !phoneNumbers1.find(ma1 => ma1.number === ma2.number)
 	})
 	return phoneNumbers1.concat(filteredNumbers2)
 }
@@ -206,7 +206,7 @@ export function _areResidualContactFieldsEqual(contact1: Contact, contact2: Cont
 
 function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2SocialIds: ContactSocialId[]): boolean {
 	let result = _compareValues(contact1SocialIds.map(m => m.socialId), contact2SocialIds.map(m => m.socialId))
-	return result == IndifferentContactComparisonResult.BothEmpty || result == ContactComparisonResult.Equal
+	return result === IndifferentContactComparisonResult.BothEmpty || result === ContactComparisonResult.Equal
 }
 
 /**
@@ -214,14 +214,14 @@ function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2Social
  */
 export function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
 	let filteredSocialIds2 = socialIds2.filter(ma2 => {
-		return !socialIds1.find(ma1 => ma1.socialId == ma2.socialId)
+		return !socialIds1.find(ma1 => ma1.socialId === ma2.socialId)
 	})
 	return socialIds1.concat(filteredSocialIds2)
 }
 
 function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Addresses: ContactAddress[]): boolean {
 	let result = _compareValues(contact1Addresses.map(m => m.address), contact2Addresses.map(m => m.address))
-	return result == IndifferentContactComparisonResult.BothEmpty || result == ContactComparisonResult.Equal
+	return result === IndifferentContactComparisonResult.BothEmpty || result === ContactComparisonResult.Equal
 }
 
 /**
@@ -229,7 +229,7 @@ function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Address
  */
 export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
 	let filteredAddresses2 = addresses2.filter(ma2 => {
-		return !addresses1.find(ma1 => ma1.address == ma2.address)
+		return !addresses1.find(ma1 => ma1.address === ma2.address)
 	})
 	return addresses1.concat(filteredAddresses2)
 }
@@ -240,10 +240,10 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 	migrateToNewBirthday(contact1)
 	migrateToNewBirthday(contact2)
 	if (contact1.birthday && contact2.birthday) {
-		if (contact1.birthday.day == contact2.birthday.day && contact1.birthday.month == contact2.birthday.month) {
-			if (contact1.birthday.year == contact2.birthday.year) {
+		if (contact1.birthday.day === contact2.birthday.day && contact1.birthday.month === contact2.birthday.month) {
+			if (contact1.birthday.year === contact2.birthday.year) {
 				return ContactComparisonResult.Equal
-			} else if (contact1.birthday.year && contact2.birthday.year && contact1.birthday.year != contact2.birthday.year) {
+			} else if (contact1.birthday.year && contact2.birthday.year && contact1.birthday.year !== contact2.birthday.year) {
 				return ContactComparisonResult.Unique
 			} else {
 				return ContactComparisonResult.Similar
@@ -259,16 +259,16 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 }
 
 function _compareValues(values1: string[], values2: string[]): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
-	if (values1.length == 0 && values2.length == 0) {
+	if (values1.length === 0 && values2.length === 0) {
 		return IndifferentContactComparisonResult.BothEmpty
-	} else if (values1.length == 0 || values2.length == 0) {
+	} else if (values1.length === 0 || values2.length === 0) {
 		return IndifferentContactComparisonResult.OneEmpty
 	}
-	let equalAddresses = values2.filter(c2 => values1.find(c1 => c1.trim() == c2.trim()))
-	if (values1.length == values2.length && values1.length == equalAddresses.length) {
+	let equalAddresses = values2.filter(c2 => values1.find(c1 => c1.trim() === c2.trim()))
+	if (values1.length === values2.length && values1.length === equalAddresses.length) {
 		return ContactComparisonResult.Equal
 	}
-	let equalAddressesInsensitive = values2.filter(c2 => values1.find(c1 => c1.trim().toLowerCase() == c2.trim().toLowerCase()))
+	let equalAddressesInsensitive = values2.filter(c2 => values1.find(c1 => c1.trim().toLowerCase() === c2.trim().toLowerCase()))
 	if (equalAddressesInsensitive.length > 0) {
 		return ContactComparisonResult.Similar
 	}
@@ -286,7 +286,7 @@ function _isEqualOtherField(otherAttribute1: ?string, otherAttribute2: ?string):
 	if (otherAttribute2 == null) {
 		otherAttribute2 = ""
 	}
-	return (otherAttribute1 == otherAttribute2)
+	return (otherAttribute1 === otherAttribute2)
 }
 
 /**
@@ -294,7 +294,7 @@ function _isEqualOtherField(otherAttribute1: ?string, otherAttribute2: ?string):
  * Export for testing
  */
 export function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: ?string, separator: string): ?string {
-	if (otherAttribute1 == otherAttribute2) {
+	if (otherAttribute1 === otherAttribute2) {
 		return otherAttribute2
 	} else if (otherAttribute1 && otherAttribute2) {
 		return (otherAttribute1 + separator + otherAttribute2)

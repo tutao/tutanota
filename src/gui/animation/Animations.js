@@ -66,7 +66,7 @@ class Animations {
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				this.activeAnimations.push(new Animation(target[i], mutation, i == target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
+				this.activeAnimations.push(new Animation(target[i], mutation, i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
 			}
 			if (start) {
 				window.requestAnimationFrame(this._animate)
@@ -193,9 +193,9 @@ export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: num
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			let alphaChannel = calculateValue(percent, begin, end, easing)
-			if (type == alpha.type.backgroundColor) {
+			if (type === alpha.type.backgroundColor) {
 				target.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${alphaChannel})`
-			} else if (type == alpha.type.color) {
+			} else if (type === alpha.type.color) {
 				target.style.color = `rgba(${color.r}, ${color.g}, ${color.b}, ${alphaChannel})`
 			}
 		}
@@ -213,11 +213,11 @@ export function opacity(begin: number, end: number, keepValue: boolean): DomMuta
 	let initialOpacity = '';
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
-			if (percent == 0) {
+			if (percent === 0) {
 				initialOpacity = target.style.opacity
 			}
 			let opacity = calculateValue(percent, begin, end, easing)
-			if (percent == 1 && !keepValue) {
+			if (percent === 1 && !keepValue) {
 				// on some elements the value hast to be set to the initial value because hover using opacity won't work otherwise.
 				target.style.opacity = initialOpacity
 			} else {

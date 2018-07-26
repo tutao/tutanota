@@ -187,7 +187,7 @@ u2f.GetJsApiVersionResponse;
  * @param {function((MessagePort|u2f.WrappedChromeRuntimePort_))} callback
  */
 u2f.getMessagePort = function(callback) {
-	if (typeof chrome != 'undefined' && chrome.runtime) {
+	if (typeof chrome !== 'undefined' && chrome.runtime) {
 		// The actual message here does not matter, but we need to get a reply
 		// for the callback to run. Thus, send an empty signature request
 		// in order to get a failure response.
@@ -223,8 +223,8 @@ u2f.getMessagePort = function(callback) {
  */
 u2f.isAndroidChrome_ = function () {
 	var userAgent = navigator.userAgent;
-	return userAgent.indexOf('Chrome') != -1 &&
-		userAgent.indexOf('Android') != -1;
+	return userAgent.indexOf('Chrome') !== -1 &&
+		userAgent.indexOf('Android') !== -1;
 };
 
 /**
@@ -380,7 +380,7 @@ u2f.WrappedChromeRuntimePort_.prototype.postMessage = function (message) {
 u2f.WrappedChromeRuntimePort_.prototype.addEventListener =
 	function (eventName, handler) {
 		var name = eventName.toLowerCase();
-		if (name == 'message' || name == 'onmessage') {
+		if (name === 'message' || name === 'onmessage') {
 			this.port_.onMessage.addListener(function (message) {
 				// Emulate a minimal MessageEvent object
 				handler({'data': message});
@@ -428,7 +428,7 @@ u2f.WrappedAuthenticatorPort_.prototype.getPortType = function () {
  */
 u2f.WrappedAuthenticatorPort_.prototype.addEventListener = function (eventName, handler) {
 	var name = eventName.toLowerCase();
-	if (name == 'message') {
+	if (name === 'message') {
 		var self = this;
 		/* Register a callback to that executes when
 		 * chrome injects the response. */
@@ -520,7 +520,7 @@ u2f.getIframePort_ = function (callback) {
 
 	var channel = new MessageChannel();
 	var ready = function (message) {
-		if (message.data == 'ready') {
+		if (message.data === 'ready') {
 			channel.port1.removeEventListener('message', ready);
 			callback(channel.port1);
 		} else {
@@ -583,7 +583,7 @@ u2f.getPortSingleton_ = function (callback) {
 	if (u2f.port_) {
 		callback(u2f.port_);
 	} else {
-		if (u2f.waitingForPort_.length == 0) {
+		if (u2f.waitingForPort_.length === 0) {
 			u2f.getMessagePort(function (port) {
 				u2f.port_ = port;
 				u2f.port_.addEventListener('message',

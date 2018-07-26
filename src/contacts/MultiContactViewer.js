@@ -29,7 +29,7 @@ export class MultiContactViewer {
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-							m((contactView._contactList && contactView._contactList.list.getSelectedEntities().length == 2) ? actionsWithManualMerge : actions)
+							m((contactView._contactList && contactView._contactList.list.getSelectedEntities().length === 2) ? actionsWithManualMerge : actions)
 						])
 					] : [m(emptyMessageBox)])
 			]
@@ -45,9 +45,9 @@ export class MultiContactViewer {
 
 	_getContactSelectionMessage(contactView: ContactView) {
 		var nbrOfSelectedContacts = (contactView._contactList) ? contactView._contactList.list.getSelectedEntities().length : 0
-		if (nbrOfSelectedContacts == 0) {
+		if (nbrOfSelectedContacts === 0) {
 			return lang.get("noContact_msg")
-		} else if (nbrOfSelectedContacts == 1) {
+		} else if (nbrOfSelectedContacts === 1) {
 			return lang.get("oneContactSelected_msg")
 		} else {
 			return lang.get("nbrOfContactsSelected_msg", {"{1}": nbrOfSelectedContacts})

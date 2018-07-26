@@ -158,8 +158,8 @@ export function handleUncaughtError(e: Error) {
 function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Promise<void> {
 	let type = neverNull(Object.keys(AccountType)
 	                           .find(typeName => (AccountType[typeName]
-		                           == logins.getUserController().user.accountType)))
-	message += "\n\n Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "")
+		                           === logins.getUserController().user.accountType)))
+	message += "\n\n Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
 		+ " app" : "Browser")
 	message += "\n Type: " + type
 	message += "\n Tutanota version: " + env.versionNumber
@@ -190,9 +190,9 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		if (customer.approvalStatus == ApprovalStatus.RegistrationApprovalNeeded) {
+		if (customer.approvalStatus === ApprovalStatus.RegistrationApprovalNeeded) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (customer.approvalStatus == ApprovalStatus.InvoiceNotPaid) {
+		} else if (customer.approvalStatus === ApprovalStatus.InvoiceNotPaid) {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
@@ -215,7 +215,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 }
 
 export function showNotAvailableForFreeDialog() {
-	if (env.mode == Mode.App) {
+	if (env.mode === Mode.App) {
 		Dialog.error("notAvailableInApp_msg")
 	} else {
 		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "

@@ -27,7 +27,7 @@ export class ContactListView {
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				if (startId == GENERATED_MAX_ID) {
+				if (startId === GENERATED_MAX_ID) {
 					return LazyContactListId.getAsync().then(contactListId => {
 						// we have to load all contacts in order to sort them by name
 						return loadAll(ContactTypeRef, contactListId).then(allContacts => {

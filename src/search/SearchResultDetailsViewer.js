@@ -60,10 +60,10 @@ export class SearchResultDetailsViewer {
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (entries.length == 1 && !multiSelectOperation && (selectionChanged || !this._viewer)) {
+		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer)) {
 			// set or update the visible mail
 			this.showEntity(entries[0].entry, true)
-		} else if (selectionChanged && (entries.length == 0 || multiSelectOperation) && this._viewer) {
+		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation) && this._viewer) {
 			// remove the visible mail
 			this._viewer = null
 			this._viewerEntityId = null

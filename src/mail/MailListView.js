@@ -107,8 +107,8 @@ export class MailListView {
 	targetInbox() {
 		const mailboxDetail = this.mailView.selectedFolder ? mailModel.getMailboxDetailsForMailListId(this.mailView.selectedFolder.mails) : null
 		if (mailboxDetail) {
-			return this.mailView.selectedFolder == getArchiveFolder(mailboxDetail.folders)
-				|| this.mailView.selectedFolder == getTrashFolder(mailboxDetail.folders)
+			return this.mailView.selectedFolder === getArchiveFolder(mailboxDetail.folders)
+				|| this.mailView.selectedFolder === getTrashFolder(mailboxDetail.folders)
 		} else {
 			return false
 		}

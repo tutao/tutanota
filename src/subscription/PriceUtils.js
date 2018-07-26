@@ -10,13 +10,13 @@ import {neverNull} from "../api/common/utils/Utils"
 
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
-	if (paymentMethod == PaymentMethodType.Invoice) {
+	if (paymentMethod === PaymentMethodType.Invoice) {
 		return lang.get("paymentMethodOnAccount_label")
-	} else if (paymentMethod == PaymentMethodType.CreditCard) {
+	} else if (paymentMethod === PaymentMethodType.CreditCard) {
 		return lang.get("paymentMethodCreditCard_label")
-	} else if (paymentMethod == PaymentMethodType.Sepa) {
+	} else if (paymentMethod === PaymentMethodType.Sepa) {
 		return "SEPA"
-	} else if (paymentMethod == PaymentMethodType.Paypal) {
+	} else if (paymentMethod === PaymentMethodType.Paypal) {
 		return "PayPal"
 	} else {
 		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
@@ -26,7 +26,7 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {
-		return accountingInfo.paymentMethod == PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
+		return accountingInfo.paymentMethod === PaymentMethodType.CreditCard ? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo) : neverNull(accountingInfo.paymentMethodInfo)
 	} else {
 		return ""
 	}
@@ -39,7 +39,7 @@ export function formatPriceDataWithInfo(priceData: PriceData): string {
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
 	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	const yearlyOrMonthly = paymentInterval == 12 ? lang.get("perYear_label") : lang.get("perMonth_label")
+	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("perYear_label") : lang.get("perMonth_label")
 	return formatPrice(price, true) + " " + yearlyOrMonthly + " (" + netOrGross + ")"
 }
 
@@ -49,7 +49,7 @@ export function formatPriceWithInfo(price: number, paymentInterval: number, taxI
 export function getPriceItem(priceData: ?PriceData, featureType: NumberString): ?PriceItemData {
 	if (priceData) {
 		return priceData.items.find(item => {
-			return (item.featureType == featureType)
+			return (item.featureType === featureType)
 		})
 	} else {
 		return null
@@ -77,7 +77,7 @@ export function getPriceFromPriceData(priceData: ?PriceData, featureType: Number
 
 export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking: ?Booking): number {
 	if (booking) {
-		let bookingItem = booking.items.find(item => item.featureType == featureType)
+		let bookingItem = booking.items.find(item => item.featureType === featureType)
 		return bookingItem ? Number(bookingItem.currentCount) : 0
 	} else {
 		return 0
@@ -96,19 +96,19 @@ export function createNotAvailableForFreeButton(labelId: string, buyAction: clic
 
 
 export function getInvoiceStatusText(invoice: Invoice): string {
-	if (invoice.status == InvoiceStatus.PUBLISHEDFORAUTOMATIC
-		|| invoice.status == InvoiceStatus.PUBLISHEDFORMANUAL
-		|| invoice.status == InvoiceStatus.CREATED) {
+	if (invoice.status === InvoiceStatus.PUBLISHEDFORAUTOMATIC
+		|| invoice.status === InvoiceStatus.PUBLISHEDFORMANUAL
+		|| invoice.status === InvoiceStatus.CREATED) {
 		return lang.get('invoiceStateOpen_label')
-	} else if (invoice.status == InvoiceStatus.DEBITFAILED || invoice.status == InvoiceStatus.FIRSTREMINDER || invoice.status == InvoiceStatus.SECONDREMINDER) {
+	} else if (invoice.status === InvoiceStatus.DEBITFAILED || invoice.status === InvoiceStatus.FIRSTREMINDER || invoice.status === InvoiceStatus.SECONDREMINDER) {
 		return lang.get('invoiceStatePaymentFailed_label')
-	} else if (invoice.status == InvoiceStatus.PAID) {
+	} else if (invoice.status === InvoiceStatus.PAID) {
 		return lang.get('invoiceStatePaid_label')
-	} else if (invoice.status == InvoiceStatus.DISPUTED) {
+	} else if (invoice.status === InvoiceStatus.DISPUTED) {
 		return lang.get('invoiceStateResolving_label')
-	} else if (invoice.status == InvoiceStatus.REFUNDED || invoice.status == InvoiceStatus.DISPUTEACCEPTED) {
+	} else if (invoice.status === InvoiceStatus.REFUNDED || invoice.status === InvoiceStatus.DISPUTEACCEPTED) {
 		return lang.get('invoiceStateRefunded_label')
-	} else if (invoice.status == InvoiceStatus.CANCELLED) {
+	} else if (invoice.status === InvoiceStatus.CANCELLED) {
 		return lang.get('invoiceStateCancelled_label')
 	} else {
 		return "";

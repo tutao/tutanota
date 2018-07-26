@@ -236,7 +236,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	getEntity(id: Id): ?T {
-		return this._loadedEntities.find(entity => getLetId(entity)[1] == id)
+		return this._loadedEntities.find(entity => getLetId(entity)[1] === id)
 	}
 
 
@@ -254,18 +254,18 @@ export class List<T, R:VirtualRow<T>> {
 		if (this._config.multiSelectionAllowed && (mobileMultiSelectionActive || (client.isMacOS ? event.metaKey : event.ctrlKey))) {
 			selectionChanged = true
 			multiSelect = true
-			if (this._selectedEntities.indexOf(clickedEntity) != -1) {
+			if (this._selectedEntities.indexOf(clickedEntity) !== -1) {
 				remove(this._selectedEntities, clickedEntity)
 			} else {
 				this._selectedEntities.push(clickedEntity)
 			}
 		} else if (this._config.multiSelectionAllowed && event.shiftKey) {
 			multiSelect = true
-			if (this._selectedEntities.length == 0) {
+			if (this._selectedEntities.length === 0) {
 				// no item is selected, so treat it as if shift was not pressed
 				this._selectedEntities.push(clickedEntity)
 				selectionChanged = true
-			} else if (this._selectedEntities.length == 1 && this._selectedEntities[0] == clickedEntity) {
+			} else if (this._selectedEntities.length === 1 && this._selectedEntities[0] === clickedEntity) {
 				// nothing to do, the item is already selected
 			} else {
 				// select all items from the given item to the nearest already selected item
@@ -306,7 +306,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_entitySelected(entity: T, addToSelection: boolean) {
 		if (addToSelection) {
-			if (this._selectedEntities.indexOf(entity) == -1) {
+			if (this._selectedEntities.indexOf(entity) === -1) {
 				this._selectedEntities.push(entity)
 				// the selected entities must be sorted the same way the loaded entities are sorted
 				this._selectedEntities.sort(this._config.sortCompare)
@@ -314,7 +314,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._config.elementSelected(this.getSelectedEntities(), false, true, true)
 			}
 		} else {
-			let selectionChanged = this._selectedEntities.length != 1 || this._selectedEntities[0] != entity
+			let selectionChanged = this._selectedEntities.length !== 1 || this._selectedEntities[0] !== entity
 			if (selectionChanged) {
 				this._selectedEntities = [entity];
 				this._reposition()
@@ -327,7 +327,7 @@ export class List<T, R:VirtualRow<T>> {
 		if (!this._config.multiSelectionAllowed) {
 			shiftPressed = false
 		}
-		if (shiftPressed && this._lastMultiSelectWasKeyUp == true && this._selectedEntities.length > 1) {
+		if (shiftPressed && this._lastMultiSelectWasKeyUp === true && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the top
 			this._selectedEntities.splice(0, 1)
 			this._reposition()
@@ -339,7 +339,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._entitySelected(this._loadedEntities[0], shiftPressed)
 			} else if (this._selectedEntities.length !== 0 && this._loadedEntities.length > 0) {
 				let selectedIndex = this._loadedEntities.indexOf(last(this._selectedEntities))
-				if (!shiftPressed && selectedIndex == this._loadedEntities.length - 1) {
+				if (!shiftPressed && selectedIndex === this._loadedEntities.length - 1) {
 					// select the last entity currently selected as multi selection. This is needed to avoid that elements can not be selected any more if all elements are multi selected
 					selectedIndex--
 				}
@@ -354,7 +354,7 @@ export class List<T, R:VirtualRow<T>> {
 		if (!this._config.multiSelectionAllowed) {
 			shiftPressed = false
 		}
-		if (shiftPressed && this._lastMultiSelectWasKeyUp == false && this._selectedEntities.length > 1) {
+		if (shiftPressed && this._lastMultiSelectWasKeyUp === false && this._selectedEntities.length > 1) {
 			// we have to remove the selection from the bottom
 			this._selectedEntities.splice(-1, 1)
 			this._reposition()
@@ -366,7 +366,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._entitySelected(this._loadedEntities[0], shiftPressed)
 			} else if (this._selectedEntities.length !== 0 && this._loadedEntities.length > 0) {
 				let selectedIndex = this._loadedEntities.indexOf(this._selectedEntities[0])
-				if (!shiftPressed && selectedIndex == 0) {
+				if (!shiftPressed && selectedIndex === 0) {
 					// select the first entity currently selected as multi selection. This is needed to avoid that elements can not be selected any more if all elements are multi selected
 					selectedIndex++
 				}
@@ -386,7 +386,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	isEntitySelected(id: Id) {
-		return this._selectedEntities.find(entity => getLetId(entity)[1] == id) != null
+		return this._selectedEntities.find(entity => getLetId(entity)[1] === id) != null
 	}
 
 	getSelectedEntities(): T[] {
@@ -428,7 +428,7 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this._displaySpinner(this._loadedEntities.length == 0)
+		this._displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
 			.then((newItems: T[]) => {
 				if (newItems.length < count) this.setLoadedCompletely()
@@ -547,7 +547,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_scroll() {
 		// make sure no scrolling is done if the virtualList was already cleared when unloading this list. on Safari this would lead to an error.
-		if (this._virtualList.length == 0) return
+		if (this._virtualList.length === 0) return
 
 		let up = this.currentPosition < this.lastPosition ? true : false
 		let scrollDiff = up ? this.lastPosition - this.currentPosition : this.currentPosition - this.lastPosition
@@ -647,7 +647,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_reposition() {
-		this._emptyMessageBox.setVisible(this._loadedEntities.length == 0 && this._loadedCompletely && this._config.emptyMessage != "")
+		this._emptyMessageBox.setVisible(this._loadedEntities.length === 0 && this._loadedCompletely && this._config.emptyMessage !== "")
 
 		this.currentPosition = this._domListContainer.scrollTop
 		let rowHeight = this._config.rowHeight;
@@ -671,7 +671,7 @@ export class List<T, R:VirtualRow<T>> {
 			this._updateVirtualRow(row, entity, (pos % 2:any))
 
 		}
-		if (this._loadedEntities.length % 2 == 0) {
+		if (this._loadedEntities.length % 2 === 0) {
 			this._domLoadingRow.classList.add("odd-row")
 		} else {
 			this._domLoadingRow.classList.remove("odd-row")
@@ -754,7 +754,7 @@ export class List<T, R:VirtualRow<T>> {
 	_scrollToLoadedEntityAndSelect(scrollTarget: T, addToSelection: boolean) {
 		// check if the element is visible already. only scroll if it is not visible
 		for (let i = 0; i < this._virtualList.length; i++) {
-			if (this._virtualList[i].entity == scrollTarget) {
+			if (this._virtualList[i].entity === scrollTarget) {
 				if (this._virtualList[i].top - this.currentPosition > 0 && this._virtualList[i].top - this.currentPosition < this._visibleElementsHeight - this._config.rowHeight) {
 					this._entitySelected(scrollTarget, addToSelection)
 					// we do not need to scroll
@@ -768,7 +768,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_loadTill(listElementId: Id): Promise<?T> {
-		let scrollTarget = this._loadedEntities.find(e => getLetId(e)[1] == listElementId)
+		let scrollTarget = this._loadedEntities.find(e => getLetId(e)[1] === listElementId)
 		// also stop loading if the list element id is bigger than the loaded ones
 		if (scrollTarget != null || this._loadedCompletely || (this._loadedEntities.length > 0 && firstBiggerThanSecond(listElementId, getLetId(this._loadedEntities[this._loadedEntities.length - 1])[1]))) {
 			return Promise.resolve(scrollTarget)
@@ -778,7 +778,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	entityEventReceived(elementId: Id, operation: OperationTypeEnum): Promise<void> {
-		if (operation == OperationType.CREATE || operation == OperationType.UPDATE) {
+		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			// load the element without range checks for now
 			return this._config.loadSingle(elementId).then((entity) => {
 				if (!entity) {
@@ -787,19 +787,19 @@ export class List<T, R:VirtualRow<T>> {
 				let newEntity: T = neverNull(entity)
 				// wait for any pending loading
 				return this._loading.then(() => {
-					if (operation == OperationType.CREATE) {
+					if (operation === OperationType.CREATE) {
 						if (this._loadedCompletely) {
 							this._addToLoadedEntities(newEntity)
 						} else if (this._loadedEntities.length > 0 && this._config.sortCompare(newEntity, last(this._loadedEntities)) < 0) {
 							// new element is in the loaded range or newer than the first element
 							this._addToLoadedEntities(newEntity)
 						}
-					} else if (operation == OperationType.UPDATE) {
+					} else if (operation === OperationType.UPDATE) {
 						this._updateLoadedEntity(newEntity)
 					}
 				})
 			})
-		} else if (operation == OperationType.DELETE) {
+		} else if (operation === OperationType.DELETE) {
 			let swipeAnimation = this._swipeHandler ? this._swipeHandler.animating : Promise.resolve()
 			return swipeAnimation.then(() => this._deleteLoadedEntity(elementId))
 		} else {
@@ -819,7 +819,7 @@ export class List<T, R:VirtualRow<T>> {
 			this._domList.style.height = this._calculateListHeight()
 			this._reposition()
 		}
-		if (this._idOfEntityToSelectWhenReceived && this._idOfEntityToSelectWhenReceived == getLetId(entity)[1]) {
+		if (this._idOfEntityToSelectWhenReceived && this._idOfEntityToSelectWhenReceived === getLetId(entity)[1]) {
 			this._idOfEntityToSelectWhenReceived = null
 			this._scrollToLoadedEntityAndSelect(entity, false)
 		}
@@ -827,7 +827,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_updateLoadedEntity(entity: T) {
 		for (let positionToUpdate = 0; positionToUpdate < this._loadedEntities.length; positionToUpdate++) {
-			if (getLetId(entity)[1] == getLetId(this._loadedEntities[positionToUpdate])[1]) {
+			if (getLetId(entity)[1] === getLetId(this._loadedEntities[positionToUpdate])[1]) {
 				this._loadedEntities.splice(positionToUpdate, 1, (entity:any));
 				this._loadedEntities.sort(this._config.sortCompare)
 				if (this.ready) {
@@ -837,7 +837,7 @@ export class List<T, R:VirtualRow<T>> {
 			}
 		}
 		for (let i = 0; i < this._selectedEntities.length; i++) {
-			if (getLetId(entity)[1] == getLetId(this._selectedEntities[i])[1]) {
+			if (getLetId(entity)[1] === getLetId(this._selectedEntities[i])[1]) {
 				this._selectedEntities[i] = entity
 				break;
 			}
@@ -848,12 +848,12 @@ export class List<T, R:VirtualRow<T>> {
 		// wait for any pending loading
 		return this._loading.then(() => {
 			let entity = this._loadedEntities.find(e => {
-				return getLetId(e)[1] == elementId
+				return getLetId(e)[1] === elementId
 			})
 			if (entity) {
 				let nextElementSelected = false
-				if (this._selectedEntities.length === 1 && this._selectedEntities[0] == entity && this._loadedEntities.length > 1) {
-					let nextSelection = (entity == last(this._loadedEntities)) ? this._loadedEntities[this._loadedEntities.length - 2] : this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
+				if (this._selectedEntities.length === 1 && this._selectedEntities[0] === entity && this._loadedEntities.length > 1) {
+					let nextSelection = (entity === last(this._loadedEntities)) ? this._loadedEntities[this._loadedEntities.length - 2] : this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
 					this._selectedEntities.push(nextSelection)
 					nextElementSelected = true
 				}

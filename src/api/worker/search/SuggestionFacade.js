@@ -41,9 +41,9 @@ export class SuggestionFacade<T> {
 				let key = word.charAt(0)
 				if (this._suggestions[key]) {
 					let existingValues = this._suggestions[key]
-					if (existingValues.indexOf(word) == -1) {
+					if (existingValues.indexOf(word) === -1) {
 						let insertIndex = existingValues.findIndex(v => word < v)
-						if (insertIndex == -1) {
+						if (insertIndex === -1) {
 							existingValues.push(word)
 						} else {
 							existingValues.splice(insertIndex, 0, word)

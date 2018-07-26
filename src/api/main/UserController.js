@@ -36,7 +36,7 @@ export class UserController {
 	 */
 	isGlobalAdmin() {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.groupType == GroupType.Admin) != null
+			return this.user.memberships.find(m => m.groupType === GroupType.Admin) != null
 		} else {
 			return false;
 		}
@@ -44,7 +44,7 @@ export class UserController {
 
 	isGlobalOrLocalAdmin() {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
+			return this.user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
 		} else {
 			return false;
 		}
@@ -81,7 +81,7 @@ export class UserController {
 
 
 	getMailGroupMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType == GroupType.Mail)
+		return this.user.memberships.filter(membership => membership.groupType === GroupType.Mail)
 	}
 
 	getUserMailGroupMembership(): GroupMembership {
@@ -89,19 +89,19 @@ export class UserController {
 	}
 
 	getLocalAdminGroupMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType == GroupType.LocalAdmin)
+		return this.user.memberships.filter(membership => membership.groupType === GroupType.LocalAdmin)
 	}
 
 	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
-		if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
+		if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef) && isSameId(this.user._id, elementId)) {
 			return load(UserTypeRef, this.user._id).then(updatedUser => {
 				this.user = updatedUser
 			})
-		} else if (operation == OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
+		} else if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef) && isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
 			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 				this.userGroupInfo = updatedUserGroupInfo
 			})
-		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation === OperationType.UPDATE) {
 			return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 				this.props = props
 			})
@@ -122,7 +122,7 @@ export class UserController {
 				if (xhr.status === 200) {
 					console.log("deleted session")
 					resolve()
-				} else if (xhr.status == 401) {
+				} else if (xhr.status === 401) {
 					console.log("authentication failed => session is already deleted")
 					resolve()
 				} else {

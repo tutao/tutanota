@@ -47,25 +47,25 @@ export class Dropdown {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
 						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+							if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur()
 						})
 					},
 					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
 				},
-				this.children.filter(b => isVisible(b)).map(button => (typeof button == "string") ? m(".flex-v-center.center.button-height.b.text-break.doNotClose", button) : m(button)))
+				this.children.filter(b => isVisible(b)).map(button => (typeof button === "string") ? m(".flex-v-center.center.button-height.b.text-break.doNotClose", button) : m(button)))
 			)
 		}
 	}
 
 	backgroundClick(e: MouseEvent) {
-		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode == e.target)) {
+		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode === e.target)) {
 			modal.remove(this)
 		}
 	}
 
 	_createShortcuts() {
 		const next = () => {
-			let visibleButtons = this.children.filter(b => (typeof b != "string") && b.isVisible())
+			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
 			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
 			if (selected) {
 				visibleButtons[mod(visibleButtons.indexOf(selected) + 1, visibleButtons.length)]._domButton.focus()
@@ -74,7 +74,7 @@ export class Dropdown {
 			}
 		}
 		const previous = () => {
-			let visibleButtons = this.children.filter(b => (typeof b != "string") && b.isVisible())
+			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
 			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
 			if (selected) {
 				visibleButtons[mod(visibleButtons.indexOf(selected) - 1, visibleButtons.length)]._domButton.focus()
@@ -148,7 +148,7 @@ export class Dropdown {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			let buttonsHeight = this.children.filter(b => isVisible(b)).reduce((previous: number, current: NavButton) => previous + ((typeof current == "string") ? size.button_height : current.getHeight()), 0) + size.vpad_small * 2
+			let buttonsHeight = this.children.filter(b => isVisible(b)).reduce((previous: number, current: NavButton) => previous + ((typeof current === "string") ? size.button_height : current.getHeight()), 0) + size.vpad_small * 2
 			this._buttonsHeight = buttonsHeight
 			this.maxHeight = Math.min(buttonsHeight, (top < bottom ? window.innerHeight - top : window.innerHeight - bottom) - 10)
 			return animations.add(domElement, [
@@ -188,5 +188,5 @@ export class Dropdown {
 }
 
 function isVisible(dropDownElement: string|NavButton|Button) {
-	return (typeof dropDownElement == "string") || dropDownElement.isVisible()
+	return (typeof dropDownElement === "string") || dropDownElement.isVisible()
 }

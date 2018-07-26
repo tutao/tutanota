@@ -22,7 +22,7 @@ export class GroupData {
 
 export function loadGroupDisplayName(groupId: Id): Promise<string> {
 	return load(GroupTypeRef, groupId).then(group => {
-		if (group.user && group.type != GroupType.User) {
+		if (group.user && group.type !== GroupType.User) {
 			// the users personal mail group does not have a name, so show the user name
 			return load(UserTypeRef, group.user).then(user => {
 				return load(GroupInfoTypeRef, user.userGroup.groupInfo)
@@ -40,7 +40,7 @@ export function loadEnabledTeamMailGroups(customer: Customer): Promise<GroupData
 		if (teamGroupInfo.deleted) {
 			return false
 		} else {
-			return load(GroupTypeRef, teamGroupInfo.group).then(teamGroup => teamGroup.type == GroupType.Mail)
+			return load(GroupTypeRef, teamGroupInfo.group).then(teamGroup => teamGroup.type === GroupType.Mail)
 		}
 	}).map(mailTeamGroupInfo => new GroupData(mailTeamGroupInfo.group, getGroupInfoDisplayName(mailTeamGroupInfo)))
 }

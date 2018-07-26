@@ -65,7 +65,7 @@ export class GroupInfoIndexer {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					return t.get(GroupDataOS, customer.customerGroup).then((groupData: GroupData) => {
-						if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
+						if (groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 							return Promise.all([
 								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
 								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
@@ -90,18 +90,18 @@ export class GroupInfoIndexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
 		return Promise.each(events, (event, index) => {
 			if (userIsLocalOrGlobalAdmin(user)) {
-				if (event.operation == OperationType.CREATE) {
+				if (event.operation === OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {
 						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
 					})
-				} else if (event.operation == OperationType.UPDATE) {
+				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewGroupInfo(event).then(result => {
 							if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						})
 					])
-				} else if (event.operation == OperationType.DELETE) {
+				} else if (event.operation === OperationType.DELETE) {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}

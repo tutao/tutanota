@@ -25,7 +25,7 @@ export function pad(bytes: Uint8Array): Uint8Array {
 //TODO rename to unpadAes
 export function unpad(bytes: Uint8Array): Uint8Array {
 	let paddingLength = bytes[bytes.byteLength - 1]
-	if (paddingLength == 0 || paddingLength > bytes.byteLength || paddingLength > PADDING_BLOCK_LENGTH) {
+	if (paddingLength === 0 || paddingLength > bytes.byteLength || paddingLength > PADDING_BLOCK_LENGTH) {
 		throw new CryptoError("invalid padding: " + paddingLength)
 	}
 	let length = bytes.byteLength - paddingLength
@@ -56,9 +56,9 @@ export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key|Aes256Key):
  */
 export function checkIs128BitKey(key: Aes128Key|Aes256Key): boolean {
 	let bitLength = sjcl.bitArray.bitLength(key)
-	if (bitLength == 128) {
+	if (bitLength === 128) {
 		return true
-	} else if (bitLength == 256) {
+	} else if (bitLength === 256) {
 		return false
 	} else {
 		throw new CryptoError("invalid key bit length: " + bitLength)

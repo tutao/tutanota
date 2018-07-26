@@ -22,7 +22,7 @@ export function exportAsVCard(): Promise<void> {
 	return showProgressDialog("pleaseWait_msg",
 		LazyContactListId.getAsync().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
-				if (allContacts.length == 0) {
+				if (allContacts.length === 0) {
 					return 0
 				} else {
 					let vCardFile = contactsToVCard(allContacts)
@@ -36,7 +36,7 @@ export function exportAsVCard(): Promise<void> {
 			})
 		})
 	).then(nbrOfContacts => {
-		if (nbrOfContacts == 0) {
+		if (nbrOfContacts === 0) {
 			Dialog.error("noContacts_msg")
 		}
 	})

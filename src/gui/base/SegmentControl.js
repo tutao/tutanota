@@ -22,7 +22,7 @@ export class SegmentControl<T> {
 		this.selectedValue = selectedValue
 		this.view = () => {
 			return [m(".segmentControl.flex-center.button-height",
-				this._items.map(item => m(".segmentControlItem.flex-center.items-center.text-ellipsis.small" + (item == this.selectedValue() ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"), {
+				this._items.map(item => m(".segmentControlItem.flex-center.items-center.text-ellipsis.small" + (item === this.selectedValue() ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"), {
 					style: {
 						flex: "0 1 " + px(itemMaxWidth)
 					},

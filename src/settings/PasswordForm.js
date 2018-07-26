@@ -47,7 +47,7 @@ export class PasswordForm {
 		this._newPasswordFieldStatus = new StatusField(Stream.combine(() => {
 			if (this._newPasswordField.value() === "") {
 				return {type: "neutral", text: "password1Neutral_msg"}
-			} else if (validateOldPassword && this._oldPasswordField.value() == this._newPasswordField.value()) {
+			} else if (validateOldPassword && this._oldPasswordField.value() === this._newPasswordField.value()) {
 				return {type: "invalid", text: "password1InvalidSame_msg"}
 			} else if (this.isPasswordUnsecure()) {
 				if (enforcePasswordStrength) {
@@ -63,7 +63,7 @@ export class PasswordForm {
 		this._repeatedPasswordFieldStatus = new StatusField(Stream.combine(() => {
 			if (repeatPassword && this._repeatedPasswordField.value() === "") {
 				return {type: "neutral", text: "password2Neutral_msg"}
-			} else if (repeatPassword && this._repeatedPasswordField.value() != this._newPasswordField.value()) {
+			} else if (repeatPassword && this._repeatedPasswordField.value() !== this._newPasswordField.value()) {
 				return {type: "invalid", text: "password2Invalid_msg"}
 			} else {
 				return {type: "valid", text: "passwordValid_msg"}

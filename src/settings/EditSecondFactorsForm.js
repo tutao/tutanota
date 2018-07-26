@@ -60,7 +60,7 @@ export class EditSecondFactorsForm {
 	}
 
 	_get2FAInfoLink(): string {
-		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
 	}
 
 	_updateSecondFactors(): void {
@@ -113,7 +113,7 @@ export class EditSecondFactorsForm {
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
 		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise])).spread((totpKeys, u2fSupport, user) => {
-			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).filter(k => (k == SecondFactorType.u2f && !u2fSupport) ? false : true).map(key => {
+			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).filter(k => (k === SecondFactorType.u2f && !u2fSupport) ? false : true).map(key => {
 				return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
 			}), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
 			let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
@@ -162,9 +162,9 @@ export class EditSecondFactorsForm {
 			})
 			totpCode.value.map(v => {
 				let cleanedValue = v.replace(/ /g, "")
-				if (cleanedValue.length == 6) {
+				if (cleanedValue.length === 6) {
 					worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key).then(number => {
-						if (number == cleanedValue) {
+						if (number === cleanedValue) {
 							verificationStatus(VerificationStatus.Success)
 						} else {
 							verificationStatus(VerificationStatus.Failed)
@@ -176,9 +176,9 @@ export class EditSecondFactorsForm {
 			})
 
 			function statusIcon() {
-				if (verificationStatus() == VerificationStatus.Progress) {
+				if (verificationStatus() === VerificationStatus.Progress) {
 					return progressIcon()
-				} else if (verificationStatus() == VerificationStatus.Success) {
+				} else if (verificationStatus() === VerificationStatus.Success) {
 					return m(Icon, {
 						icon: Icons.Checkmark,
 						large: true,
@@ -199,14 +199,14 @@ export class EditSecondFactorsForm {
 				sf.name = name.value()
 				sf.type = type.selectedValue()
 				if (type.selectedValue() === SecondFactorType.u2f) {
-					if (verificationStatus != VerificationStatus.Success) {
+					if (verificationStatus !== VerificationStatus.Success) {
 						Dialog.error("unrecognizedU2fDevice_msg")
 						return
 					} else {
 						sf.u2f = u2fRegistrationData()
 					}
 				} else if (type.selectedValue() === SecondFactorType.totp) {
-					if (verificationStatus != VerificationStatus.Success) {
+					if (verificationStatus !== VerificationStatus.Success) {
 						Dialog.error("totpCodeEnter_msg")
 						return
 					} else {
@@ -218,11 +218,11 @@ export class EditSecondFactorsForm {
 
 			function statusMessage() {
 				if (type.selectedValue() === SecondFactorType.u2f) {
-					return verificationStatus() == VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
+					return verificationStatus() === VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
 				} else {
-					if (verificationStatus() == VerificationStatus.Success) {
+					if (verificationStatus() === VerificationStatus.Success) {
 						return lang.get("totpCodeConfirmed_msg")
-					} else if (verificationStatus() == VerificationStatus.Failed) {
+					} else if (verificationStatus() === VerificationStatus.Failed) {
 						return lang.get("totpCodeWrong_msg")
 					} else {
 						return lang.get("totpCodeEnter_msg")

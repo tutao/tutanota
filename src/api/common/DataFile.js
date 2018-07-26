@@ -27,7 +27,7 @@ export function createDataFile(file: File|TutanotaFile, data: Uint8Array): DataF
 }
 
 export function getCleanedMimeType(mimeType: ?string): string {
-	if (!mimeType || mimeType.trim() == "") {
+	if (!mimeType || mimeType.trim() === "") {
 		return "application/octet-stream"
 	} else {
 		return mimeType.replace(/"/g, "").replace(/'/g, "");

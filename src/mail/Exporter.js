@@ -19,7 +19,7 @@ export function exportAsEml(mail: Mail, sanitizedHtmlBody: string) {
 			let data = stringToUtf8Uint8Array(emlString)
 			let tmpFile = createFile()
 			let filename = formatSortableDateTime(mail.sentDate) + " " + mail.subject
-			if (filename.trim().length == 0) {
+			if (filename.trim().length === 0) {
 				filename = "unnamed"
 			}
 			tmpFile.name = filename + ".eml"
@@ -46,7 +46,7 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 			if (mail.bccRecipients.length > 0) {
 				emlArray.push(_formatRecipient("BCC: ", mail.bccRecipients))
 			}
-			let subject = (mail.subject.trim() == "") ? "" : "=?UTF-8?B?"
+			let subject = (mail.subject.trim() === "") ? "" : "=?UTF-8?B?"
 				+ uint8ArrayToBase64(stringToUtf8Uint8Array(mail.subject)) + "?="
 			let body = uint8ArrayToBase64(stringToUtf8Uint8Array(sanitizedBodyText)).match(/.{1,78}/g)
 			if (!body) {

@@ -21,7 +21,7 @@ export class DropDownSelector<T> {
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
 			.setDisabled()
 		this._field.value = this.selectedValue.map(value => {
-			let selectedItem = items.find(item => item.value == this.selectedValue())
+			let selectedItem = items.find(item => item.value === this.selectedValue())
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
@@ -30,7 +30,7 @@ export class DropDownSelector<T> {
 		})
 		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => icon ? icon : Icons.Edit, () => {
 			return items.map(item => new Button(() => item.name, () => {
-				if (this.selectedValue() != item.value) {
+				if (this.selectedValue() !== item.value) {
 					if (this._changeHandler) {
 						this._changeHandler(item.value)
 					} else {

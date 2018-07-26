@@ -16,10 +16,10 @@ export class StatusField {
 	}
 
 	isValid(): boolean {
-		return this._status().type == 'valid'
+		return this._status().type === 'valid'
 	}
 
 	getErrorMessageId(): ?string {
-		return (this._status().type != "valid") ? this._status().text : null
+		return (this._status().type !== "valid") ? this._status().text : null
 	}
 }

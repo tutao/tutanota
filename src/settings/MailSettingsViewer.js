@@ -196,7 +196,7 @@ export class MailSettingsViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation === OperationType.UPDATE) {
 			load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
 				this._updatePropertiesSettings(props)
 				this._updateInboxRules(props)
@@ -205,11 +205,11 @@ export class MailSettingsViewer {
 			this._updateInboxRules(logins.getUserController().props)
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
 			this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
-		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE && isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
+		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE && isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
 			load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(groupInfo => {
 				this._senderName.setValue(groupInfo.name)
 			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
+		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
 			// for editing sender name and email aliases
 			m.redraw()
 		}

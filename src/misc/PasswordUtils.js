@@ -22,7 +22,7 @@ const _BAD_STRINGS = ["passwort", "Passwort", "password", "Password", "tutanota"
  * @return A number from 0 to 100.
  */
 export function getPasswordStrength(password: string, badStrings: string[]) {
-	if (password.length == 0) return 0
+	if (password.length === 0) return 0
 
 	// calculate the characteristics of the password
 	let nbrOfLowerChars = _getNbrOfOccurrences(password, /[a-z ]/g)
@@ -97,7 +97,7 @@ export function _getNbrOfSequenceChars(password: string, sequences: string[], re
 		for (let sequenceLen = MIN_SEQUENCE_LEN; (i + sequenceLen) <= password.length; sequenceLen++) {
 			let substringToCheck = password.substring(i, i + sequenceLen)
 			for (let a = 0; a < s.length; a++) {
-				if (s[a].indexOf(substringToCheck) != -1) {
+				if (s[a].indexOf(substringToCheck) !== -1) {
 					maxFoundLen = sequenceLen
 					break
 				}

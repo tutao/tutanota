@@ -55,7 +55,7 @@ export class EditAliasesForm {
 					m(expander)
 				]),
 				m(expander.panel),
-				m(".small", (this._nbrOfAliases == 0) ? lang.get("adminMaxNbrOfAliasesReached_msg") : lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliases}))
+				m(".small", (this._nbrOfAliases === 0) ? lang.get("adminMaxNbrOfAliasesReached_msg") : lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliases}))
 			]
 		}
 
@@ -72,7 +72,7 @@ export class EditAliasesForm {
 	}
 
 	_showAddAliasDialog() {
-		if (this._nbrOfAliases == 0) {
+		if (this._nbrOfAliases === 0) {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
 			} else {
@@ -110,7 +110,7 @@ export class EditAliasesForm {
 
 	_getAvailableDomains(): Promise<string[]> {
 		let p: Promise<?CustomerInfo> = Promise.resolve(null)
-		if (logins.getUserController().user.accountType == AccountType.PREMIUM) {
+		if (logins.getUserController().user.accountType === AccountType.PREMIUM) {
 			p = this._customerInfo.getAsync()
 		}
 		return p.then(customerInfo => {
@@ -118,7 +118,7 @@ export class EditAliasesForm {
 			if (customerInfo) {
 				availableDomains = customerInfo.domainInfos.map(info => info.domain)
 			}
-			if (logins.getUserController().user.accountType != AccountType.STARTER) {
+			if (logins.getUserController().user.accountType !== AccountType.STARTER) {
 				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
 			}
 			return availableDomains
@@ -165,7 +165,7 @@ export class EditAliasesForm {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE) {
 			if (isSameId(this._userGroupInfo._id, [neverNull(listId), elementId])) {
 				// the aliases of this user may have changed
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(groupInfo => {
@@ -175,7 +175,7 @@ export class EditAliasesForm {
 				// other users may have taken aliases
 				this._updateAliases(this._userGroupInfo)
 			}
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation === OperationType.UPDATE) {
 			// the number of free aliases may have been changed
 			this._customerInfo.reset()
 			this._updateAliases(this._userGroupInfo)

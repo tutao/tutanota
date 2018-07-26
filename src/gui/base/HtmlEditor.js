@@ -60,7 +60,7 @@ export class HtmlEditor {
 			if (this._active) {
 				this._active = false
 			}
-			if (this._mode() == Mode.WYSIWYG) {
+			if (this._mode() === Mode.WYSIWYG) {
 				this._value(this._editor.getValue())
 			} else {
 				this._value(this._domTextArea.value)
@@ -82,7 +82,7 @@ export class HtmlEditor {
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 						oncreate: vnode => this._placeholderDomElement = vnode.dom,
-						onclick: () => this._mode() == Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
+						onclick: () => this._mode() === Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
 					},
 					(this._placeholderId ? lang.get(this._placeholderId) : "")
 				) : null
@@ -158,7 +158,7 @@ export class HtmlEditor {
 	}
 
 	getValue(): string {
-		if (this._mode() == Mode.WYSIWYG) {
+		if (this._mode() === Mode.WYSIWYG) {
 			if (this._editor.squire) {
 				return this._editor.squire.getHTML()
 			} else {
@@ -174,7 +174,7 @@ export class HtmlEditor {
 	}
 
 	setValue(html: string): HtmlEditor {
-		if (this._mode() == Mode.WYSIWYG) {
+		if (this._mode() === Mode.WYSIWYG) {
 			this._editor.initialized.promise.then(() => this._editor.squire.setHTML(html))
 		} else if (this._domTextArea) {
 			this._domTextArea.value = html
@@ -189,7 +189,7 @@ export class HtmlEditor {
 	}
 
 	isEmpty(): boolean {
-		return this._value() == ""
+		return this._value() === ""
 	}
 
 

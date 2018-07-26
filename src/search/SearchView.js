@@ -118,16 +118,16 @@ export class SearchView {
 			]
 			mailboxes.forEach((mailbox, mailboxIndex) => {
 				(getSortedSystemFolders(mailbox.folders).concat(getSortedCustomFolders(mailbox.folders))).forEach(folder => {
-					if (folder.folderType != MailFolderType.SPAM) {
+					if (folder.folderType !== MailFolderType.SPAM) {
 						mailFolders.push({
-							name: getFolderName(folder) + ((mailboxIndex == 0) ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							name: getFolderName(folder) + ((mailboxIndex === 0) ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
 							value: folder.mails
 						})
 					}
 				})
 			})
 			let newSelection = this._mailFolderSelection ? this._mailFolderSelection.selectedValue() : mailFolders[0].value
-			if (!mailFolders.find(f => f.value == newSelection)) {
+			if (!mailFolders.find(f => f.value === newSelection)) {
 				newSelection = mailFolders[0].value
 			}
 			this._mailFolderSelection = new DropDownSelector("mailFolder_label", null, mailFolders, newSelection, 250)
@@ -192,9 +192,9 @@ export class SearchView {
 	 */
 	_getCurrentMailIndexDate(): ?Date {
 		let timestamp = locator.search.indexState().currentMailIndexTimestamp
-		if (timestamp == FULL_INDEXED_TIMESTAMP) {
+		if (timestamp === FULL_INDEXED_TIMESTAMP) {
 			return null
-		} else if (timestamp == NOTHING_INDEXED_TIMESTAMP) {
+		} else if (timestamp === NOTHING_INDEXED_TIMESTAMP) {
 			return getEndOfDay(new Date())
 		} else {
 			return new Date(timestamp)
@@ -229,7 +229,7 @@ export class SearchView {
 			}
 		}
 		let text = start + " - " + end
-		if (this._time.value() != text)
+		if (this._time.value() !== text)
 			this._time.setValue(text)
 		return this._time
 	}
@@ -301,7 +301,7 @@ export class SearchView {
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		this._viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
 
-		if (entries.length == 1 && m.route.get().startsWith("/search/")) {
+		if (entries.length === 1 && m.route.get().startsWith("/search/")) {
 			setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
 		}
 		if (!multiSelectOperation && elementClicked) {
@@ -383,7 +383,7 @@ export class SearchView {
 			if (this._searchList.isInSearchResult(typeRef, id)) {
 				this._searchList.entityEventReceived(elementId, operation).then(() => {
 					// run the mail or contact update after the update on the list is finished to avoid parallel loading
-					if (operation == OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
+					if (operation === OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
 						load(typeRef, id).then(updatedEntity => {
 							this._viewer.showEntity(updatedEntity, false)
 						}).catch(() => {

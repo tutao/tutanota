@@ -112,7 +112,7 @@ export class SettingsView {
 		this.view = (): Vnode<any> => {
 			return m("#settings.main-view", [
 				m(this.viewSlider),
-				(this._currentViewer && this._currentViewer.addButtonClicked && !(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path == "users")) ? m(newAction) : null
+				(this._currentViewer && this._currentViewer.addButtonClicked && !(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path === "users")) ? m(newAction) : null
 			])
 		}
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
@@ -151,11 +151,11 @@ export class SettingsView {
 	updateUrl(args: Object) {
 		if (!args.folder) {
 			this._setUrl(this._userFolders[0].url)
-		} else if (args.folder && this._selectedFolder.path != args.folder
+		} else if (args.folder && this._selectedFolder.path !== args.folder
 			|| !m.route.get().startsWith("/settings")) { // ensure that current viewer will be reinitialized
-			let folder = this._userFolders.find(f => f.path == args.folder)
+			let folder = this._userFolders.find(f => f.path === args.folder)
 			if (!folder && logins.getUserController().isGlobalOrLocalAdmin()) {
-				folder = this._adminFolders.find(f => f.path == args.folder)
+				folder = this._adminFolders.find(f => f.path === args.folder)
 			}
 			if (!folder) {
 				this._setUrl(this._userFolders[0].url)
@@ -175,7 +175,7 @@ export class SettingsView {
 	}
 
 	_isGlobalOrLocalAdmin(user: User): boolean {
-		return user.memberships.find(m => m.groupType == GroupType.Admin || m.groupType == GroupType.LocalAdmin) != null
+		return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
 	}
 
 	focusSettingsDetailsColumn() {

@@ -77,7 +77,7 @@ export class NavButton {
 	}
 
 	_getIconClass() {
-		if (this._colors == NavButtonColors.Header && !styles.isDesktopLayout()) {
+		if (this._colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center icon-xl" + (this.isSelected() ? " selected" : "")
 		} else {
 			return "flex-center items-center icon-large" + (this.isSelected() ? " selected" : "")
@@ -90,7 +90,7 @@ export class NavButton {
 
 	_isExternalUrl() {
 		let url = this._getUrl()
-		return url != null ? url.indexOf("http") == 0 || url.indexOf("otpauth") == 0 : false
+		return url != null ? url.indexOf("http") === 0 || url.indexOf("otpauth") === 0 : false
 	}
 
 	createButtonAttributes() {
@@ -128,7 +128,7 @@ export class NavButton {
 			}
 			attr.ondragleave = (ev) => {
 				this._dropCounter--
-				if (this._dropCounter == 0) {
+				if (this._dropCounter === 0) {
 					this._draggedOver = false
 				}
 				ev.preventDefault()
@@ -177,7 +177,7 @@ export class NavButton {
 					this.clickHandler(event)
 				}
 				// in IE the activeElement might not be defined and blur might not exist
-				if (document.activeElement && typeof document.activeElement.blur == "function") {
+				if (document.activeElement && typeof document.activeElement.blur === "function") {
 					document.activeElement.blur()
 				}
 				event.preventDefault()
@@ -237,5 +237,5 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 export function isSelectedPrefix(buttonHref: string): boolean {
 	let current = m.route.get()
 	// don't just check current.indexOf(buttonHref) because other buttons may also start with this href
-	return (buttonHref != "") && (current == buttonHref || (current.indexOf(buttonHref + "/") === 0) || (current.indexOf(buttonHref + "?") === 0))
+	return (buttonHref !== "") && (current === buttonHref || (current.indexOf(buttonHref + "/") === 0) || (current.indexOf(buttonHref + "?") === 0))
 }

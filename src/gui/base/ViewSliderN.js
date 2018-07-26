@@ -36,7 +36,7 @@ class _ViewSlider {
 
 	oninit(vnode: Vnode<ViewSliderAttrs>) {
 		const columns = vnode.attrs.columns
-		this._mainColumn = neverNull(columns.find((column) => column.columnType == ColumnType.Background)) // the first background column is the main column
+		this._mainColumn = neverNull(columns.find((column) => column.columnType === ColumnType.Background)) // the first background column is the main column
 		this.focusedColumn = this._mainColumn
 		this._visibleBackgroundColumns = []
 
@@ -73,8 +73,8 @@ class _ViewSlider {
 					style: {
 						width: column.width + 'px',
 						left: column.offset + 'px',
-						transform: column.columnType == ColumnType.Foreground ? 'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
-						'z-index': this.columnType == ColumnType.Foreground ? "3" : "1"
+						transform: column.columnType === ColumnType.Foreground ? 'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
+						'z-index': this.columnType === ColumnType.Foreground ? "3" : "1"
 					}
 				},
 				m(column.component))
@@ -135,12 +135,12 @@ class _ViewSlider {
 
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
-			return column.columnType == ColumnType.Background && visibleColumns.indexOf(column) < 0
+			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
 		})
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
 			nextColumn = allColumns.find((column) => {
-				return column.columnType == ColumnType.Foreground && visibleColumns.indexOf(column) < 0
+				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
 			})
 		}
 		return nextColumn
@@ -154,7 +154,7 @@ class _ViewSlider {
 	_distributeRemainingSpace(visibleColumns: ViewColumnN[], remainingSpace: number) {
 		let spacePerColumn = remainingSpace / visibleColumns.length
 		visibleColumns.forEach((visibleColumn: ViewColumnN, index) => {
-			if ((visibleColumns.length - 1) == index) {
+			if ((visibleColumns.length - 1) === index) {
 				// ignore max width for the last visible column
 				visibleColumn.setWidth(visibleColumn.minWidth + remainingSpace)
 			} else {
@@ -168,16 +168,16 @@ class _ViewSlider {
 
 	_setWidthForHiddenColumns(columns: ViewColumnN[], visibleColumns: ViewColumnN[]) {
 		// if all columns are visible there is no need to set the width
-		if (columns.length == visibleColumns.length) {
+		if (columns.length === visibleColumns.length) {
 			return;
 		}
 		// if only one column is visible set the same width for all columns ignoring max width
-		if (visibleColumns.length == 1) {
+		if (visibleColumns.length === 1) {
 			columns.forEach(column => column.setWidth(visibleColumns[0].width))
 		}
 
 		// Reduce the width of the foreground button to keep always a small part of the background button visible.
-		let foreGroundColumn = columns.find(column => column.columnType == ColumnType.Foreground)
+		let foreGroundColumn = columns.find(column => column.columnType === ColumnType.Foreground)
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large;
 			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
@@ -196,10 +196,10 @@ class _ViewSlider {
 			}
 		}).then(() => {
 			this.focusedColumn = viewColumn
-			if (viewColumn.columnType == ColumnType.Background && this._visibleBackgroundColumns.length == 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1 && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				//console.log("slide start", oldOffset, newOffset)
 				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
-			} else if (viewColumn.columnType == ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+			} else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;

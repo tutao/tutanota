@@ -28,7 +28,7 @@ const publicExponent = 65537
  * @return resolves to the the generated keypair
  */
 export function generateRsaKey(): Promise<RsaKeyPair> {
-	if (env.mode == Mode.App) {
+	if (env.mode === Mode.App) {
 		return rsaApp.generateRsaKey(random.generateRandomData(512))
 	} else {
 		return Promise.resolve(generateRsaKeySync())
@@ -71,7 +71,7 @@ export function generateRsaKeySync(): RsaKeyPair {
  */
 export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
 	let seed = random.generateRandomData(32)
-	if (env.mode == Mode.App) {
+	if (env.mode === Mode.App) {
 		return rsaApp.rsaEncrypt(publicKey, bytes, seed)
 	} else {
 		try {
@@ -114,7 +114,7 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
  * @return returns the decrypted bytes.
  */
 export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	if (env.mode == Mode.App) {
+	if (env.mode === Mode.App) {
 		return rsaApp.rsaDecrypt(privateKey, bytes)
 	} else {
 		try {

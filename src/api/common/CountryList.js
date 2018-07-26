@@ -273,13 +273,13 @@ export const Countries: Array<Country> = [
 Object.freeze(Countries) // prevent modifying the array
 
 export function getByAbbreviation(abbreviation: string): ?Country {
-	return Countries.find((c => c.a == abbreviation))
+	return Countries.find((c => c.a === abbreviation))
 }
 
 export function getDecimalSeparator(abbreviation: string): string {
 	let country = getByAbbreviation(abbreviation);
 	if (country) {
-		return (country.d == DecimalSeparator.DOT) ? "." : ",";
+		return (country.d === DecimalSeparator.DOT) ? "." : ",";
 	} else {
 		return ",";
 	}

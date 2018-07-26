@@ -152,7 +152,7 @@ export class IndexerCore {
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
-		if (indexUpdate.move.length == 0) return null // keep transaction context open (only for FF)
+		if (indexUpdate.move.length === 0) return null // keep transaction context open (only for FF)
 
 		return Promise.all(indexUpdate.move.map(moveInstance => {
 			return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
@@ -165,13 +165,13 @@ export class IndexerCore {
 	}
 
 	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
-		if (indexUpdate.delete.encWordToEncInstanceIds.size == 0) return null // keep transaction context open (only for FF)
+		if (indexUpdate.delete.encWordToEncInstanceIds.size === 0) return null // keep transaction context open (only for FF)
 
 		return Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
 			return transaction.getAsList(SearchIndexOS, encWord).then(encryptedSearchIndexEntries => {
 				if (encryptedSearchIndexEntries.length > 0) {
 					let promises = indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId))
-					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) == encInstanceId) == null)
+					let newEntries = encryptedSearchIndexEntries.filter(e => encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) === encInstanceId) == null)
 					if (newEntries.length > 0) {
 						promises.push(transaction.put(SearchIndexOS, encWord, newEntries))
 					} else {
@@ -187,7 +187,7 @@ export class IndexerCore {
 	 * @return a map that contains all new encrypted instance ids
 	 */
 	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]:boolean}> {
-		if (indexUpdate.create.encInstanceIdToElementData.size == 0) return null // keep transaction context open (only for FF)
+		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only for FF)
 
 		let keysToUpdate: {[B64EncInstanceId]:boolean} = {}
 		let promises = []
@@ -208,7 +208,7 @@ export class IndexerCore {
 	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]:boolean}, transaction: DbTransaction): ?Promise<void> {
 		let promises = []
 		indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
-			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] == true)
+			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry:any)[0])] === true)
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
 				promises.push(transaction.get(SearchIndexOS, b64EncIndexKey).then((result) => {
@@ -228,7 +228,7 @@ export class IndexerCore {
 				}))
 			}
 		})
-		if (promises.length == 0) {
+		if (promises.length === 0) {
 			return null
 		} else {
 			return Promise.all(promises).return()

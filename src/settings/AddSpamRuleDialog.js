@@ -51,13 +51,13 @@ export function show(emailAddressOrDomainName: ?string) {
 function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
 	let currentValue = value.toLowerCase().trim()
 
-	if (!existingRules || !customDomains || currentValue == "") {
+	if (!existingRules || !customDomains || currentValue === "") {
 		return "emptyString_msg"
 	} else if (!isDomainName(currentValue) && !isMailAddress(currentValue, false)) {
 		return "invalidInputFormat_msg"
 	} else if (_isInvalidRule(type, currentValue, customDomains)) {
 		return "emailSenderInvalidRule_msg"
-	} else if (existingRules.find(r => r.value == currentValue) != null) {
+	} else if (existingRules.find(r => r.value === currentValue) != null) {
 		return "emailSenderExistingRule_msg"
 	}
 	return null
@@ -65,12 +65,12 @@ function _getInputInvalidMessage(type: NumberString, value: string, existingRule
 
 
 function _isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
-	if (type != SpamRuleType.WHITELIST) {
+	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainName(value)) {
-			return value == "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
+			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {
 			let domain = value.split("@")[1]
-			return domain == "tutao.de" || contains(customDomains, domain)
+			return domain === "tutao.de" || contains(customDomains, domain)
 		}
 	}
 	return false

@@ -4,7 +4,7 @@ import {CryptoError} from "../error/CryptoError"
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
-	if (uint8Array.byteLength == uint8Array.buffer.byteLength) {
+	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
 	} else {
 		return new Uint8Array(uint8Array).buffer // create a new instance with the correct length, if uint8Array is only a DataView on a longer Array.buffer
@@ -77,8 +77,8 @@ export function base64ExtToBase64(base64ext: Base64Ext): Base64 {
 		base64[i] = base64Alphabet[index]
 	}
 	let padding = ""
-	if (base64.length % 4 == 2) padding = "=="
-	if (base64.length % 4 == 3) padding = "="
+	if (base64.length % 4 === 2) padding = "=="
+	if (base64.length % 4 === 3) padding = "="
 	return base64.join("") + padding
 }
 
@@ -216,7 +216,7 @@ export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
  * @return The bytes.
  */
 export function base64ToUint8Array(base64: Base64): Uint8Array {
-	if (base64.length % 4 != 0) {
+	if (base64.length % 4 !== 0) {
 		throw new CryptoError(`invalid base64 length: ${base64} (${base64.length})`);
 	}
 	return new Uint8Array(atob(base64).split("").map(function (c) {

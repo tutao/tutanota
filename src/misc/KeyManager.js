@@ -55,7 +55,7 @@ class KeyManager {
 		let helpShortcut = {
 			key: Keys.F1,
 			exec: () => {
-				asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
+				asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
 					if (this._helpDialog && this._helpDialog.visible) {
 						return
 					}
@@ -122,7 +122,7 @@ class KeyManager {
 	}
 
 	registerShortcuts(shortcuts: Shortcut[]) {
-		Keys.META.code = (client.browser == BrowserType.FIREFOX ? 224 : 91)
+		Keys.META.code = (client.browser === BrowserType.FIREFOX ? 224 : 91)
 		addAll(this._shortcuts, shortcuts)
 		for (let s of shortcuts) {
 			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)

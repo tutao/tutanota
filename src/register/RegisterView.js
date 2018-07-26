@@ -53,7 +53,7 @@ export class RegisterView {
 		})
 
 		let _createAccount = () => {
-			let errorMessageId = mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId() || ((confirmStatus().type != "valid") ? confirmStatus().text : null)
+			let errorMessageId = mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId() || ((confirmStatus().type !== "valid") ? confirmStatus().text : null)
 			if (errorMessageId) {
 				Dialog.error(errorMessageId)
 				return
@@ -120,11 +120,11 @@ export class RegisterView {
 	}
 
 	_getTermsLink() {
-		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
+		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.com/de/terms#terms-free" : "https://tutanota.com/terms#terms-free"
 	}
 
 	_getPrivacyLink() {
-		return (lang.code == "de" || lang.code == "de_sie") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
+		return (lang.code === "de" || lang.code === "de_sie") ? "https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
 	}
 
 

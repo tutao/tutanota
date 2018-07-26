@@ -28,7 +28,7 @@ export function getInboxRuleTypeNameMapping(): {value: string, name: string}[] {
 }
 
 export function getInboxRuleTypeName(type: string): string {
-	let typeNameMapping = getInboxRuleTypeNameMapping().find(t => t.value == type)
+	let typeNameMapping = getInboxRuleTypeNameMapping().find(t => t.value === type)
 	return typeNameMapping != null ? typeNameMapping.name : ""
 }
 

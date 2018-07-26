@@ -130,7 +130,7 @@ export class WhitelabelSettingsViewer {
 
 	_isWhitelabelRegistrationVisible() {
 		return this._customer.isLoaded() &&
-			this._customer.getLoaded().customizations.find(c => c.feature == FeatureType.WhitelabelParent) &&
+			this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) &&
 			this._customerInfo.isLoaded() &&
 			this._customerInfo.getLoaded().domainInfos.find(info => info.certificate) &&
 			this._whitelabelCodeField &&
@@ -138,7 +138,7 @@ export class WhitelabelSettingsViewer {
 	}
 
 	_getBrandingLink(): string {
-		return (lang.code == "de" || lang.code == "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
+		return (lang.code === "de" || lang.code === "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/1180321" : "http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
 	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
@@ -165,7 +165,7 @@ export class WhitelabelSettingsViewer {
 				items = items.concat(customerInfo.domainInfos.filter(d => !d.certificate).map(d => {
 					return {name: d.domain, value: d.domain}
 				}))
-				let initialValue = (props.whitelabelRegistrationDomains.length == 0) ? null : props.whitelabelRegistrationDomains[0].value
+				let initialValue = (props.whitelabelRegistrationDomains.length === 0) ? null : props.whitelabelRegistrationDomains[0].value
 				this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, initialValue, 250).setSelectionChangedHandler(v => {
 					props.whitelabelRegistrationDomains.length = 0
 					if (v) {
@@ -185,7 +185,7 @@ export class WhitelabelSettingsViewer {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
 			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
-					const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length == 1 ? bookings[0] : null)
+					const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length === 1 ? bookings[0] : null)
 					let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 					// customJsonTheme is defined when brandingDomainInfo is defined
 					this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
@@ -210,7 +210,7 @@ export class WhitelabelSettingsViewer {
 						if (logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog()
 						} else {
-							const whitelabelEnabledPromise: Promise<boolean> = brandingCount == 0 ? WhitelabelBuyDialog.show(true) : Promise.resolve(true)
+							const whitelabelEnabledPromise: Promise<boolean> = brandingCount === 0 ? WhitelabelBuyDialog.show(true) : Promise.resolve(true)
 							whitelabelEnabledPromise.then(enabled => {
 								if (enabled) {
 									SetCustomDomainCertificateDialog.show(customerInfo)
@@ -244,7 +244,7 @@ export class WhitelabelSettingsViewer {
 								if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_FILE_TYPES, extension)) {
 									Dialog.error("customLogoInfo_msg")
 								} else {
-									let imageData = "<img src=\"data:image/" + ((extension == "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
+									let imageData = "<img src=\"data:image/" + ((extension === "jpeg") ? "jpg" : extension) + ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
 									neverNull(customJsonTheme).logo = imageData
 									neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
 									update(whitelabelConfig)
@@ -267,7 +267,7 @@ export class WhitelabelSettingsViewer {
 								Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
 									if (ok) {
 										Object.keys(neverNull(customJsonTheme)).forEach(key => {
-											if (key != "logo") {
+											if (key !== "logo") {
 												delete neverNull(customJsonTheme)[key]
 											}
 										})
@@ -309,7 +309,7 @@ export class WhitelabelSettingsViewer {
 						{name: "Deutsch (Du)", value: "de"},
 						{name: "Deutsch (Sie)", value: "de_sie"}
 					]
-					if (whitelabelConfig && (lang.code == 'de' || lang.code == 'de_sie')) {
+					if (whitelabelConfig && (lang.code === 'de' || lang.code === 'de_sie')) {
 						this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
 							if (v) {
 								neverNull(whitelabelConfig).germanLanguageCode = v
@@ -327,7 +327,7 @@ export class WhitelabelSettingsViewer {
 
 	_areCustomColorsDefined(theme: ?Theme): boolean {
 		if (theme) {
-			return Object.keys(theme).find(key => key != "logo" && neverNull(theme)[key]) != null
+			return Object.keys(theme).find(key => key !== "logo" && neverNull(theme)[key]) != null
 		} else {
 			return false
 		}
@@ -359,16 +359,16 @@ export class WhitelabelSettingsViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation === OperationType.UPDATE) {
 			this._customer.reset()
 			this._customer.getAsync().then(() => m.redraw())
 			this._updateWhitelabelRegistrationFields()
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation === OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateFields()
-		} else if (isSameTypeRef(typeRef, WhitelabelConfigTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, WhitelabelConfigTypeRef) && operation === OperationType.UPDATE) {
 			this._updateFields()
-		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation === OperationType.UPDATE) {
 			this._props.reset()
 			this._updateWhitelabelRegistrationFields()
 		}

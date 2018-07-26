@@ -68,12 +68,12 @@ class Modal {
 	}
 
 	remove(component: ModalComponent) {
-		let componentIndex = this.components.findIndex(wrapper => wrapper.component == component)
+		let componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
 		if (componentIndex === -1) {
 			console.log("can't remove non existing component from modal")
 			return
 		}
-		let componentIsLastComponent = (componentIndex == this.components.length - 1)
+		let componentIsLastComponent = (componentIndex === this.components.length - 1)
 		if (componentIsLastComponent) {
 			keyManager.unregisterModalShortcuts(component.shortcuts())
 		}

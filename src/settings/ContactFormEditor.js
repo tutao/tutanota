@@ -75,8 +75,8 @@ export class ContactFormEditor {
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 		if (!logins.getUserController().isGlobalAdmin()) {
 			let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-			allSharedMailboxGroupInfos = allSharedMailboxGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) != -1)
-			allUserGroupInfos = allUserGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) != -1)
+			allSharedMailboxGroupInfos = allSharedMailboxGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
+			allUserGroupInfos = allUserGroupInfos.filter(gi => localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
 		}
 		allSharedMailboxGroupInfos.sort(compareGroupInfos)
 		allUserGroupInfos.sort(compareGroupInfos)
@@ -96,7 +96,7 @@ export class ContactFormEditor {
 		this._receivingMailbox = stream(selectedTargetGroupInfo)
 		this._receivingMailbox.map(groupInfo => {
 			if (groupInfo) {
-				let prefix = (groupInfo.groupType == GroupType.User ? lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
+				let prefix = (groupInfo.groupType === GroupType.User ? lang.get("account_label") : lang.get("sharedMailbox_label")) + ": "
 				this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
 			}
 		})
@@ -142,9 +142,9 @@ export class ContactFormEditor {
 		this._pathField = new TextField("urlPath_label", () => getContactFormUrl(brandingDomain, this._pathField.value())).setValue(this._contactForm.path)
 
 		this._languages = this._contactForm.languages.map(l => Object.assign({}, l))
-		if (this._languages.length == 0) {
+		if (this._languages.length === 0) {
 			let l = createContactFormLanguage()
-			l.code = (lang.code == "de_sie") ? "de" : lang.code
+			l.code = (lang.code === "de_sie") ? "de" : lang.code
 			this._languages.push(l)
 		}
 		let previousLanguage: ?ContactFormLanguage = null
@@ -157,7 +157,7 @@ export class ContactFormEditor {
 				let additionalLanguages = languages.filter(t => {
 					if (t.code.endsWith('_sie')) {
 						return false
-					} else if (this._languages.find(l => l.code == t.code) == null) {
+					} else if (this._languages.find(l => l.code === t.code) == null) {
 						return true
 					}
 					return false
@@ -206,7 +206,7 @@ export class ContactFormEditor {
 		this._statisticsFieldsTable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addStatisticsFieldButton)
 
 		this._language.map((l: ContactFormLanguage) => {
-			if (previousLanguage && l != previousLanguage) {
+			if (previousLanguage && l !== previousLanguage) {
 				this.updateLanguageFromFields(previousLanguage)
 			}
 			previousLanguage = l
@@ -228,7 +228,7 @@ export class ContactFormEditor {
 		this.view = () => m("#contact-editor.pb", [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
-			(this._receivingMailbox() && this._receivingMailbox().groupType == GroupType.User) ? null : m(".mt-l", [
+			(this._receivingMailbox() && this._receivingMailbox().groupType === GroupType.User) ? null : m(".mt-l", [
 					m(this._participantGroupInfosTable),
 					m(".small", lang.get("responsiblePersonsInfo_msg"))
 				]),
@@ -309,7 +309,7 @@ export class ContactFormEditor {
 								return load(GroupTypeRef, this._receivingMailbox().group).then(group => {
 									if (group.user) {
 										return load(UserTypeRef, group.user).then(user => {
-											return neverNull(user.memberships.find(m => m.groupType == GroupType.Mail)).group
+											return neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
 										})
 									} else {
 										return group._id
@@ -372,7 +372,7 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 						// get and separate all enabled shared mail groups and shared team groups
 						return loadAll(GroupInfoTypeRef, customer.teamGroups)
 							.filter(g => !g.deleted)
-							.filter(teamGroupInfo => teamGroupInfo.groupType == GroupType.Mail).then(sharedMailGroupInfos => {
+							.filter(teamGroupInfo => teamGroupInfo.groupType === GroupType.Mail).then(sharedMailGroupInfos => {
 								let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, neverNull(brandingDomain))
 								editor.dialog.show()
 								windowFacade.checkWindowClosing(true)
@@ -387,5 +387,5 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 }
 
 function getLanguageName(code: string): string {
-	return lang.get(neverNull(languages.find(t => t.code == code)).textId)
+	return lang.get(neverNull(languages.find(t => t.code === code)).textId)
 }

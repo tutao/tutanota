@@ -1,5 +1,5 @@
 System.import('systemjs-hot-reloader').then(function (connect) {
-	if (location.protocol != "https:") {
+	if (location.protocol !== "https:") {
 		connect({host: location.protocol + '//' + location.hostname + ':9082'})
 	}
 

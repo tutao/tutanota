@@ -74,13 +74,13 @@ export class DropdownN {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
 						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+							if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur()
 						})
 					},
 					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
 				},
 				(this.children.filter(b => isVisible((b:any))).map(child => {
-					if (typeof child == "string") {
+					if (typeof child === "string") {
 						return m(".flex-v-center.center.button-height.b.text-break.doNotClose", child)
 					} else if (typeof child.href !== 'undefined') {
 						return m(NavButtonN, ((child:any):NavButtonAttrs))
@@ -93,7 +93,7 @@ export class DropdownN {
 	}
 
 	backgroundClick(e: MouseEvent) {
-		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode == e.target)) {
+		if (!(e.target:any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target:any)) || this._domDropdown.parentNode === e.target)) {
 			modal.remove(this)
 		}
 	}

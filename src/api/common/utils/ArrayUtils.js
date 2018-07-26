@@ -35,7 +35,7 @@ export function arrayEquals(a1: Uint8Array|Array<string>, a2: Uint8Array|Array<s
  */
 export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	let i = theArray.indexOf(elementToRemove)
-	if (i != -1) {
+	if (i !== -1) {
 		theArray.splice(i, 1)
 		return true;
 	} else {
@@ -54,7 +54,7 @@ export function findAndRemove(theArray: Array<any>, finder: finder): boolean {
 
 export function replace(theArray: Array<any>, oldElement: any, newElement: any): boolean {
 	let i = theArray.indexOf(oldElement)
-	if (i != -1) {
+	if (i !== -1) {
 		theArray.splice(i, 1, newElement)
 		return true;
 	} else {
@@ -79,7 +79,7 @@ export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>)
  * @return The last element of the array.
  */
 export function last(theArray: Array<any>): ?any {
-	if (theArray.length == 0) {
+	if (theArray.length === 0) {
 		return null;
 	} else {
 		return theArray[theArray.length - 1];
@@ -87,7 +87,7 @@ export function last(theArray: Array<any>): ?any {
 }
 
 export function contains(theArray: Array<any>, elementToCheck: any): boolean {
-	return theArray.indexOf(elementToCheck) != -1
+	return theArray.indexOf(elementToCheck) !== -1
 }
 
 export function addAll(array: Array<any>, elements: Array<any>) {

@@ -45,9 +45,9 @@ export class SecondFactorHandler {
 			locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
 				let sessionId = [neverNull(listId), elementId];
 				if (isSameTypeRef(typeRef, SessionTypeRef)) {
-					if (operation == OperationType.CREATE) {
+					if (operation === OperationType.CREATE) {
 						return load(SessionTypeRef, sessionId).then(session => {
-							if (session.state == SessionState.SESSION_STATE_PENDING) {
+							if (session.state === SessionState.SESSION_STATE_PENDING) {
 								if (this._otherLoginDialog != null) {
 									this._otherLoginDialog.close()
 								}
@@ -81,10 +81,10 @@ export class SecondFactorHandler {
 								}, 60 * 1000)
 							}
 						})
-					} else if (operation == OperationType.UPDATE && this._otherLoginSessionId
+					} else if (operation === OperationType.UPDATE && this._otherLoginSessionId
 						&& isSameId(this._otherLoginSessionId, sessionId)) {
 						return load(SessionTypeRef, sessionId).then(session => {
-							if (session.state != SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
+							if (session.state !== SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
 								&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
 								this._otherLoginDialog.close()
 								this._otherLoginSessionId = null

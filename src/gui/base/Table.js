@@ -42,7 +42,7 @@ export class Table {
 					)
 				]),
 				(this._loading) ? m(".flex-center.items-center.button-height", progressIcon()) : null,
-				(!this._loading && this._lines.length == 0) ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null
+				(!this._loading && this._lines.length === 0) ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null
 			])
 		}
 	}

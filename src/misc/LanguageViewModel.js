@@ -101,10 +101,10 @@ class LanguageViewModel {
 
 	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
 		this._setLanguageTag(lang.languageTag)
-		if (this.code == lang.code) {
+		if (this.code === lang.code) {
 			return Promise.resolve()
 		}
-		return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${lang.code}.js`).then(translations => {
+		return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${lang.code}.js`).then(translations => {
 			this.translations = translations
 			this.code = lang.code
 		})
@@ -171,7 +171,7 @@ class LanguageViewModel {
 		if (id == null) {
 			return ""
 		}
-		if (id == "emptyString_msg") {
+		if (id === "emptyString_msg") {
 			return "\u2008"
 		}
 		var text = this.translations.keys[id]
@@ -202,18 +202,18 @@ class LanguageViewModel {
 	getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
 		// navigator.languages can be an empty array on android 5.x devices
 		let languageTags
-		if (typeof navigator != 'undefined') {
+		if (typeof navigator !== 'undefined') {
 			languageTags = (navigator.languages && navigator.languages.length > 0) ? navigator.languages : [navigator.language]
 		}
 		if (languageTags) {
 			for (let tag of languageTags) {
 				let code = tag.toLowerCase().replace("-", "_")
-				let language = languages.find(l => l.code == code && (restrictions == null || restrictions.indexOf(l.code) != -1))
+				let language = languages.find(l => l.code === code && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 				if (language == null) {
-					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) != -1))
+					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 				}
 				if (language) {
-					if (language.code == 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+					if (language.code === 'de' && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
 						return {code: whitelabelCustomizations.germanLanguageCode, languageTag: tag}
 					} else {
 						return {code: language.code, languageTag: tag}
@@ -221,7 +221,7 @@ class LanguageViewModel {
 				}
 			}
 		}
-		if (restrictions == null || restrictions.indexOf("en") != -1) {
+		if (restrictions == null || restrictions.indexOf("en") !== -1) {
 			return {code: 'en', languageTag: 'en-US'}
 		} else {
 			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}

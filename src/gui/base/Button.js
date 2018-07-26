@@ -90,13 +90,13 @@ export class Button {
 
 		this.view = (): ?VirtualElement => {
 
-			return m("button.limit-width.noselect" + ((this._type == ButtonType.Bubble) ? ".print" : ""), {
+			return m("button.limit-width.noselect" + ((this._type === ButtonType.Bubble) ? ".print" : ""), {
 					class: this.getButtonClasses().join(' '),
 					style: (this._type === ButtonType.Login || this._type === ButtonType.Accent) ? {
 							'background-color': theme.content_accent,
 						} : {},
 					onclick: (event: MouseEvent) => this.click(event),
-					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login || this._type == ButtonType.Accent ? this.getLabel() : "",
+					title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type === ButtonType.Dropdown) || this._type === ButtonType.Login || this._type === ButtonType.Accent ? this.getLabel() : "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
 						addFlash(vnode.dom)
@@ -125,7 +125,7 @@ export class Button {
 	}
 
 	getIconColor() {
-		if (this._type == ButtonType.Bubble) {
+		if (this._type === ButtonType.Bubble) {
 			return theme.button_bubble_fg
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).icon_selected
@@ -135,7 +135,7 @@ export class Button {
 	}
 
 	getIconBackgroundColor() {
-		if (this._type == ButtonType.Bubble) {
+		if (this._type === ButtonType.Bubble) {
 			return 'initial'
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).button_selected
@@ -145,7 +145,7 @@ export class Button {
 	}
 
 	getIconClass() {
-		if (this._type == ButtonType.ActionLarge) {
+		if (this._type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
 		} else if (this._type === ButtonType.Floating) {
 			return "flex-center items-center button-icon floating icon-large"
@@ -158,19 +158,19 @@ export class Button {
 
 	getButtonClasses() {
 		let buttonClasses = ["bg-transparent"]
-		if (this._type == ButtonType.Floating) {
+		if (this._type === ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
-		} else if (this._type == ButtonType.Action || this._type == ButtonType.ActionLarge) {
+		} else if (this._type === ButtonType.Action || this._type === ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
-		} else if (this._type == ButtonType.Accent) {
+		} else if (this._type === ButtonType.Accent) {
 			buttonClasses.push("button-height-accent")
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
-		if (this._type == ButtonType.Login) {
+		if (this._type === ButtonType.Login) {
 			buttonClasses.push("full-width")
 		}
 		return buttonClasses
@@ -178,12 +178,12 @@ export class Button {
 
 	getWrapperClasses() {
 		let wrapperClasses = ["button-content", "flex", "items-center", this._type]
-		if (this._type != ButtonType.Floating && this._type != ButtonType.TextBubble) {
+		if (this._type !== ButtonType.Floating && this._type !== ButtonType.TextBubble) {
 			wrapperClasses.push("plr-button")
 		}
-		if (this._type == ButtonType.Dropdown) {
+		if (this._type === ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
-		} else if (this._type == ButtonType.Accent) {
+		} else if (this._type === ButtonType.Accent) {
 			wrapperClasses.push("button-height-accent")
 			wrapperClasses.push("mlr")
 		} else {
@@ -194,7 +194,7 @@ export class Button {
 
 	_getLabelElement() {
 		let classes = ["text-ellipsis"]
-		if (this._type == ButtonType.Dropdown) {
+		if (this._type === ButtonType.Dropdown) {
 			classes.push("pl-m")
 		}
 		if ([ButtonType.Action, ButtonType.Floating].indexOf(this._type) === -1) {
@@ -221,7 +221,7 @@ export class Button {
 		}
 		return {
 			color,
-			'font-weight': (this._type == ButtonType.Primary) ? 'bold' : 'normal'
+			'font-weight': (this._type === ButtonType.Primary) ? 'bold' : 'normal'
 		}
 	}
 
@@ -268,7 +268,7 @@ export class Button {
 	}
 
 	getWidth(): number {
-		if (this._type != ButtonType.Action) throw new Error("width is not defined for buttons with type != action")
+		if (this._type !== ButtonType.Action) throw new Error("width is not defined for buttons with type != action")
 		return size.button_height
 	}
 
@@ -279,7 +279,7 @@ export class Button {
 	click(event: MouseEvent) {
 		this.clickHandler(event)
 		// in IE the activeElement might not be defined and blur might not exist
-		if (document.activeElement && typeof document.activeElement.blur == "function") {
+		if (document.activeElement && typeof document.activeElement.blur === "function") {
 			document.activeElement.blur()
 		}
 		if (!this.propagateClickEvents) {
@@ -297,13 +297,13 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
 		if (!resultPromise.isFulfilled()) {
-			resultPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
+			resultPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
 				return module.showProgressDialog("loading_msg", buttonPromise)
 			})
 		}
 		resultPromise.then(buttons => {
-			if (buttons.length == 0) {
-				asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
+			if (buttons.length === 0) {
+				asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`).then(module => {
 					return module.Dialog.error("selectionNotAvailable_msg")
 				})
 			} else {

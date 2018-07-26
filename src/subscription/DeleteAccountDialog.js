@@ -24,12 +24,12 @@ export function showDeleteAccountDialog() {
 }
 
 function deleteAccount(reason: string, takeover: string, password: string) {
-	if (takeover != "" && !isMailAddress(takeover, false)) {
+	if (takeover !== "" && !isMailAddress(takeover, false)) {
 		Dialog.error("mailAddressInvalid_msg")
 		return
 	}
 	takeover = neverNull(getCleanedMailAddress(takeover))
-	Dialog.confirm(() => takeover == "" ? lang.get("deleteAccountConfirm_msg") : lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": takeover})).then(ok => {
+	Dialog.confirm(() => takeover === "" ? lang.get("deleteAccountConfirm_msg") : lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": takeover})).then(ok => {
 		if (ok) {
 			worker.deleteAccount(password, reason, takeover)
 				.catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))

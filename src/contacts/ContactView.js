@@ -216,7 +216,7 @@ export class ContactView {
 		return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId)
 		})).then(allContacts => {
-			if (allContacts.length == 0) {
+			if (allContacts.length === 0) {
 				Dialog.error("noContacts_msg")
 			} else {
 				let mergeableAndDuplicates = getMergeableContacts(allContacts)
@@ -232,7 +232,7 @@ export class ContactView {
 					})
 				}
 				deletePromise.then(() => {
-					if (mergeableAndDuplicates.mergeable.length == 0) {
+					if (mergeableAndDuplicates.mergeable.length === 0) {
 						Dialog.error(() => lang.get("noSimilarContacts_msg"))
 					} else {
 						this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
@@ -257,19 +257,19 @@ export class ContactView {
 			let mergeDialog = new ContactMergeView(contact1, contact2)
 			return mergeDialog.show().then(action => {
 				// execute action here and update mergable
-				if (action == ContactMergeAction.Merge) {
+				if (action === ContactMergeAction.Merge) {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
 					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
-				} else if (action == ContactMergeAction.DeleteFirst) {
+				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
-				} else if (action == ContactMergeAction.DeleteSecond) {
+				} else if (action === ContactMergeAction.DeleteSecond) {
 					this._removeFromMergableContacts(mergable, contact2)
 					return erase(contact2)
-				} else if (action == ContactMergeAction.Skip) {
+				} else if (action === ContactMergeAction.Skip) {
 					this._removeFromMergableContacts(mergable, contact2)
-				} else if (action == ContactMergeAction.Cancel) {
+				} else if (action === ContactMergeAction.Cancel) {
 					mergable.length = 0
 					canceled = true
 				}
@@ -290,9 +290,9 @@ export class ContactView {
 	 */
 
 	_removeFromMergableContacts(mergable: Contact[][], contact: Contact) {
-		if (mergable[0][0] == contact) {
+		if (mergable[0][0] === contact) {
 			mergable[0].splice(0, 1) // remove contact1
-		} else if (mergable[0][1] == contact) {
+		} else if (mergable[0][1] === contact) {
 			mergable[0].splice(1, 1) // remove contact2
 		}
 		// remove the first entry if there is only one contact left in the first entry
@@ -315,14 +315,14 @@ export class ContactView {
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
 			LazyContactListId.getAsync().then(contactListId => {
-				if (args.listId != contactListId) {
+				if (args.listId !== contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {
 					this._contactList = new ContactListView(args.listId, (this:any)) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
 				}
 			}).then(m.redraw)
-		} else if (this._contactList && args.listId == this._contactList.listId && args.contactId && !this._contactList.list.isEntitySelected(args.contactId)) {
+		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId && !this._contactList.list.isEntitySelected(args.contactId)) {
 			this._contactList.list.scrollToIdAndSelect(args.contactId)
 		}
 	}
@@ -351,11 +351,11 @@ export class ContactView {
 	 * @pre the number of selected contacts is 2
 	 */
 	mergeSelected(): void {
-		if (this._contactList.list.getSelectedEntities().length == 2) {
+		if (this._contactList.list.getSelectedEntities().length === 2) {
 			let keptContact = this._contactList.list.getSelectedEntities()[0]
 			let goodbyeContact = this._contactList.list.getSelectedEntities()[1]
 
-			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || (keptContact.presharedPassword == goodbyeContact.presharedPassword)) {
+			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || (keptContact.presharedPassword === goodbyeContact.presharedPassword)) {
 				Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
@@ -374,7 +374,7 @@ export class ContactView {
 
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (contacts.length == 1) {
+		if (contacts.length === 1) {
 			this.contactViewer = new ContactViewer(contacts[0])
 			this._setUrl(`/contact/${contacts[0]._id.join("/")}`)
 			if (elementClicked) {
@@ -388,9 +388,9 @@ export class ContactView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && this._contactList && listId == this._contactList.listId) {
+		if (isSameTypeRef(typeRef, ContactTypeRef) && this._contactList && listId === this._contactList.listId) {
 			this._contactList.list.entityEventReceived(elementId, operation).then(() => {
-				if (operation == OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id, [neverNull(listId), elementId])) {
+				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id, [neverNull(listId), elementId])) {
 					load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
 						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()

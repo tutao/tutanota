@@ -45,7 +45,7 @@ export class WhitelabelChildrenListView {
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				if (startId == GENERATED_MAX_ID) {
+				if (startId === GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
 						if (listId) {
 							return loadAll(WhitelabelChildTypeRef, listId).then(allChildren => {
@@ -99,7 +99,7 @@ export class WhitelabelChildrenListView {
 		this.list.loadInitial()
 
 		this._searchResultStreamDependency = header.buttonBar.searchBar.lastSelectedWhitelabelChildrenInfoResult.map(whitelabelChild => {
-			if (this._listId.isLoaded() && this._listId.getSync() == whitelabelChild._id[0]) {
+			if (this._listId.isLoaded() && this._listId.getSync() === whitelabelChild._id[0]) {
 				this.list.scrollToIdAndSelect(whitelabelChild._id[1])
 			}
 		})
@@ -116,10 +116,10 @@ export class WhitelabelChildrenListView {
 	}
 
 	elementSelected(whitelabelChildren: WhitelabelChild[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (whitelabelChildren.length == 0 && this._settingsView.detailsViewer) {
+		if (whitelabelChildren.length === 0 && this._settingsView.detailsViewer) {
 			this._settingsView.detailsViewer = null
 			m.redraw()
-		} else if (whitelabelChildren.length == 1 && selectionChanged) {
+		} else if (whitelabelChildren.length === 1 && selectionChanged) {
 			this._settingsView.detailsViewer = new WhitelabelChildViewer(whitelabelChildren[0])
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()
@@ -129,7 +129,7 @@ export class WhitelabelChildrenListView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && this._listId.getSync() == listId) {
+		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && this._listId.getSync() === listId) {
 			this.list.entityEventReceived(elementId, operation)
 		}
 	}

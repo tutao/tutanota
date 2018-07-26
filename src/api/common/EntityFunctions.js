@@ -62,7 +62,7 @@ export class TypeRef<T> {
 }
 
 export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
-	return typeRef1.app == typeRef2.app && typeRef1.type == typeRef2.type
+	return typeRef1.app === typeRef2.app && typeRef1.type === typeRef2.type
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
@@ -71,7 +71,7 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		pathPrefix = "admin/"
 	}
 
-	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
+	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
 		return module._TypeModel
 	})
 }
@@ -80,7 +80,7 @@ export function create(typeModel: TypeModel): any {
 	let i = {
 		_type: new TypeRef(typeModel.app, typeModel.name)
 	}
-	if (typeModel.type == Type.Element || typeModel.type == Type.ListElement) {
+	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
 		(i:any)._errors = {}
 	}
 	for (let valueName of Object.keys(typeModel.values)) {
@@ -99,13 +99,13 @@ export function create(typeModel: TypeModel): any {
 }
 
 function _getDefaultValue(value: ModelValue): any {
-	if (value.name == "_format") {
+	if (value.name === "_format") {
 		return "0"
-	} else if (value.name == "_id") {
+	} else if (value.name === "_id") {
 		return null // aggregate ids are set in the worker, list ids must be set explicitely and element ids are created on the server
-	} else if (value.name == "_permissions") {
+	} else if (value.name === "_permissions") {
 		return null
-	} else if (value.cardinality == Cardinality.ZeroOrOne) {
+	} else if (value.cardinality === Cardinality.ZeroOrOne) {
 		return null
 	} else {
 		switch (value.type) {
@@ -164,7 +164,7 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id|IdTuple, queryParams:
 		let listId = null
 		let elementId = null
 		if (typeModel.type === Type.ListElement) {
-			if ((!(id instanceof Array) || id.length != 2)) {
+			if ((!(id instanceof Array) || id.length !== 2)) {
 				throw new Error("Illegal IdTuple for LET: " + (id:any))
 			}
 			listId = id[0]
@@ -256,7 +256,7 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id): boolean {
 export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 	let firstId = (id1 instanceof Array) ? id1[1] : id1
 	let secondId = (id2 instanceof Array) ? id2[1] : id2
-	if (firstId == secondId) {
+	if (firstId === secondId) {
 		return 0
 	} else {
 		return firstBiggerThanSecond(firstId, secondId) ? -1 : 1
@@ -266,7 +266,7 @@ export function compareNewestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 export function compareOldestFirst(id1: Id|IdTuple, id2: Id|IdTuple): number {
 	let firstId = (id1 instanceof Array) ? id1[1] : id1
 	let secondId = (id2 instanceof Array) ? id2[1] : id2
-	if (firstId == secondId) {
+	if (firstId === secondId) {
 		return 0
 	} else {
 		return firstBiggerThanSecond(firstId, secondId) ? 1 : -1
@@ -292,9 +292,9 @@ export function sortCompareById(entity1: Object, entity2: Object): number {
  */
 export function isSameId(id1: Id|IdTuple, id2: Id|IdTuple) {
 	if (id1 instanceof Array && id2 instanceof Array) {
-		return id1[0] == id2[0] && id1[1] == id2[1]
+		return id1[0] === id2[0] && id1[1] === id2[1]
 	} else {
-		return (id1:any) == (id2:any)
+		return (id1:any) === (id2:any)
 	}
 }
 

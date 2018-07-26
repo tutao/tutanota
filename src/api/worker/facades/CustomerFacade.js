@@ -85,7 +85,7 @@ export class CustomerFacade {
 	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain == domainName && info.certificate)
+				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain === domainName && info.certificate)
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
 					let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 					let sessionKey = aes128RandomKey()
@@ -278,9 +278,9 @@ export class CustomerFacade {
 	}
 
 	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountTypeEnum): Aes128Key {
-		if (accountType == AccountType.FREE) {
+		if (accountType === AccountType.FREE) {
 			return uint8ArrayToBitArray(keyData.freeGroupKey)
-		} else if (accountType == AccountType.STARTER) {
+		} else if (accountType === AccountType.STARTER) {
 			return uint8ArrayToBitArray(keyData.starterGroupKey);
 		} else {
 			throw Error("Illegal account type");

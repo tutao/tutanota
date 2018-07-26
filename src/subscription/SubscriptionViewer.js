@@ -163,7 +163,7 @@ export class SubscriptionViewer {
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
 		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit)
 		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel)
-		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) == 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
+		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) === 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
 
 		let deleteButton = new Button("adminDeleteAccount_action", () => {
 			showDeleteAccountDialog()
@@ -256,7 +256,7 @@ export class SubscriptionViewer {
 		}
 		worker.getCurrentPrice().then(priceServiceReturn => {
 			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-				if (priceServiceReturn.currentPriceThisPeriod.price != priceServiceReturn.currentPriceNextPeriod.price) {
+				if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
 					this._currentPriceField.setValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
 					this._nextPriceField.setValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
 					this._nextPeriodPriceVisible = true
@@ -330,7 +330,7 @@ export class SubscriptionViewer {
 
 	_updateAliasField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
 		const totalAmount = getTotalAliases(customer, customerInfo, this._lastBooking)
-		if (totalAmount == 0) {
+		if (totalAmount === 0) {
 			this._emailAliasField.setValue("0")
 			return Promise.resolve()
 		} else {
@@ -349,7 +349,7 @@ export class SubscriptionViewer {
 		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
 		const sharedMailText = sharedMailCount > 0 ? sharedMailCount + " " + lang.get("sharedMailbox_label") : ""
-		if (localAdminCount == 0 && sharedMailCount == 0) {
+		if (localAdminCount === 0 && sharedMailCount === 0) {
 			this._groupsField.setValue("0")
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
 			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
@@ -375,7 +375,7 @@ export class SubscriptionViewer {
 	}
 
 	_isWhitelabelActive(): boolean {
-		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) != 0
+		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) !== 0
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
@@ -418,7 +418,7 @@ function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBoo
 
 
 function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
-	if (type == AccountType.PREMIUM && isPro) {
+	if (type === AccountType.PREMIUM && isPro) {
 		return "Pro"
 	} else {
 		return AccountTypeNames[Number(type)];
@@ -426,7 +426,7 @@ function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
 }
 
 export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number): void {
-	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) != paymentInterval) {
+	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
 		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 		worker.updatePaymentData({
 				businessUse: accountingInfo.business,

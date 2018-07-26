@@ -63,7 +63,7 @@ export class WhitelabelChildIndexer {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					return t.get(GroupDataOS, customer.adminGroup).then((groupData: GroupData) => {
-						if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
+						if (groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 							let children: Promise<WhitelabelChild[]> = Promise.resolve([])
 							if (customer.whitelabelChildren) {
 								children = this._entity.loadAll(WhitelabelChildTypeRef, customer.whitelabelChildren.items)
@@ -89,18 +89,18 @@ export class WhitelabelChildIndexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
 		return Promise.each(events, (event, index) => {
 			if (userIsGlobalAdmin(user)) {
-				if (event.operation == OperationType.CREATE) {
+				if (event.operation === OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {
 						if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
 					})
-				} else if (event.operation == OperationType.UPDATE) {
+				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewWhitelabelChild(event).then(result => {
 							if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						})
 					])
-				} else if (event.operation == OperationType.DELETE) {
+				} else if (event.operation === OperationType.DELETE) {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}

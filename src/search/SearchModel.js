@@ -52,16 +52,16 @@ export class SearchModel {
 		if (result == null) {
 			return true
 		}
-		if (query != result.query) {
+		if (query !== result.query) {
 			return true
 		}
-		if (result.restriction == restriction) { // both are the same instance
+		if (result.restriction === restriction) { // both are the same instance
 			return false
 		}
 		return !isSameTypeRef(restriction.type, result.restriction.type)
-			|| restriction.start != result.restriction.start
-			|| restriction.end != result.restriction.end
-			|| restriction.field != result.restriction.field
-			|| restriction.listId != result.restriction.listId
+			|| restriction.start !== result.restriction.start
+			|| restriction.end !== result.restriction.end
+			|| restriction.field !== result.restriction.field
+			|| restriction.listId !== result.restriction.listId
 	}
 }

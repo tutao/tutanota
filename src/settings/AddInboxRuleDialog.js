@@ -22,9 +22,9 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetails) {
 		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), preselectedInboxRuleType)
-		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue() != InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue() != InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
+		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue() !== InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue() !== InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
 			.setValue(preselectedValue)
-		let targetFolders = mailBoxDetails.folders.filter(folder => folder != getInboxFolder(mailBoxDetails.folders)).map(folder => {
+		let targetFolders = mailBoxDetails.folders.filter(folder => folder !== getInboxFolder(mailBoxDetails.folders)).map(folder => {
 			return {name: getFolderName(folder), value: folder}
 		})
 		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, getArchiveFolder(mailBoxDetails.folders))
@@ -51,14 +51,14 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 }
 
 export function isRuleExistingForType(cleanValue: string, type: string) {
-	return logins.getUserController().props.inboxRules.find(rule => (type == rule.type && cleanValue == rule.value)) != null
+	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value)) != null
 }
 
 function _validateInboxRuleInput(type: string, value: string) {
 	let currentCleanedValue = _getCleanedValue(type, value)
-	if (currentCleanedValue == "") {
+	if (currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
-	} else if (type != InboxRuleType.SUBJECT_CONTAINS && type != InboxRuleType.MAIL_HEADER_CONTAINS && !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue) && !isMailAddress(currentCleanedValue, false)) {
+	} else if (type !== InboxRuleType.SUBJECT_CONTAINS && type !== InboxRuleType.MAIL_HEADER_CONTAINS && !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue) && !isMailAddress(currentCleanedValue, false)) {
 		return "inboxRuleInvalidEmailAddress_msg"
 	} else if (isRuleExistingForType(currentCleanedValue, type)) {
 		return "inboxRuleAlreadyExists_msg"
@@ -67,7 +67,7 @@ function _validateInboxRuleInput(type: string, value: string) {
 }
 
 function _getCleanedValue(type: string, value: string) {
-	if (type == InboxRuleType.SUBJECT_CONTAINS || type == InboxRuleType.MAIL_HEADER_CONTAINS) {
+	if (type === InboxRuleType.SUBJECT_CONTAINS || type === InboxRuleType.MAIL_HEADER_CONTAINS) {
 		return value
 	} else {
 		return value.trim().toLowerCase()

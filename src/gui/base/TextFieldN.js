@@ -49,13 +49,13 @@ export class _TextField {
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
 		this.webkitAutofill = false
-		if (typeof vnode.attrs.value.map == "function") {
+		if (typeof vnode.attrs.value.map === "function") {
 			vnode.attrs.value.map(value => {
 				if (this._domInput) {
 					if (value && !this.active) {
 						this.animate(true)
 					}
-					if (vnode.attrs.type == Type.Area && value != this._domInput.value) {
+					if (vnode.attrs.type === Type.Area && value !== this._domInput.value) {
 						this._domInput.value = value
 					}
 				}
@@ -116,12 +116,12 @@ export class _TextField {
 			}, a.value())
 		} else {
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
-				type: (a.type == Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
+				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = a.value()
-					if (a.type == Type.Password) {
+					if (a.type === Type.Password) {
 						vnode.dom.addEventListener('animationstart', e => {
 							if (e.animationName === "onAutoFillStart") {
 								this.animate(true)
@@ -292,7 +292,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 				}, () => {
 					try {
 						let date = null
-						if (dateValue().trim() != "") {
+						if (dateValue().trim() !== "") {
 							date = new Date(parseDate(dateValue()))
 						}
 						updateHandler(date).then(() => dialog.close())

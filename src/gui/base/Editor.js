@@ -35,7 +35,7 @@ export class Editor {
 
 
 	isEmpty(): boolean {
-		return !this.squire || this.squire.getHTML() == "<div><br></div>"
+		return !this.squire || this.squire.getHTML() === "<div><br></div>"
 	}
 
 	getValue(): string {

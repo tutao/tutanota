@@ -48,12 +48,12 @@ export class U2fClient {
 	 * Triggers a dummy U2F registration request to check if the U2F interface is available.
 	 */
 	isSupported(): Promise<boolean> {
-		if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE || isApp()) {
+		if (client.browser === BrowserType.IE || client.browser === BrowserType.EDGE || isApp()) {
 			// we do not use the actual check below in IE and Edge because they would ask how to open the chrome extension
 			return Promise.resolve(false)
 		} else {
 			let random = new Uint8Array(32)
-			let c = typeof crypto != 'undefined' ? crypto : msCrypto
+			let c = typeof crypto !== 'undefined' ? crypto : msCrypto
 			c.getRandomValues(random)
 			let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 			let u2fResponsePromise = Promise.fromCallback(cb => {
@@ -80,7 +80,7 @@ export class U2fClient {
 
 	register(): Promise<U2fRegisteredDevice> {
 		let random = new Uint8Array(32)
-		let c = typeof crypto != 'undefined' ? crypto : msCrypto
+		let c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 		return Promise.fromCallback(cb => {
@@ -144,7 +144,7 @@ export class U2fClient {
 		const msg = base64ToUint8Array(base64UrlToBase64(rawRegisterResponse.registrationData))
 		const keyHandleEnd = 67 + msg[66]
 		const reservedByte = msg[0]
-		if (reservedByte != REGISTRATION_RESERVED_BYTE_VALUE) {
+		if (reservedByte !== REGISTRATION_RESERVED_BYTE_VALUE) {
 			throw new BadRequestError("Incorrect value of reserved byte. Expected: " + REGISTRATION_RESERVED_BYTE_VALUE + ". Was: " + reservedByte)
 		}
 		return {

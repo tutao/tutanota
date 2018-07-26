@@ -64,7 +64,7 @@ export function show(customerInfo: CustomerInfo): void {
 			Dialog.error("privateKeyInfo_msg")
 		} else if (!isDomainName(domain) || domain.split(".").length < 3) {
 			Dialog.error("notASubdomain_msg")
-		} else if (customerInfo.domainInfos.find(d => d.domain == domain && !d.certificate)) {
+		} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
 			Dialog.error("customDomainErrorDomainNotAvailable_msg")
 		} else {
 			try {

@@ -284,7 +284,7 @@ class _LineChart {
 		this._viewBox = this._bounds
 		this._offset = [this._domWrapper.offsetLeft, this._domWrapper.offsetTop]
 		const newScale = this._viewBox.width / this._domSvg.clientWidth
-		if (Math.round(newScale * 100) / 100 != Math.round(this._scale * 100) / 100) {
+		if (Math.round(newScale * 100) / 100 !== Math.round(this._scale * 100) / 100) {
 			this._scale = newScale
 			window.requestAnimationFrame(m.redraw)
 		}

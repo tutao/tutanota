@@ -17,7 +17,7 @@ assertMainOrNode()
 let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
-	let colorFields = Object.keys(defaultTheme).filter(name => name != "logo").sort((a, b) => a.localeCompare(b)).map(colorName => {
+	let colorFields = Object.keys(defaultTheme).filter(name => name !== "logo").sort((a, b) => a.localeCompare(b)).map(colorName => {
 		let value = themeToEdit[colorName]
 		let field = new TextField(() => colorName).setValue(value ? value : "")
 		field._injectionsRight = () => {

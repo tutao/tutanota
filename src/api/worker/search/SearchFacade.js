@@ -70,7 +70,7 @@ export class SearchFacade {
 			}
 			if (searchTokens.length > 0) {
 				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
-				let isFirstWordSearch = searchTokens.length == 1
+				let isFirstWordSearch = searchTokens.length === 1
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
 				let searchPromise
 
@@ -160,16 +160,16 @@ export class SearchFacade {
 			attributeNames = Object.keys(model.values).concat(Object.keys(model.associations))
 		} else {
 			attributeNames = attributeIds.map(id => neverNull(
-				Object.keys(model.values).find(valueName => model.values[valueName].id == id) ||
-				Object.keys(model.associations).find(associationName => model.associations[associationName].id == id)
+				Object.keys(model.values).find(valueName => model.values[valueName].id === id) ||
+				Object.keys(model.associations).find(associationName => model.associations[associationName].id === id)
 			))
 		}
 		return asyncFind(attributeNames, attributeName => {
-			if (model.values[attributeName] && model.values[attributeName].type == ValueType.String && entity[attributeName]) {
+			if (model.values[attributeName] && model.values[attributeName].type === ValueType.String && entity[attributeName]) {
 				let words = tokenize(entity[attributeName])
 				return Promise.resolve((words.find(w => w.startsWith(suggestionToken))) != null)
-			} else if (model.associations[attributeName] && model.associations[attributeName].type == AssociationType.Aggregation && entity[attributeName]) {
-				let aggregates = (model.associations[attributeName].cardinality == Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
+			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
+				let aggregates = (model.associations[attributeName].cardinality === Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
 				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType)).then(refModel => {
 					return asyncFind(aggregates, aggregate => {
 						return this._containsSuggestionToken(aggregate, refModel, null, suggestionToken)
@@ -280,21 +280,21 @@ export class SearchFacade {
 				matchingIds = keyToIndexEntry.indexEntries.map(entry => entry.id)
 			} else {
 				matchingIds = matchingIds.filter(id => {
-					return keyToIndexEntry.indexEntries.find(entry => entry.id == id)
+					return keyToIndexEntry.indexEntries.find(entry => entry.id === id)
 				})
 			}
 		})
 		return results.map(r => {
 			return {
 				indexKey: r.indexKey,
-				indexEntries: r.indexEntries.filter(entry => neverNull(matchingIds).find(id => entry.id == id))
+				indexEntries: r.indexEntries.filter(entry => neverNull(matchingIds).find(id => entry.id === id))
 			}
 		})
 	}
 
 	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry): boolean {
 		let typeInfo = typeRefToTypeInfo(restriction.type)
-		if (typeInfo.appId != entry.app || typeInfo.typeId != entry.type) {
+		if (typeInfo.appId !== entry.app || typeInfo.typeId !== entry.type) {
 			return false
 		}
 		if (restriction.attributeIds) {
@@ -323,9 +323,9 @@ export class SearchFacade {
 				// reduce the filtered positions for this first word entry and its attribute with each next word to those that are in order
 				let filteredPositions = firstWordEntry.positions.slice()
 				for (let i = 1; i < results.length; i++) {
-					let entry = results[i].indexEntries.find(e => e.id == firstWordEntry.id && e.attribute == firstWordEntry.attribute)
+					let entry = results[i].indexEntries.find(e => e.id === firstWordEntry.id && e.attribute === firstWordEntry.attribute)
 					if (entry) {
-						filteredPositions = filteredPositions.filter(firstWordPosition => neverNull(entry).positions.find(position => position == firstWordPosition + i))
+						filteredPositions = filteredPositions.filter(firstWordPosition => neverNull(entry).positions.find(position => position === firstWordPosition + i))
 					} else {
 						// the id was probably not found for the same attribute as the current filtered positions, so we could not find all words in order in the same attribute
 						filteredPositions = []
@@ -342,7 +342,7 @@ export class SearchFacade {
 	_reduceToUniqueElementIds(results: SearchIndexEntry[], previousResult: SearchResult): SearchIndexEntry[] {
 		let uniqueIds = {}
 		return results.filter(entry => {
-			if (!uniqueIds[entry.id] && !previousResult.results.find(r => r[1] == entry.id)) {
+			if (!uniqueIds[entry.id] && !previousResult.results.find(r => r[1] === entry.id)) {
 				uniqueIds[entry.id] = true
 				return true
 			} else {
@@ -355,7 +355,7 @@ export class SearchFacade {
 		return Promise.each(results, entry => {
 			return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 				return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId))).then((elementData: ElementData) => {
-					if (!searchResult.restriction.listId || searchResult.restriction.listId == elementData[0]) {
+					if (!searchResult.restriction.listId || searchResult.restriction.listId === elementData[0]) {
 						searchResult.results.push([elementData[0], entry.id])
 					}
 				})
@@ -368,7 +368,7 @@ export class SearchFacade {
 		if (restriction.end) {
 			return restriction.end
 		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._mailIndexer.currentIndexTimestamp == NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._mailIndexer.currentIndexTimestamp
+			return this._mailIndexer.currentIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._mailIndexer.currentIndexTimestamp
 		} else {
 			return FULL_INDEXED_TIMESTAMP
 		}

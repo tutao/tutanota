@@ -59,7 +59,7 @@ export function show(): Promise<void> {
 					createEmailAliasPackageBox(20, freeEmailAliases, changeEmailAliasPackageAction),
 					createEmailAliasPackageBox(40, freeEmailAliases, changeEmailAliasPackageAction),
 					createEmailAliasPackageBox(100, freeEmailAliases, changeEmailAliasPackageAction),
-				].filter(aliasPackage => aliasPackage.amount == 0 || aliasPackage.amount > freeEmailAliases).map(scb => scb.buyOptionBox) // filter needless buy options
+				].filter(aliasPackage => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases).map(scb => scb.buyOptionBox) // filter needless buy options
 
 				const headerBar = new DialogHeaderBar()
 					.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
@@ -93,13 +93,13 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 
 	worker.getPrice(BookingItemFeatureType.Alias, amount, false).then(newPrice => {
 		const currentCount = getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Alias);
-		if (amount == currentCount) {
+		if (amount === currentCount) {
 			buyOptionBox.selected = true
 		}
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias)
 		buyOptionBox.setValue(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-		buyOptionBox.setHelpLabel(paymentInterval == "12" ? lang.get("perYear_label") : lang.get("perMonth_label"))
+		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("perYear_label") : lang.get("perMonth_label"))
 		m.redraw()
 	})
 	return {amount, buyOptionBox}

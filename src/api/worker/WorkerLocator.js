@@ -50,7 +50,7 @@ export function resetLocator(): Promise<void> {
 	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported))
 }
 
-if (typeof self != "undefined") {
+if (typeof self !== "undefined") {
 	self.locator = locator // export in worker scope
 }
 // hot reloading

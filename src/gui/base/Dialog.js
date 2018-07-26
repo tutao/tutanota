@@ -87,7 +87,7 @@ export class Dialog {
 
 							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
 							window.requestAnimationFrame(() => {
-								if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+								if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur()
 							})
 							animation.then(() => {
 								this._focusOnLoadFunction()

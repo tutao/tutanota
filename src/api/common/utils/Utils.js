@@ -118,10 +118,10 @@ export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): strin
  * Provides the memberships of the user with the given type. In case of area groups all groups are returned.
  */
 export function getUserGroupMemberships(user: User, groupType: GroupTypeEnum): GroupMembership[] {
-	if (groupType == GroupType.User) {
+	if (groupType === GroupType.User) {
 		return [user.userGroup]
 	} else {
-		return user.memberships.filter(m => m.groupType == groupType)
+		return user.memberships.filter(m => m.groupType === groupType)
 	}
 }
 

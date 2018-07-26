@@ -196,8 +196,8 @@ export class MailViewer {
 				// remove the current mailbox/owner from the recipients list.
 				const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
 					if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
-						return userOrMailGroupInfo.group != logins.getUserController().userGroupInfo.group
-							&& userOrMailGroupInfo.group != mail._ownerGroup
+						return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
+							&& userOrMailGroupInfo.group !== mail._ownerGroup
 					} else {
 						return userOrMailGroupInfo.group !== mail._ownerGroup
 					}
@@ -226,7 +226,7 @@ export class MailViewer {
 				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
 					() => Icons.Download).setType(ButtonType.Dropdown)
 				                         .setIsVisibleHandler(() => env.mode
-					                         != Mode.App
+					                         !== Mode.App
 					                         && !logins.isEnabled(FeatureType.DisableMailExport)))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
@@ -445,7 +445,7 @@ export class MailViewer {
 	_isEnvelopeSenderVisible(): boolean {
 		return (this.mail.differentEnvelopeSender != null
 			&& getDomainWithoutSubdomains(this.mail.differentEnvelopeSender)
-			!= getDomainWithoutSubdomains(this.mail.sender.address))
+			!== getDomainWithoutSubdomains(this.mail.sender.address))
 	}
 
 	_markUnread() {

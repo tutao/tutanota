@@ -205,7 +205,7 @@ export class MailIndexer {
 							return;
 						} else {
 							return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-								let startId = groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+								let startId = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
 								return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp)).then((finishedMailList) => {
 									this._worker.sendIndexState({
 										initializing: false,
@@ -219,7 +219,7 @@ export class MailIndexer {
 							}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
 								return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
 									return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-										groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing == false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
+										groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing === false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
 										t2.put(GroupDataOS, mailGroupId, groupData)
 										return t2.wait()
 									})
@@ -288,7 +288,7 @@ export class MailIndexer {
 				} else {
 					console.log("completed indexing of mail list id", mailListId)
 					this._core.printStatus()
-					return filteredMails.length == mails.length
+					return filteredMails.length === mails.length
 				}
 			})
 		})
@@ -336,7 +336,7 @@ export class MailIndexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		return Promise.each(events, (event, index) => {
-			if (event.operation == OperationType.CREATE) {
+			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// move mail
 					return this.processMovedMail(event, indexUpdate)
@@ -348,9 +348,9 @@ export class MailIndexer {
 						}
 					})
 				}
-			} else if (event.operation == OperationType.UPDATE) {
+			} else if (event.operation === OperationType.UPDATE) {
 				return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
-					if (mail.state == MailState.DRAFT) {
+					if (mail.state === MailState.DRAFT) {
 						return Promise.all([
 							this._core._processDeleted(event, indexUpdate),
 							this.processNewMail(event).then(result => {
@@ -361,7 +361,7 @@ export class MailIndexer {
 						])
 					}
 				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
-			} else if (event.operation == OperationType.DELETE) {
+			} else if (event.operation === OperationType.DELETE) {
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
 					return this._core._processDeleted(event, indexUpdate)
 				}
@@ -374,13 +374,13 @@ export class MailIndexer {
 export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
 	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 	groupIndexTimestamps.forEach((t, index) => {
-		if (index == 0) {
+		if (index === 0) {
 			currentIndexTimestamp = t
-		} else if (t == NOTHING_INDEXED_TIMESTAMP) {
+		} else if (t === NOTHING_INDEXED_TIMESTAMP) {
 			// skip new group memberships
-		} else if (t == FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != FULL_INDEXED_TIMESTAMP && currentIndexTimestamp != NOTHING_INDEXED_TIMESTAMP) {
+		} else if (t === FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== NOTHING_INDEXED_TIMESTAMP) {
 			// skip full index timestamp if this is not the first mail group
-		} else if (currentIndexTimestamp == FULL_INDEXED_TIMESTAMP && t != currentIndexTimestamp) { // find the oldest timestamp
+		} else if (currentIndexTimestamp === FULL_INDEXED_TIMESTAMP && t !== currentIndexTimestamp) { // find the oldest timestamp
 			// mail index ist not fully indexed if one of the mailboxes is not fully indexed
 			currentIndexTimestamp = t
 		} else if (t < currentIndexTimestamp) {

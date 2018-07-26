@@ -46,7 +46,7 @@ export class BubbleTextField<T> {
 			return this.loading != null ? m(".align-right", progressIcon()) : null
 		}
 		this.originalIsEmpty = this.textField.isEmpty.bind(this.textField)
-		this.textField.isEmpty = () => this.originalIsEmpty() && this.bubbles.length == 0
+		this.textField.isEmpty = () => this.originalIsEmpty() && this.bubbles.length === 0
 		this.textField.baseLabelPosition = size.text_field_label_top
 		this.textField.onblur.map(() => this.createBubbles())
 		this.textField._keyHandler = key => this.handleKey(key)
@@ -77,7 +77,7 @@ export class BubbleTextField<T> {
 		let query = value.trim()
 		if (this.loading != null) {
 
-		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) == 0 && this.suggestions.length === 0)) {
+		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.suggestions.length === 0)) {
 			this.loading = this.bubbleHandler.getSuggestions(query).then(newSuggestions => {
 				this.loading = null
 				// Only update search result if search query has not been changed during search and update in all other cases
@@ -101,7 +101,7 @@ export class BubbleTextField<T> {
 					this._updateSuggestions()
 				}
 			})
-		} else if (query.length == 0 && query != this.previousQuery) {
+		} else if (query.length === 0 && query !== this.previousQuery) {
 			this.animateSuggestionsHeight(this.suggestions.length, 0)
 			this.suggestions = []
 			this.selectedSuggestion = null
@@ -173,7 +173,7 @@ export class BubbleTextField<T> {
 				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
 			}
 			return false
-		} else if (this.textField._domInput.selectionStart == 0 && this.textField._domInput.selectionEnd === 0) {
+		} else if (this.textField._domInput.selectionStart === 0 && this.textField._domInput.selectionEnd === 0) {
 			this.selectLastBubble()
 			return false
 		}
@@ -201,7 +201,7 @@ export class BubbleTextField<T> {
 				selected.button.setSelected(() => false)
 				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
 			}
-		} else if (this.textField._domInput.selectionStart == 0 && this.textField._domInput.selectionEnd === 0) {
+		} else if (this.textField._domInput.selectionStart === 0 && this.textField._domInput.selectionEnd === 0) {
 			this.selectLastBubble()
 		}
 		return true

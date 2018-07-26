@@ -11,7 +11,7 @@ self.onmessage = function (msg) {
 		System.import("src/system-resolve.js")
 			.then(() => System.import('systemjs-hot-reloader'))
 			.then((connect) => {
-				if (connect instanceof Function && location.protocol != "https:") {
+				if (connect instanceof Function && location.protocol !== "https:") {
 					connect({
 						host: location.protocol + '//' + location.hostname + ':9082',
 						entries: [System.resolveSync('src/api/worker/WorkerImpl')]

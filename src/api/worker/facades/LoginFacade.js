@@ -220,7 +220,7 @@ export class LoginFacade {
 
 	_initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: Aes128Key, permanentLogin: boolean): Promise<void> {
 		let userIdFromFormerLogin = (this._user) ? this._user._id : null
-		if (userIdFromFormerLogin && userId != userIdFromFormerLogin) {
+		if (userIdFromFormerLogin && userId !== userIdFromFormerLogin) {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 		this._accessToken = accessToken
@@ -360,7 +360,7 @@ export class LoginFacade {
 	}
 
 	getGroupId(groupType: GroupTypeEnum): Id {
-		if (groupType == GroupType.User) {
+		if (groupType === GroupType.User) {
 			return this.getUserGroupId()
 		} else {
 			let membership = this.getLoggedInUser().memberships.find(m => m.groupType === groupType)
@@ -376,7 +376,7 @@ export class LoginFacade {
 	}
 
 	isExternalUserLoggedIn() {
-		return this._user && this._user.accountType == AccountType.EXTERNAL
+		return this._user && this._user.accountType === AccountType.EXTERNAL
 	}
 
 	isLoggedIn() {
@@ -415,11 +415,11 @@ export class LoginFacade {
 	}
 
 	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (this._user && data.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), UserTypeRef) && isSameId(this._user._id, data.instanceId)) {
+		if (this._user && data.operation === OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), UserTypeRef) && isSameId(this._user._id, data.instanceId)) {
 			return load(UserTypeRef, this._user._id).then(updatedUser => {
 				this._user = updatedUser
 			})
-		} else if (this._userGroupInfo && data.operation == OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), GroupInfoTypeRef) && isSameId(this._userGroupInfo._id, [neverNull(data.instanceListId), data.instanceId])) {
+		} else if (this._userGroupInfo && data.operation === OperationType.UPDATE && isSameTypeRef(new TypeRef(data.application, data.type), GroupInfoTypeRef) && isSameId(this._userGroupInfo._id, [neverNull(data.instanceListId), data.instanceId])) {
 			return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
 				this._userGroupInfo = updatedUserGroupInfo
 			})
@@ -452,7 +452,7 @@ export class LoginFacade {
 		d.undelete = false
 		d.customer = neverNull(neverNull(this._user).customer)
 		d.reason = reason
-		if (takeover != "") {
+		if (takeover !== "") {
 			d.takeoverMailAddress = takeover
 		} else {
 			d.takeoverMailAddress = null

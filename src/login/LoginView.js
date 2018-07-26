@@ -56,7 +56,7 @@ export class LoginView {
 			new Button('appInfoIosImageAlt_alt', () => this.openUrl(
 				"https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb"), () => BootIcons.Apple)
 				.setIsVisibleHandler(() => client.isDesktopDevice() ||
-					(client.device == DeviceType.IPAD || client.device == DeviceType.IPHONE))
+					(client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE))
 				.setType(ButtonType.ActionLarge),
 
 			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl(

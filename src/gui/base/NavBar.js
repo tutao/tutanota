@@ -61,7 +61,7 @@ export class NavBar {
 		this.more.button.setColors(NavButtonColors.Header)
 
 		if (!isAdmin()) {
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
+			asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`).then((searchBarModule) => {
 				this.searchBar = new searchBarModule.SearchBar()
 			})
 		}
@@ -87,7 +87,7 @@ export class NavBar {
 					oncreate: vnode => {
 						wrapper.width = vnode.dom.getBoundingClientRect().width
 					},
-					style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
+					style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
 				}, m(wrapper.button))])))
 		}
 	}
@@ -163,7 +163,7 @@ export class NavBar {
 	_setButtonBarWidth() {
 		if (this._domNavBar) {
 			let newMaxWidth = Math.floor(this._domNavBar.getBoundingClientRect().width)
-			if (this.maxWidth != newMaxWidth) {
+			if (this.maxWidth !== newMaxWidth) {
 				this.maxWidth = newMaxWidth
 			}
 		}
@@ -194,7 +194,7 @@ export class NavBar {
 		if (remainingSpace < this.getButtonsWidth(visible)) {
 			buttons.visible = []
 			visible.sort((a: ButtonWrapper, b: ButtonWrapper) => b.priority - a.priority)
-			if (visible.indexOf(this.more) == -1) {
+			if (visible.indexOf(this.more) === -1) {
 				visible.unshift(this.more)
 			}
 			do {

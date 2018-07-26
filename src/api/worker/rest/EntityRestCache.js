@@ -89,7 +89,7 @@ export class EntityRestCache {
 
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		if (method === HttpMethod.GET && !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))) {
-			if ((typeRef.app == "monitor") || (queryParameter && queryParameter["version"])) {
+			if ((typeRef.app === "monitor") || (queryParameter && queryParameter["version"])) {
 				// monitor app and version requests are never cached
 				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
 			} else if (!id && queryParameter && queryParameter["ids"]) {
@@ -101,9 +101,9 @@ export class EntityRestCache {
 			} else if (listId && !id && queryParameter && queryParameter["start"] !== null && queryParameter["start"] !== undefined && queryParameter["count"] !== null && queryParameter["count"] !== undefined && queryParameter["reverse"]) { // check for null and undefined because "" and 0 are als falsy
 				// load range
 				return resolveTypeReference(typeRef).then(typeModel => {
-					if (typeModel.values["_id"].type == ValueType.GeneratedId) {
+					if (typeModel.values["_id"].type === ValueType.GeneratedId) {
 						let params = neverNull(queryParameter)
-						return this._loadRange(typeRef, neverNull(listId), params["start"], Number(params["count"]), params["reverse"] == "true")
+						return this._loadRange(typeRef, neverNull(listId), params["start"], Number(params["count"]), params["reverse"] === "true")
 					} else {
 						// we currently only store ranges for generated ids
 						return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
@@ -131,7 +131,7 @@ export class EntityRestCache {
 		let path = typeRefToPath(typeRef)
 		let listCache = (this._listEntities[path] && this._listEntities[path][listId]) ? this._listEntities[path][listId] : null
 		// check which range must be loaded from server
-		if (!listCache || (start == GENERATED_MAX_ID && reverse && listCache.upperRangeId != GENERATED_MAX_ID) || (start == GENERATED_MIN_ID && !reverse && listCache.lowerRangeId != GENERATED_MIN_ID)) {
+		if (!listCache || (start === GENERATED_MAX_ID && reverse && listCache.upperRangeId !== GENERATED_MAX_ID) || (start === GENERATED_MIN_ID && !reverse && listCache.lowerRangeId !== GENERATED_MIN_ID)) {
 			// this is the first request for this list or
 			// our upper range id is not MAX_ID and we now read the range starting with MAX_ID. we just replace the complete existing range with the new one because we do not want to handle multiple ranges or
 			// our lower range id is not MIN_ID and we now read the range starting with MIN_ID. we just replace the complete existing range with the new one because we do not want to handle multiple ranges
@@ -189,7 +189,7 @@ export class EntityRestCache {
 				this._handleElementRangeResult(neverNull(listCache), loadStartId, count, reverse, ((entities:any):T[]), count)
 				// provide from cache with the actual start id
 				let resultElements = this._provideFromCache(neverNull(listCache), start, count, reverse)
-				if (((entities:any):T[]).length < count || resultElements.length == count) {
+				if (((entities:any):T[]).length < count || resultElements.length === count) {
 					// either all available elements have been loaded from target or the requested number of elements could be provided from cache
 					return resultElements
 				} else {
@@ -253,12 +253,12 @@ export class EntityRestCache {
 		let startElementId = start
 
 		let indexOfStart = allRangeList.indexOf(start)
-		if ((!reverse && listCache.upperRangeId == GENERATED_MAX_ID) || (reverse && listCache.lowerRangeId == GENERATED_MIN_ID)) {
+		if ((!reverse && listCache.upperRangeId === GENERATED_MAX_ID) || (reverse && listCache.lowerRangeId === GENERATED_MIN_ID)) {
 			// we have already loaded the complete range in the desired direction, so we do not have to load from server
 			elementsToRead = 0
-		} else if (allRangeList.length == 0) { // Element range is empty, so read all elements
+		} else if (allRangeList.length === 0) { // Element range is empty, so read all elements
 			elementsToRead = count
-		} else if (indexOfStart != -1) { // Start element is located in allRange read only elements that are not in allRange.
+		} else if (indexOfStart !== -1) { // Start element is located in allRange read only elements that are not in allRange.
 			if (reverse) {
 				elementsToRead = count - indexOfStart
 				startElementId = allRangeList[0] // use the lowest id in allRange as start element
@@ -266,13 +266,13 @@ export class EntityRestCache {
 				elementsToRead = count - (allRangeList.length - 1 - indexOfStart)
 				startElementId = allRangeList[allRangeList.length - 1] // use the  highest id in allRange as start element
 			}
-		} else if (listCache["lowerRangeId"] == start || (firstBiggerThanSecond(start, listCache["lowerRangeId"]) && (firstBiggerThanSecond(allRangeList[0], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
+		} else if (listCache["lowerRangeId"] === start || (firstBiggerThanSecond(start, listCache["lowerRangeId"]) && (firstBiggerThanSecond(allRangeList[0], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
 			if (!reverse) { // if not reverse read only elements that are not in allRange
 				startElementId = allRangeList[allRangeList.length - 1] // use the  highest id in allRange as start element
 				elementsToRead = count - allRangeList.length
 			}
 			// if reverse read all elements
-		} else if (listCache["upperRangeId"] == start || (firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && (firstBiggerThanSecond(listCache["upperRangeId"], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
+		} else if (listCache["upperRangeId"] === start || (firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && (firstBiggerThanSecond(listCache["upperRangeId"], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
 			if (reverse) { // if not reverse read only elements that are not in allRange
 				startElementId = allRangeList[0] // use the  highest id in allRange as start element
 				elementsToRead = count - allRangeList.length
@@ -324,17 +324,17 @@ export class EntityRestCache {
 	 * loading a created instance from the server we receive an update of that instance and ignore it because the instance is not in the cache yet.
 	 */
 	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (data.application != "monitor") {
+		if (data.application !== "monitor") {
 			let typeRef = new TypeRef(data.application, data.type)
-			if (data.operation == OperationType.UPDATE) {
+			if (data.operation === OperationType.UPDATE) {
 				if (this._isInCache(typeRef, data.instanceListId, data.instanceId)) {
 					return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, data.instanceListId, data.instanceId).then(entity => {
 						this._putIntoCache(entity)
 					})
 				}
-			} else if (data.operation == OperationType.DELETE) {
+			} else if (data.operation === OperationType.DELETE) {
 				this._tryRemoveFromCache(typeRef, data.instanceListId, data.instanceId)
-			} else if (data.operation == OperationType.CREATE) {
+			} else if (data.operation === OperationType.CREATE) {
 				if (data.instanceListId && this._isInCacheRange(typeRef, data.instanceListId, data.instanceId)) {
 					return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, data.instanceListId, data.instanceId).then(entity => {
 						this._putIntoCache(entity)

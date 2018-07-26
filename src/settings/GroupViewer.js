@@ -63,7 +63,7 @@ export class GroupViewer {
 		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
 		let editNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type == GroupType.Team && newName.trim() == "") {
+				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.Team && newName.trim() === "") {
 					return "enterName_msg"
 				} else {
 					return null
@@ -91,11 +91,11 @@ export class GroupViewer {
 				}
 			}))
 			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.groupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
-				if (this.groupInfo.groupType == GroupType.LocalAdmin) {
+				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
 				} else {
 					showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-						let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)).group
+						let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
 						return worker.updateAdminship(this.groupInfo.group, newAdminGroupId)
 					}))
 				}
@@ -112,7 +112,7 @@ export class GroupViewer {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
 				} else {
-					let bookingItemType = (this.groupInfo.groupType == GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
+					let bookingItemType = (this.groupInfo.groupType === GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
 					return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate).then(confirmed => {
 						if (confirmed) {
 							return this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate).catch(PreconditionFailedError, e => {
@@ -128,7 +128,7 @@ export class GroupViewer {
 		this._membersTable = new Table(["name_label", "mailAddress_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, addUserButton)
 		this._updateMembers()
 
-		if (this.groupInfo.groupType == GroupType.LocalAdmin) {
+		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 			this._administratedGroups = new LazyLoaded(() => {
 				return this._group.getAsync().then(group => {
 					// load only up to 200 members to avoid too long loading, like for account groups
@@ -163,7 +163,7 @@ export class GroupViewer {
 								m(mailAddress),
 							])
 						]) : null,
-					this.groupInfo.groupType != GroupType.LocalAdmin ? null : [
+					this.groupInfo.groupType !== GroupType.LocalAdmin ? null : [
 							m(".h4.mt-l.mb-s", lang.get('administratedGroups_label')),
 							m(this._administratedGroupsTable)
 						]
@@ -181,7 +181,7 @@ export class GroupViewer {
 				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
 				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 				let availableUserGroupInfos = userGroupInfos.filter(g => {
-					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) == -1) {
+					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
 						return false
 					} else {
 						return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
@@ -229,7 +229,7 @@ export class GroupViewer {
 			if (logins.getUserController().isGlobalAdmin()) {
 				removeButton = new Button("remove_action", () => {
 					showProgressDialog("pleaseWait_msg", load(GroupTypeRef, groupInfo.group).then(userGroup => {
-						let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType == GroupType.Admin)).group
+						let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Admin)).group
 						return worker.updateAdminship(groupInfo.group, adminGroupId)
 					}))
 				}, () => Icons.Cancel)
@@ -241,7 +241,7 @@ export class GroupViewer {
 	}
 
 	_isMailGroup() {
-		return this.groupInfo.groupType == GroupType.Mail
+		return this.groupInfo.groupType === GroupType.Mail
 	}
 
 	_updateUsedStorage(): void {
@@ -258,7 +258,7 @@ export class GroupViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE) {
 			load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
 				if (isSameId(this.groupInfo._id, [neverNull(listId), elementId])) {
 					this.groupInfo = updatedUserGroupInfo
@@ -274,10 +274,10 @@ export class GroupViewer {
 					this._updateMembers()
 				}
 			})
-		} else if (isSameTypeRef(typeRef, GroupMemberTypeRef) && this._group.isLoaded() && this._group.getLoaded().members == neverNull(listId)) {
+		} else if (isSameTypeRef(typeRef, GroupMemberTypeRef) && this._group.isLoaded() && this._group.getLoaded().members === neverNull(listId)) {
 			// the members have changed
 			this._updateMembers()
-		} else if (isSameTypeRef(typeRef, AdministratedGroupTypeRef) && this._group.isLoaded() && this._group.getLoaded().administratedGroups && neverNull(this._group.getLoaded().administratedGroups).items == neverNull(listId)) {
+		} else if (isSameTypeRef(typeRef, AdministratedGroupTypeRef) && this._group.isLoaded() && this._group.getLoaded().administratedGroups && neverNull(this._group.getLoaded().administratedGroups).items === neverNull(listId)) {
 			this._updateAdministratedGroups()
 		}
 	}
@@ -285,11 +285,11 @@ export class GroupViewer {
 
 
 export function getGroupTypeName(groupType: NumberString): string {
-	if (groupType == GroupType.Mail) {
+	if (groupType === GroupType.Mail) {
 		return lang.get("sharedMailbox_label")
-	} else if (groupType == GroupType.LocalAdmin) {
+	} else if (groupType === GroupType.LocalAdmin) {
 		return lang.get("localAdmin_label")
-	} else if (groupType == GroupType.User) {
+	} else if (groupType === GroupType.User) {
 		return lang.get("userColumn_label")
 	} else {
 		return groupType // just for testing

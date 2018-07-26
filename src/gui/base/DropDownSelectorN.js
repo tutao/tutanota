@@ -62,7 +62,7 @@ class _DropDownSelector<T> {
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: T): ?string {
 		if (value != null) {
-			let selectedItem = a.items.find(item => item.value == a.selectedValue())
+			let selectedItem = a.items.find(item => item.value === a.selectedValue())
 			if (selectedItem) {
 				return selectedItem.name
 			} else {

@@ -46,7 +46,7 @@ class ClientDetector {
 		this._setBrowserAndVersion()
 		this._setDeviceInfo()
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
-		this.isMacOS = platform.indexOf("Mac") != -1
+		this.isMacOS = platform.indexOf("Mac") !== -1
 
 	}
 
@@ -78,7 +78,7 @@ class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/flexbox.js
 	 */
 	flexbox(): boolean {
-		return typeof document.documentElement.style.flexBasis == 'string'
+		return typeof document.documentElement.style.flexBasis === 'string'
 	}
 
 	/**
@@ -97,14 +97,14 @@ class ClientDetector {
 		if (crypto && 'getRandomValues' in crypto && 'Uint32Array' in window) {
 			var array = new Uint8Array(1)
 			var values = crypto.getRandomValues(array)
-			return values && typeof values[0] == 'number'
+			return values && typeof values[0] === 'number'
 		} else {
 			return false
 		}
 	}
 
 	dateFormat(): boolean {
-		return typeof Intl != "undefined"
+		return typeof Intl !== "undefined"
 	}
 
 	/**
@@ -201,33 +201,33 @@ class ClientDetector {
 		var ubuntuIndex = this.userAgent.indexOf("Ubuntu")
 
 		var versionIndex = -1
-		if (edgeIndex != -1) {
+		if (edgeIndex !== -1) {
 			this.browser = BrowserType.EDGE
 			versionIndex = edgeIndex + 5
-		} else if (operaIndex1 != -1) {
+		} else if (operaIndex1 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = this.userAgent.indexOf("Version/")
-			if (versionIndex != -1) {
+			if (versionIndex !== -1) {
 				versionIndex += 8
 			} else {
 				versionIndex = operaIndex1 + 6
 			}
-		} else if (operaIndex2 != -1) {
+		} else if (operaIndex2 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
-		} else if ((firefoxIndex != -1 || iceweaselIndex != -1) && (operaIndex1 == -1) && (operaIndex2 == -1)) {
+		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
-			if (firefoxIndex != -1) {
+			if (firefoxIndex !== -1) {
 				versionIndex = firefoxIndex + 8
 			} else {
 				versionIndex = iceweaselIndex + 10
 			}
-		} else if (chromeIndex != -1) {
+		} else if (chromeIndex !== -1) {
 			this.browser = BrowserType.CHROME
 			versionIndex = chromeIndex + 7
-		} else if (androidIndex != -1) {
-			if (ubuntuIndex != -1) { // ubuntu phone browser
+		} else if (androidIndex !== -1) {
+			if (ubuntuIndex !== -1) { // ubuntu phone browser
 				this.browser = BrowserType.UBUNTU
 				versionIndex = ubuntuIndex + 7
 			} else { // default android browser
@@ -235,21 +235,21 @@ class ClientDetector {
 				this.browser = BrowserType.ANDROID
 				versionIndex = androidIndex + 8
 			}
-		} else if (safariIndex != -1 && chromeIndex == -1 && blackBerryIndex == -1) {
+		} else if (safariIndex !== -1 && chromeIndex === -1 && blackBerryIndex === -1) {
 			// Chrome and black berry pretends to be Safari, so it is skipped
 			this.browser = BrowserType.SAFARI
 			// Safari prints its version after "Version/"
 			versionIndex = this.userAgent.indexOf("Version/")
-			if (versionIndex != -1) {
+			if (versionIndex !== -1) {
 				versionIndex += 8
 			}
 		} else if (this.userAgent.match(/iPad.*AppleWebKit/) || this.userAgent.match(/iPhone.*AppleWebKit/)) {
 			// homescreen detection is only available when in app mode otherwise it is deactivated because of problems in iOS
-			if (env.mode == Mode.App) {
+			if (env.mode === Mode.App) {
 				// ipad and iphone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
 				// after "OS" the iOS version is sent, so use that one
 				versionIndex = this.userAgent.indexOf(" OS ")
-				if (versionIndex != -1) {
+				if (versionIndex !== -1) {
 					this.browser = BrowserType.SAFARI
 					try {
 						// Support two digit numbers for iOS iPhone6 Simulator
@@ -260,22 +260,22 @@ class ClientDetector {
 					return
 				}
 			}
-		} else if (ieIndex != -1) {
+		} else if (ieIndex !== -1) {
 			this.browser = BrowserType.IE
 			versionIndex = ieIndex + 5
-		} else if (ie11Index != -1) {
+		} else if (ie11Index !== -1) {
 			this.browser = BrowserType.IE
 			this.browserVersion = 11
-		} else if (blackBerryIndex != -1) {
+		} else if (blackBerryIndex !== -1) {
 			this.browser = BrowserType.BB
 			this.browserVersion = 10
-		} else if (ubuntuMobileIndex != -1 || ubuntuTabletIndex != -1) {
+		} else if (ubuntuMobileIndex !== -1 || ubuntuTabletIndex !== -1) {
 			this.browser = BrowserType.UBUNTU
 			this.browserVersion = 1 // dummy, no browser version is provided
 		}
-		if (versionIndex != -1) {
+		if (versionIndex !== -1) {
 			var mainVersionEndIndex = this.userAgent.indexOf(".", versionIndex)
-			if (mainVersionEndIndex != -1) {
+			if (mainVersionEndIndex !== -1) {
 				try {
 					this.browserVersion = Number(this.userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
@@ -283,7 +283,7 @@ class ClientDetector {
 			}
 		}
 		// if the version is not valid, the browser type is not valid, so set it to other
-		if (this.browserVersion == 0) {
+		if (this.browserVersion === 0) {
 			this.browser = BrowserType.OTHER
 		}
 	}
@@ -328,7 +328,7 @@ class ClientDetector {
 
 
 	notIE() {
-		return this.browser != BrowserType.IE
+		return this.browser !== BrowserType.IE
 	}
 }
 

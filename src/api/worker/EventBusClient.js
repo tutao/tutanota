@@ -168,7 +168,7 @@ export class EventBusClient {
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
-		if (event.code == 4401 || event.code == 4470 || event.code == 4472) {
+		if (event.code === 4401 || event.code === 4470 || event.code === 4472) {
 			this._terminate()
 			this._worker.sendError(handleRestError(event.code - 4000, "web socket error"))
 		}
@@ -191,11 +191,11 @@ export class EventBusClient {
 	 */
 	tryReconnect(closeIfOpen: boolean) {
 		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + ((this._socket) ? this._socket.readyState : "null"));
-		if (closeIfOpen && this._socket && this._socket.readyState == WebSocket.OPEN) {
+		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
 			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
-		} else if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this._terminated && this._login.isLoggedIn()) {
+		} else if ((this._socket == null || this._socket.readyState === WebSocket.CLOSED) && !this._terminated && this._login.isLoggedIn()) {
 			this.connect(true);
 		}
 	}
@@ -212,7 +212,7 @@ export class EventBusClient {
 		this._queueWebsocketEvents = true
 		return Promise.each(this._login.getAllGroupIds(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				this._lastEntityEventIds[groupId] = [(batches.length == 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
+				this._lastEntityEventIds[groupId] = [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
 			})
 		}).then(() => {
 			return this._processQueuedEvents()
@@ -251,7 +251,7 @@ export class EventBusClient {
 	}
 
 	_processQueuedEvents(): Promise<void> {
-		if (this._websocketWrapperQueue.length == 0) {
+		if (this._websocketWrapperQueue.length === 0) {
 			return Promise.resolve()
 		} else {
 			let wrapper = this._websocketWrapperQueue.shift()
@@ -299,7 +299,7 @@ export class EventBusClient {
 			this._lastEntityEventIds[groupId].push(batchId)
 			// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
 			this._lastEntityEventIds[groupId].sort((e1, e2) => {
-				if (e1 == e2) {
+				if (e1 === e2) {
 					return 0
 				} else {
 					return firstBiggerThanSecond(e1, e2) ? 1 : -1
@@ -318,7 +318,7 @@ export class EventBusClient {
 	_checkIfEntityEventsAreExpired(): Promise<boolean> {
 		return Promise.each(this._login.getAllGroupIds(), groupId => {
 			let lastEventBatchId = this._getLastEventBatchIdOrMinIdForGroup(groupId)
-			if (lastEventBatchId != GENERATED_MIN_ID) {
+			if (lastEventBatchId !== GENERATED_MIN_ID) {
 				return load(EntityEventBatchTypeRef, [groupId, lastEventBatchId])
 			}
 		}).then(() => {

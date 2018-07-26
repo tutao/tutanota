@@ -27,7 +27,7 @@ export function show(): Promise<?InputField> {
 
 	let addButton = new Button("addEnumValue_action", () => {
 		Dialog.showTextInputDialog("addEnumValue_action", "enumValue_label", null, "", newName => {
-			return (newName.trim() == "") ? "pleaseEnterEnumValues_msg" : null
+			return (newName.trim() === "") ? "pleaseEnterEnumValues_msg" : null
 		}).then(name => {
 			enumNames.push(name)
 			_updateEnumTable(enumTable, enumNames)
@@ -42,7 +42,7 @@ export function show(): Promise<?InputField> {
 			return m("", [
 				m(nameField),
 				m(typeField),
-				(typeField.selectedValue() == InputFieldType.ENUM) ? m(enumTable) : null
+				(typeField.selectedValue() === InputFieldType.ENUM) ? m(enumTable) : null
 			])
 		}
 	}
@@ -51,7 +51,7 @@ export function show(): Promise<?InputField> {
 			let f = createInputField()
 			f.name = nameField.value()
 			f.type = typeField.selectedValue()
-			if (typeField.selectedValue() == InputFieldType.ENUM) {
+			if (typeField.selectedValue() === InputFieldType.ENUM) {
 				f.enumValues = enumNames.map(name => {
 					let n = createName()
 					n.name = name
@@ -76,9 +76,9 @@ function _updateEnumTable(enumTable: Table, enumNames: string[]) {
 }
 
 function _validate(name: string, type: NumberString, enumNames: string[]) {
-	if (name.trim() == "") {
+	if (name.trim() === "") {
 		return "enterName_msg"
-	} else if (type == InputFieldType.ENUM && enumNames.length < 2) {
+	} else if (type === InputFieldType.ENUM && enumNames.length < 2) {
 		return "pleaseEnterEnumValues_msg"
 	}
 }

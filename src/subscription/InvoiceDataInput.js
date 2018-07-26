@@ -56,7 +56,7 @@ export class InvoiceDataInput {
 		this.oncreate = () => {
 			serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef).then((location: LocationServiceGetReturn) => {
 				if (!this.selectedCountry()) {
-					let country = Countries.find(c => c.a == location.country)
+					let country = Countries.find(c => c.a === location.country)
 					if (country) {
 						this.selectedCountry(country)
 						m.redraw()
@@ -69,11 +69,11 @@ export class InvoiceDataInput {
 	validateInvoiceData(): ? string {
 		let address = this._getAddress()
 		if (this._subscriptionOptions.businessUse) {
-			if (address.trim() == "" || address.split('\n').length > 5) {
+			if (address.trim() === "" || address.split('\n').length > 5) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"
-			} else if (this._isVatIdFieldVisible() && this._vatNumberField.value().trim() == "") {
+			} else if (this._isVatIdFieldVisible() && this._vatNumberField.value().trim() === "") {
 				return "invalidVatIdNumber_msg"
 			}
 		} else {
@@ -88,7 +88,7 @@ export class InvoiceDataInput {
 	}
 
 	_isVatIdFieldVisible(): boolean {
-		return this._subscriptionOptions.businessUse && this.selectedCountry() != null && this.selectedCountry().t == CountryType.EU
+		return this._subscriptionOptions.businessUse && this.selectedCountry() != null && this.selectedCountry().t === CountryType.EU
 	}
 
 	getInvoiceData(): InvoiceData {
@@ -96,7 +96,7 @@ export class InvoiceDataInput {
 		return {
 			invoiceAddress: address,
 			country: this.selectedCountry(),
-			vatNumber: (this.selectedCountry() && this.selectedCountry().t == CountryType.EU) ? this._vatNumberField.value() : ""
+			vatNumber: (this.selectedCountry() && this.selectedCountry().t === CountryType.EU) ? this._vatNumberField.value() : ""
 		}
 	}
 

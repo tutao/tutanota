@@ -157,7 +157,7 @@ export class ContactFormViewer {
 
 	_getContactFormTitle(contactForm: ContactForm) {
 		let pageTitle = ""
-		let language = contactForm.languages.find(l => l.code == lang.code)
+		let language = contactForm.languages.find(l => l.code === lang.code)
 		if (language) {
 			pageTitle = language.pageTitle
 		} else if (contactForm.languages.length > 0) {
@@ -172,11 +172,11 @@ export class ContactFormViewer {
 }
 
 export function statisticsFieldTypeToString(field: Object): string {
-	if (field.type == InputFieldType.TEXT) {
+	if (field.type === InputFieldType.TEXT) {
 		return lang.get("text_label")
-	} else if (field.type == InputFieldType.NUMBER) {
+	} else if (field.type === InputFieldType.NUMBER) {
 		return lang.get("number_label")
-	} else if (field.type == InputFieldType.ENUM) {
+	} else if (field.type === InputFieldType.ENUM) {
 		return "[" + field.enumValues.map(s => s.name).join(", ") + "]"
 	} else {
 		return ""
@@ -185,7 +185,7 @@ export function statisticsFieldTypeToString(field: Object): string {
 
 export function getContactFormUrl(domain: string, path: string): string {
 	let pathPrefix = ""
-	if (location.pathname.indexOf("client/build") != -1) {
+	if (location.pathname.indexOf("client/build") !== -1) {
 		// local
 		pathPrefix = ":9000/client/build/index"
 	}

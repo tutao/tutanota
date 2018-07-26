@@ -24,11 +24,11 @@ export function handleBackPress(): boolean {
 			m.route.set(window.tutao.header.mailNavButton._getUrl())
 			return true
 		} else if (m.route.get().startsWith("/mail/")) {
-			const parts = m.route.get().split("/").filter(part => part != "")
+			const parts = m.route.get().split("/").filter(part => part !== "")
 			if (parts.length > 1) {
 				const selectedMailListId = parts[1]
 				const inboxMailListId = getInboxFolder(mailModel.mailboxDetails()[0].folders).mails
-				if (inboxMailListId != selectedMailListId) {
+				if (inboxMailListId !== selectedMailListId) {
 					m.route.set("/mail/" + inboxMailListId)
 					return true
 				}

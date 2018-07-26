@@ -18,7 +18,7 @@ import {logins} from "../api/main/LoginController"
 assertMainOrNode()
 
 export function show(): Promise<void> {
-	if (getAvailableGroupTypes().length == 0) {
+	if (getAvailableGroupTypes().length === 0) {
 		return Dialog.error("selectionNotAvailable_msg")
 	} else {
 		return AddUserDialog.getAvailableDomains().then(availableDomains => {
@@ -35,28 +35,28 @@ export function show(): Promise<void> {
 					return [
 						m(typeField),
 						m(nameField),
-						(typeField.selectedValue() == GroupType.Mail) ? m(mailAddressForm) : m(""),
+						(typeField.selectedValue() === GroupType.Mail) ? m(mailAddressForm) : m(""),
 					]
 				}
 			}
 
 			return Dialog.smallDialog(lang.get("addGroup_label"), form, () => {
-				if (typeField.selectedValue() == GroupType.Mail) {
+				if (typeField.selectedValue() === GroupType.Mail) {
 					return mailAddressForm.getErrorMessageId()
-				} else if (typeField.selectedValue() == GroupType.Team && nameField.value().trim() == "") {
+				} else if (typeField.selectedValue() === GroupType.Team && nameField.value().trim() === "") {
 					return "enterName_msg"
 				} else {
 					return null
 				}
 			}).then(okClicked => {
 				if (okClicked) {
-					if (typeField.selectedValue() == GroupType.Mail) {
+					if (typeField.selectedValue() === GroupType.Mail) {
 						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
 							if (accepted) {
 								return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
 							}
 						}))
-					} else if (typeField.selectedValue() == GroupType.LocalAdmin) {
+					} else if (typeField.selectedValue() === GroupType.LocalAdmin) {
 						return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false).then(accepted => {
 							if (accepted) {
 								return worker.createLocalAdminGroup(nameField.value())

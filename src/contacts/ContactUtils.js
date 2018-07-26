@@ -77,7 +77,7 @@ export const ContactSocialTypeToLabel: {[key: ContactSocialTypeEnum]:string} = {
 }
 
 export function getContactSocialTypeLabel(type: ContactSocialTypeEnum, custom: string) {
-	if (type == ContactSocialType.CUSTOM) {
+	if (type === ContactSocialType.CUSTOM) {
 		return custom
 	} else {
 		return lang.get(ContactSocialTypeToLabel[type])
@@ -105,7 +105,7 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 		return 1
 	} else {
 		let result = (c1First).localeCompare(c2First)
-		if (result == 0) {
+		if (result === 0) {
 			if (c1Last && !c2Last) {
 				return -1
 			} else if (c2Last && !c1Last) {
@@ -114,17 +114,17 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 				result = (c1Last).localeCompare(c2Last)
 			}
 		}
-		if (result == 0) {// names are equal or no names in contact
-			if (c1MailLength > 0 && c2MailLength == 0) {
+		if (result === 0) {// names are equal or no names in contact
+			if (c1MailLength > 0 && c2MailLength === 0) {
 				return -1
-			} else if (c2MailLength > 0 && c1MailLength == 0) {
+			} else if (c2MailLength > 0 && c1MailLength === 0) {
 				return 1
-			} else if (c1MailLength == 0 && c2MailLength == 0) {
+			} else if (c1MailLength === 0 && c2MailLength === 0) {
 				// see Multiselect with shift and up arrow not working properly #152 at github
 				return sortCompareByReverseId(contact1, contact2)
 			} else {
 				result = contact1.mailAddresses[0].address.trim().localeCompare(contact2.mailAddresses[0].address.trim())
-				if (result == 0) {
+				if (result === 0) {
 					// see Multiselect with shift and up arrow not working properly #152 at github
 					return sortCompareByReverseId(contact1, contact2)
 				} else {
@@ -165,7 +165,7 @@ export function searchForContactByMailAddress(mailAddress: string): Promise<?Con
 			return asyncFindAndMap(result.results, contactId => {
 				return load(ContactTypeRef, contactId).then(contact => {
 					// look for the exact match in the contacts
-					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress)) ? contact : null
+					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase() === cleanMailAddress)) ? contact : null
 				}).catch(NotFoundError, e => {
 					return null
 				}).catch(NotAuthorizedError, e => {
@@ -175,7 +175,7 @@ export function searchForContactByMailAddress(mailAddress: string): Promise<?Con
 		})
 	} else {
 		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId)).then(contacts => {
-			return contacts.find(contact => contact.mailAddresses.find(a => a.address.trim().toLowerCase() == cleanMailAddress) != null)
+			return contacts.find(contact => contact.mailAddresses.find(a => a.address.trim().toLowerCase() === cleanMailAddress) != null)
 		})
 	}
 }

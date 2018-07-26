@@ -91,7 +91,7 @@ export class ContactEditor {
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
 			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")
 			.onUpdate(value => {
-				if (value.trim().length == 0) {
+				if (value.trim().length === 0) {
 					this.contact.birthday = null
 					this.invalidBirthday = false
 				} else {
@@ -132,8 +132,8 @@ export class ContactEditor {
 		this.createNewSocialEditor()
 
 		let presharedPassword = this.contact.presharedPassword ? new TextField('password_label')
-				.setValue((this.contact.presharedPassword:any))
-				.onUpdate(value => this.contact.presharedPassword = value) : null
+			.setValue((this.contact.presharedPassword: any))
+			.onUpdate(value => this.contact.presharedPassword = value) : null
 
 		let headerBar = new DialogHeaderBar()
 			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))

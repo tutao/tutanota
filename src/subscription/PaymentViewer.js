@@ -177,9 +177,9 @@ export class PaymentViewer {
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
 			load(AccountingInfoTypeRef, elementId).then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
-		} else if (isSameTypeRef(typeRef, InvoiceTypeRef) && operation != OperationType.DELETE) {
+		} else if (isSameTypeRef(typeRef, InvoiceTypeRef) && operation !== OperationType.DELETE) {
 			load(InvoiceTypeRef, [neverNull(listId), elementId]).then(invoice => {
-				if (operation == OperationType.UPDATE) {
+				if (operation === OperationType.UPDATE) {
 					findAndRemove(this._invoices, (element) => isSameId(element._id, invoice._id))
 				}
 				const newInvoices = this._invoices.concat([invoice])
@@ -192,8 +192,8 @@ export class PaymentViewer {
 
 
 	_isPayButtonVisible(invoice: Invoice): boolean {
-		return (invoice.paymentMethod == PaymentMethodType.CreditCard || invoice.paymentMethod == PaymentMethodType.Paypal)
-			&& (invoice.status == InvoiceStatus.FIRSTREMINDER || invoice.status == InvoiceStatus.SECONDREMINDER)
+		return (invoice.paymentMethod === PaymentMethodType.CreditCard || invoice.paymentMethod === PaymentMethodType.Paypal)
+			&& (invoice.status === InvoiceStatus.FIRSTREMINDER || invoice.status === InvoiceStatus.SECONDREMINDER)
 	}
 
 	_showPayInvoiceDialog(invoice: Invoice): Promise<void> {

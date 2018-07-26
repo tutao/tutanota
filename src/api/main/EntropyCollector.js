@@ -75,7 +75,7 @@ export class EntropyCollector {
 			let values = window.performance.timing
 			let added = []
 			for (let v in values) {
-				if (typeof values[v] == "number" && values[v] != 0) {
+				if (typeof values[v] === "number" && values[v] !== 0) {
 					if (added.indexOf(values[v]) === -1) {
 						this._addEntropy(values[v], 1, EntropySrc.static)
 						added.push(values[v])
@@ -108,7 +108,7 @@ export class EntropyCollector {
 	 */
 	_addNativeRandomValues(nbrOf32BitValues: number) {
 		let valueList = new Uint32Array(nbrOf32BitValues)
-		let c = typeof crypto != 'undefined' ? crypto : msCrypto
+		let c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(valueList)
 		for (let i = 0; i < valueList.length; i++) {
 			this._addEntropy(valueList[i], 32, EntropySrc.random)

@@ -54,11 +54,11 @@ export class WizardDialog<T> {
 			}
 		}
 		this._backButton = new Button(() => {
-			return this._pages.indexOf(this._currentPage) == 0 ? lang.get("cancel_action") : lang.get("back_action")
+			return this._pages.indexOf(this._currentPage) === 0 ? lang.get("cancel_action") : lang.get("back_action")
 		}, backAction).setType(ButtonType.Secondary)
 
 		this._nextButton = new Button("next_action", () => this._nextAction()).setType(ButtonType.Secondary)
-			.setIsVisibleHandler(() => this._currentPage.isNextAvailable() && this._pages.indexOf(this._currentPage) != (this._pages.length - 1))
+			.setIsVisibleHandler(() => this._currentPage.isNextAvailable() && this._pages.indexOf(this._currentPage) !== (this._pages.length - 1))
 
 		let pagingButtons: Component[] = wizardPages.map((page, index) => new WizardPagingButton(index, () => this._pages.indexOf(this._currentPage), (index) => this._backAction(index)))
 
@@ -103,7 +103,7 @@ export class WizardDialog<T> {
 	_handlePageConfirm(wizardData: T) {
 		const currentIndex = this._pages.indexOf(this._currentPage)
 		const lastIndex = this._pages.length - 1
-		let finalAction = currentIndex == lastIndex
+		let finalAction = currentIndex === lastIndex
 		if (finalAction) {
 			this._close()
 		} else {
@@ -142,8 +142,8 @@ class WizardPagingButton {
 					}
 				}, m(".button-icon.flex-center.items-center", {
 					style: {
-						border: selectedPageIndex == pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_button}`,
-						color: selectedPageIndex == pageIndex ? theme.content_accent : "inherit",
+						border: selectedPageIndex === pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_button}`,
+						color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
 						'background-color': (pageIndex < selectedPageIndex) ? theme.content_button : theme.content_bg,
 
 					}

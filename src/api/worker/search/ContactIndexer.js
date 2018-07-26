@@ -94,7 +94,7 @@ export class ContactIndexer {
 				let groupId = neverNull(contactList._ownerGroup)
 				let indexUpdate = _createNewIndexUpdate(groupId)
 				return t.get(GroupDataOS, groupId).then((groupData: GroupData) => {
-					if (groupData.indexTimestamp == NOTHING_INDEXED_TIMESTAMP) {
+					if (groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 						return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
 							contacts.forEach((contact) => {
 								let keyToIndexEntries = this.createContactIndexEntries(contact)
@@ -114,13 +114,13 @@ export class ContactIndexer {
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		return Promise.each(events, (event, index) => {
-			if (event.operation == OperationType.CREATE) {
+			if (event.operation === OperationType.CREATE) {
 				return this.processNewContact(event).then(result => {
 					if (result) {
 						this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
 					}
 				})
-			} else if (event.operation == OperationType.UPDATE) {
+			} else if (event.operation === OperationType.UPDATE) {
 				return Promise.all([
 					this._core._processDeleted(event, indexUpdate),
 					this.processNewContact(event).then(result => {
@@ -129,7 +129,7 @@ export class ContactIndexer {
 						}
 					})
 				])
-			} else if (event.operation == OperationType.DELETE) {
+			} else if (event.operation === OperationType.DELETE) {
 				return this._core._processDeleted(event, indexUpdate)
 			}
 		}).return()

@@ -86,7 +86,7 @@ export class SearchListView {
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
-		this._lastType = m.route.param()['category'] == 'mail' ? MailTypeRef : ContactTypeRef
+		this._lastType = m.route.param()['category'] === 'mail' ? MailTypeRef : ContactTypeRef
 		return new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -95,7 +95,7 @@ export class SearchListView {
 					// show spinner until the actual search result is available
 					return defer().promise
 				}
-				if (!result || result.results.length == 0) {
+				if (!result || result.results.length === 0) {
 					return Promise.resolve([])
 				}
 				let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
@@ -103,9 +103,9 @@ export class SearchListView {
 				let resultIds = [].concat(result.results) //create copy
 				if (mail) {
 					let startIndex = 0
-					if (startId != GENERATED_MAX_ID) {
-						startIndex = resultIds.findIndex(id => id[1] == startId)
-						if (startIndex == -1) {
+					if (startId !== GENERATED_MAX_ID) {
+						startIndex = resultIds.findIndex(id => id[1] === startId)
+						if (startIndex === -1) {
 							throw new Error("start index not found")
 						} else {
 							startIndex++ // the start index is already in the list of loaded elements load from the next element
@@ -137,7 +137,7 @@ export class SearchListView {
 			loadSingle: (elementId) => {
 				let result = locator.search.result()
 				if (result) {
-					let id = result.results.find(r => r[1] == elementId)
+					let id = result.results.find(r => r[1] === elementId)
 					if (id) {
 						return load(locator.search.result().restriction.type, id)
 							.then(entity => new SearchResultListEntry(entity))
@@ -164,9 +164,9 @@ export class SearchListView {
 			elementSelected: (entities: SearchResultListEntry[], elementClicked, selectionChanged, multiSelectionActive) => {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] == 'mail' ? new MailRow(true) : new ContactRow()),
+			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] === 'mail' ? new MailRow(true) : new ContactRow()),
 			showStatus: false,
-			className: m.route.param()['category'] == 'mail' ? "mail-list" : "contact-list",
+			className: m.route.param()['category'] === 'mail' ? "mail-list" : "contact-list",
 			swipe: ({
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],

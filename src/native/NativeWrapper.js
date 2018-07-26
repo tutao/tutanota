@@ -131,10 +131,10 @@ class NativeWrapper {
 
 function _createConnectionErrorHandler(rejectFunction) {
 	return function (errorString) {
-		if (errorString.indexOf("java.net.SocketTimeoutException") == 0 ||
-			errorString.indexOf("javax.net.ssl.SSLException") == 0 ||
-			errorString.indexOf("java.io.EOFException") == 0 ||
-			errorString.indexOf("java.net.UnknownHostException") == 0) {
+		if (errorString.indexOf("java.net.SocketTimeoutException") === 0 ||
+			errorString.indexOf("javax.net.ssl.SSLException") === 0 ||
+			errorString.indexOf("java.io.EOFException") === 0 ||
+			errorString.indexOf("java.net.UnknownHostException") === 0) {
 			rejectFunction(new ConnectionError(errorString))
 		} else {
 			rejectFunction(new Error(errorString))
@@ -144,6 +144,6 @@ function _createConnectionErrorHandler(rejectFunction) {
 
 
 const _asyncImport = (path): Promise<any> =>
-	asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
+	asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 
 export const nativeApp = new NativeWrapper()

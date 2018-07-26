@@ -246,7 +246,7 @@ export class ContactFormRequestDialog {
 			if (ok) {
 
 				let cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress.value());
-				if (this._notificationEmailAddress.value().trim() != "" && !cleanedNotificationMailAddress) {
+				if (this._notificationEmailAddress.value().trim() !== "" && !cleanedNotificationMailAddress) {
 					return Dialog.error("mailAddressInvalid_msg")
 				}
 				let password = this._passwordForm.getNewPassword()

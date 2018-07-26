@@ -89,7 +89,7 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 }
 
 function updatePaymentInterval(paymentInterval: number, accountingInfo: AccountingInfo) {
-	if (paymentInterval != Number(accountingInfo.paymentInterval)) {
+	if (paymentInterval !== Number(accountingInfo.paymentInterval)) {
 		changeSubscriptionInterval(accountingInfo, paymentInterval)
 	}
 }

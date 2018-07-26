@@ -83,7 +83,7 @@ export class ContactViewer {
 				.setValue(element.address)
 				.setDisabled()
 			let prepAddress
-			if (element.address.indexOf("\n") != -1) {
+			if (element.address.indexOf("\n") !== -1) {
 				prepAddress = encodeURIComponent(element.address.split("\n").join(" "))
 			} else {
 				prepAddress = encodeURIComponent(element.address)
@@ -169,33 +169,33 @@ export class ContactViewer {
 		switch (element.type) {
 			case ContactSocialType.TWITTER:
 				socialUrlType = "twitter.com/"
-				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+				if (element.socialId.indexOf("http") !== -1 || element.socialId.indexOf(worldwidew) !== -1) {
 					socialUrlType = ""
 				}
 				break
 			case ContactSocialType.FACEBOOK:
 				socialUrlType = "facebook.com/"
-				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+				if (element.socialId.indexOf("http") !== -1 || element.socialId.indexOf(worldwidew) !== -1) {
 					socialUrlType = ""
 				}
 				break
 			case ContactSocialType.XING:
 				socialUrlType = "xing.com/profile/"
-				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+				if (element.socialId.indexOf("http") !== -1 || element.socialId.indexOf(worldwidew) !== -1) {
 					socialUrlType = ""
 				}
 				break
 			case ContactSocialType.LINKED_IN:
 				socialUrlType = "linkedin.com/in/"
-				if (element.socialId.indexOf("http") != -1 || element.socialId.indexOf(worldwidew) != -1) {
+				if (element.socialId.indexOf("http") !== -1 || element.socialId.indexOf(worldwidew) !== -1) {
 					socialUrlType = ""
 				}
 			default:
 		}
-		if (element.socialId.indexOf("http") != -1) {
+		if (element.socialId.indexOf("http") !== -1) {
 			http = ""
 		}
-		if (element.socialId.indexOf(worldwidew) != -1) {
+		if (element.socialId.indexOf(worldwidew) !== -1) {
 			worldwidew = ""
 		}
 		let socialURL = `${http}${worldwidew}${socialUrlType}${element.socialId.trim()}`

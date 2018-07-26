@@ -226,11 +226,11 @@ export class SearchBar {
 						}
 					}, [
 						m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
-						newState.progress != 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
+						newState.progress !== 100 ? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
 					])
 				}
 			})
-		} else if ((route.startsWith("/search/mail") && newState.progress == 0)) {
+		} else if ((route.startsWith("/search/mail") && newState.progress === 0)) {
 			closeOverlay()
 		}
 	}
@@ -295,10 +295,10 @@ export class SearchBar {
 				newResults = newResults.concat(filteredInstances)
 			})]
 		).then(() => {
-			if (this.value() == searchResult.query) {
+			if (this.value() === searchResult.query) {
 				this._results = newResults
 				let resultCount = (searchResult.results.length)
-				if (resultCount == 0 || resultCount > 10 || searchResult.currentIndexTimestamp != FULL_INDEXED_TIMESTAMP) {
+				if (resultCount === 0 || resultCount > 10 || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
 					this._results.push({
 						resultCount: resultCount,
 						shownCount: this._results.length,
@@ -341,7 +341,7 @@ export class SearchBar {
 		if (!type) { // show more action
 			let showMoreAction = ((result:any):ShowMoreAction)
 			let infoText
-			if (showMoreAction.resultCount == 0) {
+			if (showMoreAction.resultCount === 0) {
 				infoText = lang.get("searchNoResults_msg")
 			} else if (showMoreAction.allowShowMore) {
 				infoText = lang.get("showMore_action")
@@ -488,7 +488,7 @@ export class SearchBar {
 			})
 
 		} else {
-			if (value.trim() == "") {
+			if (value.trim() === "") {
 				this.busy = false
 				locator.search.lastQuery("")
 				locator.search.result(null)
@@ -503,8 +503,8 @@ export class SearchBar {
 			} else {
 				this.busy = true
 				setTimeout(() => {
-					if (value == this.value()) {
-						if (this.value().trim() != "") {
+					if (value === this.value()) {
+						if (this.value().trim() !== "") {
 							let useSuggestions = m.route.get().startsWith("/settings")
 							locator.search.search(value, restriction, useSuggestions ? 10 : 0).then(result => {
 								if (m.route.get().startsWith("/search")) {
@@ -521,7 +521,7 @@ export class SearchBar {
 						} else {
 							this.busy = false
 						}
-					} else if (this.value().trim() == "") {
+					} else if (this.value().trim() === "") {
 						locator.search.lastQuery("")
 						locator.search.result(null)
 						this.busy = false
@@ -567,7 +567,7 @@ export class SearchBar {
 				this._domInput.onblur = null
 			},
 			oninput: e => {
-				if (this.value() != this._domInput.value) {
+				if (this.value() !== this._domInput.value) {
 					this.value(this._domInput.value) // update the input on each change
 					let value = this.value()
 					if (value.trim() === "") {
@@ -583,20 +583,20 @@ export class SearchBar {
 			},
 			onkeydown: e => {
 				let keyCode = e.which
-				if (keyCode == Keys.ESC.code) {
+				if (keyCode === Keys.ESC.code) {
 					this.close()
-				} else if (keyCode == Keys.RETURN.code) {
+				} else if (keyCode === Keys.RETURN.code) {
 					if (this._selected) {
 						this._selectResult(this._selected)
 					} else {
 						this.search()
 					}
-				} else if (keyCode == Keys.UP.code) {
+				} else if (keyCode === Keys.UP.code) {
 					if (this._results.length > 0) {
 						let selected = this._selected ? this._selected : this._results[0]
 						this._selected = this._results[mod(this._results.indexOf(selected) - 1, this._results.length)]
 					}
-				} else if (keyCode == Keys.DOWN.code) {
+				} else if (keyCode === Keys.DOWN.code) {
 					if (this._results.length > 0) {
 						let selected = this._selected ? this._selected : this._results[0]
 						this._selected = this._results[mod(this._results.indexOf(selected) + 1, this._results.length)]
@@ -631,7 +631,7 @@ export class SearchBar {
 		//this._domInput.classList.remove("active")
 		this.focused = false
 		closeOverlay()
-		if (this.value().trim() == "") {
+		if (this.value().trim() === "") {
 			this.expanded = false
 			if (m.route.get().startsWith("/search")) {
 				locator.search.result(null)

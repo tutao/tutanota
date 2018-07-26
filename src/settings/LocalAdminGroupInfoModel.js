@@ -26,7 +26,7 @@ class LocalAdminGroupInfoModel {
 		}
 
 		this._initialization = logins.getUserController().loadCustomer().then(customer => {
-			return loadAll(GroupInfoTypeRef, customer.teamGroups).filter(gi => gi.groupType == GroupType.LocalAdmin).then(groupInfos => {
+			return loadAll(GroupInfoTypeRef, customer.teamGroups).filter(gi => gi.groupType === GroupType.LocalAdmin).then(groupInfos => {
 				this.groupInfos = groupInfos
 				return groupInfos
 			})

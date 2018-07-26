@@ -118,7 +118,7 @@ export class GlobalSettingsViewer {
 	}
 
 	_getSpamRulesInfoLink(): string {
-		return (lang.code == "de" || lang.code == "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
+		return (lang.code === "de" || lang.code === "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
 	}
 
 	_updateCustomerServerProperties(): void {
@@ -129,7 +129,7 @@ export class GlobalSettingsViewer {
 					props.emailSenderList.splice(index, 1)
 					update(props)
 				}, () => Icons.Cancel)
-				return new TableLine([neverNull(getSpamRuleTypeNameMapping().find(t => t.value == rule.type)).name, rule.value], actionButton)
+				return new TableLine([neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value], actionButton)
 			}))
 		})
 	}
@@ -178,7 +178,7 @@ export class GlobalSettingsViewer {
 									]),
 									groupInfo() ? m("tr", [
 											m("td", lang.get("group_label")),
-											m("td.pl", customer.adminGroup == groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
+											m("td.pl", customer.adminGroup === groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
 										]) : null,
 									m("tr", [
 										m("td", lang.get("time_label")),
@@ -228,7 +228,7 @@ export class GlobalSettingsViewer {
 									if (domainInfo.catchAllMailGroup) {
 										// the catch all group may be a user group, so load the mail group in that case
 										selectedPromise = load(GroupTypeRef, domainInfo.catchAllMailGroup).then(catchAllGroup => {
-											if (catchAllGroup.type == GroupType.User) {
+											if (catchAllGroup.type === GroupType.User) {
 												return load(UserTypeRef, neverNull(catchAllGroup.user)).then(user => {
 													return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
 												})
@@ -238,7 +238,7 @@ export class GlobalSettingsViewer {
 										})
 									}
 									return selectedPromise.then(catchAllMailGroupId => {
-										let selected = allMailGroups.find(g => g.groupId == catchAllMailGroupId)
+										let selected = allMailGroups.find(g => g.groupId === catchAllMailGroupId)
 										return {available: options, selected: selected}
 									})
 								}))
@@ -251,7 +251,7 @@ export class GlobalSettingsViewer {
 						buttons.push(new Button("delete_action", () => {
 							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
 								let registrationDomains = this._props() != null ? this._props().whitelabelRegistrationDomains.map(domainWrapper => domainWrapper.value) : []
-								if (registrationDomains.indexOf(domainInfo.domain) != -1) {
+								if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
 									Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 								} else {
 									Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
@@ -267,11 +267,11 @@ export class GlobalSettingsViewer {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation == OperationType.UPDATE) {
+		if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation === OperationType.UPDATE) {
 			this._updateCustomerServerProperties()
 		} else if (isSameTypeRef(typeRef, AuditLogEntryTypeRef)) {
 			this._updateAuditLog()
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation === OperationType.UPDATE) {
 			this._customerInfo.reset()
 			this._updateDomains()
 		}

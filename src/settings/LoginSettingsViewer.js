@@ -66,9 +66,9 @@ export class LoginSettingsViewer {
 	_updateSessions() {
 		loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
-			this._activeSessionTable.updateEntries(sessions.filter(session => session.state == SessionState.SESSION_STATE_ACTIVE).map(session => {
+			this._activeSessionTable.updateEntries(sessions.filter(session => session.state === SessionState.SESSION_STATE_ACTIVE).map(session => {
 				let closeSessionButton = null
-				let thisSession = logins.getUserController().sessionId[1] == session._id[1]
+				let thisSession = logins.getUserController().sessionId[1] === session._id[1]
 				if (!thisSession) {
 					closeSessionButton = new Button("closeSession_action", () => {
 						erase(session)
@@ -77,7 +77,7 @@ export class LoginSettingsViewer {
 				let identifier = (thisSession) ? lang.get("thisClient_label") : session.clientIdentifier
 				return new TableLine([identifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress], closeSessionButton)
 			}))
-			this._closedSessionTable.updateEntries(sessions.filter(session => session.state != SessionState.SESSION_STATE_ACTIVE).map(session => {
+			this._closedSessionTable.updateEntries(sessions.filter(session => session.state !== SessionState.SESSION_STATE_ACTIVE).map(session => {
 				return new TableLine([session.clientIdentifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress])
 			}))
 		})

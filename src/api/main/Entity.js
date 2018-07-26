@@ -60,7 +60,7 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
-			start = (typeModel.values["_id"].type == ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
 		return _loadAll(typeRef, listId, start, end)
 	})
@@ -68,7 +68,7 @@ export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id
 
 function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
-		if (elements.length == 0) return Promise.resolve(elements)
+		if (elements.length === 0) return Promise.resolve(elements)
 		let lastElementId = getLetId(elements[elements.length - 1])[1]
 		if (elements.length === RANGE_ITEM_LIMIT && (end == null || firstBiggerThanSecond(end, lastElementId[1]))) {
 			return _loadAll(typeRef, listId, lastElementId, end).then(nextElements => {
@@ -79,7 +79,7 @@ function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Prom
 				if (end == null) {
 					return true // no end element specified return full list
 				} else {
-					return firstBiggerThanSecond(end, getLetId(e)[1]) || end == getLetId(e)[1]
+					return firstBiggerThanSecond(end, getLetId(e)[1]) || end === getLetId(e)[1]
 				}
 			}))
 		}

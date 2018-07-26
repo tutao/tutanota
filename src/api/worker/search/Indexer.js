@@ -214,8 +214,8 @@ export class Indexer {
 				let oldGroups = loadedGroups.map((group: {key: Id, value: GroupData}) => {
 					return {id: group.key, type: group.value.groupType}
 				})
-				let deletedGroups = oldGroups.filter(oldGroup => currentGroups.find(m => m.id == oldGroup.id) == null)
-				let newGroups = currentGroups.filter(m => oldGroups.find(oldGroup => m.id == oldGroup.id) == null)
+				let deletedGroups = oldGroups.filter(oldGroup => currentGroups.find(m => m.id === oldGroup.id) == null)
+				let newGroups = currentGroups.filter(m => oldGroups.find(oldGroup => m.id === oldGroup.id) == null)
 				return {
 					deletedGroups,
 					newGroups
@@ -286,11 +286,11 @@ export class Indexer {
 				let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
 				return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId).then(eventBatches => {
 					let processedEntityEvents = eventBatches.filter((batch) => groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) !== -1)
-					if (processedEntityEvents.length == 0) {
+					if (processedEntityEvents.length === 0) {
 						throw new OutOfSyncError()
 					}
 					return Promise.map(eventBatches, batch => {
-						if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) == -1) {
+						if (groupIdToEventBatch.eventBatchIds.indexOf(batch._id[1]) === -1) {
 							return this.processEntityEvents(batch.events, groupIdToEventBatch.groupId, batch._id[1])
 						}
 					}, {concurrency: 5})
@@ -329,10 +329,10 @@ export class Indexer {
 				return Promise.resolve()
 			}
 
-			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) == -1) {
+			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) === -1) {
 				return Promise.resolve()
 			}
-			if (this._indexedGroupIds.indexOf(groupId) == -1) {
+			if (this._indexedGroupIds.indexOf(groupId) === -1) {
 				return Promise.resolve()
 			}
 			let indexUpdate = _createNewIndexUpdate(groupId)
@@ -378,7 +378,7 @@ export class Indexer {
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
 		return Promise.all(events.map(event => {
-			if (event.operation == OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId)) {
+			if (event.operation === OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId)) {
 				return this._entity.load(UserTypeRef, event.instanceId).then(updatedUser => {
 					this._initParams.user = updatedUser
 				})

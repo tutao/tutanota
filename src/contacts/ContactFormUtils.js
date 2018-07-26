@@ -7,9 +7,9 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
-	let language = supportedLanguages.find(l => l.code == lang.code || l.code + '_sie' == lang.code)
+	let language = supportedLanguages.find(l => l.code === lang.code || l.code + '_sie' === lang.code)
 	if (!language) {
-		language = supportedLanguages.find(l => l.code == 'en')
+		language = supportedLanguages.find(l => l.code === 'en')
 	}
 	if (!language) {
 		language = supportedLanguages[0]

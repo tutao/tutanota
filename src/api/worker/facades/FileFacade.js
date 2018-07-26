@@ -37,7 +37,7 @@ export class FileFacade {
 				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
-				if (env.mode == Mode.App) {
+				if (env.mode === Mode.App) {
 					let queryParams = {'_body': encodeURIComponent(body)}
 					let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", queryParams)
 					return fileApp.download(url, file.name, headers).then(fileLocation => {
@@ -85,7 +85,7 @@ export class FileFacade {
 				headers['v'] = FileDataDataReturnTypeModel.version
 				let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
 				return fileApp.upload(encryptedFileLocation, url, headers).then(responseCode => {
-					if (responseCode == 200) {
+					if (responseCode === 200) {
 						return fileDataId;
 					} else {
 						throw new handleRestError(responseCode, "failed to natively upload attachment");

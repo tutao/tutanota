@@ -66,35 +66,35 @@ export function getFreeSearchEndDate(): Date {
  * Adjusts the restriction according to the account type if necessary
  */
 export function createRestriction(searchCategory: string, start: ?number, end: ?number, field: ?string, listId: ?string): SearchRestriction {
-	if (logins.getUserController().isFreeAccount() && searchCategory == "mail") {
+	if (logins.getUserController().isFreeAccount() && searchCategory === "mail") {
 		start = null
 		end = getFreeSearchEndDate().getTime()
 		field = null
 		listId = null
 	}
 	let r: SearchRestriction = {
-		type: neverNull(SEARCH_CATEGORIES.find(c => c.name == searchCategory)).typeRef,
+		type: neverNull(SEARCH_CATEGORIES.find(c => c.name === searchCategory)).typeRef,
 		start: start,
 		end: end,
 		field: null,
 		attributeIds: null,
 		listId: listId
 	}
-	if (field && searchCategory == "mail") {
-		let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field == field)
+	if (field && searchCategory === "mail") {
+		let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field === field)
 		if (fieldData) {
 			r.field = field
 			r.attributeIds = fieldData.attributeIds
 		}
-	} else if (field && searchCategory == "contact") {
-		if (field == "recipient") {
+	} else if (field && searchCategory === "contact") {
+		if (field === "recipient") {
 			r.field = field
 			r.attributeIds = [
 				ContactModel.values["firstName"].id,
 				ContactModel.values["lastName"].id,
 				ContactModel.associations["mailAddresses"].id,
 			]
-		} else if (field == "mailAddress") {
+		} else if (field === "mailAddress") {
 			r.field = field
 			r.attributeIds = [
 				ContactModel.associations["mailAddresses"].id,
@@ -126,7 +126,7 @@ export function getRestriction(route: string): SearchRestriction {
 					end = Number(endString)
 				}
 				let fieldString = getValueFromRoute(route, "field")
-				let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field == fieldString)
+				let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field === fieldString)
 				if (fieldData) {
 					field = fieldString
 				}
@@ -153,10 +153,10 @@ export function getRestriction(route: string): SearchRestriction {
 function getValueFromRoute(route: string, name: string): ?string {
 	let key = "&" + name + "="
 	let keyIndex = route.indexOf(key)
-	if (keyIndex != -1) {
+	if (keyIndex !== -1) {
 		let valueStartIndex = keyIndex + key.length
 		let valueEndIndex = route.indexOf("&", valueStartIndex)
-		let value = (valueEndIndex == -1) ? route.substring(valueStartIndex) : route.substring(valueStartIndex, valueEndIndex)
+		let value = (valueEndIndex === -1) ? route.substring(valueStartIndex) : route.substring(valueStartIndex, valueEndIndex)
 		return decodeURIComponent(value)
 	} else {
 		return null
@@ -164,9 +164,9 @@ function getValueFromRoute(route: string, name: string): ?string {
 }
 
 export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo) {
-	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
 		return true // group is administrated by local admin group of this user
-	} else if (localAdminGroupIds.indexOf(gi.group) != -1) {
+	} else if (localAdminGroupIds.indexOf(gi.group) !== -1) {
 		return true // group is one of the local admin groups of this user
 	} else {
 		return false

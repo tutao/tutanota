@@ -98,7 +98,7 @@ class Header {
 			])
 		}
 
-		asyncImport(typeof module != "undefined" ?
+		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
 			.then((searchBarModule) => {
 				this.searchBar = new searchBarModule.SearchBar()
@@ -167,7 +167,7 @@ class Header {
 	}
 
 	_showUpgradeDialog() {
-		asyncImport(typeof module != "undefined" ?
+		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
 			.then(upgradeWizard => {
 					return upgradeWizard.show()
@@ -178,7 +178,7 @@ class Header {
 	_writeSupportMail() {
 		this._createMailEditor().then(editor => {
 			let signature = "<br><br>--"
-			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "")
+			signature += "<br>Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
 				+ " app" : "Browser")
 			signature += "<br>Tutanota version: " + env.versionNumber
 			signature += "<br>User agent:<br>" + navigator.userAgent
@@ -190,9 +190,9 @@ class Header {
 
 	_createMailEditor(): Promise<MailEditor> {
 		return Promise.join(
-			asyncImport(typeof module != "undefined" ?
+			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module != "undefined" ?
+			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
 			(mailEditorModule, mailModelModule) => {
 				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())

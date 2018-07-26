@@ -51,7 +51,7 @@ export class UserListView {
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				if (startId == GENERATED_MAX_ID) {
+				if (startId === GENERATED_MAX_ID) {
 					return this._loadAdmins().then(() => {
 						return this._listId.getAsync().then(listId => {
 							return loadAll(GroupInfoTypeRef, listId).then(allUserGroupInfos => {
@@ -63,7 +63,7 @@ export class UserListView {
 									return allUserGroupInfos
 								} else {
 									let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) != -1);
+									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1);
 								}
 							})
 						})
@@ -106,7 +106,7 @@ export class UserListView {
 			header.buttonBar.searchBar.setGroupInfoRestrictionListId(listId)
 		})
 		this._searchResultStreamDependency = header.buttonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
-			if (this._listId.isLoaded() && this._listId.getSync() == groupInfo._id[0]) {
+			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
 		})
@@ -119,7 +119,7 @@ export class UserListView {
 	}
 
 	_loadAdmins(): Promise<void> {
-		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType == GroupType.Admin)
+		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) return Promise.resolve()
 		return loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0]).map(adminGroupMember => {
 			return adminGroupMember.userGroupInfo[1]
@@ -133,10 +133,10 @@ export class UserListView {
 	}
 
 	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (groupInfos.length == 0 && this._settingsView.detailsViewer) {
+		if (groupInfos.length === 0 && this._settingsView.detailsViewer) {
 			this._settingsView.detailsViewer = null
 			m.redraw()
-		} else if (groupInfos.length == 1 && selectionChanged) {
+		} else if (groupInfos.length === 1 && selectionChanged) {
 			this._settingsView.detailsViewer = new UserViewer(groupInfos[0], this.isAdmin(groupInfos[0]))
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()
@@ -154,19 +154,19 @@ export class UserListView {
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() == listId) {
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() === listId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(elementId)
 				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 					if (listEntity) {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) == -1) {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) === -1) {
 							this.list.entityEventReceived(elementId, OperationType.DELETE)
 						} else {
 							this.list.entityEventReceived(elementId, operation)
 						}
 					} else {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) != -1) {
+						if (localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
 							this.list.entityEventReceived(elementId, OperationType.CREATE)
 						}
 					}
@@ -174,7 +174,7 @@ export class UserListView {
 			} else {
 				this.list.entityEventReceived(elementId, operation)
 			}
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation == OperationType.UPDATE) {
+		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE) {
 			this._loadAdmins().then(() => {
 				this.list.redraw()
 			})

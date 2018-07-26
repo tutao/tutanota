@@ -42,7 +42,7 @@ window.tutao = {
 }
 
 function _asyncImport(path: string) {
-	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
+	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 }
 
 
@@ -52,7 +52,7 @@ styles.init()
 export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
 
 let origin = location.origin
-if (location.origin.indexOf("localhost") != -1) {
+if (location.origin.indexOf("localhost") !== -1) {
 	origin += "/client/build/index"
 }
 if (navigator.registerProtocolHandler) {
@@ -117,18 +117,27 @@ let initialized = lang.init(en).then(() => {
 		}
 	}
 
-	let mailViewResolver = createViewResolver(() => _asyncImport("src/mail/MailView.js").then(module => new module.MailView()))
-	let contactViewResolver = createViewResolver(() => _asyncImport("src/contacts/ContactView.js").then(module => new module.ContactView()))
-	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false)
-	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js").then(module => new module.LoginView()), false)
-	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js").then(module => new module.SettingsView()))
-	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js").then(module => new module.SearchView()))
-	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js").then(module => new module.RegisterView()), false, true)
-	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js").then(module => new module.ContactFormView()), false)
+	let mailViewResolver = createViewResolver(() => _asyncImport("src/mail/MailView.js")
+		.then(module => new module.MailView()))
+	let contactViewResolver = createViewResolver(() => _asyncImport("src/contacts/ContactView.js")
+		.then(module => new module.ContactView()))
+	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js")
+		.then(module => new module.ExternalLoginView()), false)
+	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js")
+		.then(module => new module.LoginView()), false)
+	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js")
+		.then(module => new module.SettingsView()))
+	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js")
+		.then(module => new module.SearchView()))
+	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js")
+		.then(module => new module.RegisterView()), false, true)
+	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
+		.then(module => new module.ContactFormView()), false)
 
 	let start = "/"
 	if (state.prefix == null) {
-		state.prefix = location.pathname[location.pathname.length - 1] !== '/' ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+		state.prefix = location.pathname[location.pathname.length - 1]
+		!== '/' ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
@@ -142,7 +151,7 @@ let initialized = lang.init(en).then(() => {
 			newQueryString = "?" + newQueryString
 		}
 		let target = redirectTo + newQueryString + location.hash
-		if (target == "" || target[0] != "/") target = "/" + target
+		if (target === "" || target[0] !== "/") target = "/" + target
 		history.replaceState(null, null, state.prefix + target)
 		start = target
 	}
@@ -190,11 +199,12 @@ let initialized = lang.init(en).then(() => {
 	disableBodyTouchScrolling()
 })
 
-function forceLogin(args: {[string]:string}, requestedPath: string) {
+function forceLogin(args: {[string]: string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else {
-		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		let pathWithoutParameter = requestedPath.indexOf("?")
+		> 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
 		if (pathWithoutParameter.trim() === '/') {
 			let newQueryString = m.buildQueryString(args)
 			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))

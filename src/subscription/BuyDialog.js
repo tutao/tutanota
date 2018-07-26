@@ -26,7 +26,7 @@ assertMainOrNode()
  */
 export function show(featureType: BookingItemFeatureTypeEnum, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		if (customer.type == AccountType.PREMIUM && customer.canceledPremiumAccount) {
+		if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
 		} else {
 			return worker.getPrice(featureType, count, reactivate).then(price => {
@@ -92,7 +92,7 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 
 function _getBookingText(price: PriceServiceReturn, featureType: NumberString, count: number, freeAmount: number): string {
 	if (_isSinglePriceType(price.currentPriceThisPeriod, price.futurePriceNextPeriod, featureType)) {
-		if (featureType == BookingItemFeatureType.Users) {
+		if (featureType === BookingItemFeatureType.Users) {
 			if (count > 0) {
 				let brandingPrice = _getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)
 				if (brandingPrice > 0) {
@@ -105,25 +105,25 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			}
 
 
-		} else if (featureType == BookingItemFeatureType.Branding) {
+		} else if (featureType === BookingItemFeatureType.Branding) {
 			if (count > 0) {
 				return lang.get("whitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			} else {
 				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
 			}
-		} else if (featureType == BookingItemFeatureType.ContactForm) {
+		} else if (featureType === BookingItemFeatureType.ContactForm) {
 			if (count > 0) {
 				return count + " " + lang.get("contactForm_label")
 			} else {
 				return lang.get("cancelContactForm_label")
 			}
-		} else if (featureType == BookingItemFeatureType.SharedMailGroup) {
+		} else if (featureType === BookingItemFeatureType.SharedMailGroup) {
 			if (count > 0) {
 				return count + " " + lang.get("sharedMailbox_label")
 			} else {
 				return lang.get("cancelSharedMailbox_label")
 			}
-		} else if (featureType == BookingItemFeatureType.LocalAdminGroup) {
+		} else if (featureType === BookingItemFeatureType.LocalAdminGroup) {
 			if (count > 0) {
 				return count + " " + lang.get("localAdminGroup_label")
 			} else {
@@ -139,19 +139,19 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			newPackageCount = item.count
 		}
 		let visibleAmount = Math.max(count, freeAmount)
-		if (featureType == BookingItemFeatureType.Storage) {
+		if (featureType === BookingItemFeatureType.Storage) {
 			if (count < 1000) {
 				return lang.get("storageCapacity_label") + " " + visibleAmount + " GB"
 			} else {
 				return lang.get("storageCapacity_label") + " " + (visibleAmount / 1000) + " TB"
 			}
-		} else if (featureType == BookingItemFeatureType.Users) {
+		} else if (featureType === BookingItemFeatureType.Users) {
 			if (count > 0) {
 				return lang.get("packageUpgradeUserAccounts_label", {"{1}": newPackageCount})
 			} else {
 				return lang.get("packageDowngradeUserAccounts_label", {"{1}": newPackageCount})
 			}
-		} else if (featureType == BookingItemFeatureType.Alias) {
+		} else if (featureType === BookingItemFeatureType.Alias) {
 			return visibleAmount + " " + lang.get("mailAddressAliases_label")
 		} else {
 			return "" // not possible
@@ -160,7 +160,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 }
 
 function _getSubscriptionText(price: PriceServiceReturn): string {
-	if (neverNull(price.futurePriceNextPeriod).paymentInterval == "12") {
+	if (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") {
 		return lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label')
 	} else {
 		return lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label')
@@ -173,7 +173,7 @@ function _getSubscriptionInfoText(price: PriceServiceReturn): string {
 
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
 	let netGrossText = neverNull(price.futurePriceNextPeriod).taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval == "12") ? lang.get('perYear_label') : lang.get('perMonth_label')
+	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") ? lang.get('perYear_label') : lang.get('perMonth_label')
 	let futurePriceNextPeriod = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 	let currentPriceNextPeriod = _getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 
@@ -196,7 +196,7 @@ function _getPriceInfoText(price: PriceServiceReturn, featureType: NumberString)
 }
 
 function _isPriceChange(price: PriceServiceReturn, featureType: NumberString): boolean {
-	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) != _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
+	return (_getPriceFromPriceData(price.currentPriceNextPeriod, featureType) !== _getPriceFromPriceData(price.futurePriceNextPeriod, featureType))
 }
 
 function _isBuy(price: PriceServiceReturn, featureType: NumberString): boolean {
@@ -219,7 +219,7 @@ function _isSinglePriceType(currentPriceData: ?PriceData, futurePriceData: ?Pric
 function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString): number {
 	let item = getPriceItem(priceData, featureType)
 	let itemPrice = item ? Number(item.price) : 0
-	if (featureType == BookingItemFeatureType.Users) {
+	if (featureType === BookingItemFeatureType.Users) {
 		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)
 	}
 	return itemPrice
