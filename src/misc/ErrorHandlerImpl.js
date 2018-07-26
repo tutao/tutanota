@@ -36,7 +36,7 @@ let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
 let loginDialogActive = false
 let isLoggingOut = false
-let serviceUnabailbleDialogActive = false
+let serviceUnavailableDialogActive = false
 
 export function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
@@ -118,10 +118,10 @@ export function handleUncaughtError(e: Error) {
 			Dialog.error("insufficientStorageUser_msg")
 		}
 	} else if (e instanceof ServiceUnavailableError) {
-		if (!serviceUnabailbleDialogActive) {
-			serviceUnabailbleDialogActive = true;
+		if (!serviceUnavailableDialogActive) {
+			serviceUnavailableDialogActive = true;
 			Dialog.error("serviceUnavailable_msg").then(() => {
-				serviceUnabailbleDialogActive = false;
+				serviceUnavailableDialogActive = false;
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {

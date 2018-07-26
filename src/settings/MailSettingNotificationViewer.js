@@ -19,20 +19,22 @@ import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {TextField} from "../gui/base/TextField"
 
-type NotiificationRowAttrs = {|
+type NotificationRowAttrs = {|
 	name: string,
 	identifier: string,
 	current: boolean,
 	removeClicked: () => void
 |}
 
-class NotificationRowView implements MComponent<NotiificationRowAttrs> {
-	view(vnode: Vnode<NotiificationRowAttrs>): Children {
+class NotificationRowView implements MComponent<NotificationRowAttrs> {
+	view(vnode: Vnode<NotificationRowAttrs>): Children {
 		return m(".flex.flex-column.full-width", [
 				m(".flex-space-between.items-center",
-					[m("span", vnode.attrs.name), this._buttonRemove(vnode.attrs.removeClicked)]),
-				vnode.attrs.current ? m(".b.mt-negative-s", lang.get("pushIdentifierCurrentDevice_label")) : null,
-				m(".text-break.small.monospace", neverNull(vnode.attrs.identifier.match(/.{2}/g))
+					[
+						m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
+						this._buttonRemove(vnode.attrs.removeClicked)
+					]),
+				m(".text-break.small.monospace.mt-negative-s", neverNull(vnode.attrs.identifier.match(/.{2}/g))
 					.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
 			]
 		)
@@ -57,12 +59,15 @@ export class MailSettingNotificationViewer {
 				lang.get("emailPushNotification_action"), m(buttonAdd)
 			])
 
-			const rows = this._identifiers.map(identifier => m(NotificationRowView, {
-				name: this._identifierTypeName(identifier.pushServiceType),
-				identifier: identifier.identifier,
-				current: env.mode === Mode.App && identifier.identifier === this._currentIdentifier,
-				removeClicked: () => erase(identifier)
-			})).sort((l, r) => r.attrs.current - l.attrs.current)
+			const rows = this._identifiers.map(identifier => {
+				const current = env.mode === Mode.App && identifier.identifier === this._currentIdentifier
+				return m(NotificationRowView, {
+					name: this._identifierTypeName(current, identifier.pushServiceType),
+					identifier: identifier.identifier,
+					current: current,
+					removeClicked: () => erase(identifier)
+				})
+			}).sort((l, r) => r.attrs.current - l.attrs.current)
 			return m(".flex.flex-column.items-end.mb", [rowAdd].concat(rows))
 		},
 	}
@@ -98,10 +103,14 @@ export class MailSettingNotificationViewer {
 		})
 	}
 
-	_identifierTypeName(type: NumberString): string {
-		return [
-			"Android FCM", "iOS", lang.get("adminEmailSettings_action"), "Android Tutanota"
-		][Number(type)]
+	_identifierTypeName(current: boolean, type: NumberString): string {
+		if (current) {
+			return lang.get("pushIdentifierCurrentDevice_label")
+		} else {
+			return [
+				"Android FCM", "iOS", lang.get("adminEmailSettings_action"), "Android Tutanota"
+			][Number(type)]
+		}
 	}
 
 	_showAddNotificationEmailAddressDialog() {

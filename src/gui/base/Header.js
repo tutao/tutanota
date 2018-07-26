@@ -27,7 +27,6 @@ class Header {
 	contactsUrl: string;
 	mailsUrl: string;
 	settingsUrl: string;
-	searchUrl: string;
 	_currentView: ?Component;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -39,11 +38,10 @@ class Header {
 		this.contactsUrl = '/contact'
 		this.mailsUrl = '/mail'
 		this.settingsUrl = '/settings'
-		this.searchUrl = '/search/mail'
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
-		let searchViewButton = new NavButton("search_label", () => Icons.Search, this.searchUrl, "/search")
+		let searchViewButton = new NavButton("search_label", () => Icons.Search, "/search", "/search") // the href is just a dummy value here
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
 			.setClickHandler(() => {
 				const route = m.route.get()

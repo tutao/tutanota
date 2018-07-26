@@ -180,6 +180,7 @@ export class SearchBar {
 			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
 				this.showIndexingProgress(newState, m.route.get())
 				m.redraw() // redraw in any case, especially to show the search bar after the db is initialized
+				// Fix bug in current Safari with losing focus
                 if (this.focused) {
 				    setTimeout(() => this._domInput.focus(), 50)
                 }
@@ -617,6 +618,7 @@ export class SearchBar {
 		if (!this.focused) {
 			this.focused = true
 			this.expanded = true
+			// setTimeout to fix bug in current Safari with losing focus
             setTimeout(() => {
                 this._domInput.select()
                 this._domInput.focus()
