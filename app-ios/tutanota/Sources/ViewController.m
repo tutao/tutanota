@@ -10,12 +10,18 @@
 #import "Swiftier.h"
 #import "PSPDFFastEnumeration.h"
 
+// App classes
 #import "ViewController.h"
-#import <WebKit/WebKit.h>
-#import <UIkit/UIkit.h>
 #import "Crypto.h"
 #import "TutaoFileChooser.h"
+#import "TUTContactsSource.h"
+
+// Frameworks
+#import <WebKit/WebKit.h>
 #import <SafariServices/SafariServices.h>
+#import <UIkit/UIkit.h>
+
+// Runtime magic
 #import <objc/message.h>
 
 typedef void(^VoidCallback)(void);
@@ -25,6 +31,7 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) Crypto *crypto;
 @property (readonly, nonnull) TutaoFileChooser *fileChooser;
 @property (readonly, nonnull) FileUtil *fileUtil;
+@property (readonly, nonnull) TUTContactsSource *contactsSource;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *webviewReadyCallbacks;
 @property (readonly) BOOL webViewIsready;
 @property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
@@ -41,6 +48,8 @@ typedef void(^VoidCallback)(void);
 		_crypto = [Crypto new];
 		_fileChooser = [[TutaoFileChooser alloc] initWithViewController:self];
 		_fileUtil = [[FileUtil alloc] initWithViewController:self];
+		_contactsSource = [TUTContactsSource new];
+
 		_webViewIsready = NO;
 	}
 	return self;
@@ -142,8 +151,12 @@ typedef void(^VoidCallback)(void);
 		}];
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
 		sendResponseBlock(_pushToken ? _pushToken : NSNull.null, nil);
+	} else if ([@"findSuggestions" isEqualToString:type]) {
+		[_contactsSource searchForContactsUsingQuery:arguments[0]
+										  completion:sendResponseBlock];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
+		NSLog(@"%@", message);
 		let error = [NSError errorWithDomain:@"tutanota" code:5 userInfo:@{@"message":message}];
 		[self sendErrorResponseWithId:requestId value:error];
 	}
