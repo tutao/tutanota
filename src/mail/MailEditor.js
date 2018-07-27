@@ -766,7 +766,7 @@ export class MailEditor {
 			.catch(TooManyRequestsError, e => {
 				Dialog.error("recipientNotResolvedTooManyRequests_msg")
 			})
-		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.button))
+		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.button), mailAddress)
 		return bubbleWrapper.bubble
 	}
 

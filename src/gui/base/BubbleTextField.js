@@ -166,16 +166,11 @@ export class BubbleTextField<T> {
 	}
 
 	handleBackspace() {
-		let selected = this.bubbles.find(b => b.button.isSelected())
-		if (selected) {
-			let selectedIndex = this.bubbles.indexOf((selected: any))
-			this.deleteSelectedBubbles()
-			if (selectedIndex > 0) {
-				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
-			}
-			return false
-		} else if (this.textField._domInput.selectionStart === 0 && this.textField._domInput.selectionEnd === 0) {
-			this.selectLastBubble()
+		if (this.bubbles.length > 0 && this.textField._domInput.selectionStart === 0
+			&& this.textField._domInput.selectionEnd === 0) {
+			const bubble = this.bubbles.pop()
+			this.bubbleHandler.bubbleDeleted(bubble)
+			this.textField.value(bubble.text)
 			return false
 		}
 		return true
@@ -282,9 +277,11 @@ export class BubbleTextField<T> {
 export class Bubble<T> {
 	entity: T;
 	button: Button;
+	text: string;
 
-	constructor(entity: T, button: Button) {
+	constructor(entity: T, button: Button, text: string) {
 		this.entity = entity
 		this.button = button
+		this.text = text
 	}
 }
