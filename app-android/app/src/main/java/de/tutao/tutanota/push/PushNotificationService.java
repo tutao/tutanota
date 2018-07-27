@@ -16,17 +16,13 @@ import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
-import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -63,13 +59,13 @@ import de.tutao.tutanota.Utils;
 public final class PushNotificationService extends JobService {
 
     protected static final String TAG = "PushNotificationService";
-    private static final int ONGOING_NOTIFICATION_ID = 342;
     private static final String SSE_INFO_EXTRA = "sseInfo";
     public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
     public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
-    public static final String SERVICE_NOTIFICATION_CHANNEL_ID = "service";
     public static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
     public static final long[] VIBRATION_PATTERN = {100, 200, 100, 200};
+    public static final String NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email";
+    public static final int SUMMARY_NOTIFICATION_ID = 45;
 
     private final LooperThread looperThread = new LooperThread(this::connect);
     private final SseStorage sseStorage = new SseStorage(this);
@@ -101,10 +97,14 @@ public final class PushNotificationService extends JobService {
     }
 
 
-    public static Intent notificationDismissedIntent(Context context, String emailAddress, String sender) {
+    public static Intent notificationDismissedIntent(Context context,
+                                                     ArrayList<String> emailAddresses,
+                                                     String sender,
+                                                     boolean isSummary) {
         Intent deleteIntent = new Intent(context, PushNotificationService.class);
-        deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddress);
+        deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses);
         deleteIntent.putExtra("sender", sender);
+        deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary);
         return deleteIntent;
     }
 
@@ -134,38 +134,6 @@ public final class PushNotificationService extends JobService {
         if (atLeastOreo()) {
             createNotificationChannels();
         }
-//        prepareNotifications();
-    }
-
-    private void prepareNotifications() {
-        Notification.Builder ongoingNotificationBuilder;
-        if (atLeastOreo()) {
-            ongoingNotificationBuilder = new Notification.Builder(this,
-                    SERVICE_NOTIFICATION_CHANNEL_ID);
-        } else {
-            ongoingNotificationBuilder = new Notification.Builder(this)
-                    .setPriority(Notification.PRIORITY_MIN);
-        }
-
-        Intent serviceNotificationIntent;
-        if (atLeastOreo()) {
-            serviceNotificationIntent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
-                    .putExtra(Settings.EXTRA_CHANNEL_ID, SERVICE_NOTIFICATION_CHANNEL_ID);
-        } else {
-            // TODO make support page/screen
-            serviceNotificationIntent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://tutanota.uservoice.com/knowledgebase"));
-        }
-
-        Notification ongoingNotification = ongoingNotificationBuilder
-                .setContentTitle("Tutanota notification service")
-                .setContentText("Tap me to learn how to hide me")
-                .setSmallIcon(R.drawable.ic_status)
-                .setContentIntent(PendingIntent.getActivity(this, 1, serviceNotificationIntent, 0, null))
-                .build();
-
-        startForeground(ONGOING_NOTIFICATION_ID, ongoingNotification);
     }
 
     private boolean atLeastOreo() {
@@ -174,15 +142,6 @@ public final class PushNotificationService extends JobService {
 
     @TargetApi(Build.VERSION_CODES.O)
     private void createNotificationChannels() {
-//        NotificationChannel serviceChannel = new NotificationChannel(
-//                SERVICE_NOTIFICATION_CHANNEL_ID, "Service notification",
-//                NotificationManager.IMPORTANCE_LOW);
-//        serviceChannel.setShowBadge(false);
-//        serviceChannel.enableVibration(false);
-//        serviceChannel.enableLights(false);
-//        serviceChannel.setDescription("Set my importance to Low to see me less");
-//        getNotificationManager().createNotificationChannel(serviceChannel);
-
         NotificationChannel notificationsChannel = new NotificationChannel(
                 EMAIL_NOTIFICATION_CHANNEL_ID, getString(R.string.notificationChannelEmail_label),
                 NotificationManager.IMPORTANCE_DEFAULT);
@@ -196,6 +155,7 @@ public final class PushNotificationService extends JobService {
         notificationsChannel.setVibrationPattern(VIBRATION_PATTERN);
         notificationsChannel.enableLights(true);
         notificationsChannel.setLightColor(Color.RED);
+        notificationsChannel.setShowBadge(true);
         getNotificationManager().createNotificationChannel(notificationsChannel);
     }
 
@@ -205,9 +165,17 @@ public final class PushNotificationService extends JobService {
                 + (intent == null ? null : intent.getStringExtra("sender")));
 
         if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-            String dissmessAddr = intent.getStringExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
-            if (dissmessAddr != null) {
-                aliasNotification.remove(dissmessAddr);
+            ArrayList<String> dissmissAddrs =
+                    intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
+            if (intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)) {
+                // If the user clicked on summary directly, reset counter for all notifications
+                aliasNotification.clear();
+            } else {
+                if (dissmissAddrs != null) {
+                    for (String addr : dissmissAddrs) {
+                        aliasNotification.remove(addr);
+                    }
+                }
             }
             return START_STICKY;
         }
@@ -321,9 +289,6 @@ public final class PushNotificationService extends JobService {
                 List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
                 for (int i = 0; i < notificationInfos.size(); i++) {
                     PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
-                    Intent deleteIntent = new Intent(this, PushNotificationService.class);
-                    int notificationId = Math.abs(notificationInfo.getAddress().hashCode());
-                    deleteIntent.putExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, notificationInfo.getAddress());
 
                     Integer counterPerAlias =
                             aliasNotification.get(notificationInfo.getAddress());
@@ -335,36 +300,27 @@ public final class PushNotificationService extends JobService {
                     aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
 
                     Log.d(TAG, "Event: " + event);
-
-                    Intent openMailboxIntent = new Intent(this, MainActivity.class);
-                    openMailboxIntent.setAction(MainActivity.OPEN_USER_MAILBOX_ACTION);
-                    openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY, notificationInfo.getAddress());
-                    openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, notificationInfo.getUserId());
+                    int notificationId = notificationId(notificationInfo);
 
 
                     Notification.Builder notificationBuilder;
                     if (atLeastOreo()) {
-                         notificationBuilder =
-                                 new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID);
+                        notificationBuilder =
+                                new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID);
                     } else {
-                         notificationBuilder = new Notification.Builder(this)
-                                 .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
+                        notificationBuilder = new Notification.Builder(this)
+                                .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
                     }
+                    ArrayList<String> addresses = new ArrayList<>();
+                    addresses.add(notificationInfo.getAddress());
                     notificationBuilder.setContentTitle(pushMessage.getTitle())
                             .setColor(getResources().getColor(R.color.colorPrimary))
-                            .setContentText(notificationInfo.getAddress())
+                            .setContentText(notificationContent(notificationInfo.getAddress()))
                             .setNumber(counterPerAlias)
                             .setSmallIcon(R.drawable.ic_status)
-                            .setDeleteIntent(PendingIntent.getService(
-                                    this.getApplicationContext(),
-                                    notificationId,
-                                    deleteIntent,
-                                    0))
-                            .setContentIntent(PendingIntent.getActivity(
-                                    this,
-                                    notificationId,
-                                    openMailboxIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT))
+                            .setDeleteIntent(this.intentForDelete(addresses))
+                            .setContentIntent(intentOpenMailbox(notificationInfo, false))
+                            .setGroup(NOTIFICATION_EMAIL_GROUP)
                             .setAutoCancel(true);
 
                     if (i == 0) {
@@ -373,6 +329,8 @@ public final class PushNotificationService extends JobService {
                     }
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
+
+                    sendSummaryNotification(notificationManager, pushMessage, notificationInfo);
 
                     Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
                     confirmationThreadPool.execute(
@@ -410,6 +368,79 @@ public final class PushNotificationService extends JobService {
             }
             httpsURLConnectionRef.set(null);
         }
+    }
+
+    private int notificationId(PushMessage.NotificationInfo notificationInfo) {
+        return Math.abs(notificationInfo.getAddress().hashCode());
+    }
+
+    private void sendSummaryNotification(NotificationManager notificationManager,
+                                         PushMessage pushMessage,
+                                         PushMessage.NotificationInfo notificationInfo) {
+        int summaryCounter = 0;
+        ArrayList<String> addresses = new ArrayList<>();
+        Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
+
+        for (Map.Entry<String, Integer> entry : aliasNotification.entrySet()) {
+            if (entry.getValue() > 0) {
+                summaryCounter += entry.getValue();
+                inboxStyle.addLine(notificationContent(entry.getKey()));
+                addresses.add(entry.getKey());
+            }
+        }
+
+        Notification.Builder builder;
+        if (atLeastOreo()) {
+            builder = new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
+                    .setBadgeIconType(Notification.BADGE_ICON_SMALL);
+        } else {
+            builder = new Notification.Builder(this);
+        }
+
+        Notification notification = builder.setContentTitle(pushMessage.getTitle())
+                .setContentText(notificationContent(notificationInfo.getAddress()))
+                .setSmallIcon(R.drawable.ic_status)
+                .setGroup(NOTIFICATION_EMAIL_GROUP)
+                .setGroupSummary(true)
+                .setColor(getResources().getColor(R.color.colorPrimary))
+                .setNumber(summaryCounter)
+                .setStyle(inboxStyle)
+                .setContentIntent(intentOpenMailbox(notificationInfo, true))
+                .setDeleteIntent(intentForDelete(addresses))
+                .setAutoCancel(true)
+                .build();
+        notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
+    }
+
+    private PendingIntent intentForDelete(ArrayList<String> addresses) {
+        Intent deleteIntent = new Intent(this, PushNotificationService.class);
+        deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses);
+        return PendingIntent.getService(
+                this.getApplicationContext(),
+                1,
+                deleteIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private PendingIntent intentOpenMailbox(PushMessage.NotificationInfo notificationInfo,
+                                            boolean isSummary) {
+        Intent openMailboxIntent = new Intent(this, MainActivity.class);
+        openMailboxIntent.setAction(MainActivity.OPEN_USER_MAILBOX_ACTION);
+        openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
+                notificationInfo.getAddress());
+        openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
+                notificationInfo.getUserId());
+        openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary);
+        return PendingIntent.getActivity(
+                this,
+                notificationId(notificationInfo),
+                openMailboxIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @NonNull
+    private String notificationContent(String address) {
+        return aliasNotification.get(address) + " " + address;
     }
 
     private NotificationManager getNotificationManager() {

@@ -56,6 +56,7 @@ public class MainActivity extends Activity {
     public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
     public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
     public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
+    public static final String IS_SUMMARY_EXTRA = "isSummary";
 
     private WebView webView;
     public Native nativeImpl = new Native(this);
@@ -393,11 +394,15 @@ public class MainActivity extends Activity {
     public void openMailbox(@NonNull Intent intent) {
         String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
         String address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY);
+        boolean isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false);
         if (userId == null || address == null) {
             return;
         }
         nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
-        startService(PushNotificationService.notificationDismissedIntent(this, address, "MainActivity#openMailbox"));
+        ArrayList<String> addressess = new ArrayList<>(1);
+        addressess.add(address);
+        startService(PushNotificationService.notificationDismissedIntent(this, addressess,
+                "MainActivity#openMailbox", isSummary));
     }
 
     @Override

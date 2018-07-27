@@ -20,11 +20,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
@@ -262,12 +263,20 @@ public final class Native {
     private void cancelNotifications(JSONArray addressesArray) throws JSONException {
         NotificationManager notificationManager =
                 (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+        Objects.requireNonNull(notificationManager);
+
+        ArrayList<String> emailAddesses = new ArrayList<>(addressesArray.length());
         for (int i = 0; i < addressesArray.length(); i++) {
-            //noinspection ConstantConditions
             notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
-            activity.startService(PushNotificationService.notificationDismissedIntent(activity,
-                    addressesArray.getString(i), "Native"));
+            emailAddesses.add(addressesArray.getString(i));
         }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            // Before N summary consumes individual notificaitons and we can only cancel the whole
+            // group.
+            notificationManager.cancel(PushNotificationService.SUMMARY_NOTIFICATION_ID);
+        }
+        activity.startService(PushNotificationService.notificationDismissedIntent(activity,
+                emailAddesses, "Native", false));
     }
 
     private boolean openLink(@Nullable String uri) {
