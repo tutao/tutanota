@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.MailTo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -155,6 +156,7 @@ public class MainActivity extends Activity {
             switch (intent.getAction()) {
                 case Intent.ACTION_SEND:
                 case Intent.ACTION_SEND_MULTIPLE:
+                case Intent.ACTION_VIEW:
                     share(intent);
                     break;
                 case MainActivity.OPEN_USER_MAILBOX_ACTION:
@@ -320,8 +322,22 @@ public class MainActivity extends Activity {
             files = new JSONArray();
         }
 
+        final String mailToUrlString;
+        if (intent.getData() != null && MailTo.isMailTo(intent.getDataString())) {
+            mailToUrlString = intent.getDataString();
+        } else {
+            mailToUrlString = null;
+        }
+
+        JSONArray jsonAddresses = null;
+        if (addresses != null) {
+            jsonAddresses = new JSONArray();
+            for (String address : addresses) {
+                jsonAddresses.put(address);
+            }
+        }
         nativeImpl.sendRequest(JsRequest.createMailEditor,
-                new Object[]{files, text, addresses, subject});
+                new Object[]{files, text, jsonAddresses, subject, mailToUrlString});
     }
 
     @NonNull

@@ -40,28 +40,24 @@ class NativeWrapper {
 						_asyncImport('src/mail/MailUtils.js'),
 						_asyncImport('src/api/main/LoginController.js')
 					]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
-						const [filesUris, text, addresses, subject] = msg.args
-						return logins.waitForUserLogin().then(() => Promise.all(filesUris
-							.map(uri => Promise.join(getName(uri), getMimeType(uri), getSize(uri),
-								(name, mimeType, size) => {
-									return {
-										_type: "FileReference",
-										name,
-										mimeType,
-										size,
-										location: uri
-									}
-								}))))
+						const [filesUris, text, addresses, subject, mailToUrl] = msg.args
+						return logins.waitForUserLogin()
+						             .then(() => mailToUrl ? [] : this._getFilesData(filesUris))
 						             .then(files => {
 							             const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-							             const address = addresses ? addresses.shift() : null
-							             const finalSubject = subject || files.length > 0 ? files[0].name : ""
-							             return editor.initWithTemplate(null, address, finalSubject,
-								             (text || "") + mailUtilsModule.getEmailSignature(), null)
-							                          .then(() => {
-								                          editor._attachFiles(files)
-								                          editor.show()
-							                          })
+							             let editorInit
+							             if (mailToUrl) {
+								             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
+							             } else {
+								             const address = addresses ? addresses.shift() : null
+								             const finalSubject = subject || (files.length > 0 ? files[0].name : "")
+								             editorInit = editor.initWithTemplate(null, address, finalSubject,
+									             (text || "") + mailUtilsModule.getEmailSignature(), null)
+							             }
+							             return editorInit.then(() => {
+								             editor._attachFiles(files)
+								             editor.show()
+							             })
 						             })
 					})
 				},
@@ -87,6 +83,19 @@ class NativeWrapper {
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
 		}
+	}
+
+	_getFilesData(filesUris: string[]) {
+		return Promise.all(filesUris.map(uri =>
+			Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
+				return {
+					_type: "FileReference",
+					name,
+					mimeType,
+					size,
+					location: uri
+				}
+			})));
 	}
 
 	invokeNative(msg: Request): Promise<any> {
