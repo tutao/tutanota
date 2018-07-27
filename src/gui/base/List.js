@@ -1,12 +1,12 @@
 // @flow
 import m from "mithril"
-import {log, timer, Cat} from "../../misc/Log"
+import {Cat, log, timer} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import {GENERATED_MAX_ID, firstBiggerThanSecond, getLetId} from "../../api/common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUtils"
+import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import MessageBox from "./MessageBox"
@@ -68,6 +68,8 @@ export class List<T, R:VirtualRow<T>> {
 
 	_emptyMessageBox: MessageBox;
 	_renderCallback: ?{type: 'timeout' | 'frame', id: number}
+	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
+	_mobileMultiSelectionActive: boolean = false;
 
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
@@ -230,6 +232,29 @@ export class List<T, R:VirtualRow<T>> {
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
 		virtualRow.domElement = domElement
 		domElement.onclick = (e) => this._elementClicked(virtualRow.entity, e)
+		let timeoutId: ?number
+		let touchStartCoords: ?{x: number, y: number}
+		const dom: any = domElement
+		dom.ontouchstart = (e) => {
+			if (this._config.multiSelectionAllowed) {
+				// Activate multi selection after pause
+				timeoutId = setTimeout(() => {
+					this._mobileMultiSelectionActive = true;
+					this._elementClicked(virtualRow.entity, e)
+				}, 400)
+				touchStartCoords = {x: e.touches[0].pageX, y: e.touches[0].pageY}
+			}
+		}
+		dom.ontouchend = dom.ontouchcancel = () => clearTimeout(timeoutId)
+		dom.ontouchmove = (e) => {
+			// If the user moved the finger too much by any axis, don't count it as a long press
+			const maxDistance = 30
+			const touch = e.touches[0]
+			if (touchStartCoords
+				&& (touch.pageX - touchStartCoords.x > maxDistance || touch.pageY - touchStartCoords.y > maxDistance)) {
+				clearTimeout(timeoutId)
+			}
+		}
 	}
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
@@ -249,12 +274,10 @@ export class List<T, R:VirtualRow<T>> {
 	 * If neither ctrl nor shift are pressed only the clicked item is selected.
 	 */
 	_elementClicked(clickedEntity: T, event: MouseEvent) {
-		let mobileMultiSelectionActive = false //TODO set when mobile multi selection is implemented
-
 		let selectionChanged = false
 		let multiSelect = false
-		if (this._config.multiSelectionAllowed && (mobileMultiSelectionActive
-			|| (client.isMacOS ? event.metaKey : event.ctrlKey))) {
+		if (this._config.multiSelectionAllowed
+			&& (this._mobileMultiSelectionActive || (client.isMacOS ? event.metaKey : event.ctrlKey))) {
 			selectionChanged = true
 			multiSelect = true
 			if (this._selectedEntities.indexOf(clickedEntity) !== -1) {
@@ -305,6 +328,9 @@ export class List<T, R:VirtualRow<T>> {
 			this._selectedEntities.sort(this._config.sortCompare)
 			this._reposition()
 		}
+		if (this._selectedEntities.length === 0) {
+			this._mobileMultiSelectionActive = false;
+		}
 		this._config.elementSelected(this.getSelectedEntities(), true, selectionChanged, multiSelect)
 	}
 
@@ -322,6 +348,9 @@ export class List<T, R:VirtualRow<T>> {
 			if (selectionChanged) {
 				this._selectedEntities = [entity];
 				this._reposition()
+			}
+			if (this._selectedEntities.length === 0) {
+				this._mobileMultiSelectionActive = false;
 			}
 			this._config.elementSelected(this.getSelectedEntities(), false, selectionChanged, false)
 		}
@@ -382,6 +411,7 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	selectNone() {
+		this._mobileMultiSelectionActive = false;
 		if (this._selectedEntities.length > 0) {
 			this._selectedEntities = []
 			this._reposition()
@@ -894,6 +924,10 @@ export class List<T, R:VirtualRow<T>> {
 				this._loadMoreIfNecessary()
 			}
 		})
+	}
+
+	isMobileMultiSelectionActionActive(): boolean {
+		return this._mobileMultiSelectionActive;
 	}
 }
 

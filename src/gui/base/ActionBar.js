@@ -10,16 +10,13 @@ assertMainOrNode()
  */
 export class ActionBar {
 	_buttons: Button[];
-	_dom: HTMLElement;
 	view: Function;
 
 	constructor() {
 		this._buttons = []
 
 		this.view = (): VirtualElement => {
-			return m(".action-bar.flex-end.mr-negative-s", {
-				oncreate: (vnode) => this._dom = vnode.dom
-			}, this._buttons.filter(b => b.isVisible()).map(b => m(b)))
+			return m(".action-bar.flex-end.items-center", this._buttons.filter(b => b.isVisible()).map(b => m(b)))
 		}
 	}
 

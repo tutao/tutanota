@@ -146,3 +146,17 @@ export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
 	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
 	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
 }
+
+export function lazyMemoized<T>(source: () => T): () => T {
+	// Using separate variable for tracking because value can be undefined and we want to the function call only once
+	let cached = false
+	let value
+	return () => {
+		if (cached) {
+			return value
+		} else {
+			cached = true
+			return value = source()
+		}
+	}
+}

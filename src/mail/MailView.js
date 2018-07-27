@@ -1,23 +1,23 @@
 // @flow
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
-import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
+import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/base/Button"
-import {NavButton, isSelectedPrefix} from "../gui/base/NavButton"
+import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {isSelectedPrefix, NavButton} from "../gui/base/NavButton"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {update, serviceRequestVoid, load} from "../api/main/Entity"
+import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import type {OperationTypeEnum, MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, FeatureType, MailFolderType} from "../api/common/TutanotaConstants"
+import type {MailFolderTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {FeatureType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
-import {isSameId, TypeRef, HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {neverNull} from "../api/common/utils/Utils"
+import {lazyMemoized, neverNull} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {MailEditor} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -28,25 +28,26 @@ import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {opacity, animations} from "../gui/animation/Animations"
+import {animations, opacity} from "../gui/animation/Animations"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	getFolderName,
+	getFolder,
 	getFolderIcon,
-	isFinalDelete,
-	getMailboxName,
+	getFolderName,
 	getInboxFolder,
-	getSortedSystemFolders,
+	getMailboxName,
 	getSortedCustomFolders,
-	getFolder
+	getSortedSystemFolders,
+	isFinalDelete
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
+import {ActionBar} from "../gui/base/ActionBar";
 
 assertMainOrNode()
 
@@ -74,6 +75,8 @@ export class MailView {
 	onbeforeremove: Function;
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
 	_folderToUrl: {[folderId: Id]: string};
+	_multiMailViewer: MultiMailViewer;
+	_actionBar: lazy<ActionBar>
 
 	constructor() {
 		this.mailViewer = null
@@ -104,9 +107,10 @@ export class MailView {
 			return this.selectedFolder ? getFolderName(this.selectedFolder) : ""
 		})
 
-		let multiMailViewer = new MultiMailViewer(this)
+		this._multiMailViewer = new MultiMailViewer(this)
+		this._actionBar = lazyMemoized(() => this._multiMailViewer.actionBar)
 		this.mailColumn = new ViewColumn({
-			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(multiMailViewer))
+			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
 		}, ColumnType.Background, 600, 2400, () => {
 			let selectedEntities = this.mailList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
@@ -625,5 +629,29 @@ export class MailView {
 				this.mailHeaderDialog.show()
 			}
 		}
+	}
+
+	/**
+	 * Used by Header to figure out when content needs to be injected there
+	 * @returns {Children} Mithril children or null
+	 */
+	headerView(): Children {
+		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.mailList && this.mailList.list
+		&& this.mailList.list.isMobileMultiSelectionActionActive() ? this._actionBarVnode() : null
+	}
+
+	_actionBarVnode(): Children {
+		const selectNone = () => this.mailList.list.selectNone()
+		const cancelButton = new Button("cancel_action", selectNone, () => Icons.Cancel)
+
+		return m(".flex.items-center.justify-between.pl-s.pr-s", {
+			style: {
+				"height": "100%"
+			}
+		}, [
+			m(cancelButton),
+			m(".ml-s.b", this.mailList.list.getSelectedEntities().length),
+			m(this._actionBar())
+		])
 	}
 }

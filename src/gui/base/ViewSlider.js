@@ -225,6 +225,10 @@ export class ViewSlider {
 		window.requestAnimationFrame(() => m.redraw())
 	}
 
+	getVisibleBackgroundColumns(): ViewColumn[] {
+		return this._visibleBackgroundColumns.slice()
+	}
+
 	/**
 	 * Returns the next column which should become visible
 	 * @param visibleColumns All columns that will definitely be visible

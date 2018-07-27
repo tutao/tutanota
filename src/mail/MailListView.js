@@ -7,11 +7,11 @@ import {sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {load, loadRange} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {ReplyType, MailFolderType} from "../api/common/TutanotaConstants"
+import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getSenderOrRecipientHeading, getInboxFolder, getArchiveFolder, getTrashFolder} from "./MailUtils"
+import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -113,7 +113,6 @@ export class MailListView {
 			return false
 		}
 	}
-
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
 		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {

@@ -85,7 +85,9 @@ class Header {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			return m(".header-nav.overflow-hidden", [
+			const injectedView = this._currentView && this._currentView.headerView instanceof Function ?
+				this._currentView.headerView() : null
+			return m(".header-nav.overflow-hidden", injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),

@@ -225,8 +225,7 @@ export class MailViewer {
 				}
 				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
 					() => Icons.Download).setType(ButtonType.Dropdown)
-				                         .setIsVisibleHandler(() => env.mode
-					                         !== Mode.App
+				                         .setIsVisibleHandler(() => env.mode !== Mode.App
 					                         && !logins.isEnabled(FeatureType.DisableMailExport)))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
