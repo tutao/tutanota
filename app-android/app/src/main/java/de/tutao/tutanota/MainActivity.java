@@ -95,6 +95,8 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (url.startsWith(appUrl)) {
+                    // Set JS interface on page reload
+                    nativeImpl.setup();
                     return false;
                 }
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
