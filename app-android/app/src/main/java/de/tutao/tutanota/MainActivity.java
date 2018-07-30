@@ -28,6 +28,7 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -308,8 +309,13 @@ public class MainActivity extends Activity {
             if (type != null && type.startsWith("text")) {
                 if (clipData != null && clipData.getItemCount() > 0) {
                     text = clipData.getItemAt(0).getHtmlText();
-                    if (text == null) {
+                    if (text == null && clipData.getItemAt(0).getText() != null) {
                         text = clipData.getItemAt(0).getText().toString();
+                    } else {
+                        // e.g. text/x-vcard
+                        Toast.makeText(this, "We don't support this kind of data yet",
+                                Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "Could not read text clipData with type " + type);
                     }
                 } else {
                     text = intent.getStringExtra(Intent.EXTRA_TEXT);
