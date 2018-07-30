@@ -733,6 +733,9 @@ module.exports = {
 		"searchEmails_placeholder": "Поиск писем",
 		"searchContacts_placeholder": "Поиск контактов",
 		"searchUsers_placeholder": "Поиск пользователей",
-		"switchSearchInMenu_label": "Вы можете поменять тип поиска в меню"
+		"switchSearchInMenu_label": "Вы можете поменять тип поиска в меню",
+		"enableForThisDevice_action": "Включить для этого устройства",
+		"disableForThisDevice_action": "Выключить для этого устройства",
+		"notificationsDisabled_label": "Выключены"
 	}
 }

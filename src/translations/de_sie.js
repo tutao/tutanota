@@ -1078,6 +1078,9 @@ module.exports = {
 		"searchEmails_placeholder": "Suche nach E-Mails",
 		"searchContacts_placeholder": "Suche nach Kontakten",
 		"searchUsers_placeholder": "Suche nach Benutzern",
-		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen"
+		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen",
+		"enableForThisDevice_action": "Für dieses Gerät aktivieren",
+		"disableForThisDevice_action": "Für dieses Gerät deaktivieren",
+		"notificationsDisabled_label": "Deaktiviert"
 	}
 }
