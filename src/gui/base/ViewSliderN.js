@@ -75,7 +75,7 @@ class _ViewSlider {
 						left: column.offset + 'px',
 						transform: column.columnType === ColumnType.Foreground ?
 							'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
-						'z-index': this.columnType === ColumnType.Foreground ? "3" : "1"
+						'z-index': column.columnType === ColumnType.Foreground ? "3" : "1"
 					}
 				},
 				m(column.component))

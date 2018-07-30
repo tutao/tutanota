@@ -96,7 +96,7 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 	                   .show()
 }
 
-function getValidColorValue(field: TextField): ?String {
+function getValidColorValue(field: TextField): ?string {
 	let colorValue = field.value().trim()
 	if (colorValue && COLOR_FORMAT.test(colorValue)) {
 		return colorValue

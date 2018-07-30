@@ -132,11 +132,12 @@ export class FileController {
 			if (saveFunction) {
 				let blob = new Blob([dataFile.data], {"type": dataFile.mimeType})
 				try {
+					const navAny = (navigator: any)
 					// in IE the save function must be called directly, otherwise an error is thrown
-					if (navigator.msSaveOrOpenBlob) {
-						(navigator: any).msSaveOrOpenBlob(blob, dataFile.name)
-					} else if (navigator.msSaveBlob) {
-						(navigator: any).msSaveBlob(blob, dataFile.name)
+					if (navAny.msSaveOrOpenBlob) {
+						navAny.msSaveOrOpenBlob(blob, dataFile.name)
+					} else if (navAny.msSaveBlob) {
+						navAny.msSaveBlob(blob, dataFile.name)
 					} else {
 						saveFunction(blob, dataFile.name)
 					}

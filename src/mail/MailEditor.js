@@ -694,7 +694,7 @@ export class MailEditor {
 		}
 	}
 
-	_updateContacts(resolvedRecipients: RecipientInfo[]) {
+	_updateContacts(resolvedRecipients: RecipientInfo[]): Promise<any> {
 		return Promise.all(resolvedRecipients.map(r => {
 			if (r.contact) {
 				let recipientContact = neverNull(r.contact)

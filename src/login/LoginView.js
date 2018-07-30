@@ -159,7 +159,7 @@ export class LoginView {
 		])
 	}
 
-	credentialsSelector() {
+	credentialsSelector(): Children {
 		return this._visibleCredentials.map(c => {
 			const credentialButtons = [];
 			credentialButtons.push(m(new Button(() => c.mailAddress, () => this._viewController.then(

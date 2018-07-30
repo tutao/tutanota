@@ -23,7 +23,7 @@ export class BuyOptionBox {
 		this._actionId = actionTextId
 		this._button = new Button(actionTextId, actionClickHandler).setType(ButtonType.Login)
 		this.value = stream(lang.get("emptyString_msg"))
-		this._helpLabel = stream(lang.get("emptyString_msg"))
+		this._helpLabel = lang.get("emptyString_msg")
 		this._features = features
 		this.selected = false
 

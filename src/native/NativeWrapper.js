@@ -90,7 +90,7 @@ class NativeWrapper {
 		}
 	}
 
-	_getFilesData(filesUris: string[]) {
+	_getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 		return Promise.all(filesUris.map(uri =>
 			Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
 				return {

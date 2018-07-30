@@ -135,7 +135,7 @@ export class BubbleTextField<T> {
 			case 40:
 				return this.handleDownArrow()
 			case 65:
-				if (key.ctrlKey) return this.selectAll(); else break
+				if (key.ctrl) return this.selectAll(); else break
 			case 17: // do not react on ctrl key
 				return true
 		}

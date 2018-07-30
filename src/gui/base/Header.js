@@ -87,8 +87,9 @@ class Header {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			const injectedView = this._currentView && this._currentView.headerView instanceof Function ?
-				this._currentView.headerView() : null
+			const currentView: ?any = this._currentView
+			const injectedView = currentView && currentView.headerView instanceof Function ?
+				currentView.headerView() : null
 			return m(".header-nav.overflow-hidden", [this._connectionIndicator()].concat(injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
@@ -115,7 +116,6 @@ class Header {
 				})
 			})
 	}
-
 
 	_searchBarVisible(): boolean {
 		let route = m.route.get()
@@ -199,7 +199,9 @@ class Header {
 		})
 	}
 
-	_createMailEditor(): Promise<MailEditor> {
+	_createMailEditor()
+		:
+		Promise<MailEditor> {
 		return Promise.join(
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
@@ -211,7 +213,9 @@ class Header {
 		)
 	}
 
-	_getCenterContent(): Vnode<mixed> | null {
+	_getCenterContent()
+		:
+		Vnode<mixed> | null {
 		const viewSlider = this._getViewSlider()
 		const header = (title: string) => m(".flex-center.header-middle.items-center.text-ellipsis.b", title)
 		if (this._searchBarVisible()) {
@@ -227,7 +231,9 @@ class Header {
 		}
 	}
 
-	_searchBar(): Vnode<any> {
+	_searchBar()
+		:
+		Vnode<any> {
 		let placeholder;
 		if (m.route.get().startsWith("/search/mail")) {
 			placeholder = lang.get("searchEmails_placeholder")
@@ -266,14 +272,21 @@ class Header {
 		}
 	}
 
-	updateCurrentView(currentView: Component) {
+	updateCurrentView(currentView
+		                  :
+		                  Component
+	) {
 		this._currentView = currentView
 	}
 
-	_getViewSlider(): ?IViewSlider {
-		if (this._currentView) {
+	_getViewSlider()
+		:
+	? IViewSlider {
+		if (this._currentView
+		) {
 			return (this._currentView: any).viewSlider
-		} else {
+		}
+		else {
 			return null
 		}
 	}

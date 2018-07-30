@@ -457,7 +457,7 @@ export class MailView {
 		}
 	}
 
-	createFolderButtons(folders: MailFolder[]) {
+	createFolderButtons(folders: MailFolder[]): NavButton[] {
 		return folders.map(folder => {
 			this._folderToUrl[folder._id[1]] = `/mail/${folder.mails}`
 			let button = new NavButton(() => getFolderName(folder),

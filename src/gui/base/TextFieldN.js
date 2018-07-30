@@ -108,14 +108,14 @@ export class _TextField {
 
 	_getInputField(a: TextFieldAttrs): VirtualElement {
 		if (a.disabled) {
-			return m(".text-break" + (this._alignRight ? ".right" : ""), {
+			return m(".text-break", {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
 				}
 			}, a.value())
 		} else {
-			return m("input.input" + (this._alignRight ? ".right" : ""), {
+			return m("input.input", {
 				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {

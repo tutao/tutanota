@@ -32,7 +32,7 @@ const inputMarginTop = size.font_size_small + size.hpad_small + 3
 export class TextField {
 	label: string | lazy<string>; // The labelId visible on the button. The labelId is not shown, if it is not provided.
 	helpLabel: ?lazy<string>; // returns the translated and formatted help labelId
-	value: stream<string>;
+	value: Stream<string>;
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
 	_baseLabel: boolean;

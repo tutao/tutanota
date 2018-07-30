@@ -859,6 +859,7 @@ type ContactForm = {
 	participantGroupInfos:IdTuple[];
 	targetGroup:Id;
 	targetGroupInfo:?IdTuple;
+	deleted:boolean;
 }
 
 type ContactFormAccountReturn = {

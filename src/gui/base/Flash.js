@@ -59,8 +59,8 @@ function getComputedOpacity(target: HTMLElement) {
 	let computedValue = 0;
 	if (window.getComputedStyle) {
 		computedValue = Number(window.getComputedStyle(target).opacity)
-	} else if (target.currentStyle) {
-		computedValue = Number((target.currentStyle: any).opacity)
+	} else if ((target: any).currentStyle) {
+		computedValue = Number(((target: any).currentStyle: any).opacity)
 	}
 	return computedValue;
 }

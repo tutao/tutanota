@@ -67,6 +67,7 @@ export type ButtonAttrs = {
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string,
+	type: ButtonTypeEnum
 }
 
 /**
@@ -79,12 +80,13 @@ class _Button {
 		const a = vnode.attrs
 		return m("button.limit-width.noselect", {
 				class: this.getButtonClasses(a).join(' '),
-				style: this._type === ButtonType.Login ? {
+				style: vnode.attrs.type === ButtonType.Login ? {
 					'background-color': theme.content_accent,
 				} : {},
 				onclick: (event: MouseEvent) => this.click(event, a),
-				title: (this._type === ButtonType.Action || this._type === ButtonType.Bubble || this._type
-					=== ButtonType.Dropdown) || this._type === ButtonType.Login ? this.getLabel() : "",
+				title: (vnode.attrs.type === ButtonType.Action || vnode.attrs.type === ButtonType.Bubble
+					|| vnode.attrs.type === ButtonType.Dropdown)
+				|| vnode.attrs.type === ButtonType.Login ? this.getLabel() : "",
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
 					addFlash(vnode.dom)

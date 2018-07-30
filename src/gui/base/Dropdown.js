@@ -71,6 +71,7 @@ export class Dropdown {
 	_createShortcuts() {
 		const next = () => {
 			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			visibleButtons = ((visibleButtons: any): Array<Button | NavButton>)
 			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
 			if (selected) {
 				visibleButtons[mod(visibleButtons.indexOf(selected) + 1, visibleButtons.length)]._domButton.focus()
@@ -80,6 +81,7 @@ export class Dropdown {
 		}
 		const previous = () => {
 			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			visibleButtons = ((visibleButtons: any): Array<Button | NavButton>)
 			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
 			if (selected) {
 				visibleButtons[mod(visibleButtons.indexOf(selected) - 1, visibleButtons.length)]._domButton.focus()
@@ -154,7 +156,7 @@ export class Dropdown {
 			}
 
 			let buttonsHeight = this.children.filter(b => isVisible(b))
-			                        .reduce((previous: number, current: NavButton) =>
+			                        .reduce((previous: number, current) =>
 				                        previous + ((typeof current === "string") ?
 				                        size.button_height : current.getHeight()), 0) + size.vpad_small * 2
 			this._buttonsHeight = buttonsHeight

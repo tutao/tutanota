@@ -30,7 +30,7 @@ export class WhitelabelChildrenListView {
 	view: Function;
 	_listId: LazyLoaded<?Id>;
 	_settingsView: SettingsView;
-	_searchResultStreamDependency: stream;
+	_searchResultStreamDependency: stream<any>;
 	onremove: Function;
 
 	constructor(settingsView: SettingsView) {

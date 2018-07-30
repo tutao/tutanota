@@ -40,8 +40,8 @@ export class GlobalSettingsViewer {
 	_spamRulesTable: Table;
 	_domainsTable: Table;
 	_auditLogTable: Table;
-	_props: stream<CustomerServerProperties>;
-	_customer: stream<Customer>;
+	_props: Stream<CustomerServerProperties>;
+	_customer: Stream<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
 
 	constructor() {
@@ -152,7 +152,7 @@ export class GlobalSettingsViewer {
 				.then(auditLog => {
 					this._auditLogTable.updateEntries(auditLog.map(line => {
 						let showDetails = new Button("showMore_action", () => {
-							let modifiedGroupInfo = stream()
+							let modifiedGroupInfo: Stream<GroupInfo> = stream()
 							let groupInfo = stream()
 							let groupInfoLoadingPromises = []
 							if (line.modifiedGroupInfo) {

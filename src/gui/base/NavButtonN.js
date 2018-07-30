@@ -102,7 +102,7 @@ class _NavButton {
 				addFlash(vnode.dom)
 			},
 			onupdate: (vnode: VirtualElement) => {
-				if (this.href instanceof Function) {
+				if (vnode.attr.href instanceof Function) {
 					if (!this._isExternalUrl(a.href)) {
 						m.route.link(vnode)
 					}

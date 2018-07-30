@@ -128,7 +128,7 @@ export class MailFacade {
 		})
 	}
 
-	_recipientInfoToDraftRecipient(toRecipients: RecipientInfo[]) {
+	_recipientInfoToDraftRecipient(toRecipients: RecipientInfo[]): DraftRecipient[] {
 		return toRecipients.map(ri => {
 			let draftRecipient = createDraftRecipient()
 			draftRecipient.mailAddress = ri.mailAddress

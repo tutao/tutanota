@@ -34,7 +34,7 @@ export class GroupListView {
 	view: Function;
 	_listId: LazyLoaded<Id>;
 	_settingsView: SettingsView;
-	_searchResultStreamDependency: stream;
+	_searchResultStreamDependency: Stream<any>;
 	onremove: Function;
 	_localAdminGroupMemberships: GroupMembership[];
 

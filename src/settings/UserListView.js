@@ -35,7 +35,7 @@ export class UserListView {
 	view: Function;
 	_listId: LazyLoaded<Id>;
 	_settingsView: SettingsView;
-	_searchResultStreamDependency: stream;
+	_searchResultStreamDependency: stream<any>;
 	_adminUserGroupInfoIds: Id[];
 	onremove: Function;
 

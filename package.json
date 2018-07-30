@@ -20,7 +20,7 @@
     "debug": "2.2.0",
     "dompurify": "1.0.2",
     "express": "4.13.3",
-    "flow-bin": "0.55.0",
+    "flow-bin": "0.77.0",
     "fs-extra": "1.0.0",
     "http-server": "0.9.0",
     "mithril": "1.1.4",

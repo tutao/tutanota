@@ -34,7 +34,7 @@ export class SearchListView {
 	list: ?List<SearchResultListEntry, SearchResultListRow>;
 	view: Function;
 	_searchView: SearchView;
-	_resultStreamDependency: ?stream;
+	_resultStreamDependency: ?Stream<any>;
 	oncreate: Function;
 	onremove: Function;
 	_lastType: TypeRef<Mail> | TypeRef<Contact>;

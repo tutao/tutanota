@@ -12,7 +12,7 @@ assertMainOrNodeBoot()
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
-	resizeTimeout: ?number;
+	resizeTimeout: ?TimeoutID;
 	windowCloseConfirmation: boolean;
 	_worker: WorkerClient;
 

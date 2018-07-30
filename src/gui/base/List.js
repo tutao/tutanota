@@ -44,7 +44,7 @@ export class List<T, R:VirtualRow<T>> {
 	lastPosition: number;
 	lastUpdateTime: number;
 	updateLater: boolean; // if set, paint operations are executed later, when the scroll speed becomes slower
-	repositionTimeout: ?number; // the id of the timeout to reposition if updateLater == true and scrolling stops abruptly (e.g. end of list or user touch)
+	repositionTimeout: ?TimeoutID; // the id of the timeout to reposition if updateLater == true and scrolling stops abruptly (e.g. end of list or user touch)
 	_domStatus: {bufferUp: ?HTMLElement, bufferDown: ?HTMLElement, speed: ?HTMLElement, scrollDiff: ?HTMLElement, timeDiff: ?HTMLElement};
 
 	_visibleElementsHeight: number;
@@ -67,7 +67,7 @@ export class List<T, R:VirtualRow<T>> {
 	_idOfEntityToSelectWhenReceived: ?Id;
 
 	_emptyMessageBox: MessageBox;
-	_renderCallback: ?{type: 'timeout' | 'frame', id: number}
+	_renderCallback: ?{type: 'timeout', id: TimeoutID} | ?{type: 'frame', id: AnimationFrameID}
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
 	_mobileMultiSelectionActive: boolean = false;
 
@@ -232,7 +232,7 @@ export class List<T, R:VirtualRow<T>> {
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
 		virtualRow.domElement = domElement
 		domElement.onclick = (e) => this._elementClicked(virtualRow.entity, e)
-		let timeoutId: ?number
+		let timeoutId: ?TimeoutID
 		let touchStartCoords: ?{x: number, y: number}
 		const dom: any = domElement
 		dom.ontouchstart = (e) => {
@@ -249,12 +249,13 @@ export class List<T, R:VirtualRow<T>> {
 				touchStartCoords = {x: e.touches[0].pageX, y: e.touches[0].pageY}
 			}
 		}
-		dom.ontouchend = dom.ontouchcancel = () => clearTimeout(timeoutId)
+		dom.ontouchend = dom.ontouchcancel = () => timeoutId && clearTimeout(timeoutId)
 		dom.ontouchmove = (e) => {
 			// If the user moved the finger too much by any axis, don't count it as a long press
 			const maxDistance = 30
 			const touch = e.touches[0]
 			if (touchStartCoords
+				&& timeoutId
 				&& (Math.abs(touch.pageX - touchStartCoords.x) > maxDistance
 					|| Math.abs(touch.pageY - touchStartCoords.y) > maxDistance)) {
 				clearTimeout(timeoutId)
@@ -620,7 +621,7 @@ export class List<T, R:VirtualRow<T>> {
 			if (scrollDiff < 50 || this.currentPosition === 0 || this.currentPosition + this._visibleElementsHeight
 				=== this._loadedEntities.length * rowHeight) {
 				// completely reposition the elements as scrolling becomes slower or the top / bottom of the list has been reached
-				clearTimeout(this.repositionTimeout)
+				this.repositionTimeout && clearTimeout(this.repositionTimeout)
 				this._reposition()
 			}
 		} else if (status.bufferDown <= 5 && (this.currentPosition + this._visibleElementsHeight)
