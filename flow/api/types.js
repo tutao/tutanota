@@ -212,7 +212,8 @@ type Credentials = {
 	mailAddress:string,
 	encryptedPassword: ?Base64, // only set for persistent sessions
 	accessToken: Base64Url,
-	userId: Id
+	userId: Id,
+	pushNotificationsEnabled: boolean
 }
 
 declare function browser(f: Function): Function

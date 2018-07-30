@@ -306,6 +306,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 					return module.showProgressDialog("loading_msg", buttonPromise)
 				})
 		}
+		const initialButtonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
 		resultPromise.then(buttons => {
 			if (buttons.length === 0) {
 				asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
@@ -317,6 +318,10 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 				let dropdown = new Dropdown(() => buttons, width)
 				if (mainButton._domButton) {
 					let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
+					if (buttonRect.width === 0 && buttonRect.height === 0) {
+						// When new instance is created and the old DOM is detached we may have incorrect positioning
+						buttonRect = initialButtonRect
+					}
 					dropdown.setOrigin(buttonRect)
 					modal.display(dropdown)
 				}

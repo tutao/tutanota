@@ -1,12 +1,12 @@
 //@flow
 import m from "mithril"
-import {Mode} from "../api/Env"
+import {isApp} from "../api/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll} from "../api/main/Entity"
 import {neverNull} from "../api/common/utils/Utils"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {logins} from "../api/main/LoginController"
@@ -21,9 +21,10 @@ import {TextField} from "../gui/base/TextField"
 
 type NotificationRowAttrs = {|
 	name: string,
-	identifier: string,
+	identifier: ?string,
 	current: boolean,
-	removeClicked: () => void
+	removeClicked: () => void,
+	enableClicked: (enable: boolean) => void
 |}
 
 class NotificationRowView implements MComponent<NotificationRowAttrs> {
@@ -32,16 +33,36 @@ class NotificationRowView implements MComponent<NotificationRowAttrs> {
 				m(".flex-space-between.items-center",
 					[
 						m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
-						this._buttonRemove(vnode.attrs.removeClicked)
+						this._buttonRemove(vnode),
 					]),
-				m(".text-break.small.monospace.mt-negative-s", neverNull(vnode.attrs.identifier.match(/.{2}/g))
-					.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
+				this._identifier(vnode)
 			]
 		)
 	}
 
-	_buttonRemove(clickCallback: () => void): Child {
-		return m(new Button("delete_action", clickCallback, () => Icons.Cancel))
+	_identifier(vnode: Vnode<NotificationRowAttrs>): Child {
+		if (vnode.attrs.identifier) {
+			return m(".text-break.small.monospace.mt-negative-s", neverNull(vnode.attrs.identifier.match(/.{2}/g))
+				.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
+		} else {
+			return m(".small.i.mt-negative-s", "Disabled")
+		}
+	}
+
+	_buttonRemove(vnode: Vnode<NotificationRowAttrs>): Child {
+		if (vnode.attrs.current) {
+			const disabled = !vnode.attrs.identifier
+			return m(createDropDownButton("more_label", () => Icons.More, () => (disabled ? [] : [
+				new Button("delete_action", vnode.attrs.removeClicked)
+					.setType(ButtonType.Dropdown)
+			]).concat([
+				new Button(disabled ? "enableForThisDevice_action" : "disableForThisDevice_action",
+					() => vnode.attrs.enableClicked(disabled))
+					.setType(ButtonType.Dropdown)
+			]), /*width=*/ vnode.dom ? Math.min(300, vnode.dom.offsetWidth) : 300))
+		} else {
+			return m(new Button("notificationsDisabled_label", vnode.attrs.removeClicked, () => Icons.Cancel))
+		}
 	}
 }
 
@@ -60,16 +81,32 @@ export class MailSettingNotificationViewer {
 			])
 
 			const rows = this._identifiers.map(identifier => {
-				const current = env.mode === Mode.App && identifier.identifier === this._currentIdentifier
+				const current = isApp() && identifier.identifier === this._currentIdentifier
 				return m(NotificationRowView, {
 					name: this._identifierTypeName(current, identifier.pushServiceType),
 					identifier: identifier.identifier,
 					current: current,
-					removeClicked: () => erase(identifier)
+					removeClicked: () => erase(identifier),
+					enableClicked: this._enableNotifications
 				})
 			}).sort((l, r) => r.attrs.current - l.attrs.current)
+
+			// If notifications were disabled, add a row for the current device
+			if (isApp() && (rows.length === 0 || rows.length > 0 && !rows[0].attrs.current)) {
+				rows.unshift(m(NotificationRowView, {
+					name: lang.get("pushIdentifierCurrentDevice_label"),
+					identifier: null,
+					current: true,
+					removeClicked: () => {},
+					enableClicked: this._enableNotifications
+				}))
+			}
 			return m(".flex.flex-column.items-end.mb", [rowAdd].concat(rows))
 		},
+	}
+
+	_enableNotifications(enabled: boolean) {
+		pushServiceApp.enableNotifications(enabled).then(m.redraw)
 	}
 
 	pushIdentifiersExpander =
@@ -97,10 +134,6 @@ export class MailSettingNotificationViewer {
 				       m.redraw()
 			       })
 		}
-		pushServiceApp.getPushIdentifier().then((identifier) => {
-			this._currentIdentifier = identifier
-			m.redraw()
-		})
 	}
 
 	_identifierTypeName(current: boolean, type: NumberString): string {

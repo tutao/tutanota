@@ -5,7 +5,7 @@ import {client} from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
-const ConfigVersion = 2
+const ConfigVersion = 3
 const LocalStorageKey = 'tutanotaConfig'
 
 /**
@@ -29,8 +29,15 @@ class DeviceConfig {
 		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
-		if (loadedConfig && loadedConfig._version === ConfigVersion) {
-			this._credentials = loadedConfig._credentials
+		if (loadedConfig) {
+			if (loadedConfig._version < 2) {
+				// discard old credentials
+			} else if (loadedConfig._version < 3) {
+				this._credentials = loadedConfig.credentials.map(c => {
+					c.pushNotificationsEnabled = true
+					return c
+				})
+			}
 		}
 	}
 
@@ -96,7 +103,6 @@ class DeviceConfig {
 			this._store()
 		}
 	}
-
 }
 
 

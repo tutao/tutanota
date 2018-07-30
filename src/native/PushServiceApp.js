@@ -1,15 +1,16 @@
 //@flow
-import {setup, update, loadAll} from "../api/main/Entity"
+import {erase, loadAll, setup, update} from "../api/main/Entity"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {isIOSApp, isAndroidApp, getHttpOrigin, isApp} from "../api/Env"
+import {getHttpOrigin, isAndroidApp, isApp, isIOSApp} from "../api/Env"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
+import {deviceConfig} from "../misc/DeviceConfig";
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -19,7 +20,8 @@ class PushServiceApp {
 	}
 
 	register(): Promise<void> {
-		if (isAndroidApp()) {
+		const credentials = deviceConfig.getByUserId(logins.getUserController().user._id)
+		if (isAndroidApp() && credentials && credentials.pushNotificationsEnabled) {
 			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
 				if (identifier) {
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
@@ -35,7 +37,7 @@ class PushServiceApp {
 					             .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
 					             .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier,))
 				}
-			}).then(() => nativeApp.invokeNative(new Request("initPushNotifications", [])))
+			}).then(this._initPushNotifications)
 		} else {
 			return Promise.resolve()
 		}
@@ -110,6 +112,31 @@ class PushServiceApp {
 		} else {
 			return Promise.resolve(null)
 		}
+	}
+
+	enableNotifications(enable: boolean): Promise<void> {
+		let done
+		if (enable) {
+			done = this.getPushIdentifier()
+			           .then(localIdentifier => localIdentifier || worker.generateSsePushIdentifer())
+			           .then(localIdentifier => this._createPushIdentiferInstance(localIdentifier, PushServiceType.SSE))
+			           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
+		} else {
+			done = this.getPushIdentifier()
+			           .then(identifier => identifier && this._loadPushIdentifier(identifier))
+			           .then(pushIdentifier => pushIdentifier && erase(pushIdentifier))
+		}
+		return done
+			.then(this._initPushNotifications)
+			.then(() => {
+				const credentials = neverNull(deviceConfig.getByUserId(logins.getUserController().user._id))
+				credentials.pushNotificationsEnabled = enable
+				deviceConfig.set(credentials)
+			})
+	}
+
+	_initPushNotifications(): Promise<void> {
+		return nativeApp.invokeNative(new Request("initPushNotifications", []))
 	}
 }
 
