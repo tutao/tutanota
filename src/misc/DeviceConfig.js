@@ -33,7 +33,7 @@ class DeviceConfig {
 			if (loadedConfig._version < 2) {
 				// discard old credentials
 			} else if (loadedConfig._version < 3) {
-				this._credentials = loadedConfig.credentials.map(c => {
+				this._credentials = loadedConfig._credentials.map(c => {
 					c.pushNotificationsEnabled = true
 					return c
 				})
