@@ -57,6 +57,7 @@ import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
+import {locator} from "../WorkerLocator";
 
 assertWorkerOrNode()
 
@@ -501,6 +502,18 @@ export class LoginFacade {
 				const key = uint8ArrayToKey(returnData.deviceKey)
 				return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
 			})
+	}
+
+	setEventBusConnection(connect: boolean) {
+		if (locator.login.isLoggedIn()) {
+			if (connect) {
+				console.log("resuming ws connection")
+				this._eventBusClient.tryReconnect(/*closeIfOpen*/false)
+			} else {
+				console.log("pausing ws connection")
+				this._eventBusClient.close(/*reconnect*/false)
+			}
+		}
 	}
 }
 

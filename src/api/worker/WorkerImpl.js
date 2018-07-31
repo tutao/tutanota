@@ -225,6 +225,10 @@ export class WorkerImpl {
 			},
 			decryptUserPassword: (message: Request) => {
 				return locator.login.decryptUserPassword.apply(locator.login, message.args)
+			},
+			setEventBusConnection: (message: Request) => {
+				locator.login.setEventBusConnection(message.args[0])
+				return Promise.resolve()
 			}
 		})
 

@@ -11,7 +11,7 @@ import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button, ButtonType} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
@@ -197,6 +197,10 @@ let initialized = lang.init(en).then(() => {
 	setupExceptionHandling()
 
 	disableBodyTouchScrolling()
+
+	if (isApp()) {
+		setupPageVisibilityListener()
+	}
 })
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {
@@ -253,5 +257,13 @@ function disableBodyTouchScrolling() {
 			}
 		}
 	}, client.passive() ? {passive: true} : false)
+}
 
+function setupPageVisibilityListener() {
+	_asyncImport("src/api/main/WorkerClient.js").then(module => {
+		document.addEventListener("visibilitychange", () => {
+			console.log("Visibility change, hidden: ", document.hidden)
+			module.worker.setEventBusConnection(!document.hidden)
+		})
+	})
 }

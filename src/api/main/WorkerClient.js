@@ -411,6 +411,10 @@ export class WorkerClient {
 	wsConnection(): stream<WsConnectionState> {
 		return this._wsConnection.map(identity)
 	}
+
+	setEventBusConnection(connect: boolean) {
+		this._queue.postMessage(new Request('setEventBusConnection', [connect]))
+	}
 }
 
 export const worker = new WorkerClient()
