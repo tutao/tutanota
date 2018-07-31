@@ -160,3 +160,7 @@ export function lazyMemoized<T>(source: () => T): () => T {
 		}
 	}
 }
+
+export function identity<T>(t: T): T {
+	return t
+}

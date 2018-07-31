@@ -276,5 +276,9 @@ export class WorkerImpl {
 	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
 		return this._queue.postMessage(new Request("updateIndexState", [state]))
 	}
+
+	wsConnection(state: WsConnectionState): Promise<void> {
+		return this._queue.postMessage(new Request("wsConnection", [state]))
+	}
 }
 

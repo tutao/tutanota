@@ -719,6 +719,30 @@ styles.registerStyle('main', () => {
 			'.column-width-small': {width: px(size.column_width_s_mobile)}
 		},
 
+		'@keyframes move-stripes': {
+			'0%': {
+				'background-position': '0 0'
+			},
+			'100%': {
+				'background-position': '15px 0'
+			}
+		},
+
+		'.indefinite-progress': {
+			"background-image": `repeating-linear-gradient(
+  -45deg,
+  ${theme.content_accent},
+  ${theme.content_accent} 5px,
+  ${theme.content_bg} 5px,
+  ${theme.content_bg} 10px
+);`,
+			"background-size": px(15),
+			"width": "100%",
+			"height": px(3),
+			"animation": "move-stripes 2s linear infinite"
+		},
+
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},

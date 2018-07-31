@@ -16,6 +16,7 @@ import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import {Icons} from "./icons/Icons"
+import type {WorkerClient} from "../../api/main/WorkerClient";
 
 export const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -33,6 +34,7 @@ class Header {
 	_shortcuts: Shortcut[];
 	mailNavButton: NavButton;
 	searchBar: ?SearchBar
+	_wsState: WsConnectionState = "terminated"
 
 	constructor() {
 		this.contactsUrl = '/contact'
@@ -87,7 +89,7 @@ class Header {
 		this.view = (): VirtualElement => {
 			const injectedView = this._currentView && this._currentView.headerView instanceof Function ?
 				this._currentView.headerView() : null
-			return m(".header-nav.overflow-hidden", injectedView || [
+			return m(".header-nav.overflow-hidden", [this._connectionIndicator()].concat(injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),
@@ -95,13 +97,22 @@ class Header {
 				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
 					style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
 				}, m(this.buttonBar))
-			])
+			]))
 		}
 
 		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
 			.then((searchBarModule) => {
 				this.searchBar = new searchBarModule.SearchBar()
+			})
+
+		asyncImport(typeof module !== "undefined" ?
+			module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`)
+			.then(workerClientModule => {
+				(workerClientModule.worker: WorkerClient).wsConnection().map(state => {
+					this._wsState = state
+					m.redraw()
+				})
 			})
 	}
 
@@ -264,6 +275,14 @@ class Header {
 			return (this._currentView: any).viewSlider
 		} else {
 			return null
+		}
+	}
+
+	_connectionIndicator(): Children {
+		if (this._wsState === "connected" || this._wsState === "terminated") {
+			return null
+		} else {
+			return m(".indefinite-progress")
 		}
 	}
 }

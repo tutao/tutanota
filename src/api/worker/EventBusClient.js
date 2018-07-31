@@ -2,19 +2,19 @@
 import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
-import {encryptAndMapToLiteral, applyMigrations, decryptAndMapToInstance} from "./crypto/CryptoFacade"
-import {getWebsocketOrigin, assertWorkerOrNode, Mode, isIOSApp, isTest, isAdmin} from "../Env"
+import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral} from "./crypto/CryptoFacade"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdmin, isIOSApp, isTest, Mode} from "../Env"
 import {createAuthentication} from "../entities/sys/Authentication"
 import {
 	_TypeModel as WebsocketWrapperTypeModel,
-	WebsocketWrapperTypeRef,
-	createWebsocketWrapper
+	createWebsocketWrapper,
+	WebsocketWrapperTypeRef
 } from "../entities/sys/WebsocketWrapper"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
-import {loadAll, load, loadRange} from "./EntityWorker"
-import {GENERATED_MIN_ID, getLetId, GENERATED_MAX_ID, firstBiggerThanSecond} from "../common/EntityFunctions"
-import {NotFoundError, NotAuthorizedError, ConnectionError, handleRestError} from "../common/error/RestError"
+import {load, loadAll, loadRange} from "./EntityWorker"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
+import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
@@ -73,6 +73,8 @@ export class EventBusClient {
 			return
 		}
 		console.log("ws connect reconnect=", reconnect);
+		this._worker.wsConnection("connecting")
+
 		let url = getWebsocketOrigin() + "/event/";
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
@@ -110,6 +112,7 @@ export class EventBusClient {
 					this._setLatestEntityEventIds()
 				}
 			})
+			this._worker.wsConnection("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
 		this._socket.onerror = (error: any) => this._error(error);
@@ -186,6 +189,9 @@ export class EventBusClient {
 				this.tryReconnect(false);
 			}
 			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(10, 30));
+		}
+		if (this._terminated) {
+			this._worker.wsConnection("terminated")
 		}
 	}
 
