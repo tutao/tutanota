@@ -1,13 +1,27 @@
-# Tutanota makes encryption easy
+<h1 align="center">
+<br>
+  <img src="resources/images/logo-red.svg" alt="Tutanota logo" width="300">
+  <br>
+    <br>
+  Tutanota makes encryption easy
+  <br>
+</h1>
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
 * Official website: https://tutanota.com
-* Issue and feature tracker: https://tutanota.uservoice.com/forums/237921-general
+* Web app: https://mail.tutanota.com
+* Issue and feature tracker: https://github.com/tutao/tutanota/issues (legacy tracker: https://tutanota.uservoice.com/forums/237921-general)
 
-## Building and running your own Tutanota web client
+<a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota">
+<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="75" align="center">
+</a>
 
-You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your own. If you prefer the auto-update feature, you can use https://app.tutanota.com directly and upon every update your browser will notify you that the updated app is being installed locally in your browser cache.
+
+## Building and running your own Tutanota (new beta) web client
+
+You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on 
+your own. If you prefer the auto-update feature, you can use the official version at https://mail.tutanota.com
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
@@ -17,34 +31,30 @@ You can build your own Tutanota client and run it locally. Remember that you hav
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
-3. Checkout latest release (currently 2.15.2): `git checkout tutanota-release-2.15.2`
-4. Switch into the web directory: `cd web`
-5. Install gulp globally: `npm install -g gulp`
-6. Install dependencies: `npm install`
-7. Build Tutanota: `gulp dist`
-8. Switch into the build directory: `cd build`
-9. Open the `index.html` with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
+3. Do `npm install`
+4. Build the web part: `node dist prod`
+5. Switch into the build directory: `cd build/dist`
+6. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
+7. Open the `` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
-## Building and running your own Tutanota Android app
+## Building and running your own Tutanota (new beta) Android app
 
-If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically. If you prefer the auto-update feature, use the Google Play Store or the Amazon Store.
+If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically.
+If you prefer the auto-update feature, use the Google Play Store or F-Droid in the future.
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
 * An up-to-date version of Node.js is installed
-* An up-to-date version of the Android SDK (API 23) is installed
+* An up-to-date version of the Android SDK is installed
 
 #### Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the Tutanota directory: `cd tutanota`
-3. Checkout latest Android release (currently 2.15.2): `git checkout tutanota-android-release-2.15.2`
-4. Install Cordova globally: `npm install -g cordova`
-5. Install gulp.js globally: `npm install -g gulp`
-6. Install dependencies: `npm install`
-7. Change into the Cordova directory: `cd cordova`
-8. Build the app: `gulp androidProdDistUnsigned`
-9. Create a keystore: `keytool -genkey -v -keystore MyKeystore.keystore -alias TutanotaKey -keyalg RSA -keysize 2048 -validity 10000`
-10. Sign the app: `jarsigner -verbose -keystore MyKeystore.keystore platforms/android/build/outputs/apk/android-release-unsigned.apk TutanotaKey`
-11. Align the app: `<path_to_android_sdk_>/build-tools/22.0.1/zipalign -v 4 platforms/android/build/outputs/apk/android-release-unsigned.apk platforms/android/build/outputs/apk/Tutanota-release.apk`
-12. Install the app on your device: `adb install platforms/android/build/outputs/apk/Tutanota-release.apk`
+3. Install dependencies: `npm install`
+4. Build the web part: `node dist prod`
+5. Switch to the Android folder: `cd app-android`
+6. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
+7. Build the Android app: `./gradlew assembleRelease`
+8. Sign the app: `jarsigner -verbose -keystore MyKeystore.jks -storepass CHANGEME app/build/outputs/apk/release/app-release-unsigned.apk tutaKey`
+9. Install the app on your device: `adb install -r app/build/outputs/apk/release/app-release-unsigned.apk`
