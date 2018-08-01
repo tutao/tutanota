@@ -73,7 +73,7 @@ export class MultiMailViewer {
 		}
 	}
 
-	actionBar(actionCallback: () => void = () => void 0): ActionBar {
+	actionBar(actionCallback: () => void = () => {}): ActionBar {
 		let actions = new ActionBar()
 
 		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
@@ -91,8 +91,9 @@ export class MultiMailViewer {
 			} else {
 				return (getSortedSystemFolders(sourceMailboxes[0].folders)
 					.concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
-					return new Button(() => getFolderName(f), () => mailModel.moveMails(mails, f), getFolderIcon(f))
-						.setType(ButtonType.Dropdown)
+					return new Button(() => getFolderName(f),
+						() => mailModel.moveMails(mails, f).then(actionCallback), getFolderIcon(f)
+					).setType(ButtonType.Dropdown)
 				})
 			}
 		}))

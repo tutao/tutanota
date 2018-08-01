@@ -240,7 +240,11 @@ export class List<T, R:VirtualRow<T>> {
 				// Activate multi selection after pause
 				timeoutId = setTimeout(() => {
 					this._mobileMultiSelectionActive = true;
-					this._elementClicked(virtualRow.entity, e)
+					if (!this.isEntitySelected(virtualRow.entity._id[1])) {
+						this._elementClicked(virtualRow.entity, e)
+					} else {
+						m.redraw() // only header changes we don't need reposition here
+					}
 				}, 400)
 				touchStartCoords = {x: e.touches[0].pageX, y: e.touches[0].pageY}
 			}
@@ -251,7 +255,8 @@ export class List<T, R:VirtualRow<T>> {
 			const maxDistance = 30
 			const touch = e.touches[0]
 			if (touchStartCoords
-				&& (touch.pageX - touchStartCoords.x > maxDistance || touch.pageY - touchStartCoords.y > maxDistance)) {
+				&& (Math.abs(touch.pageX - touchStartCoords.x) > maxDistance
+					|| Math.abs(touch.pageY - touchStartCoords.y) > maxDistance)) {
 				clearTimeout(timeoutId)
 			}
 		}
