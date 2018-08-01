@@ -6,7 +6,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll} from "../api/main/Entity"
 import {neverNull} from "../api/common/utils/Utils"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {logins} from "../api/main/LoginController"
@@ -25,7 +25,7 @@ type NotificationRowAttrs = {|
 	current: boolean,
 	removeClicked: () => void,
 	enableClicked: (enable: boolean) => void
-|}
+	|}
 
 class NotificationRowView implements MComponent<NotificationRowAttrs> {
 	view(vnode: Vnode<NotificationRowAttrs>): Children {
@@ -50,19 +50,19 @@ class NotificationRowView implements MComponent<NotificationRowAttrs> {
 	}
 
 	_buttonRemove(vnode: Vnode<NotificationRowAttrs>): Child {
-		if (vnode.attrs.current) {
-			const disabled = !vnode.attrs.identifier
-			return m(createDropDownButton("more_label", () => Icons.More, () => (disabled ? [] : [
-				new Button("delete_action", vnode.attrs.removeClicked)
-					.setType(ButtonType.Dropdown)
-			]).concat([
-				new Button(disabled ? "enableForThisDevice_action" : "disableForThisDevice_action",
-					() => vnode.attrs.enableClicked(disabled))
-					.setType(ButtonType.Dropdown)
-			]), /*width=*/ vnode.dom ? Math.min(300, vnode.dom.offsetWidth) : 300))
-		} else {
-			return m(new Button("notificationsDisabled_label", vnode.attrs.removeClicked, () => Icons.Cancel))
-		}
+		/*		if (vnode.attrs.current) {
+		 const disabled = !vnode.attrs.identifier
+		 return m(createDropDownButton("more_label", () => Icons.More, () => (disabled ? [] : [
+		 new Button("delete_action", vnode.attrs.removeClicked)
+		 .setType(ButtonType.Dropdown)
+		 ]).concat([
+		 new Button(disabled ? "enableForThisDevice_action" : "disableForThisDevice_action",
+		 () => vnode.attrs.enableClicked(disabled))
+		 .setType(ButtonType.Dropdown)
+		 ]), /!*width=*!/ vnode.dom ? Math.min(300, vnode.dom.offsetWidth) : 300))
+		 } else {*/
+		return m(new Button("notificationsDisabled_label", vnode.attrs.removeClicked, () => Icons.Cancel))
+//		}
 	}
 }
 
@@ -87,27 +87,28 @@ export class MailSettingNotificationViewer {
 					identifier: identifier.identifier,
 					current: current,
 					removeClicked: () => erase(identifier),
-					enableClicked: this._enableNotifications
+					//enableClicked: this._enableNotifications
 				})
 			}).sort((l, r) => r.attrs.current - l.attrs.current)
 
 			// If notifications were disabled, add a row for the current device
-			if (isApp() && (rows.length === 0 || rows.length > 0 && !rows[0].attrs.current)) {
-				rows.unshift(m(NotificationRowView, {
-					name: lang.get("pushIdentifierCurrentDevice_label"),
-					identifier: null,
-					current: true,
-					removeClicked: () => {},
-					enableClicked: this._enableNotifications
-				}))
-			}
+			/*			if (isApp() && (rows.length === 0 || rows.length > 0 && !rows[0].attrs.current)) {
+			 rows.unshift(m(NotificationRowView, {
+			 name: lang.get("pushIdentifierCurrentDevice_label"),
+			 identifier: null,
+			 current: true,
+			 removeClicked: () => {
+			 },
+			 enableClicked: this._enableNotifications
+			 }))
+			 }*/
 			return m(".flex.flex-column.items-end.mb", [rowAdd].concat(rows))
 		},
 	}
 
-	_enableNotifications(enabled: boolean) {
-		pushServiceApp.enableNotifications(enabled).then(m.redraw)
-	}
+	/*	_enableNotifications(enabled: boolean) {
+	 pushServiceApp.enableNotifications(enabled).then(m.redraw)
+	 }*/
 
 	pushIdentifiersExpander =
 		new ExpanderButton("show_action", new ExpanderPanel(this.expanderContent), false)

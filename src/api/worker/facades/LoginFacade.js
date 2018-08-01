@@ -57,7 +57,7 @@ import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
-import {locator} from "../WorkerLocator";
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -142,8 +142,7 @@ export class LoginFacade {
 									           mailAddress,
 									           accessToken: neverNull(this._accessToken),
 									           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-									           userId: neverNull(this._user)._id,
-									           pushNotificationsEnabled: true
+									           userId: neverNull(this._user)._id
 								           }
 							           }
 						           })
@@ -199,8 +198,7 @@ export class LoginFacade {
 							           mailAddress: userId, // we set the external user id because we do not have the mail address
 							           accessToken: neverNull(this._accessToken),
 							           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-							           userId,
-							           pushNotificationsEnabled: false
+							           userId
 						           }
 					           }
 				           })
@@ -341,8 +339,8 @@ export class LoginFacade {
 	 */
 	createAuthHeaders(): Params {
 		return this._accessToken ? {
-			'accessToken': this._accessToken
-		} : {}
+				'accessToken': this._accessToken
+			} : {}
 	}
 
 	getUserGroupId(): Id {
