@@ -37,6 +37,8 @@ class DeviceConfig {
 					c.pushNotificationsEnabled = true
 					return c
 				})
+			} else {
+				this._credentials = loadedConfig._credentials
 			}
 		}
 	}
