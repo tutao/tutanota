@@ -261,9 +261,13 @@ function disableBodyTouchScrolling() {
 
 function setupPageVisibilityListener() {
 	_asyncImport("src/api/main/WorkerClient.js").then(module => {
+		let stillInBackground = false
 		document.addEventListener("visibilitychange", () => {
 			console.log("Visibility change, hidden: ", document.hidden)
-			module.worker.setEventBusConnection(!document.hidden)
+			stillInBackground = document.hidden
+			if (document.hidden) {
+				setTimeout(() => stillInBackground && module.worker.setEventBusConnection(!document.hidden), 30 * 1000)
+			}
 		})
 	})
 }
