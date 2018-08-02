@@ -73,7 +73,7 @@ export class EventBusClient {
 			return
 		}
 		console.log("ws connect reconnect=", reconnect);
-		this._worker.wsConnection("connecting")
+		this._worker.updateWebSocketState("connecting")
 
 		let url = getWebsocketOrigin() + "/event/";
 		this._socket = new WebSocket(url);
@@ -112,7 +112,7 @@ export class EventBusClient {
 					this._setLatestEntityEventIds()
 				}
 			})
-			this._worker.wsConnection("connected")
+			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
 		this._socket.onerror = (error: any) => this._error(error);
@@ -191,7 +191,7 @@ export class EventBusClient {
 			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(10, 30));
 		}
 		if (this._terminated) {
-			this._worker.wsConnection("terminated")
+			this._worker.updateWebSocketState("terminated")
 		}
 	}
 

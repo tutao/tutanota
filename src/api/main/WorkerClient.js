@@ -17,7 +17,7 @@ import type {
 } from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {identity} from "../common/utils/Utils";
+import {identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
@@ -65,7 +65,7 @@ export class WorkerClient {
 				locator.search.indexState(message.args[0])
 				return Promise.resolve()
 			},
-			wsConnection: (message: Message) => {
+			updateWebSocketState: (message: Message) => {
 				this._wsConnection(message.args[0]);
 				return Promise.resolve()
 			}
