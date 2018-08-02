@@ -110,10 +110,10 @@ export class ContactViewer {
 					m(".header.pt-ml", [
 						m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
 							m(".left.flex-grow-shrink-150", [
-								m(".flex-wrap", [
+								m(".flex-wrap.selectable", [
 									m(".h2", this.contactAppellation),
 								]),
-								m(".flex-wrap", insertBetween([
+								m(".flex-wrap.selectable", insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
 										m("span.birthday", this._formatBirthday())

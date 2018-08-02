@@ -68,7 +68,7 @@ export class Table {
 				}
 			}, (actionButton) ? [m(actionButton)] : []))
 		}
-		return m("tr", cells)
+		return m("tr.selectable", cells)
 	}
 
 	updateEntries(lines: TableLine[]) {

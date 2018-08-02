@@ -99,14 +99,14 @@ export class HtmlEditor {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
-					m(".wysiwyg.rel.overflow-hidden", {
+					m(".wysiwyg.rel.overflow-hidden.selectable", {
 						style: {display: this._mode() === Mode.WYSIWYG ? '' : 'none'}
 					}, m(this._editor)),
 					m(".html", {
 						style: {
 							display: this._mode() === Mode.HTML ? '' : 'none'
 						}
-					}, m("textarea.input-area", {
+					}, m("textarea.input-area.selectable", {
 						oncreate: vnode => {
 							this._domTextArea = vnode.dom
 							console.log("create textarea", this._value())

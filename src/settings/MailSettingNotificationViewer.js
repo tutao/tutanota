@@ -25,12 +25,12 @@ type NotificationRowAttrs = {|
 	current: boolean,
 	removeClicked: () => void,
 	enableClicked: (enable: boolean) => void
-	|}
+|}
 
 class NotificationRowView implements MComponent<NotificationRowAttrs> {
 	view(vnode: Vnode<NotificationRowAttrs>): Children {
 		return m(".flex.flex-column.full-width", [
-				m(".flex-space-between.items-center",
+				m(".flex-space-between.items-center.selectable",
 					[
 						m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
 						this._buttonRemove(vnode),
@@ -42,10 +42,10 @@ class NotificationRowView implements MComponent<NotificationRowAttrs> {
 
 	_identifier(vnode: Vnode<NotificationRowAttrs>): Child {
 		if (vnode.attrs.identifier) {
-			return m(".text-break.small.monospace.mt-negative-s", neverNull(vnode.attrs.identifier.match(/.{2}/g))
+			return m(".text-break.small.monospace.mt-negative-s.selectable", neverNull(vnode.attrs.identifier.match(/.{2}/g))
 				.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
 		} else {
-			return m(".small.i.mt-negative-s", "Disabled")
+			return m(".small.i.mt-negative-s.selectable", "Disabled")
 		}
 	}
 

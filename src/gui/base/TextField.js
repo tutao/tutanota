@@ -123,7 +123,7 @@ export class TextField {
 
 	_getInputField(): VirtualElement {
 		if (this.disabled) {
-			return m(".text-break" + (this._alignRight ? ".right" : ""), {
+			return m(".text-break.selectable" + (this._alignRight ? ".right" : ""), {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
@@ -184,7 +184,7 @@ export class TextField {
 
 	_getTextArea(): VirtualElement {
 		if (this.disabled) {
-			return m(".text-prewrap.text-break", {
+			return m(".text-prewrap.text-break.selectable", {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),

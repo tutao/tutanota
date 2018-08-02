@@ -10,12 +10,29 @@ assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
-		"*:not(input):not(textarea)": (isApp() ? {
-			"-webkit-user-select": "none", /* disable selection/Copy of UIWebView */
+		"*:not(input):not(textarea)": {
+			"user-select": "none", /* disable selection/Copy for UI elements*/
+			"-ms-user-select": "none",
+			"-webkit-user-select": "none",
+			"-moz-user-select": "none",
 			"-webkit-touch-callout": "none", /* disable the IOS popup when long-press on a link */
 			"-webkit-user-drag": "none",
 			"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)"
-		} : {}),
+		},
+
+		".selectable": {
+			"user-select": "text !important",
+			"-ms-user-select": "text !important",
+			"-webkit-user-select": "text !important",
+			"-moz-user-select": "text !important",
+		},
+
+		".selectable *": {
+			"user-select": "text !important",
+			"-ms-user-select": "text !important",
+			"-webkit-user-select": "text !important",
+			"-moz-user-select": "text !important",
+		},
 
 		"@font-face": {
 			"font-family": "'Ionicons'",

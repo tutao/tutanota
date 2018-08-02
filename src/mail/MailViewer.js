@@ -317,7 +317,7 @@ export class MailViewer {
 							m(detailsExpander.panel),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
-									m(".subject.text-break", this.mail.subject),
+									m(".subject.text-break.selectable", this.mail.subject),
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg"
 										+ (this.mail.confidential ? ".ml-negative-xs" : ""), [
 										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
@@ -335,7 +335,7 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating"
+						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable"
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
