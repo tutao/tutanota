@@ -1,3 +1,4 @@
+import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"

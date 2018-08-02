@@ -59,16 +59,9 @@ o.spec("MailUtils", browser(function () {
 
 	o(" parserMailtoUrl with multiple recipients", function () {
 		let result = parseMailtoUrl("mailto:joe1@example.com,joe2@example.com?to=joe3@example.com&cc=bob1@example.com%2C%20bob2@example.com&body=hello&bcc=carol1@example.com%2C%20carol2@example.com")
-		o(result.to.length).equals(3)
-		o(result.to[0].address).equals("joe1@example.com")
-		o(result.to[1].address).equals("joe2@example.com")
-		o(result.to[2].address).equals("joe3@example.com")
-		o(result.cc.length).equals(2)
-		o(result.cc[0].address).equals("bob1@example.com")
-		o(result.cc[1].address).equals("bob2@example.com")
-		o(result.bcc.length).equals(2)
-		o(result.bcc[0].address).equals("carol1@example.com")
-		o(result.bcc[1].address).equals("carol2@example.com")
+		o(result.to.map(to => to.address)).deepEquals(["joe1@example.com", "joe2@example.com", "joe3@example.com"])
+		o(result.cc.map(cc => cc.address)).deepEquals(["bob1@example.com", "bob2@example.com"])
+		o(result.bcc.map(bcc => bcc.address)).deepEquals(["carol1@example.com", "carol2@example.com"])
 		o(result.body).equals("hello")
 	})
 	o(" parserMailtoUrl to lower case", function () {

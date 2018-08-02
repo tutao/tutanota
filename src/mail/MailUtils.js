@@ -201,7 +201,7 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 			} else if (paramName === "bcc") {
 				paramValue.split(",")
 				          .forEach((bccAddress) => bccAddress
-					          && ccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+					          && bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
 			} else if (paramName === "to") {
 				paramValue.split(",")
 				          .forEach((toAddress) => toAddress

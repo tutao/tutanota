@@ -14,6 +14,7 @@ o.spec("VCardImporterTest", function () {
 	let date = new Date()
 
 	o.before(function () {
+		window.whitelabelCustomizations = null
 		lang.init(en)
 	})
 

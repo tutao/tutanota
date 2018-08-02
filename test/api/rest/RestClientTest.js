@@ -1,7 +1,9 @@
+//@flow
 import o from "ospec/ospec.js"
-import {RestClient, MediaType} from "../../../src/api/worker/rest/RestClient"
+import {RestClient} from "../../../src/api/worker/rest/RestClient"
+import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
-import {HttpMethod} from "../../../src/api/common/EntityFunctions"
+
 
 
 o.spec("rest client", function () {
@@ -10,12 +12,12 @@ o.spec("rest client", function () {
 
 	o.spec("integration tests", node(function () {
 
-		let app = express()
+		let app = global.express()
 		let server = null
 
 		o.before(function (done) {
 			server = app.listen(3000, done)
-			enableDestroy(server)
+			global.enableDestroy(server)
 		})
 
 		o.after(function (done) {
@@ -89,7 +91,7 @@ o.spec("rest client", function () {
 				let before = new Date().getTime()
 				let url = "/" + method + "/json";
 
-				app.use(bodyParser.json())
+				app.use(global.bodyParser.json())
 
 				app[method.toLowerCase()](url, (req, res) => {
 					o(req.method).equals(method)
@@ -121,7 +123,7 @@ o.spec("rest client", function () {
 				let before = new Date().getTime()
 				let url = "/" + method + "/binary";
 
-				app.use(bodyParser.raw())
+				app.use(global.bodyParser.raw())
 
 				app[method.toLowerCase()](url, (req, res) => {
 					o(req.method).equals(method)
