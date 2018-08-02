@@ -52,7 +52,7 @@ styles.registerStyle('main', () => {
 
 		'a': {color: 'inherit'},
 
-		'html, body': {height: '100%', margin: 0},
+		'html, body': {height: '100%', margin: 0, position: "fixed", width: "100%"},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
 
 		'button, textarea': {

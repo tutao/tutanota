@@ -26,7 +26,7 @@ export class Editor {
 		}
 
 		this.view = () => {
-			return m("", m(".hide-outline", {
+			return m("", m(".hide-outline.selectable", {
 				oncreate: vnode => this.initSquire(vnode.dom),
 				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
 			}))

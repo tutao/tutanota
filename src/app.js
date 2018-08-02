@@ -195,8 +195,6 @@ let initialized = lang.init(en).then(() => {
 		.then(module => module.worker)
 
 	setupExceptionHandling()
-
-	disableBodyTouchScrolling()
 })
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {
@@ -227,43 +225,5 @@ function setupExceptionHandling() {
 			handleUncaughtError(evt.error)
 			evt.preventDefault()
 		}
-	})
-}
-
-/**
- * Prevents the complete window from scrolling vertically on touch for ios devices.
- * See http://stackoverflow.com/questions/10238084/ios-safari-how-to-disable-overscroll-but-allow-scrollable-divs-to-scroll-norma
- */
-function disableBodyTouchScrolling() {
-	document.addEventListener('touchmove', event => event.preventDefault(), client.passive() ? {passive: false} : false)
-	document.body.addEventListener('touchmove', event => {
-		let scrollable = event.target.closest(".scroll")
-		if (scrollable && scrollable.scrollHeight > scrollable.offsetHeight) {
-			event.stopPropagation();
-		}
-	}, client.passive() ? {passive: false} : false)
-
-	document.body.addEventListener('touchstart', event => {
-		let scrollable = event.target.closest(".scroll")
-		if (scrollable && scrollable.scrollHeight > scrollable.offsetHeight) {
-			if (scrollable.scrollTop === 0) {
-				scrollable.scrollTop = 1;
-			} else if (scrollable.scrollHeight === scrollable.scrollTop + scrollable.offsetHeight) {
-				scrollable.scrollTop -= 1;
-			}
-		}
-	}, client.passive() ? {passive: true} : false)
-}
-
-function setupPageVisibilityListener() {
-	_asyncImport("src/api/main/WorkerClient.js").then(module => {
-		let stillInBackground = false
-		document.addEventListener("visibilitychange", () => {
-			console.log("Visibility change, hidden: ", document.hidden)
-			stillInBackground = document.hidden
-			if (document.hidden) {
-				setTimeout(() => stillInBackground && module.worker.setEventBusConnection(!document.hidden), 30 * 1000)
-			}
-		})
 	})
 }
