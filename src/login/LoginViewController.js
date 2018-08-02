@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
 import {Mode, assertMainOrNode, isAdmin, isApp} from "../api/Env"
-import {Const} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -161,14 +161,15 @@ export class LoginViewController {
 
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend")
-			worker.tryReconnectEventBus()
+			worker.tryReconnectEventBus(true)
 		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
-			worker.tryReconnectEventBus()
+			worker.tryReconnectEventBus(true)
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log("offline")
+			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 
 		// do not return the promise. loading of dialogs can be executed in parallel

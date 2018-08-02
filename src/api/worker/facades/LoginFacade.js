@@ -20,7 +20,7 @@ import {
 } from "../crypto/CryptoUtils"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, OperationType, AccountType} from "../../common/TutanotaConstants"
+import {GroupType, OperationType, AccountType, CloseEventBusOption} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -93,7 +93,7 @@ export class LoginFacade {
 		this._authVerifierAfterNextRequest = null
 		this.groupKeys = {}
 		if (this._eventBusClient) {
-			this._eventBusClient.close()
+			this._eventBusClient.close(CloseEventBusOption.Terminate)
 		}
 		return Promise.resolve()
 	}
@@ -339,8 +339,8 @@ export class LoginFacade {
 	 */
 	createAuthHeaders(): Params {
 		return this._accessToken ? {
-				'accessToken': this._accessToken
-			} : {}
+			'accessToken': this._accessToken
+		} : {}
 	}
 
 	getUserGroupId(): Id {
@@ -500,18 +500,6 @@ export class LoginFacade {
 				const key = uint8ArrayToKey(returnData.deviceKey)
 				return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
 			})
-	}
-
-	setEventBusConnection(connect: boolean) {
-		if (locator.login.isLoggedIn()) {
-			if (connect) {
-				console.log("resuming ws connection")
-				this._eventBusClient.tryReconnect(/*closeIfOpen*/false)
-			} else {
-				console.log("pausing ws connection")
-				this._eventBusClient.close(/*reconnect*/false)
-			}
-		}
 	}
 }
 

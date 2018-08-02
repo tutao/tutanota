@@ -22,6 +22,7 @@ import {keyManager, Keys} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 
 export class ExternalLoginView {
 
@@ -183,14 +184,15 @@ export class ExternalLoginView {
 	_postLoginActions() {
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend")
-			worker.tryReconnectEventBus()
+			worker.tryReconnectEventBus(true)
 		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
-			worker.tryReconnectEventBus()
+			worker.tryReconnectEventBus(true)
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log("offline")
+			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 		return serviceRequest(SysService.ExternalPropertiesService, HttpMethod.GET, null, ExternalPropertiesReturnTypeRef)
 			.then(data => {

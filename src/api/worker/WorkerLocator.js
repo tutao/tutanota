@@ -14,6 +14,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacade} from "./facades/CustomerFacade"
 import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdmin} from "../Env"
+import {CloseEventBusOption} from "../common/TutanotaConstants"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -27,6 +28,7 @@ type WorkerLocatorType = {
 	file: FileFacade;
 	mail: MailFacade;
 	mailAddress: MailAddressFacade;
+	eventBusClient: EventBusClient;
 	_indexedDbSupported: boolean;
 }
 
@@ -47,7 +49,8 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean) {
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
 	locator.mailAddress = new MailAddressFacade(locator.login)
-	locator.login.init(locator.indexer, new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login))
+	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
+	locator.login.init(locator.indexer, locator.eventBusClient)
 }
 
 export function resetLocator(): Promise<void> {
@@ -63,7 +66,7 @@ if (replaced) {
 		Object.assign(locator.login, replaced.locator.login)
 		// close the websocket, but do not reset the state
 		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
-			locator.login._eventBusClient._socket.close();
+			locator.login._eventBusClient.close(CloseEventBusOption.Reconnect);
 		}
 		if (locator.login.isLoggedIn()) {
 			locator.login._eventBusClient.connect(false)

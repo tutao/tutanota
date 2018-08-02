@@ -317,3 +317,11 @@ export const InvoiceStatus = {
 	SECONDREMINDER: "11"
 }
 export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;
+
+export const CloseEventBusOption = {
+	Terminate: "terminate",
+	Reconnect: "reconnect",
+	Pause: "pause"
+}
+
+export type CloseEventBusOptionEnum = $Values<typeof InvoiceStatus>;

@@ -13,7 +13,7 @@ import type {
 	EntropySrcEnum,
 	ConversationTypeEnum,
 	AccountTypeEnum,
-	BookingItemFeatureTypeEnum
+	BookingItemFeatureTypeEnum, CloseEventBusOptionEnum
 } from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
@@ -258,7 +258,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('getCurrentPrice', arguments))
 	}
 
-	tryReconnectEventBus() {
+	tryReconnectEventBus(closeIfOpen: boolean) {
 		return this._postRequest(new Request('tryReconnectEventBus', arguments))
 	}
 
@@ -412,8 +412,8 @@ export class WorkerClient {
 		return this._wsConnection.map(identity)
 	}
 
-	setEventBusConnection(connect: boolean) {
-		this._queue.postMessage(new Request('setEventBusConnection', [connect]))
+	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
+		return this._queue.postMessage(new Request("closeEventBus", [closeOption]))
 	}
 }
 

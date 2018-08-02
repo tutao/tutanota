@@ -218,7 +218,8 @@ export class WorkerImpl {
 				return this.addEntropy(message.args[0])
 			},
 			tryReconnectEventBus(message: Request) {
-				return locator.login.tryReconnectEventBus()
+				locator.eventBusClient.tryReconnect(message.args[0])
+				return Promise.resolve()
 			},
 			generateSsePushIdentifer: () => {
 				return Promise.resolve(keyToBase64(aes256RandomKey()))
@@ -226,8 +227,8 @@ export class WorkerImpl {
 			decryptUserPassword: (message: Request) => {
 				return locator.login.decryptUserPassword.apply(locator.login, message.args)
 			},
-			setEventBusConnection: (message: Request) => {
-				locator.login.setEventBusConnection(message.args[0])
+			closeEventBus: (message: Request) => {
+				locator.eventBusClient.close(message.args[0])
 				return Promise.resolve()
 			}
 		})

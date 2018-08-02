@@ -1,10 +1,11 @@
 // @flow
 import m from "mithril"
-import {Mode, assertMainOrNodeBoot, isApp} from "../api/Env"
+import {Mode, assertMainOrNodeBoot, isApp, isAndroidApp} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
+import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -24,6 +25,7 @@ class WindowFacade {
 			.then(module => {
 				// load async to reduce size of boot bundle
 				this._worker = module.worker
+				this.addPageInBackgroundListener()
 			})
 	}
 
@@ -134,6 +136,24 @@ class WindowFacade {
 			reloadNative(newQueryString.length > 0 ? "?" + newQueryString : "")
 		} else {
 			window.location.reload();
+		}
+	}
+
+	addPageInBackgroundListener() {
+		if (isAndroidApp()) {
+			document.addEventListener("visibilitychange", () => {
+				console.log("Visibility change, hidden: ", document.hidden)
+				if (document.hidden) {
+					setTimeout(() => {
+						// if we're still in background after timeout, pause WebSocket
+						if (document.hidden) {
+							this._worker.closeEventBus(CloseEventBusOption.Pause)
+						}
+					}, 30 * 1000)
+				} else {
+					this._worker.tryReconnectEventBus(false)
+				}
+			})
 		}
 	}
 }

@@ -197,10 +197,6 @@ let initialized = lang.init(en).then(() => {
 	setupExceptionHandling()
 
 	disableBodyTouchScrolling()
-
-	if (isApp()) {
-		setupPageVisibilityListener()
-	}
 })
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {
