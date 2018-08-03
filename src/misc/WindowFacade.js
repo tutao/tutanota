@@ -151,7 +151,7 @@ class WindowFacade {
 						}
 					}, 30 * 1000)
 				} else {
-					this._worker.tryReconnectEventBus(false)
+					this._worker.tryReconnectEventBus(false, true)
 				}
 			})
 		}

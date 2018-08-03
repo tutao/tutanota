@@ -258,8 +258,8 @@ export class WorkerClient {
 		return this._postRequest(new Request('getCurrentPrice', arguments))
 	}
 
-	tryReconnectEventBus(closeIfOpen: boolean) {
-		return this._postRequest(new Request('tryReconnectEventBus', arguments))
+	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean) {
+		return this._postRequest(new Request('tryReconnectEventBus', [closeIfOpen, enableAutomaticState]))
 	}
 
 	/**

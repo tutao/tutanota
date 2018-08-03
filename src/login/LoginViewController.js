@@ -160,15 +160,15 @@ export class LoginViewController {
 		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
 
 		windowFacade.addResumeAfterSuspendListener(() => {
-			console.log("resume after suspend")
-			worker.tryReconnectEventBus(true)
+			console.log("resume after suspend - try reconnect\"")
+			worker.tryReconnectEventBus(true, true)
 		})
 		windowFacade.addOnlineListener(() => {
-			console.log("online")
-			worker.tryReconnectEventBus(true)
+			console.log("online - try reconnect")
+			worker.tryReconnectEventBus(true, true)
 		})
 		windowFacade.addOfflineListener(() => {
-			console.log("offline")
+			console.log("offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 

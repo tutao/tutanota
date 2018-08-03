@@ -1,7 +1,7 @@
 //@flow
 import {styles} from "./styles"
 import {size, px} from "./size"
-import {client} from "../misc/ClientDetector"
+import {BrowserType, client} from "../misc/ClientDetector"
 import {position_absolute, positionValue, flex, noselect} from "./mixins"
 import {assertMainOrNodeBoot, isApp} from "../api/Env"
 import {theme} from "./theme.js"
@@ -753,7 +753,9 @@ styles.registerStyle('main', () => {
   ${theme.content_bg} 5px,
   ${theme.content_bg} 10px
 );`,
-			"background-size": px(15),
+			// WebKit based browsers initially implemented old specification, we cannot specify unprefixed value
+			// for them
+			[client.browser === BrowserType.SAFARI ? "-webkit-background-size" : "background-size"]: px(15),
 			"width": "100%",
 			"height": px(3),
 			"animation": "move-stripes 2s linear infinite"

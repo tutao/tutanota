@@ -218,7 +218,7 @@ export class WorkerImpl {
 				return this.addEntropy(message.args[0])
 			},
 			tryReconnectEventBus(message: Request) {
-				locator.eventBusClient.tryReconnect(message.args[0])
+				locator.eventBusClient.tryReconnect.apply(locator.eventBusClient, message.args)
 				return Promise.resolve()
 			},
 			generateSsePushIdentifer: () => {

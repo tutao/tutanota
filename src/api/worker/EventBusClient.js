@@ -84,12 +84,13 @@ export class EventBusClient {
 		if (env.mode === Mode.Test) {
 			return
 		}
-		console.log("ws connect reconnect=", reconnect);
+		console.log("ws connect reconnect=", reconnect, "state:", this._state);
+		this._state = EventBusState.Automatic
 
 		let url = getWebsocketOrigin() + "/event/";
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
-			console.log("ws open: ", new Date());
+			console.log("ws open: ", new Date(), "state:", this._state);
 			let wrapper = createWebsocketWrapper()
 			wrapper.type = "authentication"
 			wrapper.msgId = "0"
@@ -111,7 +112,6 @@ export class EventBusClient {
 					const socket = (this._socket: any)
 					if (socket.readyState === 1) {
 						socket.send(JSON.stringify(entityForSending));
-						this._state = EventBusState.Automatic
 					} else if (socket.readyState === 0) {
 						setTimeout(sendInitialMsg, 5)
 					}
@@ -135,7 +135,7 @@ export class EventBusClient {
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(closeOption: CloseEventBusOptionEnum) {
-		console.log("ws close: ", new Date(), "closeOption: ", closeOption);
+		console.log("ws close: ", new Date(), "closeOption: ", closeOption, "state:", this._state);
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
 				this._terminate()
@@ -161,7 +161,7 @@ export class EventBusClient {
 	}
 
 	_error(error: any) {
-		console.log("ws error: ", error);
+		console.log("ws error: ", error, "state:", this._state);
 	}
 
 	_message(message: MessageEvent): Promise<void> {
@@ -192,7 +192,7 @@ export class EventBusClient {
 	}
 
 	_close(event: CloseEvent) {
-		console.log("ws _close: ", event, new Date());
+		console.log("ws _close: ", event, new Date(), "state:", this._state);
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
@@ -210,25 +210,28 @@ export class EventBusClient {
 				// so try a reconnect immediately. The tryReconnect method is also triggered when
 				// the app  comes to foreground by the "resume" event, but the order in which these
 				// two events are executed is not defined so we need the tryReconnect in both situations.
-				this.tryReconnect(false);
+				this.tryReconnect(false, false);
 			}
-			setTimeout(() => this.tryReconnect(false), 1000 * this._randomIntFromInterval(10, 30));
+			setTimeout(() => this.tryReconnect(false, false), 1000 * this._randomIntFromInterval(10, 30));
 		}
 	}
 
 	/**
 	 * Tries to reconnect the websocket if it is not connected.
 	 */
-	tryReconnect(closeIfOpen: boolean) {
+	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
-			+ ((this._socket) ? this._socket.readyState : "null"));
+			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state);
+		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
+			this._state = EventBusState.Automatic
+		}
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
 			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
 		} else if (
 			(this._socket == null || this._socket.readyState === WebSocket.CLOSED
-				|| this._socket.readyState == WebSocket.CLOSING)
+				|| this._socket.readyState === WebSocket.CLOSING)
 			&& this._state !== EventBusState.Terminated
 			&& this._login.isLoggedIn()) {
 			this.connect(true);

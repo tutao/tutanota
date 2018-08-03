@@ -260,7 +260,7 @@ export class LoginFacade {
 					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
 					// close the event bus and reconnect to make sure we get all missed events
 					if (userIdFromFormerLogin) {
-						this._eventBusClient.tryReconnect(true)
+						this._eventBusClient.tryReconnect(true, true)
 					} else {
 						this._eventBusClient.connect(false)
 					}
@@ -484,11 +484,6 @@ export class LoginFacade {
 			d.takeoverMailAddress = null
 		}
 		return serviceRequestVoid(SysService.CustomerService, HttpMethod.DELETE, d)
-	}
-
-	tryReconnectEventBus(): Promise<void> {
-		this._eventBusClient.tryReconnect(true);
-		return Promise.resolve()
 	}
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
