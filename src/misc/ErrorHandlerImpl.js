@@ -215,18 +215,14 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 }
 
 export function showNotAvailableForFreeDialog() {
-	if (env.mode === Mode.App) {
-		Dialog.error("notAvailableInApp_msg")
-	} else {
-		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
-			+ lang.get("moreInfo_msg")
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
-		      .then(confirmed => {
-			      if (confirmed) {
-				      UpgradeWizard.show()
-			      }
-		      })
-	}
+	let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
+		+ lang.get("moreInfo_msg")
+	Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
+	      .then(confirmed => {
+		      if (confirmed) {
+			      UpgradeWizard.show()
+		      }
+	      })
 }
 
 export function loggingOut() {
