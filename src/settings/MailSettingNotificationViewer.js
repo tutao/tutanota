@@ -23,6 +23,7 @@ type NotificationRowAttrs = {|
 	name: string,
 	identifier: ?string,
 	current: boolean,
+	formatIdentifier: boolean,
 	removeClicked: () => void,
 	enableClicked: (enable: boolean) => void
 |}
@@ -42,8 +43,11 @@ class NotificationRowView implements MComponent<NotificationRowAttrs> {
 
 	_identifier(vnode: Vnode<NotificationRowAttrs>): Child {
 		if (vnode.attrs.identifier) {
-			return m(".text-break.small.monospace.mt-negative-s.selectable", neverNull(vnode.attrs.identifier.match(/.{2}/g))
-				.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
+			const identifierText = vnode.attrs.formatIdentifier ? (
+				neverNull(vnode.attrs.identifier.match(/.{2}/g))
+					.map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el))
+			) : vnode.attrs.identifier
+			return m(".text-break.small.monospace.mt-negative-s.selectable", identifierText)
 		} else {
 			return m(".small.i.mt-negative-s.selectable", "Disabled")
 		}
@@ -87,6 +91,7 @@ export class MailSettingNotificationViewer {
 					identifier: identifier.identifier,
 					current: current,
 					removeClicked: () => erase(identifier),
+					formatIdentifier: identifier.pushServiceType !== "2" // do not format e-mail
 					//enableClicked: this._enableNotifications
 				})
 			}).sort((l, r) => r.attrs.current - l.attrs.current)
