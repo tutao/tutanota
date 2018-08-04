@@ -181,7 +181,7 @@ class _LineChart {
 														+ calculateY(height, xy[1], a, yFactor)
 													]
 												}).join(' ')
-											}),
+											}, m("title", d.name)),
 										) : null,
 										d.scatter ? m("g", d.coordinates.map(xy => m("circle", {
 											fill: d.color,
