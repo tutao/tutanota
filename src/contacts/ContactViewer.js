@@ -26,12 +26,12 @@ import {getEmailSignature} from "../mail/MailUtils"
 
 assertMainOrNode()
 
-function insertBetween(array: any[], spacer: Object) {
+function insertBetween(array: any[], spacer: () => VirtualElement) {
 	let ret = []
 	for (let e of array) {
 		if (e != null) {
 			if (ret.length > 0) {
-				ret.push(spacer)
+				ret.push(spacer())
 			}
 			ret.push(e)
 		}
@@ -110,14 +110,12 @@ export class ContactViewer {
 					m(".header.pt-ml", [
 						m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
 							m(".left.flex-grow-shrink-150", [
-								m(".flex-wrap.selectable", [
-									m(".h2", this.contactAppellation),
-								]),
+								m(".h2.selectable.text-break", this.contactAppellation),
 								m(".flex-wrap.selectable", insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
 										m("span.birthday", this._formatBirthday())
-									], m("span", " | ")
+									], () => m("span", " | ")
 									)
 								)
 							]),
