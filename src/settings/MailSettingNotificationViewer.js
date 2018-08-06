@@ -91,7 +91,7 @@ export class MailSettingNotificationViewer {
 					identifier: identifier.identifier,
 					current: current,
 					removeClicked: () => erase(identifier),
-					formatIdentifier: identifier.pushServiceType !== "2" // do not format e-mail
+					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL
 					//enableClicked: this._enableNotifications
 				})
 			}).sort((l, r) => r.attrs.current - l.attrs.current)
