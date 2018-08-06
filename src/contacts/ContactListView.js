@@ -103,7 +103,7 @@ export class ContactRow {
 	render(): Children {
 		let elements = [
 			m(".top", [
-				m(".name", {oncreate: (vnode) => this._domName = vnode.dom}),
+				m(".name.text-ellipsis", {oncreate: (vnode) => this._domName = vnode.dom}),
 			]),
 			m(".bottom.flex-space-between", [
 				m("small.mail-address", {oncreate: (vnode) => this._domAddress = vnode.dom}),
