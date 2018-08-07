@@ -24,6 +24,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -76,7 +77,8 @@ public final class PushNotificationService extends JobService {
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
 
-    private final Map<String, Integer> aliasNotification = new ConcurrentHashMap<>();
+    private final Map<String, LocalNotificationInfo> aliasNotification =
+            new ConcurrentHashMap<>();
 
     private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
 
@@ -177,6 +179,28 @@ public final class PushNotificationService extends JobService {
                     }
                 }
             }
+            if (aliasNotification.isEmpty()) {
+                getNotificationManager().cancel(SUMMARY_NOTIFICATION_ID);
+            } else {
+                boolean allAreZero = true;
+                for (LocalNotificationInfo info : aliasNotification.values()) {
+                    if (info.counter > 1) {
+                        allAreZero = false;
+                        break;
+                    }
+                }
+                if (allAreZero) {
+                    getNotificationManager().cancel(SUMMARY_NOTIFICATION_ID);
+                } else {
+                    for (LocalNotificationInfo info : aliasNotification.values()) {
+                        if (info.counter > 0) {
+                            sendSummaryNotification(getNotificationManager(),
+                                    info.message, info.notificationInfo);
+                        }
+                    }
+                }
+            }
+
             return START_STICKY;
         }
 
@@ -213,7 +237,10 @@ public final class PushNotificationService extends JobService {
             this.reschedule(0);
         } else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
             Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
-            confirmationThreadPool.execute(connection::disconnect);
+            confirmationThreadPool.execute(() -> {
+                Log.d(TAG, "Executing scheduled disconnect");
+                connection.disconnect();
+            });
         } else {
             Log.d(TAG, "ConnectionRef available, do nothing");
         }
@@ -265,6 +292,7 @@ public final class PushNotificationService extends JobService {
             Log.d(TAG, "SSE connection established, listening for events");
             while ((event = reader.readLine()) != null) {
                 if (!event.startsWith("data: ")) {
+                    Log.d(TAG, "heartbeat");
                     continue;
                 }
                 event = event.substring(6);
@@ -290,17 +318,19 @@ public final class PushNotificationService extends JobService {
                 for (int i = 0; i < notificationInfos.size(); i++) {
                     PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
 
-                    Integer counterPerAlias =
+                    LocalNotificationInfo counterPerAlias =
                             aliasNotification.get(notificationInfo.getAddress());
                     if (counterPerAlias == null) {
-                        counterPerAlias = notificationInfo.getCounter();
+                        counterPerAlias = new LocalNotificationInfo(
+                                pushMessage.getTitle(),
+                                notificationInfo.getCounter(), notificationInfo);
                     } else {
-                        counterPerAlias += notificationInfo.getCounter();
+                        counterPerAlias = counterPerAlias.incremented(notificationInfo.getCounter());
                     }
                     aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
 
                     Log.d(TAG, "Event: " + event);
-                    int notificationId = notificationId(notificationInfo);
+                    int notificationId = notificationId(notificationInfo.getAddress());
 
 
                     Notification.Builder notificationBuilder;
@@ -316,7 +346,7 @@ public final class PushNotificationService extends JobService {
                     notificationBuilder.setContentTitle(pushMessage.getTitle())
                             .setColor(getResources().getColor(R.color.colorPrimary))
                             .setContentText(notificationContent(notificationInfo.getAddress()))
-                            .setNumber(counterPerAlias)
+                            .setNumber(counterPerAlias.counter)
                             .setSmallIcon(R.drawable.ic_status)
                             .setDeleteIntent(this.intentForDelete(addresses))
                             .setContentIntent(intentOpenMailbox(notificationInfo, false))
@@ -330,7 +360,8 @@ public final class PushNotificationService extends JobService {
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
 
-                    sendSummaryNotification(notificationManager, pushMessage, notificationInfo);
+                    sendSummaryNotification(notificationManager, pushMessage.getTitle(),
+                            notificationInfo);
 
                     Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
                     confirmationThreadPool.execute(
@@ -370,20 +401,21 @@ public final class PushNotificationService extends JobService {
         }
     }
 
-    private int notificationId(PushMessage.NotificationInfo notificationInfo) {
-        return Math.abs(notificationInfo.getAddress().hashCode());
+    private int notificationId(String address) {
+        return Math.abs(address.hashCode());
     }
 
     private void sendSummaryNotification(NotificationManager notificationManager,
-                                         PushMessage pushMessage,
+                                         String title,
                                          PushMessage.NotificationInfo notificationInfo) {
         int summaryCounter = 0;
         ArrayList<String> addresses = new ArrayList<>();
         Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
 
-        for (Map.Entry<String, Integer> entry : aliasNotification.entrySet()) {
-            if (entry.getValue() > 0) {
-                summaryCounter += entry.getValue();
+        for (Map.Entry<String, LocalNotificationInfo> entry : aliasNotification.entrySet()) {
+            int count = entry.getValue().counter;
+            if (count > 0) {
+                summaryCounter += count;
                 inboxStyle.addLine(notificationContent(entry.getKey()));
                 addresses.add(entry.getKey());
             }
@@ -397,7 +429,7 @@ public final class PushNotificationService extends JobService {
             builder = new Notification.Builder(this);
         }
 
-        Notification notification = builder.setContentTitle(pushMessage.getTitle())
+        Notification notification = builder.setContentTitle(title)
                 .setContentText(notificationContent(notificationInfo.getAddress()))
                 .setSmallIcon(R.drawable.ic_status)
                 .setGroup(NOTIFICATION_EMAIL_GROUP)
@@ -417,7 +449,7 @@ public final class PushNotificationService extends JobService {
         deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses);
         return PendingIntent.getService(
                 this.getApplicationContext(),
-                1,
+                notificationId("dismiss" + TextUtils.join("+", addresses)),
                 deleteIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -433,14 +465,14 @@ public final class PushNotificationService extends JobService {
         openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary);
         return PendingIntent.getActivity(
                 this,
-                notificationId(notificationInfo),
+                notificationId(notificationInfo.getAddress() + "@isSummary" + isSummary),
                 openMailboxIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     @NonNull
     private String notificationContent(String address) {
-        return aliasNotification.get(address) + " " + address;
+        return aliasNotification.get(address).counter + " " + address;
     }
 
     private NotificationManager getNotificationManager() {
@@ -607,5 +639,20 @@ final class PushMessage {
             return userId;
         }
     }
+}
 
+final class LocalNotificationInfo {
+    final String message;
+    final int counter;
+    final PushMessage.NotificationInfo notificationInfo;
+
+    LocalNotificationInfo(String message, int counter, PushMessage.NotificationInfo notificationInfo) {
+        this.message = message;
+        this.counter = counter;
+        this.notificationInfo = notificationInfo;
+    }
+
+    LocalNotificationInfo incremented(int by) {
+        return new LocalNotificationInfo(message, counter + by, notificationInfo);
+    }
 }
