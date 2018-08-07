@@ -182,7 +182,7 @@ public class FileUtil {
         return Utils.uriToFile(activity.getWebView().getContext(), absolutePath).getName();
     }
 
-    String upload(final String absolutePath, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
+    int upload(final String absolutePath, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
         File file = Utils.uriToFile(activity.getWebView().getContext(), absolutePath);
         HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
         try {
@@ -195,10 +195,8 @@ public class FileUtil {
             con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
             addHeadersToRequest(con, headers);
             con.connect();
-
             IOUtils.copy(new FileInputStream(file), con.getOutputStream());
-
-            return con.getResponseCode() + "";
+            return con.getResponseCode();
         } finally {
             con.disconnect();
         }
