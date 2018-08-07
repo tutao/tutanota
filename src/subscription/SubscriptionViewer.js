@@ -181,7 +181,7 @@ export class SubscriptionViewer {
 			showDeleteAccountDialog()
 		}).setType(ButtonType.Login)
 		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
-			view: () => m(".flex-center", m("", {style: {"width": '200px'}}, m(deleteButton)))
+			view: () => m(".flex-center.mb-l", m("", {style: {"width": '200px'}}, m(deleteButton)))
 		}), false)
 
 		this.view = (): VirtualElement => {
@@ -201,7 +201,7 @@ export class SubscriptionViewer {
 				m(this._groupsField),
 				m(this._whitelabelField),
 				m(this._contactFormsField),
-				m(".flex-space-between.items-center.mt-l.mb-s", [
+				m(".flex-space-between.items-center.mt-l.mb", [
 					m(".h4", lang.get('adminDeleteAccount_action')),
 					m(deleteAccountExpander)
 				]),
