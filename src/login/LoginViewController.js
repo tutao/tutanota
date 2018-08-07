@@ -104,11 +104,6 @@ export class LoginViewController {
 					                                        .catch(NotFoundError, e => console.log("session already deleted"))
 				                           }
 			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			                           .then(() => {
-				                           if (env.mode === Mode.App) {
-					                           return pushServiceApp.register()
-				                           }
-			                           })
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
@@ -171,7 +166,9 @@ export class LoginViewController {
 			console.log("offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-
+		if (env.mode === Mode.App) {
+			return pushServiceApp.register()
+		}
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
 			return this._showUpgradeReminder()
