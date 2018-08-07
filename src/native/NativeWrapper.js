@@ -1,7 +1,7 @@
 //@flow
 import {Queue, Request} from "../api/common/WorkerProtocol"
 import {ConnectionError} from "../api/common/error/RestError"
-import {neverNull, asyncImport} from "../api/common/utils/Utils"
+import {neverNull, asyncImport, defer} from "../api/common/utils/Utils"
 import {Mode, isMainOrNode} from "../api/Env"
 import {getName, getMimeType, getSize} from "./FileApp"
 
@@ -10,6 +10,8 @@ import {getName, getMimeType, getSize} from "./FileApp"
  * main thread (as native functions bound to a webview are only available from that scope).
  */
 class NativeWrapper {
+
+	_initialized = defer();
 
 	_workerQueue: ?Queue;
 	_nativeQueue: ?Queue;
@@ -81,7 +83,10 @@ class NativeWrapper {
 					)
 				}
 			})
-			this.invokeNative(new Request("init", [])).then(platformId => env.platformId = platformId);
+			this.invokeNative(new Request("init", [])).then(platformId => {
+				env.platformId = platformId
+				this._initialized.resolve()
+			});
 		}
 	}
 
@@ -135,6 +140,10 @@ class NativeWrapper {
 	setWorkerQueue(queue: Queue) {
 		this._workerQueue = queue;
 		this._nativeQueue = null
+	}
+
+	initialized() {
+		return this._initialized.promise
 	}
 }
 

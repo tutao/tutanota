@@ -6,6 +6,7 @@ import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
+import {nativeApp} from "../native/NativeWrapper";
 
 assertMainOrNodeBoot()
 
@@ -25,8 +26,8 @@ class WindowFacade {
 			.then(module => {
 				// load async to reduce size of boot bundle
 				this._worker = module.worker
-				this.addPageInBackgroundListener()
-			})
+				return nativeApp.initialized()
+			}).then(() => this.addPageInBackgroundListener())
 	}
 
 	/**
