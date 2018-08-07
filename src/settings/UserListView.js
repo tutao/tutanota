@@ -148,6 +148,8 @@ export class UserListView {
 				this._settingsView.focusSettingsDetailsColumn()
 			}
 			m.redraw()
+		} else {
+			this._settingsView.focusSettingsDetailsColumn()
 		}
 	}
 
