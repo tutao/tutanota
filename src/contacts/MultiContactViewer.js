@@ -15,14 +15,12 @@ assertMainOrNode()
  */
 export class MultiContactViewer {
 	view: Function;
+	_contactView: ContactView
 
 	constructor(contactView: ContactView) {
+		this._contactView = contactView
 		let emptyMessageBox = new MessageBox(() => this._getContactSelectionMessage(contactView))
-		let actionsWithManualMerge = new ActionBar()
-		actionsWithManualMerge.add(new Button('delete_action', () => contactView._deleteSelected(), () => Icons.Trash))
-		actionsWithManualMerge.add(new Button("merge_action", () => contactView.mergeSelected(), () => Icons.People))
-		let actions = new ActionBar()
-		actions.add(new Button('delete_action', () => contactView._deleteSelected(), () => Icons.Trash))
+		let actionBar = this.createActionBar()
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
@@ -30,9 +28,7 @@ export class MultiContactViewer {
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-							m((contactView._contactList
-								&& contactView._contactList.list.getSelectedEntities().length === 2) ?
-								actionsWithManualMerge : actions)
+							m(actionBar)
 						])
 					] : [m(emptyMessageBox)])
 			]
@@ -50,10 +46,18 @@ export class MultiContactViewer {
 		var nbrOfSelectedContacts = (contactView._contactList) ? contactView._contactList.list.getSelectedEntities().length : 0
 		if (nbrOfSelectedContacts === 0) {
 			return lang.get("noContact_msg")
-		} else if (nbrOfSelectedContacts === 1) {
-			return lang.get("oneContactSelected_msg")
 		} else {
 			return lang.get("nbrOfContactsSelected_msg", {"{1}": nbrOfSelectedContacts})
 		}
+	}
+
+	createActionBar(actionCallback: () => void = () => {}): Component {
+		const actions = new ActionBar()
+		actions.add(new Button('delete_action',
+			() => this._contactView._deleteSelected().then(actionCallback), () => Icons.Trash))
+		actions.add(new Button("merge_action", () => this._contactView.mergeSelected().then(actionCallback),
+			() => Icons.People)
+			.setIsVisibleHandler(() => this._contactView._contactList.list.getSelectedEntities().length === 2))
+		return actions
 	}
 }

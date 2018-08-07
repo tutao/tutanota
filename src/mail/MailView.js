@@ -48,6 +48,7 @@ import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
+import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 
 assertMainOrNode()
 
@@ -108,7 +109,7 @@ export class MailView {
 		})
 
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBar = lazyMemoized(() => this._multiMailViewer.actionBar(() => this.mailList.list.selectNone()))
+		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar(() => this.mailList.list.selectNone()))
 		this.mailColumn = new ViewColumn({
 			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
 		}, ColumnType.Background, 600, 2400, () => {
@@ -637,21 +638,11 @@ export class MailView {
 	 */
 	headerView(): Children {
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.mailList && this.mailList.list
-		&& this.mailList.list.isMobileMultiSelectionActionActive() ? this._actionBarVnode() : null
+		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
+			selectNoneHandler: () => this.mailList.list.selectNone(),
+			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
+			content: this._multiMailViewer.createActionBar(() => this.mailList.list.selectNone())
+		}) : null
 	}
 
-	_actionBarVnode(): Children {
-		const selectNone = () => this.mailList.list.selectNone()
-		const cancelButton = new Button("cancel_action", selectNone, () => Icons.Cancel)
-
-		return m(".flex.items-center.justify-between.pl-s.pr-s", {
-			style: {
-				"height": "100%"
-			}
-		}, [
-			m(cancelButton),
-			m(".ml-s.b", this.mailList.list.getSelectedEntities().length),
-			m(this._actionBar())
-		])
-	}
 }

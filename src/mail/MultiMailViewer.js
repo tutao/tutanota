@@ -29,7 +29,7 @@ export class MultiMailViewer {
 	constructor(mailView: MailView) {
 		this._mailView = mailView
 		let emptyMessageBox = new MessageBox(() => this._getMailSelectionMessage(mailView))
-		const actions = this.actionBar()
+		const actions = this.createActionBar()
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
@@ -73,7 +73,7 @@ export class MultiMailViewer {
 		}
 	}
 
-	actionBar(actionCallback: () => void = () => {}): ActionBar {
+	createActionBar(actionCallback: () => void = () => {}): ActionBar {
 		let actions = new ActionBar()
 
 		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {

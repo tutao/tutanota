@@ -34,6 +34,7 @@ import {LazyContactListId} from "../contacts/ContactUtils"
 import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
+import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 
 
 assertMainOrNode()
@@ -45,6 +46,7 @@ export class ContactView {
 	contactViewer: ?ContactViewer;
 	viewSlider: ViewSlider;
 	_contactList: ContactListView;
+	_multiContactViewer: MultiContactViewer;
 	newAction: Button;
 	view: Function;
 	oncreate: Function;
@@ -68,9 +70,9 @@ export class ContactView {
 
 		this.contactViewer = null
 
-		let multiContactViewer = new MultiContactViewer(this)
+		this._multiContactViewer = new MultiContactViewer(this)
 		this.contactColumn = new ViewColumn({
-			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(multiContactViewer))
+			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
 		}, ColumnType.Background, 600, 2400, () => {
 			let selectedEntities = this._contactList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
@@ -103,7 +105,7 @@ export class ContactView {
 
 
 	_setupShortcuts() {
-		let shortcuts = [
+		let shortcuts: Shortcut[] = [
 			{
 				key: Keys.UP,
 				exec: () => this._contactList.list.selectPrevious(false),
@@ -128,7 +130,7 @@ export class ContactView {
 			},
 			{
 				key: Keys.DELETE,
-				exec: () => this._deleteSelected(),
+				exec: () => this._deleteSelected() && true,
 				help: "deleteContacts_action"
 			},
 			{
@@ -344,8 +346,8 @@ export class ContactView {
 		m.route.set(url)
 	}
 
-	_deleteSelected(): void {
-		Dialog.confirm("deleteContacts_msg").then(confirmed => {
+	_deleteSelected(): Promise<void> {
+		return Dialog.confirm("deleteContacts_msg").then(confirmed => {
 			if (confirmed) {
 				this._contactList.list.getSelectedEntities().forEach(contact => {
 					erase(contact).catch(NotFoundError, e => {
@@ -359,14 +361,14 @@ export class ContactView {
 	/**
 	 * @pre the number of selected contacts is 2
 	 */
-	mergeSelected(): void {
+	mergeSelected(): Promise<void> {
 		if (this._contactList.list.getSelectedEntities().length === 2) {
 			let keptContact = this._contactList.list.getSelectedEntities()[0]
 			let goodbyeContact = this._contactList.list.getSelectedEntities()[1]
 
 			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword
 				|| (keptContact.presharedPassword === goodbyeContact.presharedPassword)) {
-				Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
+				return Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
 						return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
@@ -377,14 +379,16 @@ export class ContactView {
 					}
 				})
 			} else {
-				Dialog.error("presharedPasswordsUnequal_msg")
+				return Dialog.error("presharedPasswordsUnequal_msg")
 			}
+		} else {
+			return Promise.resolve()
 		}
 	}
 
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (contacts.length === 1) {
+		if (contacts.length === 1 && !multiSelectOperation) {
 			this.contactViewer = new ContactViewer(contacts[0])
 			this._setUrl(`/contact/${contacts[0]._id.join("/")}`)
 			if (elementClicked) {
@@ -409,5 +413,19 @@ export class ContactView {
 				}
 			})
 		}
+	}
+
+
+	/**
+	 * Used by Header to figure out when content needs to be injected there
+	 * @returns {Children} Mithril children or null
+	 */
+	headerView(): Children {
+		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this._contactList && this._contactList.list
+		&& this._contactList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
+			selectNoneHandler: () => this._contactList.list.selectNone(),
+			selectedEntiesLength: this._contactList.list.getSelectedEntities().length,
+			content: this._multiContactViewer.createActionBar(() => this._contactList.list.selectNone())
+		}) : null
 	}
 }
