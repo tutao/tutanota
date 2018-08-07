@@ -16,7 +16,7 @@ styles.registerStyle('main', () => {
 			"-webkit-user-select": "none",
 			"-moz-user-select": "none",
 			"-webkit-touch-callout": "none", /* disable the IOS popup when long-press on a link */
-			"-webkit-user-drag": "none",
+			"-webkit-user-drag": client.isMobileDevice() ? "none" : "",
 			"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)"
 		},
 
