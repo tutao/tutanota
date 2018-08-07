@@ -499,7 +499,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_displaySpinner(delayed: boolean = true) {
 		setTimeout(() => {
-			if (!this._loading.isFulfilled()) {
+			if (!this._loading.isFulfilled() && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
 		}, delayed ? DefaultAnimationTime : 5)

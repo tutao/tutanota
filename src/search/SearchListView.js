@@ -102,6 +102,12 @@ export class SearchListView {
 				let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
 				let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
 				let resultIds = [].concat(result.results) //create copy
+
+				if (!isSameTypeRef(this._lastType, result.restriction.type)) {
+					console.log("different type ref - don't load results")
+					return Promise.resolve([])
+				}
+
 				if (mail) {
 					let startIndex = 0
 					if (startId !== GENERATED_MAX_ID) {
