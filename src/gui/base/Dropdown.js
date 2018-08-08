@@ -56,7 +56,7 @@ export class Dropdown {
 				},
 				this.children.filter(b => isVisible(b))
 				    .map(button => (typeof button === "string") ?
-					    m(".flex-v-center.center.button-height.b.text-break.doNotClose", button) : m(button)))
+					    m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button) : m(button)))
 			)
 		}
 	}

@@ -309,7 +309,7 @@ export class MailViewer {
 						m(".header.plr-l", [
 							m(".flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
-									m("small.flex.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
+									(detailsExpander.panel.expanded) ? m("small.flex.text-break", lang.get("from_label")) : m("small.flex.text-break.selectable", getSenderOrRecipientHeading(this.mail, false)),
 									(this._folderText) ? m("small.b.flex.pt.pb-s", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								m(".flex.flex-column-reverse", [m(detailsExpander)]),
