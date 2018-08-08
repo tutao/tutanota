@@ -25,7 +25,7 @@ type NotificationRowAttrs = {|
 	current: boolean,
 	formatIdentifier: boolean,
 	removeClicked: () => void,
-	enableClicked: (enable: boolean) => void
+	//enableClicked: (enable: boolean) => void
 |}
 
 class NotificationRowView implements MComponent<NotificationRowAttrs> {
@@ -90,11 +90,11 @@ export class MailSettingNotificationViewer {
 					name: this._identifierTypeName(current, identifier.pushServiceType),
 					identifier: identifier.identifier,
 					current: current,
-					removeClicked: () => erase(identifier),
+					removeClicked: () => {erase(identifier)},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL
 					//enableClicked: this._enableNotifications
 				})
-			}).sort((l, r) => r.attrs.current - l.attrs.current)
+			}).sort((l, r) => (+r.attrs.current) - (+l.attrs.current))
 
 			// If notifications were disabled, add a row for the current device
 			/*			if (isApp() && (rows.length === 0 || rows.length > 0 && !rows[0].attrs.current)) {

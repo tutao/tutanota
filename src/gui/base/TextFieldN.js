@@ -13,7 +13,7 @@ import {Icons} from "./icons/Icons"
 
 export type TextFieldAttrs = {
 	label: string | lazy<string>,
-	value: stream<string>,
+	value: Stream<string>,
 	type?: TextFieldTypeEnum;
 	helpLabel?: lazy<string>,
 	style?: Object,
@@ -247,7 +247,7 @@ export const TextFieldN: Class<MComponent<TextFieldAttrs>> = _TextField
 export function editableTextField(label: string, value: ?string, updateHandler: handler<string>, area: ?boolean = false) {
 	return m(TextFieldN, {
 		label: () => label,
-		value: () => value,
+		value: stream(value || ""),
 		type: area ? Type.Area : Type.Text,
 		disabled: true,
 		injectionsRight: () => m(ButtonN, {
@@ -265,7 +265,7 @@ export function editableTextField(label: string, value: ?string, updateHandler: 
 export function editableDateField(label: string, value: ?Date, updateHandler: handler<Date>) {
 	return m(TextFieldN, {
 		label: () => label,
-		value: () => value ? formatDate(value) : "",
+		value: stream(value ? formatDate(value) : ""),
 		disabled: true,
 		injectionsRight: () => m(ButtonN, {
 			label: () => "update",

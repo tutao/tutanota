@@ -1,3 +1,8 @@
+// Declared at the top level to not import it in all places
+declare interface Component {
+	view(): VirtualElement | VirtualElement[];
+}
+
 declare module 'mithril' {
 	declare interface Mithril {
 

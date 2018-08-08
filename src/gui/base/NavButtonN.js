@@ -102,12 +102,10 @@ class _NavButton {
 				addFlash(vnode.dom)
 			},
 			onupdate: (vnode: VirtualElement) => {
-				if (vnode.attr.href instanceof Function) {
-					if (!this._isExternalUrl(a.href)) {
-						m.route.link(vnode)
-					}
-					this._domButton.onclick = (event: MouseEvent) => this.click(event, a)
+				if (!this._isExternalUrl(a.href)) {
+					m.route.link(vnode)
 				}
+				this._domButton.onclick = (event: MouseEvent) => this.click(event, a)
 			},
 			onbeforeremove: (vnode) => {
 				removeFlash(vnode.dom)

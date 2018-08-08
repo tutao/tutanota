@@ -2,18 +2,19 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonType} from "./Button"
-import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "./TextFieldN"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, createDropDown} from "./ButtonN"
 import {Icons} from "./icons/Icons"
+import type Stream from "mithril/stream/stream.js"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
 export type DropDownSelectorAttrs<T> = {
 	label: string | lazy<string>,
 	items: {name: string, value: T}[],
-	selectedValue: stream<?T>,
+	selectedValue: Stream<?T>,
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
@@ -29,7 +30,7 @@ class _DropDownSelector<T> {
 		const a = vnode.attrs
 		return m(TextFieldN, {
 			label: a.label,
-			value: () => this.valueToText(a, a.selectedValue()),
+			value: stream(this.valueToText(a, a.selectedValue()) || ""),
 			helpLabel: a.helpLabel,
 			disabled: true,
 			injectionsRight: () => m(ButtonN, {
@@ -60,13 +61,14 @@ class _DropDownSelector<T> {
 		}, a.dropdownWidth)
 	}
 
-	valueToText(a: DropDownSelectorAttrs<T>, value: T): ?string {
+	valueToText(a: DropDownSelectorAttrs<T>, value: ?T): ?string {
 		if (value != null) {
 			let selectedItem = a.items.find(item => item.value === a.selectedValue())
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
-				console.log(`Dropdown ${a.label instanceof Function ? a.label() : a.label} couldn't find element for value: ${JSON.stringify(value)}`)
+				console.log(`Dropdown ${a.label
+				instanceof Function ? a.label() : a.label} couldn't find element for value: ${JSON.stringify(value)}`)
 			}
 		}
 		return null

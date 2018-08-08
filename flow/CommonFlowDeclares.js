@@ -45,9 +45,6 @@ declare interface Shortcut {
  */
 declare function keyHandler(key: KeyPress): boolean;
 
-declare interface Component {
-	view(): VirtualElement | VirtualElement[];
-}
 
 declare interface UpdatableComponent {
 	view(): VirtualElement | VirtualElement[];
