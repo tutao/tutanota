@@ -569,7 +569,7 @@ export class MailView {
 			// update the multi mail viewer
 			m.redraw()
 		}
-		if (this.mailViewer && elementClicked) {
+		if (this.mailViewer && !multiSelectOperation) {
 			if (mails[0].unread && !mails[0]._errors) {
 				mails[0].unread = false
 				update(mails[0])
