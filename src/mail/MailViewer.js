@@ -608,47 +608,38 @@ export class MailViewer {
 	}
 
 	scrollUp(): void {
-		if (this._domMailViewer) {
-			const dom = this._domMailViewer
-			let current = dom.scrollTop
-			if (this._scrollAnimation.isFulfilled()) {
-				this._scrollAnimation = animations.add(dom,
-					scroll(current, Math.max(0, current - 200)), {easing: ease.inOut})
-			}
-		}
+		this._scrollIfDomBody((dom) => {
+			const current = dom.scrollTop
+			return scroll(current, Math.max(0, current - 200))
+		})
 	}
 
 	scrollDown(): void {
-		if (this._domMailViewer) {
-			const dom = this._domMailViewer
-			let current = dom.scrollTop
-			if (this._scrollAnimation.isFulfilled()) {
-				this._scrollAnimation = animations.add(dom,
-					scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, current + 200)), {easing: ease.inOut})
-			}
-		}
+		this._scrollIfDomBody((dom) => {
+			const current = dom.scrollTop
+			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + 200))
+		})
 	}
 
 	scrollToTop(): void {
-		if (this._domMailViewer) {
-			const dom = this._domMailViewer
-			let current = dom.scrollTop
-			if (this._scrollAnimation.isFulfilled()) {
-				this._scrollAnimation = animations.add(dom, scroll(current, 0), {easing: ease.inOut})
-			}
-		}
+		this._scrollIfDomBody((dom) => {
+			return scroll(dom.scrollTop, 0)
+		})
 	}
 
 	scrollToBottom(): void {
-		if (this._domMailViewer) {
-			const dom = this._domMailViewer
-			let current = dom.scrollTop
+		this._scrollIfDomBody((dom) => {
+			const end = dom.scrollHeight - dom.offsetHeight
+			return scroll(dom.scrollTop, end)
+		})
+	}
+
+	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
+		if (this._domBody) {
+			const dom = this._domBody
 			if (this._scrollAnimation.isFulfilled()) {
-				let end = dom.scrollHeight - dom.offsetHeight
-				this._scrollAnimation = animations.add(dom, scroll(current, end), {easing: ease.inOut})
+				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
 		}
 	}
-
-
 }
