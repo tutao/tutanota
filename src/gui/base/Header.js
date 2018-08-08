@@ -22,13 +22,18 @@ export const LogoutUrl = '/login?noAutoLogin=true'
 
 assertMainOrNodeBoot()
 
+interface CurrentView extends Component {
+	headerView?: () => void;
+	viewSlider: ?IViewSlider;
+}
+
 class Header {
 	buttonBar: NavBar;
 	view: Function;
 	contactsUrl: string;
 	mailsUrl: string;
 	settingsUrl: string;
-	_currentView: ?Component;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+	_currentView: ?CurrentView;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
@@ -87,9 +92,7 @@ class Header {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			const currentView: ?any = this._currentView
-			const injectedView = currentView && currentView.headerView instanceof Function ?
-				currentView.headerView() : null
+			const injectedView = this._currentView && this._currentView.headerView && this._currentView.headerView()
 			return m(".header-nav.overflow-hidden", [this._connectionIndicator()].concat(injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
@@ -231,9 +234,7 @@ class Header {
 		}
 	}
 
-	_searchBar()
-		:
-		Vnode<any> {
+	_searchBar(): Vnode<any> {
 		let placeholder;
 		if (m.route.get().startsWith("/search/mail")) {
 			placeholder = lang.get("searchEmails_placeholder")
@@ -272,19 +273,13 @@ class Header {
 		}
 	}
 
-	updateCurrentView(currentView
-		                  :
-		                  Component
-	) {
+	updateCurrentView(currentView: CurrentView) {
 		this._currentView = currentView
 	}
 
-	_getViewSlider()
-		:
-	? IViewSlider {
-		if (this._currentView
-		) {
-			return (this._currentView: any).viewSlider
+	_getViewSlider(): ?IViewSlider {
+		if (this._currentView) {
+			return this._currentView.viewSlider
 		}
 		else {
 			return null

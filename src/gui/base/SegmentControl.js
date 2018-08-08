@@ -14,7 +14,7 @@ export type SegmentControlItem<T> = {
 
 export class SegmentControl<T> {
 	view: Function;
-	selectedValue: Stream<T>;
+	selectedValue: Stream<SegmentControlItem<T>>;
 	_items: SegmentControlItem<T>[];
 	_changeHandler: handler<SegmentControlItem<T>>;
 
@@ -34,7 +34,7 @@ export class SegmentControl<T> {
 							if (this._changeHandler) {
 								this._changeHandler(item)
 							} else {
-								this.selectedValue(item.value)
+								this.selectedValue(item)
 								m.redraw()
 							}
 						},
