@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +26,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -105,6 +108,9 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
+
+        // Handle long click on links in the WebView
+        this.registerForContextMenu(this.webView);
 
         List<String> queryParameters = new ArrayList<>();
 
@@ -440,6 +446,37 @@ public class MainActivity extends Activity {
         // additional path information like app.html/login are not handled properly by the webview
         // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
         runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        final WebView.HitTestResult hitTestResult = this.webView.getHitTestResult();
+        switch (hitTestResult.getType()) {
+            case WebView.HitTestResult.SRC_ANCHOR_TYPE:
+                final String link = hitTestResult.getExtra();
+                if (link == null) {
+                    return;
+                }
+                if (link.startsWith(getUrl())) {
+                    return;
+                }
+                menu.setHeaderTitle(link);
+                menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
+                    ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
+                            .setPrimaryClip(ClipData.newPlainText(link, link));
+                    return true;
+                });
+                menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
+                    final Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_TEXT, link);
+                    intent.setTypeAndNormalize("text/plain");
+                    this.startActivity(Intent.createChooser(intent, "Share link"));
+                    return true;
+                });
+                break;
+        }
     }
 }
 
