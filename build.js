@@ -34,6 +34,12 @@ promise
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Browser")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App"))
 			])
+        } else if (process.argv.indexOf("host") !== -1) {
+            const hostname = process.argv[process.argv.indexOf("host") + 1]
+            return Promise.all([
+                createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
+                createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App"))
+            ])
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Browser")),
