@@ -1,13 +1,13 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode, isTutanotaDomain, isApp} from "../api/Env"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import {Button, ButtonType} from "../gui/base/Button"
-import {SecondFactorTypeRef, createSecondFactor} from "../api/entities/sys/SecondFactor"
+import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
-import {loadAll, erase, setup, load} from "../api/main/Entity"
+import {erase, load, loadAll, setup} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import TableLine from "../gui/base/TableLine"
 import {lang} from "../misc/LanguageViewModel"
@@ -19,7 +19,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {neverNull} from "../api/common/utils/Utils"
-import {progressIcon, Icon} from "../gui/base/Icon"
+import {Icon, progressIcon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../login/SecondFactorHandler"
 import {contains} from "../api/common/utils/ArrayUtils"
@@ -182,7 +182,7 @@ export class EditSecondFactorsForm {
 					if (cleanedValue.length === 6) {
 						worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key)
 						      .then(number => {
-							      if (number === cleanedValue) {
+							      if (number === Number(cleanedValue)) {
 								      verificationStatus(VerificationStatus.Success)
 							      } else {
 								      verificationStatus(VerificationStatus.Failed)
