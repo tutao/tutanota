@@ -272,9 +272,9 @@ public class MainActivity extends Activity {
 
     public Promise<ActivityResult, ?, ?> startActivityForResult(@RequiresPermission Intent intent) {
         int requestCode = getRequestCode();
-        super.startActivityForResult(intent, requestCode);
         Deferred p = new DeferredObject();
         requests.put(requestCode, p);
+        super.startActivityForResult(intent, requestCode);
         return p;
     }
 

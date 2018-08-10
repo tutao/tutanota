@@ -25,6 +25,16 @@ export const fileApp = {
  */
 function open(file: FileReference): Promise<void> {
 	return nativeApp.invokeNative(new Request("open", [file.location, file.mimeType]))
+	                .catch(e => {
+		                if (e.name && e.name.indexOf("ActivityNotFoundException") !== -1) {
+			                asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+				                `${env.rootPathPrefix}src/gui/base/Dialog`).then(dialogModule => {
+				                (dialogModule.Dialog: Class<Dialog>).error("canNotOpenFileOnDevice_msg")
+			                })
+		                } else {
+			                throw e
+		                }
+	                })
 }
 
 /**
