@@ -799,6 +799,7 @@ styles.registerStyle('main', () => {
 		},
 
 		"@media print": {
+			'html, body': {position: "initial"}, // overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {display: 'none'},
 			".main-view": {
 				top: 0,
