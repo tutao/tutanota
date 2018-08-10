@@ -50,8 +50,8 @@ class _LineChart {
 	_pos: [number, number];
 	_offset: [number, number];
 	_moving: boolean;
-	_viewBox: {x: number, y: number, width: number, height: number};
-	_bounds: {x: number, y: number, width: number, height: number};
+	_viewBox: { x: number, y: number, width: number, height: number };
+	_bounds: { x: number, y: number, width: number, height: number };
 	_circle: HTMLElement;
 	_attrs: LineChartAttrs;
 
@@ -188,7 +188,7 @@ class _LineChart {
 											cx: calculateX(xy[0], a, xFactor),
 											cy: calculateY(height, xy[1], a, yFactor),
 											r: 2.5 * this._scale / this._zoom
-										}))) : null,
+										}, m("title", d.name)))) : null,
 									]
 								}),
 							])
