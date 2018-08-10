@@ -1,6 +1,9 @@
 //@flow
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import type {Dialog} from "../gui/base/Dialog"
+import {asyncImport} from "../api/common/utils/Utils"
 
 
 export const fileApp = {
@@ -10,7 +13,8 @@ export const fileApp = {
 	open,
 	deleteFile,
 	clearFileData,
-	readFile
+	readFile,
+	saveBlob
 }
 
 
@@ -39,18 +43,7 @@ function openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>
 		"height": boundingRect.height
 	}
 
-	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect])).map((uri) => {
-		return Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
-			let fileReference = {
-				_type: "FileReference",
-				name,
-				mimeType,
-				size,
-				location: uri
-			}
-			return fileReference
-		})
-	})
+	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect])).map(uriToFileRef)
 }
 
 /**
@@ -85,6 +78,11 @@ export function getSize(file: string): Promise<number> {
 	return nativeApp.invokeNative(new Request("getSize", [file])).then(sizeString => Number(sizeString))
 }
 
+function saveBlob(data: DataFile): Promise<FileReference> {
+	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
+	                .then(uriToFileRef)
+}
+
 /**
  * Uploads the binary data of a file to tutadb
  */
@@ -100,7 +98,6 @@ function download(sourceUrl: string, filename: string, headers: Object): Promise
 	return nativeApp.invokeNative(new Request("download", [sourceUrl, filename, headers]))
 }
 
-
 function clearFileData() {
 	return nativeApp.invokeNative(new Request("clearFileData", []))
 }
@@ -109,5 +106,13 @@ function readFile(path: string): Promise<Base64> {
 	return nativeApp.invokeNative(new Request("readFile", [path]))
 }
 
-
+function uriToFileRef(uri: string): Promise<FileReference> {
+	return Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => ({
+		_type: "FileReference",
+		name,
+		mimeType,
+		size,
+		location: uri
+	}))
+}
 

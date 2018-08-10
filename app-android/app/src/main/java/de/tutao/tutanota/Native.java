@@ -250,6 +250,8 @@ public final class Native {
                 case "changeTheme":
                     activity.changeTheme(args.getString(0));
                     break;
+                case "saveBlob":
+                    return files.saveBlob(args.getString(0), args.getString(1));
                 default:
                     throw new Exception("unsupported method: " + method);
             }

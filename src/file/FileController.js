@@ -2,7 +2,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isApp} from "../api/Env"
 import {fileApp} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -126,6 +126,9 @@ export class FileController {
 			return fileApp.open(fileReference)
 		} else {
 			let dataFile = ((file: any): DataFile)
+			if (isApp()) {
+				return fileApp.saveBlob(dataFile).return()
+			}
 			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 				|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
 				|| (navigator: any).mozSaveBlob || (navigator: any).webkitSaveBlob

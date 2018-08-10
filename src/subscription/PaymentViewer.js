@@ -13,24 +13,24 @@ import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {InvoiceTypeRef} from "../api/entities/sys/Invoice"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {
-	getPaymentMethodInfoText,
-	getPaymentMethodName,
 	createNotAvailableForFreeButton,
-	getInvoiceStatusText
+	getInvoiceStatusText,
+	getPaymentMethodInfoText,
+	getPaymentMethodName
 } from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {isSameTypeRef, isSameId, sortCompareByReverseId, HttpMethod} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId, isSameTypeRef, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {formatDate, formatPrice, formatNameAndAddress} from "../misc/Formatter"
-import {OperationType, InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
+import {formatDate, formatNameAndAddress, formatPrice} from "../misc/Formatter"
+import {InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import TableLine from "../gui/base/TableLine"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
-import {BadGatewayError, TooManyRequestsError, PreconditionFailedError} from "../api/common/error/RestError"
+import {BadGatewayError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
 import {SysService} from "../api/entities/sys/Services"

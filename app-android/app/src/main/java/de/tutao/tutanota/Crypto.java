@@ -1,11 +1,9 @@
 package de.tutao.tutanota;
 
-import android.app.DownloadManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.webkit.MimeTypeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
