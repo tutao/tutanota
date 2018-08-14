@@ -496,9 +496,9 @@ export class MailEditor {
 					if (file._type === 'FileReference') {
 						return fileApp.open((file: FileReference))
 					} else if (file._type === "DataFile") {
-						return fileController.open(((file: any): DataFile))
+						return fileController.open(file)
 					} else {
-						fileController.downloadAndOpen(((file: any): TutanotaFile))
+						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 					}
 
 				}, null).setType(ButtonType.Secondary)

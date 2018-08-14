@@ -13,10 +13,19 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 
 assertMainOrNodeBoot()
 
+export interface PosRect {
+	height: number;
+	width: number;
+	top: number;
+	left: number;
+	right: number;
+	bottom: number;
+}
+
 export class Dropdown {
 	children: Array<string | NavButton | Button>;
 	_domDropdown: HTMLElement;
-	origin: ?ClientRect;
+	origin: ?PosRect;
 	maxHeight: number;
 	oninit: Function;
 	view: Function;
@@ -121,7 +130,7 @@ export class Dropdown {
 		]
 	}
 
-	setOrigin(origin: ClientRect) {
+	setOrigin(origin: PosRect) {
 		this.origin = origin
 	}
 

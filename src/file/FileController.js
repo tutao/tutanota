@@ -3,7 +3,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp} from "../api/Env"
-import {fileApp} from "../native/FileApp"
+import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
@@ -13,11 +13,16 @@ assertMainOrNode()
 
 export class FileController {
 
-	downloadAndOpen(tutanotaFile: TutanotaFile): Promise<void> {
+	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (!isAndroidApp()) { // on android we store files in the download folder
+				if (!isAndroidApp() || open) {
 					return this.open(file)
+				} else {
+					// it should always be FileReference at this point but we want to make Flow happy
+					if (file._type === 'FileReference') {
+						return putFileIntoDownloadsFolder(file.location)
+					}
 				}
 			}).catch(err => {
 				if (err instanceof CryptoError) {
@@ -29,7 +34,7 @@ export class FileController {
 		)
 	}
 
-	downloadAndOpenAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
+	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
@@ -122,10 +127,9 @@ export class FileController {
 
 	open(file: DataFile | FileReference): Promise<void> {
 		if (file._type === 'FileReference') {
-			let fileReference = ((file: any): FileReference)
-			return fileApp.open(fileReference)
+			return fileApp.open(file)
 		} else {
-			let dataFile = ((file: any): DataFile)
+			let dataFile: DataFile = file
 			if (isApp()) {
 				return fileApp.saveBlob(dataFile).return()
 			}

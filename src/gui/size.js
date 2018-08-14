@@ -35,6 +35,9 @@ export const size = {
 	button_height_bubble: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
+	get bubble_border_width() {
+		return (this.button_height - this.button_height_bubble) / 2
+	},
 
 	navbar_height: 70,
 	navbar_height_mobile: 48,

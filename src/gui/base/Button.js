@@ -1,10 +1,10 @@
 // @flow
 import {size} from "../size"
-import {noselect} from "../mixins"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 import {NavButton} from "./NavButton"
+import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
@@ -291,11 +291,16 @@ export class Button {
 	}
 }
 
-export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): Button {
-	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width)
+export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
+                                     lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
+                                     originOverride: ?(() => PosRect)): Button {
+	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
+		originOverride)
 }
 
-export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazyAsync<Array<string | NavButton | Button>>, width: number = 200): Button {
+export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
+                                          lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
+                                          width: number = 200, originOverride: ?(() => PosRect)): Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
@@ -306,7 +311,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 					return module.showProgressDialog("loading_msg", buttonPromise)
 				})
 		}
-		const initialButtonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
+		const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 		resultPromise.then(buttons => {
 			if (buttons.length === 0) {
 				asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
@@ -317,8 +322,10 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 			} else {
 				let dropdown = new Dropdown(() => buttons, width)
 				if (mainButton._domButton) {
-					let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
-					if (buttonRect.width === 0 && buttonRect.height === 0) {
+					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
+					if (originOverride) {
+						buttonRect = originOverride()
+					} else if (buttonRect.width === 0 && buttonRect.height === 0) {
 						// When new instance is created and the old DOM is detached we may have incorrect positioning
 						buttonRect = initialButtonRect
 					}

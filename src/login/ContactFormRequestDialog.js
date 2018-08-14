@@ -211,9 +211,9 @@ export class ContactFormRequestDialog {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
 				if (file._type === "DataFile") {
-					return fileController.open(((file: any): DataFile))
+					return fileController.open(file)
 				} else {
-					fileController.downloadAndOpen(((file: any): TutanotaFile))
+					fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 				}
 			}, null).setType(ButtonType.Secondary))
 			lazyButtons.push(new Button("remove_action", () => {

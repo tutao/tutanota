@@ -88,6 +88,15 @@ export function getSize(file: string): Promise<number> {
 	return nativeApp.invokeNative(new Request("getSize", [file])).then(sizeString => Number(sizeString))
 }
 
+/**
+ * Copies the file into downloads folder and notifies system and user about that
+ * @param localFileUri URI for the source file
+ * @returns {*} absolute path of the destination file
+ */
+export function putFileIntoDownloadsFolder(localFileUri: string): Promise<string> {
+	return nativeApp.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
+}
+
 function saveBlob(data: DataFile): Promise<FileReference> {
 	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
 	                .then(uriToFileRef)

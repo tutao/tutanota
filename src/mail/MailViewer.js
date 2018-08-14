@@ -21,7 +21,7 @@ import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, Mode} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, Mode} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
@@ -277,27 +277,15 @@ export class MailViewer {
 			this._loadingAttachments = false
 		} else {
 			this._loadingAttachments = true
-			Promise.map(mail.attachments, fileId => {
-				return load(FileTypeRef, fileId)
-			})
+			Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
 			       .then(files => {
 				       this._attachments = files
-				       this._attachmentButtons = files.map(file => {
-					       return new Button(() => file.name,
-						       () => fileController.downloadAndOpen(file),
-						       () => Icons.Attachment).setType(ButtonType.Bubble)
-					                                  .setStaticRightText("(" + formatStorageSize(Number(file.size))
-						                                  + ")")
-				       })
-				       if (this._attachmentButtons.length >= 3) {
-					       this._attachmentButtons.push(new Button("saveAll_action",
-						       () => fileController.downloadAndOpenAll(this._attachments), null)
-						       .setType(ButtonType.Secondary))
-				       }
+				       this._attachmentButtons = this._createAttachmentsButtons(files)
 				       this._loadingAttachments = false
 				       m.redraw()
 			       })
-			       .catch(NotFoundError, e => console.log("could load attachments as they have been moved/deleted already", e))
+			       .catch(NotFoundError, e =>
+				       console.log("could load attachments as they have been moved/deleted already", e))
 		}
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
@@ -641,5 +629,44 @@ export class MailViewer {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
 		}
+	}
+
+	_createAttachmentsButtons(files: TutanotaFile[]): Button[] {
+		let buttons
+		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
+		if (isAndroidApp()) {
+			buttons = files.map(file => {
+				const dropdownButton: Button = createDropDownButton(() => file.name,
+					() => Icons.Attachment,
+					() => [
+						new Button("open_action", () => fileController.downloadAndOpen(file, true), null)
+							.setType(ButtonType.Dropdown),
+						new Button("download_action", () => fileController.downloadAndOpen(file, false), null)
+							.setType(ButtonType.Dropdown)
+					], 200, () => {
+						// Bubble buttons use border so dropdown is misaligned by default
+						const rect = dropdownButton._domButton.getBoundingClientRect()
+						return new DOMRect(rect.left + size.bubble_border_width, rect.top, rect.width, rect.height)
+					})
+					.setType(ButtonType.Bubble)
+					.setStaticRightText("(" + formatStorageSize(Number(file.size))
+						+ ")")
+				return dropdownButton
+			})
+		} else {
+			buttons = files.map(file => new Button(() => file.name,
+				() => fileController.downloadAndOpen(file, true),
+				() => Icons.Attachment)
+				.setType(ButtonType.Bubble)
+				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			)
+		}
+
+		if (buttons.length >= 3) {
+			buttons.push(new Button("saveAll_action",
+				() => fileController.downloadAll(this._attachments), null)
+				.setType(ButtonType.Secondary))
+		}
+		return buttons
 	}
 }

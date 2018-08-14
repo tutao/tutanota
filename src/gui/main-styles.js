@@ -612,7 +612,7 @@ styles.registerStyle('main', () => {
 			'max-width': "300px",
 			// make the visible button smaller by 7px without changing the actual click area
 			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
-			border: `${px(((size.button_height - size.button_height_bubble) / 2))} solid ${theme.content_bg}`,
+			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
 			'background-color': theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},

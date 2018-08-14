@@ -1,5 +1,6 @@
 package de.tutao.tutanota;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -7,11 +8,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import org.apache.commons.io.IOUtils;
 import org.jdeferred.Deferred;
+import org.jdeferred.DoneCallback;
+import org.jdeferred.DoneFilter;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -20,6 +25,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -152,7 +160,7 @@ public final class Native {
     }
 
     private Promise invokeMethod(String method, JSONArray args) {
-        Deferred promise = new DeferredObject<>();
+        Deferred<Object, Exception, Void> promise = new DeferredObject<>();
         try {
             switch (method) {
                 case "init":
@@ -180,15 +188,10 @@ public final class Native {
                     promise.resolve(crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))));
                     break;
                 case "aesDecryptFile": {
-                    String filePath = crypto.aesDecryptFile(Utils.base64ToBytes(args.getString(0)),
-                            args.getString(1));
-                    String filename = files.getName(filePath);
-                    DownloadManager downloadManager =
-                            (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                    //noinspection ConstantConditions
-                    downloadManager.addCompletedDownload(filename, "Tutanota download", false,
-                            files.getMimeType(filePath), filePath, files.getSize(filePath), true);
-                    promise.resolve(filePath);
+                    final byte[] key = Utils.base64ToBytes(args.getString(0));
+                    final String fileUrl = args.getString(1);
+
+                    promise.resolve(crypto.aesDecryptFile(key, fileUrl));
                     break;
                 }
                 case "open":
@@ -252,6 +255,17 @@ public final class Native {
                     break;
                 case "saveBlob":
                     return files.saveBlob(args.getString(0), args.getString(1));
+                case "putFileIntoDownloads":
+                    final String path = args.getString(0);
+                    activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            .then(__ -> {
+                                try {
+                                    promise.resolve(addFileToDownloads(path));
+                                } catch (IOException e) {
+                                    promise.reject(e);
+                                }
+                            });
+                    break;
                 default:
                     throw new Exception("unsupported method: " + method);
             }
@@ -260,6 +274,28 @@ public final class Native {
             promise.reject(e);
         }
         return promise.promise();
+    }
+
+    private String copyFile(String fromFilePath, String toDir) throws IOException {
+        File fromFile = new File(fromFilePath);
+        File newFile = new File(toDir, fromFile.getName());
+        IOUtils.copyLarge(new FileInputStream(fromFile), new FileOutputStream(newFile),
+                new byte[4096]);
+        return newFile.getAbsolutePath();
+    }
+
+    private String addFileToDownloads(String fileUri) throws IOException {
+        String downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .getAbsolutePath();
+        String newPath = this.copyFile(Utils.uriToFile(activity, fileUri).getAbsolutePath(),
+                downloadsDir);
+        DownloadManager downloadManager =
+                (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        //noinspection ConstantConditions
+        downloadManager.addCompletedDownload(new File(newPath).getName(), "Tutanota download",
+                false, files.getMimeType(newPath), newPath, files.getSize(newPath), true);
+        return newPath;
     }
 
     private void cancelNotifications(JSONArray addressesArray) throws JSONException {
