@@ -166,6 +166,41 @@ public class FileUtil {
         }
     }
 
+    public Promise<String, Exception, Void> putToDownloadFolder(String path) {
+        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
+            DeferredObject<String, Exception, Void> promise = new DeferredObject<>();
+            backgroundTasksExecutor.execute(() -> {
+                try {
+                    promise.resolve(addFileToDownloads(path));
+                } catch (IOException e) {
+                    promise.reject(e);
+                }
+            });
+            return promise;
+        });
+    }
+
+    private String copyFile(String fromFilePath, String toDir) throws IOException {
+        File fromFile = new File(fromFilePath);
+        File newFile = new File(toDir, fromFile.getName());
+        IOUtils.copyLarge(new FileInputStream(fromFile), new FileOutputStream(newFile),
+                new byte[4096]);
+        return newFile.getAbsolutePath();
+    }
+
+    private String addFileToDownloads(String fileUri) throws IOException {
+        String downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .getAbsolutePath();
+        String newPath = this.copyFile(Utils.uriToFile(activity, fileUri).getAbsolutePath(),
+                downloadsDir);
+        DownloadManager downloadManager =
+                (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        //noinspection ConstantConditions
+        downloadManager.addCompletedDownload(new File(newPath).getName(), "Tutanota download",
+                false, this.getMimeType(newPath), newPath, this.getSize(newPath), true);
+        return newPath;
+    }
 
     long getSize(String absolutePath) {
         return Utils.uriToFile(activity, absolutePath).length();
@@ -204,42 +239,39 @@ public class FileUtil {
     }
 
     Promise<String, Exception, Void> download(final String sourceUrl, final String filename, final JSONObject headers) {
-        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
-            DeferredObject<String, Exception, Void> result = new DeferredObject<>();
-            backgroundTasksExecutor.execute(() -> {
-                HttpURLConnection con = null;
-                try {
-                    con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
-                    con.setConnectTimeout(HTTP_TIMEOUT);
-                    con.setReadTimeout(HTTP_TIMEOUT);
-                    con.setRequestMethod("GET");
-                    con.setDoInput(true);
-                    con.setUseCaches(false);
-                    addHeadersToRequest(con, headers);
-                    con.connect();
+        DeferredObject<String, Exception, Void> result = new DeferredObject<>();
+        backgroundTasksExecutor.execute(() -> {
+            HttpURLConnection con = null;
+            try {
+                con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
+                con.setConnectTimeout(HTTP_TIMEOUT);
+                con.setReadTimeout(HTTP_TIMEOUT);
+                con.setRequestMethod("GET");
+                con.setDoInput(true);
+                con.setUseCaches(false);
+                addHeadersToRequest(con, headers);
+                con.connect();
 
-                    File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
-                    encryptedDir.mkdirs();
-                    File encryptedFile = new File(encryptedDir, filename);
+                File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
+                encryptedDir.mkdirs();
+                File encryptedFile = new File(encryptedDir, filename);
 
-                    IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
-                            new byte[1024 * 1000]);
+                IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
+                        new byte[1024 * 1000]);
 
-                    result.resolve(Utils.fileToUri(encryptedFile));
-                } catch (IOException | JSONException e) {
-                    result.reject(e);
-                } finally {
-                    if (con != null) {
-                        con.disconnect();
-                    }
+                result.resolve(Utils.fileToUri(encryptedFile));
+            } catch (IOException | JSONException e) {
+                result.reject(e);
+            } finally {
+                if (con != null) {
+                    con.disconnect();
                 }
-            });
-            return result;
+            }
         });
+        return result;
     }
 
     Promise<String, Exception, Void> saveBlob(final String name, final String base64blob) {
-
         return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) __ -> {
             DeferredObject<String, Exception, Void> result = new DeferredObject<>();
             backgroundTasksExecutor.execute(() -> {
@@ -247,8 +279,8 @@ public class FileUtil {
                         Environment.DIRECTORY_DOWNLOADS), name);
                 final String path = file.getAbsolutePath();
 
-                try {
-                    new FileOutputStream(file).write(Utils.base64ToBytes(base64blob));
+                try (FileOutputStream fout = new FileOutputStream(file)) {
+                    fout.write(Utils.base64ToBytes(base64blob));
                 } catch (IOException e) {
                     result.reject(e);
                 }

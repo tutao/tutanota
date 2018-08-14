@@ -257,15 +257,7 @@ public final class Native {
                     return files.saveBlob(args.getString(0), args.getString(1));
                 case "putFileIntoDownloads":
                     final String path = args.getString(0);
-                    activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            .then(__ -> {
-                                try {
-                                    promise.resolve(addFileToDownloads(path));
-                                } catch (IOException e) {
-                                    promise.reject(e);
-                                }
-                            });
-                    break;
+                    return files.putToDownloadFolder(path);
                 default:
                     throw new Exception("unsupported method: " + method);
             }
@@ -276,27 +268,7 @@ public final class Native {
         return promise.promise();
     }
 
-    private String copyFile(String fromFilePath, String toDir) throws IOException {
-        File fromFile = new File(fromFilePath);
-        File newFile = new File(toDir, fromFile.getName());
-        IOUtils.copyLarge(new FileInputStream(fromFile), new FileOutputStream(newFile),
-                new byte[4096]);
-        return newFile.getAbsolutePath();
-    }
 
-    private String addFileToDownloads(String fileUri) throws IOException {
-        String downloadsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        .getAbsolutePath();
-        String newPath = this.copyFile(Utils.uriToFile(activity, fileUri).getAbsolutePath(),
-                downloadsDir);
-        DownloadManager downloadManager =
-                (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-        //noinspection ConstantConditions
-        downloadManager.addCompletedDownload(new File(newPath).getName(), "Tutanota download",
-                false, files.getMimeType(newPath), newPath, files.getSize(newPath), true);
-        return newPath;
-    }
 
     private void cancelNotifications(JSONArray addressesArray) throws JSONException {
         NotificationManager notificationManager =

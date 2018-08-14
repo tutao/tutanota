@@ -16,13 +16,11 @@ export class FileController {
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (!isAndroidApp() || open) {
-					return this.open(file)
+				if (isAndroidApp() && !open && file._type === 'FileReference') {
+					// move the file to download folder on android app.
+					return putFileIntoDownloadsFolder(file.location)
 				} else {
-					// it should always be FileReference at this point but we want to make Flow happy
-					if (file._type === 'FileReference') {
-						return putFileIntoDownloadsFolder(file.location)
-					}
+					return this.open(file)
 				}
 			}).catch(err => {
 				if (err instanceof CryptoError) {
@@ -36,7 +34,7 @@ export class FileController {
 
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
-			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
+			Promise.map(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
 				             .catch(err => {
 					             if (err instanceof CryptoError) {
@@ -46,8 +44,10 @@ export class FileController {
 							             + tutanotaFile.name)
 					             }
 				             })
-			}).each((file, index) => {
-				if (!isAndroidApp()) {
+			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
+				if (isAndroidApp()) {
+					return putFileIntoDownloadsFolder(file.location)
+				} else {
 					return fileController.open(file)
 				}
 			})
@@ -131,7 +131,8 @@ export class FileController {
 		} else {
 			let dataFile: DataFile = file
 			if (isApp()) {
-				return fileApp.saveBlob(dataFile).return()
+				return fileApp.saveBlob(dataFile)
+				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
 			}
 			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 				|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
