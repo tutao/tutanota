@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const DeleteFileDataTypeRef: TypeRef<DeleteFileData> = new TypeRef("tutanota", "DeleteFileData")

@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", "Challenge")
@@ -51,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "32"
+	"version": "33"
 }
 
 export function createChallenge(): Challenge {

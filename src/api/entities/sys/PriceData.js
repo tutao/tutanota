@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const PriceDataTypeRef: TypeRef<PriceData> = new TypeRef("sys", "PriceData")
@@ -60,7 +61,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "32"
+	"version": "33"
 }
 
 export function createPriceData(): PriceData {

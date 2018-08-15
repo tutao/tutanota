@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const FileTypeRef: TypeRef<TutanotaFile> = new TypeRef("tutanota", "File")

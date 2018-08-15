@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const RollupTypeRef: TypeRef<Rollup> = new TypeRef("monitor", "Rollup")

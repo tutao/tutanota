@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
