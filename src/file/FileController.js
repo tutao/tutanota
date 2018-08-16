@@ -52,6 +52,7 @@ export class FileController {
 				}
 			})
 		).return()
+		 .catch(() => Dialog.error("couldNotAttachFile_msg"))
 	}
 
 	/**
