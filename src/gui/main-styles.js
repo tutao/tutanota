@@ -1,16 +1,16 @@
 //@flow
 import {styles} from "./styles"
-import {size, px} from "./size"
+import {px, size} from "./size"
 import {BrowserType, client} from "../misc/ClientDetector"
-import {position_absolute, positionValue, flex, noselect} from "./mixins"
-import {assertMainOrNodeBoot, isApp} from "../api/Env"
+import {noselect, position_absolute, positionValue} from "./mixins"
+import {assertMainOrNodeBoot, isAdmin, isApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
-		"*:not(input):not(textarea)": {
+		"*:not(input):not(textarea)": isAdmin() ? {} : {
 			"user-select": "none", /* disable selection/Copy for UI elements*/
 			"-ms-user-select": "none",
 			"-webkit-user-select": "none",
