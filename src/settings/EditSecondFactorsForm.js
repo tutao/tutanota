@@ -217,14 +217,14 @@ export class EditSecondFactorsForm {
 					sf.name = name.value()
 					sf.type = type.selectedValue()
 					if (type.selectedValue() === SecondFactorType.u2f) {
-						if (verificationStatus !== VerificationStatus.Success) {
+						if (verificationStatus() !== VerificationStatus.Success) {
 							Dialog.error("unrecognizedU2fDevice_msg")
 							return
 						} else {
 							sf.u2f = u2fRegistrationData()
 						}
 					} else if (type.selectedValue() === SecondFactorType.totp) {
-						if (verificationStatus !== VerificationStatus.Success) {
+						if (verificationStatus() !== VerificationStatus.Success) {
 							Dialog.error("totpCodeEnter_msg")
 							return
 						} else {
