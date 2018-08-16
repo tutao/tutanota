@@ -213,11 +213,6 @@ export class ContactFormRow {
 		if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())) {
 			this._domUrl.textContent = getContactFormUrl(neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactForm.path)
 		}
-		if (contactForm.deleted) {
-			this._domDeletedIcon.style.display = ''
-		} else {
-			this._domDeletedIcon.style.display = 'none'
-		}
 	}
 
 
