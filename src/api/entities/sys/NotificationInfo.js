@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", "NotificationInfo")
@@ -50,7 +51,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "32"
+	"version": "33"
 }
 
 export function createNotificationInfo(): NotificationInfo {

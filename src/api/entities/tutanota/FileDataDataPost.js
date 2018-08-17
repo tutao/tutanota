@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const FileDataDataPostTypeRef: TypeRef<FileDataDataPost> = new TypeRef("tutanota", "FileDataDataPost")

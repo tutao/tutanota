@@ -2,8 +2,8 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp} from "../api/Env"
-import {fileApp} from "../native/FileApp"
+import {assertMainOrNode, isAndroidApp, isApp} from "../api/Env"
+import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
@@ -13,10 +13,13 @@ assertMainOrNode()
 
 export class FileController {
 
-	downloadAndOpen(tutanotaFile: TutanotaFile): Promise<void> {
+	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (!isAndroidApp()) { // on android we store files in the download folder
+				if (isAndroidApp() && !open && file._type === 'FileReference') {
+					// move the file to download folder on android app.
+					return putFileIntoDownloadsFolder(file.location)
+				} else {
 					return this.open(file)
 				}
 			}).catch(err => {
@@ -29,9 +32,9 @@ export class FileController {
 		)
 	}
 
-	downloadAndOpenAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
+	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
-			(isAndroidApp() ? Promise.each : Promise.map)(tutanotaFiles, (tutanotaFile) => {
+			Promise.map(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
 				             .catch(err => {
 					             if (err instanceof CryptoError) {
@@ -41,12 +44,15 @@ export class FileController {
 							             + tutanotaFile.name)
 					             }
 				             })
-			}).each((file, index) => {
-				if (!isAndroidApp()) {
+			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
+				if (isAndroidApp()) {
+					return putFileIntoDownloadsFolder(file.location)
+				} else {
 					return fileController.open(file)
 				}
 			})
 		).return()
+		 .catch(() => Dialog.error("couldNotAttachFile_msg"))
 	}
 
 	/**
@@ -122,10 +128,13 @@ export class FileController {
 
 	open(file: DataFile | FileReference): Promise<void> {
 		if (file._type === 'FileReference') {
-			let fileReference = ((file: any): FileReference)
-			return fileApp.open(fileReference)
+			return fileApp.open(file)
 		} else {
-			let dataFile = ((file: any): DataFile)
+			let dataFile: DataFile = file
+			if (isApp()) {
+				return fileApp.saveBlob(dataFile)
+				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
+			}
 			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 				|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
 				|| (navigator: any).mozSaveBlob || (navigator: any).webkitSaveBlob

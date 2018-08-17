@@ -1,10 +1,12 @@
 package de.tutao.tutanota;
 
 import android.Manifest;
+import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -42,7 +44,7 @@ public class FileUtil {
 
     private final MainActivity activity;
 
-    private final ThreadPoolExecutor networkTasksExecutor = new ThreadPoolExecutor(
+    private final ThreadPoolExecutor backgroundTasksExecutor = new ThreadPoolExecutor(
             1, // core pool size
             4, // max pool size
             10, // keepalive time
@@ -94,11 +96,11 @@ public class FileUtil {
                                                 if (clipData != null) {
                                                     for (int i = 0; i < clipData.getItemCount(); i++) {
                                                         ClipData.Item item = clipData.getItemAt(i);
-                                                        selectedFiles.put(uriToFile(activity.getWebView().getContext(), item.getUri()));
+                                                        selectedFiles.put(uriToFile(activity, item.getUri()));
                                                     }
                                                 } else {
                                                     Uri uri = result.data.getData();
-                                                    selectedFiles.put(uriToFile(activity.getWebView().getContext(), uri));
+                                                    selectedFiles.put(uriToFile(activity, uri));
                                                 }
                                             } catch (Exception e) {
                                                 return new DeferredObject<JSONArray, Exception, Void>().reject(e);
@@ -134,8 +136,7 @@ public class FileUtil {
         if (file.exists()) {
             Uri path = Uri.parse(fileName);
             if (path.getAuthority() != null && path.getAuthority().equals("")) {
-                path = FileProvider.getUriForFile(activity.getWebView().getContext(),
-                        BuildConfig.FILE_PROVIDER_AUTHORITY, file);
+                path = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, file);
             }
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(path, getCorrectedMimeType(fileName, mimeType));
@@ -165,13 +166,48 @@ public class FileUtil {
         }
     }
 
+    public Promise<String, Exception, Void> putToDownloadFolder(String path) {
+        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
+            DeferredObject<String, Exception, Void> promise = new DeferredObject<>();
+            backgroundTasksExecutor.execute(() -> {
+                try {
+                    promise.resolve(addFileToDownloads(path));
+                } catch (IOException e) {
+                    promise.reject(e);
+                }
+            });
+            return promise;
+        });
+    }
+
+    private String copyFile(String fromFilePath, String toDir) throws IOException {
+        File fromFile = new File(fromFilePath);
+        File newFile = new File(toDir, fromFile.getName());
+        IOUtils.copyLarge(new FileInputStream(fromFile), new FileOutputStream(newFile),
+                new byte[4096]);
+        return newFile.getAbsolutePath();
+    }
+
+    private String addFileToDownloads(String fileUri) throws IOException {
+        String downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .getAbsolutePath();
+        String newPath = this.copyFile(Utils.uriToFile(activity, fileUri).getAbsolutePath(),
+                downloadsDir);
+        DownloadManager downloadManager =
+                (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        //noinspection ConstantConditions
+        downloadManager.addCompletedDownload(new File(newPath).getName(), "Tutanota download",
+                false, this.getMimeType(newPath), newPath, this.getSize(newPath), true);
+        return newPath;
+    }
 
     long getSize(String absolutePath) {
-        return Utils.uriToFile(activity.getWebView().getContext(), absolutePath).length();
+        return Utils.uriToFile(activity, absolutePath).length();
     }
 
     String getMimeType(String absolutePath) {
-        String mimeType = FileUtils.getMimeType(Utils.uriToFile(activity.getWebView().getContext(), absolutePath));
+        String mimeType = FileUtils.getMimeType(Utils.uriToFile(activity, absolutePath));
         if (mimeType == null) {
             mimeType = "application/octet-stream";
         }
@@ -179,11 +215,11 @@ public class FileUtil {
     }
 
     String getName(String absolutePath) {
-        return Utils.uriToFile(activity.getWebView().getContext(), absolutePath).getName();
+        return Utils.uriToFile(activity, absolutePath).getName();
     }
 
     int upload(final String absolutePath, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
-        File file = Utils.uriToFile(activity.getWebView().getContext(), absolutePath);
+        File file = Utils.uriToFile(activity, absolutePath);
         HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
         try {
             con.setConnectTimeout(HTTP_TIMEOUT);
@@ -203,36 +239,57 @@ public class FileUtil {
     }
 
     Promise<String, Exception, Void> download(final String sourceUrl, final String filename, final JSONObject headers) {
-        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
-            DeferredObject<String, Exception, Void> result = new DeferredObject<>();
-            networkTasksExecutor.execute(() -> {
-                HttpURLConnection con = null;
-                try {
-                    con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
-                    con.setConnectTimeout(HTTP_TIMEOUT);
-                    con.setReadTimeout(HTTP_TIMEOUT);
-                    con.setRequestMethod("GET");
-                    con.setDoInput(true);
-                    con.setUseCaches(false);
-                    addHeadersToRequest(con, headers);
-                    con.connect();
+        DeferredObject<String, Exception, Void> result = new DeferredObject<>();
+        backgroundTasksExecutor.execute(() -> {
+            HttpURLConnection con = null;
+            try {
+                con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
+                con.setConnectTimeout(HTTP_TIMEOUT);
+                con.setReadTimeout(HTTP_TIMEOUT);
+                con.setRequestMethod("GET");
+                con.setDoInput(true);
+                con.setUseCaches(false);
+                addHeadersToRequest(con, headers);
+                con.connect();
 
-                    Context context = activity.getWebView().getContext();
-                    File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
-                    encryptedDir.mkdirs();
-                    File encryptedFile = new File(encryptedDir, filename);
+                File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
+                encryptedDir.mkdirs();
+                File encryptedFile = new File(encryptedDir, filename);
 
-                    IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
-                            new byte[1024 * 1000]);
+                IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
+                        new byte[1024 * 1000]);
 
-                    result.resolve(Utils.fileToUri(encryptedFile));
-                } catch (IOException | JSONException e) {
-                    result.reject(e);
-                } finally {
-                    if (con != null) {
-                        con.disconnect();
-                    }
+                result.resolve(Utils.fileToUri(encryptedFile));
+            } catch (IOException | JSONException e) {
+                result.reject(e);
+            } finally {
+                if (con != null) {
+                    con.disconnect();
                 }
+            }
+        });
+        return result;
+    }
+
+    Promise<String, Exception, Void> saveBlob(final String name, final String base64blob) {
+        return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) __ -> {
+            DeferredObject<String, Exception, Void> result = new DeferredObject<>();
+            backgroundTasksExecutor.execute(() -> {
+                final File file = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS), name);
+                final String path = file.getAbsolutePath();
+
+                try (FileOutputStream fout = new FileOutputStream(file)) {
+                    fout.write(Utils.base64ToBytes(base64blob));
+                } catch (IOException e) {
+                    result.reject(e);
+                }
+                result.resolve(file.getAbsolutePath());
+                DownloadManager downloadManager =
+                        (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+                //noinspection ConstantConditions
+                downloadManager.addCompletedDownload(name, "Tutanota invoice", false,
+                        getMimeType(path), path, getSize(path), true);
             });
             return result;
         });

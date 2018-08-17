@@ -1,6 +1,7 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
 import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
-import type {PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
+import type {PaymentMethodTypeEnum, BootstrapFeatureTypeEnum} from "../../src/api/common/TutanotaConstans"
+import type {Theme} from "../../src/gui/theme"
 import {Country} from "../../src/api/common/CountryList"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
@@ -142,6 +143,8 @@ type NativeRequestType = 'init'
 	| 'closePushNotifications'
 	| 'readFile'
 	| 'changeTheme'
+	| 'saveBlob'
+	| 'putFileIntoDownloads'
 type JsRequestType = 'createMailEditor'
 	| 'updatePushIdentifier'
 	| 'handleBackPress'
@@ -205,7 +208,7 @@ type WhitelabelCustomizations = {
 	theme: ?Theme,
 	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
 	germanLanguageCode: string,
-	registrationDomains: ?String[],
+	registrationDomains: ?string[],
 }
 
 declare var whitelabelCustomizations: ?WhitelabelCustomizations
@@ -254,7 +257,8 @@ type KeyListener = {
 	modifier: number,
 	callback: Function
 }
-export type SearchRestriction = {
+
+type SearchRestriction = {
 	type: TypeRef<any>;
 	start: ?number; // timestamp
 	end: ?number; // timestamp

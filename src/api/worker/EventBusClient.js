@@ -16,7 +16,7 @@ import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {neverNull} from "../common/utils/Utils"
+import {identity, neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
@@ -85,9 +85,11 @@ export class EventBusClient {
 			return
 		}
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
+		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
 
 		let url = getWebsocketOrigin() + "/event/";
+		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
 			console.log("ws open: ", new Date(), "state:", this._state);
@@ -151,6 +153,13 @@ export class EventBusClient {
 
 		if (this._socket && this._socket.close) { // close is undefined in node tests
 			this._socket.close()
+		}
+	}
+
+	_unsubscribeFromOldWebsocket() {
+		if (this._socket) {
+			// Remove listeners. We don't want old socket to mess our state
+			this._socket.onopen = this._socket.onclose = this._socket.onerror = this._socket.onmessage = identity
 		}
 	}
 

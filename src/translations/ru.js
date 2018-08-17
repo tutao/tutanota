@@ -736,6 +736,7 @@ module.exports = {
 		"switchSearchInMenu_label": "Вы можете поменять тип поиска в меню",
 		"enableForThisDevice_action": "Включить для этого устройства",
 		"disableForThisDevice_action": "Выключить для этого устройства",
-		"notificationsDisabled_label": "Выключены"
+		"notificationsDisabled_label": "Выключены",
+		"open_action": "Открыть"
 	}
 }

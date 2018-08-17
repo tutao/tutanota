@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const StatisticLogRefTypeRef: TypeRef<StatisticLogRef> = new TypeRef("tutanota", "StatisticLogRef")

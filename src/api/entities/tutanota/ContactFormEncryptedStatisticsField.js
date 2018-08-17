@@ -1,4 +1,5 @@
 // @flow
+
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const ContactFormEncryptedStatisticsFieldTypeRef: TypeRef<ContactFormEncryptedStatisticsField> = new TypeRef("tutanota", "ContactFormEncryptedStatisticsField")

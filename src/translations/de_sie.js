@@ -1081,6 +1081,7 @@ module.exports = {
 		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen",
 		"enableForThisDevice_action": "Für dieses Gerät aktivieren",
 		"disableForThisDevice_action": "Für dieses Gerät deaktivieren",
-		"notificationsDisabled_label": "Deaktiviert"
+		"notificationsDisabled_label": "Deaktiviert",
+		"open_action": "Öffnen"
 	}
 }

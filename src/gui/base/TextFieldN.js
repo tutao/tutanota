@@ -108,7 +108,7 @@ export class _TextField {
 
 	_getInputField(a: TextFieldAttrs): VirtualElement {
 		if (a.disabled) {
-			return m(".text-break", {
+			return m(".text-break.selectable", {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
@@ -161,7 +161,7 @@ export class _TextField {
 
 	_getTextArea(a: TextFieldAttrs): VirtualElement {
 		if (a.disabled) {
-			return m(".text-prewrap.text-break", {
+			return m(".text-prewrap.text-break.selectable", {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),

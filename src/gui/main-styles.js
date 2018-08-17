@@ -1,16 +1,16 @@
 //@flow
 import {styles} from "./styles"
-import {size, px} from "./size"
+import {px, size} from "./size"
 import {BrowserType, client} from "../misc/ClientDetector"
-import {position_absolute, positionValue, flex, noselect} from "./mixins"
-import {assertMainOrNodeBoot, isApp} from "../api/Env"
+import {noselect, position_absolute, positionValue} from "./mixins"
+import {assertMainOrNodeBoot, isAdmin, isApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
-		"*:not(input):not(textarea)": {
+		"*:not(input):not(textarea)": isAdmin() ? {} : {
 			"user-select": "none", /* disable selection/Copy for UI elements*/
 			"-ms-user-select": "none",
 			"-webkit-user-select": "none",
@@ -612,7 +612,7 @@ styles.registerStyle('main', () => {
 			'max-width': "300px",
 			// make the visible button smaller by 7px without changing the actual click area
 			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
-			border: `${px(((size.button_height - size.button_height_bubble) / 2))} solid ${theme.content_bg}`,
+			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
 			'background-color': theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},
@@ -799,6 +799,7 @@ styles.registerStyle('main', () => {
 		},
 
 		"@media print": {
+			'html, body': {position: "initial"}, // overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {display: 'none'},
 			".main-view": {
 				top: 0,
