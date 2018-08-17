@@ -13,6 +13,7 @@ import {worker} from "../api/main/WorkerClient"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
+	_currentIdentifier: ?string;
 
 	constructor() {
 		this._pushNotification = null;
@@ -22,6 +23,7 @@ class PushServiceApp {
 		if (isAndroidApp()) {
 			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
 				if (identifier) {
+					this._currentIdentifier = identifier
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
 						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
@@ -33,9 +35,30 @@ class PushServiceApp {
 				} else {
 					return worker.generateSsePushIdentifer()
 					             .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-					             .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier,))
+					             .then(pushIdentifier => {
+						             this._currentIdentifier = pushIdentifier.identifier
+						             return this._storePushIdentifierLocally(pushIdentifier.identifier)
+					             })
 				}
 			}).then(this._initPushNotifications)
+		} else if (isIOSApp()) {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
+				if (identifier) {
+					this._currentIdentifier = identifier
+					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
+						if (pushIdentifier) {
+							if (pushIdentifier.language !== lang.code) {
+								pushIdentifier.language = lang.code
+								update(pushIdentifier)
+							}
+						} else {
+							this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+						}
+					})
+				} else {
+					console.log("denied by user")
+				}
+			})
 		} else {
 			return Promise.resolve()
 		}
@@ -54,24 +77,6 @@ class PushServiceApp {
 			return identifiers.find(i => i.identifier === identifier)
 		})
 	}
-
-
-	updatePushIdentifier(identifier: string) {
-		let identifierType = isIOSApp() ? PushServiceType.IOS : PushServiceType.ANDROID
-		let list = logins.getUserController().user.pushIdentifierList
-		return loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-			let existingPushIdentfier = identifiers.find(i => i.identifier === identifier)
-			if (existingPushIdentfier) {
-				if (existingPushIdentfier.language !== lang.code) {
-					existingPushIdentfier.language = lang.code
-					update(existingPushIdentfier)
-				}
-			} else {
-				this._createPushIdentiferInstance(identifier, identifierType)
-			}
-		})
-	}
-
 
 	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceTypeEnum): Promise<PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
@@ -104,12 +109,8 @@ class PushServiceApp {
 		nativeApp.invokeNative(new Request('closePushNotifications', [addresses]))
 	}
 
-	getPushIdentifier(): Promise<?string> {
-		if (isApp()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", []))
-		} else {
-			return Promise.resolve(null)
-		}
+	getPushIdentifier(): ?string {
+		return this._currentIdentifier
 	}
 
 	/*

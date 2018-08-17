@@ -23,8 +23,6 @@
 	_viewController = [ViewController new];
 	_window.rootViewController = _viewController;
 	[_window makeKeyAndVisible];
-
-	[self registerForPushNotifications];
 	return YES;
 }
 

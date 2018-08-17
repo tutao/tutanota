@@ -11,6 +11,7 @@
 #import "PSPDFFastEnumeration.h"
 
 // App classes
+#import "AppDelegate.h"
 #import "ViewController.h"
 #import "Crypto.h"
 #import "TutaoFileChooser.h"
@@ -37,7 +38,7 @@ typedef void(^VoidCallback)(void);
 @property (readonly) BOOL webViewIsready;
 @property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
 @property NSInteger requestId;
-@property (nullable) NSString *pushToken;
+@property (nullable) NSString *pushTokenRequestId;
 @end
 
 @implementation ViewController
@@ -168,7 +169,8 @@ typedef void(^VoidCallback)(void);
 			}
 		}];
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
-		sendResponseBlock(_pushToken ? _pushToken : NSNull.null, nil);
+		_pushTokenRequestId = requestId;
+		[((AppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotifications];
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];
@@ -259,9 +261,10 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 - (void)didRegisterForRemoteNotificationsWithToken:(NSData *)deviceToken {
 	[self doWhenReady:^{
-		let stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
-						   [NSCharacterSet characterSetWithCharactersInString:@"<> "]];
-		[self sendRequestWithType:@"updatePushIdentifier" args:@[stringToken] completion:nil];
+		var stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
+						   [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
+		stringToken = [stringToken stringByReplacingOccurrencesOfString:@" " withString:@""];
+		[self sendResponseWithId:self->_pushTokenRequestId value:stringToken];
 	}];
 }
 

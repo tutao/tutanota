@@ -131,12 +131,12 @@ export class MailSettingNotificationViewer {
 
 	loadPushIdentifiers(user: User) {
 		this._user = user
+		this._currentIdentifier = pushServiceApp.getPushIdentifier()
 		const list = user.pushIdentifierList
 		if (list) {
-			Promise.all([loadAll(PushIdentifierTypeRef, list.list), pushServiceApp.getPushIdentifier()])
-			       .spread((identifiers, currentIdentifier) => {
-				       this._identifiers = identifiers;
-				       this._currentIdentifier = currentIdentifier;
+			loadAll(PushIdentifierTypeRef, list.list)
+			       .then((identifiers) => {
+				       this._identifiers = identifiers
 				       m.redraw()
 			       })
 		}

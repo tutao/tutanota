@@ -7,3 +7,4 @@ app/plugins
 **/.DS_STORE
 **/*.xcbkptlist
 **/*.xcuserstate
+**/xcuserdata

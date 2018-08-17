@@ -30,11 +30,6 @@ class NativeWrapper {
 				}
 			}: any))
 			this._nativeQueue.setCommands({
-				updatePushIdentifier: (msg: Request) => {
-					return _asyncImport('src/native/PushServiceApp.js').then(module => {
-						module.pushServiceApp.updatePushIdentifier(msg.args[0])
-					})
-				},
 				createMailEditor: (msg: Request) => {
 					return Promise.all([
 						_asyncImport('src/mail/MailModel.js'),
