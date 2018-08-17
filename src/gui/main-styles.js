@@ -142,6 +142,7 @@ styles.registerStyle('main', () => {
 		'.pt-0': {'padding-top': 0},
 		'.pt-s': {'padding-top': px(size.vpad_small)},
 		'.pt-l': {'padding-top': px(size.vpad_large)},
+		'.pt-m': {'padding-top': px(size.vpad)},
 		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
 		'.pb-0': {'padding-bottom': 0},
@@ -149,6 +150,7 @@ styles.registerStyle('main', () => {
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
+		'.pb-m': {'padding-bottom': px(size.vpad)},
 		'.pb-floating': {'padding-bottom': px(size.button_floating_size + size.hpad_large)}, // allow scrolling across the floating button
 		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 		'.pl': {'padding-left': px(size.hpad)},
@@ -156,6 +158,7 @@ styles.registerStyle('main', () => {
 		'.pl-m': {'padding-left': px(size.hpad)},
 		'.pr': {'padding-right': px(size.hpad)},
 		'.pr-s': {'padding-right': px(size.hpad_small)},
+		'.pr-m': {'padding-right': px(size.vpad)},
 
 		// p-l will be overwritten in media query mobile
 		'.plr-l': {'padding-left': px(size.hpad_large), 'padding-right': px(size.hpad_large)},
@@ -761,6 +764,11 @@ styles.registerStyle('main', () => {
 			"animation": "move-stripes 2s linear infinite"
 		},
 
+		'.date-selected': {
+			'border-radius': '50%',
+			background: theme.content_accent,
+			color: theme.content_button_icon,
+		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
