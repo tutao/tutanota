@@ -251,7 +251,7 @@ export class EditSecondFactorsForm {
 				}
 
 				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
-					view: () => m("", [
+					view: () =>  [
 						m(type),
 						m(name),
 						type.selectedValue() === SecondFactorType.totp ? m(".mb", [
@@ -261,9 +261,8 @@ export class EditSecondFactorsForm {
 						]) : null,
 						m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
 						m(".small", lang.get("secondFactorInfoOldClient_msg"))
-					])
+					]
 				}, saveAction, true, "save_action")
-
 
 				function registerResumeOnTimeout() {
 					u2f.register()

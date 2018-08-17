@@ -52,9 +52,9 @@ styles.registerStyle('main', () => {
 
 		'a': {color: 'inherit'},
 
-		'html, body': {height: '100%', margin: 0, position: "fixed", width: "100%"},
+		'html, body': {height: '100%', margin: 0, width: "100%"},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
-
+		'body': {position: "fixed"}, // Fix body for iOS & Safari
 		'button, textarea': {
 			padding: 0,
 			'text-align': 'left'
@@ -284,6 +284,7 @@ styles.registerStyle('main', () => {
 		'.flex-column': {'flex-direction': "column"},
 		'.flex-column-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
+		'.flex-grow': {flex: "1"},
 		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
@@ -291,15 +292,18 @@ styles.registerStyle('main', () => {
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
 		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
+		'.flex-no-grow-no-shrink-auto': {flex: "0 0 auto"},
 		'.flex-no-grow': {flex: "0"},
+		'.flex-no-grow-shrink-auto': {flex: "0 1 auto"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},
 		'.items-start': {'align-items': 'flex-start'},
 		'.items-base': {'align-items': 'baseline'},
-		'.items-strech': {'align-items': 'strech'},
+		'.items-stretch': {'align-items': 'stretch'},
 		'.align-self-center': {'align-self': 'center'},
 		'.align-self-end': {'align-self': 'flex-end'},
+		'.align-self-stretch': {'align-self': 'stretch'},
 		'.justify-center': {'justify-content': 'center'},
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
@@ -435,7 +439,7 @@ styles.registerStyle('main', () => {
 
 
 		// dialogs
-		'.dialog': {'min-width': px(200), width: '100%'},
+		'.dialog': {'min-width': px(200)},
 		'.dialog-width-l': {'max-width': px(800)},
 		'.dialog-width-m': {'max-width': px(500)},
 		'.dialog-width-s': {'max-width': px(400)},
@@ -445,7 +449,11 @@ styles.registerStyle('main', () => {
 			height: px(size.button_height + 1)
 		},
 		'.dialog-header-line-height': {'line-height': px(size.button_height)},
-		'.dialog-progress': {'text-align': 'center', padding: px(size.hpad_large)},
+		'.dialog-progress': {
+			'text-align': 'center',
+			padding: px(size.hpad_large),
+			width: `calc(100% - ${2 * size.hpad}px)`
+		},
 		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
 		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
 		'.dialog-img': {width: px(150), height: "auto"},
@@ -761,6 +769,7 @@ styles.registerStyle('main', () => {
 			"animation": "move-stripes 2s linear infinite"
 		},
 
+		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {

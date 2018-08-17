@@ -32,6 +32,7 @@ export type DialogTypeEnum = $Values<typeof DialogType>;
 
 
 export class Dialog {
+	static _keyboardHeight = 0;
 	buttons: Button[];
 	_domDialog: HTMLElement;
 	_shortcuts: Shortcut[];
@@ -60,15 +61,20 @@ export class Dialog {
 		]
 		this.view = (): VirtualElement => {
 			let mobileMargin = px(size.hpad)
-			return m(this._getDialogWrapperStyle(dialogType), [
-					m(this._getDialogStyle(dialogType), {
-						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
+			return m(this._getDialogWrapperStyle(dialogType),  // controls vertical alignment
+				m(".flex.justify-center.align-self-stretch.rel"
+					+ (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"), {  // controls horizontal alignment
 						style: {
-							'margin-top': styles.isDesktopLayout() ? '60px'
-								: dialogType === DialogType.EditLarge ? mobileMargin : 0,
+							'margin-top': mobileMargin,
 							'margin-left': mobileMargin,
-							'margin-right': mobileMargin
+							'margin-right': mobileMargin,
+							'margin-bottom': (Dialog._keyboardHeight > 0)
+								? px(Dialog._keyboardHeight)
+								: dialogType === DialogType.EditLarge ? 0 : mobileMargin,
 						},
+					}, m(this._getDialogStyle(dialogType), {
+						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
+
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
 							let animation = null
@@ -97,7 +103,7 @@ export class Dialog {
 							})
 						},
 					}, m(childComponent))
-				]
+				)
 			)
 		}
 	}
@@ -117,16 +123,12 @@ export class Dialog {
 	}
 
 	_getDialogWrapperStyle(dialogType: DialogTypeEnum) {
-		let dialogWrapperStyle = ".fill-absolute.flex-center"
-		if (dialogType === DialogType.Progress || dialogType === DialogType.Alert || dialogType === DialogType.EditSmall
-			|| dialogType === DialogType.EditMedium) {
-			dialogWrapperStyle += ".items-center"
-		}
-		if (dialogType === DialogType.Reminder) {
-			dialogWrapperStyle += ".items-base.scroll";
-		}
+		// change direction of axis to handle resize of dialogs (iOS keyboard open changes size)
+		let dialogWrapperStyle = ".fill-absolute.flex.items-stretch.flex-column"
 		if (dialogType === DialogType.EditLarge) {
-			dialogWrapperStyle += ".items-strech";
+			dialogWrapperStyle += ".flex-start";
+		} else {
+			dialogWrapperStyle += ".flex-center" // vertical alignment
 		}
 		return dialogWrapperStyle
 	}
@@ -138,13 +140,13 @@ export class Dialog {
 		} else if (dialogType === DialogType.Alert) {
 			dialogStyle += ".dialog-width-alert.pt"
 		} else if (dialogType === DialogType.Reminder) {
-			dialogStyle += ".dialog-width-m.pt.dialog-align-top" // do not center reminder dialog because on small screens scrolling is not possible with align-items: centered
+			dialogStyle += ".dialog-width-m.pt.flex.flex-column"
 		} else if (dialogType === DialogType.EditSmall) {
-			dialogStyle += ".dialog-width-s"
+			dialogStyle += ".dialog-width-s.flex-no-grow-shrink-auto.flex.flex-column"
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m"
 		} else if (dialogType === DialogType.EditLarge) {
-			dialogStyle += ".dialog-width-l.dialog-align-top"
+			dialogStyle += ".dialog-width-l.flex-grow-shrink-auto"
 		}
 		return dialogStyle
 	}
@@ -289,18 +291,19 @@ export class Dialog {
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
 			}).setType(ButtonType.Primary))
 			let dialog = new Dialog(DialogType.Alert, {
-				view: () => m("", [
+				view: () => [
 					m(".dialog-contentButtonsBottom.text-break.text-prewrap",
 						messageIdOrMessageFunction instanceof Function ?
 							messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
-				])
+				]
 			})
 			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
 
+	// used in admin client
 	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let actionBar = new DialogHeaderBar()
@@ -342,17 +345,17 @@ export class Dialog {
 			}).setType(ButtonType.Primary))
 
 			let dialog = new Dialog(DialogType.Reminder, {
-				view: () => m("", [
-					m(".dialog-contentButtonsBottom.text-break", [
+				view: () => [
+					m(".dialog-contentButtonsBottom.text-break.scroll", [
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=" + HabReminderImage + "].dialog - img.pb")
+							m("img[src=" + HabReminderImage + "].dialog-img.pb")
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
-					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
-				])
+					m(".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto", buttons.map(b => m(b)))
+				]
 			})
 			dialog.setCloseHandler(cancelAction)
 			dialog.show()
@@ -385,10 +388,10 @@ export class Dialog {
 			}).setType(ButtonType.Primary))
 
 			let dialog = new Dialog(DialogType.EditSmall, {
-				view: () => m("", [
+				view: () => [
 					m(".dialog-header.plr-l", m(actionBar)),
-					m(".plr-l.pb.text-break", m(child))
-				])
+					m(".plr-l.pb.text-break.scroll", m(child))
+				]
 			})
 
 			if (title) {
@@ -417,10 +420,10 @@ export class Dialog {
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(DialogType.EditSmall, {
-			view: () => m("", [
+			view: () => [
 				m(".dialog-header.plr-l", m(actionBar)),
 				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
-			])
+			]
 		})
 
 		if (allowCancel) {
@@ -521,5 +524,19 @@ export class Dialog {
 				])
 			}
 		})
+	}
+
+	static keyboardSizeChanged(newSize: number): void {
+		Dialog._keyboardHeight = newSize
+		if (newSize > 0) {
+			// reset position fixed for the body to allow scrolling in dialogs on iOS
+			// https://github.com/scottjehl/Device-Bugs/issues/14
+			const body = (document.body: any)
+			body.style.position = 'unset'
+			setTimeout(() => {
+				body.style.position = 'fixed'
+			}, 100)
+		}
+		m.redraw()
 	}
 }

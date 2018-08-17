@@ -81,6 +81,12 @@ class NativeWrapper {
 							return module.openMailbox(msg.args[0], msg.args[1])
 						}
 					)
+				},
+				keyboardSizeChanged: (msg: Request): Promise<void> => {
+					return _asyncImport('src/gui/base/Dialog.js').then(module => {
+							module.Dialog.keyboardSizeChanged(msg.args[0])
+						}
+					)
 				}
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => {

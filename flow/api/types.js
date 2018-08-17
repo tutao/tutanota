@@ -150,6 +150,7 @@ type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
 	| 'showAlertDialog'
 	| 'openMailbox'
+	| 'keyboardSizeChanged'
 
 
 type Callback = (err: ?Error, data: ?Object) => Object

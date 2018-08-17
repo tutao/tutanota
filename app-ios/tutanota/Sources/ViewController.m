@@ -28,6 +28,7 @@ typedef void(^VoidCallback)(void);
 
 @interface ViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property WKWebView *webView;
+@property double keyboardSize;
 @property (readonly, nonnull) Crypto *crypto;
 @property (readonly, nonnull) TutaoFileChooser *fileChooser;
 @property (readonly, nonnull) FileUtil *fileUtil;
@@ -51,21 +52,38 @@ typedef void(^VoidCallback)(void);
 		_contactsSource = [TUTContactsSource new];
 
 		_webViewIsready = NO;
+		_keyboardSize = 0;
 	}
 	return self;
 }
 
 - (void)loadView {
+	[self hideAccessoryBar];
 	WKWebViewConfiguration *config = [WKWebViewConfiguration new];
 	_webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
 	[_webView.configuration.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
 	_webView.navigationDelegate = self;
 	_webView.scrollView.bounces = false;
+	_webView.scrollView.scrollEnabled = NO;
+	_webView.scrollView.delegate = self;
+
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc addObserver:self selector:@selector(onKeyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+    [nc addObserver:self selector:@selector(onKeyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    [nc addObserver:self selector:@selector(onKeyboardSizeChange:) name:UIKeyboardDidChangeFrameNotification object:nil];
 
 	[config.userContentController addScriptMessageHandler:self name:@"nativeApp"];
 	self.view = _webView;
-
 	[self keyboardDisplayDoesNotRequireUserAction];
+}
+
+- (void)hideAccessoryBar {
+	let WKClassString = [@[@"WK", @"Content", @"View"] componentsJoinedByString:@""];
+	let method = class_getInstanceMethod(NSClassFromString(WKClassString), @selector(inputAccessoryView));
+	IMP newImp = imp_implementationWithBlock(^(id _s) {
+		return nil;
+	});
+	method_setImplementation(method, newImp);
 }
 
 - (void)viewDidLoad {
@@ -274,8 +292,9 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 	let request = _requests[requestId];
 	if (request) {
 		[_requests removeObjectForKey:requestId];
+		request(value);
 	}
-	request(value);
+
 }
 
 // Swizzling WebKit to be show keyboard when we call focus() on fields
@@ -302,6 +321,36 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
         });
         method_setImplementation(method, override);
     }
+}
+
+- (void)onKeyboardSizeChange:(NSNotification *)note
+{
+    let rect = [[note.userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    int currentSize = rect.size.height;
+	if (_keyboardSize != 0 && _keyboardSize != currentSize) {
+		_keyboardSize = currentSize;
+		[self sendRequestWithType:@"keyboardSizeChanged" args:@[[NSNumber numberWithDouble:_keyboardSize]]completion:nil];
+	}
+}
+
+- (void)onKeyboardDidShow:(NSNotification *)note
+{
+	let rect = [[note.userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+	_keyboardSize = rect.size.height;
+	[self sendRequestWithType:@"keyboardSizeChanged" args:@[[NSNumber numberWithDouble:_keyboardSize]]completion:nil];
+}
+
+- (void)onKeyboardWillHide:(NSNotification *)note
+{
+	_keyboardSize = 0;
+  	[self sendRequestWithType:@"keyboardSizeChanged" args:@[[NSNumber numberWithDouble:_keyboardSize]]completion:nil];
+}
+
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+	// disable scrolling of the web view to avoid that the keyboard moves the body out of the screen
+	scrollView.contentOffset = CGPointMake(0, [UIApplication sharedApplication].isStatusBarHidden ? 0 : -20);
 }
 
 @end
