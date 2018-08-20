@@ -7,9 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#include "TutaoEncodingConverter.h"
+#include "TUTEncodingConverter.h"
 
-@implementation TutaoEncodingConverter {
+@implementation TUTEncodingConverter {
 }
 
 + (NSData*)hexToBytes:(NSString*)hex {

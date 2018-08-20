@@ -25,7 +25,6 @@
 // In accordance with the Damien Miller's request, his original copyright covering
 // his Java implementation is included in the accompanying BCrypt-java-copyright.txt file.
 
-
 #import <Foundation/Foundation.h>
 
 #import "JFGC.h"		// For GC related macros

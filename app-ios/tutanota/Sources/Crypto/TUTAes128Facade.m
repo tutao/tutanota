@@ -1,6 +1,5 @@
 //
-//  AesCrypto.m
-//  CryptoIos
+//  TUTAes128Facade.m
 //
 //  Created by Tutao GmbH on 19.10.16.
 //  Copyright © 2016 Tutao GmbH. All rights reserved.
@@ -8,15 +7,15 @@
 
 
 #import <Foundation/Foundation.h>
-#include <CommonCrypto/CommonCryptor.h>
-#include "TutaoAes128Facade.h"
-#include "TutaoErrorFactory.h"
-#include "TutaoEncodingConverter.h"
+#import <CommonCrypto/CommonCryptor.h>
+#import "TUTAes128Facade.h"
+#import "TUTErrorFactory.h"
+#import "TUTEncodingConverter.h"
 
 NSInteger const TUTAO_CRYPT_BUFFER_SIZE = 16;
 NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
-@implementation TutaoAes128Facade {
+@implementation TUTAes128Facade {
 }
 
 - (NSData*) encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
@@ -35,7 +34,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 - (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
 	if ([iv length] != TUTAO_IV_BYTE_SIZE){
-		*error = [TutaoErrorFactory createError:@"invalid iv length"];
+		*error = [TUTErrorFactory createError:@"invalid iv length"];
 		return NO;
 	}
 	//NSLog(@"iv: %@", [TutaoEncodingConverter bytesToHex:iv]);
@@ -95,7 +94,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
                            &cryptor);             // OUT cryptorRef
 
 	if (cryptorStatus != kCCSuccess) {
-		*error =  [TutaoErrorFactory createError:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
+		*error =  [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
 		return NO;
 	}
 
@@ -115,7 +114,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 			&writeBufferLength);
 		
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TutaoErrorFactory createError:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
 			break;
 		}
 		// write to output stream
@@ -131,7 +130,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 					TUTAO_CRYPT_BUFFER_SIZE,
 					&writeBufferLength);
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TutaoErrorFactory createError:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
 		} else {
 			[self writeBytes:&writeBuffer dataInLength:writeBufferLength to:outputStream error:error];
 		}
@@ -147,13 +146,13 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 - (BOOL)writeBytes:(const void *)dataIn dataInLength:(NSUInteger)dataInLength to: (NSOutputStream*) output error:(NSError**) error{
 	if(![output hasSpaceAvailable]){
-		*error = [TutaoErrorFactory createError:@"No space available for output stream"];
+		*error = [TUTErrorFactory createError:@"No space available for output stream"];
 		return NO;
 	}
 	
 	NSInteger writtenBytes = [output write:dataIn maxLength:dataInLength];
 	if (writtenBytes != dataInLength) {
-		*error = [TutaoErrorFactory createError:@"failed to write all data to ouput stream"];
+		*error = [TUTErrorFactory createError:@"failed to write all data to ouput stream"];
 		return NO;
 	}
 	return YES;

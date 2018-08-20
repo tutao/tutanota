@@ -1,5 +1,5 @@
 //
-//  TutaoDocumentInteractionController.m
+//  TUTFileViewer.m
 //  Tutanota
 //
 //  Created by Tutao GmbH on 31.10.16.
@@ -7,19 +7,19 @@
 //
 
 #import <Foundation/Foundation.h>
-#include "TutaoFileViewer.h"
+#import "TUTFileViewer.h"
 #import <QuickLook/QuickLook.h>
-#include "FileUtil.h"
-#include "TutaoErrorFactory.h"
+#import "TUTFileUtil.h"
+#import "TUTErrorFactory.h"
 
-@interface TutaoFileViewer ()
+@interface TUTFileViewer ()
 	@property (readonly) UIViewController *sourceController;
 	@property (readwrite) NSURL *fileUrl;
 	@property (readwrite) QLPreviewController *previewController;
 	@property (readwrite) void(^completionHandler)(NSError *error);
 @end
 
-@implementation TutaoFileViewer
+@implementation TUTFileViewer
 
 - (instancetype)initWithViewController:(UIViewController *)viewController {
 	self = [super init];
@@ -34,7 +34,7 @@
     _previewController= [[QLPreviewController alloc] init];
     _previewController.dataSource = self;
     _previewController.delegate = self;
-	_fileUrl = [FileUtil urlFromPath:filePath];
+	_fileUrl = [TUTFileUtil urlFromPath:filePath];
 	if ([QLPreviewController canPreviewItem:_fileUrl]) {
 		// ensure that ui related operations run in main thread
 		dispatch_async(dispatch_get_main_queue(), ^{
@@ -44,7 +44,7 @@
 			self->_completionHandler(nil);
 		});
 	} else {
-		completion([TutaoErrorFactory createError:@"cannot display files"]);
+		completion([TUTErrorFactory createError:@"cannot display files"]);
 	}
 }
 

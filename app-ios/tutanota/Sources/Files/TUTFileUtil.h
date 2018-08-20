@@ -1,14 +1,10 @@
 //
-//  FileUtil.h
+//  TUTFileUtil.h
 //  Tutanota plugin
 //
-
-#ifndef Tutanota_plugin_FileUtil_h
-#define Tutanota_plugin_FileUtil_h
-
 #import <UIKit/UIKit.h>
 
-@interface FileUtil : NSObject
+@interface TUTFileUtil : NSObject
 
 - (instancetype)initWithViewController:(UIViewController * _Nonnull)viewController;
 
@@ -51,5 +47,3 @@
 + (NSString*) pathFromUrl:(NSURL*)url;
 
 @end
-
-#endif

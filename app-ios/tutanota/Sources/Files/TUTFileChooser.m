@@ -10,7 +10,7 @@
 #import "Swiftier.h"
 
 // App classes
-#include "TUTFileChooser.h"
+#import "TUTFileChooser.h"
 #import "TUTErrorFactory.h"
 #import "TUTFileUtil.h"
 
@@ -27,7 +27,7 @@
 	UIDocumentMenuViewController *_attachmentTypeMenu;
 	UIImagePickerController *_imagePickerController;
 	NSArray *_supportedUTIs;
-	void(^resultHandler)(NSString * filePath, NSError* error);
+	void(^resultHandler)(NSArray<NSString *> *filePath, NSError *error);
 	UIPopoverPresentationController *_popOverPresentationController;
 	UIImage *_cameraImage;
 	UIImage *_photoLibImage;
@@ -43,7 +43,7 @@
 }
 
 
-- (void)openWithAnchorRect:(CGRect)anchorRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler {
+- (void)openWithAnchorRect:(CGRect)anchorRect completion:(void(^)(NSArray<NSString *> *filePath, NSError *error))completionHandler {
 	if (resultHandler) {
 		completionHandler(nil, [TUTErrorFactory createError:@"file chooser already open"]);
 		return;
@@ -281,7 +281,11 @@
 }
 
 - (void)sendResult:(NSString* )filePath{
-	resultHandler(filePath, nil);
+	if (filePath != nil) {
+		resultHandler(@[filePath], nil);
+	} else {
+		resultHandler(@[], nil);
+	}
 	resultHandler = nil;
 };
 

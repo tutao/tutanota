@@ -66,14 +66,15 @@ static const NSString *CONTACTS_ERROR_DOMAIN = @"ContactsErrorDomain";
 	[contactsStore enumerateContactsWithFetchRequest:request
 											   error:&error
 										  usingBlock:^(CNContact * _Nonnull contact, BOOL * _Nonnull stop) {
+											  let name = [CNContactFormatter stringFromContact:contact
+																						 style:CNContactFormatterStyleFullName];
+											  let matchesName =  [name rangeOfString:query options:compareOptions].location != NSNotFound;
 											  foreach(address, contact.emailAddresses) {
-												  let name = [CNContactFormatter stringFromContact:contact
-																							 style:CNContactFormatterStyleFullName];
 												  if ([address.value rangeOfString:query options:compareOptions].location != NSNotFound
-													  || [name rangeOfString:query options:compareOptions].location != NSNotFound) {
+													  || matchesName) {
 													  [result addObject:@{
 																		  @"name": name,
-																		  @"mailAddress": contact.emailAddresses[0].value
+																		  @"mailAddress": address.value
 																		  }];
 													  if (count++ > 10) {
 														  *stop = YES;

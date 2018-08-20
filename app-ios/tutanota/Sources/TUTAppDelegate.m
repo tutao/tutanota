@@ -6,21 +6,24 @@
 //  Copyright © 2018 Tutao GmbH. All rights reserved.
 //
 
-#import "AppDelegate.h"
-#import "ViewController.h"
+#import "Swiftier.h"
+
+#import "TUTAppDelegate.h"
+#import "TUTViewController.h"
 #import <UserNotifications/UserNotifications.h>
 
-@interface AppDelegate ()
-@property ViewController *viewController;
+@interface TUTAppDelegate ()
+@property TUTViewController *viewController;
+@property void (^ _Nonnull pushTokenCallback)(NSString *token, NSError *error);
 @end
 
-@implementation AppDelegate
+@implementation TUTAppDelegate
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	// Override point for customization after application launch.
 	_window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-	_viewController = [ViewController new];
+	_viewController = [TUTViewController new];
 	_window.rootViewController = _viewController;
 	[_window makeKeyAndVisible];
 	return YES;
@@ -53,20 +56,29 @@
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (void)registerForPushNotifications {
+- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString *token, NSError *error))callback {
 	[UNUserNotificationCenter.currentNotificationCenter
 	 requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionBadge|UNAuthorizationOptionSound)
 	 completionHandler:^(BOOL granted, NSError * _Nullable error) {
 		 if (!error) {
 			 dispatch_async(dispatch_get_main_queue(), ^{
+				 self->_pushTokenCallback = callback;
 				 [UIApplication.sharedApplication registerForRemoteNotifications];
 			 });
+		 } else {
+		 	callback(nil, error);
 		 }
 	 }];
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-	[_viewController didRegisterForRemoteNotificationsWithToken:deviceToken];
+	if (_pushTokenCallback) {
+		var stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
+						   [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
+		stringToken = [stringToken stringByReplacingOccurrencesOfString:@" " withString:@""];
+		_pushTokenCallback(stringToken, nil);
+		_pushTokenCallback = nil;
+	}
 }
 
 @end

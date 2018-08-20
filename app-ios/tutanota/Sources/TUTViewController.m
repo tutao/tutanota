@@ -1,5 +1,5 @@
 //
-//  ViewController.m
+//  TUTViewController.m
 //  tutanota
 //
 //  Created by Tutao GmbH on 13.07.18.
@@ -11,10 +11,10 @@
 #import "PSPDFFastEnumeration.h"
 
 // App classes
-#import "AppDelegate.h"
-#import "ViewController.h"
-#import "Crypto.h"
-#import "TutaoFileChooser.h"
+#import "TUTAppDelegate.h"
+#import "TUTViewController.h"
+#import "TUTCrypto.h"
+#import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
 
 // Frameworks
@@ -27,32 +27,28 @@
 
 typedef void(^VoidCallback)(void);
 
-@interface ViewController () <WKNavigationDelegate, WKScriptMessageHandler>
+@interface TUTViewController () <WKNavigationDelegate, WKScriptMessageHandler>
 @property WKWebView *webView;
 @property double keyboardSize;
-@property (readonly, nonnull) Crypto *crypto;
-@property (readonly, nonnull) TutaoFileChooser *fileChooser;
-@property (readonly, nonnull) FileUtil *fileUtil;
+@property (readonly, nonnull) TUTCrypto *crypto;
+@property (readonly, nonnull) TUTFileChooser *fileChooser;
+@property (readonly, nonnull) TUTFileUtil *fileUtil;
 @property (readonly, nonnull) TUTContactsSource *contactsSource;
-@property (readonly, nonnull) NSMutableArray<VoidCallback> *webviewReadyCallbacks;
-@property (readonly) BOOL webViewIsready;
 @property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
 @property NSInteger requestId;
 @property (nullable) NSString *pushTokenRequestId;
 @end
 
-@implementation ViewController
+@implementation TUTViewController
 
 - (instancetype)init
 {
 	self = [super init];
 	if (self) {
-		_crypto = [Crypto new];
-		_fileChooser = [[TutaoFileChooser alloc] initWithViewController:self];
-		_fileUtil = [[FileUtil alloc] initWithViewController:self];
+		_crypto = [TUTCrypto new];
+		_fileChooser = [[TUTFileChooser alloc] initWithViewController:self];
+		_fileUtil = [[TUTFileUtil alloc] initWithViewController:self];
 		_contactsSource = [TUTContactsSource new];
-
-		_webViewIsready = NO;
 		_keyboardSize = 0;
 	}
 	return self;
@@ -95,7 +91,7 @@ typedef void(^VoidCallback)(void);
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
 	let jsonData = [[message body] dataUsingEncoding:NSUTF8StringEncoding];
 	NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:nil];
-	NSLog(@"Message dict: %@", json);
+	//NSLog(@"Message dict: %@", json);
 	NSString *type = json[@"type"];
 	NSString *requestId = json[@"id"];
 	NSArray *arguments = json[@"args"];
@@ -107,12 +103,8 @@ typedef void(^VoidCallback)(void);
 		[self handleResponseWithId:requestId value:value];
 	} else if ([@"init" isEqualToString:type]) {
 		[self sendResponseWithId:requestId value:@"ios"];
-		_webViewIsready = YES;
-		foreach(callback, _webviewReadyCallbacks) {
-			callback();
-		}
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
-		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] completeion:sendResponseBlock];
+		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] completion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {
 		[_crypto rsaDecryptWithPrivateKey:arguments[0]
 							   base64Data:arguments[1]
@@ -132,17 +124,7 @@ typedef void(^VoidCallback)(void);
 							  ((NSNumber *) rectDict[@"width"]).doubleValue,
 							  ((NSNumber *) rectDict[@"height"]).doubleValue
 							  );
-		[_fileChooser openWithAnchorRect:rect completion:^(NSString *filePath, NSError *error) {
-			if (error == nil) {
-				if (filePath != nil) {
-					[self sendResponseWithId:requestId value:@[filePath]];
-				} else {
-					[self sendResponseWithId:requestId value:[NSArray new]];
-				}
-			} else {
-				[self sendErrorResponseWithId:requestId value:error];
-			}
-		}];
+		[_fileChooser openWithAnchorRect:rect completion: sendResponseBlock];
 	} else if ([@"getName" isEqualToString:type]) {
 		[_fileUtil getNameForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"getSize" isEqualToString:type]) {
@@ -176,8 +158,7 @@ typedef void(^VoidCallback)(void);
 			}
 		}];
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
-		_pushTokenRequestId = requestId;
-		[((AppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotifications];
+		[((TUTAppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotificationsWithCallback:sendResponseBlock];
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];
@@ -200,7 +181,6 @@ typedef void(^VoidCallback)(void);
 }
 
 - (void) loadMainPageWithParams:(NSString * _Nullable)params {
-	_webViewIsready = NO;
 	var fileUrl = [self appUrl];
 	let folderUrl = [fileUrl URLByDeletingLastPathComponent];
 	if (params != nil) {
@@ -277,23 +257,6 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 	}
 }
 
-- (void)didRegisterForRemoteNotificationsWithToken:(NSData *)deviceToken {
-	[self doWhenReady:^{
-		var stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
-						   [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
-		stringToken = [stringToken stringByReplacingOccurrencesOfString:@" " withString:@""];
-		[self sendResponseWithId:self->_pushTokenRequestId value:stringToken];
-	}];
-}
-
--(void)doWhenReady:(VoidCallback)callback {
-	if (_webViewIsready) {
-		callback();
-	} else {
-		[_webviewReadyCallbacks addObject:callback];
-	}
-}
-
 -(void)sendRequestWithType:(NSString * _Nonnull)type
 					  args:(NSArray<id> * _Nonnull)args
 				completion:(void(^ _Nullable)(NSDictionary * _Nullable value))completion {
@@ -344,8 +307,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     }
 }
 
-- (void)onKeyboardSizeChange:(NSNotification *)note
-{
+- (void)onKeyboardSizeChange:(NSNotification *)note {
     let rect = [[note.userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     int currentSize = rect.size.height;
 	if (_keyboardSize != 0 && _keyboardSize != currentSize) {
@@ -354,22 +316,19 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 	}
 }
 
-- (void)onKeyboardDidShow:(NSNotification *)note
-{
+- (void)onKeyboardDidShow:(NSNotification *)note {
 	let rect = [[note.userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
 	_keyboardSize = rect.size.height;
 	[self sendRequestWithType:@"keyboardSizeChanged" args:@[[NSNumber numberWithDouble:_keyboardSize]]completion:nil];
 }
 
-- (void)onKeyboardWillHide:(NSNotification *)note
-{
+- (void)onKeyboardWillHide:(NSNotification *)note {
 	_keyboardSize = 0;
   	[self sendRequestWithType:@"keyboardSizeChanged" args:@[[NSNumber numberWithDouble:_keyboardSize]]completion:nil];
 }
 
 
--(void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
 	// disable scrolling of the web view to avoid that the keyboard moves the body out of the screen
 	scrollView.contentOffset = CGPointMake(0, [UIApplication sharedApplication].isStatusBarHidden ? 0 : -20);
 }

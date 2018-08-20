@@ -1,5 +1,5 @@
 //
-//  AppDelegate.h
+//  TUTAppDelegate.h
 //  tutanota
 //
 //  Created by Tutao GmbH on 13.07.18.
@@ -8,11 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@interface TUTAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
-- (void)registerForPushNotifications;
+- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString *token, NSError *error))callback;
 
 @end
 

@@ -8,20 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
-		3D74536721089F4800B16F2E /* TutaoErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TutaoErrorFactory.m */; };
+		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F092105B12F0031E528 /* FileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* FileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* TUTFileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0B2105B12F0031E528 /* Crypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* Crypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0C2105B12F0031E528 /* RsaFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F012105B12E0031E528 /* RsaFacade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0D2105B12F0031E528 /* TutaoEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TutaoEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0E2105B12F0031E528 /* TutaoAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TutaoAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0F2105B12F0031E528 /* TutaoFileViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F042105B12F0031E528 /* TutaoFileViewer.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F102105B12F0031E528 /* TutaoFileChooser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F052105B12F0031E528 /* TutaoFileChooser.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F042105B12F0031E528 /* TUTFileViewer.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F052105B12F0031E528 /* TUTFileChooser.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D891F142105B8AF0031E528 /* libcrypto.a */; };
-		3DD4A08820F8C6240086EB36 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* AppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3DD4A08B20F8C6240086EB36 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* ViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* TUTViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -42,34 +41,32 @@
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D652B5720F8DC1500DF9962 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; name = build; path = ../../build; sourceTree = "<group>"; };
-		3D74536521089F4800B16F2E /* TutaoErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoErrorFactory.h; sourceTree = "<group>"; };
-		3D74536621089F4800B16F2E /* TutaoErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TutaoErrorFactory.m; sourceTree = "<group>"; };
+		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
+		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
 		3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTContactsSource.m; sourceTree = "<group>"; };
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
-		3D891EFE2105B12E0031E528 /* FileUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileUtil.m; sourceTree = "<group>"; };
+		3D891EFE2105B12E0031E528 /* TUTFileUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileUtil.m; sourceTree = "<group>"; };
 		3D891EFF2105B12E0031E528 /* JFBCrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JFBCrypt.m; sourceTree = "<group>"; };
-		3D891F002105B12E0031E528 /* Crypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Crypto.m; sourceTree = "<group>"; };
-		3D891F012105B12E0031E528 /* RsaFacade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RsaFacade.m; sourceTree = "<group>"; };
-		3D891F022105B12E0031E528 /* TutaoEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TutaoEncodingConverter.m; sourceTree = "<group>"; };
-		3D891F032105B12F0031E528 /* TutaoAes128Facade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TutaoAes128Facade.m; sourceTree = "<group>"; };
-		3D891F042105B12F0031E528 /* TutaoFileViewer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TutaoFileViewer.m; sourceTree = "<group>"; };
-		3D891F052105B12F0031E528 /* TutaoFileChooser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TutaoFileChooser.m; sourceTree = "<group>"; };
+		3D891F002105B12E0031E528 /* TUTCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTCrypto.m; sourceTree = "<group>"; };
+		3D891F022105B12E0031E528 /* TUTEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTEncodingConverter.m; sourceTree = "<group>"; };
+		3D891F032105B12F0031E528 /* TUTAes128Facade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAes128Facade.m; sourceTree = "<group>"; };
+		3D891F042105B12F0031E528 /* TUTFileViewer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileViewer.m; sourceTree = "<group>"; };
+		3D891F052105B12F0031E528 /* TUTFileChooser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileChooser.m; sourceTree = "<group>"; };
 		3D891F142105B8AF0031E528 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = tutanota/Frameworks/libcrypto.a; sourceTree = "<group>"; };
 		3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rsa_oaep_sha256.h; sourceTree = "<group>"; };
-		3D891F1E2105BB200031E528 /* TutaoFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoFileViewer.h; sourceTree = "<group>"; };
-		3D891F1F2105BB200031E528 /* Crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Crypto.h; sourceTree = "<group>"; };
-		3D891F202105BB200031E528 /* RsaFacade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsaFacade.h; sourceTree = "<group>"; };
-		3D891F232105BB210031E528 /* TutaoEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoEncodingConverter.h; sourceTree = "<group>"; };
-		3D891F242105BB210031E528 /* FileUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtil.h; sourceTree = "<group>"; };
-		3D891F252105BB210031E528 /* TutaoFileChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoFileChooser.h; sourceTree = "<group>"; };
-		3D891F262105BB210031E528 /* TutaoAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TutaoAes128Facade.h; sourceTree = "<group>"; };
+		3D891F1E2105BB200031E528 /* TUTFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileViewer.h; sourceTree = "<group>"; };
+		3D891F1F2105BB200031E528 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTCrypto.h; sourceTree = "<group>"; };
+		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
+		3D891F242105BB210031E528 /* TUTFileUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileUtil.h; sourceTree = "<group>"; };
+		3D891F252105BB210031E528 /* TUTFileChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileChooser.h; sourceTree = "<group>"; };
+		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3DD4A08620F8C6240086EB36 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		3DD4A08720F8C6240086EB36 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		3DD4A08920F8C6240086EB36 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		3DD4A08A20F8C6240086EB36 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		3DD4A08620F8C6240086EB36 /* TUTAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAppDelegate.h; sourceTree = "<group>"; };
+		3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAppDelegate.m; sourceTree = "<group>"; };
+		3DD4A08920F8C6240086EB36 /* TUTViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTViewController.h; sourceTree = "<group>"; };
+		3DD4A08A20F8C6240086EB36 /* TUTViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTViewController.m; sourceTree = "<group>"; };
 		3DD4A08F20F8C6260086EB36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3DD4A09220F8C6260086EB36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -77,6 +74,8 @@
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A09F20F8C6260086EB36 /* tutanotaTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = tutanotaTests.m; sourceTree = "<group>"; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
+		3DFDBDD4212ADA1D00785FC7 /* JFGC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFGC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,10 +105,10 @@
 				3D74536321089D8100B16F2E /* Files */,
 				3D74536221089D5700B16F2E /* Crypto */,
 				3DD4A09520F8C6260086EB36 /* main.m */,
-				3DD4A08620F8C6240086EB36 /* AppDelegate.h */,
-				3DD4A08720F8C6240086EB36 /* AppDelegate.m */,
-				3DD4A08920F8C6240086EB36 /* ViewController.h */,
-				3DD4A08A20F8C6240086EB36 /* ViewController.m */,
+				3DD4A08620F8C6240086EB36 /* TUTAppDelegate.h */,
+				3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */,
+				3DD4A08920F8C6240086EB36 /* TUTViewController.h */,
+				3DD4A08A20F8C6240086EB36 /* TUTViewController.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -117,15 +116,15 @@
 		3D74536221089D5700B16F2E /* Crypto */ = {
 			isa = PBXGroup;
 			children = (
-				3D891F1F2105BB200031E528 /* Crypto.h */,
+				3DFDBDD4212ADA1D00785FC7 /* JFGC.h */,
+				3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */,
+				3D891F1F2105BB200031E528 /* TUTCrypto.h */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
-				3D891F202105BB200031E528 /* RsaFacade.h */,
-				3D891F262105BB210031E528 /* TutaoAes128Facade.h */,
-				3D891F002105B12E0031E528 /* Crypto.m */,
+				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
+				3D891F002105B12E0031E528 /* TUTCrypto.m */,
 				3D891EFF2105B12E0031E528 /* JFBCrypt.m */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
-				3D891F012105B12E0031E528 /* RsaFacade.m */,
-				3D891F032105B12F0031E528 /* TutaoAes128Facade.m */,
+				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
 			);
 			path = Crypto;
 			sourceTree = "<group>";
@@ -133,12 +132,12 @@
 		3D74536321089D8100B16F2E /* Files */ = {
 			isa = PBXGroup;
 			children = (
-				3D891F242105BB210031E528 /* FileUtil.h */,
-				3D891F252105BB210031E528 /* TutaoFileChooser.h */,
-				3D891F052105B12F0031E528 /* TutaoFileChooser.m */,
-				3D891F1E2105BB200031E528 /* TutaoFileViewer.h */,
-				3D891EFE2105B12E0031E528 /* FileUtil.m */,
-				3D891F042105B12F0031E528 /* TutaoFileViewer.m */,
+				3D891F242105BB210031E528 /* TUTFileUtil.h */,
+				3D891EFE2105B12E0031E528 /* TUTFileUtil.m */,
+				3D891F252105BB210031E528 /* TUTFileChooser.h */,
+				3D891F052105B12F0031E528 /* TUTFileChooser.m */,
+				3D891F1E2105BB200031E528 /* TUTFileViewer.h */,
+				3D891F042105B12F0031E528 /* TUTFileViewer.m */,
 			);
 			path = Files;
 			sourceTree = "<group>";
@@ -146,12 +145,12 @@
 		3D74536421089DA300B16F2E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				3D74536521089F4800B16F2E /* TutaoErrorFactory.h */,
-				3D74536621089F4800B16F2E /* TutaoErrorFactory.m */,
+				3D74536521089F4800B16F2E /* TUTErrorFactory.h */,
+				3D74536621089F4800B16F2E /* TUTErrorFactory.m */,
 				3D4D3204210747000081813A /* PSPDFFastEnumeration.h */,
 				3D4D3205210747240081813A /* Swiftier.h */,
-				3D891F232105BB210031E528 /* TutaoEncodingConverter.h */,
-				3D891F022105B12E0031E528 /* TutaoEncodingConverter.m */,
+				3D891F232105BB210031E528 /* TUTEncodingConverter.h */,
+				3D891F022105B12E0031E528 /* TUTEncodingConverter.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -322,20 +321,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DD4A08B20F8C6240086EB36 /* ViewController.m in Sources */,
-				3D891F102105B12F0031E528 /* TutaoFileChooser.m in Sources */,
+				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
+				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
-				3D891F0C2105B12F0031E528 /* RsaFacade.m in Sources */,
-				3D891F0F2105B12F0031E528 /* TutaoFileViewer.m in Sources */,
-				3D74536721089F4800B16F2E /* TutaoErrorFactory.m in Sources */,
-				3D891F0D2105B12F0031E528 /* TutaoEncodingConverter.m in Sources */,
-				3D891F0E2105B12F0031E528 /* TutaoAes128Facade.m in Sources */,
-				3D891F092105B12F0031E528 /* FileUtil.m in Sources */,
+				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
+				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
+				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
+				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
+				3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */,
 				3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */,
-				3D891F0B2105B12F0031E528 /* Crypto.m in Sources */,
+				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
-				3DD4A08820F8C6240086EB36 /* AppDelegate.m in Sources */,
+				3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

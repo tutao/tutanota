@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 
-#import "Crypto.h"
+#import "TUTCrypto.h"
 #import <openssl/ossl_typ.h>
 #import <openssl/md5.h>
 #import <openssl/rsa.h>
@@ -20,14 +20,14 @@
 #import <openssl/rand.h>
 #import "JFBCrypt.h"
 #import <CommonCrypto/CommonDigest.h>
-#include "TutaoAes128Facade.h"
-#include "TutaoEncodingConverter.h"
-#include "FileUtil.h"
+#import "TUTAes128Facade.h"
+#import "TUTEncodingConverter.h"
+#import "TUTFileUtil.h"
 
 static NSString * const CRYPTO_ERROR_DOMAIN = @"tutanota_crypto";
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
-@implementation Crypto
+@implementation TUTCrypto
 
 - (void)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed
 					completion:(void (^)(NSDictionary *keyPair, NSError *error))completion {
@@ -45,12 +45,12 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		// generate rsa key
 		int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
 		if (status > 0){
-			NSMutableDictionary* keyPair = [Crypto createRSAKeyPair:rsaKey
+			NSMutableDictionary* keyPair = [TUTCrypto createRSAKeyPair:rsaKey
 														  keyLength:[NSNumber numberWithInteger: RSA_KEY_LENGTH_IN_BITS]
 															version:[NSNumber numberWithInt:0]];
 			completion(keyPair, nil);
 		} else {
-			[Crypto logError:@"Error while generating rsa key"];
+			[TUTCrypto logError:@"Error while generating rsa key"];
 			completion(nil, [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil]);
 		}
 		BN_free(e);
@@ -60,9 +60,9 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 - (void)rsaEncryptWithPublicKey:(NSObject * _Nonnull)publicKey
 					 base64Data:(NSString * _Nonnull)base64Data
-					completeion:(void (^ _Nonnull)(NSString * _Nullable encryptedBase64, NSError * _Nullable error))completion {
+					completion:(void (^ _Nonnull)(NSString * _Nullable encryptedBase64, NSError * _Nullable error))completion {
 	//convert json data to private key;
-	RSA* publicRsaKey = [Crypto createPublicRSAKey:publicKey];
+	RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
 
 	// convert base64 data to bytes.
 	NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
@@ -86,7 +86,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			completion(encryptedBase64, nil);
 		} else {
 			// Error handling
-			[Crypto logError:@"encryption failed"];
+			[TUTCrypto logError:@"encryption failed"];
 			NSError *error = [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil];
 			completion(nil, error);
 		}
@@ -100,11 +100,11 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 					  completion:(void (^)(NSString * _Nullable decryptedBase64, NSError * _Nullable error))completion {
 
 	//convert json data to private key;
-	RSA* privateRsaKey = [Crypto createPrivateRSAKey:privateKey];
+	RSA* privateRsaKey = [TUTCrypto createPrivateRSAKey:privateKey];
 
 	int rsaCheckResult = RSA_check_key(privateRsaKey);
 	if (rsaCheckResult != 1){
-		[Crypto logError:@"Invald private key"];
+		[TUTCrypto logError:@"Invald private key"];
 	}
 
 	// convert encrypted base64 data to bytes.
@@ -134,7 +134,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			completion(decryptedBase64, nil);
 		} else {
 			// Error handling
-			[Crypto logError:@"decryption failed"];
+			[TUTCrypto logError:@"decryption failed"];
 			NSError *error = [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil];
 			completion(nil, error);
 		}
@@ -165,13 +165,13 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 	const char *publicExponent = "65537";
 	BN_dec2bn(&rsaKey->e, publicExponent ); // public exponent <- 65537
-	[Crypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
-	[Crypto toBIGNUM:rsaKey->d fromB64:privateExponent]; // private exponent <- privateExponent
-	[Crypto toBIGNUM:rsaKey->p fromB64:primeP]; // secret prime factor <- primeP
-	[Crypto toBIGNUM:rsaKey->q fromB64:primeQ ]; // secret prime factor <- primeQ
-	[Crypto toBIGNUM:rsaKey->dmp1 fromB64:primeExponentP]; // d mod (p-1) <- primeExponentP
-	[Crypto toBIGNUM:rsaKey->dmq1 fromB64:primeExponentQ]; // d mod (q-1) <- primeExponentQ
-	[Crypto toBIGNUM:rsaKey->iqmp fromB64:crtCoefficient]; // q^-1 mod p <- crtCoefficient
+	[TUTCrypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
+	[TUTCrypto toBIGNUM:rsaKey->d fromB64:privateExponent]; // private exponent <- privateExponent
+	[TUTCrypto toBIGNUM:rsaKey->p fromB64:primeP]; // secret prime factor <- primeP
+	[TUTCrypto toBIGNUM:rsaKey->q fromB64:primeQ ]; // secret prime factor <- primeQ
+	[TUTCrypto toBIGNUM:rsaKey->dmp1 fromB64:primeExponentP]; // d mod (p-1) <- primeExponentP
+	[TUTCrypto toBIGNUM:rsaKey->dmq1 fromB64:primeExponentQ]; // d mod (q-1) <- primeExponentQ
+	[TUTCrypto toBIGNUM:rsaKey->iqmp fromB64:crtCoefficient]; // q^-1 mod p <- crtCoefficient
 	return rsaKey;
 }
 
@@ -185,7 +185,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 	const char *publicExponent = "65537";
 	BN_dec2bn(&rsaKey->e, publicExponent ); // public exponent <- 65537
-	[Crypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
+	[TUTCrypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
 	return rsaKey;
 }
 
@@ -221,19 +221,19 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	NSMutableDictionary *publicKey = [NSMutableDictionary new];
 	[publicKey setObject: version forKey: @"version"];
 	[publicKey setObject: keyLength forKey: @"keyLength"];
-	[publicKey setObject: [Crypto toB64:key->n] forKey: @"modulus"];
+	[publicKey setObject: [TUTCrypto toB64:key->n] forKey: @"modulus"];
 
 	NSMutableDictionary *privateKey = [NSMutableDictionary new];
 	[privateKey setObject: version forKey: @"version"];
 	[privateKey setObject: keyLength forKey: @"keyLength"];
-	[privateKey setObject: [Crypto toB64:key->n]  forKey: @"modulus"];
+	[privateKey setObject: [TUTCrypto toB64:key->n]  forKey: @"modulus"];
 
-	[privateKey setObject: [Crypto toB64:key->d] forKey: @"privateExponent"];
-	[privateKey setObject: [Crypto toB64:key->p] forKey: @"primeP"];
-	[privateKey setObject: [Crypto toB64:key->q] forKey: @"primeQ"];
-	[privateKey setObject: [Crypto toB64:key->dmp1] forKey: @"primeExponentP"];
-	[privateKey setObject: [Crypto toB64:key->dmq1] forKey: @"primeExponentQ"];
-	[privateKey setObject: [Crypto toB64:key->iqmp] forKey: @"crtCoefficient"];
+	[privateKey setObject: [TUTCrypto toB64:key->d] forKey: @"privateExponent"];
+	[privateKey setObject: [TUTCrypto toB64:key->p] forKey: @"primeP"];
+	[privateKey setObject: [TUTCrypto toB64:key->q] forKey: @"primeQ"];
+	[privateKey setObject: [TUTCrypto toB64:key->dmp1] forKey: @"primeExponentP"];
+	[privateKey setObject: [TUTCrypto toB64:key->dmq1] forKey: @"primeExponentQ"];
+	[privateKey setObject: [TUTCrypto toB64:key->iqmp] forKey: @"crtCoefficient"];
 
 	NSMutableDictionary *keyPair= [NSMutableDictionary new];
 	[keyPair setObject: publicKey forKey: @"publicKey"];
@@ -246,14 +246,14 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 				   completion:(void(^)(NSString * _Nullable filePath, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSError *error;
-		NSData *keyData = [TutaoEncodingConverter base64ToBytes:keyBase64];
+		NSData *keyData = [TUTEncodingConverter base64ToBytes:keyBase64];
 
-		if (![FileUtil fileExistsAtPath:filePath]) {
+		if (![TUTFileUtil fileExistsAtPath:filePath]) {
 			completion(nil, [self fileDoesNotExistsErrorForPath:filePath]);
 			return;
 		};
 
-		NSString *encryptedFolder = [FileUtil getEncryptedFolder:&error];
+		NSString *encryptedFolder = [TUTFileUtil getEncryptedFolder:&error];
 		if (error){
 			completion(nil, error);
 			return;
@@ -269,7 +269,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 
 		NSData *iv = [self generateIv];
-		TutaoAes128Facade *aesFacade = [TutaoAes128Facade new];
+		TUTAes128Facade *aesFacade = [TUTAes128Facade new];
 
 		[aesFacade encryptStream:plainTextFileStream result:encryptedFileStream withKey:keyData withIv:iv error:&error];
 
@@ -289,14 +289,14 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 				   completion:(void(^)(NSString * _Nullable filePath, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSError *error;
-		NSData *key = [TutaoEncodingConverter base64ToBytes:base64key];
+		NSData *key = [TUTEncodingConverter base64ToBytes:base64key];
 
-		if (![FileUtil fileExistsAtPath:filePath]) {
+		if (![TUTFileUtil fileExistsAtPath:filePath]) {
 			completion(nil, [self fileDoesNotExistsErrorForPath:filePath]);
 			return;
 		};
 
-		NSString *decryptedFolder = [FileUtil getDecryptedFolder:&error];
+		NSString *decryptedFolder = [TUTFileUtil getDecryptedFolder:&error];
 		if (error) {
 			completion(nil, error);
 			return;
@@ -306,7 +306,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		BOOL useMac = [fileData length]  % 2 == 1;
 
 		if (useMac) {
-			NSData *hash  = [Crypto sha256:key];
+			NSData *hash  = [TUTCrypto sha256:key];
 			key = [hash subdataWithRange:NSMakeRange(0, 16)];
 			fileData = [NSData dataWithBytesNoCopy:(void * _Nonnull)(fileData.bytes + 1) length:fileData.length - 33 freeWhenDone:NO];
 		}
@@ -319,7 +319,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		[plainTextFileStream open];
 		[encryptedFileStream open];
 
-		TutaoAes128Facade *aesFacade = [[TutaoAes128Facade alloc]init];
+		TUTAes128Facade *aesFacade = [[TUTAes128Facade alloc]init];
 
 		[aesFacade decryptStream:encryptedFileStream result:plainTextFileStream withKey:key error:&error];
 

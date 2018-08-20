@@ -1,25 +1,25 @@
 
 #import <MobileCoreServices/MobileCoreServices.h>
-#include "TutaoFileViewer.h"
-#include "FileUtil.h"
-#include "TutaoFileChooser.h"
+#import "TUTFileViewer.h"
+#import "TUTFileUtil.h"
+#import "TUTFileChooser.h"
 
 static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
-@interface FileUtil ()
-@property (readonly) TutaoFileChooser *attachmentChooser;
-@property (readonly) TutaoFileViewer *viewer;
+@interface TUTFileUtil ()
+@property (readonly) TUTFileChooser *attachmentChooser;
+@property (readonly) TUTFileViewer *viewer;
 @property (readonly) NSMutableSet<NSString*> *attachmentsForUpload;
 @end
 
-@implementation FileUtil
+@implementation TUTFileUtil
 
 - (instancetype)initWithViewController:(UIViewController * _Nonnull)viewController
 {
     self = [super init];
     if (self) {
-        _attachmentChooser = [[TutaoFileChooser alloc] init];
-		_viewer = [[TutaoFileViewer alloc] initWithViewController:viewController];
+        _attachmentChooser = [[TUTFileChooser alloc] init];
+		_viewer = [[TUTFileViewer alloc] initWithViewController:viewController];
 		_attachmentsForUpload = [[NSMutableSet alloc] init];
     }
     return self;
@@ -32,45 +32,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		completion(error);
 	}];
 }
-//
-//- (void)openFileChooser:(CDVInvokedUrlCommand*)command{
-//	//[self.commandDelegate runInBackground:^{ // FileChooser has to run in main thread.
-//		NSDictionary *srcRect = [command.arguments objectAtIndex:0];
-//		[_attachmentChooser openAt:srcRect completion:^(NSString *filePath, NSError *error) {
-//			if(error){
-//				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-//			} else {
-//				if (filePath){
-//					[_attachmentsForUpload addObject:filePath];
-//					[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath] callbackId:command.callbackId];
-//				} else {
-//					[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT] callbackId:command.callbackId];
-//				}
-//			}
-//		}];
-//	//}];
-//}
-//
-//
-//
-//- (void)write:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		CDVPluginResult* pluginResult = nil;
-//		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-//		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//	 }];
-//}
-//
-//- (void)read:(CDVInvokedUrlCommand*)command{
-//	[self.commandDelegate runInBackground:^{
-//		CDVPluginResult* pluginResult = nil;
-//
-//		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-//
-//		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-//	 }];
-//}
-//
+
 - (void)deleteFileAtPath:(NSString *)filePath
 			  completion:(void (^)(void))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -85,7 +47,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 - (void)getNameForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSString *fileName = [filePath lastPathComponent];
-		if ([FileUtil fileExistsAtPath:filePath]){
+		if ([TUTFileUtil fileExistsAtPath:filePath]){
 			completion(fileName, nil);
 		} else {
 			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
@@ -141,7 +103,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
 		NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
 
-		NSURL *fileUrl = [FileUtil urlFromPath:filePath];
+		NSURL *fileUrl = [TUTFileUtil urlFromPath:filePath];
 		NSURLSessionUploadTask *task = [session uploadTaskWithRequest:request
 															 fromFile:fileUrl
 													completionHandler:^(NSData * data, NSURLResponse * response, NSError *error) {
@@ -178,7 +140,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
                 }
 				if ([httpResponse statusCode] == 200) {
                     NSError *error = nil;
-					NSString *encryptedPath = [FileUtil getEncryptedFolder: &error];
+					NSString *encryptedPath = [TUTFileUtil getEncryptedFolder: &error];
                     if (error) {
 						completion(nil, error);
                         return;
@@ -198,17 +160,6 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 			}] resume];
 		});
 }
-
-//- (void)clearFileData:(CDVInvokedUrlCommand*)command{
-//	NSFileManager *fileManager = [NSFileManager defaultManager];
-//	for(NSString *filePath in _attachmentsForUpload){
-//		// ignore errors
-//		[fileManager removeItemAtPath:filePath error:nil];
-//	}
-//	[_attachmentsForUpload removeAllObjects];
-//}
-
-
 
 + (NSString*) getEncryptedFolder:(NSError**)error {
     NSString * encryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"encrypted"];

@@ -1,15 +1,11 @@
 //
-//  EncodingConverter.h
+//  TUTEncodingConverter.h
 //  CryptoIos
 //
 //  Created by Tutao GmbH on 20.10.16.
 //  Copyright © 2016 Tutao GmbH. All rights reserved.
 //
-
-#ifndef EncodingConverter_h
-#define EncodingConverter_h
-
-@interface TutaoEncodingConverter : NSObject
+@interface TUTEncodingConverter : NSObject
 
 + (NSData*)hexToBytes:(NSString*)hex;
 + (NSString*)bytesToHex:(NSData*)data;
@@ -20,4 +16,3 @@
 
 @end
 
-#endif /* EncodingConverter_h */
