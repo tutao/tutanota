@@ -576,9 +576,11 @@ export class MailView {
 					.catch(NotFoundError,
 						e => console.log("could not set read flag as mail has been moved/deleted already", e))
 			}
-			this.mailList.list._loading.then(() => {
-				this.viewSlider.focus(this.mailColumn)
-			})
+			if (elementClicked) {
+				this.mailList.list._loading.then(() => {
+					this.viewSlider.focus(this.mailColumn)
+				})
+			}
 		}
 	}
 
