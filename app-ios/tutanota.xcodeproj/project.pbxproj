@@ -135,9 +135,9 @@
 			children = (
 				3D891F242105BB210031E528 /* FileUtil.h */,
 				3D891F252105BB210031E528 /* TutaoFileChooser.h */,
+				3D891F052105B12F0031E528 /* TutaoFileChooser.m */,
 				3D891F1E2105BB200031E528 /* TutaoFileViewer.h */,
 				3D891EFE2105B12E0031E528 /* FileUtil.m */,
-				3D891F052105B12F0031E528 /* TutaoFileChooser.m */,
 				3D891F042105B12F0031E528 /* TutaoFileViewer.m */,
 			);
 			path = Files;

@@ -125,7 +125,14 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"generateRsaKey" isEqualToString:type]) {
 		[_crypto generateRsaKeyWithSeed:arguments[0] completion: sendResponseBlock];
 	} else if ([@"openFileChooser" isEqualToString:type]) {
-		[_fileChooser openWithCompletion:^(NSString *filePath, NSError *error) {
+		NSDictionary *rectDict = arguments[0];
+		let rect = CGRectMake(
+							  ((NSNumber *) rectDict[@"x"]).doubleValue,
+							  ((NSNumber *) rectDict[@"y"]).doubleValue,
+							  ((NSNumber *) rectDict[@"width"]).doubleValue,
+							  ((NSNumber *) rectDict[@"height"]).doubleValue
+							  );
+		[_fileChooser openWithAnchorRect:rect completion:^(NSString *filePath, NSError *error) {
 			if (error == nil) {
 				if (filePath != nil) {
 					[self sendResponseWithId:requestId value:@[filePath]];

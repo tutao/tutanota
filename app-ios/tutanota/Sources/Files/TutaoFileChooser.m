@@ -25,13 +25,11 @@
 	NSArray *_supportedUTIs;
 	void(^resultHandler)(NSString * filePath, NSError* error);
 	UIPopoverPresentationController *_popOverPresentationController;
-	CGRect _currentSrcRect;
 	UIImage *_cameraImage;
 	UIImage *_photoLibImage;
 }
 
 - (TutaoFileChooser*) initWithViewController:(UIViewController *)viewController {
-	_currentSrcRect = CGRectZero;
 	_supportedUTIs = @[@"public.content"];
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
@@ -41,13 +39,12 @@
 }
 
 
-- (void)openWithCompletion:(void(^)(NSString *filePath, NSError *error))completionHandler {
-	if (resultHandler){
+- (void)openWithAnchorRect:(CGRect)anchorRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler {
+	if (resultHandler) {
 		completionHandler(nil, [TutaoErrorFactory createError:@"file chooser already open"]);
 		return;
 	}
 	resultHandler = completionHandler;
-	_currentSrcRect = [_sourceController.view frame];
 
 	_attachmentTypeMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:_supportedUTIs inMode:UIDocumentPickerModeImport];
 	_attachmentTypeMenu.delegate = self;
@@ -62,22 +59,21 @@
 			_attachmentTypeMenu.modalPresentationStyle = UIModalPresentationPopover;
 			_popOverPresentationController = [_attachmentTypeMenu popoverPresentationController];
 			_popOverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionUp | UIPopoverArrowDirectionDown;
-//			_popOverPresentationController.sourceView = _cdvPlugin.webView;
-			_popOverPresentationController.sourceRect = _currentSrcRect;
-			//_popOverPresentationController.delegate = weakSelf;
+			_popOverPresentationController.sourceView = _sourceController.view;
+			_popOverPresentationController.sourceRect = anchorRect;
 		}
 		[_attachmentTypeMenu addOptionWithTitle:@"Photos" image:_photoLibImage order:UIDocumentMenuOrderFirst handler:^void(){
 			// ask for permission because of changed behaviour in iOS 11
-			if(PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusNotDetermined){
+			if (PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusNotDetermined) {
 				[PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
 					if (status == PHAuthorizationStatusAuthorized) {
-						[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
+						[weakSelf showImagePickerWithAnchor:anchorRect];
 					} else {
 						[weakSelf sendResult:nil];
 					}
 				}];
-			} else if(PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusAuthorized){
-				[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
+			} else if(PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusAuthorized) {
+				[weakSelf showImagePickerWithAnchor:anchorRect]; // capture the weak reference to avoid reference cycle
 			} else{
 				[weakSelf showPermissionDeniedDialog];
 			}
@@ -86,7 +82,7 @@
 
 	// add menu item for opening the camera and take a photo or video.
 	// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
-	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]){
+	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
 		[_attachmentTypeMenu addOptionWithTitle:@"Camera" image:_cameraImage order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf openCamera]; // capture the weak reference to avoid refFFFFerence cycle
 		}];
@@ -95,7 +91,7 @@
 }
 
 
--(void) showImagePicker {
+-(void) showImagePickerWithAnchor:(CGRect)anchor {
 	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
 	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
 	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
@@ -105,7 +101,7 @@
 		UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
 		popOverController.sourceView = _sourceController.view;
 		popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
-		popOverController.sourceRect = _currentSrcRect;
+		popOverController.sourceRect = anchor;
 		popOverController.delegate = self;
 	}
 	[_sourceController presentViewController:_imagePickerController animated:YES completion:nil];
@@ -152,9 +148,9 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
 	[_sourceController dismissViewControllerAnimated:YES completion: ^{
 		// we have to copy the file into a folder of this app.
-		NSError *error=nil;
+		NSError *error = nil;
 		NSString *targetFolder = [FileUtil getDecryptedFolder:&error];
-		if(error){
+		if (error) {
 			[self sendError:error];
 			return;
 		}
@@ -234,7 +230,7 @@
 -(void) copyFileToLocalFolderAndSendResult:(NSURL *) srcUrl fileName:(NSString*)fileName{
 	NSError *error = nil;
 	NSString *targetFolder = [FileUtil getDecryptedFolder:&error];
-	if(error){
+	if (error){
 		[self sendError:error];
 		return;
 	}

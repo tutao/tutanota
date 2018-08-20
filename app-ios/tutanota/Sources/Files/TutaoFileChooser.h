@@ -16,7 +16,7 @@
 @interface TutaoFileChooser : NSObject<UIDocumentMenuDelegate, UIDocumentPickerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverPresentationControllerDelegate>
 - (instancetype) initWithViewController:(UIViewController *)viewController;
 
-- (void)openWithCompletion:(void(^)(NSString *filePath, NSError *error))completionHandler;
+- (void)openWithAnchorRect:(CGRect)anchorRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler;
 @end
 
 
