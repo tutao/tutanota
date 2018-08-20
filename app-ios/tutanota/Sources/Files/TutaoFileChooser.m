@@ -6,13 +6,17 @@
 //
 //
 
-#import <Foundation/Foundation.h>
+// Sweet, sweet sugar
+#import "Swiftier.h"
+
+// App classes
 #include "TutaoFileChooser.h"
-#import <UIKit/UIViewController.h>
-#import "FileUtil.h"
-#import <Photos/Photos.h>
-#import <MobileCoreServices/MobileCoreServices.h>
 #import "TutaoErrorFactory.h"
+#import "FileUtil.h"
+
+// Frameworks
+#import <UIKit/UIViewController.h>
+#import <Photos/Photos.h>
 
 
 @interface TutaoFileChooser ()
@@ -185,31 +189,42 @@
 
 			// retrieve the filename of the image or video
 			PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[srcUrl] options:nil];
-			PHAsset *assetObject =[result firstObject];
+			PHAsset *assetObject = [result firstObject];
 			PHAssetResource *assetResource = [[PHAssetResource assetResourcesForAsset:assetObject] firstObject];
 			if (!assetResource){
 				[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
 				return;
 			}
 
-			NSString *fileName = [assetResource originalFilename];
-			NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
+			let fileName = [self fixHeicFilename:[assetResource originalFilename]];
+			let filePath = [targetFolder stringByAppendingPathComponent:fileName];
 
 			//extracting image from the picker and saving it
 			NSURL *mediaUrl =[info objectForKey:UIImagePickerControllerMediaURL];
 			NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
-			if ([mediaType isEqualToString:@"public.image"]){
-				[[PHImageManager defaultManager] requestImageDataForAsset:assetObject options:nil resultHandler:^(NSData * imageData, NSString * dataUTI, UIImageOrientation orientation, NSDictionary * info) {
-					if(!imageData){
-						[self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
-						return;
-					}
-					if(![imageData writeToFile:filePath atomically:YES]){
-						[self sendError:[TutaoErrorFactory createError:@"failed to write image data"]];
-						return;
-					}
-					[self sendResult:filePath];
-				}];
+			if ([mediaType isEqualToString:@"public.image"]) {
+				[[PHImageManager defaultManager] requestImageForAsset:assetObject
+														   targetSize:CGSizeMake(assetObject.pixelWidth, assetObject.pixelHeight)
+														  contentMode:PHImageContentModeDefault
+															  options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+																  // We are calling this method asynchonously, it may be called with
+																  // a low-res version of the image the first time
+																  if ([info[PHImageResultIsDegradedKey] boolValue]) {
+																	  return;
+																  }
+																  if (!result) {
+																	  [self sendError:[TutaoErrorFactory createError:@"No asset resource for image"]];
+																	  return;
+																  }
+
+																  let imageData = UIImageJPEGRepresentation(result, 1.0);
+																  if (![imageData writeToFile:filePath atomically:YES]) {
+																	  [self sendError:
+																	   [TutaoErrorFactory createError:@"failed to write image data"]];
+																	  return;
+																  }
+																  [self sendResult:filePath];
+															  }];
 			} else if (mediaUrl) { // for videos
 				[self copyFileToLocalFolderAndSendResult:mediaUrl fileName:fileName];
 			} else {
@@ -275,7 +290,7 @@
 	resultHandler = nil;
 };
 
--(void) showPermissionDeniedDialog{
+-(void)showPermissionDeniedDialog {
 		//User don't give us permission. Showing alert with redirection to settings
 		NSString *permissionTitle = @"No permission";
 		NSString *permissionInfo =  @"To grant access you have to modify the permissions for this device";
@@ -294,5 +309,19 @@
 }
 
 
+/**
+ * Replace ".heic" or ".heif" extensions with ".jpeg".
+ */
+-(NSString *)fixHeicFilename:(NSString *)filename {
+	var range = [filename rangeOfString:@".heic" options:NSBackwardsSearch | NSCaseInsensitiveSearch];
+	if (range.location == NSNotFound) {
+		range = [filename rangeOfString:@".heif" options:NSBackwardsSearch | NSCaseInsensitiveSearch];
+	}
+	if (range.location == NSNotFound) {
+		return filename;
+	} else {
+		return [filename stringByReplacingCharactersInRange:range withString:@".jpeg"];
+	}
+}
 
 @end
