@@ -215,9 +215,20 @@ typedef void(^VoidCallback)(void);
 }
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
+	id message = value.userInfo[@"message"];
+	if (!message) {
+		message = value.userInfo[@"NSLocalizedFailureReason"];
+		if (!message) {
+			message = value.userInfo[@"NSLocalizedDescription"];
+			if (!message) {
+				message = NSNull.null;
+			}
+		}
+	}
+
 	let errorDict = @{
 					  @"name":[value domain],
-					  @"message":value.userInfo[@"message"]
+					  @"message":message
 					  };
 	[self sendResponseWithId:responseId type:@"requestError" value:errorDict];
 }

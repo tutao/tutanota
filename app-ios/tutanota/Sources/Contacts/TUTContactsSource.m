@@ -39,7 +39,7 @@ static const NSString *CONTACTS_ERROR_DOMAIN = @"ContactsErrorDomain";
 														if (granted) {
 															[self doSearchForQuery:query completion:completion];
 														} else {
-															completion(@[], error);
+															completion(@[], nil);
 														}
 													}];
 			break;
