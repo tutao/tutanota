@@ -131,7 +131,7 @@ typedef void(^VoidCallback)(void);
 		[_fileUtil getSizeForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"getMimeType" isEqualToString:type]) {
 		[_fileUtil getMimeTypeForPath:arguments[0] completion:sendResponseBlock];
-	} else if ([@"changeTheme" isEqualToString:type] || [@"closePushNotifications" isEqualToString:type]) {
+	} else if ([@"changeTheme" isEqualToString:type]) {
 		// No-op for now
 		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"aesEncryptFile" isEqualToString:type]) {
@@ -162,6 +162,9 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];
+	} else if ([@"closePushNotifications" isEqualToString:type]) {
+		[UIApplication.sharedApplication setApplicationIconBadgeNumber:0];
+		sendResponseBlock(NSNull.null, nil);
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		NSLog(@"%@", message);
