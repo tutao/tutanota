@@ -165,6 +165,12 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"closePushNotifications" isEqualToString:type]) {
 		[UIApplication.sharedApplication setApplicationIconBadgeNumber:0];
 		sendResponseBlock(NSNull.null, nil);
+	} else if ([@"openLink" isEqualToString:type]) {
+		[UIApplication.sharedApplication openURL:[NSURL URLWithString:arguments[0]]
+										 options:@{}
+							   completionHandler:^(BOOL success) {
+								   sendResponseBlock(@(success), nil);
+							   }];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		NSLog(@"%@", message);
