@@ -7,22 +7,24 @@
 //
 
 #import <Foundation/Foundation.h>
-
-
-#import "TUTCrypto.h"
+#import <CommonCrypto/CommonDigest.h>
 #import <openssl/ossl_typ.h>
 #import <openssl/md5.h>
 #import <openssl/rsa.h>
 #import <openssl/err.h>
 #import <openssl/evp.h>
-#import "rsa_oaep_sha256.h"
 #import <openssl/bn.h>
 #import <openssl/rand.h>
+#import "rsa_oaep_sha256.h"
 #import "JFBCrypt.h"
-#import <CommonCrypto/CommonDigest.h>
+
+#import "TUTCrypto.h"
 #import "TUTAes128Facade.h"
 #import "TUTEncodingConverter.h"
 #import "TUTFileUtil.h"
+#import "TUTErrorFactory.h"
+
+#import "Swiftier.h"
 
 static NSString * const CRYPTO_ERROR_DOMAIN = @"tutanota_crypto";
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
@@ -254,33 +256,25 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		};
 
 		NSString *encryptedFolder = [TUTFileUtil getEncryptedFolder:&error];
-		if (error){
+		if (error) {
 			completion(nil, error);
 			return;
 		}
 
-		NSInputStream *plainTextFileStream = [[NSInputStream alloc] initWithFileAtPath:filePath];
-
-		NSString *encryptedFilePath = [encryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
-		NSOutputStream *encryptedFileStream = [[NSOutputStream alloc] initToFileAtPath:encryptedFilePath append:NO];
-
-		[plainTextFileStream open];
-		[encryptedFileStream open];
-
-
-		NSData *iv = [self generateIv];
-		TUTAes128Facade *aesFacade = [TUTAes128Facade new];
-
-		[aesFacade encryptStream:plainTextFileStream result:encryptedFileStream withKey:keyData withIv:iv error:&error];
-
-		[plainTextFileStream close];
-		[encryptedFileStream close];
-
+		let encryptedFilePath = [encryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
+		let iv = [self generateIv];
+		let aesFacade = [TUTAes128Facade new];
+		let plainTextData = [NSData dataWithContentsOfFile:filePath];
+		let outputData = [aesFacade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
 		if (error) {
 			completion(nil, error);
-		} else {
-			completion(encryptedFilePath, nil);
+			return;
 		}
+		if (![outputData writeToFile:encryptedFilePath atomically:YES]) {
+			completion(nil, [TUTErrorFactory createError:@"Failed to write decrypted file"]);
+			return;
+		}
+		completion(encryptedFilePath, nil);
 	});
 };
 
@@ -302,35 +296,20 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			return;
 		}
 
-		NSData *fileData = [[NSFileManager defaultManager] contentsAtPath:filePath];
-		BOOL useMac = [fileData length]  % 2 == 1;
+		let fileData = [[NSFileManager defaultManager] contentsAtPath:filePath];
+		let plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
 
-		if (useMac) {
-			NSData *hash  = [TUTCrypto sha256:key];
-			key = [hash subdataWithRange:NSMakeRange(0, 16)];
-			fileData = [NSData dataWithBytesNoCopy:(void * _Nonnull)(fileData.bytes + 1) length:fileData.length - 33 freeWhenDone:NO];
-		}
-
-		NSInputStream *encryptedFileStream = [[NSInputStream alloc] initWithData:fileData];
-
-		NSString *plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
-		NSOutputStream *plainTextFileStream = [[NSOutputStream alloc] initToFileAtPath:plainTextFilePath append:NO];
-
-		[plainTextFileStream open];
-		[encryptedFileStream open];
-
-		TUTAes128Facade *aesFacade = [[TUTAes128Facade alloc]init];
-
-		[aesFacade decryptStream:encryptedFileStream result:plainTextFileStream withKey:key error:&error];
-
-		[plainTextFileStream close];
-		[encryptedFileStream close];
-
+		TUTAes128Facade *aesFacade = [TUTAes128Facade new];
+		let plainTextData = [aesFacade decrypt:fileData withKey:key error:&error];
 		if (error) {
 			completion(nil, error);
-		} else {
-			completion(plainTextFilePath, nil);
+			return;
 		}
+		if (![plainTextData writeToFile:plainTextFilePath atomically:YES]) {
+			completion(nil, [TUTErrorFactory createError:@"Failed to write decrypted file"]);
+			return;
+		}
+		completion(plainTextFilePath, nil);
 	});
 };
 

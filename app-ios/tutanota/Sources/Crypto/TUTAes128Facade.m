@@ -8,33 +8,68 @@
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCryptor.h>
+#import <CommonCrypto/CommonHMAC.h>
 #import "TUTAes128Facade.h"
 #import "TUTErrorFactory.h"
 #import "TUTEncodingConverter.h"
+#import "Swiftier.h"
+#import "TUTCrypto.h"
+
 
 NSInteger const TUTAO_CRYPT_BUFFER_SIZE = 16;
 NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
+typedef struct  {
+	NSData *mKey;
+	NSData *cKey;
+} SubKeys;
+
+
+
 @implementation TUTAes128Facade {
 }
 
-- (NSData*) encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
+
+- (NSData*) encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error{
 	NSInputStream *inputStream = [[NSInputStream alloc]initWithData:plainText];
 	NSOutputStream *outputStream = [[NSOutputStream alloc] initToMemory];
 	[outputStream open];
 	[inputStream open];
-	
-	[self encryptStream:inputStream result:outputStream withKey:key withIv:iv error:error];
-	
-	NSData *encryptedData = [outputStream propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
+	SubKeys subKeys = [self getSubKeys:key withMac:useMac];
+	[self encryptStream:inputStream result:outputStream withKey:subKeys.cKey withIv:iv error:error];
+	NSData *tmpEncryptedData = [outputStream propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
+	NSData *encryptedData;
+	if (useMac){
+		let mac = [self hmac256WithKey:subKeys.mKey data:tmpEncryptedData];
+		NSMutableData  *mutableData  = [NSMutableData dataWithLength: (1l + tmpEncryptedData.length + mac.length)];
+		uint8_t prefix[] = {0x01};
+		[mutableData replaceBytesInRange:NSMakeRange(0,1) withBytes:prefix];
+		[mutableData replaceBytesInRange:NSMakeRange(1,tmpEncryptedData.length) withBytes:tmpEncryptedData.bytes];
+		[mutableData replaceBytesInRange:NSMakeRange(1 + tmpEncryptedData.length, mac.length) withBytes:mac.bytes];
+		encryptedData =mutableData;
+	} else {
+		encryptedData = tmpEncryptedData;
+	}
 	[outputStream close];
 	[inputStream close];
 	return encryptedData;
 }
 
+-  (SubKeys)getSubKeys:(NSData *)key withMac:(BOOL)useMac{
+	SubKeys subKeys;
+	if (useMac) {
+		NSData *hash = [TUTCrypto sha256:key];
+		subKeys.cKey = [hash subdataWithRange:NSMakeRange(0, 16)];
+		subKeys.mKey = [hash subdataWithRange:NSMakeRange(16, 16)];
+	} else {
+		subKeys.cKey = key;
+	}
+	return subKeys;
+}
+
 - (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
 	if ([iv length] != TUTAO_IV_BYTE_SIZE){
-		*error = [TUTErrorFactory createError:@"invalid iv length"];
+		*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:@"invalid iv length"];
 		return NO;
 	}
 	//NSLog(@"iv: %@", [TutaoEncodingConverter bytesToHex:iv]);
@@ -46,12 +81,28 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 }
 
 - (NSData*) decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error{
-	NSInputStream *inputStream = [[NSInputStream alloc]initWithData:encryptedData];
+
+	NSData *cipherTextWithoutMac;
+	BOOL useMac = [encryptedData length]  % 2 == 1;
+	SubKeys subKeys = [self getSubKeys:key withMac:useMac];
+	if (useMac) {
+		cipherTextWithoutMac = [NSData dataWithBytesNoCopy:(void * _Nonnull)(encryptedData.bytes + 1) length:encryptedData.length - 33 freeWhenDone:NO];
+
+		let providedMacBytes = [encryptedData subdataWithRange:NSMakeRange(encryptedData.length - 32, 32)];
+		let computedMacBytes = [self hmac256WithKey:subKeys.mKey data:cipherTextWithoutMac];
+		if (![providedMacBytes isEqual:computedMacBytes]) {
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:@"HMAC validation failed"];
+			return nil;
+		}
+	} else {
+		cipherTextWithoutMac = encryptedData;
+	}
+
+	NSInputStream *inputStream = [[NSInputStream alloc]initWithData:cipherTextWithoutMac];
 	NSOutputStream *outputStream = [[NSOutputStream alloc] initToMemory];
-	
 	[outputStream open];
 	[inputStream open];
-	[self decryptStream:inputStream result:outputStream withKey:key error:error];
+	[self decryptStream:inputStream result:outputStream withKey:subKeys.cKey error:error];
 	NSData *plainTextData = [outputStream propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
 	[outputStream close];
 	[inputStream close];
@@ -94,7 +145,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
                            &cryptor);             // OUT cryptorRef
 
 	if (cryptorStatus != kCCSuccess) {
-		*error =  [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
+		*error =  [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
 		return NO;
 	}
 
@@ -114,7 +165,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 			&writeBufferLength);
 		
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
 			break;
 		}
 		// write to output stream
@@ -130,7 +181,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 					TUTAO_CRYPT_BUFFER_SIZE,
 					&writeBufferLength);
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TUTErrorFactory createError:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
 		} else {
 			[self writeBytes:&writeBuffer dataInLength:writeBufferLength to:outputStream error:error];
 		}
@@ -156,6 +207,12 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 		return NO;
 	}
 	return YES;
+}
+
+-(NSData *)hmac256WithKey:(NSData *)mKey data:(NSData *)data {
+	uint8_t cHMAC[CC_SHA256_DIGEST_LENGTH];
+	CCHmac(kCCHmacAlgSHA256, mKey.bytes, mKey.length, data.bytes, data.length, cHMAC);
+	return [NSData dataWithBytes:cHMAC length:CC_SHA256_DIGEST_LENGTH];
 }
 
 @end

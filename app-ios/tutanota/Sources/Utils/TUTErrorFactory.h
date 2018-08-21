@@ -7,10 +7,10 @@
 //
 
 extern NSString *const TUT_ERROR_DOMAIN;
-
+extern NSString *const TUT_CRYPTO_ERROR;
 
 @interface TUTErrorFactory : NSObject
 
 + (NSError *)createError:(NSString*) description;
-
++ (NSError *)createErrorWithDomain:(NSString*) domain msg:(NSString*) description;
 @end

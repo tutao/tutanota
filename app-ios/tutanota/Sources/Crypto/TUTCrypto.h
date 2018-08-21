@@ -29,4 +29,6 @@
 					   atPath:(NSString * _Nonnull)filePath
 				   completion:(void(^ _Nonnull)(NSString * _Nullable filePath, NSError * _Nullable error))completion;
 
++ (NSData *)sha256:(NSData *)data;
+
 @end

@@ -219,7 +219,11 @@ typedef void(^VoidCallback)(void);
 					  @"name":[value domain],
 					  @"message":message
 					  };
-	[self sendResponseWithId:responseId type:@"requestError" value:errorDict];
+	[self postMessage:@{
+					 @"id":responseId,
+					 @"type":@"requestError",
+					 @"error":errorDict
+					 }];
 }
 
 - (void) sendResponseWithId:(NSString *)responseId type:(NSString *)type value:(id)value {
