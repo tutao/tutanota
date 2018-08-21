@@ -24,6 +24,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
+import {windowFacade} from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -99,8 +100,20 @@ export class RegisterView {
 
 		let optionsExpander = new ExpanderButton('more_label', new ExpanderPanel(panel), false)
 
+		let bottomMargin = 0
+		const keyboardListener = (keyboardSize) => {
+			bottomMargin = keyboardSize
+			m.redraw()
+		}
+
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+			return m(".main-view.flex-center.scroll.pt-responsive",{
+					oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
+					onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
+					style : {
+						marginBottom: bottomMargin + "px"
+					}
+				}, m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 					m("div", [
 						m(mailAddressForm),
 						m(passwordForm),

@@ -17,6 +17,7 @@ import {size, px} from "../size"
 import {styles} from "../styles"
 import {focusPrevious, focusNext, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -29,7 +30,6 @@ export const DialogType = {
 	EditLarge: "EditLarge"
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
-
 
 export class Dialog {
 	static _keyboardHeight = 0;
@@ -526,17 +526,10 @@ export class Dialog {
 		})
 	}
 
-	static keyboardSizeChanged(newSize: number): void {
+	static _onKeyboardSizeChanged(newSize: number): void {
 		Dialog._keyboardHeight = newSize
-		if (newSize > 0) {
-			// reset position fixed for the body to allow scrolling in dialogs on iOS
-			// https://github.com/scottjehl/Device-Bugs/issues/14
-			const body = (document.body: any)
-			body.style.position = 'unset'
-			setTimeout(() => {
-				body.style.position = 'fixed'
-			}, 100)
-		}
 		m.redraw()
 	}
 }
+
+windowFacade.addKeyboardSizeListener(Dialog._onKeyboardSizeChanged)

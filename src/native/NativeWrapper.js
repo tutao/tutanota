@@ -1,9 +1,9 @@
 //@flow
 import {Queue, Request} from "../api/common/WorkerProtocol"
 import {ConnectionError} from "../api/common/error/RestError"
-import {neverNull, asyncImport, defer} from "../api/common/utils/Utils"
-import {Mode, isMainOrNode} from "../api/Env"
-import {getName, getMimeType, getSize} from "./FileApp"
+import {asyncImport, defer, neverNull} from "../api/common/utils/Utils"
+import {isMainOrNode, Mode} from "../api/Env"
+import {getMimeType, getName, getSize} from "./FileApp"
 
 /**
  * Invokes native functions of an app. In case this is executed from a worker scope, the invocations are passed to the
@@ -78,10 +78,9 @@ class NativeWrapper {
 					)
 				},
 				keyboardSizeChanged: (msg: Request): Promise<void> => {
-					return _asyncImport('src/gui/base/Dialog.js').then(module => {
-							module.Dialog.keyboardSizeChanged(msg.args[0])
-						}
-					)
+					return _asyncImport('src/misc/WindowFacade.js').then(module => {
+						return module.windowFacade.onKeyboardSizeChanged(Number(msg.args[0]))
+					})
 				}
 			})
 			this.invokeNative(new Request("init", [])).then(platformId => {

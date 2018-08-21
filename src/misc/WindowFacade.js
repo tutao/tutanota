@@ -10,11 +10,16 @@ import {nativeApp} from "../native/NativeWrapper";
 
 assertMainOrNodeBoot()
 
+export type KeyboardSizeListener = (keyboardSize: number) => mixed;
+
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?TimeoutID;
 	windowCloseConfirmation: boolean;
 	_worker: WorkerClient;
+	// following two properties are for the iOS
+	_keyboardSize = 0;
+	_keyboardSizeListeners: KeyboardSizeListener[] = [];
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -45,6 +50,17 @@ class WindowFacade {
 		}
 	}
 
+	addKeyboardSizeListener(listener: KeyboardSizeListener) {
+		this._keyboardSizeListeners.push(listener);
+		listener(this._keyboardSize);
+	}
+
+	removeKeyboardSizeListener(listener: KeyboardSizeListener) {
+		const index = this._keyboardSizeListeners.indexOf(listener)
+		if (index > -1) {
+			this._keyboardSizeListeners.splice(index, 1)
+		}
+	}
 
 	openLink(href: string): window {
 		if (env.mode === Mode.App) {
@@ -155,6 +171,22 @@ class WindowFacade {
 					this._worker.tryReconnectEventBus(false, true)
 				}
 			})
+		}
+	}
+
+	onKeyboardSizeChanged(size: number) {
+		this._keyboardSize = size;
+		for (let listener of this._keyboardSizeListeners) {
+			listener(size);
+		}
+		if (size > 0) {
+			// reset position fixed for the body to allow scrolling in dialogs on iOS
+			// https://github.com/scottjehl/Device-Bugs/issues/14
+			const body = (document.body: any)
+			body.style.position = 'unset'
+			setTimeout(() => {
+				body.style.position = 'fixed'
+			}, 200)
 		}
 	}
 }

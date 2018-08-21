@@ -15,6 +15,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, utf8Uint8ArrayToString, base64UrlToBase64} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {windowFacade} from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -104,19 +105,34 @@ export class LoginView {
 
 		this._setupShortcuts()
 
+		let bottomMargin = 0
+		const keyboardListener = (keyboardSize) => {
+			bottomMargin = keyboardSize
+			m.redraw()
+		}
+
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll.pt-responsive", [
-				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
-					style: {width: client.isDesktopDevice() ? "360px" : null} // workaround for IE11 which does not center the area, otherwise
-				}, [
-					this._visibleCredentials.length > 0 ? this.credentialsSelector() : this.loginForm(),
-					m(".flex-center.pt-l", [
-						m(optionsExpander),
-					]),
-					m(".pb-l", [
-						m(optionsExpander.panel),
-					]),
-				]),
+			return m(".main-view.flex-center.scroll.pt-responsive", {
+				oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
+				onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
+				style : {
+					marginBottom: bottomMargin + "px"
+				}
+			}, [
+					m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
+						style: {
+							// width: workaround for IE11 which does not center the area, otherwise
+							width: client.isDesktopDevice() ? "360px" : null,
+						}
+					}, [
+						this._visibleCredentials.length > 0 ? this.credentialsSelector() : this.loginForm(),
+						m(".flex-center.pt-l", [
+							m(optionsExpander),
+						]),
+						m(".pb-l", [
+							m(optionsExpander.panel),
+						]),
+					])
 			])
 		}
 	}
