@@ -41,6 +41,11 @@ styles.registerStyle('main', () => {
 			"font-style": "normal"
 		},
 
+		// Allow long-click contextual actions for iOS
+		".touch-callout *": {
+			"-webkit-touch-callout": "default !important"
+		},
+
 		/*
 		 Box Sizing
 		 */

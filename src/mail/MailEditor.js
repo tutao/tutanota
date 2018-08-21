@@ -190,7 +190,7 @@ export class MailEditor {
 
 
 		this.view = () => {
-			return m("#mail-editor.full-height.text", {
+			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => this._domElement = vnode.dom,
 				onclick: (e) => {
 					if (e.target === this._domElement) {
