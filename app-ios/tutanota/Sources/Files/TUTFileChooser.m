@@ -13,6 +13,8 @@
 #import "TUTFileChooser.h"
 #import "TUTErrorFactory.h"
 #import "TUTFileUtil.h"
+#import "TUTFontIconFactory.h"
+#import "TUTIcons.h"
 
 // Frameworks
 #import <UIKit/UIViewController.h>
@@ -21,34 +23,34 @@
 
 @interface TUTFileChooser ()
 @property (readonly) UIViewController *sourceController;
+@property (nonatomic, readonly) UIImage *cameraImage;
+@property (nonatomic, readonly) UIImage *photoLibImage;
+@property (nonatomic) UIDocumentMenuViewController *attachmentTypeMenu;
+@property (nonatomic) UIImagePickerController *imagePickerController;
+@property (nonatomic) NSArray *supportedUTIs;
+@property (nonatomic) void(^resultHandler)(NSArray<NSString *> *filePath, NSError *error);
+@property (nonatomic) UIPopoverPresentationController *popOverPresentationController;
 @end
 
-@implementation TUTFileChooser {
-	UIDocumentMenuViewController *_attachmentTypeMenu;
-	UIImagePickerController *_imagePickerController;
-	NSArray *_supportedUTIs;
-	void(^resultHandler)(NSArray<NSString *> *filePath, NSError *error);
-	UIPopoverPresentationController *_popOverPresentationController;
-	UIImage *_cameraImage;
-	UIImage *_photoLibImage;
-}
+@implementation TUTFileChooser
 
 - (TUTFileChooser*) initWithViewController:(UIViewController *)viewController {
 	_supportedUTIs = @[@"public.content"];
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
 	_sourceController = viewController;
-	
+	_cameraImage = [TUTFontIconFactory createFontImageForIconId:TUT_ICON_CAMERA fontName:@"ionicons" size:34];
+	_photoLibImage = [TUTFontIconFactory createFontImageForIconId:TUT_ICON_FILES fontName:@"ionicons" size:34];
 	return self;
 }
 
 
 - (void)openWithAnchorRect:(CGRect)anchorRect completion:(void(^)(NSArray<NSString *> *filePath, NSError *error))completionHandler {
-	if (resultHandler) {
+	if (_resultHandler) {
 		completionHandler(nil, [TUTErrorFactory createError:@"file chooser already open"]);
 		return;
 	}
-	resultHandler = completionHandler;
+	_resultHandler = completionHandler;
 
 	_attachmentTypeMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:_supportedUTIs inMode:UIDocumentPickerModeImport];
 	_attachmentTypeMenu.delegate = self;
@@ -93,7 +95,6 @@
 	}
 	[self->_sourceController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
 }
-
 
 -(void) showImagePickerWithAnchor:(CGRect)anchor {
 	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
@@ -282,16 +283,16 @@
 
 - (void)sendResult:(NSString* )filePath{
 	if (filePath != nil) {
-		resultHandler(@[filePath], nil);
+		_resultHandler(@[filePath], nil);
 	} else {
-		resultHandler(@[], nil);
+		_resultHandler(@[], nil);
 	}
-	resultHandler = nil;
+	_resultHandler = nil;
 };
 
 - (void)sendError:(NSError*) error{
-	resultHandler(nil, error);
-	resultHandler = nil;
+	_resultHandler(nil, error);
+	_resultHandler = nil;
 };
 
 -(void)showPermissionDeniedDialog {
@@ -303,10 +304,14 @@
 
 		UIAlertController * alertController = [UIAlertController alertControllerWithTitle:permissionTitle message:permissionInfo preferredStyle:UIAlertControllerStyleAlert];
 		UIAlertAction *cancelAction = [UIAlertAction actionWithTitle: cancelActionLabel style:UIAlertActionStyleCancel handler:nil];
-		[alertController addAction:cancelAction];
-		UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:settingsActionLabel style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-			[[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-		}];
+	[alertController addAction:cancelAction];
+	UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:settingsActionLabel
+															 style:UIAlertActionStyleDefault
+														   handler:^(UIAlertAction * _Nonnull action) {
+															   [UIApplication.sharedApplication openURL:[NSURL URLWithString:UIApplicationLaunchOptionsURLKey]
+																								options:@{}
+																					  completionHandler:nil];
+														   }];
 		[alertController addAction:settingsAction];
 		[[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertController animated:YES completion:nil];
 		[self sendResult:nil];

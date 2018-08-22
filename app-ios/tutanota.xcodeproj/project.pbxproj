@@ -38,7 +38,6 @@
 		3D87ECAE212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC0B212D8AB400FD7315 /* InfoPlist.strings */; };
 		3D87ECAF212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC0E212D8AB500FD7315 /* InfoPlist.strings */; };
 		3D87ECB0212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC11212D8AB500FD7315 /* InfoPlist.strings */; };
-		3D87ECB1212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC14212D8AB500FD7315 /* InfoPlist.strings */; };
 		3D87ECB2212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC17212D8AB500FD7315 /* InfoPlist.strings */; };
 		3D87ECB3212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC1A212D8AB500FD7315 /* InfoPlist.strings */; };
 		3D87ECB4212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC1D212D8AB500FD7315 /* InfoPlist.strings */; };
@@ -82,6 +81,9 @@
 		3D87ECDA212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC8F212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D87ECDB212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC92212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D87ECDC212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC95212D8ABD00FD7315 /* InfoPlist.strings */; };
+		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
+		3D87ECE3212D93EE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECE1212D93EE00FD7315 /* InfoPlist.strings */; };
+		3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D87ECE5212D9EB000FD7315 /* TUTIcons.m */; };
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* TUTFileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -146,7 +148,6 @@
 		3D87EC0C212D8AB400FD7315 /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ro; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC0F212D8AB500FD7315 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC12212D8AB500FD7315 /* uk_ua */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk_ua; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D87EC15212D8AB500FD7315 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC18212D8AB500FD7315 /* da_dk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = da_dk; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC1B212D8AB500FD7315 /* el */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = el; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC1E212D8AB500FD7315 /* bs_ba */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bs_ba; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -190,6 +191,10 @@
 		3D87EC90212D8ABD00FD7315 /* yo_ng */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = yo_ng; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC93212D8ABD00FD7315 /* lt_lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt_lt; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC96212D8ABD00FD7315 /* sq */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sq; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87ECDE212D921600FD7315 /* ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ionicons.ttf; sourceTree = "<group>"; };
+		3D87ECE2212D93EE00FD7315 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87ECE4212D9EAF00FD7315 /* TUTIcons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTIcons.h; sourceTree = "<group>"; };
+		3D87ECE5212D9EB000FD7315 /* TUTIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTIcons.m; sourceTree = "<group>"; };
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
 		3D891EFE2105B12E0031E528 /* TUTFileUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileUtil.m; sourceTree = "<group>"; };
 		3D891EFF2105B12E0031E528 /* JFBCrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JFBCrypt.m; sourceTree = "<group>"; };
@@ -290,6 +295,8 @@
 		3D74536421089DA300B16F2E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				3D87ECE4212D9EAF00FD7315 /* TUTIcons.h */,
+				3D87ECE5212D9EB000FD7315 /* TUTIcons.m */,
 				3D74536521089F4800B16F2E /* TUTErrorFactory.h */,
 				3D74536621089F4800B16F2E /* TUTErrorFactory.m */,
 				3D4D3204210747000081813A /* PSPDFFastEnumeration.h */,
@@ -517,14 +524,6 @@
 				3D87EC11212D8AB500FD7315 /* InfoPlist.strings */,
 			);
 			path = uk_ua.lproj;
-			sourceTree = "<group>";
-		};
-		3D87EC13212D8AB500FD7315 /* ru.lproj */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = ru.lproj;
-			path = Localizations/ru.lproj;
 			sourceTree = "<group>";
 		};
 		3D87EC16212D8AB500FD7315 /* da_dk.lproj */ = {
@@ -871,6 +870,14 @@
 			path = sq.lproj;
 			sourceTree = "<group>";
 		};
+		3D87ECE0212D93EE00FD7315 /* ru.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87ECE1212D93EE00FD7315 /* InfoPlist.strings */,
+			);
+			path = ru.lproj;
+			sourceTree = "<group>";
+		};
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -901,6 +908,7 @@
 		3DD4A08520F8C6240086EB36 /* tutanota */ = {
 			isa = PBXGroup;
 			children = (
+				3D87ECDE212D921600FD7315 /* ionicons.ttf */,
 				3D87EBEF212D8AB300FD7315 /* af.lproj */,
 				3D87EC52212D8AB900FD7315 /* ar.lproj */,
 				3D87EBFE212D8AB400FD7315 /* bg_bg.lproj */,
@@ -948,11 +956,10 @@
 				3D87EBE6212D8AB300FD7315 /* no.lproj */,
 				3D87EC37212D8AB700FD7315 /* oc.lproj */,
 				3D87EBD7212D8AB200FD7315 /* pl.lproj */,
-				3D87EBEC212D8AB300FD7315 /* pt_br.lproj */,
 				3D87EC01212D8AB400FD7315 /* pt_pt.lproj */,
+				3D87EBEC212D8AB300FD7315 /* pt_br.lproj */,
+				3D87ECE0212D93EE00FD7315 /* ru.lproj */,
 				3D87EC0A212D8AB400FD7315 /* ro.lproj */,
-				3D87EC13212D8AB500FD7315 /* ru.lproj */,
-				3D87EC14212D8AB500FD7315 /* InfoPlist.strings */,
 				3D87EBD4212D8AB200FD7315 /* si_lk.lproj */,
 				3D87EC34212D8AB700FD7315 /* sk_sk.lproj */,
 				3D87EC7F212D8ABC00FD7315 /* sl_si.lproj */,
@@ -1154,6 +1161,7 @@
 				3D87ECCB212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECC3212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECBD212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECE3212D93EE00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECD7212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECB3212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECB2212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
@@ -1195,11 +1203,11 @@
 				3D87ECA0212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECC7212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECC8212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */,
 				3D87ECA7212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECBE212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87EC9A212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECAE212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
-				3D87ECB1212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECD2212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECDA212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECA6212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
@@ -1245,6 +1253,7 @@
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
+				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
@@ -1480,14 +1489,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				3D87EC12212D8AB500FD7315 /* uk_ua */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3D87EC14212D8AB500FD7315 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D87EC15212D8AB500FD7315 /* ru */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -1832,6 +1833,14 @@
 			isa = PBXVariantGroup;
 			children = (
 				3D87EC96212D8ABD00FD7315 /* sq */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87ECE1212D93EE00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87ECE2212D93EE00FD7315 /* ru */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
