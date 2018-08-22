@@ -167,7 +167,7 @@ export class LoginViewController {
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 		if (env.mode === Mode.App) {
-			return pushServiceApp.register()
+			pushServiceApp.register()
 		}
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
