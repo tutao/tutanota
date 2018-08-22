@@ -393,7 +393,8 @@ styles.registerStyle('main', () => {
 			right: px(0),
 			bottom: px(0),
 			left: px(0),
-			'overflow-x': 'hidden'
+			'overflow-x': 'hidden',
+			'margin-top': 'env(safe-area-inset-top)' // insets for iPhone X
 		},
 
 		// view slider
@@ -408,8 +409,9 @@ styles.registerStyle('main', () => {
 			position: 'absolute', top: 0, left: 0, right: 0,
 			height: px(size.navbar_height),
 			'background-color': theme.header_bg,
-			'box-shadow': `0 2px 4px 0 ${theme.header_box_shadow_bg}`,
+			'box-shadow': `0 3px 2px 0 ${theme.header_box_shadow_bg}`,
 			'z-index': 1, // box_shadow will be overruled by the views background, otherwise
+			'margin-top': 'env(safe-area-inset-top)' // insets for iPhone X
 		},
 
 

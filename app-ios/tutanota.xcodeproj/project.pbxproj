@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
+		3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
+		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -19,12 +21,12 @@
 		3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F042105B12F0031E528 /* TUTFileViewer.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F052105B12F0031E528 /* TUTFileChooser.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D891F142105B8AF0031E528 /* libcrypto.a */; };
+		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
 		3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* TUTViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3DD4A0A020F8C6260086EB36 /* tutanotaTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09F20F8C6260086EB36 /* tutanotaTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +43,9 @@
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D652B5720F8DC1500DF9962 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; name = build; path = ../../build; sourceTree = "<group>"; };
+		3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTFontIconFactory.h; sourceTree = "<group>"; };
+		3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTFontIconFactory.m; sourceTree = "<group>"; };
+		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
@@ -62,6 +67,7 @@
 		3D891F252105BB210031E528 /* TUTFileChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileChooser.h; sourceTree = "<group>"; };
 		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
+		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08620F8C6240086EB36 /* TUTAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAppDelegate.h; sourceTree = "<group>"; };
 		3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAppDelegate.m; sourceTree = "<group>"; };
@@ -72,7 +78,6 @@
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DD4A09520F8C6260086EB36 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3DD4A09F20F8C6260086EB36 /* tutanotaTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = tutanotaTests.m; sourceTree = "<group>"; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
 		3DFDBDD4212ADA1D00785FC7 /* JFGC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFGC.h; sourceTree = "<group>"; };
@@ -121,10 +126,10 @@
 				3D891F1F2105BB200031E528 /* TUTCrypto.h */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
+				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
 				3D891F002105B12E0031E528 /* TUTCrypto.m */,
 				3D891EFF2105B12E0031E528 /* JFBCrypt.m */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
-				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
 			);
 			path = Crypto;
 			sourceTree = "<group>";
@@ -151,6 +156,8 @@
 				3D4D3205210747240081813A /* Swiftier.h */,
 				3D891F232105BB210031E528 /* TUTEncodingConverter.h */,
 				3D891F022105B12E0031E528 /* TUTEncodingConverter.m */,
+				3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */,
+				3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -207,7 +214,8 @@
 		3DD4A09E20F8C6260086EB36 /* tutanotaTests */ = {
 			isa = PBXGroup;
 			children = (
-				3DD4A09F20F8C6260086EB36 /* tutanotaTests.m */,
+				3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */,
+				3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */,
 				3DD4A0A120F8C6260086EB36 /* Info.plist */,
 			);
 			path = tutanotaTests;
@@ -284,6 +292,39 @@
 			knownRegions = (
 				en,
 				Base,
+				it,
+				ro,
+				da_dk,
+				tr,
+				de,
+				sk_sk,
+				sr,
+				cs_cz,
+				hr,
+				es,
+				ta_in,
+				pl,
+				bg_bg,
+				mk,
+				ru,
+				id,
+				fr,
+				pt_br,
+				lt_lt,
+				hu,
+				et_ee,
+				pt_pt,
+				ca_es,
+				fi,
+				sv,
+				sq,
+				el,
+				nl,
+				vi,
+				zh_hant,
+				uk_ua,
+				fil_ph,
+				no,
 			);
 			mainGroup = 3DD4A07A20F8C6240086EB36;
 			productRefGroup = 3DD4A08420F8C6240086EB36 /* Products */;
@@ -311,6 +352,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,6 +365,7 @@
 			files = (
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
+				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
@@ -341,7 +384,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DD4A0A020F8C6260086EB36 /* tutanotaTests.m in Sources */,
+				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

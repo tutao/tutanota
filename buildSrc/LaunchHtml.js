@@ -37,7 +37,7 @@ module.exports.renderHtml = function (scripts, env) {
 				m("meta[name=application-name][content=Tutanota]"),
 				m("link[rel=apple-touch-icon][sizes=152x152][href=/images/logo-favicon-152.png]"),
 				m("link[rel=icon][sizes=192x192][href=/images/logo-favicon-192.png]"),
-				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no]"),
+				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
 
 				// twitter
 				m("meta[name=twitter:card][content=summary]"),

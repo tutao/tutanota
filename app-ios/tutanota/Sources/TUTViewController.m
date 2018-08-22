@@ -55,6 +55,7 @@ typedef void(^VoidCallback)(void);
 }
 
 - (void)loadView {
+	[super loadView];
 	[self hideAccessoryBar];
 	WKWebViewConfiguration *config = [WKWebViewConfiguration new];
 	_webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
@@ -63,6 +64,10 @@ typedef void(^VoidCallback)(void);
 	_webView.scrollView.bounces = false;
 	_webView.scrollView.scrollEnabled = NO;
 	_webView.scrollView.delegate = self;
+	if (@available(iOS 11.0, *)) {
+  		_webView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+	}
+
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc addObserver:self selector:@selector(onKeyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
@@ -70,7 +75,6 @@ typedef void(^VoidCallback)(void);
     [nc addObserver:self selector:@selector(onKeyboardSizeChange:) name:UIKeyboardDidChangeFrameNotification object:nil];
 
 	[config.userContentController addScriptMessageHandler:self name:@"nativeApp"];
-	self.view = _webView;
 	[self keyboardDisplayDoesNotRequireUserAction];
 }
 
@@ -85,6 +89,12 @@ typedef void(^VoidCallback)(void);
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
+	[self.view addSubview:_webView];
+	_webView.translatesAutoresizingMaskIntoConstraints = NO;
+	[_webView.leftAnchor constraintEqualToAnchor:self.view.leftAnchor].active = YES;
+	[_webView.topAnchor constraintEqualToAnchor:self.view.topAnchor].active = YES;
+	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
+	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
 	[self loadMainPageWithParams:nil];
 }
 
@@ -343,7 +353,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
 	// disable scrolling of the web view to avoid that the keyboard moves the body out of the screen
-	scrollView.contentOffset = CGPointMake(0, [UIApplication sharedApplication].isStatusBarHidden ? 0 : -20);
+	scrollView.contentOffset = CGPointZero;
 }
 
 @end

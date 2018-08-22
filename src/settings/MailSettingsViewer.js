@@ -129,7 +129,7 @@ export class MailSettingsViewer {
 
 		this.view = () => {
 			return [
-				m("#user-settings.fill-absolute.scroll.plr-l", [
+				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('emailSending_label')),
 					m(this._defaultSender),
 					m(this._senderName),

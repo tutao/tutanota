@@ -61,7 +61,11 @@ export class Dialog {
 		]
 		this.view = (): VirtualElement => {
 			let mobileMargin = px(size.hpad)
-			return m(this._getDialogWrapperStyle(dialogType),  // controls vertical alignment
+			return m(this._getDialogWrapperStyle(dialogType), {
+					style: {
+						paddingTop: 'env(safe-area-inset-top)'
+					}
+				},  // controls vertical alignment
 				m(".flex.justify-center.align-self-stretch.rel"
 					+ (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"), {  // controls horizontal alignment
 						style: {
