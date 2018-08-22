@@ -1,0 +1,8 @@
+NSCameraUsageDescription = "Сделайте снимок или видео для добавления его в качестве вложения.";
+NSPhotoLibraryUsageDescription = "Разместите изображение из библиотеки как вложение. ";
+NSPhotoLibraryAddUsageDescription = "Разместите изображение из библиотеки как вложение. ";
+NSMicrophoneUsageDescription = "Используется при записи видео приложения к письму.";
+NSContactsUsageDescription = "Найти адрес электронной почты получателя в контактах.";
+NSRemindersUsageDescription = "Показывает уведомление когда приходит новое сообщение. ";
+TutaoCancelAction = "Отменить";
+TutaoSettingsAction = "Настройки";

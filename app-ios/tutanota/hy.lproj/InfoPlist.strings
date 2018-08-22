@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "Նկարեք  ֆոտո կամ տեսահոլովակ որպես հավելված ավելացնելու համար։";
+NSContactsUsageDescription = "Գտնել կոնտակտներում ստացողի էլ․ փոստի հասցե։";
+TutaoChoosePhotosAction = "Նկարներ";
+TutaoCancelAction = "Չեղարկել";
+TutaoSettingsAction = "Կառավարում";

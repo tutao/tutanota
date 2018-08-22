@@ -1,0 +1,10 @@
+NSCameraUsageDescription = "Ambil gambar atau video untuk dimasukkan sebagai lampiran.";
+NSPhotoLibraryUsageDescription = "Tambah gambar dari pustaka anda sebagai lampiran.";
+NSPhotoLibraryAddUsageDescription = "Tambah gambar dari pustaka anda sebagai lampiran.";
+NSMicrophoneUsageDescription = "Digunakan semasa merakam video sebagai lampiran.";
+NSContactsUsageDescription = "Cari alamat e-mel penerima dalam kenalan.";
+NSRemindersUsageDescription = "Menunjukkan notifikasi apabila e-mel baru sampai.";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Foto";
+TutaoCancelAction = "Batal";
+TutaoSettingsAction = "Tetapan";

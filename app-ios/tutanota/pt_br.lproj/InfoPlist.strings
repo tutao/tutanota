@@ -1,0 +1,7 @@
+NSCameraUsageDescription = "Tirar uma foto ou vídeo para enviá-lo como anexo.";
+NSMicrophoneUsageDescription = "Utilizado quando gravar um vídeo como anexo.";
+NSContactsUsageDescription = "Encontrar e-mail do destinatário nos contatos.";
+NSRemindersUsageDescription = "Mostrar notificações quando um novo e-mail chegar.";
+TutaoChoosePhotosAction = "Fotos";
+TutaoCancelAction = "Cancelar";
+TutaoSettingsAction = "Configurações";

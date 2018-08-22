@@ -1,0 +1,10 @@
+NSCameraUsageDescription = "Chukua picha au video kwa ajili ya kuongeza kama Kiambatisho.";
+NSPhotoLibraryUsageDescription = "Ongeza picha kutoka maktaba yako kama kiambatanisho.";
+NSPhotoLibraryAddUsageDescription = "Ongeza picha kutoka maktaba yako kama kiambatanisho.";
+NSMicrophoneUsageDescription = "Hutumika wakati wa kurekodi video kama ambatanisho.";
+NSContactsUsageDescription = "Tafuta anwani ya barua pepe ya mpokeaji katika mawasiliano.";
+NSRemindersUsageDescription = "Inaonyesha taarifa wakati barua pepe mpya inapofika.";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Picha";
+TutaoCancelAction = "Katisha";
+TutaoSettingsAction = "Mipangilio";

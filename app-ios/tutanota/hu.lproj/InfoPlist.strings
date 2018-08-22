@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "Videó vagy fénykép készítése csatolmányként való hozzáadáshoz.";
+NSPhotoLibraryUsageDescription = "Fénykép hozzáadása csatolmányként.";
+NSPhotoLibraryAddUsageDescription = "Fénykép hozzáadása csatolmányként.";
+NSMicrophoneUsageDescription = "Videó csatolmányként való felhasználásakor.";
+NSContactsUsageDescription = "Címzett keresése a névjegyek között.";
+NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";
+TutaoShowCameraAction = "Fényképezőgép";
+TutaoChoosePhotosAction = "Fényképek";
+TutaoNoPermissionTitle = "Nincs engedély.";
+TutaoChangePermissionMsg = "A hozzáféréshez módosítani kell az engedélyeket az eszközön.";
+TutaoCancelAction = "Mégse";
+TutaoSettingsAction = "Beállítások";

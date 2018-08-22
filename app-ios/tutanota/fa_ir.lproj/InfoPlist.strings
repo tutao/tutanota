@@ -1,0 +1,6 @@
+NSCameraUsageDescription = "یک عکس یا ویدیو برای اضافه کردن به عنوان پیوست بگیرید.";
+NSContactsUsageDescription = "نشانی ایمیل گیرنده را در مخاطبان پیدا کنید.";
+TutaoChoosePhotosAction = "عکس ها";
+TutaoChangePermissionMsg = "برای دادن دسترسی شما باید مجوزها را برای این دستگاه ویرایش کنید.";
+TutaoCancelAction = "لغو";
+TutaoSettingsAction = "تنظیمات";

@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "Toma una imagen o un vídeo para añadirlo como adjunto.";
+NSPhotoLibraryUsageDescription = "Añadir una imagen de tu librería como adjunto.";
+NSPhotoLibraryAddUsageDescription = "Añadir una imagen de tu librería como adjunto.";
+NSMicrophoneUsageDescription = "Usado cuando se graba un vídeo como adjunto.";
+NSContactsUsageDescription = "Encuentra la dirección del destinatario entre tus contactos.";
+NSRemindersUsageDescription = "Muestra una notificación al recibir un mensaje.";
+TutaoShowCameraAction = "Cámara";
+TutaoChoosePhotosAction = "Fotos";
+TutaoNoPermissionTitle = "Sin permiso";
+TutaoChangePermissionMsg = "Para permitir el acceso tiene que modificar los permisos de este dispositivo.";
+TutaoCancelAction = "Cancelar";
+TutaoSettingsAction = "Configuración";

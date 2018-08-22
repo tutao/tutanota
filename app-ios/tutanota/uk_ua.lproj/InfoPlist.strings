@@ -1,0 +1,8 @@
+NSMicrophoneUsageDescription = "Використовується під час запису відео у прикріплених файлах.";
+NSContactsUsageDescription = "Знайдіть ел. адресу отримувача в контактах.";
+TutaoShowCameraAction = "Камера";
+TutaoChoosePhotosAction = "Фотографії";
+TutaoNoPermissionTitle = "Немає доступу";
+TutaoChangePermissionMsg = "Щоб надати доступ, змініть права дозволу для цього пристрою.";
+TutaoCancelAction = "Скасувати";
+TutaoSettingsAction = "Налаштування";

@@ -12,6 +12,76 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
+		3D87EC97212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBC6212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC98212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBC9212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC99212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBCC212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9A212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBCF212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9B212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBD2212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9C212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBD5212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9D212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBD8212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9E212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBDB212D8AB200FD7315 /* InfoPlist.strings */; };
+		3D87EC9F212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBDE212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA0212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBE1212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA1212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBE4212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA2212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBE7212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA3212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBEA212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA4212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBED212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA5212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBF0212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA6212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBF3212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA7212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBF6212D8AB300FD7315 /* InfoPlist.strings */; };
+		3D87ECA8212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBF9212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECA9212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBFC212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAA212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EBFF212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAB212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC02212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAC212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC05212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAD212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC08212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAE212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC0B212D8AB400FD7315 /* InfoPlist.strings */; };
+		3D87ECAF212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC0E212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB0212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC11212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB1212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC14212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB2212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC17212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB3212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC1A212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB4212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC1D212D8AB500FD7315 /* InfoPlist.strings */; };
+		3D87ECB5212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC20212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECB6212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC23212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECB7212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC26212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECB8212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC29212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECB9212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC2C212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECBA212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC2F212D8AB600FD7315 /* InfoPlist.strings */; };
+		3D87ECBB212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC32212D8AB700FD7315 /* InfoPlist.strings */; };
+		3D87ECBC212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC35212D8AB700FD7315 /* InfoPlist.strings */; };
+		3D87ECBD212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC38212D8AB700FD7315 /* InfoPlist.strings */; };
+		3D87ECBE212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC3B212D8AB700FD7315 /* InfoPlist.strings */; };
+		3D87ECBF212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC3E212D8AB700FD7315 /* InfoPlist.strings */; };
+		3D87ECC0212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC41212D8AB800FD7315 /* InfoPlist.strings */; };
+		3D87ECC1212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC44212D8AB800FD7315 /* InfoPlist.strings */; };
+		3D87ECC2212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC47212D8AB800FD7315 /* InfoPlist.strings */; };
+		3D87ECC3212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC4A212D8AB800FD7315 /* InfoPlist.strings */; };
+		3D87ECC4212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC4D212D8AB800FD7315 /* InfoPlist.strings */; };
+		3D87ECC5212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC50212D8AB900FD7315 /* InfoPlist.strings */; };
+		3D87ECC6212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC53212D8AB900FD7315 /* InfoPlist.strings */; };
+		3D87ECC7212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC56212D8AB900FD7315 /* InfoPlist.strings */; };
+		3D87ECC8212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC59212D8AB900FD7315 /* InfoPlist.strings */; };
+		3D87ECC9212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC5C212D8AB900FD7315 /* InfoPlist.strings */; };
+		3D87ECCA212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC5F212D8ABA00FD7315 /* InfoPlist.strings */; };
+		3D87ECCB212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC62212D8ABA00FD7315 /* InfoPlist.strings */; };
+		3D87ECCC212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC65212D8ABA00FD7315 /* InfoPlist.strings */; };
+		3D87ECCD212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC68212D8ABA00FD7315 /* InfoPlist.strings */; };
+		3D87ECCE212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC6B212D8ABA00FD7315 /* InfoPlist.strings */; };
+		3D87ECCF212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC6E212D8ABB00FD7315 /* InfoPlist.strings */; };
+		3D87ECD0212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC71212D8ABB00FD7315 /* InfoPlist.strings */; };
+		3D87ECD1212D8ABD00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC74212D8ABB00FD7315 /* InfoPlist.strings */; };
+		3D87ECD2212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC77212D8ABB00FD7315 /* InfoPlist.strings */; };
+		3D87ECD3212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC7A212D8ABB00FD7315 /* InfoPlist.strings */; };
+		3D87ECD4212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC7D212D8ABC00FD7315 /* InfoPlist.strings */; };
+		3D87ECD5212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC80212D8ABC00FD7315 /* InfoPlist.strings */; };
+		3D87ECD6212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC83212D8ABC00FD7315 /* InfoPlist.strings */; };
+		3D87ECD7212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC86212D8ABC00FD7315 /* InfoPlist.strings */; };
+		3D87ECD8212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC89212D8ABC00FD7315 /* InfoPlist.strings */; };
+		3D87ECD9212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */; };
+		3D87ECDA212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC8F212D8ABD00FD7315 /* InfoPlist.strings */; };
+		3D87ECDB212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC92212D8ABD00FD7315 /* InfoPlist.strings */; };
+		3D87ECDC212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC95212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* TUTFileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -50,6 +120,76 @@
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
 		3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTContactsSource.m; sourceTree = "<group>"; };
+		3D87EBC7212D8AB200FD7315 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBCA212D8AB200FD7315 /* sr_cyrl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sr_cyrl; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBCD212D8AB200FD7315 /* tl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tl; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBD0212D8AB200FD7315 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBD3212D8AB200FD7315 /* hy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hy; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBD6212D8AB200FD7315 /* si_lk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = si_lk; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBD9212D8AB200FD7315 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBDC212D8AB200FD7315 /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBDF212D8AB300FD7315 /* cs_cz */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs_cz; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBE2212D8AB300FD7315 /* ms */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ms; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBE5212D8AB300FD7315 /* ku */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ku; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBE8212D8AB300FD7315 /* no */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = no; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBEB212D8AB300FD7315 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBEE212D8AB300FD7315 /* pt_br */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt_br; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBF1212D8AB300FD7315 /* af */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = af; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBF4212D8AB300FD7315 /* sq_al */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sq_al; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBF7212D8AB300FD7315 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBFA212D8AB400FD7315 /* sw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sw; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EBFD212D8AB400FD7315 /* zh_hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh_hant; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC00212D8AB400FD7315 /* bg_bg */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bg_bg; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC03212D8AB400FD7315 /* pt_pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt_pt; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC06212D8AB400FD7315 /* fa_af */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa_af; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC09212D8AB400FD7315 /* ca_es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca_es; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC0C212D8AB400FD7315 /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ro; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC0F212D8AB500FD7315 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC12212D8AB500FD7315 /* uk_ua */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk_ua; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC15212D8AB500FD7315 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC18212D8AB500FD7315 /* da_dk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = da_dk; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC1B212D8AB500FD7315 /* el */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = el; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC1E212D8AB500FD7315 /* bs_ba */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bs_ba; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC21212D8AB600FD7315 /* eo */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eo; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC24212D8AB600FD7315 /* sr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sr; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC27212D8AB600FD7315 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC2A212D8AB600FD7315 /* ceb */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ceb; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC2D212D8AB600FD7315 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC30212D8AB600FD7315 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC33212D8AB700FD7315 /* is */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = is; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC36212D8AB700FD7315 /* sk_sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk_sk; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC39212D8AB700FD7315 /* oc */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = oc; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC3C212D8AB700FD7315 /* et_ee */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = et_ee; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC3F212D8AB700FD7315 /* ta_in */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ta_in; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC42212D8AB800FD7315 /* tg */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tg; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC45212D8AB800FD7315 /* zh_tw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh_tw; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC48212D8AB800FD7315 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC4B212D8AB800FD7315 /* es_co */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es_co; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC4E212D8AB800FD7315 /* hr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hr; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC51212D8AB900FD7315 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC54212D8AB900FD7315 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC57212D8AB900FD7315 /* fil_ph */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fil_ph; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC5A212D8AB900FD7315 /* he_il */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he_il; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC5D212D8AB900FD7315 /* fi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fi; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC60212D8ABA00FD7315 /* bn_bd */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn_bd; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC63212D8ABA00FD7315 /* cy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cy; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC66212D8ABA00FD7315 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC69212D8ABA00FD7315 /* lv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lv; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC6C212D8ABA00FD7315 /* zh */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC6F212D8ABB00FD7315 /* en_us */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_us; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC72212D8ABB00FD7315 /* es_ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es_ar; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC75212D8ABB00FD7315 /* hi_in */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi_in; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC78212D8ABB00FD7315 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC7B212D8ABB00FD7315 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC7E212D8ABC00FD7315 /* ml */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ml; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC81212D8ABC00FD7315 /* sl_si */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sl_si; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC84212D8ABC00FD7315 /* mk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = mk; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC87212D8ABC00FD7315 /* br */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = br; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC8A212D8ABC00FD7315 /* fa_ir */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa_ir; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC8D212D8ABD00FD7315 /* de_sie */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de_sie; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC90212D8ABD00FD7315 /* yo_ng */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = yo_ng; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC93212D8ABD00FD7315 /* lt_lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt_lt; path = InfoPlist.strings; sourceTree = "<group>"; };
+		3D87EC96212D8ABD00FD7315 /* sq */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sq; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
 		3D891EFE2105B12E0031E528 /* TUTFileUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileUtil.m; sourceTree = "<group>"; };
 		3D891EFF2105B12E0031E528 /* JFBCrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JFBCrypt.m; sourceTree = "<group>"; };
@@ -171,6 +311,566 @@
 			path = Contacts;
 			sourceTree = "<group>";
 		};
+		3D87EBC5212D8AB200FD7315 /* de.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBC6212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = de.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBC8212D8AB200FD7315 /* sr_cyrl.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBC9212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = sr_cyrl.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBCB212D8AB200FD7315 /* tl.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBCC212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = tl.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBCE212D8AB200FD7315 /* hu.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBCF212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = hu.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBD1212D8AB200FD7315 /* hy.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBD2212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = hy.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBD4212D8AB200FD7315 /* si_lk.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBD5212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = si_lk.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBD7212D8AB200FD7315 /* pl.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBD8212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = pl.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBDA212D8AB200FD7315 /* gl.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBDB212D8AB200FD7315 /* InfoPlist.strings */,
+			);
+			path = gl.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBDD212D8AB300FD7315 /* cs_cz.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBDE212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = cs_cz.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBE0212D8AB300FD7315 /* ms.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBE1212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = ms.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBE3212D8AB300FD7315 /* ku.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBE4212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = ku.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBE6212D8AB300FD7315 /* no.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBE7212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = no.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBE9212D8AB300FD7315 /* it.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBEA212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = it.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBEC212D8AB300FD7315 /* pt_br.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBED212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = pt_br.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBEF212D8AB300FD7315 /* af.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBF0212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = af.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBF2212D8AB300FD7315 /* sq_al.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBF3212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = sq_al.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBF5212D8AB300FD7315 /* es.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBF6212D8AB300FD7315 /* InfoPlist.strings */,
+			);
+			path = es.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBF8212D8AB400FD7315 /* sw.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBF9212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = sw.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBFB212D8AB400FD7315 /* zh_hant.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBFC212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = zh_hant.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EBFE212D8AB400FD7315 /* bg_bg.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EBFF212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = bg_bg.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC01212D8AB400FD7315 /* pt_pt.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC02212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = pt_pt.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC04212D8AB400FD7315 /* fa_af.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC05212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = fa_af.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC07212D8AB400FD7315 /* ca_es.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC08212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = ca_es.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC0A212D8AB400FD7315 /* ro.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC0B212D8AB400FD7315 /* InfoPlist.strings */,
+			);
+			path = ro.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC0D212D8AB500FD7315 /* sv.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC0E212D8AB500FD7315 /* InfoPlist.strings */,
+			);
+			path = sv.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC10212D8AB500FD7315 /* uk_ua.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC11212D8AB500FD7315 /* InfoPlist.strings */,
+			);
+			path = uk_ua.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC13212D8AB500FD7315 /* ru.lproj */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = ru.lproj;
+			path = Localizations/ru.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC16212D8AB500FD7315 /* da_dk.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC17212D8AB500FD7315 /* InfoPlist.strings */,
+			);
+			path = da_dk.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC19212D8AB500FD7315 /* el.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC1A212D8AB500FD7315 /* InfoPlist.strings */,
+			);
+			path = el.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC1C212D8AB500FD7315 /* bs_ba.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC1D212D8AB500FD7315 /* InfoPlist.strings */,
+			);
+			path = bs_ba.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC1F212D8AB500FD7315 /* eo.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC20212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = eo.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC22212D8AB600FD7315 /* sr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC23212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = sr.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC25212D8AB600FD7315 /* tr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC26212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = tr.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC28212D8AB600FD7315 /* ceb.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC29212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = ceb.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC2B212D8AB600FD7315 /* fr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC2C212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = fr.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC2E212D8AB600FD7315 /* ja.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC2F212D8AB600FD7315 /* InfoPlist.strings */,
+			);
+			path = ja.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC31212D8AB700FD7315 /* is.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC32212D8AB700FD7315 /* InfoPlist.strings */,
+			);
+			path = is.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC34212D8AB700FD7315 /* sk_sk.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC35212D8AB700FD7315 /* InfoPlist.strings */,
+			);
+			path = sk_sk.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC37212D8AB700FD7315 /* oc.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC38212D8AB700FD7315 /* InfoPlist.strings */,
+			);
+			path = oc.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC3A212D8AB700FD7315 /* et_ee.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC3B212D8AB700FD7315 /* InfoPlist.strings */,
+			);
+			path = et_ee.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC3D212D8AB700FD7315 /* ta_in.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC3E212D8AB700FD7315 /* InfoPlist.strings */,
+			);
+			path = ta_in.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC40212D8AB800FD7315 /* tg.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC41212D8AB800FD7315 /* InfoPlist.strings */,
+			);
+			path = tg.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC43212D8AB800FD7315 /* zh_tw.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC44212D8AB800FD7315 /* InfoPlist.strings */,
+			);
+			path = zh_tw.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC46212D8AB800FD7315 /* vi.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC47212D8AB800FD7315 /* InfoPlist.strings */,
+			);
+			path = vi.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC49212D8AB800FD7315 /* es_co.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC4A212D8AB800FD7315 /* InfoPlist.strings */,
+			);
+			path = es_co.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC4C212D8AB800FD7315 /* hr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC4D212D8AB800FD7315 /* InfoPlist.strings */,
+			);
+			path = hr.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC4F212D8AB800FD7315 /* nl.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC50212D8AB900FD7315 /* InfoPlist.strings */,
+			);
+			path = nl.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC52212D8AB900FD7315 /* ar.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC53212D8AB900FD7315 /* InfoPlist.strings */,
+			);
+			path = ar.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC55212D8AB900FD7315 /* fil_ph.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC56212D8AB900FD7315 /* InfoPlist.strings */,
+			);
+			path = fil_ph.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC58212D8AB900FD7315 /* he_il.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC59212D8AB900FD7315 /* InfoPlist.strings */,
+			);
+			path = he_il.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC5B212D8AB900FD7315 /* fi.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC5C212D8AB900FD7315 /* InfoPlist.strings */,
+			);
+			path = fi.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC5E212D8ABA00FD7315 /* bn_bd.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC5F212D8ABA00FD7315 /* InfoPlist.strings */,
+			);
+			path = bn_bd.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC61212D8ABA00FD7315 /* cy.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC62212D8ABA00FD7315 /* InfoPlist.strings */,
+			);
+			path = cy.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC64212D8ABA00FD7315 /* en.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC65212D8ABA00FD7315 /* InfoPlist.strings */,
+			);
+			path = en.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC67212D8ABA00FD7315 /* lv.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC68212D8ABA00FD7315 /* InfoPlist.strings */,
+			);
+			path = lv.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC6A212D8ABA00FD7315 /* zh.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC6B212D8ABA00FD7315 /* InfoPlist.strings */,
+			);
+			path = zh.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC6D212D8ABB00FD7315 /* en_us.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC6E212D8ABB00FD7315 /* InfoPlist.strings */,
+			);
+			path = en_us.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC70212D8ABB00FD7315 /* es_ar.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC71212D8ABB00FD7315 /* InfoPlist.strings */,
+			);
+			path = es_ar.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC73212D8ABB00FD7315 /* hi_in.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC74212D8ABB00FD7315 /* InfoPlist.strings */,
+			);
+			path = hi_in.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC76212D8ABB00FD7315 /* id.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC77212D8ABB00FD7315 /* InfoPlist.strings */,
+			);
+			path = id.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC79212D8ABB00FD7315 /* ko.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC7A212D8ABB00FD7315 /* InfoPlist.strings */,
+			);
+			path = ko.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC7C212D8ABC00FD7315 /* ml.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC7D212D8ABC00FD7315 /* InfoPlist.strings */,
+			);
+			path = ml.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC7F212D8ABC00FD7315 /* sl_si.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC80212D8ABC00FD7315 /* InfoPlist.strings */,
+			);
+			path = sl_si.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC82212D8ABC00FD7315 /* mk.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC83212D8ABC00FD7315 /* InfoPlist.strings */,
+			);
+			path = mk.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC85212D8ABC00FD7315 /* br.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC86212D8ABC00FD7315 /* InfoPlist.strings */,
+			);
+			path = br.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC88212D8ABC00FD7315 /* fa_ir.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC89212D8ABC00FD7315 /* InfoPlist.strings */,
+			);
+			path = fa_ir.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC8B212D8ABD00FD7315 /* de_sie.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */,
+			);
+			path = de_sie.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC8E212D8ABD00FD7315 /* yo_ng.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC8F212D8ABD00FD7315 /* InfoPlist.strings */,
+			);
+			path = yo_ng.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC91212D8ABD00FD7315 /* lt_lt.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC92212D8ABD00FD7315 /* InfoPlist.strings */,
+			);
+			path = lt_lt.lproj;
+			sourceTree = "<group>";
+		};
+		3D87EC94212D8ABD00FD7315 /* sq.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				3D87EC95212D8ABD00FD7315 /* InfoPlist.strings */,
+			);
+			path = sq.lproj;
+			sourceTree = "<group>";
+		};
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -201,6 +901,77 @@
 		3DD4A08520F8C6240086EB36 /* tutanota */ = {
 			isa = PBXGroup;
 			children = (
+				3D87EBEF212D8AB300FD7315 /* af.lproj */,
+				3D87EC52212D8AB900FD7315 /* ar.lproj */,
+				3D87EBFE212D8AB400FD7315 /* bg_bg.lproj */,
+				3D87EC5E212D8ABA00FD7315 /* bn_bd.lproj */,
+				3D87EC85212D8ABC00FD7315 /* br.lproj */,
+				3D87EC1C212D8AB500FD7315 /* bs_ba.lproj */,
+				3D87EC07212D8AB400FD7315 /* ca_es.lproj */,
+				3D87EC28212D8AB600FD7315 /* ceb.lproj */,
+				3D87EBDD212D8AB300FD7315 /* cs_cz.lproj */,
+				3D87EC61212D8ABA00FD7315 /* cy.lproj */,
+				3D87EC16212D8AB500FD7315 /* da_dk.lproj */,
+				3D87EC8B212D8ABD00FD7315 /* de_sie.lproj */,
+				3D87EBC5212D8AB200FD7315 /* de.lproj */,
+				3D87EC19212D8AB500FD7315 /* el.lproj */,
+				3D87EC6D212D8ABB00FD7315 /* en_us.lproj */,
+				3D87EC64212D8ABA00FD7315 /* en.lproj */,
+				3D87EC1F212D8AB500FD7315 /* eo.lproj */,
+				3D87EC70212D8ABB00FD7315 /* es_ar.lproj */,
+				3D87EC49212D8AB800FD7315 /* es_co.lproj */,
+				3D87EBF5212D8AB300FD7315 /* es.lproj */,
+				3D87EC3A212D8AB700FD7315 /* et_ee.lproj */,
+				3D87EC04212D8AB400FD7315 /* fa_af.lproj */,
+				3D87EC88212D8ABC00FD7315 /* fa_ir.lproj */,
+				3D87EC5B212D8AB900FD7315 /* fi.lproj */,
+				3D87EC55212D8AB900FD7315 /* fil_ph.lproj */,
+				3D87EC2B212D8AB600FD7315 /* fr.lproj */,
+				3D87EBDA212D8AB200FD7315 /* gl.lproj */,
+				3D87EC58212D8AB900FD7315 /* he_il.lproj */,
+				3D87EC73212D8ABB00FD7315 /* hi_in.lproj */,
+				3D87EC4C212D8AB800FD7315 /* hr.lproj */,
+				3D87EBCE212D8AB200FD7315 /* hu.lproj */,
+				3D87EBD1212D8AB200FD7315 /* hy.lproj */,
+				3D87EC76212D8ABB00FD7315 /* id.lproj */,
+				3D87EC31212D8AB700FD7315 /* is.lproj */,
+				3D87EBE9212D8AB300FD7315 /* it.lproj */,
+				3D87EC2E212D8AB600FD7315 /* ja.lproj */,
+				3D87EC79212D8ABB00FD7315 /* ko.lproj */,
+				3D87EBE3212D8AB300FD7315 /* ku.lproj */,
+				3D87EC91212D8ABD00FD7315 /* lt_lt.lproj */,
+				3D87EC67212D8ABA00FD7315 /* lv.lproj */,
+				3D87EC82212D8ABC00FD7315 /* mk.lproj */,
+				3D87EC7C212D8ABC00FD7315 /* ml.lproj */,
+				3D87EBE0212D8AB300FD7315 /* ms.lproj */,
+				3D87EC4F212D8AB800FD7315 /* nl.lproj */,
+				3D87EBE6212D8AB300FD7315 /* no.lproj */,
+				3D87EC37212D8AB700FD7315 /* oc.lproj */,
+				3D87EBD7212D8AB200FD7315 /* pl.lproj */,
+				3D87EBEC212D8AB300FD7315 /* pt_br.lproj */,
+				3D87EC01212D8AB400FD7315 /* pt_pt.lproj */,
+				3D87EC0A212D8AB400FD7315 /* ro.lproj */,
+				3D87EC13212D8AB500FD7315 /* ru.lproj */,
+				3D87EC14212D8AB500FD7315 /* InfoPlist.strings */,
+				3D87EBD4212D8AB200FD7315 /* si_lk.lproj */,
+				3D87EC34212D8AB700FD7315 /* sk_sk.lproj */,
+				3D87EC7F212D8ABC00FD7315 /* sl_si.lproj */,
+				3D87EBF2212D8AB300FD7315 /* sq_al.lproj */,
+				3D87EC94212D8ABD00FD7315 /* sq.lproj */,
+				3D87EBC8212D8AB200FD7315 /* sr_cyrl.lproj */,
+				3D87EC22212D8AB600FD7315 /* sr.lproj */,
+				3D87EC0D212D8AB500FD7315 /* sv.lproj */,
+				3D87EBF8212D8AB400FD7315 /* sw.lproj */,
+				3D87EC3D212D8AB700FD7315 /* ta_in.lproj */,
+				3D87EC40212D8AB800FD7315 /* tg.lproj */,
+				3D87EBCB212D8AB200FD7315 /* tl.lproj */,
+				3D87EC25212D8AB600FD7315 /* tr.lproj */,
+				3D87EC10212D8AB500FD7315 /* uk_ua.lproj */,
+				3D87EC46212D8AB800FD7315 /* vi.lproj */,
+				3D87EC8E212D8ABD00FD7315 /* yo_ng.lproj */,
+				3D87EBFB212D8AB400FD7315 /* zh_hant.lproj */,
+				3D87EC43212D8AB800FD7315 /* zh_tw.lproj */,
+				3D87EC6A212D8ABA00FD7315 /* zh.lproj */,
 				3D74536121089D2200B16F2E /* Sources */,
 				3D891F2A2106132B0031E528 /* tutanota.entitlements */,
 				3D652B5720F8DC1500DF9962 /* build */,
@@ -325,6 +1096,42 @@
 				uk_ua,
 				fil_ph,
 				no,
+				sr_cyrl,
+				tl,
+				hy,
+				si_lk,
+				gl,
+				ms,
+				ku,
+				af,
+				sq_al,
+				sw,
+				fa_af,
+				bs_ba,
+				eo,
+				ceb,
+				ja,
+				is,
+				oc,
+				tg,
+				zh_tw,
+				es_co,
+				ar,
+				he_il,
+				bn_bd,
+				cy,
+				lv,
+				zh,
+				en_us,
+				es_ar,
+				hi_in,
+				ko,
+				ml,
+				sl_si,
+				br,
+				fa_ir,
+				de_sie,
+				yo_ng,
 			);
 			mainGroup = 3DD4A07A20F8C6240086EB36;
 			productRefGroup = 3DD4A08420F8C6240086EB36 /* Products */;
@@ -343,8 +1150,78 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D652B5820F8DC1600DF9962 /* build in Resources */,
+				3D87ECD1212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCB212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC3212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBD212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD7212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB3212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB2212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAF212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAB212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB8212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB5212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCE212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECDC212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD6212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCC212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCA212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA8212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCD212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC1212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBF212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAD212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC2212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBB212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA3212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD0212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECDB212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA1212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9F212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9B212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC5212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD9212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA4212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA2212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD4212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC6212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD5212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA5212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBA212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAA212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD3212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB0212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA9212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA0212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC7212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC8212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA7212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBE212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9A212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAE212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB1212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD2212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECDA212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECA6212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC99212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB7212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECBC212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC97212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC0212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECD8212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
 				3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */,
+				3D87ECC9212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECCF212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB9212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECAC212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */,
+				3D87ECB6212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECC4212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9C212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC98212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9E212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87ECB4212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
+				3D87EC9D212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -399,6 +1276,566 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		3D87EBC6212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBC7212D8AB200FD7315 /* de */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBC9212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBCA212D8AB200FD7315 /* sr_cyrl */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBCC212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBCD212D8AB200FD7315 /* tl */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBCF212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBD0212D8AB200FD7315 /* hu */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBD2212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBD3212D8AB200FD7315 /* hy */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBD5212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBD6212D8AB200FD7315 /* si_lk */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBD8212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBD9212D8AB200FD7315 /* pl */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBDB212D8AB200FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBDC212D8AB200FD7315 /* gl */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBDE212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBDF212D8AB300FD7315 /* cs_cz */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBE1212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBE2212D8AB300FD7315 /* ms */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBE4212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBE5212D8AB300FD7315 /* ku */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBE7212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBE8212D8AB300FD7315 /* no */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBEA212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBEB212D8AB300FD7315 /* it */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBED212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBEE212D8AB300FD7315 /* pt_br */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBF0212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBF1212D8AB300FD7315 /* af */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBF3212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBF4212D8AB300FD7315 /* sq_al */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBF6212D8AB300FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBF7212D8AB300FD7315 /* es */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBF9212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBFA212D8AB400FD7315 /* sw */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBFC212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EBFD212D8AB400FD7315 /* zh_hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EBFF212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC00212D8AB400FD7315 /* bg_bg */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC02212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC03212D8AB400FD7315 /* pt_pt */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC05212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC06212D8AB400FD7315 /* fa_af */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC08212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC09212D8AB400FD7315 /* ca_es */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC0B212D8AB400FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC0C212D8AB400FD7315 /* ro */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC0E212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC0F212D8AB500FD7315 /* sv */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC11212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC12212D8AB500FD7315 /* uk_ua */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC14212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC15212D8AB500FD7315 /* ru */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC17212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC18212D8AB500FD7315 /* da_dk */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC1A212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC1B212D8AB500FD7315 /* el */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC1D212D8AB500FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC1E212D8AB500FD7315 /* bs_ba */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC20212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC21212D8AB600FD7315 /* eo */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC23212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC24212D8AB600FD7315 /* sr */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC26212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC27212D8AB600FD7315 /* tr */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC29212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC2A212D8AB600FD7315 /* ceb */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC2C212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC2D212D8AB600FD7315 /* fr */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC2F212D8AB600FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC30212D8AB600FD7315 /* ja */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC32212D8AB700FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC33212D8AB700FD7315 /* is */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC35212D8AB700FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC36212D8AB700FD7315 /* sk_sk */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC38212D8AB700FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC39212D8AB700FD7315 /* oc */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC3B212D8AB700FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC3C212D8AB700FD7315 /* et_ee */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC3E212D8AB700FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC3F212D8AB700FD7315 /* ta_in */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC41212D8AB800FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC42212D8AB800FD7315 /* tg */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC44212D8AB800FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC45212D8AB800FD7315 /* zh_tw */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC47212D8AB800FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC48212D8AB800FD7315 /* vi */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC4A212D8AB800FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC4B212D8AB800FD7315 /* es_co */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC4D212D8AB800FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC4E212D8AB800FD7315 /* hr */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC50212D8AB900FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC51212D8AB900FD7315 /* nl */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC53212D8AB900FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC54212D8AB900FD7315 /* ar */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC56212D8AB900FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC57212D8AB900FD7315 /* fil_ph */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC59212D8AB900FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC5A212D8AB900FD7315 /* he_il */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC5C212D8AB900FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC5D212D8AB900FD7315 /* fi */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC5F212D8ABA00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC60212D8ABA00FD7315 /* bn_bd */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC62212D8ABA00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC63212D8ABA00FD7315 /* cy */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC65212D8ABA00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC66212D8ABA00FD7315 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC68212D8ABA00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC69212D8ABA00FD7315 /* lv */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC6B212D8ABA00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC6C212D8ABA00FD7315 /* zh */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC6E212D8ABB00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC6F212D8ABB00FD7315 /* en_us */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC71212D8ABB00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC72212D8ABB00FD7315 /* es_ar */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC74212D8ABB00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC75212D8ABB00FD7315 /* hi_in */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC77212D8ABB00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC78212D8ABB00FD7315 /* id */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC7A212D8ABB00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC7B212D8ABB00FD7315 /* ko */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC7D212D8ABC00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC7E212D8ABC00FD7315 /* ml */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC80212D8ABC00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC81212D8ABC00FD7315 /* sl_si */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC83212D8ABC00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC84212D8ABC00FD7315 /* mk */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC86212D8ABC00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC87212D8ABC00FD7315 /* br */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC89212D8ABC00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC8A212D8ABC00FD7315 /* fa_ir */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC8D212D8ABD00FD7315 /* de_sie */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC8F212D8ABD00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC90212D8ABD00FD7315 /* yo_ng */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC92212D8ABD00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC93212D8ABD00FD7315 /* lt_lt */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D87EC95212D8ABD00FD7315 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D87EC96212D8ABD00FD7315 /* sq */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

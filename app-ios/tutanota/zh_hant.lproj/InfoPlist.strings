@@ -1,0 +1,3 @@
+NSCameraUsageDescription = "上傳照片或影片至附加檔案";
+TutaoCancelAction = "取消";
+TutaoSettingsAction = "設定";

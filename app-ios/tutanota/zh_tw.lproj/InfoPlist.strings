@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "拍攝照片或影片並將其添加至附件。";
+NSPhotoLibraryUsageDescription = "從資料庫中添加圖片為附加檔案。";
+NSPhotoLibraryAddUsageDescription = "從資料庫中添加圖片為附加檔案。";
+NSMicrophoneUsageDescription = "用於影片錄製後變成附加檔案。";
+NSContactsUsageDescription = "查找聯絡人的接收郵件地址。";
+NSRemindersUsageDescription = "有新郵件時顯示提醒通知。";
+TutaoShowCameraAction = "相機";
+TutaoChoosePhotosAction = "照片";
+TutaoNoPermissionTitle = "無權限";
+TutaoChangePermissionMsg = "您必須為此裝置修改權限來進行存取";
+TutaoCancelAction = "取消";
+TutaoSettingsAction = "設定";

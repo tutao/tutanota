@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "Ta en bild eller video för att lägga till den som bifogad fil.";
+NSPhotoLibraryUsageDescription = "Lägga till en bild från ditt bibliotek som bifogad fil.";
+NSPhotoLibraryAddUsageDescription = "Lägga till en bild från ditt bibliotek som bifogad fil.";
+NSMicrophoneUsageDescription = "Används när du spelar in en video som bifogad fil.";
+NSContactsUsageDescription = "Hitta mottagares e-postadress i kontakter.";
+NSRemindersUsageDescription = "Visar notifikation när ny e-post anländer.";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Bilder";
+TutaoNoPermissionTitle = "Inget tillstånd";
+TutaoChangePermissionMsg = "För att bevilja åtkomst måste du ändra behörigheterna för den här enheten.";
+TutaoCancelAction = "Avbryt";
+TutaoSettingsAction = "Inställningar";

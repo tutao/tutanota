@@ -1,0 +1,6 @@
+NSCameraUsageDescription = "添付するために写真あるいはビデオを撮る。";
+NSContactsUsageDescription = "連絡先で受信者の電子メールアドレスを検索します。";
+TutaoChoosePhotosAction = "写真";
+TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
+TutaoCancelAction = "中止";
+TutaoSettingsAction = "設定";

@@ -1,0 +1,10 @@
+NSCameraUsageDescription = "Bëje një foto apo video për ta shtuar si shtojcë";
+NSPhotoLibraryUsageDescription = "Shto një foto nga libraria juaj si shtojcë";
+NSPhotoLibraryAddUsageDescription = "Shto një foto nga libraria juaj si shtojcë";
+NSMicrophoneUsageDescription = "Përdorur duke regjistruar një video si shtojcë.";
+NSContactsUsageDescription = "Gjej në kontaktet adresën elektronike të pranuesit";
+NSRemindersUsageDescription = "Shfaq njoftim kur vijnë mesazhe të reja. ";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Fotografitë";
+TutaoCancelAction = "Tërhiqu";
+TutaoSettingsAction = "Ujdisjet";

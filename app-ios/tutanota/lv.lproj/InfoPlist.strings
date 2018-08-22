@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "Uzņemt fotoattēlu vai video lai pievienotu pielikumā.";
+NSContactsUsageDescription = "Atrast saņēmēja e-pasta adresi kontaktos.";
+TutaoShowCameraAction = "Kamera";
+TutaoCancelAction = "Atcelt.";
+TutaoSettingsAction = "Uzstādījumi";

@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "Take a picture or video for adding it as attachment.";
+NSPhotoLibraryUsageDescription = "Add a picture from your library as attachment.";
+NSPhotoLibraryAddUsageDescription = "Add a picture from your library as attachment.";
+NSMicrophoneUsageDescription = "Used when recording a video as attachment.";
+NSContactsUsageDescription = "Find recipient email address in contacts.";
+NSRemindersUsageDescription = "Shows notification when new email arrives.";
+TutaoShowCameraAction = "Camera";
+TutaoChoosePhotosAction = "Photos";
+TutaoNoPermissionTitle = "No Permission";
+TutaoChangePermissionMsg = "To grant access you have to modify the permissions for this device.";
+TutaoCancelAction = "Cancel";
+TutaoSettingsAction = "Settings";
