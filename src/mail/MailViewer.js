@@ -21,7 +21,7 @@ import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, isAndroidApp, Mode} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isIOSApp, Mode} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
@@ -662,7 +662,7 @@ export class MailViewer {
 			)
 		}
 
-		if (buttons.length >= 3) {
+		if (buttons.length >= 3 && !isIOSApp()) {
 			buttons.push(new Button("saveAll_action",
 				() => fileController.downloadAll(this._attachments), null)
 				.setType(ButtonType.Secondary))
