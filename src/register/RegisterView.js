@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
-import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button, ButtonType} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
@@ -14,7 +14,7 @@ import {Checkbox} from "../gui/base/Checkbox"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {neverNull} from "../api/common/utils/Utils"
+import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {SelectMailAddressForm} from "../settings/SelectMailAddressForm"
@@ -39,8 +39,23 @@ export class RegisterView {
 
 		let confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
-			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, lang.get("termsAndConditionsLink_label"))),
-			m("div", m(`a[href=${this._getPrivacyLink()}][target=_blank]`, lang.get("privacyLink_label")))
+
+			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, {
+				onclick: (e) => {
+					if (isApp()) {
+						this.showTerms("terms")
+						e.preventDefault()
+					}
+				}
+			}, lang.get("termsAndConditionsLink_label"))),
+			m("div", m(`a[href=${this._getPrivacyLink()}][target=_blank]`, {
+				onclick: (e) => {
+					if (isApp()) {
+						this.showTerms("privacy")
+						e.preventDefault()
+					}
+				}
+			}, lang.get("privacyLink_label")))
 		])
 		let confirmAge = new Checkbox(() => [
 			m("div", lang.get("ageConfirmation_msg"))
@@ -107,10 +122,10 @@ export class RegisterView {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll.pt-responsive",{
+			return m(".main-view.flex-center.scroll.pt-responsive", {
 					oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
 					onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
-					style : {
+					style: {
 						marginBottom: bottomMargin + "px"
 					}
 				}, m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
@@ -176,6 +191,26 @@ export class RegisterView {
 	 * Notifies the current view about changes of the url within its scope.
 	 */
 	updateUrl(args: Object) {
+	}
+
+
+	showTerms(section: string) {
+		asyncImport(typeof module !== "undefined"
+			? module.id : __moduleName, `${env.rootPathPrefix}src/register/terms.js`)
+			.then(terms => {
+				let visibleLang = lang.code
+				let headerBar = new DialogHeaderBar()
+				headerBar.addLeft(new Button(() => "EN/DE", () => {
+					visibleLang = visibleLang === "de" ? "en" : "de"
+					m.redraw()
+				}).setType(ButtonType.Secondary))
+				headerBar.setMiddle(() => "")
+				         .addRight(new Button('ok_action', () => dialog.close()).setType(ButtonType.Primary))
+				const dialog = Dialog.largeDialog(headerBar, {
+					view: () => m(".text-break", m.trust(terms[section + "_" + visibleLang]))
+				})
+				dialog.show()
+			})
 	}
 }
 

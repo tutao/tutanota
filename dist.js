@@ -50,7 +50,14 @@ clean()
 			builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
 			builder.trace('src/app.js + src/system-resolve.js'),
 			builder.trace('src/gui/theme.js - libs/stream.js'),
-			builder.trace(getAsyncImports('src/app.js').concat(getAsyncImports('src/native/NativeWrapper.js')).join(" + ") + " + src/login/LoginViewController.js + src/gui/base/icons/Icons.js + src/search/SearchBar.js"),
+			builder.trace(getAsyncImports('src/app.js')
+				.concat(getAsyncImports('src/native/NativeWrapper.js'))
+				.concat([
+					"src/login/LoginViewController.js",
+					"src/gui/base/icons/Icons.js",
+					"src/search/SearchBar.js",
+					"src/register/terms.js"
+				]).join(" + "))
 		]).then(trees => {
 			let workerTree = trees[0]
 			let bootTree = trees[1]
@@ -88,7 +95,8 @@ clean()
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://" + os.hostname().split(".")[0]
+					+ ":9000", version, "App", true), bundles)
 			])
 		}
 	})
@@ -103,8 +111,8 @@ clean()
 
 
 function clean() {
-	return fs.removeAsync(DistDir)
-		.then(() => fs.ensureDirAsync(DistDir + "/translations"))
+	return fs.removeAsync("build")
+	         .then(() => fs.ensureDirAsync(DistDir + "/translations"))
 }
 
 const buildConfig = {
