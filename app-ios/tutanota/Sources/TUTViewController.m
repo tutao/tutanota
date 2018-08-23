@@ -263,7 +263,8 @@ typedef void(^VoidCallback)(void);
 }
 
 - (nonnull NSURL *)appUrl {
-	let path = [[NSBundle mainBundle] pathForResource:@"build/app" ofType:@"html"];
+	NSString *filePath = [NSString stringWithFormat:@"%@%@", NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"], @"app"];
+	let path = [NSBundle.mainBundle pathForResource:filePath ofType:@"html"];
 	return [NSURL fileURLWithPath:path];
 }
 

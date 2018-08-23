@@ -52,6 +52,8 @@
 	<string>Add a picture from your library as attachment.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>Shows notification when new email arrives.</string>
+	<key>TutanotaApplicationPath</key>
+	<string>build/</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ionicons.ttf</string>
