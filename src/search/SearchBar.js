@@ -32,7 +32,7 @@ import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
-import {assertMainOrNode, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isApp, isIOSApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
@@ -609,7 +609,11 @@ export class SearchBar {
 					if (this._selected) {
 						this._selectResult(this._selected)
 					} else {
-						this.search()
+						if (isApp()) {
+							this._domInput.blur()
+						} else {
+							this.search()
+						}
 					}
 				} else if (keyCode === Keys.UP.code) {
 					if (this._results.length > 0) {
