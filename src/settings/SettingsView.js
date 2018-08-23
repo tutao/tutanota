@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isIOSApp} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
@@ -59,7 +59,7 @@ export class SettingsView {
 		}
 		if (logins.getUserController().isGlobalAdmin()) {
 			this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
-			if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
+			if (!logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
 				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new WhitelabelSettingsViewer()))
 				if (logins.isEnabled(FeatureType.WhitelabelParent)) {
 					this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
@@ -68,7 +68,7 @@ export class SettingsView {
 		}
 		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
-			if (logins.getUserController().isGlobalAdmin()) {
+			if (logins.getUserController().isGlobalAdmin() && !isIOSApp()) {
 				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
 				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer()).setIsVisibleHandler(() => {
 					return !logins.getUserController().isFreeAccount()
