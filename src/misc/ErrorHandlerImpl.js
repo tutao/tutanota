@@ -15,7 +15,7 @@ import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
-import {Mode, assertMainOrNode, getHttpOrigin} from "../api/Env"
+import {Mode, assertMainOrNode, getHttpOrigin, isIOSApp} from "../api/Env"
 import {AccountType, ConversationType, ApprovalStatus} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
@@ -215,14 +215,18 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 }
 
 export function showNotAvailableForFreeDialog() {
-	let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
-		+ lang.get("moreInfo_msg")
-	Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
-	      .then(confirmed => {
-		      if (confirmed) {
-			      UpgradeWizard.show()
-		      }
-	      })
+	if (isIOSApp()) {
+		Dialog.error("notAvailableInApp_msg")
+	} else {
+		let message = lang.get("onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
+			+ lang.get("moreInfo_msg")
+		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
+		      .then(confirmed => {
+			      if (confirmed) {
+				      UpgradeWizard.show()
+			      }
+		      })
+	}
 }
 
 export function loggingOut() {

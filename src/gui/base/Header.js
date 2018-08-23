@@ -11,7 +11,7 @@ import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
-import {Mode, assertMainOrNodeBoot} from "../../api/Env"
+import {Mode, assertMainOrNodeBoot, isIOSApp} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
@@ -71,8 +71,8 @@ class Header {
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()
 					&& !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
-				                                                                       .isFreeAccount())
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()
+					&& !isIOSApp() && logins.getUserController().isFreeAccount())
 				.setClickHandler(() => this._showUpgradeDialog()), 0, true)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
