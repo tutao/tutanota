@@ -8,7 +8,7 @@ import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
 
-function requiresStatusBarHack() {
+export function requiresStatusBarHack() {
 	return isApp() && client.device === "iPhone" && client.browserVersion < 11
 }
 

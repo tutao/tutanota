@@ -308,7 +308,7 @@
 	UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:settingsActionLabel
 															 style:UIAlertActionStyleDefault
 														   handler:^(UIAlertAction * _Nonnull action) {
-															   [UIApplication.sharedApplication openURL:[NSURL URLWithString:UIApplicationLaunchOptionsURLKey]
+															   [UIApplication.sharedApplication openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]
 																								options:@{}
 																					  completionHandler:nil];
 														   }];

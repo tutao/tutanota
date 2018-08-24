@@ -18,6 +18,7 @@ import {styles} from "../styles"
 import {focusPrevious, focusNext, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
+import {requiresStatusBarHack} from "../main-styles"
 
 assertMainOrNode()
 
@@ -63,7 +64,7 @@ export class Dialog {
 			let mobileMargin = px(size.hpad)
 			return m(this._getDialogWrapperStyle(dialogType), {
 					style: {
-						paddingTop: 'env(safe-area-inset-top)'
+						paddingTop: requiresStatusBarHack() ? '20px' : 'env(safe-area-inset-top)'
 					}
 				},  // controls vertical alignment
 				m(".flex.justify-center.align-self-stretch.rel"
