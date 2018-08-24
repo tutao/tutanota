@@ -230,12 +230,18 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
+		let touchStartTime
 		virtualRow.domElement = domElement
-		domElement.onclick = (e) => this._elementClicked(virtualRow.entity, e)
+		domElement.onclick = (e) => {
+			if (!touchStartTime || Date.now() - touchStartTime < 400) {
+				this._elementClicked(virtualRow.entity, e)
+			}
+		}
 		let timeoutId: ?TimeoutID
 		let touchStartCoords: ?{x: number, y: number}
 		const dom: any = domElement
 		dom.ontouchstart = (e) => {
+			touchStartTime = Date.now()
 			if (this._config.multiSelectionAllowed) {
 				// Activate multi selection after pause
 				timeoutId = setTimeout(() => {
@@ -249,7 +255,9 @@ export class List<T, R:VirtualRow<T>> {
 				touchStartCoords = {x: e.touches[0].pageX, y: e.touches[0].pageY}
 			}
 		}
-		dom.ontouchend = dom.ontouchcancel = () => timeoutId && clearTimeout(timeoutId)
+		dom.ontouchend = dom.ontouchcancel = () => {
+			timeoutId && clearTimeout(timeoutId)
+		}
 		dom.ontouchmove = (e) => {
 			// If the user moved the finger too much by any axis, don't count it as a long press
 			const maxDistance = 30

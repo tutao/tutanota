@@ -3,10 +3,14 @@ import {styles} from "./styles"
 import {px, size} from "./size"
 import {BrowserType, client} from "../misc/ClientDetector"
 import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdmin, isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isAdmin, isApp, isIOSApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
+
+function requiresStatusBarHack() {
+	return isApp() && client.device === "iPhone" && client.browserVersion < 11
+}
 
 styles.registerStyle('main', () => {
 	return {
@@ -394,7 +398,7 @@ styles.registerStyle('main', () => {
 			bottom: px(0),
 			left: px(0),
 			'overflow-x': 'hidden',
-			'margin-top': 'env(safe-area-inset-top)' // insets for iPhone X
+			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
 		},
 
 		// view slider
@@ -411,7 +415,7 @@ styles.registerStyle('main', () => {
 			'background-color': theme.header_bg,
 			'box-shadow': `0 3px 2px 0 ${theme.header_box_shadow_bg}`,
 			'z-index': 1, // box_shadow will be overruled by the views background, otherwise
-			'margin-top': 'env(safe-area-inset-top)' // insets for iPhone X
+			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
 		},
 
 
