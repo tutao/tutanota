@@ -77,7 +77,6 @@
 		3D87ECD6212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC83212D8ABC00FD7315 /* InfoPlist.strings */; };
 		3D87ECD7212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC86212D8ABC00FD7315 /* InfoPlist.strings */; };
 		3D87ECD8212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC89212D8ABC00FD7315 /* InfoPlist.strings */; };
-		3D87ECD9212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D87ECDA212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC8F212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D87ECDB212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC92212D8ABD00FD7315 /* InfoPlist.strings */; };
 		3D87ECDC212D8ABE00FD7315 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D87EC95212D8ABD00FD7315 /* InfoPlist.strings */; };
@@ -187,7 +186,6 @@
 		3D87EC84212D8ABC00FD7315 /* mk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = mk; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC87212D8ABC00FD7315 /* br */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = br; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC8A212D8ABC00FD7315 /* fa_ir */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa_ir; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D87EC8D212D8ABD00FD7315 /* de_sie */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de_sie; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC90212D8ABD00FD7315 /* yo_ng */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = yo_ng; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC93212D8ABD00FD7315 /* lt_lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt_lt; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D87EC96212D8ABD00FD7315 /* sq */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sq; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -838,14 +836,6 @@
 			path = fa_ir.lproj;
 			sourceTree = "<group>";
 		};
-		3D87EC8B212D8ABD00FD7315 /* de_sie.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */,
-			);
-			path = de_sie.lproj;
-			sourceTree = "<group>";
-		};
 		3D87EC8E212D8ABD00FD7315 /* yo_ng.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -920,7 +910,6 @@
 				3D87EBDD212D8AB300FD7315 /* cs_cz.lproj */,
 				3D87EC61212D8ABA00FD7315 /* cy.lproj */,
 				3D87EC16212D8AB500FD7315 /* da_dk.lproj */,
-				3D87EC8B212D8ABD00FD7315 /* de_sie.lproj */,
 				3D87EBC5212D8AB200FD7315 /* de.lproj */,
 				3D87EC19212D8AB500FD7315 /* el.lproj */,
 				3D87EC6D212D8ABB00FD7315 /* en_us.lproj */,
@@ -1188,7 +1177,6 @@
 				3D87EC9F212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87EC9B212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECC5212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
-				3D87ECD9212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECA4212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECA2212D8ABD00FD7315 /* InfoPlist.strings in Resources */,
 				3D87ECD4212D8ABE00FD7315 /* InfoPlist.strings in Resources */,
@@ -1801,14 +1789,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				3D87EC8A212D8ABC00FD7315 /* fa_ir */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3D87EC8C212D8ABD00FD7315 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D87EC8D212D8ABD00FD7315 /* de_sie */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
