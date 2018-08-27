@@ -3,7 +3,7 @@ import {styles} from "./styles"
 import {px, size} from "./size"
 import {BrowserType, client} from "../misc/ClientDetector"
 import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdmin, isApp, isIOSApp} from "../api/Env"
+import {assertMainOrNodeBoot, isAdmin, isApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
@@ -40,7 +40,7 @@ styles.registerStyle('main', () => {
 
 		"@font-face": {
 			"font-family": "'Ionicons'",
-			"src": "url('images/ionicons.ttf') format('truetype')",
+			"src": `url('${System.getConfig().baseURL}images/ionicons.ttf') format('truetype')`,
 			"font-weight": "normal",
 			"font-style": "normal"
 		},
