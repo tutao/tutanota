@@ -291,7 +291,7 @@ export class MailViewer {
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
 			return [
-				m("#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll" : ".flex.flex-column"), {
+				m("#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"), {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header.plr-l", [
