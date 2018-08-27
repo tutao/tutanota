@@ -61,7 +61,7 @@ export class TextField {
 		this.value = stream("")
 		this.value.map(v => {
 			if (this._domInput) {
-				if (this.value !== this._domInput.value) {
+				if (this.value() !== this._domInput.value) {
 					this._domInput.value = this.value()
 				}
 			}
