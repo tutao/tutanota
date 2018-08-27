@@ -58,7 +58,7 @@ declare interface MithrilEvent {
 	redraw: boolean;
 }
 
-declare interface ListConfig<T, R: VirtualRow<T>> {
+type ListConfig<T, R: VirtualRow<T>> = {
 	rowHeight: number;
 
 	/**
@@ -134,7 +134,7 @@ declare interface RowCache<T> {
 	loading: ?Promise<void>;
 }
 
-declare interface SwipeConfiguration<T> {
+type SwipeConfiguration<T> = {
 	renderLeftSpacer(): Children;
 
 	renderRightSpacer(): Children;
@@ -142,6 +142,9 @@ declare interface SwipeConfiguration<T> {
 	swipeLeft(listElement: T): Promise<void>;
 
 	swipeRight(listElement: T): Promise<void>;
+
+	enabled : boolean;
+
 }
 
 /**

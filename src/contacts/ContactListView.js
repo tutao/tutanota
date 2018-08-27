@@ -51,12 +51,13 @@ export class ContactListView {
 			createVirtualRow: () => new ContactRow(),
 			showStatus: false,
 			className: className,
-			swipe: ({
+			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
 				swipeLeft: listElement => Promise.resolve(),
 				swipeRight: listElement => Promise.resolve(),
-			}: any),
+				enabled: false
+			},
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noContacts_msg")

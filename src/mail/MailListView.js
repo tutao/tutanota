@@ -93,7 +93,8 @@ export class MailListView {
 						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
-			}: any),
+				enabled: true
+			}),
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")

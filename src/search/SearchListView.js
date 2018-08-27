@@ -175,12 +175,13 @@ export class SearchListView {
 				new MailRow(true) : new ContactRow()),
 			showStatus: false,
 			className: m.route.param()['category'] === 'mail' ? "mail-list" : "contact-list",
-			swipe: ({
+			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
 				swipeLeft: listElement => Promise.resolve(),
 				swipeRight: listElement => Promise.resolve(),
-			}: any),
+				enabled: false,
+			},
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("searchNoResults_msg") + "\n" + lang.get("switchSearchInMenu_label")

@@ -88,12 +88,13 @@ export class UserListView {
 			createVirtualRow: () => new UserRow(this),
 			showStatus: false,
 			className: className,
-			swipe: ({
+			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
 				swipeLeft: (listElement) => Promise.resolve(),
 				swipeRight: (listElement) => Promise.resolve(),
-			}: any),
+				enabled: false
+			},
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")

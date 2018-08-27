@@ -548,7 +548,7 @@ export class List<T, R:VirtualRow<T>> {
 			this._domList.style.height = this._calculateListHeight()
 			this._reposition()
 			this.ready = true
-			if (client.isTouchSupported()) {
+			if (client.isTouchSupported() && this._config.swipe.enabled) {
 				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
 			}
 		})
