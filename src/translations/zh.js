@@ -5,10 +5,17 @@ module.exports = {
 	"default": false,
 	"main": false,
 	"rtl": false,
-	"plural_forms": ["zero", "other"],
+	"plural_forms": [
+		"zero",
+		"other"
+	],
 	"created_at": "2015-01-27T13:15:05Z",
 	"updated_at": "2018-08-14T09:14:27Z",
-	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
+	"source_locale": {
+		"id": "fcd7471b347c8e517663e194dcddf237",
+		"name": "en",
+		"code": "en"
+	},
 	"keys": {
 		"accountDeactivated_msg": "很不幸，您的Tutanota帐户已停用，请联系管理员。",
 		"accountSettings_label": "账户",

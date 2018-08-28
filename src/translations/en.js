@@ -5,7 +5,11 @@ module.exports = {
 	"default": true,
 	"main": true,
 	"rtl": false,
-	"plural_forms": ["zero", "one", "other"],
+	"plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2015-01-13T20:10:13Z",
 	"updated_at": "2018-08-17T09:32:10Z",
 	"source_locale": null,

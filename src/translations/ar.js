@@ -5,10 +5,21 @@ module.exports = {
 	"default": false,
 	"main": false,
 	"rtl": true,
-	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
+	"plural_forms": [
+		"zero",
+		"one",
+		"two",
+		"few",
+		"many",
+		"other"
+	],
 	"created_at": "2015-01-27T13:11:44Z",
 	"updated_at": "2018-08-18T16:56:07Z",
-	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
+	"source_locale": {
+		"id": "fcd7471b347c8e517663e194dcddf237",
+		"name": "en",
+		"code": "en"
+	},
 	"keys": {
 		"accountDeactivated_msg": "للأسف، تم إلغاء تفعيل حسابك على توتانوتا. يرجى الاتصال بالمسؤول.",
 		"accountSettings_label": "الحساب",

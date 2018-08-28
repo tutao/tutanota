@@ -5,10 +5,21 @@ module.exports = {
 	"default": false,
 	"main": false,
 	"rtl": false,
-	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
+	"plural_forms": [
+		"zero",
+		"one",
+		"two",
+		"few",
+		"many",
+		"other"
+	],
 	"created_at": "2018-01-12T10:51:54Z",
 	"updated_at": "2018-08-14T10:15:28Z",
-	"source_locale": {"id": "2001c6fdcc9cd338c1d600cb2636918b", "name": "de", "code": "de"},
+	"source_locale": {
+		"id": "2001c6fdcc9cd338c1d600cb2636918b",
+		"name": "de",
+		"code": "de"
+	},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
 		"accountSettings_label": "Account",
