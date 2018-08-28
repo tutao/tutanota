@@ -68,7 +68,7 @@
 			_popOverPresentationController.sourceView = _sourceController.view;
 			_popOverPresentationController.sourceRect = anchorRect;
 		}
-		[_attachmentTypeMenu addOptionWithTitle:@"Photos" image:_photoLibImage order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TUTFileChooser translate:@"TutaoChoosePhotosAction" default: @"Photos"] image:_photoLibImage order:UIDocumentMenuOrderFirst handler:^void(){
 			// ask for permission because of changed behaviour in iOS 11
 			if (PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusNotDetermined) {
 				[PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -89,7 +89,7 @@
 	// add menu item for opening the camera and take a photo or video.
 	// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
 	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-		[_attachmentTypeMenu addOptionWithTitle:@"Camera" image:_cameraImage order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TUTFileChooser translate:@"TutaoShowCameraAction" default: @"Camera"] image:_cameraImage order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf openCamera]; // capture the weak reference to avoid refFFFFerence cycle
 		}];
 	}
@@ -331,6 +331,11 @@
 	} else {
 		return [filename stringByReplacingCharactersInRange:range withString:@".jpeg"];
 	}
+}
+
+
++ (NSString *) translate:(NSString *) key default:(NSString*) defaultValue{
+	return [[NSBundle mainBundle] localizedStringForKey:key value:defaultValue table:@"InfoPlist"];
 }
 
 @end
