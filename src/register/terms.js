@@ -499,6 +499,19 @@ export const privacy_de = `<section id="privacy-de" class="content">
 export const terms_en = `
 <section id="terms-en" class="content">
     <h3>Terms and Conditions of Tutao GmbH</h3>
+    <p>These General Terms and Conditions are provided in English for your convenience. Please note that in case of a dispute or discrepancy
+	between the German Terms and Conditions and the English translation, the German version shall prevail.</em></p>
+	<p>Below is a summary of the changes towards the previous version of the Terms and Conditions. Please remember that 
+	we do not sell your data, but respect your right to privacy with our built-in encryption. The development and 
+	running costs of Tutanota are completely financed by Tutanota Premium users. To be fair to them, and in order to 
+	being able to offer a free of charge tariff to everybody, the following changes for a free usage of Tutanota have 
+	become necessary:</p>
+	<ol>
+		<li>Tutanota Free may only be used by private customers but not by business customers.</li>
+		<li>Each private person may not sign up for more than one free of charge Tutanota account for private use from 
+		now on. For additional accounts Tutanota Premium with additional aliases or user accounts shall be ordered.</li>
+		<li>Free of charge accounts may be deleted if they were not used for at least six months.</li>
+	</ol>
     <p>&nbsp;</p>
     <h4>1. General, scope</h4>
     <p>1.1 The Tutao GmbH Address: Hanomaghof 2, 30449 Hanover, e-mail:
