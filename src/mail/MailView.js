@@ -643,7 +643,7 @@ export class MailView {
 		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this.mailList.list.selectNone(),
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			content: this._multiMailViewer.createActionBar(() => this.mailList.list.selectNone())
+			content: this._actionBar()
 		}) : null
 	}
 
