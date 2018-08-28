@@ -14,17 +14,11 @@
 #import "TUTEncodingConverter.h"
 #import "Swiftier.h"
 #import "TUTCrypto.h"
+#import "TUTSubKeys.h"
 
 
 NSInteger const TUTAO_CRYPT_BUFFER_SIZE = 16;
 NSInteger const TUTAO_IV_BYTE_SIZE = 16;
-
-typedef struct  {
-	NSData *mKey;
-	NSData *cKey;
-} SubKeys;
-
-
 
 @implementation TUTAes128Facade {
 }
@@ -35,7 +29,7 @@ typedef struct  {
 	NSOutputStream *outputStream = [[NSOutputStream alloc] initToMemory];
 	[outputStream open];
 	[inputStream open];
-	SubKeys subKeys = [self getSubKeys:key withMac:useMac];
+	let subKeys = [self getSubKeys:key withMac:useMac];
 	[self encryptStream:inputStream result:outputStream withKey:subKeys.cKey withIv:iv error:error];
 	NSData *tmpEncryptedData = [outputStream propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
 	NSData *encryptedData;
@@ -55,14 +49,13 @@ typedef struct  {
 	return encryptedData;
 }
 
--  (SubKeys)getSubKeys:(NSData *)key withMac:(BOOL)useMac{
-	SubKeys subKeys;
+-  (TUTSubKeys *)getSubKeys:(NSData *)key withMac:(BOOL)useMac{
+	TUTSubKeys * subKeys;
 	if (useMac) {
 		NSData *hash = [TUTCrypto sha256:key];
-		subKeys.cKey = [hash subdataWithRange:NSMakeRange(0, 16)];
-		subKeys.mKey = [hash subdataWithRange:NSMakeRange(16, 16)];
+		subKeys = [[TUTSubKeys alloc] initWithCKey: [hash subdataWithRange:NSMakeRange(0, 16)] mKey:[hash subdataWithRange:NSMakeRange(16, 16)]];
 	} else {
-		subKeys.cKey = key;
+		subKeys = [[TUTSubKeys alloc] initWithCKey: key mKey:nil];
 	}
 	return subKeys;
 }
@@ -84,7 +77,7 @@ typedef struct  {
 
 	NSData *cipherTextWithoutMac;
 	BOOL useMac = [encryptedData length]  % 2 == 1;
-	SubKeys subKeys = [self getSubKeys:key withMac:useMac];
+	let subKeys = [self getSubKeys:key withMac:useMac];
 	if (useMac) {
 		cipherTextWithoutMac = [NSData dataWithBytesNoCopy:(void * _Nonnull)(encryptedData.bytes + 1) length:encryptedData.length - 33 freeWhenDone:NO];
 

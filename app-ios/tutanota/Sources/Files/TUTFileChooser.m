@@ -72,6 +72,7 @@
 			// ask for permission because of changed behaviour in iOS 11
 			if (PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusNotDetermined) {
 				[PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+
 					if (status == PHAuthorizationStatusAuthorized) {
 						[weakSelf showImagePickerWithAnchor:anchorRect];
 					} else {
@@ -97,28 +98,32 @@
 }
 
 -(void) showImagePickerWithAnchor:(CGRect)anchor {
-	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
-	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
-	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
-	_imagePickerController.allowsEditing = NO;
-	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-		_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
-		UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
-		popOverController.sourceView = _sourceController.view;
-		popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
-		popOverController.sourceRect = anchor;
-		popOverController.delegate = self;
-	}
-	[_sourceController presentViewController:_imagePickerController animated:YES completion:nil];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		self->_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+		self->_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
+		self->_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+		self->_imagePickerController.allowsEditing = NO;
+		if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+			self->_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
+			UIPopoverPresentationController *popOverController = self->_imagePickerController.popoverPresentationController;
+			popOverController.sourceView = self->_sourceController.view;
+			popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
+			popOverController.sourceRect = anchor;
+			popOverController.delegate = self;
+		}
+		[self->_sourceController presentViewController:self->_imagePickerController animated:YES completion:nil];
+	});
 }
 
 -(void) openCamera {
-	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
-	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
-	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
-	_imagePickerController.allowsEditing = NO;
-	_imagePickerController.showsCameraControls = YES;
-	[_sourceController presentViewController:_imagePickerController animated:YES completion:nil];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		self->_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+		self->_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
+		self->_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+		self->_imagePickerController.allowsEditing = NO;
+		self->_imagePickerController.showsCameraControls = YES;
+		[self->_sourceController presentViewController:self->_imagePickerController animated:YES completion:nil];
+	});
 }
 
 
