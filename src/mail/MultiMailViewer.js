@@ -16,6 +16,7 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
+import {identity} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -29,7 +30,7 @@ export class MultiMailViewer {
 	constructor(mailView: MailView) {
 		this._mailView = mailView
 		let emptyMessageBox = new MessageBox(() => this._getMailSelectionMessage(mailView))
-		const actions = this.createActionBar()
+		const actions = this.createActionBar(identity, true)
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
@@ -73,8 +74,13 @@ export class MultiMailViewer {
 		}
 	}
 
-	createActionBar(actionCallback: () => void = () => {}): ActionBar {
+	createActionBar(actionCallback: () => void = () => {}, prependCancel: boolean = false): ActionBar {
 		let actions = new ActionBar()
+
+		if (prependCancel) {
+			actions.add(new Button("cancel_action", () => this._mailView.mailList.list.selectNone(),
+				() => Icons.Cancel))
+		}
 
 		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
 			let mails = this._mailView.mailList.list.getSelectedEntities()
