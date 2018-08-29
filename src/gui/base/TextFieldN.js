@@ -285,25 +285,30 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 					}
 				})
 				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : null
-				let dialog = Dialog.smallActionDialog(lang.get("edit_action"), {
-					view: () => m(TextFieldN, {
-						label: () => label,
-						value: dateValue,
-						helpLabel: helpText
-					})
-				}, () => {
-					try {
-						let date = null
-						if (dateValue().trim() !== "") {
-							date = new Date(parseDate(dateValue()))
+				let dialog = Dialog.showActionDialog({
+					title: lang.get("edit_action"),
+					child: {
+						view: () => m(TextFieldN, {
+							label: () => label,
+							value: dateValue,
+							helpLabel: helpText
+						})
+					},
+					okAction: () => {
+						try {
+							let date = null
+							if (dateValue().trim() !== "") {
+								date = new Date(parseDate(dateValue()))
+							}
+							updateHandler(date)
+								.then(() => dialog.close())
+								.catch(e => {
+									Dialog.error(() => `Could not update "${label}" with value ${dateValue()}`)
+									console.log(e)
+								})
+						} catch (e) {
+							Dialog.error(() => helpText())
 						}
-						updateHandler(date).then(() => dialog.close())
-						                   .catch(e => {
-							                   Dialog.error(() => `Could not update "${label}" with value ${dateValue()}`)
-							                   console.log(e)
-						                   })
-					} catch (e) {
-						Dialog.error(() => helpText())
 					}
 				})
 			}

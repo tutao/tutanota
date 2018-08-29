@@ -172,36 +172,44 @@ export class GlobalSettingsViewer {
 								}))
 							}
 							Promise.all(groupInfoLoadingPromises).then(() => {
-								let dialog = Dialog.smallActionDialog(lang.get("auditLog_title"), {
-									view: () => m("table.pt", [
-										m("tr", [
-											m("td", lang.get("action_label")),
-											m("td.pl", line.action)
-										]),
-										m("tr", [
-											m("td", lang.get("actor_label")),
-											m("td.pl", line.actorMailAddress)
-										]),
-										m("tr", [
-											m("td", lang.get("IpAddress_label")),
-											m("td.pl", line.actorIpAddress)
-										]),
-										m("tr", [
-											m("td", lang.get("modified_label")),
-											m("td.pl", (modifiedGroupInfo()
-												&& this._getGroupInfoDisplayText(modifiedGroupInfo())) ? this._getGroupInfoDisplayText(modifiedGroupInfo()) : line.modifiedEntity),
-										]),
-										groupInfo() ? m("tr", [
-											m("td", lang.get("group_label")),
-											m("td.pl", customer.adminGroup
-											=== groupInfo().group ? lang.get("globalAdmin_label") : this._getGroupInfoDisplayText(groupInfo())),
-										]) : null,
-										m("tr", [
-											m("td", lang.get("time_label")),
-											m("td.pl", formatDateTime(line.date)),
-										]),
-									])
-								}, () => dialog.close(), false)
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("auditLog_title"),
+									child: {
+										view: () => m("table.pt", [
+											m("tr", [
+												m("td", lang.get("action_label")),
+												m("td.pl", line.action)
+											]),
+											m("tr", [
+												m("td", lang.get("actor_label")),
+												m("td.pl", line.actorMailAddress)
+											]),
+											m("tr", [
+												m("td", lang.get("IpAddress_label")),
+												m("td.pl", line.actorIpAddress)
+											]),
+											m("tr", [
+												m("td", lang.get("modified_label")),
+												m("td.pl", (modifiedGroupInfo()
+													&& this._getGroupInfoDisplayText(modifiedGroupInfo()))
+													? this._getGroupInfoDisplayText(modifiedGroupInfo())
+													: line.modifiedEntity),
+											]),
+											groupInfo() ? m("tr", [
+												m("td", lang.get("group_label")),
+												m("td.pl", customer.adminGroup === groupInfo().group
+													? lang.get("globalAdmin_label")
+													: this._getGroupInfoDisplayText(groupInfo())),
+											]) : null,
+											m("tr", [
+												m("td", lang.get("time_label")),
+												m("td.pl", formatDateTime(line.date)),
+											]),
+										])
+									},
+									okAction: () => dialog.close(),
+									allowCancel: false
+								})
 							})
 						}, () => Icons.More)
 						return new TableLine([

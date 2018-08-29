@@ -14,13 +14,19 @@ export function showDeleteAccountDialog() {
 	let password = new TextField("password_label", () => lang.get("passwordEnterNeutral_msg"))
 		.setType(Type.Password)
 
-	Dialog.smallActionDialog(lang.get("adminDeleteAccount_action"), {
-		view: () => m("#delete-account-dialog", [
-			m(why),
-			m(takeover),
-			m(password),
-		])
-	}, () => deleteAccount(why.value(), takeover.value(), password.value()), true, "delete_action")
+	Dialog.showActionDialog({
+		title: lang.get("adminDeleteAccount_action"),
+		child: {
+			view: () => m("#delete-account-dialog", [
+				m(why),
+				m(takeover),
+				m(password),
+			])
+		},
+		okAction: () => deleteAccount(why.value(), takeover.value(), password.value()),
+		allowCancel: true,
+		okActionTextId: "delete_action"
+	})
 }
 
 function deleteAccount(reason: string, takeover: string, password: string) {

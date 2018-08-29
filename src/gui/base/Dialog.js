@@ -361,7 +361,7 @@ export class Dialog {
 
 	/**
 	 * @param inputValidator Called when "Ok" is clicked. Must return null if the input is valid so the dialog is closed or an error messageId if the input is invalid, so an error message is shown and the dialog stays.
-	 * @deprecated user Dialog.smallActionDialog
+	 * @deprecated user Dialog.showActionDialog
 	 */
 	static smallDialog(title: stream<string> | string, child: Component, inputValidator: ?validator): Promise<boolean> {
 		return Promise.fromCallback(cb => {
@@ -404,7 +404,17 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string> | string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
+	static showActionDialog(props: {|
+		title: stream<string> | string,
+		child: Component,
+		okAction: action,
+		allowCancel?: boolean,
+		okActionTextId?: string,
+		cancelAction?: action,
+		type?: DialogTypeEnum
+	|}): Dialog {
+		const {title, child, okAction, allowCancel, okActionTextId, cancelAction, type} =
+			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action"}, props)
 		let actionBar = new DialogHeaderBar()
 
 		let doCancel = () => {
@@ -416,7 +426,7 @@ export class Dialog {
 
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
-		let dialog = new Dialog(DialogType.EditSmall, {
+		let dialog = new Dialog(type || DialogType.EditSmall, {
 			view: () => m("", [
 				m(".dialog-header.plr-l", m(actionBar)),
 				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))

@@ -112,25 +112,31 @@ export class PasswordForm {
 	 */
 	static showChangeOwnPasswordDialog(allowCancel: boolean = true): void {
 		let form = new PasswordForm(true, true, true)
-		let dialog = Dialog.smallActionDialog(lang.get("changePassword_label"), form, () => {
-			let error = form.getErrorMessageId();
-			if (error) {
-				Dialog.error(error)
-			} else {
-				showProgressDialog("pleaseWait_msg", worker.changePassword(form.getOldPassword(), form.getNewPassword()))
-					.then(() => {
-						deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
-						Dialog.error("pwChangeValid_msg")
-						dialog.close()
-					})
-					.catch(NotAuthenticatedError, e => {
-						Dialog.error("oldPasswordInvalid_msg")
-					})
-					.catch(e => {
-						Dialog.error("passwordResetFailed_msg")
-					})
-			}
-		}, allowCancel)
+		let dialog = Dialog.showActionDialog({
+			title: lang.get("changePassword_label"),
+			child: form,
+			okAction: () => {
+				let error = form.getErrorMessageId();
+				if (error) {
+					Dialog.error(error)
+				} else {
+					showProgressDialog("pleaseWait_msg",
+						worker.changePassword(form.getOldPassword(), form.getNewPassword()))
+						.then(() => {
+							deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
+							Dialog.error("pwChangeValid_msg")
+							dialog.close()
+						})
+						.catch(NotAuthenticatedError, e => {
+							Dialog.error("oldPasswordInvalid_msg")
+						})
+						.catch(e => {
+							Dialog.error("passwordResetFailed_msg")
+						})
+				}
+			},
+			allowCancel: allowCancel
+		})
 	}
 
 	/**

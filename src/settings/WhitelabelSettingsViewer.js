@@ -314,13 +314,15 @@ export class WhitelabelSettingsViewer {
 								let metaTags = new TextField("customMetaTags_label")
 									.setValue(neverNull(whitelabelConfig).metaTags)
 									.setType(Type.Area)
-								let dialog = Dialog.smallActionDialog(lang.get("customMetaTags_label"), {
-									view: () => m(metaTags)
-								}, (ok) => {
-									if (ok) {
-										neverNull(whitelabelConfig).metaTags = metaTags.value()
-										update(whitelabelConfig)
-										dialog.close()
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("customMetaTags_label"),
+									child: {view: () => m(metaTags)},
+									okAction: (ok) => {
+										if (ok) {
+											neverNull(whitelabelConfig).metaTags = metaTags.value()
+											update(whitelabelConfig)
+											dialog.close()
+										}
 									}
 								})
 							}, () => Icons.Edit)

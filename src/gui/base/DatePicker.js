@@ -80,16 +80,21 @@ export class DatePicker {
 
 	_showPickerDialog = () => {
 		let date: ?Date
-		const dialog = Dialog.smallActionDialog("", {
-			view: () => m(VisualDatePicker, {
-				selectedDate: date || this.date(),
-				onDateSelected: (newDate) => {date = newDate},
-				wide: true
-			}),
-		}, () => {
-			date && this.setDate(date)
-			dialog.close()
-		}, true)
+		const dialog = Dialog.showActionDialog({
+			title: "",
+			child: {
+				view: () => m(VisualDatePicker, {
+					selectedDate: date || this.date(),
+					onDateSelected: (newDate) => {date = newDate},
+					wide: true
+				}),
+			},
+			okAction: () => {
+				date && this.setDate(date)
+				dialog.close()
+			},
+			allowCancel: true
+		})
 	}
 
 	setDate(date: Date) {

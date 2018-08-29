@@ -250,19 +250,25 @@ export class EditSecondFactorsForm {
 					}
 				}
 
-				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
-					view: () => m("", [
-						m(type),
-						m(name),
-						type.selectedValue() === SecondFactorType.totp ? m(".mb", [
-							m(totpSecret),
-							isApp() ? m(".pt", m(openTOTPApp)) : m(".flex-center", m.trust(totpSvg)),
-							m(totpCode)
-						]) : null,
-						m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
-						m(".small", lang.get("secondFactorInfoOldClient_msg"))
-					])
-				}, saveAction, true, "save_action")
+				let dialog = Dialog.showActionDialog({
+					title: lang.get("add_action"),
+					child: {
+						view: () => m("", [
+							m(type),
+							m(name),
+							type.selectedValue() === SecondFactorType.totp ? m(".mb", [
+								m(totpSecret),
+								isApp() ? m(".pt", m(openTOTPApp)) : m(".flex-center", m.trust(totpSvg)),
+								m(totpCode)
+							]) : null,
+							m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
+							m(".small", lang.get("secondFactorInfoOldClient_msg"))
+						])
+					},
+					okAction: saveAction,
+					allowCancel: true,
+					okActionTextId: "save_action"
+				})
 
 
 				function registerResumeOnTimeout() {
