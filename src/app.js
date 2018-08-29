@@ -197,6 +197,14 @@ let initialized = lang.init(en).then(() => {
 	setupExceptionHandling()
 })
 
+if ('serviceWorker' in navigator) {
+	console.log("Registering ServiceWorker")
+	navigator.serviceWorker.register("sw.js")
+	         .then(() => console.log("ServiceWorker has been installed"))
+} else {
+	console.log("ServiceWorker is not supported")
+}
+
 function forceLogin(args: {[string]: string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)

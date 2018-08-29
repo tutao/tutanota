@@ -36,6 +36,8 @@ function getAsyncImports(file) {
 	return asyncImports
 }
 
+const distLoc = (filename) => `${DistDir}/${filename}`
+
 clean()
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
@@ -66,21 +68,22 @@ clean()
 
 			let commonTree = builder.intersectTrees(workerTree, mainTree)
 			return Promise.all([
-				bundle(commonTree, `${DistDir}/common.js`, bundles),
-				bundle(builder.subtractTrees(workerTree, commonTree), `${DistDir}/worker.js`, bundles),
-				bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), `${DistDir}/main.js`, bundles),
-				bundle(builder.subtractTrees(themeTree, commonTree), `${DistDir}/theme.js`, bundles),
-				bundle(builder.subtractTrees(bootTree, themeTree), `${DistDir}/main-boot.js`, bundles),
+				bundle(commonTree, distLoc("common.js"), bundles),
+				bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
+				bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
+				bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
+				bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
 			])
 		})
 	})
 	.then(() => createLanguageBundles(bundles))
 	.then(() => {
 		if (process.argv.indexOf("test") !== -1) {
+			const browserEnv = env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true)
 			return Promise.all([
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
-			])
+			]).then(bundleSW(browserEnv))
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
@@ -93,11 +96,13 @@ clean()
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
 			])
 		} else {
+			const browserEnv = env.create(SystemConfig.distRuntimeConfig(bundles),
+				"http://localhost:9000", version, "Browser", true)
 			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
+				createHtml(browserEnv, bundles),
 				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://" + os.hostname().split(".")[0]
 					+ ":9000", version, "App", true), bundles)
-			])
+			]).then(bundleSW(browserEnv))
 		}
 	})
 	.then(copyDependencies)
@@ -116,7 +121,7 @@ function clean() {
 }
 
 const buildConfig = {
-	minify: true,
+	minify: false,
 	mangle: false, // destroys type information (e.g. used for bluebird catch blocks)
 	runtime: false,
 	sourceMaps: true,
@@ -132,6 +137,17 @@ function bundle(src, targetFile, bundles) {
 		console.log('Build error in bundle ' + targetFile);
 		throw err
 	})
+}
+
+function bundleSW(env) {
+	return fs.readFileAsync("src/sw.js", "utf8").then((content) => {
+		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
+			.concat(Object.keys(env.systemConfig.bundles))
+		// use "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
+		// of "delcare var"
+		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
+		return babelCompile(content).code
+	}).then((content) => fs.writeFileAsync(distLoc("sw.js"), content, 'utf-8'))
 }
 
 function copyDependencies() {
@@ -154,7 +170,7 @@ function createHtml(env, bundles) {
 }
 
 function createLanguageBundles(bundles) {
-	return Promise.all(glob.sync('src/translations/*.js').map(translation => {
+	return Promise.all(glob.sync('src/translations/en.js').map(translation => {
 		let filename = path.basename(translation)
 		return builder.bundle(translation, {
 			minify: false,
@@ -176,6 +192,7 @@ function _writeFile(targetFile, content) {
 
 
 let debName = `tutanota-next-${version}_1_amd64.deb`
+
 function deb() {
 	if (process.argv.indexOf("deb") !== -1) {
 		console.log("create" + debName)
