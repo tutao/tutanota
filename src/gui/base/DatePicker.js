@@ -248,7 +248,7 @@ class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 					height: size,
 					width: size,
 					lineHeight: size,
-					color: theme.lighter_text
+					color: theme.content_border
 				}
 			}, wd)
 		)

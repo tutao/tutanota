@@ -41,8 +41,6 @@ export type Theme = {
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
-
-	lighter_text: string
 }
 
 let customTheme: ?Theme = typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations
@@ -132,9 +130,7 @@ function getLightTheme() {
 		navigation_button: grey_darker,
 		navigation_button_icon: light,
 		navigation_button_selected: red,
-		navigation_button_icon_selected: light,
-
-		lighter_text: grey,
+		navigation_button_icon_selected: light
 	}
 }
 
@@ -189,7 +185,5 @@ function getDarkTheme(): Theme {
 		navigation_button_icon: dark_lighter,
 		navigation_button_selected: cyan,
 		navigation_button_icon_selected: lightest,
-
-		lighter_text: light,
 	}
 }
