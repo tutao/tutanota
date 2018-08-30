@@ -4,7 +4,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {client, DeviceType} from "../misc/ClientDetector"
-import {assertMainOrNode, isTutanotaDomain, isApp} from "../api/Env"
+import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -13,7 +13,7 @@ import {themeId} from "../gui/theme"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
-import {base64ToUint8Array, utf8Uint8ArrayToString, base64UrlToBase64} from "../api/common/utils/Encoding"
+import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 
@@ -208,6 +208,13 @@ export class LoginView {
 			} catch (e) {
 				console.log("Failed to parse old credentials", e)
 			}
+		}
+		else if (client.localStorage() && localStorage.getItem("config")
+			&& !localStorage.getItem("tutanotaConfig")) {
+			const oldCredentials = JSON.parse(neverNull(localStorage.getItem("config")))._credentials || []
+			promise = showProgressDialog("loading_msg",
+				this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
+					.then(() => localStorage.removeItem("config")))
 		}
 		promise.then(() => {
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
