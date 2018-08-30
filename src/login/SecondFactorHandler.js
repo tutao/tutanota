@@ -56,17 +56,20 @@ export class SecondFactorHandler {
 									"{clientIdentifier}": session.clientIdentifier,
 									"{ipAddress}": session.loginIpAddress
 								})
-								this._otherLoginDialog = Dialog.smallActionDialog(lang.get("secondFactorConfirmLogin_label"), {
-									view: () => m(".text-break.pt", text)
-								}, () => {
-									let serviceData = createSecondFactorAuthData()
-									serviceData.session = session._id
-									serviceData.type = null
-									serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, serviceData)
-									if (this._otherLoginDialog) {
-										this._otherLoginDialog.close()
-										this._otherLoginSessionId = null
-										this._otherLoginDialog = null
+								this._otherLoginDialog = Dialog.showActionDialog({
+									title: lang.get("secondFactorConfirmLogin_label"),
+									child: {view: () => m(".text-break.pt", text)},
+									okAction: () => {
+										let serviceData = createSecondFactorAuthData()
+										serviceData.session = session._id
+										serviceData.type = null
+										serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST,
+											serviceData)
+										if (this._otherLoginDialog) {
+											this._otherLoginDialog.close()
+											this._otherLoginSessionId = null
+											this._otherLoginDialog = null
+										}
 									}
 								})
 								// close the dialog manually after 1 min because the session is not updated if the other client is closed

@@ -63,11 +63,18 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 			}
 		}
 
-		const dialog = Dialog.smallActionDialog(lang.get("adminPayment_action"), {
-			view: () => m("#changePaymentDataDialog", {style: {minHeight: px(310)}}, [
-				m(paymentMethodSelector),
-				m(paymentMethodInput),
-			])
-		}, confirmAction, true, "save_action", () => cb(null, false))
+		const dialog = Dialog.showActionDialog({
+			title: lang.get("adminPayment_action"),
+			child: {
+				view: () => m("#changePaymentDataDialog", {style: {minHeight: px(310)}}, [
+					m(paymentMethodSelector),
+					m(paymentMethodInput),
+				])
+			},
+			okAction: confirmAction,
+			allowCancel: true,
+			okActionTextId: "save_action",
+			cancelAction: () => cb(null, false)
+		})
 	})
 }

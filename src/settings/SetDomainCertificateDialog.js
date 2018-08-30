@@ -58,32 +58,36 @@ export function show(customerInfo: CustomerInfo): void {
 			]
 		}
 	}
-	let dialog = Dialog.smallActionDialog(lang.get("whitelabelDomain_label"), form, () => {
-		let domain = domainField.value().trim().toLowerCase()
-		if (!certChainFile) {
-			Dialog.error("certificateChainInfo_msg")
-		} else if (!privKeyFile) {
-			Dialog.error("privateKeyInfo_msg")
-		} else if (!isDomainName(domain) || domain.split(".").length < 3) {
-			Dialog.error("notASubdomain_msg")
-		} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
-			Dialog.error("customDomainErrorDomainNotAvailable_msg")
-		} else {
-			try {
-				showProgressDialog("pleaseWait_msg",
-					worker.uploadCertificate(domain,
-						utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data))
-					      .then(() => {
-						      dialog.close()
-					      })
-					      .catch(InvalidDataError, e => {
-						      Dialog.error("certificateError_msg")
-					      })
-					      .catch(PreconditionFailedError, e => {
-						      Dialog.error("invalidCnameRecord_msg")
-					      }))
-			} catch (e) {
-				Dialog.error("certificateError_msg")
+	let dialog = Dialog.showActionDialog({
+		title: lang.get("whitelabelDomain_label"),
+		child: form,
+		okAction: () => {
+			let domain = domainField.value().trim().toLowerCase()
+			if (!certChainFile) {
+				Dialog.error("certificateChainInfo_msg")
+			} else if (!privKeyFile) {
+				Dialog.error("privateKeyInfo_msg")
+			} else if (!isDomainName(domain) || domain.split(".").length < 3) {
+				Dialog.error("notASubdomain_msg")
+			} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
+				Dialog.error("customDomainErrorDomainNotAvailable_msg")
+			} else {
+				try {
+					showProgressDialog("pleaseWait_msg",
+						worker.uploadCertificate(domain,
+							utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data))
+						      .then(() => {
+							      dialog.close()
+						      })
+						      .catch(InvalidDataError, e => {
+							      Dialog.error("certificateError_msg")
+						      })
+						      .catch(PreconditionFailedError, e => {
+							      Dialog.error("invalidCnameRecord_msg")
+						      }))
+				} catch (e) {
+					Dialog.error("certificateError_msg")
+				}
 			}
 		}
 	})

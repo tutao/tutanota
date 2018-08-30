@@ -25,11 +25,17 @@ export function show(subscriptionOptions: SubscriptionOptions, invoiceData: Invo
 		}
 	}
 
-	const dialog = Dialog.smallActionDialog(headingId ? lang.get(headingId) : lang.get("invoiceData_msg"), {
-		view: () => m("#changeInvoiceDataDialog", [
-			infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
-			m(invoiceDataInput),
-		])
-	}, confirmAction, true, "save_action")
+	const dialog = Dialog.showActionDialog({
+		title: headingId ? lang.get(headingId) : lang.get("invoiceData_msg"),
+		child: {
+			view: () => m("#changeInvoiceDataDialog", [
+				infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
+				m(invoiceDataInput),
+			])
+		},
+		okAction: confirmAction,
+		allowCancel: true,
+		okActionTextId: "save_action"
+	})
 	return dialog
 }

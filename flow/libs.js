@@ -105,13 +105,16 @@ interface Lifecycle<Attrs> {
 	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
 	// The onbeforeupdate hook is called before a vnode is diffed in a update.
 	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => Promise<any> | void;
-	// The onupdate hook is called after a DOM element is updated, while attached to the document.
+	// The onremove hook is called before a DOM element is removed from the document.
 	+onremove?: (vnode: VnodeDOM<Attrs>) => any;
 	// The onbeforeremove hook is called before a DOM element is detached from the document. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
 	+onbeforeupdate?: (vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
-	// The onremove hook is called before a DOM element is removed from the document.
+	// The onupdate hook is called after a DOM element is updated, while attached to the document.
 	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
 }
+
+
+type $Attrs<T> = $ReadOnly<$Exact<T>>
 
 interface MComponent<Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */

@@ -21,33 +21,40 @@ export function show(customerInfo: CustomerInfo) {
 			]
 		}
 	}
-	let dialog = Dialog.smallActionDialog(lang.get("addCustomDomain_action"), form, () => {
-		let cleanDomainName = domainName.value().trim().toLowerCase()
-		if (!isDomainName(cleanDomainName)) {
-			Dialog.error("customDomainNeutral_msg")
-		} else if (customerInfo.domainInfos.find(info => info.domain === cleanDomainName)) {
-			Dialog.error("customDomainDomainAssigned_msg")
-		} else {
-			worker.addDomain(cleanDomainName).then(status => {
-				if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_OK) {
-					dialog.close()
-				} else {
-					let errorMessageId
-					if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED) {
-						errorMessageId = "customDomainErrorDnsLookupFailure_msg"
-					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD) {
-						errorMessageId = "customDomainErrorInvalidDnsRecord_msg"
-					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD) {
-						errorMessageId = "customDomainErrorMissingMxEntry_msg"
-					} else if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD) {
-						errorMessageId = "customDomainErrorMissingSpfEntry_msg"
+	let dialog = Dialog.showActionDialog({
+		title: lang.get("addCustomDomain_action"),
+		child: form,
+		okAction: () => {
+			let cleanDomainName = domainName.value().trim().toLowerCase()
+			if (!isDomainName(cleanDomainName)) {
+				Dialog.error("customDomainNeutral_msg")
+			} else if (customerInfo.domainInfos.find(info => info.domain === cleanDomainName)) {
+				Dialog.error("customDomainDomainAssigned_msg")
+			} else {
+				worker.addDomain(cleanDomainName).then(status => {
+					if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_OK) {
+						dialog.close()
 					} else {
-						errorMessageId = "customDomainErrorDomainNotAvailable_msg"
+						let errorMessageId
+						if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED) {
+							errorMessageId = "customDomainErrorDnsLookupFailure_msg"
+						} else if (status.statusCode
+							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD) {
+							errorMessageId = "customDomainErrorInvalidDnsRecord_msg"
+						} else if (status.statusCode
+							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD) {
+							errorMessageId = "customDomainErrorMissingMxEntry_msg"
+						} else if (status.statusCode
+							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD) {
+							errorMessageId = "customDomainErrorMissingSpfEntry_msg"
+						} else {
+							errorMessageId = "customDomainErrorDomainNotAvailable_msg"
+						}
+						Dialog.error(() => lang.get(errorMessageId) + "\n"
+							+ status.invalidDnsRecords.map(r => r.value).join("\n"))
 					}
-					Dialog.error(() => lang.get(errorMessageId) + "\n" + status.invalidDnsRecords.map(r => r.value)
-					                                                           .join("\n"))
-				}
-			})
+				})
+			}
 		}
 	})
 }

@@ -130,7 +130,7 @@ function getLightTheme() {
 		navigation_button: grey_darker,
 		navigation_button_icon: light,
 		navigation_button_selected: red,
-		navigation_button_icon_selected: light,
+		navigation_button_icon_selected: light
 	}
 }
 

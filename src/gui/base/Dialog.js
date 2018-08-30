@@ -3,7 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Button, ButtonType} from "./Button"
 import {modal} from "./Modal"
-import {animations, opacity, alpha, DefaultAnimationTime, transform} from "../animation/Animations"
+import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
@@ -13,9 +13,9 @@ import {Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
-import {size, px} from "../size"
+import {px, size} from "../size"
 import {styles} from "../styles"
-import {focusPrevious, focusNext, INPUT} from "./DropdownN"
+import {focusNext, focusPrevious, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
@@ -369,7 +369,7 @@ export class Dialog {
 
 	/**
 	 * @param inputValidator Called when "Ok" is clicked. Must return null if the input is valid so the dialog is closed or an error messageId if the input is invalid, so an error message is shown and the dialog stays.
-	 * @deprecated user Dialog.smallActionDialog
+	 * @deprecated user Dialog.showActionDialog
 	 */
 	static smallDialog(title: stream<string> | string, child: Component, inputValidator: ?validator): Promise<boolean> {
 		return Promise.fromCallback(cb => {
@@ -412,7 +412,17 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string> | string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action", cancelAction: ?action): Dialog {
+	static showActionDialog(props: {|
+		title: stream<string> | string,
+		child: Component,
+		okAction: action,
+		allowCancel?: boolean,
+		okActionTextId?: string,
+		cancelAction?: action,
+		type?: DialogTypeEnum
+	|}): Dialog {
+		const {title, child, okAction, allowCancel, okActionTextId, cancelAction, type} =
+			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", type: DialogType.EditSmall}, props)
 		let actionBar = new DialogHeaderBar()
 
 		let doCancel = () => {
@@ -424,7 +434,7 @@ export class Dialog {
 
 		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
-		let dialog = new Dialog(DialogType.EditSmall, {
+		let dialog = new Dialog(type, {
 			view: () => [
 				m(".dialog-header.plr-l", m(actionBar)),
 				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))

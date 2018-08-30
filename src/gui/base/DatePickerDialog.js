@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
-import {Dialog} from "./Dialog"
+import {Dialog, DialogType} from "./Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {DatePicker} from "./DatePicker"
 
@@ -30,17 +30,22 @@ export function showDatePickerDialog<T>(start: ?Date, end: ?Date, startBeforeEnd
 		}
 	}
 	return Promise.fromCallback(cb => {
-		let dialog = Dialog.smallActionDialog(lang.get("selectPeriodOfTime_label"), form, () => {
-			let start = (dateStart.invalidDate) ? null : dateStart.date()
-			let end = dateEnd.invalidDate ? null : dateEnd.date()
-			if (startBeforeEnd && start && end && start.getTime() > end.getTime()) {
-				Dialog.error("startAfterEnd_label")
-			} else if (!startBeforeEnd && start && end && start.getTime() < end.getTime()) {
-				Dialog.error("endAfterStart_label")
-			} else {
-				dialog.close()
-				cb(null, {start, end})
-			}
+		let dialog = Dialog.showActionDialog({
+			title: lang.get("selectPeriodOfTime_label"),
+			child: form,
+			okAction: () => {
+				let start = (dateStart.invalidDate) ? null : dateStart.date()
+				let end = dateEnd.invalidDate ? null : dateEnd.date()
+				if (startBeforeEnd && start && end && start.getTime() > end.getTime()) {
+					Dialog.error("startAfterEnd_label")
+				} else if (!startBeforeEnd && start && end && start.getTime() < end.getTime()) {
+					Dialog.error("endAfterStart_label")
+				} else {
+					dialog.close()
+					cb(null, {start, end})
+				}
+			},
+			type: DialogType.EditMedium
 		})
 	})
 }
