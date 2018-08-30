@@ -8,3 +8,4 @@ app/plugins
 **/*.xcbkptlist
 **/*.xcuserstate
 **/xcuserdata
+fastlane
