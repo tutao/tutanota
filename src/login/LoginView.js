@@ -209,12 +209,16 @@ export class LoginView {
 				console.log("Failed to parse old credentials", e)
 			}
 		}
-		else if (client.localStorage() && localStorage.getItem("config")
-			&& !localStorage.getItem("tutanotaConfig")) {
-			const oldCredentials = JSON.parse(neverNull(localStorage.getItem("config")))._credentials || []
-			promise = showProgressDialog("loading_msg",
-				this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
-					.then(() => localStorage.removeItem("config")))
+		else if (client.localStorage() && localStorage.getItem("config")) {
+			if (localStorage.getItem("tutanotaConfig")){
+				localStorage.removeItem("config")
+			} else {
+				const oldCredentials = JSON.parse(neverNull(localStorage.getItem("config")))._credentials || []
+				promise = showProgressDialog("loading_msg",
+					this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
+					    .finally(() => localStorage.removeItem("config")))
+			}
+
 		}
 		promise.then(() => {
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
