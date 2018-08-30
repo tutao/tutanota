@@ -202,13 +202,14 @@
 				return;
 			}
 
-			let fileName = [self fixHeicFilename:[assetResource originalFilename]];
-			let filePath = [targetFolder stringByAppendingPathComponent:fileName];
+			let fileName = [assetResource originalFilename];
+			var filePath = [targetFolder stringByAppendingPathComponent:fileName];
 
 			//extracting image from the picker and saving it
 			NSURL *mediaUrl =[info objectForKey:UIImagePickerControllerMediaURL];
 			NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
 			if ([mediaType isEqualToString:@"public.image"]) {
+				filePath = [self changeExtensionToJpeg:filePath];
 				[[PHImageManager defaultManager] requestImageForAsset:assetObject
 														   targetSize:CGSizeMake(assetObject.pixelWidth, assetObject.pixelHeight)
 														  contentMode:PHImageContentModeDefault
@@ -326,16 +327,9 @@
 /**
  * Replace ".heic" or ".heif" extensions with ".jpeg".
  */
--(NSString *)fixHeicFilename:(NSString *)filename {
-	var range = [filename rangeOfString:@".heic" options:NSBackwardsSearch | NSCaseInsensitiveSearch];
-	if (range.location == NSNotFound) {
-		range = [filename rangeOfString:@".heif" options:NSBackwardsSearch | NSCaseInsensitiveSearch];
-	}
-	if (range.location == NSNotFound) {
-		return filename;
-	} else {
-		return [filename stringByReplacingCharactersInRange:range withString:@".jpeg"];
-	}
+-(NSString *)changeExtensionToJpeg:(NSString *)filename {
+	NSString *withoutExtension = [filename stringByDeletingPathExtension];
+	return [withoutExtension stringByAppendingPathExtension:@"jpg"];
 }
 
 
