@@ -38,82 +38,85 @@ function getAsyncImports(file) {
 
 const distLoc = (filename) => `${DistDir}/${filename}`
 
-clean()
-	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
-	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
-	.then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
-		let lines = bootstrap.split("\n")
-		lines[0] = `importScripts('libs.js')`
-		let code = babelCompile(lines.join("\n")).code
-		return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
-	}))
-	.then(() => {
-		return Promise.all([
-			builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
-			builder.trace('src/app.js + src/system-resolve.js'),
-			builder.trace('src/gui/theme.js - libs/stream.js'),
-			builder.trace(getAsyncImports('src/app.js')
-				.concat(getAsyncImports('src/native/NativeWrapper.js'))
-				.concat([
-					"src/login/LoginViewController.js",
-					"src/gui/base/icons/Icons.js",
-					"src/search/SearchBar.js",
-					"src/register/terms.js"
-				]).join(" + "))
-		]).then(trees => {
-			let workerTree = trees[0]
-			let bootTree = trees[1]
-			let themeTree = trees[2]
-			let mainTree = trees[3]
+Promise.resolve()
+       .then(() => console.log("started cleaning", measure()))
+       .then(() => clean())
+       .then(() => console.log("started copying images", measure()))
+       .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
+       .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
+       .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
+	       let lines = bootstrap.split("\n")
+	       lines[0] = `importScripts('libs.js')`
+	       let code = babelCompile(lines.join("\n")).code
+	       return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
+       }))
+       .then(() => {
+	       console.log("started tracing", measure())
+	       return Promise.all([
+		       builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
+		       builder.trace('src/app.js + src/system-resolve.js'),
+		       builder.trace('src/gui/theme.js - libs/stream.js'),
+		       builder.trace(getAsyncImports('src/app.js')
+			       .concat(getAsyncImports('src/native/NativeWrapper.js'))
+			       .concat([
+				       "src/login/LoginViewController.js",
+				       "src/gui/base/icons/Icons.js",
+				       "src/search/SearchBar.js",
+				       "src/register/terms.js"
+			       ]).join(" + "))
+	       ]).then(([workerTree, bootTree, themeTree, mainTree]) => {
+		       let commonTree = builder.intersectTrees(workerTree, mainTree)
+		       console.log("started bundling", measure())
+		       return Promise.all([
+			       bundle(commonTree, distLoc("common.js"), bundles),
+			       bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
+			       bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
+			       bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
+			       bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
+		       ])
+	       })
+       })
+       .then(() => console.log("creating language bundles"))
+       .then(() => createLanguageBundles(bundles))
+       .then(() => {
+	       if (process.argv.indexOf("test") !== -1) {
+		       return Promise.all([
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
+		       ])
+	       } else if (process.argv.indexOf("prod") !== -1) {
+		       return Promise.all([
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
+		       ])
+	       } else if (process.argv.indexOf("host") !== -1) {
+		       const hostname = process.argv[process.argv.indexOf("host") + 1]
+		       return Promise.all([
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
+		       ])
+	       } else {
+		       return Promise.all([
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version,
+				       "Browser", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
+				       "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
+		       ])
+	       }
+       })
+       .then(bundleSW(bundles))
+       .then(copyDependencies)
+       .then(deb)
+       .then(release)
+       .then(() => console.log(`\nBuild time: ${measure()}s`))
+       .catch(e => {
+	       console.log("\nBuild error:", e)
+	       process.exit(1)
+       })
 
-			let commonTree = builder.intersectTrees(workerTree, mainTree)
-			return Promise.all([
-				bundle(commonTree, distLoc("common.js"), bundles),
-				bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
-				bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
-				bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
-				bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
-			])
-		})
-	})
-	.then(() => createLanguageBundles(bundles))
-	.then(() => {
-		if (process.argv.indexOf("test") !== -1) {
-			const browserEnv = env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true)
-			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
-			]).then(bundleSW(browserEnv))
-		} else if (process.argv.indexOf("prod") !== -1) {
-			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
-			])
-		} else if (process.argv.indexOf("host") !== -1) {
-			const hostname = process.argv[process.argv.indexOf("host") + 1]
-			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
-			])
-		} else {
-			const browserEnv = env.create(SystemConfig.distRuntimeConfig(bundles),
-				"http://localhost:9000", version, "Browser", true)
-			return Promise.all([
-				createHtml(browserEnv, bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://" + os.hostname().split(".")[0]
-					+ ":9000", version, "App", true), bundles)
-			]).then(bundleSW(browserEnv))
-		}
-	})
-	.then(copyDependencies)
-	.then(deb)
-	.then(release)
-	.then(() => console.log(`\nBuild time: ${(Date.now() - start) / 1000}s`))
-	.catch(e => {
-		console.log("\nBuild error:", e)
-		process.exit(1)
-	})
-
+function measure() {
+	return (Date.now() - start) / 1000
+}
 
 function clean() {
 	return fs.removeAsync("build")
@@ -139,10 +142,13 @@ function bundle(src, targetFile, bundles) {
 	})
 }
 
-function bundleSW(env) {
+function bundleSW(bundles) {
+	console.log("B U N D L E S", JSON.stringify(bundles))
 	return fs.readFileAsync("src/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
-			.concat(Object.keys(env.systemConfig.bundles))
+			.concat(Object.keys(bundles))
+			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))
+			.concat(fs.readdirSync(distLoc("translations")).map(f => `translations/${f}`))
 		// use "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
 		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
