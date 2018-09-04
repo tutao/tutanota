@@ -1090,6 +1090,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"updateFound_label": "Es ist eine neue Version verfügbar. Schließe alle Tabs um die neue Version zu aktivieren."
 	}
 }

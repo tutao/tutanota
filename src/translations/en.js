@@ -1087,6 +1087,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"updateFound_label": "New Version was found. Please close all tabs to activate this version."
 	}
 }

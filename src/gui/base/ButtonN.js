@@ -57,7 +57,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 	}
 }
 
-export type ButtonAttrs = {
+export type ButtonAttrs = {|
 	label: string | lazy<string>,
 	click: clickHandler,
 	icon?: lazy<SVG>,
@@ -68,7 +68,7 @@ export type ButtonAttrs = {
 	noBubble?: boolean,
 	staticRightText?: string,
 	type?: ButtonTypeEnum
-}
+|}
 
 /**
  * A button.

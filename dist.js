@@ -104,7 +104,7 @@ Promise.resolve()
 		       ])
 	       }
        })
-       .then(bundleSW(bundles))
+       .then(() => bundleSW(bundles))
        .then(copyDependencies)
        .then(deb)
        .then(release)
@@ -143,17 +143,17 @@ function bundle(src, targetFile, bundles) {
 }
 
 function bundleSW(bundles) {
-	console.log("B U N D L E S", JSON.stringify(bundles))
 	return fs.readFileAsync("src/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles))
 			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))
 			.concat(fs.readdirSync(distLoc("translations")).map(f => `translations/${f}`))
-		// use "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
+		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
 		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
+			+ "function version() { return \"" + version + "\"}"
 		return babelCompile(content).code
-	}).then((content) => fs.writeFileAsync(distLoc("sw.js"), content, 'utf-8'))
+	}).then((content) => _writeFile(distLoc("sw.js"), content))
 }
 
 function copyDependencies() {
@@ -176,7 +176,7 @@ function createHtml(env, bundles) {
 }
 
 function createLanguageBundles(bundles) {
-	return Promise.all(glob.sync('src/translations/en.js').map(translation => {
+	return Promise.all(glob.sync('src/translations/*.js').map(translation => {
 		let filename = path.basename(translation)
 		return builder.bundle(translation, {
 			minify: false,

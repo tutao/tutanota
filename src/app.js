@@ -1,3 +1,4 @@
+//@flow
 import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
@@ -15,10 +16,9 @@ import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
-import {asyncImport} from "./api/common/utils/Utils"
+import {asyncImport, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
-import {logout} from "./native/SystemApp"
 import {windowFacade} from "./misc/WindowFacade"
 
 assertMainOrNodeBoot()
@@ -49,7 +49,8 @@ function _asyncImport(path: string) {
 client.init(navigator.userAgent, navigator.platform)
 styles.init()
 
-export const state = (deletedModule && deletedModule.module) ? deletedModule.module.state : {prefix: null}
+export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
+	? deletedModule.module.state : {prefix: null}
 
 let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
@@ -77,7 +78,8 @@ let initialized = lang.init(en).then(() => {
 		return;
 	}
 
-	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true, doNotCache: boolean = false) {
+	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true,
+	                            doNotCache: boolean = false): RouteResolverMatch {
 		let cache = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
@@ -135,9 +137,9 @@ let initialized = lang.init(en).then(() => {
 		.then(module => new module.ContactFormView()), false)
 
 	let start = "/"
-	if (state.prefix == null) {
-		state.prefix = location.pathname[location.pathname.length - 1]
-		!== '/' ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+	if (!state.prefix) {
+		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
+			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
@@ -152,10 +154,10 @@ let initialized = lang.init(en).then(() => {
 		}
 		let target = redirectTo + newQueryString + location.hash
 		if (target === "" || target[0] !== "/") target = "/" + target
-		history.replaceState(null, null, state.prefix + target)
+		history.replaceState(null, "", neverNull(state.prefix) + target)
 		start = target
 	}
-	m.route.prefix(state.prefix)
+	m.route.prefix(neverNull(state.prefix))
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	m.route(document.body, start, {
@@ -178,10 +180,10 @@ let initialized = lang.init(en).then(() => {
 		"/signup": registerViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/:path...": {
-			onmatch: (args, requestedPath) => {
+			onmatch: (args: {[string]: string}, requestedPath: string): void => {
 				console.log("Not found", args, requestedPath)
 			},
-			render: () => {
+			render: (vnode: Object): VirtualElement => {
 				return m(root, m(new InfoView(() => "404", () => [
 					m("p", lang.get("notFound404_msg")),
 					m(new Button('back_action', () => window.history.back())
@@ -197,10 +199,32 @@ let initialized = lang.init(en).then(() => {
 	setupExceptionHandling()
 })
 
-if ('serviceWorker' in navigator) {
-	console.log("Registering ServiceWorker")
-	navigator.serviceWorker.register("sw.js")
-	         .then(() => console.log("ServiceWorker has been installed"))
+function showUpdateOverlay() {
+	_asyncImport("src/gui/base/NotificationOverlay.js")
+		.then(module => module.show(lang.get("updateFound_label")))
+}
+
+function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
+	const pending = registration.waiting || registration.installing
+	if (pending && registration.active) {
+		showUpdateOverlay()
+	}
+}
+
+const serviceWorker = navigator.serviceWorker
+if (serviceWorker) {
+	if (env.dist && !isApp()) {
+		console.log("Registering ServiceWorker")
+		serviceWorker.register("sw.js")
+		             .then((registration) => {
+			             console.log("ServiceWorker has been installed")
+			             showUpdateMessageIfNeeded(registration)
+			             registration.addEventListener("updatefound", () => {
+				             console.log("updatefound")
+				             showUpdateMessageIfNeeded(registration)
+			             })
+		             })
+	}
 } else {
 	console.log("ServiceWorker is not supported")
 }
@@ -221,7 +245,7 @@ function forceLogin(args: {[string]: string}, requestedPath: string) {
 }
 
 
-export function __reload(deletedModule) {
+export function __reload(deletedModule: any) {
 	console.log('__reload');
 }
 
