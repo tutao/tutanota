@@ -200,6 +200,7 @@ type EnvType = {
 	timeout: number,
 	rootPathPrefix: string,
 	adminTypes: string[],
+	systemConfig: any
 }
 
 declare var env: EnvType

@@ -5,6 +5,7 @@ import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/SearchModel"
 import {assertMainOrNode} from "../Env"
 import {logins} from "./LoginController"
+import * as serviceWorkerClient from "./ServiceWorkerClient"
 
 assertMainOrNode()
 
@@ -24,4 +25,5 @@ export function initLocator(worker: WorkerClient) {
 	locator.entityEvent = new EntityEventController(logins)
 	locator.entropyCollector = new EntropyCollector(worker)
 	locator.search = new SearchModel()
+	serviceWorkerClient.init()
 }

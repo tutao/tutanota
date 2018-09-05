@@ -3,6 +3,16 @@ declare interface Component {
 	view(): VirtualElement | VirtualElement[];
 }
 
+declare type RouteResolverMatch = {
+	onmatch(args: {[string]: string}, requestedPath: string): ?(Component | Promise<Component>);
+}
+
+declare type RouteResolverRender = {
+	render(vnode: Object): VirtualElement | Array<VirtualElement>;
+}
+
+declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
+
 declare module 'mithril' {
 	declare interface Mithril {
 
@@ -23,9 +33,11 @@ declare module 'mithril' {
 		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
 		route: {
+			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
 			set(path: string): void;
 			get(): string;
 			param(): Object;
+			prefix(prefix: string): void;
 			link(vnode: any): Function;
 		};
 
@@ -36,10 +48,15 @@ declare module 'mithril' {
 		withAttr(attrName: string, callback: Function): Function;
 
 		buildQueryString(args: {[string]: any}): string;
+
+		parseQueryString(queryString: string): {[string]: string};
+
+		render(element: HTMLElement, vnodes: VirtualElement | Array<VirtualElement>): void;
 	}
 
 	declare export default Mithril;
 }
+
 declare module 'mithril/stream/stream.js' {
 	declare export default function stream<T>(T | void): Stream<T>;
 }
@@ -56,7 +73,7 @@ declare module 'dompurify' {
 	declare export default any;
 }
 declare module '@hot' { // hmr, access to previously loaded module
-	declare var exports: any;
+	declare export default any;
 	declare export var module: any;
 }
 declare module 'autolinker' {
@@ -68,13 +85,9 @@ declare module 'qrcode' {
 
 declare type Squire = any
 
-declare class Cordova {
-	platformId: string;
-	exec: Function;
+declare var tutao: {
+	currentView: any;
 }
-
-declare var cordova: Cordova;
-
 
 declare class ContactFindOptions { // cordova contact plugin
 	filter: string,
