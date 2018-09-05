@@ -40,7 +40,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean)
 	}).addShortcut({
 		key: Keys.ESC,
 		exec: cancelAction,
-		help: "closeDialog_msg"
+		help: "close_alt"
 	}).setCloseHandler(cancelAction)
 	                     .show()
 

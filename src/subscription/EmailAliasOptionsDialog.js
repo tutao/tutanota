@@ -76,7 +76,7 @@ export function show(): Promise<void> {
 				dialog.addShortcut({
 					key: Keys.ESC,
 					exec: cancelAction,
-					help: "closeDialog_msg"
+					help: "close_alt"
 				})
 				dialog.setCloseHandler(cancelAction)
 				dialog.show()

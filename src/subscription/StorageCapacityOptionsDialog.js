@@ -72,7 +72,7 @@ export function show(): Promise<void> {
 				}).addShortcut({
 					key: Keys.ESC,
 					exec: cancelAction,
-					help: "closeDialog_msg"
+					help: "close_alt"
 				}).setCloseHandler(cancelAction)
 				                     .show()
 			})

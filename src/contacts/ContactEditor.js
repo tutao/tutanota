@@ -199,7 +199,7 @@ export class ContactEditor {
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: () => this._close(),
-			                    help: "closeDialog_msg"
+			                    help: "close_alt"
 		                    })
 		                    .addShortcut({
 			                    key: Keys.S,
