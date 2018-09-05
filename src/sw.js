@@ -1,6 +1,7 @@
 //@flow
 
 // set by the build script
+
 declare var filesToCache: () => Array<string | URL>;
 declare var version: () => string;
 
@@ -13,28 +14,39 @@ const fail = (assert?: string): any => {
 const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 const urlsToCache = filesToCache().map(file => selfLocation + file)
 
-const precache = () => caches.open(CACHE).then(cache =>
-	cache.addAll(urlsToCache)
-	     .then(() => cache.match("index.html"))
-	     .then((r: Response) => {
-		     // Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response
+// needed because FF fails to cache.addAll()
+const addAllToCache = (cache) => {
+	return Promise.all(urlsToCache.map(url =>
+		cache.add(url)
+		     .catch(e => {
+			     console.log("failed to add", url, e)
+			     throw e
+		     })
+	))
+}
 
-		     const clonedResponse = r.clone()
-		     const bodyPromise = 'body' in clonedResponse
-			     ? Promise.resolve(clonedResponse.body)
-			     : clonedResponse.blob();
-		     // Casting body to "any" because Flow is missing ReadableStream option for response constructor
-		     // see: https://github.com/facebook/flow/issues/6824
-		     return bodyPromise.then(body =>
-			     new Response((body: any), {
-				     headers: clonedResponse.headers,
-				     status: clonedResponse.status,
-				     statusText: clonedResponse.statusText
-			     })
-		     )
-	     })
-	     .then((r) => cache.put(selfLocation, r))
-	     .then(() => cache.delete("index.html"))
+const precache = () => caches.open(CACHE).then(cache =>
+	addAllToCache(cache)
+		.then(() => cache.match("index.html"))
+		.then((r: Response) => {
+			// Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response
+
+			const clonedResponse = r.clone()
+			const bodyPromise = 'body' in clonedResponse
+				? Promise.resolve(clonedResponse.body)
+				: clonedResponse.blob();
+			// Casting body to "any" because Flow is missing ReadableStream option for response constructor
+			// see: https://github.com/facebook/flow/issues/6824
+			return bodyPromise.then(body =>
+				new Response((body: any), {
+					headers: clonedResponse.headers,
+					status: clonedResponse.status,
+					statusText: clonedResponse.statusText
+				})
+			)
+		})
+		.then((r) => cache.put(selfLocation, r))
+		.then(() => cache.delete("index.html"))
 )
 
 const fromCache = (request) => caches.open(CACHE)
@@ -44,10 +56,7 @@ const fromCache = (request) => caches.open(CACHE)
 	                                     return cached
                                      })
 
-const fromNetwork = (request) => {
-	console.log(`SW: from network: ${request.url || request }`)
-	return fetch(request)
-}
+const fromNetwork = (request) => fetch(request)
 
 self.addEventListener("install", (evt) => {
 	console.log("SW: being installed")
@@ -56,6 +65,10 @@ self.addEventListener("install", (evt) => {
 
 const deleteOldCaches = (): Promise<*> => caches.keys().then((cacheNames) => Promise.all(cacheNames.map((cacheName) =>
 	cacheName !== CACHE ? caches.delete(cacheName) : Promise.resolve())))
+                                                .catch(e => {
+	                                                console.log("error while deleting old caches", e)
+	                                                throw e
+                                                })
 
 self.addEventListener('activate', (event) => {
 	event.waitUntil(deleteOldCaches().then(() => self.clients.claim()))
