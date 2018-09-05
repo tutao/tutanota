@@ -1,9 +1,9 @@
 //@flow
 
 // set by the build script
-
 declare var filesToCache: () => Array<string | URL>;
 declare var version: () => string;
+declare var customDomainCacheExclusions: () => Array<string>;
 
 const CACHE = "CODE_CACHE-v" + version()
 
@@ -12,7 +12,16 @@ const fail = (assert?: string): any => {
 }
 
 const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
-const urlsToCache = filesToCache().map(file => selfLocation + file)
+
+const isTutanotaDomain = () =>
+	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
+	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
+
+const exclusions = customDomainCacheExclusions()
+const urlsToCache = (isTutanotaDomain()
+	? filesToCache()
+	: filesToCache().filter(file => !exclusions.includes(file)))
+	.map(file => selfLocation + file)
 
 // needed because FF fails to cache.addAll()
 const addAllToCache = (cache) => {
@@ -28,9 +37,11 @@ const addAllToCache = (cache) => {
 const precache = () => caches.open(CACHE).then(cache =>
 	addAllToCache(cache)
 		.then(() => cache.match("index.html"))
-		.then((r: Response) => {
+		.then((r: ?Response) => {
+			if (!r) {
+				return
+			}
 			// Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response
-
 			const clonedResponse = r.clone()
 			const bodyPromise = 'body' in clonedResponse
 				? Promise.resolve(clonedResponse.body)
@@ -42,11 +53,8 @@ const precache = () => caches.open(CACHE).then(cache =>
 					headers: clonedResponse.headers,
 					status: clonedResponse.status,
 					statusText: clonedResponse.statusText
-				})
-			)
+				})).then((r) => cache.put(selfLocation, r)).then(() => cache.delete("index.html"))
 		})
-		.then((r) => cache.put(selfLocation, r))
-		.then(() => cache.delete("index.html"))
 )
 
 const fromCache = (request) => caches.open(CACHE)
@@ -80,12 +88,17 @@ const urlWithoutQuery = (urlString) => {
 }
 
 const possibleRest = selfLocation + "rest"
-const shouldServeDefaultPage = (request: Request) => request.url.startsWith(selfLocation)
-	&& !request.url.startsWith(possibleRest) && !request.url.endsWith(".html")
+const shouldServeDefaultPage = (request: Request) => {
+	const withoutQuery = urlWithoutQuery(request.url)
+	return withoutQuery.startsWith(selfLocation)
+		&& withoutQuery !== selfLocation
+		&& !withoutQuery.startsWith(possibleRest)
+		&& !withoutQuery.endsWith(".html")
+		&& !exclusions.includes(withoutQuery.substring(selfLocation.length))
+}
 
 
 const serveDefaultPage = (url: string) => {
-	console.log("serving default page for ", url)
 	const withoutBasePath = url.substring(selfLocation.length)
 	const params = new URLSearchParams({r: withoutBasePath})
 	return Response.redirect(`${selfLocation}?${params.toString()}`)

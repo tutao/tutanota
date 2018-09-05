@@ -97,8 +97,7 @@ Promise.resolve()
 		       ])
 	       } else {
 		       return Promise.all([
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version,
-				       "Browser", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
 				       "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
 		       ])
@@ -150,8 +149,11 @@ function bundleSW(bundles) {
 			.concat(fs.readdirSync(distLoc("translations")).map(f => `translations/${f}`))
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
+		const customDomainFileExclusions = ["index.html", "index.js"]
 		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
-			+ "function version() { return \"" + version + "\"}"
+			+ "\n function version() { return \"" + version + "\"}"
+			+ "\n" + "function customDomainCacheExclusions() { return " + JSON.stringify(customDomainFileExclusions)
+			+ "}"
 		return babelCompile(content).code
 	}).then((content) => _writeFile(distLoc("sw.js"), content))
 }
