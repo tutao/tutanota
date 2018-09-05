@@ -140,7 +140,7 @@ export class MailView {
 			.setMiddle(() => lang.get("mailHeaders_title"))
 		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
 			view: () => {
-				return m(".white-space-pre.pt.pb", this.mailHeaderInfo)
+				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
 			}
 		}).addShortcut({
 			key: Keys.ESC,
