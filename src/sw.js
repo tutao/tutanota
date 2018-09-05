@@ -68,14 +68,14 @@ const urlWithoutQuery = (urlString) => {
 
 const possibleRest = selfLocation + "rest"
 const shouldServeDefaultPage = (request: Request) => request.url.startsWith(selfLocation)
-	&& !request.url.startsWith(possibleRest)
+	&& !request.url.startsWith(possibleRest) && !request.url.endsWith(".html")
 
 
 const serveDefaultPage = (url: string) => {
 	console.log("serving default page for ", url)
 	const withoutBasePath = url.substring(selfLocation.length)
 	const params = new URLSearchParams({r: withoutBasePath})
-	return Response.redirect(`${selfLocation}?${params.toString()}`) //fromCache(selfLocation)
+	return Response.redirect(`${selfLocation}?${params.toString()}`)
 }
 
 self.addEventListener('fetch', (evt) => {
