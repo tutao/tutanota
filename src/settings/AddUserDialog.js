@@ -3,7 +3,7 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
-import {TUTANOTA_MAIL_ADDRESS_DOMAINS, AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm} from "./PasswordForm"
@@ -16,6 +16,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+
 
 assertMainOrNode()
 
@@ -33,20 +34,26 @@ export function show(): Promise<void> {
 				]
 			}
 		}
-		return Dialog.smallDialog(lang.get("addUsers_action"), form, () => mailAddressForm.getErrorMessageId()
-			|| passwordForm.getErrorMessageId()).then(okClicked => {
-			if (okClicked) {
-				return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
-					.then(accepted => {
-						if (accepted) {
-							let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-							return showProgressDialog(() => lang.get("createActionStatus_msg", {
-								"{index}": 0,
-								"{count}": 1
-							}), p, true)
-						}
-					})
-			}
+
+		let addUserOkAction = (dialog) => {
+			return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
+				.then(accepted => {
+					if (accepted) {
+						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
+						dialog.close();
+						return showProgressDialog(() => lang.get("createActionStatus_msg", {
+							"{index}": 0,
+							"{count}": 1
+						}), p, true)
+					}
+				})
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("addUsers_action"),
+			child: form,
+			validator: () => mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId(),
+			okAction: addUserOkAction
 		})
 	})
 }

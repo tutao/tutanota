@@ -2,7 +2,7 @@
 import type {GroupTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
-export function defer(): {resolve: Function, reject: Function, promise: Promise<any>} {
+export function defer<T>(): {resolve: (T) => void, reject: (Error) => void, promise: Promise<T>} {
 	let cb
 	let promise = Promise.fromCallback(pcb => {
 		cb = pcb

@@ -42,14 +42,19 @@ export function show(props: TutanotaProperties) {
 			]
 		}
 	}
-	return Dialog.smallDialog(lang.get("userEmailSignature_label"), form).then(okClicked => {
-		if (okClicked) {
-			logins.getUserController().props.emailSignatureType = typeField.selectedValue()
-			if (typeField.selectedValue() === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-				logins.getUserController().props.customEmailSignature = editor.getValue()
-			}
-			update(logins.getUserController().props)
+	let editSignatureOkAction = (dialog) => {
+		logins.getUserController().props.emailSignatureType = typeField.selectedValue()
+		if (typeField.selectedValue() === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+			logins.getUserController().props.customEmailSignature = editor.getValue()
 		}
+		update(logins.getUserController().props)
+		dialog.close()
+	}
+
+	Dialog.showActionDialog({
+		title: lang.get("userEmailSignature_label"),
+		child: form,
+		okAction: editSignatureOkAction
 	})
 }
 

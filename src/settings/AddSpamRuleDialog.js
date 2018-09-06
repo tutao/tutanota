@@ -43,19 +43,24 @@ export function show(emailAddressOrDomainName: ?string) {
 			]
 		}
 	}
-	return Dialog.smallDialog(lang.get("addSpamRule_action"), form,
-		() => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains))
-	             .then(okClicked => {
-		             if (okClicked) {
-			             worker.addSpamRule(typeField.selectedValue(), valueField.value())
-		             }
-	             })
+	let addSpamRuleOkAction = (dialog) => {
+		worker.addSpamRule(typeField.selectedValue(), valueField.value())
+		dialog.close()
+	}
+
+	Dialog.showActionDialog({
+		title: lang.get("addSpamRule_action"),
+		child: form,
+		validator: () => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains),
+		okAction: addSpamRuleOkAction
+	})
 }
 
 function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
 	let currentValue = value.toLowerCase().trim()
 
 	if (!existingRules || !customDomains || currentValue === "") {
+		//TODO: not in en.js
 		return "emptyString_msg"
 	} else if (!isDomainName(currentValue) && !isMailAddress(currentValue, false)) {
 		return "invalidInputFormat_msg"

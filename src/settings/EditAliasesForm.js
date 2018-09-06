@@ -2,14 +2,14 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {Dialog} from "../gui/base/Dialog"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import {lang} from "../misc/LanguageViewModel"
 import TableLine from "../gui/base/TableLine"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
-import {LimitReachedError, InvalidDataError} from "../api/common/error/RestError"
+import {InvalidDataError, LimitReachedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS, OperationType} from "../api/common/TutanotaConstants"
+import {AccountType, OperationType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {load} from "../api/main/Entity"
@@ -18,10 +18,10 @@ import {addAll} from "../api/common/utils/ArrayUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
@@ -93,24 +93,23 @@ export class EditAliasesForm {
 		} else {
 			this._getAvailableDomains().then(domains => {
 				let form = new SelectMailAddressForm(domains)
-				return Dialog.smallDialog(lang.get("addEmailAlias_label"), {
-					view: () => [
-						m(form),
-						m(".small.mt-s", lang.get("addEmailAliasInfo_msg"))
-					]
-				}, () => {
-					return form.getErrorMessageId()
-				}).then(ok => {
-					if (ok) {
-						let p = worker.addMailAlias(this._userGroupInfo.group, form.getCleanMailAddress())
-						              .catch(InvalidDataError, () => {
-							              Dialog.error("mailAddressNA_msg")
-						              })
-						              .catch(LimitReachedError, () => {
-							              Dialog.error("adminMaxNbrOfAliasesReached_msg")
-						              })
-						showProgressDialog("pleaseWait_msg", p)
-					}
+				let addEmailAliasOkAction = (dialog) => {
+					let p = worker.addMailAlias(this._userGroupInfo.group, form.getCleanMailAddress())
+					              .catch(InvalidDataError, () => {
+						              Dialog.error("mailAddressNA_msg")
+					              })
+					              .catch(LimitReachedError, () => {
+						              Dialog.error("adminMaxNbrOfAliasesReached_msg")
+					              })
+					showProgressDialog("pleaseWait_msg", p)
+					dialog.close()
+				}
+
+				Dialog.showActionDialog({
+					title: lang.get("addEmailAlias_label"),
+					child: form,
+					validator: () => form.getErrorMessageId(),
+					okAction: addEmailAliasOkAction
 				})
 			})
 		}

@@ -6,13 +6,14 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InputFieldType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import {createInputField} from "../api/entities/tutanota/InputField"
 import {createName} from "../api/entities/tutanota/Name"
 import {Button} from "../gui/base/Button"
 import TableLine from "../gui/base/TableLine"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {Icons} from "../gui/base/icons/Icons"
+import {defer} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -46,25 +47,34 @@ export function show(): Promise<?InputField> {
 			])
 		}
 	}
-	return Dialog.smallDialog(lang.get("addStatisticsField_action"), form,
-		() => _validate(nameField.value(), typeField.selectedValue(), enumNames))
-	             .then(okClicked => {
-		             if (okClicked) {
-			             let f = createInputField()
-			             f.name = nameField.value()
-			             f.type = typeField.selectedValue()
-			             if (typeField.selectedValue() === InputFieldType.ENUM) {
-				             f.enumValues = enumNames.map(name => {
-					             let n = createName()
-					             n.name = name
-					             return n
-				             })
-			             }
-			             return f
-		             } else {
-			             Promise.resolve(null)
-		             }
-	             })
+
+
+	const {resolve, promise} = defer()
+
+	const addStatisticsFieldOkAction = (dialog) => {
+		let f = createInputField()
+		f.name = nameField.value()
+		f.type = typeField.selectedValue()
+		if (typeField.selectedValue() === InputFieldType.ENUM) {
+			f.enumValues = enumNames.map(name => {
+				let n = createName()
+				n.name = name
+				return n
+			})
+		}
+		dialog.close()
+		resolve(f)
+	}
+
+	Dialog.showActionDialog({
+		title: lang.get("addStatisticsField_action"),
+		child: form,
+		validator: () => _validate(nameField.value(), typeField.selectedValue(), enumNames),
+		okAction: addStatisticsFieldOkAction,
+		cancelAction: () => resolve(null)
+	})
+
+	return promise
 }
 
 function _updateEnumTable(enumTable: Table, enumNames: string[]) {

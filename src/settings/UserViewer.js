@@ -3,20 +3,20 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
-import {Dialog} from "../gui/base/Dialog"
-import {update, load, loadAll, loadMultiple, loadRange} from "../api/main/Entity"
+import {Dialog, DialogType} from "../gui/base/Dialog"
+import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {EditAliasesForm} from "./EditAliasesForm"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {isSameId, isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFunctions"
+import {CUSTOM_MIN_ID, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
+import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -24,7 +24,7 @@ import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import TableLine from "../gui/base/TableLine"
 import {getGroupTypeName} from "./GroupViewer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -329,15 +329,19 @@ export class UserViewer {
 			})
 			if (availableGroupInfos.length > 0) {
 				availableGroupInfos.sort(compareGroupInfos)
-				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
+				let dropdown = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
 				}), availableGroupInfos[0], 250)
-				return Dialog.smallDialog(lang.get("addUserToGroup_label"), {
-					view: () => m(d)
-				}, null).then(ok => {
-					if (ok) {
-						showProgressDialog("pleaseWait_msg", worker.addUserToGroup(user, d.selectedValue().group))
-					}
+
+				let addUserToGroupOkAction = (dialog) => {
+					showProgressDialog("pleaseWait_msg", worker.addUserToGroup(user, dropdown.selectedValue().group))
+					dialog.close()
+				}
+
+				Dialog.showActionDialog({
+					title: lang.get("addUserToGroup_label"),
+					child: {view: () => m(dropdown)},
+					okAction: addUserToGroupOkAction
 				})
 			}
 		})
@@ -349,19 +353,23 @@ export class UserViewer {
 			this._customer.getAsync().then(customer => {
 				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
 					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
-						let d = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
+						let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
 							return {name: cf.path, value: cf}
 						}), contactForms[0], 250)
-						return Dialog.smallDialog(lang.get("responsiblePersons_label"), {
-							view: () => m(d)
-						}, null).then(ok => {
-							if (ok) {
-								let cf = (d.selectedValue(): ContactForm)
-								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
-									cf.participantGroupInfos.push(user.userGroup.groupInfo)
-								}
-								showProgressDialog("pleaseWait_msg", update(cf))
+
+						let addUserToContactFormOkAction = (dialog) => {
+							let cf = (dropdown.selectedValue(): ContactForm)
+							if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
+								cf.participantGroupInfos.push(user.userGroup.groupInfo)
 							}
+							showProgressDialog("pleaseWait_msg", update(cf))
+							dialog.close()
+						}
+
+						Dialog.showActionDialog({
+							title: lang.get("responsiblePersons_label"),
+							child: {view: () => m(dropdown)},
+							okAction: addUserToContactFormOkAction
 						})
 					})
 				})

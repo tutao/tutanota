@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/Formatter"
@@ -12,7 +12,7 @@ import {update} from "../api/main/Entity"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {logins} from "../api/main/LoginController"
-import {getFolderName, getInboxFolder, getArchiveFolder} from "../mail/MailUtils"
+import {getArchiveFolder, getFolderName, getInboxFolder} from "../mail/MailUtils"
 import type {MailboxDetail} from "../mail/MailModel"
 
 assertMainOrNode()
@@ -40,17 +40,22 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 				]
 			}
 		}
-		return Dialog.smallDialog(lang.get("addInboxRule_action"), form, () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value()))
-		             .then(okClicked => {
-			             if (okClicked) {
-				             let rule = createInboxRule()
-				             rule.type = typeField.selectedValue()
-				             rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
-				             rule.targetFolder = targetFolderField.selectedValue()._id
-				             logins.getUserController().props.inboxRules.push(rule)
-				             update(logins.getUserController().props)
-			             }
-		             })
+		let addInboxRuleOkAction = (dialog) => {
+			let rule = createInboxRule()
+			rule.type = typeField.selectedValue()
+			rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
+			rule.targetFolder = targetFolderField.selectedValue()._id
+			logins.getUserController().props.inboxRules.push(rule)
+			update(logins.getUserController().props)
+			dialog.close()
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("addInboxRule_action"),
+			child: form,
+			validator: () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value()),
+			okAction: addInboxRuleOkAction
+		})
 	}
 }
 

@@ -135,10 +135,10 @@ export class MailSettingNotificationViewer {
 		const list = user.pushIdentifierList
 		if (list) {
 			loadAll(PushIdentifierTypeRef, list.list)
-			       .then((identifiers) => {
-				       this._identifiers = identifiers
-				       m.redraw()
-			       })
+				.then((identifiers) => {
+					this._identifiers = identifiers
+					m.redraw()
+				})
 		}
 	}
 
@@ -160,28 +160,38 @@ export class MailSettingNotificationViewer {
 		} else {
 
 			let emailAddressInputField = new TextField("mailAddress_label")
-			return Dialog.smallDialog(lang.get("notificationSettings_action"), {
+			let form = {
 				view: () => [
 					m(emailAddressInputField),
 					m(".small.mt-s", lang.get("emailPushNotification_msg"))
 				]
-			}, () => {
-				return getCleanedMailAddress(emailAddressInputField.value()) == null ?
-					"mailAddressInvalid_msg" : null // TODO check if it is a Tutanota mail address
-			}).then(ok => {
-				if (ok) {
-					let pushIdentifier = createPushIdentifier()
-					pushIdentifier.identifier = neverNull(getCleanedMailAddress(emailAddressInputField.value()))
-					pushIdentifier.language = lang.code
-					pushIdentifier.pushServiceType = PushServiceType.EMAIL
-					pushIdentifier._ownerGroup = user.userGroup.group
-					pushIdentifier._owner = user.userGroup.group // legacy
-					pushIdentifier._area = "0" // legacy
-					let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
-						neverNull(user.pushIdentifierList).list, null, pushIdentifier);
-					showProgressDialog("pleaseWait_msg", p)
-				}
+			}
+			let addNotificationEmailAddressOkAction = (dialog) => {
+				let pushIdentifier = createPushIdentifier()
+				pushIdentifier.identifier = neverNull(getCleanedMailAddress(emailAddressInputField.value()))
+				pushIdentifier.language = lang.code
+				pushIdentifier.pushServiceType = PushServiceType.EMAIL
+				pushIdentifier._ownerGroup = user.userGroup.group
+				pushIdentifier._owner = user.userGroup.group // legacy
+				pushIdentifier._area = "0" // legacy
+				let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
+					neverNull(user.pushIdentifierList).list, null, pushIdentifier);
+				showProgressDialog("pleaseWait_msg", p)
+				dialog.close()
+			}
+
+			Dialog.showActionDialog({
+				title: lang.get("notificationSettings_action"),
+				child: form,
+				validator: () => this._validateAddNotificationEmailAddressInput(emailAddressInputField.value()),
+				okAction: addNotificationEmailAddressOkAction
 			})
 		}
+	}
+
+	_validateAddNotificationEmailAddressInput(emailAddress: string): ?string {
+		return getCleanedMailAddress(emailAddress) == null
+			? "mailAddressInvalid_msg"
+			: null // TODO check if it is a Tutanota mail address
 	}
 }

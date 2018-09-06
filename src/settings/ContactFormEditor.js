@@ -5,9 +5,9 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
-import {GroupType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {load, loadAll, update, setup} from "../api/main/Entity"
-import {neverNull, getGroupInfoDisplayName, compareGroupInfos, getBrandingDomain} from "../api/common/utils/Utils"
+import {BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
+import {load, loadAll, setup, update} from "../api/main/Entity"
+import {compareGroupInfos, getBrandingDomain, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
@@ -16,11 +16,11 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import TableLine from "../gui/base/TableLine"
-import {createContactForm, ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {remove, mapAndFilterNull} from "../api/common/utils/ArrayUtils"
-import {statisticsFieldTypeToString, getContactFormUrl} from "./ContactFormViewer"
+import {ContactFormTypeRef, createContactForm} from "../api/entities/tutanota/ContactForm"
+import {mapAndFilterNull, remove} from "../api/common/utils/ArrayUtils"
+import {getContactFormUrl, statisticsFieldTypeToString} from "./ContactFormViewer"
 import * as AddStatisticsFieldDialog from "./AddStatisticsFieldDialog"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import {Icons} from "../gui/base/icons/Icons"
@@ -32,7 +32,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
+import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -129,16 +129,19 @@ export class ContactFormEditor {
 			let availableGroupInfos = allUserGroupInfos.filter(g =>
 				this._participantGroupInfoList.find(alreadyAdded => isSameId(alreadyAdded._id, g._id)) == null)
 			if (availableGroupInfos.length > 0) {
-				let d = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
+				let dropdown = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
 				}), availableGroupInfos[0], 250)
-				return Dialog.smallDialog(lang.get("responsiblePersons_label"), {
-					view: () => m(d)
-				}, null).then(ok => {
-					if (ok) {
-						this._participantGroupInfoList.push(d.selectedValue())
-						this._updateParticipantGroupInfosTable()
-					}
+				let addResponsiblePersonOkAction = (dialog) => {
+					this._participantGroupInfoList.push(dropdown.selectedValue())
+					this._updateParticipantGroupInfosTable()
+					dialog.close()
+				}
+
+				Dialog.showActionDialog({
+					title: lang.get("responsiblePersons_label"),
+					child: {view: () => m(dropdown)},
+					okAction: addResponsiblePersonOkAction
 				})
 			}
 		}, () => Icons.Add)
@@ -176,15 +179,18 @@ export class ContactFormEditor {
 				let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 
 				setTimeout(() => {
-					Dialog.smallDialog(lang.get("addLanguage_action"), {
-						view: () => m(tagName)
-					}).then(ok => {
-						if (ok) {
-							let newLang = createContactFormLanguage()
-							newLang.code = newLanguageCode()
-							this._languages.push(newLang)
-							this._language(newLang)
-						}
+					let addLanguageOkAction = (dialog) => {
+						let newLang = createContactFormLanguage()
+						newLang.code = newLanguageCode()
+						this._languages.push(newLang)
+						this._language(newLang)
+						dialog.close()
+					}
+
+					Dialog.showActionDialog({
+						title: lang.get("addLanguage_label"),
+						child: {view: () => m(tagName)},
+						okAction: addLanguageOkAction
 					})
 				}, DefaultAnimationTime)// wait till the dropdown is hidden
 			}).setType(ButtonType.Dropdown))

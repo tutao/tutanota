@@ -4,15 +4,15 @@ import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
-import {update, load, loadRange, loadAll} from "../api/main/Entity"
+import {load, loadAll, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId, isSameTypeRef, GENERATED_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {neverNull, getGroupInfoDisplayName, compareGroupInfos} from "../api/common/utils/Utils"
+import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -208,20 +208,23 @@ export class GroupViewer {
 				})
 				if (availableUserGroupInfos.length > 0) {
 					availableUserGroupInfos.sort(compareGroupInfos)
-					let d = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
+					let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
 						return {name: getGroupInfoDisplayName(g), value: g}
 					}), availableUserGroupInfos[0], 250)
-					return Dialog.smallDialog(lang.get("addUserToGroup_label"), {
-						view: () => m(d)
-					}, null).then(ok => {
-						if (ok) {
-							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, d.selectedValue().group)
-								.then(userGroup => {
-									return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-										worker.addUserToGroup(user, this.groupInfo.group)
-									})
-								}))
-						}
+					let addUserToGroupOkAction = (dialog) => {
+						showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
+							.then(userGroup => {
+								return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+									worker.addUserToGroup(user, this.groupInfo.group)
+								})
+							}))
+						dialog.close()
+					}
+
+					Dialog.showActionDialog({
+						title: lang.get("addUserToGroup_label"),
+						child: {view: () => m(dropdown)},
+						okAction: addUserToGroupOkAction
 					})
 				}
 			})

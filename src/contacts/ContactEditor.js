@@ -8,22 +8,22 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress, parseBirthday} from "../misc/Formatter"
 import {
-	getContactAddressTypeLabel,
 	ContactMailAddressTypeToLabel,
-	getContactPhoneNumberTypeLabel,
 	ContactPhoneNumberTypeToLabel,
-	getContactSocialTypeLabel,
 	ContactSocialTypeToLabel,
 	formatBirthdayNumeric,
+	getContactAddressTypeLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactSocialTypeLabel,
 	migrateToNewBirthday
 } from "./ContactUtils"
-import {ContactAddressType, GroupType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
-import {animations, height, DefaultAnimationTime, opacity} from "../gui/animation/Animations"
-import {update, setup} from "../api/main/Entity"
-import {createContactMailAddress, ContactMailAddressTypeRef} from "../api/entities/tutanota/ContactMailAddress"
-import {createContactPhoneNumber, ContactPhoneNumberTypeRef} from "../api/entities/tutanota/ContactPhoneNumber"
-import {createContactAddress, ContactAddressTypeRef} from "../api/entities/tutanota/ContactAddress"
-import {createContactSocialId, ContactSocialIdTypeRef} from "../api/entities/tutanota/ContactSocialId"
+import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType} from "../api/common/TutanotaConstants"
+import {animations, DefaultAnimationTime, height, opacity} from "../gui/animation/Animations"
+import {setup, update} from "../api/main/Entity"
+import {ContactMailAddressTypeRef, createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
+import {ContactPhoneNumberTypeRef, createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
+import {ContactAddressTypeRef, createContactAddress} from "../api/entities/tutanota/ContactAddress"
+import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {clone, neverNull} from "../api/common/utils/Utils"
@@ -394,15 +394,15 @@ class ContactAggregateEditor {
 							            .setValue(this.aggregate.customTypeName)
 
 						            setTimeout(() => {
-							            Dialog.smallDialog(lang.get("customLabel_label"), {
-								            view: () => m(tagName)
+							            Dialog.showTextInputDialog("customLabel_label",
+								            "customLabel_label",
+								            null,
+								            this.aggregate.customTypeName,
+								            null//validator needed?
+							            ).then((name) => {
+								            this.aggregate.customTypeName = name
+								            this.aggregate.type = key
 							            })
-							                  .then(ok => {
-								                  if (ok) {
-									                  this.aggregate.customTypeName = tagName.value()
-									                  this.aggregate.type = key
-								                  }
-							                  })
 						            }, DefaultAnimationTime)// wait till the dropdown is hidden
 					            } else {
 						            this.aggregate.type = key

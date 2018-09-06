@@ -14,7 +14,6 @@ import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {px, size} from "../size"
-import {styles} from "../styles"
 import {focusNext, focusPrevious, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -246,6 +245,21 @@ export class Dialog {
 					)
 			})
 			dialog.setCloseHandler(closeAction)
+
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: closeAction,
+				help: "close_alt"
+			})
+
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: closeAction,
+				help: "close_alt"
+			})
+
 			dialog.show()
 		})
 	}
@@ -290,11 +304,15 @@ export class Dialog {
 				dialog.close()
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
 			}
-			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-			buttons.push(new Button(confirmId, () => {
+
+			let confirmAction = () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			}
+
+			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
+			buttons.push(new Button(confirmId, confirmAction).setType(ButtonType.Primary))
+
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => [
 					m(".dialog-contentButtonsBottom.text-break.text-prewrap",
@@ -304,6 +322,21 @@ export class Dialog {
 				]
 			})
 			dialog.setCloseHandler(cancelAction)
+
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: cancelAction,
+				help: "cancel_action"
+			})
+
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: confirmAction,
+				help: neverNull(confirmId) //ok?
+			})
+
 			dialog.show()
 		})
 	}
@@ -363,51 +396,14 @@ export class Dialog {
 				]
 			})
 			dialog.setCloseHandler(cancelAction)
-			dialog.show()
-		})
-	}
 
-	/**
-	 * @param inputValidator Called when "Ok" is clicked. Must return null if the input is valid so the dialog is closed or an error messageId if the input is invalid, so an error message is shown and the dialog stays.
-	 * @deprecated user Dialog.showActionDialog
-	 */
-	static smallDialog(title: stream<string> | string, child: Component, inputValidator: ?validator): Promise<boolean> {
-		return Promise.fromCallback(cb => {
-			let actionBar = new DialogHeaderBar()
-
-			let cancelAction = () => {
-				dialog.close()
-				setTimeout(() => cb(null, false), DefaultAnimationTime)
-			}
-			actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-			actionBar.addRight(new Button("ok_action", () => {
-				if (inputValidator) {
-					let errorMessage = inputValidator()
-					if (errorMessage) {
-						this.error(errorMessage)
-						return
-					}
-				}
-				dialog.close()
-				setTimeout(() => cb(null, true), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
-
-			let dialog = new Dialog(DialogType.EditSmall, {
-				view: () => [
-					m(".dialog-header.plr-l", m(actionBar)),
-					m(".plr-l.pb.text-break.scroll", m(child))
-				]
+			dialog.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: cancelAction,
+				help: "cancel_action"
 			})
 
-			if (title) {
-				if (title instanceof Function) {
-					actionBar.setMiddle(title)
-				} else {
-					actionBar.setMiddle(stream(title))
-				}
-			}
-
-			dialog.setCloseHandler(cancelAction)
 			dialog.show()
 		})
 	}
@@ -415,24 +411,16 @@ export class Dialog {
 	static showActionDialog(props: {|
 		title: stream<string> | string,
 		child: Component,
-		okAction: action,
+		validator?: validator,
+		okAction: (dialog?: Dialog) => void,
 		allowCancel?: boolean,
 		okActionTextId?: string,
-		cancelAction?: action,
+		cancelAction?: (dialog?: Dialog) => void,
 		type?: DialogTypeEnum
 	|}): Dialog {
-		const {title, child, okAction, allowCancel, okActionTextId, cancelAction, type} =
+		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
 			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", type: DialogType.EditSmall}, props)
 		let actionBar = new DialogHeaderBar()
-
-		let doCancel = () => {
-			if (cancelAction) {
-				cancelAction()
-			}
-			dialog.close()
-		}
-
-		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(type, {
 			view: () => [
@@ -440,6 +428,28 @@ export class Dialog {
 				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
 			]
 		})
+
+		let doCancel = () => {
+			if (cancelAction) {
+				cancelAction(dialog)
+			}
+			dialog.close()
+		}
+
+		let doAction = () => {
+			let error_id = null
+			if (validator) {
+				error_id = validator()
+			}
+			if (error_id) {
+				Dialog.error(error_id)
+				return
+			} else {
+				okAction(dialog)
+			}
+		}
+
+		actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
 
 		if (allowCancel) {
 			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
@@ -481,13 +491,17 @@ export class Dialog {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
 			})
 			textField.value(value)
-			let inputValidatorWrapper = (inputValidator) ? (() => neverNull(inputValidator)(textField.value())) : null
-			return Dialog.smallDialog(lang.get(titleId), {
-				view: () => m(textField)
-			}, inputValidatorWrapper).then(ok => {
-				if (ok) {
-					cb(null, textField.value())
-				}
+
+			let textInputOkAction = (dialog) => {
+				cb(null, textField.value())
+				dialog.close()
+			}
+
+			Dialog.showActionDialog({
+				title: lang.get(titleId),
+				child: {view: () => m(textField)},
+				validator: () => inputValidator ? inputValidator(textField.value()) : null,
+				okAction: textInputOkAction
 			})
 		})
 	}
@@ -504,13 +518,17 @@ export class Dialog {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
 			}).setType(Type.Area)
 			textField.value(value)
-			let inputValidatorWrapper = (inputValidator) ? (() => neverNull(inputValidator)(textField.value())) : null
-			return Dialog.smallDialog(lang.get(titleId), {
-				view: () => m(textField)
-			}, inputValidatorWrapper).then(ok => {
-				if (ok) {
-					cb(null, textField.value())
-				}
+
+			let textAreaInputOkAction = (dialog) => {
+				cb(null, textField.value())
+				dialog.close()
+			}
+
+			Dialog.showActionDialog({
+				title: lang.get(titleId),
+				child: {view: () => m(textField)},
+				validator: (inputValidator) ? inputValidator(textField.value()) : null,
+				okAction: textAreaInputOkAction
 			})
 		})
 	}
@@ -519,12 +537,16 @@ export class Dialog {
 	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T> | T, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
-			return Dialog.smallDialog(lang.get(titleId), {
-				view: () => m(dropdown)
-			}).then(ok => {
-				if (ok) {
-					cb(null, dropdown.selectedValue())
-				}
+
+			let showDropDownSelectionOkAction = (dialog) => {
+				cb(null, dropdown.selectedValue())
+				dialog.close()
+			}
+
+			Dialog.showActionDialog({
+				title: lang.get(titleId),
+				child: {view: () => m(dropdown)},
+				okAction: showDropDownSelectionOkAction
 			})
 		})
 	}

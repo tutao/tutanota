@@ -112,29 +112,31 @@ export class PasswordForm {
 	 */
 	static showChangeOwnPasswordDialog(allowCancel: boolean = true): void {
 		let form = new PasswordForm(true, true, true)
-		let dialog = Dialog.showActionDialog({
+		let changeOwnPasswordOkAction = (dialog) => {
+			let error = form.getErrorMessageId();
+			if (error) {
+				Dialog.error(error)
+			} else {
+				showProgressDialog("pleaseWait_msg",
+					worker.changePassword(form.getOldPassword(), form.getNewPassword()))
+					.then(() => {
+						deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
+						Dialog.error("pwChangeValid_msg")
+						dialog.close()
+					})
+					.catch(NotAuthenticatedError, e => {
+						Dialog.error("oldPasswordInvalid_msg")
+					})
+					.catch(e => {
+						Dialog.error("passwordResetFailed_msg")
+					})
+			}
+		}
+		Dialog.showActionDialog({
 			title: lang.get("changePassword_label"),
 			child: form,
-			okAction: () => {
-				let error = form.getErrorMessageId();
-				if (error) {
-					Dialog.error(error)
-				} else {
-					showProgressDialog("pleaseWait_msg",
-						worker.changePassword(form.getOldPassword(), form.getNewPassword()))
-						.then(() => {
-							deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
-							Dialog.error("pwChangeValid_msg")
-							dialog.close()
-						})
-						.catch(NotAuthenticatedError, e => {
-							Dialog.error("oldPasswordInvalid_msg")
-						})
-						.catch(e => {
-							Dialog.error("passwordResetFailed_msg")
-						})
-				}
-			},
+			validator: () => form.getErrorMessageId(),
+			okAction: changeOwnPasswordOkAction,
 			allowCancel: allowCancel
 		})
 	}
@@ -144,15 +146,21 @@ export class PasswordForm {
 	 */
 	static showChangeUserPasswordAsAdminDialog(user: User): void {
 		let form = new PasswordForm(false, false, true)
-		Dialog.smallDialog(lang.get("changePassword_label"), form, () => form.getErrorMessageId()).then(okClicked => {
-			if (okClicked) {
-				let p = worker.changeUserPassword(user, form.getNewPassword()).then(() => {
-					Dialog.error("pwChangeValid_msg")
-				}).catch(e => {
-					Dialog.error("passwordResetFailed_msg")
-				})
-				showProgressDialog("pleaseWait_msg", p)
-			}
+		let changeUserPasswordAsAdminOkAction = (dialog) => {
+			let p = worker.changeUserPassword(user, form.getNewPassword()).then(() => {
+				Dialog.error("pwChangeValid_msg")
+				dialog.close()
+			}).catch(e => {
+				Dialog.error("passwordResetFailed_msg")
+			})
+			showProgressDialog("pleaseWait_msg", p)
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("changePassword_label"),
+			child: form,
+			validator: () => form.getErrorMessageId(),
+			okAction: changeUserPasswordAsAdminOkAction
 		})
 	}
 }

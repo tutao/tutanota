@@ -1,22 +1,22 @@
 // @flow
 import {
-	ConnectionError,
-	InvalidSoftwareVersionError,
-	InsufficientStorageError,
-	NotAuthenticatedError,
 	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
-	SessionExpiredError,
-	ServiceUnavailableError
+	ConnectionError,
+	InsufficientStorageError,
+	InvalidSoftwareVersionError,
+	NotAuthenticatedError,
+	ServiceUnavailableError,
+	SessionExpiredError
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
-import {Mode, assertMainOrNode, getHttpOrigin, isIOSApp} from "../api/Env"
-import {AccountType, ConversationType, ApprovalStatus} from "../api/common/TutanotaConstants"
+import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
+import {AccountType, ApprovalStatus, ConversationType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
@@ -145,13 +145,17 @@ export function handleUncaughtError(e: Error) {
 				let timestamp = new Date()
 				let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
 				textField.type = Type.Area
-				Dialog.smallDialog(lang.get("errorReport_label"), {
-					view: () => m(textField)
-				}).then((accepted) => {
+				let errorOkAction = (dialog) => {
 					unknownErrorDialogActive = false
-					if (accepted) {
-						_sendFeedbackMail(textField.value(), timestamp, e)
-					}
+					_sendFeedbackMail(textField.value(), timestamp, e)
+					dialog.close() // show progress & then close?
+				}
+
+				Dialog.showActionDialog({
+					title: lang.get("errorReport_label"),
+					child: {view: () => m(textField)},
+					okAction: errorOkAction,
+					cancelAction: () => unknownErrorDialogActive = false,
 				})
 			} else {
 				console.log("Unknown error", e)
