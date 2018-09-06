@@ -39,7 +39,7 @@ import {
 	GENERATED_ID_BYTES_LENGTH,
 	MediaType
 } from "../../common/EntityFunctions"
-import {assertWorkerOrNode, isTest, isAdmin} from "../../Env"
+import {assertWorkerOrNode, isTest, isAdminClient} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
@@ -248,7 +248,7 @@ export class LoginFacade {
 			})
 			.then(groupInfo => this._userGroupInfo = groupInfo)
 			.then(() => {
-				if (!isTest() && permanentLogin && !isAdmin()) {
+				if (!isTest() && permanentLogin && !isAdminClient()) {
 					// index new items in background
 					this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 				}

@@ -29,6 +29,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
+import {LogoutUrl} from "../gui/base/Header";
 
 assertMainOrNode()
 
@@ -215,6 +216,9 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 			} else {
 				return Dialog.error("invoiceNotPaidUser_msg").return(false)
 			}
+		} else if (customer.approvalStatus === ApprovalStatus.SpamSender) {
+			Dialog.error("loginAbuseDetected_msg").then(() => m.route.set(LogoutUrl))
+			return false
 		} else {
 			return true
 		}

@@ -45,7 +45,7 @@ export function isMain(): boolean {
 	return !worker && !node
 }
 
-export function isAdmin(): boolean {
+export function isAdminClient(): boolean {
 	return env.adminTypes.length > 0
 }
 

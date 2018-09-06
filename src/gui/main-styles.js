@@ -3,7 +3,7 @@ import {styles} from "./styles"
 import {px, size} from "./size"
 import {BrowserType, client} from "../misc/ClientDetector"
 import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdmin, isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isAdminClient, isApp} from "../api/Env"
 import {theme} from "./theme.js"
 
 assertMainOrNodeBoot()
@@ -14,7 +14,7 @@ export function requiresStatusBarHack() {
 
 styles.registerStyle('main', () => {
 	return {
-		"*:not(input):not(textarea)": isAdmin() ? {} : {
+		"*:not(input):not(textarea)": isAdminClient() ? {} : {
 			"user-select": "none", /* disable selection/Copy for UI elements*/
 			"-ms-user-select": "none",
 			"-webkit-user-select": "none",

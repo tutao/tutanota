@@ -3,7 +3,7 @@ import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral} from "./crypto/CryptoFacade"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdmin, isIOSApp, isTest, Mode} from "../Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
 import {createAuthentication} from "../entities/sys/Authentication"
 import {
 	_TypeModel as WebsocketWrapperTypeModel,
@@ -333,7 +333,7 @@ export class EventBusClient {
 			           })
 		}).filter(event => event != null).then(filteredEvents => {
 			this._executeIfNotTerminated(() => {
-				if (!isTest() && !isAdmin()) {
+				if (!isTest() && !isAdminClient()) {
 					return this._indexer.processEntityEvents(filteredEvents, groupId, batchId)
 				}
 			})

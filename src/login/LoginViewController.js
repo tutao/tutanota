@@ -11,7 +11,7 @@ import {
 	NotFoundError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode, isAdmin, isApp} from "../api/Env"
+import {Mode, assertMainOrNode, isAdminClient, isApp} from "../api/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -177,7 +177,7 @@ export class LoginViewController {
 		}).then(() => {
 			secondFactorHandler.setupAcceptOtherClientLoginListener()
 		}).then(() => {
-			if (!isAdmin()) {
+			if (!isAdminClient()) {
 				return mailModel.init()
 			}
 		}).then(() => logins.loginComplete())

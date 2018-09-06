@@ -13,7 +13,7 @@ import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacade} from "./facades/CustomerFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, isAdmin} from "../Env"
+import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption} from "../common/TutanotaConstants"
 
 assertWorkerOrNode()
@@ -38,7 +38,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean) {
 	locator._indexedDbSupported = indexedDbSupported
 	locator.login = new LoginFacade(worker)
 	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker, indexedDbSupported)
-	locator.cache = isAdmin() ? (new EntityRestClient(locator.login): any) : new EntityRestCache(new EntityRestClient(locator.login)) // we don't wont to cache within the admin area
+	locator.cache = isAdminClient() ? (new EntityRestClient(locator.login): any) : new EntityRestCache(new EntityRestClient(locator.login)) // we don't wont to cache within the admin area
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, [
 		locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade

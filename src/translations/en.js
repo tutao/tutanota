@@ -1088,6 +1088,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"updateFound_label": "New Version was found. Please close all tabs to activate this version."
+		"updateFound_label": "New Version was found. Please close all tabs to activate this version.",
+		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails."
 	}
 }
