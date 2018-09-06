@@ -142,7 +142,7 @@ function bundle(src, targetFile, bundles) {
 }
 
 function bundleSW(bundles) {
-	return fs.readFileAsync("src/sw.js", "utf8").then((content) => {
+	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles))
 			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))

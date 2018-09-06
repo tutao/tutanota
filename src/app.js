@@ -49,6 +49,9 @@ function _asyncImport(path: string) {
 client.init(navigator.userAgent, navigator.platform)
 styles.init()
 
+_asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
+
+
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
 	? deletedModule.module.state : {prefix: null}
 

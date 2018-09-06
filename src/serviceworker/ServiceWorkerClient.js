@@ -1,5 +1,7 @@
-import {isApp} from "../Env"
-import * as notificationOverlay from "../../gui/base/NotificationOverlay"
+import {isApp} from "../api/Env"
+import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import {lang} from "../misc/LanguageViewModel"
+
 
 function showUpdateOverlay() {
 	notificationOverlay.show(lang.get("updateFound_label"))
