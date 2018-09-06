@@ -139,7 +139,7 @@ export class Dialog {
 	}
 
 	_getDialogStyle(dialogType: DialogTypeEnum) {
-		let dialogStyle = ".dialog.content-bg"
+		let dialogStyle = ".dialog.content-bg.flex-grow"
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress"
 		} else if (dialogType === DialogType.Alert) {
@@ -147,11 +147,11 @@ export class Dialog {
 		} else if (dialogType === DialogType.Reminder) {
 			dialogStyle += ".dialog-width-m.pt.flex.flex-column"
 		} else if (dialogType === DialogType.EditSmall) {
-			dialogStyle += ".dialog-width-s.flex-no-grow-shrink-auto.flex.flex-column"
+			dialogStyle += ".dialog-width-s.flex.flex-column"
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m"
 		} else if (dialogType === DialogType.EditLarge) {
-			dialogStyle += ".dialog-width-l.flex-grow-shrink-auto"
+			dialogStyle += ".dialog-width-l"
 		}
 		return dialogStyle
 	}

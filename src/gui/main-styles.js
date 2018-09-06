@@ -257,6 +257,7 @@ styles.registerStyle('main', () => {
 		'.max-width-s': {'max-width': px(360)},
 		'.max-width-m': {'max-width': px(450)},
 		'.max-width-l': {'max-width': px(800)},
+		'.max-width-200': {'max-width': px(200)},
 
 		'.scroll': {
 			'overflow-y': client.overflowAuto,

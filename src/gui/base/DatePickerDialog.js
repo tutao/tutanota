@@ -4,6 +4,8 @@ import {assertMainOrNode} from "../../api/Env"
 import {Dialog, DialogType} from "./Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {DatePicker} from "./DatePicker"
+import {px} from "../size"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -20,14 +22,12 @@ export function showDatePickerDialog<T>(start: ?Date, end: ?Date, startBeforeEnd
 		dateEnd.setDate(end)
 	}
 	let form = {
-		view: () => {
-			return [
-				m(".flex-space-between", [
-					m(".pr-s", [m(dateStart)]),
-					m(".pl-s", [m(dateEnd)]),
-				])
+		view: () => m(".flex-space-between",
+			client.isDesktopDevice() ? {style: {height: px(305)}} : {}, [
+				m(".pr-s.flex-grow.max-width-200.flex-space-between.flex-column", m(dateStart)),
+				m(".pl-s.flex-grow.max-width-200.flex-space-between.flex-column", m(dateEnd))
 			]
-		}
+		)
 	}
 	return Promise.fromCallback(cb => {
 		let dialog = Dialog.showActionDialog({
