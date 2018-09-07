@@ -171,7 +171,6 @@ let initialized = lang.init(en).then(() => {
 		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
-
 		"/mail/:listId/:mailId": mailViewResolver,
 		"/ext": externalLoginViewResolver,
 		"/contact": contactViewResolver,
