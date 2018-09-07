@@ -10,16 +10,21 @@ o.spec("ServiveWorkerTest ", node(function () {
 	let sw: ServiceWorker
 	let exclusions
 
+	let applicationPaths = ["mail", "login"]
+
 	o.before((done, timeout) => {
 		exclusions = []
-		sw = new ServiceWorker(caches, "testCache", root, exclusions, fromNetwork,
-			true)
+		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork, true)
 		done()
 	})
 
 
-	o("shouldRedirectWithHttp", function () {
-		o(sw._shouldRedirectToDefaultPage(root + "index.html")).equals(true)
+	o("shouldNotRedirectRootFile", function () {
+		o(sw._shouldRedirectToDefaultPage(root + "index.html")).equals(false)
+	})
+
+	o("shouldNotRedirectOtherResource", function () {
+		o(sw._shouldRedirectToDefaultPage(root + "images/test.png")).equals(false)
 	})
 
 	o("shouldNotRedirectRoot", function () {
@@ -30,12 +35,20 @@ o.spec("ServiveWorkerTest ", node(function () {
 		o(sw._shouldRedirectToDefaultPage(root + "mail/blah/someId")).equals(true)
 	})
 
+	o("shouldRedirectWithMailPathComponent", function () {
+		o(sw._shouldRedirectToDefaultPage(root + "mail")).equals(true)
+	})
+
+	o("shouldNotRedirectWithUnknownPath", function () {
+		o(sw._shouldRedirectToDefaultPage(root + "otherpath/blah/someId")).equals(false)
+	})
+
 	o("shouldNotRedirectRestRequests", function () {
 		o(sw._shouldRedirectToDefaultPage(root + "rest/draftservice")).equals(false)
 	})
 
 	o("shouldNotRedirectExclusionOnCustonDomain", function () {
-		sw = new ServiceWorker(caches, "testCache", root, exclusions, fromNetwork, false)
+		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork, false)
 		exclusions.push("index.html")
 		exclusions.push("index.js")
 		o(sw._shouldRedirectToDefaultPage(root + "index.html")).equals(false)
@@ -43,7 +56,7 @@ o.spec("ServiveWorkerTest ", node(function () {
 	})
 
 	o("shouldRedirectOnCustonDomain", function () {
-		sw = new ServiceWorker(caches, "testCache", root, exclusions, fromNetwork,
+		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork,
 			false)
 		exclusions.push("index.html")
 		o(sw._shouldRedirectToDefaultPage(root + "mail/blah")).equals(true)

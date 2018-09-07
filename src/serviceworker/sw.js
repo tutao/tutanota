@@ -24,17 +24,17 @@ class ServiceWorker {
 	_cacheName: string
 	_selfLocation: string
 	_possibleRest: string
-	_exclusions: string[]
+	_applicationPaths: string[]
 	_fromNetwork: RequestHandler
 	_isTutanotaDomain: boolean
 
-	constructor(caches: CacheStorage, cacheName: string, selfLocation: string, exclusions: string[],
+	constructor(caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
 	            fromNetwork: RequestHandler, isTutanotaDomain: boolean) {
 		this._caches = caches
 		this._cacheName = cacheName
 		this._selfLocation = selfLocation
 		this._possibleRest = selfLocation + "rest"
-		this._exclusions = exclusions
+		this._applicationPaths = applicationPaths
 		this._fromNetwork = fromNetwork
 		this._isTutanotaDomain = isTutanotaDomain
 	}
@@ -111,13 +111,18 @@ class ServiceWorker {
 
 
 	_shouldRedirectToDefaultPage(url: string): boolean {
-		const withoutQuery = urlWithoutQuery(url)
-		return withoutQuery.startsWith(this._selfLocation)
-			&& withoutQuery !== this._selfLocation // if we are already on the page we need
-			&& !withoutQuery.startsWith(this._possibleRest)
-			// some whitelabel files are excluded and should not be redirected but should be requested as-is
-			&& (this._isTutanotaDomain || !this._exclusions.includes(withoutQuery.substring(this._selfLocation.length)))
+		return !url.startsWith(this._possibleRest)
+			&& url.startsWith(this._selfLocation)
+			&& urlWithoutQuery(url) !== this._selfLocation // if we are already on the page we need				S
+			&& this._applicationPaths.includes(this._getFirstPathComponent(url))
 	}
+
+	_getFirstPathComponent(url: string): string {
+		const pathElements = url.substring(this._selfLocation.length).split("/")
+		return pathElements.length > 0 ? pathElements[0] : ""
+	}
+
+
 }
 
 const init = (sw: ServiceWorker, urlsToCache: string[]) => {
@@ -142,7 +147,8 @@ if (typeof self !== "undefined") {
 		? filesToCache()
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
-	const sw = new ServiceWorker(caches, cacheName, selfLocation, exclusions, fromNetwork,
+	const applicationPaths = ["login", "signup", "mail", "contact", "settings", "search", "contactform"]
+	const sw = new ServiceWorker(caches, cacheName, selfLocation, applicationPaths, fromNetwork,
 		isTutanotaDomain())
 	init(sw, urlsToCache)
 } else {
