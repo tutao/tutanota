@@ -14,12 +14,44 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 assertMainOrNodeBoot()
 
 export interface PosRect {
-	height: number;
-	width: number;
-	top: number;
-	left: number;
-	right: number;
-	bottom: number;
+	+height: number;
+	+width: number;
+	+top: number;
+	+left: number;
+	+right: number;
+	+bottom: number;
+}
+
+// Some Android WebViews still don't support DOMRect so we polyfill that
+// Implemented according to https://developer.mozilla.org/en-US/docs/Web/API/DOMRectReadOnly and common sense
+export class DomRectReadOnlyPolyfilled implements PosRect {
+	x: number
+	y: number
+	width: number
+	height: number
+
+	constructor(x: number, y: number, width: number, height: number) {
+		this.x = x
+		this.y = y
+		this.width = width
+		this.height = height
+	}
+
+	get top(): number {
+		return this.height > 0 ? this.y : this.y + this.height
+	}
+
+	get bottom(): number {
+		return this.height > 0 ? this.y + this.height : this.y
+	}
+
+	get left(): number {
+		return this.width > 0 ? this.x : this.x + this.width
+	}
+
+	get right(): number {
+		return this.width > 0 ? this.x + this.width : this.x
+	}
 }
 
 export class Dropdown {

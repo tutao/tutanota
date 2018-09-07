@@ -68,6 +68,7 @@ import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscrib
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
 import {client} from "../misc/ClientDetector"
+import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -291,7 +292,8 @@ export class MailViewer {
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
 			return [
-				m("#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"), {
+				m("#mail-viewer.fill-absolute"
+					+ (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"), {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header.plr-l", [
@@ -646,7 +648,8 @@ export class MailViewer {
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
 						const rect = dropdownButton._domButton.getBoundingClientRect()
-						return new DOMRect(rect.left + size.bubble_border_width, rect.top, rect.width, rect.height)
+						return new DomRectReadOnlyPolyfilled(rect.left + size.bubble_border_width, rect.top,
+							rect.width, rect.height)
 					})
 					.setType(ButtonType.Bubble)
 					.setStaticRightText("(" + formatStorageSize(Number(file.size))
