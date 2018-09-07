@@ -1094,6 +1094,8 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"updateFound_label": "Es ist eine neue Version verfügbar. Schließen Sie alle Tabs um die neue Version zu aktivieren."
+		"updateFound_label": "Es ist eine neue Version verfügbar. Schließen Sie alle Tabs um die neue Version zu aktivieren.",
+		"searchGroups_placeholder": "Suche nach Gruppen",
+		"spamRuleEnterValue_msg": "Bitte geben Sie einen Wert ein."
 	}
 }

@@ -155,7 +155,7 @@ export function handleUncaughtError(e: Error) {
 					title: lang.get("errorReport_label"),
 					child: {view: () => m(textField)},
 					okAction: errorOkAction,
-					cancelAction: () => unknownErrorDialogActive = false,
+					cancelAction: () => {unknownErrorDialogActive = false}
 				})
 			} else {
 				console.log("Unknown error", e)

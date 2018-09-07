@@ -59,9 +59,10 @@ export function show(emailAddressOrDomainName: ?string) {
 function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
 	let currentValue = value.toLowerCase().trim()
 
-	if (!existingRules || !customDomains || currentValue === "") {
-		//TODO: not in en.js
+	if (!existingRules || !customDomains) {
 		return "emptyString_msg"
+	} else if (currentValue === "") {
+		return "spamRuleEnterValue_msg"
 	} else if (!isDomainName(currentValue) && !isMailAddress(currentValue, false)) {
 		return "invalidInputFormat_msg"
 	} else if (_isInvalidRule(type, currentValue, customDomains)) {

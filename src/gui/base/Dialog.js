@@ -408,14 +408,21 @@ export class Dialog {
 		})
 	}
 
+	/**
+	 * Shows a dialog with a text field input and ok/cancel buttons.
+	 * @param   props.validator Called when "Ok" is clicked. Must return null if the input is valid or an error messageID if it is invalid, so an error message is shown.
+	 * @param   props.okAction called after successful validation.
+	 * @param   props.cancelAction called when allowCancel is true and the cancel button/shortcut was pressed.
+	 * @returns the Dialog
+	 */
 	static showActionDialog(props: {|
 		title: stream<string> | string,
 		child: Component,
 		validator?: validator,
-		okAction: (dialog?: Dialog) => void,
+		okAction: (dialog: Dialog) => void,
 		allowCancel?: boolean,
 		okActionTextId?: string,
-		cancelAction?: (dialog?: Dialog) => void,
+		cancelAction?: (dialog: Dialog) => void,
 		type?: DialogTypeEnum
 	|}): Dialog {
 		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
@@ -464,7 +471,7 @@ export class Dialog {
 		dialog.addShortcut({
 			key: Keys.RETURN,
 			shift: false,
-			exec: okAction,
+			exec: doAction,
 			help: okActionTextId
 		})
 

@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
-import {NavButton, NavButtonColors, createDropDownNavButton} from "./NavButton"
+import {createDropDownNavButton, NavButton, NavButtonColors} from "./NavButton"
 import {assertMainOrNodeBoot, isAdminClient} from "../../api/Env"
 import {size} from "../size"
 import {styles} from "../styles"
@@ -113,6 +113,8 @@ export class NavBar {
 			return lang.get("searchContacts_placeholder")
 		} else if (route.startsWith("/settings/users")) {
 			return lang.get("searchUsers_placeholder")
+		} else if (route.startsWith("/settings/groups")) {
+			return lang.get("searchGroups_placeholder")
 		} else {
 			return null
 		}

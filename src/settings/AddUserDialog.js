@@ -36,15 +36,14 @@ export function show(): Promise<void> {
 		}
 
 		let addUserOkAction = (dialog) => {
-			return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
+			showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
 				.then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						dialog.close();
-						return showProgressDialog(() => lang.get("createActionStatus_msg", {
+						showProgressDialog(() => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
-						}), p, true)
+						}), p, true).then(dialog.close())
 					}
 				})
 		}

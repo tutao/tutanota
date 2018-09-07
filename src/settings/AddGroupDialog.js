@@ -40,21 +40,21 @@ export function show() {
 			}
 			let addGroupOkAction = (dialog) => {
 				if (typeField.selectedValue() === GroupType.Mail) {
-					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false)
-					                                                     .then(accepted => {
-						                                                     if (accepted) {
-							                                                     dialog.close()
-							                                                     return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
-						                                                     }
-					                                                     }))
+					showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false)
+					                                              .then(accepted => {
+						                                              if (accepted) {
+							                                              dialog.close()
+							                                              return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
+						                                              }
+					                                              }))
 				} else if (typeField.selectedValue() === GroupType.LocalAdmin) {
-					return showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false)
-					                                                     .then(accepted => {
-						                                                     if (accepted) {
-							                                                     dialog.close()
-							                                                     return worker.createLocalAdminGroup(nameField.value())
-						                                                     }
-					                                                     }))
+					showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false)
+					                                              .then(accepted => {
+						                                              if (accepted) {
+							                                              dialog.close()
+							                                              return worker.createLocalAdminGroup(nameField.value())
+						                                              }
+					                                              }))
 				}
 			}
 

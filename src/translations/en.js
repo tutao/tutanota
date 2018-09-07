@@ -882,7 +882,7 @@ module.exports = {
 		"searchMailbox_label": "Search mailbox",
 		"searchNoResults_msg": "No results",
 		"searchResult_label": "Results",
-		"searchUsers_placeholder": "searchUsers_placeholder",
+		"searchUsers_placeholder": "Search for users",
 		"search_label": "Search",
 		"secondFactorAuthentication_label": "Second factor authentication",
 		"secondFactorConfirmLogin_label": "Confirm login",
@@ -1089,6 +1089,8 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"updateFound_label": "New Version was found. Please close all tabs to activate this version.",
-		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails."
+		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.",
+		"searchGroups_placeholder": "Search for groups",
+		"spamRuleEnterValue_msg": "Please enter a value."
 	}
 }

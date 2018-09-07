@@ -236,9 +236,10 @@ class Header {
 
 	_searchBar(): Vnode<any> {
 		let placeholder;
-		if (m.route.get().startsWith("/search/mail")) {
+		const route = m.route.get()
+		if (route.startsWith("/search/mail")) {
 			placeholder = lang.get("searchEmails_placeholder")
-		} else if (m.route.get().startsWith("/search/contact")) {
+		} else if (route.startsWith("/search/contact")) {
 			placeholder = lang.get("searchContacts_placeholder")
 		} else {
 			placeholder = null
