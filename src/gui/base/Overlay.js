@@ -19,41 +19,40 @@ type OverlayAttrs = {
 	closeAnimation?: DomMutation;
 }
 
-let attrs: ?OverlayAttrs = null
-let overlayShadow = hexToRgb(theme.modal_bg)
-let overlayDom: ?HTMLElement
+const overlays: Array<[OverlayAttrs, ?HTMLElement]> = []
+const boxShadow = (() => {
+	const {r, g, b} = hexToRgb(theme.modal_bg)
+	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
+})()
 
 export function displayOverlay(position: PositionRect, component: Component, createAnimation?: DomMutation,
-                               closeAnimation?: DomMutation) {
-	attrs = {
+                               closeAnimation?: DomMutation): () => void {
+	const newAttrs = {
 		position,
 		component,
 		createAnimation,
 		closeAnimation
 	}
+	const pair = [newAttrs, null]
+	overlays.push(pair)
+	return () => {
+		const dom = pair[1];
+		(newAttrs.closeAnimation && dom ? animations.add(dom, newAttrs.closeAnimation) : Promise.resolve())
+			.then(() => {
+				overlays.splice(overlays.indexOf(pair), 1)
+				m.redraw()
+			})
+	}
 }
-
-export function closeOverlay() {
-	(attrs && attrs.closeAnimation && overlayDom ? animations.add(overlayDom, attrs.closeAnimation) : Promise.resolve())
-		.then(() => {
-			attrs = null
-			overlayDom = null
-			m.redraw()
-		})
-}
-
-export function isOverlayVisible() {
-	return attrs != null
-}
-
 
 export const overlay = {
-	view: () => {
-		return m("#overlay", {
-			style: {
-				display: attrs ? "" : 'none' // display: null not working for IE11
-			}
-		}, attrs != null ? m(".abs.list-bg", {
+	view: () => m("#overlay", {
+		style: {
+			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
+		}
+	}, overlays.map((pair) => {
+		const [attrs] = pair
+		return m(".abs.list-bg", {
 			style: {
 				width: attrs.position.width,
 				top: attrs.position.top,
@@ -62,18 +61,18 @@ export const overlay = {
 				left: attrs.position.left,
 				height: attrs.position.height,
 				'z-index': 200,
-				'box-shadow': `0 2px 12px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.4), 0 10px 40px rgba(${overlayShadow.r}, ${overlayShadow.g}, ${overlayShadow.b}, 0.3)`, //0.23 0.19
+				'box-shadow': boxShadow,
 			},
 			oncreate: (vnode: Vnode<any>) => {
-				overlayDom = vnode.dom
-				if (attrs && attrs.createAnimation) {
+				pair[1] = vnode.dom
+				if (attrs.createAnimation) {
 					animations.add(vnode.dom, attrs.createAnimation)
 				}
 			},
 			onremove: () => {
-				overlayDom = null
+				pair[1] = null
 			}
-		}, m(attrs.component)) : "no component")
-	}
+		}, m(attrs.component))
+	}))
 }
 

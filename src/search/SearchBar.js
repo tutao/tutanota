@@ -10,7 +10,7 @@ import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {PositionRect} from "../gui/base/Overlay"
-import {displayOverlay, closeOverlay} from "../gui/base/Overlay"
+import {displayOverlay} from "../gui/base/Overlay"
 import {NavButton} from "../gui/base/NavButton"
 import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -75,6 +75,7 @@ export class SearchBar {
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: stream<WhitelabelChild>;
+	_closeOverlayFunction: ?(() => void);
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
@@ -193,7 +194,7 @@ export class SearchBar {
 					let indexState = locator.search.indexState()
 					this.showIndexingProgress(indexState, e.requestedPath)
 				} else {
-					closeOverlay()
+					this._closeOverlay()
 				}
 			})
 		}
@@ -205,7 +206,7 @@ export class SearchBar {
 			if (routeChangeStream) {
 				routeChangeStream.end(true)
 			}
-			closeOverlay()
+			this._closeOverlay()
 		}
 	}
 
@@ -223,7 +224,8 @@ export class SearchBar {
 			let cancelButton = new Button("cancel_action", () => {
 				worker.cancelMailIndexing()
 			}, () => Icons.Cancel)
-			displayOverlay(this._makeOverlayRect(), {
+			this._closeOverlay()
+			this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
 				view: () => {
 					return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
 						style: {
@@ -237,7 +239,14 @@ export class SearchBar {
 				}
 			})
 		} else if ((route.startsWith("/search/mail") && newState.progress === 0)) {
-			closeOverlay()
+			this._closeOverlay()
+		}
+	}
+
+	_closeOverlay() {
+		if (this._closeOverlayFunction) {
+			this._closeOverlayFunction()
+			this._closeOverlayFunction = null
 		}
 	}
 
@@ -325,7 +334,8 @@ export class SearchBar {
 				}
 			}
 			if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
-				displayOverlay(this._makeOverlayRect(), {
+				this._closeOverlay()
+				this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
 					view: () => {
 						return m("ul.list.click.mail-list", [
 							this._results.map(result => {
@@ -459,7 +469,7 @@ export class SearchBar {
 
 	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
 		if (result != null) {
-			closeOverlay()
+			this._closeOverlay()
 			this._domInput.blur()
 			let type: ?TypeRef = result._type ? result._type : null
 			if (!type) { // click on SHOW MORE button
@@ -558,7 +568,7 @@ export class SearchBar {
 			this.expanded = false
 			this.value("")
 			this._domInput.blur() // remove focus from the input field in case ESC is pressed
-			closeOverlay()
+			this._closeOverlay()
 		}
 		if (m.route.get().startsWith("/search")) {
 			locator.search.result(null)
@@ -591,7 +601,7 @@ export class SearchBar {
 					this.value(this._domInput.value) // update the input on each change
 					let value = this.value()
 					if (value.trim() === "") {
-						closeOverlay()
+						this._closeOverlay()
 						locator.search.result(null)
 						if (m.route.get().startsWith("/search")) {
 							setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
@@ -655,7 +665,7 @@ export class SearchBar {
 	blur(e: MouseEvent) {
 		//this._domInput.classList.remove("active")
 		this.focused = false
-		closeOverlay()
+		this._closeOverlay()
 		if (this.value().trim() === "") {
 			this.expanded = false
 			if (m.route.get().startsWith("/search")) {

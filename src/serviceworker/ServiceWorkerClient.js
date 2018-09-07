@@ -1,3 +1,4 @@
+//@flow
 import {isApp} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
