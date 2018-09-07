@@ -123,7 +123,7 @@ function clean() {
 }
 
 const buildConfig = {
-	minify: false,
+	minify: true,
 	mangle: false, // destroys type information (e.g. used for bluebird catch blocks)
 	runtime: false,
 	sourceMaps: true,
