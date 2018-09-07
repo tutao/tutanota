@@ -585,7 +585,7 @@ export class MailView {
 	}
 
 	deleteSelectedMails(): Promise<void> {
-		return mailModel.deleteMails(this.mailList.list.getSelectedEntities())
+		return mailModel.deleteMails(this.mailList.list.getSelectedEntities()).then(() => this.mailList.list.selectNone())
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder() {
