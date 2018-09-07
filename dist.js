@@ -3,7 +3,7 @@
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const Builder = require('systemjs-builder')
-const version = require('./package.json').version
+let version = require('./package.json').version
 const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
 const spawnSync = require('child_process').spawnSync
@@ -96,6 +96,7 @@ Promise.resolve()
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
 		       ])
 	       } else {
+		       version = new Date().getTime()
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
@@ -144,9 +145,8 @@ function bundle(src, targetFile, bundles) {
 function bundleSW(bundles) {
 	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
-			.concat(Object.keys(bundles))
+			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
 			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))
-			.concat(fs.readdirSync(distLoc("translations")).map(f => `translations/${f}`))
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
 		const customDomainFileExclusions = ["index.html", "index.js"]
