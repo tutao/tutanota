@@ -135,7 +135,7 @@ export class ContactView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this.createNewContact(): any),
+				exec: () => this.createNewContact(),
 				enabled: () => this._contactList,
 				help: "newContact_action"
 			},

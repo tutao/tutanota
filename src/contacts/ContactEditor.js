@@ -205,8 +205,9 @@ export class ContactEditor {
 			                    key: Keys.S,
 			                    ctrl: true,
 			                    exec: () => this.save(),
-			                    help: "send_action"
-		                    }).setCloseHandler(() => this._close())
+			                    help: "save_action"
+		                    })
+		                    .setCloseHandler(() => this._close())
 	}
 
 	show() {
