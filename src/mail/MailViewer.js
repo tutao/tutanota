@@ -2,21 +2,23 @@
 import {px, size} from "../gui/size"
 import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {load, update, serviceRequestVoid} from "../api/main/Entity"
-import {Button, ButtonType, createDropDownButton, createAsyncDropDownButton} from "../gui/base/Button"
+import {load, serviceRequestVoid, update} from "../api/main/Entity"
+import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {
-	formatDateWithWeekday,
-	formatTime,
-	formatStorageSize,
 	formatDateTime,
-	urlEncodeHtmlTags,
-	getDomainWithoutSubdomains
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
 } from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
+import type {DomMutation} from "../gui/animation/Animations"
+import {animations, scroll} from "../gui/animation/Animations"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {MailState, ConversationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
+import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
@@ -26,21 +28,21 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import {contains, addAll} from "../api/common/utils/ArrayUtils"
+import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {
-	getSenderOrRecipientHeading,
-	getDisplayText,
 	createNewContact,
-	getFolderName,
-	getFolderIcon,
 	getArchiveFolder,
-	getEnabledMailAddresses,
 	getDefaultSender,
+	getDisplayText,
+	getEnabledMailAddresses,
+	getFolderIcon,
+	getFolderName,
 	getMailboxName,
-	getSortedSystemFolders,
-	getSortedCustomFolders
+	getSenderOrRecipientHeading,
+	getSortedCustomFolders,
+	getSortedSystemFolders
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -56,8 +58,7 @@ import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {NotFoundError, NotAuthorizedError, ServiceUnavailableError} from "../api/common/error/RestError"
-import {animations, scroll} from "../gui/animation/Animations"
+import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
 import {theme} from "../gui/theme"

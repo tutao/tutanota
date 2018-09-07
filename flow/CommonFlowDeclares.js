@@ -22,11 +22,11 @@ declare function clickHandler(event: MouseEvent): void;
 
 declare function dropHandler(dragData: string): void;
 
-type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
+type KeyPress = { keyCode: number, ctrl: boolean, shift: boolean };
 
 declare function keyMatcher(key: KeyPress): boolean;
 
-type Key = {code: number, name: string};
+type Key = { code: number, name: string };
 
 declare interface Shortcut {
 	key: Key;
@@ -183,25 +183,10 @@ declare interface ModalComponent {
 	backgroundClick(e: MouseEvent): void;
 }
 
-type LogCategory = {[key: string]: string}
+type LogCategory = { [key: string]: string }
 
 // Enums
 type ThemeId = 'light' | 'dark' | 'custom'
-
-declare function EasingFunction(percent: number): number;
-
-type DomMutation = {
-	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
-}
-type DomTransform = {
-	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
-	chain(type: TransformEnum, begin: number, end: number): DomTransform;
-}
-type AlphaEnum = 'backgroundColor' | 'color'
-type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ'
-type TransformValues = {
-	[key: TransformEnum]: {begin: number, end: number}
-}
 
 declare var navigator: Navigator;
 
@@ -232,7 +217,7 @@ type Status = {
 	text: string
 }
 
-type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
+type ButtonColors = { button: string, button_selected: string, icon: string, icon_selected: string }
 
 declare class Notification {
 	static permission: string;

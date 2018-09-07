@@ -5,6 +5,22 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 
 assertMainOrNodeBoot()
 
+declare function EasingFunction(percent: number): number;
+
+export type DomMutation = {
+	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
+}
+type DomTransform = {
+	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
+	chain(type: TransformEnum, begin: number, end: number): DomTransform;
+}
+type AlphaEnum = 'backgroundColor' | 'color'
+type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ'
+type TransformValues = {
+	[key: TransformEnum]: { begin: number, end: number }
+}
+
+
 export const DefaultAnimationTime = 200 // ms
 
 const InitializedOptions = {
@@ -45,7 +61,7 @@ class Animations {
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
-	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): Promise<void> {
+	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{ stagger?: number, delay?: number, easing?: EasingFunction, duration?: number }): Promise<void> {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
@@ -75,7 +91,7 @@ class Animations {
 		})
 	}
 
-	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration: number} {
+	static verifiyOptions(options: ?{ stagger?: number, delay?: number, easing?: EasingFunction }): { stagger: number, delay: number, easing: EasingFunction, duration: number } {
 		return Object.assign({}, InitializedOptions, options)
 	}
 
@@ -172,7 +188,7 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
  *
  * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
  */
-export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
+export function hexToRgb(hexColor: string): { r: number, g: number, b: number } {
 	hexColor = hexColor.substring(1)
 	let split = hexColor.match(/.{1,2}/g)
 	if (split && split.length === 3) {
@@ -185,7 +201,7 @@ export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
 	throw new Error("illegal color definition")
 }
 
-export function rgbToHex(color: {r: number, g: number, b: number}) {
+export function rgbToHex(color: { r: number, g: number, b: number }) {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
 }
 
