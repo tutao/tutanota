@@ -2,21 +2,21 @@
 import m from "mithril"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {load, serviceRequestVoid} from "../api/main/Entity"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, SessionState, SecondFactorType} from "../api/common/TutanotaConstants"
+import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
-import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
+import {defer, neverNull} from "../api/common/utils/Utils"
+import {U2fClient, U2fError, U2fWrongDeviceError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
-import {NotAuthenticatedError, BadRequestError, AccessBlockedError} from "../api/common/error/RestError"
-import {SecondFactorImage, Icons} from "../gui/base/icons/Icons"
+import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../api/common/error/RestError"
+import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
-import {Button} from "../gui/base/Button"
 import {locator} from "../api/main/MainLocator"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -107,55 +107,74 @@ export class SecondFactorHandler {
 		}
 	}
 
-	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
+	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]): Promise<void> {
+		const deferred = defer()
 		if (!this._waitingForSecondFactorDialog) {
 			let u2fChallenge = challenges.find(challenge => challenge.type === SecondFactorType.u2f)
 			let otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
 			let u2fClient = new U2fClient()
 			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
-			const otpCode = new TextField("totpCode_label")
-			let otpLoginButton = new Button("login_label", () => {
+			const otpCodeField = new TextField("totpCode_label")
+			const otpClickHandler = () => {
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
-				auth.otpCode = otpCode.value().replace(/ /g, "")
+				auth.otpCode = otpCodeField.value().replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
-					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
-					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
-					.catch(AccessBlockedError, e => Dialog.error("loginFailedOften_msg"))
-			}, () => Icons.Login)
-			otpCode._injectionsRight = () => m(otpLoginButton)
-			otpCode._keyHandler = key => {
+					.catch(e => {
+						deferred.reject(e)
+						throw e
+					})
+					.catch(NotAuthenticatedError, () => Dialog.error("loginFailed_msg"))
+					.catch(BadRequestError, () => Dialog.error("loginFailed_msg"))
+					.catch(AccessBlockedError, () => Dialog.error("loginFailedOften_msg"))
+					.then(() => deferred.resolve())
+			}
+			otpCodeField._keyHandler = key => {
 				switch (key.keyCode) {
 					case 13: // return
-						otpLoginButton.clickHandler()
+						otpClickHandler()
 						return false
 				}
 				return true
 			}
 
-			return u2fClient.isSupported().then(u2fSupport => {
+			u2fClient.isSupported().then(u2fSupport => {
 				let keyForThisDomainExisting = keys.filter(key => key.appId === u2fClient.appId).length > 0
 				let otherDomainAppIds = keys.filter(key => key.appId !== u2fClient.appId).map(key => key.appId)
-				let otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
-				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
-					view: () => m("", [
-						(u2fSupport && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage
-							+ "]")) : null,
-						m("p", [
-							((u2fSupport && keyForThisDomainExisting) || otpChallenge
-								!= null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg"),
-							otpChallenge != null ? m(".left.mlr-l", m(otpCode)) : null,
-						]),
-						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {
-							href: "https://" + otherLoginDomain
-						}, lang.get("differentSecurityKeyDomain_msg", {
-							"{domain}": "https://" + otherLoginDomain
-						})) : null
-					])
-				}).setCloseHandler(() => {
-					// Prevent accidential closing
-				}).show()
+				let otherLoginDomain = otherDomainAppIds.length > 0
+					? appIdToLoginDomain(otherDomainAppIds[0])
+					: null
+				const onlyCancel = !otpChallenge
+				const cancelAction = () => {
+					worker.cancelCreateSession()
+					this.closeWaitingForSecondFactorDialog()
+					deferred.resolve()
+				}
+				this._waitingForSecondFactorDialog = Dialog.showActionDialog({
+					title: "",
+					child: {
+						view: () => m("", [
+							(u2fSupport && keyForThisDomainExisting)
+								? m(".flex-center", m("img[src=" + SecondFactorImage + "]"))
+								: null,
+							m("p", [
+								m(".center", lang.get((u2fSupport && keyForThisDomainExisting) || otpChallenge
+									? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg")),
+								otpChallenge ? m(".left.mlr-l", m(otpCodeField)) : null,
+							]),
+							(otherLoginDomain && !keyForThisDomainExisting)
+								? m("a", {
+									href: "https://" + otherLoginDomain
+								}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain}))
+								: null
+						])
+					},
+					okAction: onlyCancel ? cancelAction : otpClickHandler,
+					okActionTextId: onlyCancel ? "cancel_action" : "ok_action",
+					cancelAction,
+					allowCancel: !onlyCancel
+				})
 				if (u2fSupport && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {
@@ -185,8 +204,11 @@ export class SecondFactorHandler {
 					registerResumeOnError()
 				}
 			})
-
+		} else {
+			deferred.resolve()
 		}
+
+		return deferred.promise
 	}
 
 }

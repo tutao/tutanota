@@ -370,6 +370,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('cancelMailIndexing', arguments))
 	}
 
+	cancelCreateSession() : Promise<void> {
+		return this._postRequest(new Request('cancelCreateSession', []))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}

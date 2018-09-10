@@ -106,7 +106,8 @@ export function handleUncaughtError(e: Error) {
 							      errorMessage(lang.get('emptyString_msg'))
 							      m.redraw()
 							      throw e;
-						      }))
+						      })
+					)
 						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				},
 				allowCancel: false

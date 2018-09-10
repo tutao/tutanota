@@ -419,11 +419,11 @@ export class Dialog {
 		title: stream<string> | string,
 		child: Component,
 		validator?: validator,
-		okAction: (dialog: Dialog) => void,
+		okAction: (dialog: Dialog) => mixed,
 		allowCancel?: boolean,
 		okActionTextId?: string,
-		cancelAction?: (dialog: Dialog) => void,
-		type?: DialogTypeEnum
+		cancelAction?: (dialog: Dialog) => mixed,
+		type?: DialogTypeEnum,
 	|}): Dialog {
 		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
 			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", type: DialogType.EditSmall}, props)

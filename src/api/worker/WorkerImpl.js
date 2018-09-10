@@ -214,6 +214,10 @@ export class WorkerImpl {
 			cancelMailIndexing: (message: Request) => {
 				return locator.indexer.cancelMailIndexing()
 			},
+			cancelCreateSession: (message: Request) => {
+				locator.login.cancelCreateSession()
+				return Promise.resolve()
+			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},

@@ -1,26 +1,26 @@
 // @flow
-import {serviceRequest, serviceRequestVoid, load, loadRoot, update} from "../EntityWorker"
+import {load, loadRoot, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
 import {
+	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64ToUint8Array,
-	utf8Uint8ArrayToString,
-	uint8ArrayToBase64,
 	base64UrlToBase64,
-	base64ToBase64Ext
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {
-	createAuthVerifierAsBase64Url,
-	createAuthVerifier,
 	base64ToKey,
+	createAuthVerifier,
+	createAuthVerifierAsBase64Url,
 	keyToUint8Array,
 	uint8ArrayToKey
 } from "../crypto/CryptoUtils"
-import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, OperationType, AccountType, CloseEventBusOption} from "../../common/TutanotaConstants"
+import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -30,22 +30,22 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
-import {neverNull} from "../../common/utils/Utils"
+import {defer, neverNull} from "../../common/utils/Utils"
 import {
-	isSameTypeRef,
-	TypeRef,
-	isSameId,
-	HttpMethod,
 	GENERATED_ID_BYTES_LENGTH,
-	MediaType
+	HttpMethod,
+	isSameId,
+	isSameTypeRef,
+	MediaType,
+	TypeRef
 } from "../../common/EntityFunctions"
-import {assertWorkerOrNode, isTest, isAdminClient} from "../../Env"
+import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
-import {SessionTypeRef, _TypeModel as SessionModelType} from "../../entities/sys/Session"
+import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys/Session"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
@@ -57,7 +57,7 @@ import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
-import {locator} from "../WorkerLocator"
+import {CancelledError} from "../../common/error/CancelledError"
 
 assertWorkerOrNode()
 
@@ -71,6 +71,14 @@ export class LoginFacade {
 	_eventBusClient: EventBusClient;
 	_worker: WorkerImpl;
 	_indexer: Indexer;
+	/**
+	 * Used for cancelling second factor and to not mix different attempts
+	 */
+	_loginRequestSessionId: ?IdTuple;
+	/**
+	 * Used for cancelling second factor immediately
+	 */
+	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 
 	constructor(worker: WorkerImpl) {
 		this._worker = worker
@@ -127,12 +135,16 @@ export class LoginFacade {
 						this._getSessionListId(createSessionReturn.accessToken),
 						this._getSessionElementId(createSessionReturn.accessToken)
 					]
+					this._loginRequestSessionId = sessionId
 					if (createSessionReturn.challenges.length > 0) {
 						this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
-						p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken)
+						p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId)
 					}
-					return p.then(() => {
-						return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, permanentLogin)
+					this._loggingInPromiseWrapper = defer()
+					// Wait for either login or cancel
+					return Promise.race([this._loggingInPromiseWrapper.promise, p]).then(() => {
+						return this._initSession(createSessionReturn.user, createSessionReturn.accessToken,
+							userPassphraseKey, permanentLogin)
 						           .then(() => {
 							           return {
 								           user: neverNull(this._user),
@@ -151,13 +163,16 @@ export class LoginFacade {
 		})
 	}
 
-	_waitUntilSecondFactorApproved(accessToken: Base64Url): Promise<void> {
+	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple): Promise<void> {
 		let secondFactorAuthGetData = createSecondFactorAuthGetData()
 		secondFactorAuthGetData.accessToken = accessToken
 		return serviceRequest(SysService.SecondFactorAuthService, HttpMethod.GET, secondFactorAuthGetData, SecondFactorAuthGetReturnTypeRef)
 			.then(secondFactorAuthGetReturn => {
+				if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
+					return Promise.reject(new CancelledError("login cancelled"))
+				}
 				if (secondFactorAuthGetReturn.secondFactorPending) {
-					return this._waitUntilSecondFactorApproved(accessToken)
+					return this._waitUntilSecondFactorApproved(accessToken, sessionId)
 				}
 			})
 	}
@@ -203,6 +218,11 @@ export class LoginFacade {
 					           }
 				           })
 			})
+	}
+
+	cancelCreateSession() {
+		this._loginRequestSessionId = null
+		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
 	}
 
 	/**

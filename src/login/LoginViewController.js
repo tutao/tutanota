@@ -3,15 +3,15 @@ import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
-	NotAuthenticatedError,
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
-	TooManyRequestsError,
-	NotFoundError
+	NotAuthenticatedError,
+	NotFoundError,
+	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode, isAdminClient, isApp} from "../api/Env"
+import {assertMainOrNode, isAdminClient, isApp, Mode} from "../api/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -31,6 +31,7 @@ import {mailModel} from "../mail/MailModel"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -135,6 +136,11 @@ export class LoginViewController {
 		            })
 		            .catch(TooManyRequestsError, e => {
 			            this.view.helpText = lang.get('tooManyAttempts_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(CancelledError, () => {
+			            this.view.helpText = lang.get('emptyString_msg')
 			            m.redraw()
 			            return errorAction()
 		            })
