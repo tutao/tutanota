@@ -124,7 +124,7 @@ export class MailEditor {
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._languageCodeField = new DropDownSelector("notificationMailLanguage_label", null, sortedLanguages.map(language => {
 			return {name: lang.get(language.textId), value: language.code}
-		}), props.notificationMailLanguage ? props.notificationMailLanguage : lang.code, 250)
+		}), props.notificationMailLanguage || lang.code, 250)
 
 		this._confidentialButtonState = !props.defaultUnconfidential
 		this.subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
@@ -619,6 +619,7 @@ export class MailEditor {
 										                          resolvedRecipients,
 										                          this._languageCodeField.selectedValue()))
 									                          .then(() => this._updatePreviousMail())
+									                          .then(() => this._updateExternalLanguage())
 									                          .then(() => this._close())
 								               }
 							               })
@@ -666,6 +667,15 @@ export class MailEditor {
 			              throw e
 		              })
 
+	}
+
+	_updateExternalLanguage() {
+		let props = logins.getUserController().props
+		if (props.notificationMailLanguage
+			!== this._languageCodeField.selectedValue) {
+			props.notificationMailLanguage = this._languageCodeField.selectedValue()
+			update(props)
+		}
 	}
 
 	_updatePreviousMail(): Promise<void> {
