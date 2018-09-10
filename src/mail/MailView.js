@@ -236,7 +236,7 @@ export class MailView {
 			{
 				key: Keys.DELETE,
 				exec: () => {
-					this.deleteSelectedMails()
+					this.deleteMails(this.mailList.list.getSelectedEntities())
 				},
 				help: "deleteEmails_action"
 			},
@@ -584,8 +584,8 @@ export class MailView {
 		}
 	}
 
-	deleteSelectedMails(): Promise<void> {
-		return mailModel.deleteMails(this.mailList.list.getSelectedEntities()).then(() => this.mailList.list.selectNone())
+	deleteMails(mails: Mail[]): Promise<void> {
+		return mailModel.deleteMails(mails)
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder() {

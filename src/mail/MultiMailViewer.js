@@ -104,25 +104,42 @@ export class MultiMailViewer {
 			}
 		}))
 		actions.add(new Button('delete_action',
-			() => this._mailView.deleteSelectedMails().then(actionCallback),
-			() => Icons.Trash))
+			this._actionBarAction((mails) => this._mailView.deleteMails(mails), actionCallback),
+			() => Icons.Trash
+		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action",
-				() => this._markAll(this._mailView.mailList.list.getSelectedEntities(), true).then(actionCallback),
+				this._actionBarAction((mails) => this._markAll(mails, true), actionCallback),
 				() => Icons.NoEye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action",
-				() => this._markAll(this._mailView.mailList.list.getSelectedEntities(), false).then(actionCallback),
+				this._actionBarAction((mails) => this._markAll(mails, false), actionCallback),
 				() => Icons.Eye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("export_action",
-				() => this._exportAll(this._mailView.mailList.list.getSelectedEntities()).then(actionCallback),
+				this._actionBarAction((mails) => this._exportAll(mails), actionCallback),
 				() => Icons.Download)
 				.setType(ButtonType.Dropdown)
 				.setIsVisibleHandler(() => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
 			return moreButtons
 		}))
 		return actions
+	}
+
+	/**
+	 * Helper function to generate action which will first call callback and then execute action with previously
+	 * selected mails. Workaround for cases when callback is called to late.
+	 * @param action
+	 * @param actionCallback
+	 * @returns {Function}
+	 * @private
+	 */
+	_actionBarAction(action: (Mail[]) => mixed, actionCallback: action): () => void {
+		return () => {
+			let mails = this._mailView.mailList.list.getSelectedEntities()
+			actionCallback()
+			action(mails)
+		}
 	}
 }
