@@ -152,7 +152,7 @@ function getDarkTheme(): Theme {
 		logo: Logo.Cyan,
 
 
-		button_bubble_bg: dark_lighter,
+		button_bubble_bg: dark_lightest,
 		button_bubble_fg: lighter,
 
 		content_fg: lighter,
