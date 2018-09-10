@@ -1,22 +1,16 @@
 package de.tutao.tutanota;
 
-import android.Manifest;
-import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
-import org.apache.commons.io.IOUtils;
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
-import org.jdeferred.DoneFilter;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -25,9 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -324,7 +315,7 @@ public final class Native {
     }
 
     private static String escape(String s) {
-        return s.replace("\"", "\\\"");
+        return s.replace("\"", "\\\"").replace("\'", "\\\'");
     }
 
     public DeferredObject<Void, Void, Void> getWebAppInitialized() {
