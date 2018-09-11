@@ -76,7 +76,7 @@ public final class PushNotificationService extends JobService {
     private volatile SseInfo connectedSseInfo;
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
-    private JobParameters jobParameters;
+    private volatile JobParameters jobParameters;
 
     private final Map<String, LocalNotificationInfo> aliasNotification =
             new ConcurrentHashMap<>();
@@ -304,6 +304,7 @@ public final class PushNotificationService extends JobService {
                     timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
                     PreferenceManager.getDefaultSharedPreferences(this).edit()
                             .putInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, timeoutInSeconds).apply();
+                    scheduleJobFinish();
                     continue;
                 }
 
@@ -368,10 +369,9 @@ public final class PushNotificationService extends JobService {
                     confirmationThreadPool.execute(
                             () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 }
-                if (this.jobParameters != null) {
-                    jobFinished(this.jobParameters, true);
-                    this.jobParameters = null;
-                }
+
+                Log.d(TAG, "Executing jobFinished after receiving notifications");
+                finishJobIfNeeded();
             }
         } catch (Exception ignored) {
             HttpURLConnection httpURLConnection = httpsURLConnectionRef.get();
@@ -403,6 +403,27 @@ public final class PushNotificationService extends JobService {
                 }
             }
             httpsURLConnectionRef.set(null);
+        }
+    }
+
+    private void scheduleJobFinish() {
+        if (jobParameters != null) {
+            new Thread(() -> {
+                Log.d(TAG, "Scheduling jobFinished");
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException ignored) {
+                }
+                Log.d(TAG, "Executing scheduled jobFinished");
+                finishJobIfNeeded();
+            }, "FinishJobThread");
+        }
+    }
+
+    private void finishJobIfNeeded() {
+        if (jobParameters != null) {
+            jobFinished(jobParameters, true);
+            jobParameters = null;
         }
     }
 
