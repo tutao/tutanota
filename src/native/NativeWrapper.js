@@ -4,6 +4,7 @@ import {ConnectionError} from "../api/common/error/RestError"
 import {asyncImport, defer, neverNull} from "../api/common/utils/Utils"
 import {isMainOrNode, Mode} from "../api/Env"
 import {getMimeType, getName, getSize} from "./FileApp"
+import {base64ToUint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 
 /**
  * Invokes native functions of an app. In case this is executed from a worker scope, the invocations are passed to the
@@ -112,25 +113,9 @@ class NativeWrapper {
 		}
 	}
 
-	handleMessageFromNative(msg: string) {
-		// replace illegal chars in json strings (some special strings like \t are replaced during a native invocation with their corresponding unicode chars)
-		let fixedMsg = msg.replace(/([\b\f\n\r\t])/g, (match) => {
-			switch (match) {
-				case "\b":
-					return "\\b"
-				case "\f":
-					return "\\f"
-				case "\n":
-					return "\\n"
-				case "\r":
-					return "\\r"
-				case "\t":
-					return "\\t"
-				default:
-					throw new Error("illegal match " + match + " of " + msg)
-			}
-		})
-		neverNull(this._nativeQueue)._handleMessage(JSON.parse(fixedMsg))
+	handleMessageFromNative(msg64: string) {
+		const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))
+		neverNull(this._nativeQueue)._handleMessage(JSON.parse(msg))
 	}
 
 	_replacement(char: string) {

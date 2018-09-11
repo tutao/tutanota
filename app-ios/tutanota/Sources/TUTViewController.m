@@ -248,10 +248,9 @@ typedef void(^VoidCallback)(void);
 
 - (void) postMessage:(NSDictionary *)message {
 	let jsonData = [NSJSONSerialization dataWithJSONObject:message options:0 error:nil];
-	let jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		let escapted = [jsonString stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
-		let js = [NSString stringWithFormat:@"tutao.nativeApp.handleMessageFromNative('%@')", escapted];
+		let base64 = [jsonData base64EncodedStringWithOptions:0];
+		let js = [NSString stringWithFormat:@"tutao.nativeApp.handleMessageFromNative('%@')", base64];
 		[self->_webView evaluateJavaScript:js completionHandler:nil];
 	});
 }
