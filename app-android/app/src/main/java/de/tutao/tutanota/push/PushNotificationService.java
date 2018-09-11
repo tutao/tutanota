@@ -76,12 +76,12 @@ public final class PushNotificationService extends JobService {
     private volatile SseInfo connectedSseInfo;
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
+    private JobParameters jobParameters;
 
     private final Map<String, LocalNotificationInfo> aliasNotification =
             new ConcurrentHashMap<>();
 
     private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
-
     private final ThreadPoolExecutor confirmationThreadPool = new ThreadPoolExecutor(
             2, // initial pool size
             2, // max pool size
@@ -250,6 +250,7 @@ public final class PushNotificationService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
+        jobParameters = params;
         return true;
     }
 
@@ -366,6 +367,10 @@ public final class PushNotificationService extends JobService {
                     Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
                     confirmationThreadPool.execute(
                             () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
+                }
+                if (this.jobParameters != null) {
+                    jobFinished(this.jobParameters, true);
+                    this.jobParameters = null;
                 }
             }
         } catch (Exception ignored) {
