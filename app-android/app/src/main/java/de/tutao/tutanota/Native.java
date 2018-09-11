@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -97,7 +98,7 @@ public final class Native {
             request.put("id", requestId);
             request.put("type", type.toString());
             request.put("args", arguments);
-            this.postMessage(request.toString());
+            this.postMessage(request);
             DeferredObject d = new DeferredObject();
             this.queue.put(requestId, d);
             return d.promise();
@@ -116,7 +117,7 @@ public final class Native {
             response.put("id", request.getString("id"));
             response.put("type", "response");
             response.put("value", value);
-            postMessage(response.toString());
+            postMessage(response);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -128,25 +129,21 @@ public final class Native {
             response.put("id", request.getString("id"));
             response.put("type", "requestError");
             response.put("error", errorToObject(ex));
-            postMessage(response.toString());
+            postMessage(response);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void postMessage(final String msg) {
-        evaluateJs("tutao.nativeApp.handleMessageFromNative('" + escape(msg) + "')");
+    private void postMessage(final JSONObject json) {
+        evaluateJs("tutao.nativeApp.handleMessageFromNative('" + escape(json.toString()) + "')");
     }
 
     private void evaluateJs(final String js) {
         activity.getWebView().post(() -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                activity.getWebView().evaluateJavascript(js, value -> {
-                    // no response expected
-                });
-            } else {
-                activity.getWebView().loadUrl("javascript:" + js);
-            }
+            activity.getWebView().evaluateJavascript(js, value -> {
+                // no response expected
+            });
         });
     }
 
@@ -260,7 +257,6 @@ public final class Native {
     }
 
 
-
     private void cancelNotifications(JSONArray addressesArray) throws JSONException {
         NotificationManager notificationManager =
                 (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -315,7 +311,7 @@ public final class Native {
     }
 
     private static String escape(String s) {
-        return s.replace("\"", "\\\"").replace("\'", "\\\'");
+        return Utils.bytesToBase64(s.getBytes());
     }
 
     public DeferredObject<Void, Void, Void> getWebAppInitialized() {
