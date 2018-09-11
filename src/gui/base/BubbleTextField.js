@@ -1,5 +1,5 @@
 // @flow
-import {size, px} from "../size"
+import {size} from "../size"
 import m from "mithril"
 import {TextField} from "./TextField"
 import {Button} from "./Button"
@@ -121,6 +121,7 @@ export class BubbleTextField<T> {
 		switch (key.keyCode) {
 			case 13: // return
 			case 32: // whitespace
+			case 188: //comma
 				return this.createBubbles()
 			case 8:
 				return this.handleBackspace()
