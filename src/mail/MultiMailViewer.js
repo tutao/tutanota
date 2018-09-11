@@ -16,7 +16,6 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
-import {identity} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -30,7 +29,7 @@ export class MultiMailViewer {
 	constructor(mailView: MailView) {
 		this._mailView = mailView
 		let emptyMessageBox = new MessageBox(() => this._getMailSelectionMessage(mailView))
-		const actions = this.createActionBar(identity, true)
+		const actions = this.createActionBar(true)
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
@@ -74,7 +73,7 @@ export class MultiMailViewer {
 		}
 	}
 
-	createActionBar(actionCallback: () => void = () => {}, prependCancel: boolean = false): ActionBar {
+	createActionBar(prependCancel: boolean = false): ActionBar {
 		let actions = new ActionBar()
 
 		if (prependCancel) {
@@ -83,8 +82,7 @@ export class MultiMailViewer {
 		}
 
 		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-			let mails = this._mailView.mailList.list.getSelectedEntities()
-			let sourceMailboxes = mails.reduce((set, mail) => {
+			let sourceMailboxes = this._mailView.mailList.list.getSelectedEntities().reduce((set, mail) => {
 				let mailBox = mailModel.getMailboxDetails(mail)
 				if (set.indexOf(mailBox) < 0) {
 					set.push(mailBox)
@@ -98,27 +96,28 @@ export class MultiMailViewer {
 				return (getSortedSystemFolders(sourceMailboxes[0].folders)
 					.concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
 					return new Button(() => getFolderName(f),
-						() => mailModel.moveMails(mails, f).then(actionCallback), getFolderIcon(f)
+						this._actionBarAction((mails) => mailModel.moveMails(mails, f)),
+						getFolderIcon(f)
 					).setType(ButtonType.Dropdown)
 				})
 			}
 		}))
 		actions.add(new Button('delete_action',
-			this._actionBarAction((mails) => this._mailView.deleteMails(mails), actionCallback),
+			this._actionBarAction((mails) => mailModel.deleteMails(mails)),
 			() => Icons.Trash
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action",
-				this._actionBarAction((mails) => this._markAll(mails, true), actionCallback),
+				this._actionBarAction((mails) => this._markAll(mails, true)),
 				() => Icons.NoEye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action",
-				this._actionBarAction((mails) => this._markAll(mails, false), actionCallback),
+				this._actionBarAction((mails) => this._markAll(mails, false)),
 				() => Icons.Eye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("export_action",
-				this._actionBarAction((mails) => this._exportAll(mails), actionCallback),
+				this._actionBarAction((mails) => this._exportAll(mails)),
 				() => Icons.Download)
 				.setType(ButtonType.Dropdown)
 				.setIsVisibleHandler(() => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
@@ -128,17 +127,16 @@ export class MultiMailViewer {
 	}
 
 	/**
-	 * Helper function to generate action which will first call callback and then execute action with previously
-	 * selected mails. Workaround for cases when callback is called to late.
+	 * Helper function to generate action which will first unselect everything and then execute action with previously
+	 * selected mails. Workaround for cases when callback is called too late.
 	 * @param action
-	 * @param actionCallback
 	 * @returns {Function}
 	 * @private
 	 */
-	_actionBarAction(action: (Mail[]) => mixed, actionCallback: action): () => void {
+	_actionBarAction(action: (Mail[]) => mixed): () => void {
 		return () => {
 			let mails = this._mailView.mailList.list.getSelectedEntities()
-			actionCallback()
+			this._mailView.mailList.list.selectNone()
 			action(mails)
 		}
 	}

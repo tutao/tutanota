@@ -109,7 +109,7 @@ export class MailView {
 		})
 
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar(() => this.mailList.list.selectNone()))
+		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
 		this.mailColumn = new ViewColumn({
 			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
 		}, ColumnType.Background, 600, 2400, () => {
@@ -646,5 +646,4 @@ export class MailView {
 			content: this._actionBar()
 		}) : null
 	}
-
 }
