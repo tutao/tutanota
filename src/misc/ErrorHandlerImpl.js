@@ -35,6 +35,7 @@ assertMainOrNode()
 
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
+let invalidSoftwareVersionActive = false
 let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
@@ -69,7 +70,10 @@ export function handleUncaughtError(e: Error) {
 			checkForMaintenance()
 		}
 	} else if (e instanceof InvalidSoftwareVersionError) {
-		Dialog.error("outdatedClient_msg")
+		if (!invalidSoftwareVersionActive) {
+			invalidSoftwareVersionActive = true
+			Dialog.error("outdatedClient_msg").then(() => invalidSoftwareVersionActive = false)
+		}
 	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e
 		instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
 		windowFacade.reload({})
