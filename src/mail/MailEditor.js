@@ -1,55 +1,55 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType, createDropDownButton, createAsyncDropDownButton} from "../gui/base/Button"
+import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
-import {stringToNameAndMailAddress, formatStorageSize, isMailAddress} from "../misc/Formatter"
+import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {ConversationTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	ConversationType,
 	ApprovalState,
+	ConversationType,
 	MAX_ATTACHMENT_SIZE,
-	ReplyType,
-	OperationType
+	OperationType,
+	ReplyType
 } from "../api/common/TutanotaConstants"
-import {animations, opacity, height} from "../gui/animation/Animations"
-import {load, setup, update, loadAll} from "../api/main/Entity"
+import {animations, height, opacity} from "../gui/animation/Animations"
+import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
-import {BubbleTextField, Bubble} from "../gui/base/BubbleTextField"
+import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
-import {recipientInfoType, isExternal} from "../api/common/RecipientInfo"
+import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {ConnectionError, TooManyRequestsError, AccessBlockedError, NotFoundError} from "../api/common/error/RestError"
+import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
-import {getHttpOrigin, assertMainOrNode, Mode} from "../api/Env"
-import {ExpanderPanel, ExpanderButton} from "../gui/base/Expander"
+import {assertMainOrNode, getHttpOrigin, Mode} from "../api/Env"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {
-	createRecipientInfo,
-	resolveRecipientInfo,
-	getDisplayText,
 	createNewContact,
-	parseMailtoUrl,
-	getSenderName,
+	createRecipientInfo,
+	getDefaultSender,
+	getDisplayText,
 	getEmailSignature,
-	getMailboxName,
 	getEnabledMailAddresses,
-	getDefaultSender
+	getMailboxName,
+	getSenderName,
+	parseMailtoUrl,
+	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
-import {remove, contains, replace} from "../api/common/utils/ArrayUtils"
+import {contains, remove, replace} from "../api/common/utils/ArrayUtils"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {TypeRef, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
@@ -59,12 +59,12 @@ import {logins} from "../api/main/LoginController"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {size, px} from "../gui/size"
+import {px, size} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {searchForContacts, LazyContactListId} from "../contacts/ContactUtils"
+import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 
 
@@ -873,7 +873,7 @@ export class ContactSuggestion {
 
 		this.view = vnode => m(".pt-s.pb-s.click.content-hover", {
 			class: this.selected ? 'content-accent-fg row-selected' : '',
-			onclick: vnode.attrs.clickHandler,
+			onmousedown: vnode.attrs.mouseDownHandler,
 			style: {
 				'padding-left': this.selected ? px(size.hpad_large - 3) : px(size.hpad_large),
 				'border-left': this.selected ? "3px solid" : null,
