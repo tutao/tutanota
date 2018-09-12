@@ -71,7 +71,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "33"
+	"version": "34"
 }
 
 export function createDeleteCustomerData(): DeleteCustomerData {

@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "33"
+	"version": "34"
 }
 
 export function createDomainMailAddressAvailabilityReturn(): DomainMailAddressAvailabilityReturn {
