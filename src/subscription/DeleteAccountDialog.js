@@ -5,7 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
-import {getCleanedMailAddress, isMailAddress} from "../misc/Formatter"
+import {getCleanedMailAddress} from "../misc/Formatter"
 import {neverNull} from "../api/common/utils/Utils"
 
 export function showDeleteAccountDialog() {
@@ -30,18 +30,22 @@ export function showDeleteAccountDialog() {
 }
 
 function deleteAccount(reason: string, takeover: string, password: string) {
-	if (takeover !== "" && !isMailAddress(takeover, false)) {
+	let cleanedTakeover = (takeover === "")
+		? ""
+		: getCleanedMailAddress(takeover)
+
+	if (cleanedTakeover === null) {
 		Dialog.error("mailAddressInvalid_msg")
-		return
+	} else {
+		Dialog.confirm(() => cleanedTakeover === ""
+			? lang.get("deleteAccountConfirm_msg")
+			: lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": cleanedTakeover}))
+		      .then(ok => {
+			      if (ok) {
+				      worker.deleteAccount(password, reason, neverNull(cleanedTakeover))
+				            .catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))
+				            .catch(InvalidDataError, e => Dialog.error("takeoverAccountInvalid_msg"))
+			      }
+		      })
 	}
-	takeover = neverNull(getCleanedMailAddress(takeover))
-	Dialog.confirm(() => takeover === "" ?
-		lang.get("deleteAccountConfirm_msg") : lang.get("deleteAccountWithTakeoverConfirm_msg", {"{1}": takeover}))
-	      .then(ok => {
-		      if (ok) {
-			      worker.deleteAccount(password, reason, takeover)
-			            .catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))
-			            .catch(InvalidDataError, e => Dialog.error("takeoverAccountInvalid_msg"))
-		      }
-	      })
 }

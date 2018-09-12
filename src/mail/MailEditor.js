@@ -875,7 +875,7 @@ export class ContactSuggestion {
 
 		this.view = vnode => m(".pt-s.pb-s.click.content-hover", {
 			class: this.selected ? 'content-accent-fg row-selected' : '',
-			onclick: vnode.attrs.clickHandler,
+			onmousedown: vnode.attrs.mouseDownHandler,
 			style: {
 				'padding-left': this.selected ? px(size.hpad_large - 3) : px(size.hpad_large),
 				'border-left': this.selected ? "3px solid" : null,

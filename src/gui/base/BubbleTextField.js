@@ -60,7 +60,7 @@ export class BubbleTextField<T> {
 					oncreate: vnode => this._domSuggestions = vnode.dom,
 					onmousedown: e => this.textField.skipNextBlur = true,
 				}, this.suggestions.map(s => m(s, {
-					clickHandler: e => {
+					mouseDownHandler: e => {
 						this.selectedSuggestion = s
 						this.createBubbles()
 					}
