@@ -96,11 +96,14 @@ export class MultiMailViewer {
 				return []
 			} else {
 				return (getSortedSystemFolders(sourceMailboxes[0].folders)
-					.concat(getSortedCustomFolders(sourceMailboxes[0].folders))).map(f => {
-					return new Button(() => getFolderName(f),
-						() => mailModel.moveMails(mails, f).then(actionCallback), getFolderIcon(f)
-					).setType(ButtonType.Dropdown)
-				})
+					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
+					.filter(f => f !== this._mailView.selectedFolder)
+					.map(f => {
+						return new Button(() => getFolderName(f),
+							this._actionBarAction((mails) => mailModel.moveMails(mails, f)),
+							getFolderIcon(f)
+						).setType(ButtonType.Dropdown)
+					})
 			}
 		}))
 		actions.add(new Button('delete_action',
