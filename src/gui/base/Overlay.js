@@ -1,5 +1,6 @@
 //@flow
 import m from "mithril"
+import type {DomMutation} from "../animation/Animations"
 import {animations, hexToRgb} from "../animation/Animations"
 import {theme} from "../theme"
 
