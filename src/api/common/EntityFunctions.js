@@ -1,11 +1,11 @@
 // @flow
 import {
 	base64ToBase64Url,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString,
+	base64ToUint8Array,
 	base64UrlToBase64,
 	stringToUtf8Uint8Array,
-	base64ToUint8Array
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
 } from "./utils/Encoding"
 import EC from "./EntityConstants"
 import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)

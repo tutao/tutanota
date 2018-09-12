@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {MailTypeRef, _TypeModel as MailModel} from "../api/entities/tutanota/Mail"
+import {_TypeModel as MailModel, MailTypeRef} from "../api/entities/tutanota/Mail"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {assertMainOrNode} from "../api/Env"
@@ -43,9 +43,9 @@ export function setSearchUrl(url: string) {
 	}
 }
 
-export function getSearchUrl(query: string, restriction: SearchRestriction, selectedId: ?Id): string {
+export function getSearchUrl(query: ?string, restriction: SearchRestriction, selectedId: ?Id): string {
 	let category = neverNull(SEARCH_CATEGORIES.find(c => isSameTypeRef(c.typeRef, restriction.type))).name
-	let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query)
+	let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query || '')
 	if (restriction.start) {
 		url += "&start=" + restriction.start
 	}

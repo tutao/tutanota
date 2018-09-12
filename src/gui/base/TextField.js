@@ -1,5 +1,5 @@
 // @flow
-import {size, px, inputLineHeight} from "../size"
+import {inputLineHeight, px, size} from "../size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
@@ -45,7 +45,7 @@ export class TextField {
 	_domLabel: HTMLElement;
 	_domInput: HTMLInputElement;
 	view: Function;
-	onblur: stream<void>;
+	onblur: Stream<void>;
 	skipNextBlur: boolean;
 	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
@@ -69,7 +69,6 @@ export class TextField {
 		this.type = Type.Text
 		this.baseLabelPosition = size.text_field_label_top
 		this._baseLabel = true
-		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
 
@@ -264,7 +263,6 @@ export class TextField {
 			this._domWrapper.classList.remove("active")
 			this.animate()
 			this.active = false
-			this.onblur(e)
 		}
 		this.skipNextBlur = false
 	}

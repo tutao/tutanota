@@ -66,7 +66,7 @@ import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
-
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -118,13 +118,16 @@ export class MailEditor {
 		let props = logins.getUserController().props
 
 		this._senderField = new DropDownSelector("sender_label", null, getEnabledMailAddresses(this._mailboxDetails)
-			.map(mailAddress => ({name: mailAddress, value: mailAddress})), getDefaultSender(this._mailboxDetails), 250)
+			.map(mailAddress => ({
+				name: mailAddress,
+				value: mailAddress
+			})), stream(getDefaultSender(this._mailboxDetails)), 250)
 
 		let sortedLanguages = languages.slice()
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._languageCodeField = new DropDownSelector("notificationMailLanguage_label", null, sortedLanguages.map(language => {
 			return {name: lang.get(language.textId), value: language.code}
-		}), props.notificationMailLanguage || lang.code, 250)
+		}), stream(props.notificationMailLanguage || lang.code), 250)
 
 		this._confidentialButtonState = !props.defaultUnconfidential
 		this.subject = new TextField("subject_label", () => this.getConfidentialStateMessage())

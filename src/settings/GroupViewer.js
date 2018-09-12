@@ -28,6 +28,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -93,7 +94,7 @@ export class GroupViewer {
 					value: gi.group
 				}
 			}))
-			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.groupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
+			this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, stream(this.groupInfo.localAdmin)).setSelectionChangedHandler(localAdminId => {
 				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
 				} else {
@@ -115,7 +116,7 @@ export class GroupViewer {
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
-		], this.groupInfo.deleted != null).setSelectionChangedHandler(deactivate => {
+		], stream(this.groupInfo.deleted != null)).setSelectionChangedHandler(deactivate => {
 			this._members.getAsync().then(members => {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
@@ -210,7 +211,7 @@ export class GroupViewer {
 					availableUserGroupInfos.sort(compareGroupInfos)
 					let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
 						return {name: getGroupInfoDisplayName(g), value: g}
-					}), availableUserGroupInfos[0], 250)
+					}), stream(availableUserGroupInfos[0]), 250)
 					let addUserToGroupOkAction = (dialog) => {
 						showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
 							.then(userGroup => {

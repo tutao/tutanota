@@ -14,6 +14,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -26,7 +27,7 @@ export function show() {
 			let groupTypes = getAvailableGroupTypes()
 			let typeField = new DropDownSelector("groupType_label", null, groupTypes.map(t => {
 				return {name: getGroupTypeName(t), value: t}
-			}), groupTypes[0])
+			}), stream(groupTypes[0]))
 			let nameField = new TextField("name_label")
 			let mailAddressForm = new SelectMailAddressForm(availableDomains)
 			let form = {

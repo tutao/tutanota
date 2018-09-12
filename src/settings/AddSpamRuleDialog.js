@@ -15,6 +15,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -31,7 +32,7 @@ export function show(emailAddressOrDomainName: ?string) {
 		})
 	})
 
-	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), getSpamRuleTypeNameMapping()[0].value)
+	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), stream(getSpamRuleTypeNameMapping()[0].value))
 	let valueField = new TextField("emailSenderPlaceholder_label",
 		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)
 			|| "emptyString_msg")).setValue(emailAddressOrDomainName)

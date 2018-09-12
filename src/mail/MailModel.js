@@ -30,7 +30,7 @@ export type MailboxDetail = {
 
 class MailModel {
 
-	mailboxDetails: stream<MailboxDetail[]>
+	mailboxDetails: Stream<MailboxDetail[]>
 	_initialization: ?Promise<void>
 
 	constructor() {

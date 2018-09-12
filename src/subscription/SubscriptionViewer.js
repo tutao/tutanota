@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import type {OperationTypeEnum, AccountTypeEnum} from "../api/common/TutanotaConstants"
-import {Const, BookingItemFeatureType, AccountType, AccountTypeNames} from "../api/common/TutanotaConstants"
+import type {AccountTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -14,10 +14,10 @@ import {TextField} from "../gui/base/TextField"
 import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {isSameTypeRef, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {formatPriceDataWithInfo, getCurrentCount, createNotAvailableForFreeButton} from "./PriceUtils"
-import {formatDate, formatStorageSize, formatNameAndAddress} from "../misc/Formatter"
+import {createNotAvailableForFreeButton, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {SysService} from "../api/entities/sys/Services"
@@ -50,7 +50,7 @@ export class SubscriptionViewer {
 	_usageTypeField: TextField;
 	_orderAgreementField: TextField;
 	_subscriptionIntervalField: DropDownSelector<number>;
-	_selectedSubscriptionInterval: stream<number>;
+	_selectedSubscriptionInterval: Stream<number>;
 	_currentPriceField: TextField;
 	_nextPriceField: TextField;
 
@@ -115,12 +115,11 @@ export class SubscriptionViewer {
 
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
-		let
-			subscriptionPeriods = [
-				{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
-				{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
-			]
-		this._selectedSubscriptionInterval = stream(null)
+		let subscriptionPeriods = [
+			{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
+			{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
+		]
+		this._selectedSubscriptionInterval = stream()
 		this._subscriptionIntervalField = new DropDownSelector("subscriptionPeriod_label",
 			() => this._periodEndDate ? lang.get("endOfSubscriptionPeriod_label", {"{1}": formatDate(this._periodEndDate)}) : "",
 			subscriptionPeriods,

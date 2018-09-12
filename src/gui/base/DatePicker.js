@@ -11,6 +11,7 @@ import {px} from "../size"
 import {Dialog} from "./Dialog"
 import {theme} from "../theme"
 import {BootIcons} from "./icons/BootIcons"
+import {neverNull} from "../../api/common/utils/Utils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -25,7 +26,7 @@ export class DatePicker {
 	input: TextField;
 	view: Function;
 	invalidDate: boolean;
-	date: stream<?Date>;
+	date: Stream<?Date>;
 
 	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
 		this.date = stream(null)
@@ -37,7 +38,7 @@ export class DatePicker {
 			if (this.invalidDate) {
 				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 			} else if (this.date() != null) {
-				return formatDateWithMonth(this.date())
+				return formatDateWithMonth(neverNull(this.date()))
 			} else {
 				return lang.get(nullSelectionTextId)
 			}
@@ -108,7 +109,7 @@ export class DatePicker {
 }
 
 type VisualDatePickerAttrs = $Attrs<{
-	selectedDate?: Date,
+	selectedDate: ?Date,
 	onDateSelected?: (date: Date) => void;
 	wide: boolean
 }>

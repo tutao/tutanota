@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog} from "../gui/base/Dialog"
 import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {EditAliasesForm} from "./EditAliasesForm"
@@ -36,6 +36,7 @@ import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/Cust
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
 import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -85,7 +86,7 @@ export class UserViewer {
 		this._admin = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
 			{name: lang.get("yes_label"), value: true}
-		], isAdmin).setSelectionChangedHandler(makeAdmin => {
+		], stream(isAdmin)).setSelectionChangedHandler(makeAdmin => {
 			if (this.userGroupInfo.deleted) {
 				Dialog.error("userAccountDeactivated_msg")
 			} else if (this._isItMe()) {
@@ -102,7 +103,7 @@ export class UserViewer {
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
-		], this.userGroupInfo.deleted != null).setSelectionChangedHandler(deactivate => {
+		], stream(this.userGroupInfo.deleted != null)).setSelectionChangedHandler(deactivate => {
 			if (this._admin.selectedValue()) {
 				Dialog.error("deactivateOwnAccountInfo_msg")
 			} else {
@@ -136,7 +137,7 @@ export class UserViewer {
 						value: gi.group
 					}
 				}))
-				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, this.userGroupInfo.localAdmin).setSelectionChangedHandler(localAdminId => {
+				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, stream(this.userGroupInfo.localAdmin)).setSelectionChangedHandler(localAdminId => {
 					return this._user.getAsync().then(user => {
 						if (this.userGroupInfo.deleted) {
 							Dialog.error("userAccountDeactivated_msg")
@@ -331,7 +332,7 @@ export class UserViewer {
 				availableGroupInfos.sort(compareGroupInfos)
 				let dropdown = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
-				}), availableGroupInfos[0], 250)
+				}), stream(availableGroupInfos[0]), 250)
 
 				let addUserToGroupOkAction = (dialog) => {
 					showProgressDialog("pleaseWait_msg", worker.addUserToGroup(user, dropdown.selectedValue().group))
@@ -355,7 +356,7 @@ export class UserViewer {
 					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
 						let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
 							return {name: cf.path, value: cf}
-						}), contactForms[0], 250)
+						}), stream(contactForms[0]), 250)
 
 						let addUserToContactFormOkAction = (dialog) => {
 							let cf = (dropdown.selectedValue(): ContactForm)

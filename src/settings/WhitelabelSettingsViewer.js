@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {load, update, loadAll, loadRange} from "../api/main/Entity"
+import {load, loadAll, loadRange, update} from "../api/main/Entity"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -11,17 +11,18 @@ import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FeatureType, BookingItemFeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {isSameTypeRef, CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
+import {BookingItemFeatureType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {worker} from "../api/main/WorkerClient"
+import stream from "mithril/stream/stream.js"
 import {fileController} from "../file/FileController"
 import {WhitelabelConfigTypeRef} from "../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../gui/theme"
 import {updateCustomTheme} from "../gui/theme"
-import {uint8ArrayToBase64, stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
@@ -171,7 +172,7 @@ export class WhitelabelSettingsViewer {
 				}))
 				let initialValue = (props.whitelabelRegistrationDomains.length
 					=== 0) ? null : props.whitelabelRegistrationDomains[0].value
-				this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, initialValue, 250).setSelectionChangedHandler(v => {
+				this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, stream(initialValue), 250).setSelectionChangedHandler(v => {
 					props.whitelabelRegistrationDomains.length = 0
 					if (v) {
 						let domain = createStringWrapper()
@@ -336,7 +337,8 @@ export class WhitelabelSettingsViewer {
 							{name: "Deutsch (Sie)", value: "de_sie"}
 						]
 						if (whitelabelConfig && (lang.code === 'de' || lang.code === 'de_sie')) {
-							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value, 250).setSelectionChangedHandler(v => {
+							const streamValue = stream(customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value)
+							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, streamValue, 250).setSelectionChangedHandler(v => {
 								if (v) {
 									neverNull(whitelabelConfig).germanLanguageCode = v
 									update(whitelabelConfig)

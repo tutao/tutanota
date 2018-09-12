@@ -2,30 +2,30 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {Table, ColumnWidth} from "../gui/base/Table"
-import {update, loadRange, load} from "../api/main/Entity"
+import {ColumnWidth, Table} from "../gui/base/Table"
+import {load, loadRange, update} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
-import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {SpamRuleType, OperationType, GroupType} from "../api/common/TutanotaConstants"
-import {neverNull, getUserGroupMemberships} from "../api/common/utils/Utils"
+import {GroupType, OperationType, SpamRuleType} from "../api/common/TutanotaConstants"
+import {getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
-import {isSameTypeRef, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {AuditLogEntryTypeRef} from "../api/entities/sys/AuditLogEntry"
-import {formatDateTimeFromYesterdayOn, formatDateTime} from "../misc/Formatter"
+import {formatDateTime, formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {loadGroupDisplayName, loadEnabledTeamMailGroups, loadEnabledUserMailGroups} from "./LoadingUtils"
+import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
 import * as AddDomainDialog from "./AddDomainDialog"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -275,7 +275,8 @@ export class GlobalSettingsViewer {
 												})
 											}))
 								})).then(availableAndSelectedGroupDatas => {
-								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null, 250)
+								const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
+								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
 								             .then(selectedMailGroupId => {
 									             return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 								             })

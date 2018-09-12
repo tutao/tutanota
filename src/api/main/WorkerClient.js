@@ -1,6 +1,6 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import {Request, Queue, objToError} from "../common/WorkerProtocol"
+import {objToError, Queue, Request} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
@@ -10,14 +10,15 @@ import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
 import type {
-	EntropySrcEnum,
-	ConversationTypeEnum,
 	AccountTypeEnum,
-	BookingItemFeatureTypeEnum, CloseEventBusOptionEnum
+	BookingItemFeatureTypeEnum,
+	CloseEventBusOptionEnum,
+	ConversationTypeEnum,
+	EntropySrcEnum
 } from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {identity} from "../common/utils/Utils"
+import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
@@ -38,7 +39,7 @@ export class WorkerClient {
 
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
-	_wsConnection: stream<WsConnectionState> = stream("terminated");
+	_wsConnection: Stream<WsConnectionState> = stream("terminated");
 
 	constructor() {
 		initLocator(this)
@@ -47,26 +48,27 @@ export class WorkerClient {
 			this._initServices()
 		})
 		this._queue.setCommands({
-			execNative: (message: any) => nativeApp.invokeNative(new Request(message.args[0], message.args[1])),
-			entityEvent: (message: any) => {
-				locator.entityEvent.notificationReceived(message.args[0])
+			execNative: (message: Message) =>
+				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
+			entityEvent: (message: Message) => {
+				locator.entityEvent.notificationReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			error: (message: any) => {
+			error: (message: Message) => {
 				throw objToError((message: any).args[0])
 			},
-			progress: (message: any) => {
+			progress: (message: Message) => {
 				if (this._progressUpdater) {
 					this._progressUpdater(message.args[0])
 				}
 				return Promise.resolve()
 			},
 			updateIndexState: (message: Message) => {
-				locator.search.indexState(message.args[0])
+				locator.search.indexState(downcast(message.args[0]))
 				return Promise.resolve()
 			},
 			updateWebSocketState: (message: Message) => {
-				this._wsConnection(message.args[0]);
+				this._wsConnection(downcast(message.args[0]));
 				return Promise.resolve()
 			}
 		})
@@ -408,7 +410,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('decryptUserPassword', arguments))
 	}
 
-	wsConnection(): stream<WsConnectionState> {
+	wsConnection(): Stream<WsConnectionState> {
 		return this._wsConnection.map(identity)
 	}
 

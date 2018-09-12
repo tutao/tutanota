@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/Formatter"
@@ -14,6 +14,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {logins} from "../api/main/LoginController"
 import {getArchiveFolder, getFolderName, getInboxFolder} from "../mail/MailUtils"
 import type {MailboxDetail} from "../mail/MailModel"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -21,7 +22,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetails) {
-		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), preselectedInboxRuleType)
+		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), stream(preselectedInboxRuleType))
 		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue()
 			!== InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue()
 			!== InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
@@ -30,7 +31,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 		                                  .map(folder => {
 			                                  return {name: getFolderName(folder), value: folder}
 		                                  })
-		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, getArchiveFolder(mailBoxDetails.folders))
+		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, stream(getArchiveFolder(mailBoxDetails.folders)))
 		let form = {
 			view: () => {
 				return [

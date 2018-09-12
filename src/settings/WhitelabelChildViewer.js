@@ -15,6 +15,7 @@ import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
 import {Button} from "../gui/base/Button"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -48,7 +49,7 @@ export class WhitelabelChildViewer {
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
-		], this.whitelabelChild.deletedDate != null).setSelectionChangedHandler(deactivate => {
+		], stream(this.whitelabelChild.deletedDate != null)).setSelectionChangedHandler(deactivate => {
 			this.whitelabelChild.deletedDate = deactivate ? new Date() : null
 			return showProgressDialog("pleaseWait_msg", update(this.whitelabelChild))
 		})

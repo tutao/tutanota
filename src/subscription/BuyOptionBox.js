@@ -12,7 +12,7 @@ export class BuyOptionBox {
 	_actionId: string;
 	_button: Button;
 	view: Function;
-	value: stream<string>;
+	value: Stream<string>;
 	_helpLabel: string;
 	_features: lazy<string[]>;
 	_injection: ?Component;

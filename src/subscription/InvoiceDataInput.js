@@ -14,7 +14,7 @@ import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServi
 export class InvoiceDataInput {
 	view: Function;
 	oncreate: Function;
-	selectedCountry: stream<?Country>;
+	selectedCountry: Stream<?Country>;
 	_invoiceAddressComponent: HtmlEditor;
 	_vatNumberField: TextField;
 	_subscriptionOptions: SubscriptionOptions;
@@ -89,17 +89,17 @@ export class InvoiceDataInput {
 	}
 
 	_isVatIdFieldVisible(): boolean {
-		return this._subscriptionOptions.businessUse && this.selectedCountry() != null && this.selectedCountry().t
-			=== CountryType.EU
+		const selectedCountry = this.selectedCountry()
+		return this._subscriptionOptions.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
 	getInvoiceData(): InvoiceData {
 		let address = this._getAddress()
+		const selectedCountry = this.selectedCountry()
 		return {
 			invoiceAddress: address,
-			country: this.selectedCountry(),
-			vatNumber: (this.selectedCountry() && this.selectedCountry().t
-				=== CountryType.EU) ? this._vatNumberField.value() : ""
+			country: selectedCountry,
+			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU) ? this._vatNumberField.value() : ""
 		}
 	}
 

@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {size, px} from "../size"
+import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
@@ -275,7 +275,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 				let dateValue = stream(value ? formatDate(value) : "")
 				dateValue.map(newDate => {
 					try {
-						if (newDate.trim().length > 0) {
+						if (newDate.trim().length>0) {
 							let timestamp = parseDate(newDate)
 							isNaN(timestamp) ? null : new Date(timestamp)
 						}

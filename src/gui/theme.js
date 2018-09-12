@@ -45,7 +45,7 @@ export type Theme = {
 
 let customTheme: ?Theme = typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations
 && whitelabelCustomizations.theme ? whitelabelCustomizations.theme : null
-export const themeId: stream<ThemeId> = stream(getThemeId())
+export const themeId: Stream<ThemeId> = stream(getThemeId())
 export var theme: Theme = getTheme()
 export var defaultTheme: Theme = getLightTheme()
 

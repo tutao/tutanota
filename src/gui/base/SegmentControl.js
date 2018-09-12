@@ -18,7 +18,7 @@ export class SegmentControl<T> {
 	_items: SegmentControlItem<T>[];
 	_changeHandler: handler<SegmentControlItem<T>>;
 
-	constructor(items: SegmentControlItem<T>[], selectedValue: stream<SegmentControlItem<T>>, itemMaxWidth: number = 120) {
+	constructor(items: SegmentControlItem<T>[], selectedValue: Stream<SegmentControlItem<T>>, itemMaxWidth: number = 120) {
 		this._items = items
 		this.selectedValue = selectedValue
 		this.view = () => {

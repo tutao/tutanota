@@ -32,8 +32,9 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo)
 	const availablePaymentMethods = paymentMethodInput.getAvailablePaymentMethods()
 
-	const selectedPaymentMethod: stream<PaymentMethodTypeEnum> = stream(accountingInfo.paymentMethod)
-	paymentMethodInput.updatePaymentMethod(neverNull(accountingInfo.paymentMethod))
+	const paymentMethod = neverNull(accountingInfo.paymentMethod)
+	const selectedPaymentMethod: Stream<PaymentMethodTypeEnum> = stream(paymentMethod)
+	paymentMethodInput.updatePaymentMethod(paymentMethod)
 
 	const paymentMethodSelector = new DropDownSelector("paymentMethod_label",
 		null,

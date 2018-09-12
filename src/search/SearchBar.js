@@ -3,7 +3,7 @@ import {Type} from "../gui/base/TextField"
 import m from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
-import {px, size, inputLineHeight} from "../gui/size"
+import {inputLineHeight, px, size} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"
@@ -17,27 +17,28 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {load} from "../api/main/Entity"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {formatDateTimeFromYesterdayOn, formatDateWithWeekday, formatDateWithMonth} from "../misc/Formatter"
-import {getSenderOrRecipientHeading, getFolderIcon} from "../mail/MailUtils"
+import {formatDateTimeFromYesterdayOn, formatDateWithMonth, formatDateWithWeekday} from "../misc/Formatter"
+import {getFolderIcon, getSenderOrRecipientHeading} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import type {RouteChangeEvent} from "../misc/RouteChange"
 import {routeChange} from "../misc/RouteChange"
 import {lang} from "../misc/LanguageViewModel"
-import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
-import {setSearchUrl, getRestriction, getSearchUrl, isAdministratedGroup} from "./SearchUtils"
+import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
+import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {Button} from "../gui/base/Button"
-import {assertMainOrNode, isApp, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
-import {client, BrowserType} from "../misc/ClientDetector";
+import {BrowserType, client} from "../misc/ClientDetector";
+import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -62,7 +63,7 @@ export class SearchBar {
 	view: Function;
 	_domInput: HTMLInputElement;
 	_domWrapper: HTMLElement;
-	value: stream<string>;
+	value: Stream<string>;
 	focused: boolean;
 	expanded: boolean;
 	dropdown: Dropdown;
@@ -73,8 +74,8 @@ export class SearchBar {
 	busy: boolean;
 	_selected: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction;
 	_groupInfoRestrictionListId: ?Id;
-	lastSelectedGroupInfoResult: stream<GroupInfo>;
-	lastSelectedWhitelabelChildrenInfoResult: stream<WhitelabelChild>;
+	lastSelectedGroupInfoResult: Stream<GroupInfo>;
+	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
 	_closeOverlayFunction: ?(() => void);
 
 	constructor() {
@@ -477,15 +478,15 @@ export class SearchBar {
 					setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get())))
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				let mail = ((result: any): Mail)
+				let mail: Mail = downcast(result)
 				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), mail._id[1]))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				let contact = ((result: any): Contact)
+				let contact: Contact = downcast(result)
 				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), contact._id[1]))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-				this.lastSelectedGroupInfoResult(result)
+				this.lastSelectedGroupInfoResult(downcast(result))
 			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-				this.lastSelectedWhitelabelChildrenInfoResult(result)
+				this.lastSelectedWhitelabelChildrenInfoResult(downcast(result))
 			}
 		}
 	}
@@ -526,8 +527,9 @@ export class SearchBar {
 					setSearchUrl(getSearchUrl("", restriction))
 				}
 			} else if (!locator.search.isNewSearch(value, restriction)) {
-				if (!m.route.get().startsWith("/search") && locator.search.result()) {
-					this.showDropdown(locator.search.result())
+				const result = locator.search.result()
+				if (!m.route.get().startsWith("/search") && result) {
+					this.showDropdown(result)
 				}
 				this.busy = false
 			} else {

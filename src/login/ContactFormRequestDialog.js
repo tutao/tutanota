@@ -6,11 +6,11 @@ import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
-import {MAX_ATTACHMENT_SIZE, InputFieldType, ConversationType, PushServiceType} from "../api/common/TutanotaConstants"
+import {ConversationType, InputFieldType, MAX_ATTACHMENT_SIZE, PushServiceType} from "../api/common/TutanotaConstants"
 import {animations, height} from "../gui/animation/Animations"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
-import {remove, mapAndFilterNull} from "../api/common/utils/ArrayUtils"
+import {mapAndFilterNull, remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -28,6 +28,7 @@ import {HtmlEditor} from "../gui/base/HtmlEditor"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -148,7 +149,7 @@ export class ContactFormRequestDialog {
 				})
 				// add empty entry
 				items.splice(0, 0, {name: "", value: null})
-				let f = new DropDownSelector(() => field.name, null, items, null, 250)
+				let f = new DropDownSelector(() => field.name, null, items, stream(null), 250)
 				return {component: f, name: field.name, value: f.selectedValue}
 			} else {
 				let f = new TextField(() => field.name)
