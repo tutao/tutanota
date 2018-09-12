@@ -45,7 +45,7 @@ export class TextField {
 	_domLabel: HTMLElement;
 	_domInput: HTMLInputElement;
 	view: Function;
-	onblur: Stream<void>;
+	onblur: Stream<*>;
 	skipNextBlur: boolean;
 	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
@@ -69,6 +69,7 @@ export class TextField {
 		this.type = Type.Text
 		this.baseLabelPosition = size.text_field_label_top
 		this._baseLabel = true
+		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
 
@@ -263,6 +264,7 @@ export class TextField {
 			this._domWrapper.classList.remove("active")
 			this.animate()
 			this.active = false
+			this.onblur(e)
 		}
 		this.skipNextBlur = false
 	}
