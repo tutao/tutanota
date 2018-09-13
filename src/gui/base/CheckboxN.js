@@ -7,12 +7,12 @@ import {removeFlash, addFlash} from "./Flash"
 
 export type CheckboxAttrs = {
 	label: lazy<string>,
-	checked: stream<boolean>,
+	checked: Stream<boolean>,
 	helpLabel?: lazy<string>,
 }
 
 export class _Checkbox {
-	focused: stream<boolean>;
+	focused: Stream<boolean>;
 	_domInput: HTMLElement;
 	_domIcon: ?HTMLElement;
 
@@ -66,7 +66,7 @@ export class _Checkbox {
 		])
 	}
 
-	toggle(event: MouseEvent, checked: stream<boolean>) {
+	toggle(event: MouseEvent, checked: Stream<boolean>) {
 		checked(!checked())
 		event.stopPropagation()
 		if (this._domInput) {

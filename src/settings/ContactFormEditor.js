@@ -54,7 +54,7 @@ export class ContactFormEditor {
 	_pageTitleField: TextField;
 	_pathField: TextField;
 	_receivingMailboxField: TextField;
-	_receivingMailbox: stream<?GroupInfo>;
+	_receivingMailbox: Stream<?GroupInfo>;
 	_participantGroupInfoList: GroupInfo[];
 	_participantGroupInfosTable: Table;
 	_headerField: HtmlEditor;
@@ -62,7 +62,7 @@ export class ContactFormEditor {
 	_helpField: HtmlEditor;
 	_statisticsFields: InputField[];
 	_statisticsFieldsTable: Table;
-	_language: stream<ContactFormLanguage>;
+	_language: Stream<ContactFormLanguage>;
 	_languages: ContactFormLanguage[];
 	_languageField: TextField;
 
@@ -131,7 +131,7 @@ export class ContactFormEditor {
 			if (availableGroupInfos.length > 0) {
 				let dropdown = new DropDownSelector("group_label", null, availableGroupInfos.map(g => {
 					return {name: getGroupInfoDisplayName(g), value: g}
-				}), availableGroupInfos[0], 250)
+				}), stream(availableGroupInfos[0]), 250)
 				let addResponsiblePersonOkAction = (dialog) => {
 					this._participantGroupInfoList.push(dropdown.selectedValue())
 					this._updateParticipantGroupInfosTable()
@@ -175,7 +175,7 @@ export class ContactFormEditor {
 				}).map(l => {
 					return {name: lang.get(l.textId), value: l.code}
 				}).sort((a, b) => a.name.localeCompare(b.name))
-				let newLanguageCode = stream(additionalLanguages[0].value)
+				let newLanguageCode: Stream<string> = stream(additionalLanguages[0].value)
 				let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 
 				setTimeout(() => {
@@ -247,10 +247,12 @@ export class ContactFormEditor {
 		this.view = () => m("#contact-editor.pb", [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
-			(this._receivingMailbox() && this._receivingMailbox().groupType === GroupType.User) ? null : m(".mt-l", [
-				m(this._participantGroupInfosTable),
-				m(".small", lang.get("responsiblePersonsInfo_msg"))
-			]),
+			(this._receivingMailbox() && neverNull(this._receivingMailbox()).groupType === GroupType.User)
+				? null
+				: m(".mt-l", [
+					m(this._participantGroupInfosTable),
+					m(".small", lang.get("responsiblePersonsInfo_msg"))
+				]),
 			m(".h4.mt-l", lang.get("display_action")),
 			m(this._pathField),
 			m(this._languageField),
@@ -310,7 +312,8 @@ export class ContactFormEditor {
 			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => {
 						return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
-							if (!this._receivingMailbox()) {
+							const receivingMailbox = this._receivingMailbox()
+							if (!receivingMailbox) {
 								return Dialog.error("noReceivingMailbox_label")
 							}
 							let contactFormsListId = root.contactForms
@@ -328,7 +331,7 @@ export class ContactFormEditor {
 									return Dialog.error("pathAlreadyExists_msg")
 								} else {
 									// check if the target mail group is already referenced by a different contact form
-									return load(GroupTypeRef, this._receivingMailbox().group).then(group => {
+									return load(GroupTypeRef, receivingMailbox.group).then(group => {
 										if (group.user) {
 											return load(UserTypeRef, group.user).then(user => {
 												return neverNull(user.memberships.find(m => m.groupType
@@ -344,13 +347,11 @@ export class ContactFormEditor {
 												&& !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
 												return Dialog.error("receivingMailboxAlreadyUsed_msg")
 											} else {
-												this._contactForm._ownerGroup = neverNull(logins.getUserController()
-												                                                .user
-												                                                .memberships
-												                                                .find(m => m.groupType
-													                                                === GroupType.Customer)).group
-												this._contactForm.targetGroup = this._receivingMailbox().group
-												this._contactForm.targetGroupInfo = this._receivingMailbox()._id
+												this._contactForm._ownerGroup =
+													neverNull(logins.getUserController().user.memberships
+													                .find(m => m.groupType === GroupType.Customer)).group
+												this._contactForm.targetGroup = receivingMailbox.group
+												this._contactForm.targetGroupInfo = receivingMailbox._id
 												this._contactForm.participantGroupInfos = this._participantGroupInfoList.map(groupInfo => groupInfo._id)
 												this._contactForm.path = this._pathField.value()
 												this.updateLanguageFromFields(this._language())
@@ -363,7 +364,7 @@ export class ContactFormEditor {
 													             .then(accepted => {
 														             if (accepted) {
 															             return setup(contactFormsListId, this._contactForm)
-																             .then(contactFormId => {
+																             .then(() => {
 																	             this._newContactFormIdReceiver(customElementIdFromPath)
 																             })
 														             }

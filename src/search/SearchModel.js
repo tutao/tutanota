@@ -10,9 +10,9 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 assertMainOrNode()
 
 export class SearchModel {
-	result: stream<?SearchResult>;
-	indexState: stream<SearchIndexStateInfo>;
-	lastQuery: stream<?string>;
+	result: Stream<?SearchResult>;
+	indexState: Stream<SearchIndexStateInfo>;
+	lastQuery: Stream<?string>;
 
 	constructor() {
 		this.result = stream()
@@ -22,7 +22,7 @@ export class SearchModel {
 			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
-			currentMailIndexTimeStamp: NOTHING_INDEXED_TIMESTAMP
+			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP
 		})
 		this.indexState.map(state => {
 			if (state && !state.indexingSupported) {

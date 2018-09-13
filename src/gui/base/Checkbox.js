@@ -16,8 +16,8 @@ const FALSE_CLOSURE = () => {
 export class Checkbox {
 	getLabel: lazy<string>;
 	helpLabel: ?lazy<String>;
-	checked: stream<boolean>;
-	focused: stream<boolean>;
+	checked: Stream<boolean>;
+	focused: Stream<boolean>;
 	enabled: boolean;
 	_domInput: HTMLElement;
 	view: Function;

@@ -1,8 +1,7 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {List} from "../gui/base/List"
-import {sortCompareByReverseId, GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
@@ -82,8 +81,9 @@ export class SearchListView {
 	}
 
 	isInSearchResult(typeRef: TypeRef<any>, id: IdTuple): boolean {
-		return locator.search.result() && isSameTypeRef(typeRef, locator.search.result().restriction.type)
-			&& locator.search.result().results.find(r => isSameId(r, id))
+		const result = locator.search.result()
+		return !!(result && isSameTypeRef(typeRef, result.restriction.type)
+			&& result.results.find(r => isSameId(r, id)))
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
@@ -92,8 +92,8 @@ export class SearchListView {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
 				let result = locator.search.result()
-				if (result && result.initializing) {
-					// show spinner until the actual search result is available
+				if (locator.search.indexState().initializing) {
+					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
 				if (!result || result.results.length === 0) {
@@ -146,7 +146,7 @@ export class SearchListView {
 				if (result) {
 					let id = result.results.find(r => r[1] === elementId)
 					if (id) {
-						return load(locator.search.result().restriction.type, id)
+						return load(result.restriction.type, id)
 							.then(entity => new SearchResultListEntry(entity))
 							.catch(NotFoundError, (e) => {
 								// we return null if the entity does not exist

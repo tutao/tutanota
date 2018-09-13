@@ -3,14 +3,14 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {Table, ColumnWidth} from "../gui/base/Table"
-import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {ColumnWidth, Table} from "../gui/base/Table"
+import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
+import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
 import {load, update} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
-import {neverNull, getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
+import {getEnabledMailAddressesForGroupInfo, neverNull} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
@@ -31,6 +31,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -68,7 +69,7 @@ export class MailSettingsViewer {
 		this._defaultSender = new DropDownSelector("defaultSenderMailAddress_label", () => lang.get("defaultSenderMailAddressInfo_msg"), getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
 			.map(a => {
 				return {name: a, value: a}
-			}), getDefaultSenderFromUser(), 250).setSelectionChangedHandler(v => {
+			}), stream(getDefaultSenderFromUser()), 250).setSelectionChangedHandler(v => {
 			logins.getUserController().props.defaultSender = v
 			update(logins.getUserController().props)
 		})
@@ -76,7 +77,7 @@ export class MailSettingsViewer {
 		this._defaultUnconfidential = new DropDownSelector("defaultExternalDelivery_label", () => lang.get("defaultExternalDeliveryInfo_msg"), [
 			{name: lang.get("confidential_action"), value: false},
 			{name: lang.get("nonConfidential_action"), value: true}
-		], logins.getUserController().props.defaultUnconfidential, 250).setSelectionChangedHandler(v => {
+		], stream(logins.getUserController().props.defaultUnconfidential), 250).setSelectionChangedHandler(v => {
 			logins.getUserController().props.defaultUnconfidential = v
 			update(logins.getUserController().props)
 		})
@@ -84,7 +85,7 @@ export class MailSettingsViewer {
 		this._sendPlaintext = new DropDownSelector("externalFormatting_label", () => lang.get("externalFormattingInfo_msg"), [
 			{name: lang.get("html_action"), value: false},
 			{name: lang.get("plaintext_action"), value: true}
-		], logins.getUserController().props.sendPlaintextOnly, 250).setSelectionChangedHandler(v => {
+		], stream(logins.getUserController().props.sendPlaintextOnly), 250).setSelectionChangedHandler(v => {
 			logins.getUserController().props.sendPlaintextOnly = v
 			update(logins.getUserController().props)
 		})
@@ -92,7 +93,7 @@ export class MailSettingsViewer {
 		this._noAutomaticContacts = new DropDownSelector("createContacts_label", () => lang.get("createContactsForRecipients_action"), [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
-		], logins.getUserController().props.noAutomaticContacts, 250).setSelectionChangedHandler(v => {
+		], stream(logins.getUserController().props.noAutomaticContacts), 250).setSelectionChangedHandler(v => {
 			logins.getUserController().props.noAutomaticContacts = v
 			update(logins.getUserController().props)
 		})
@@ -100,7 +101,7 @@ export class MailSettingsViewer {
 		this._enableMailIndexing = new DropDownSelector("searchMailbox_label", () => lang.get("enableSearchMailbox_msg"), [
 			{name: lang.get("activated_label"), value: true},
 			{name: lang.get("deactivated_label"), value: false}
-		], locator.search.indexState().mailIndexEnabled, 250).setSelectionChangedHandler(mailIndexEnabled => {
+		], stream(locator.search.indexState().mailIndexEnabled), 250).setSelectionChangedHandler(mailIndexEnabled => {
 			if (mailIndexEnabled) {
 				if (locator.search.indexState().indexingSupported) {
 					showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())

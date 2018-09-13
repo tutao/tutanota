@@ -14,7 +14,7 @@ export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
 export class HtmlEditor {
 	_editor: Editor;
-	_mode: stream<HtmlEditorModeEnum>;
+	_mode: Stream<HtmlEditorModeEnum>;
 	_active: boolean;
 	_disabled: boolean;
 	_domTextArea: HTMLTextAreaElement;
@@ -24,7 +24,7 @@ export class HtmlEditor {
 	_placeholderId: ?string;
 	view: Function;
 	_placeholderDomElement: HTMLElement;
-	_value: stream<string>;
+	_value: Stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
 

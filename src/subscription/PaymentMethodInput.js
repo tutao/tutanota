@@ -9,7 +9,7 @@ import {CreditCardInput} from "./CreditCardInput"
 import MessageBox from "../gui/base/MessageBox"
 import {PayPalLogo} from "../gui/base/icons/Icons"
 import {SysService} from "../api/entities/sys/Services"
-import {serviceRequest, load} from "../api/main/Entity"
+import {load, serviceRequest} from "../api/main/Entity"
 import {HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
 import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -27,7 +27,7 @@ export class PaymentMethodInput {
 	_creditCardComponent: CreditCardInput;
 	_payPalComponent: Component;
 	_invoiceComponent: Component;
-	_selectedCountry: stream<?Country>;
+	_selectedCountry: Stream<?Country>;
 	_selectedPaymentMethod: PaymentMethodTypeEnum;
 	_subscriptionOptions: SubscriptionOptions;
 	_payPalRequestUrl: LazyLoaded<string>
@@ -35,7 +35,7 @@ export class PaymentMethodInput {
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: stream<?Country>, accountingInfo: AccountingInfo) {
+	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()
@@ -71,8 +71,12 @@ export class PaymentMethodInput {
 				]
 			},
 		}
-		const messageBox = new MessageBox(() => (this._selectedCountry() && this._selectedCountry().t
-			=== CountryType.OTHER) ? lang.get("paymentMethodNotAvailable_msg") : lang.get("paymentMethodOnAccount_msg"), "content-message-bg", 16)
+		const messageBox = new MessageBox(() => {
+			const country = this._selectedCountry()
+			return country && country.t === CountryType.OTHER
+				? lang.get("paymentMethodNotAvailable_msg")
+				: lang.get("paymentMethodOnAccount_msg")
+		}, "content-message-bg", 16)
 		this._invoiceComponent = {
 			view: () => {
 				return m(".flex-center", m(messageBox))
@@ -96,10 +100,11 @@ export class PaymentMethodInput {
 	}
 
 	validatePaymentData(): ?string {
+		const country = this._selectedCountry()
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			if (this._subscriptionOptions.businessUse && this._selectedCountry().t === CountryType.OTHER) {
+			if (this._subscriptionOptions.businessUse && country && country.t === CountryType.OTHER) {
 				return "paymentMethodNotAvailable_msg"
 			} else if (!this._subscriptionOptions.businessUse) {
 				return "paymentMethodNotAvailable_msg"

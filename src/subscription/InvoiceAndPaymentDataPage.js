@@ -28,11 +28,11 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 	_paymentMethodInput: PaymentMethodInput;
 	_invoiceDataInput: InvoiceDataInput;
 	_availablePaymentMethods: Array<SegmentControlItem<PaymentMethodTypeEnum>>;
-	_selectedPaymentMethod: stream<SegmentControlItem<PaymentMethodTypeEnum>>;
+	_selectedPaymentMethod: Stream<SegmentControlItem<PaymentMethodTypeEnum>>;
 	_paymentMethodSelector: SegmentControl<PaymentMethodTypeEnum>;
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
-		this._selectedPaymentMethod = stream(null)
+		this._selectedPaymentMethod = stream()
 		this.updateWizardData = (data: UpgradeSubscriptionData) => {
 			this._upgradeData = data
 			this._invoiceDataInput = new InvoiceDataInput(upgradeData.subscriptionOptions, upgradeData.invoiceData)

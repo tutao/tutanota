@@ -14,6 +14,7 @@ import TableLine from "../gui/base/TableLine"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {defer} from "../api/common/utils/Utils"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -24,7 +25,7 @@ export function show(): Promise<?InputField> {
 		{name: lang.get("number_label"), value: InputFieldType.NUMBER},
 		{name: lang.get("enum_label"), value: InputFieldType.ENUM}
 	]
-	let typeField = new DropDownSelector("type_label", null, types, types[0].value)
+	let typeField = new DropDownSelector("type_label", null, types, stream(types[0].value))
 
 	let addButton = new Button("addEnumValue_action", () => {
 		Dialog.showTextInputDialog("addEnumValue_action", "enumValue_label", null, "", newName => {

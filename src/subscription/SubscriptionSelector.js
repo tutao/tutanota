@@ -7,7 +7,7 @@ import {BuyOptionBox} from "./BuyOptionBox"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
@@ -21,7 +21,7 @@ type UpgradePrices = {
 
 type UpgradeBox = {
 	buyOptionBox: BuyOptionBox;
-	paymentInterval: stream<SegmentControlItem<number>>
+	paymentInterval: Stream<SegmentControlItem<number>>
 }
 
 export class SubscriptionSelector {
@@ -31,7 +31,7 @@ export class SubscriptionSelector {
 	_yearlyPrice: LazyLoaded<UpgradePrices>;
 	view: Function;
 
-	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: stream<boolean>) {
+	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>) {
 
 		let freeTypeBox = new BuyOptionBox(() => "Free", "select_action",
 			freeAction,

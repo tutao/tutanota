@@ -12,7 +12,7 @@ import {AccountType} from "../api/common/TutanotaConstants"
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
-	_businessUse: stream<SegmentControlItem<boolean>>;
+	_businessUse: Stream<SegmentControlItem<boolean>>;
 	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
 	_upgradeData: UpgradeSubscriptionData;
 	_selector: SubscriptionSelector;

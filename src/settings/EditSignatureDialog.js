@@ -10,6 +10,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {getDefaultSignature} from "../mail/MailUtils"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -24,7 +25,7 @@ export function show(props: TutanotaProperties) {
 	                                            .setMinHeight(200)
 	                                            .setValue(getSignature(previousType, currentCustomSignature))
 
-	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), previousType)
+	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
 	typeField.selectedValue.map(type => {
 		if (previousType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
 			currentCustomSignature = editor.getValue()

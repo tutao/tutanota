@@ -12,14 +12,14 @@ import {neverNull} from "../../api/common/utils/Utils"
 
 export type ExpanderAttrs = {
 	label: string | lazy<string>,
-	expanded: stream<boolean>,
+	expanded: Stream<boolean>,
 	showWarning?: boolean,
 	style?: Object,
 	color?: string
 }
 
 export type ExpanderPanelAttrs = {
-	expanded: stream<boolean>,
+	expanded: Stream<boolean>,
 	class?: string,
 }
 
@@ -56,7 +56,7 @@ class _ExpanderButton {
 		])
 	}
 
-	toggle(expanded: stream<boolean>) {
+	toggle(expanded: Stream<boolean>) {
 		if (this._domIcon) {
 			let start = expanded() ? 0 : 180
 			animations.add(neverNull(this._domIcon), transform('rotateZ', start, start + 180))

@@ -1,16 +1,17 @@
 // @flow
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
-import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
-import {TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
+import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
+import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	MailFolderType,
 	FULL_INDEXED_TIMESTAMP,
+	MailFolderType,
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
 } from "../api/common/TutanotaConstants"
+import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {NavButton, NavButtonColors} from "../gui/base/NavButton"
@@ -18,9 +19,9 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
-import {size, px} from "../gui/size"
+import {px, size} from "../gui/size"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
-import {getRestriction, getSearchUrl, createRestriction, setSearchUrl, getFreeSearchEndDate} from "./SearchUtils"
+import {createRestriction, getFreeSearchEndDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -28,15 +29,15 @@ import {erase, load} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {SEARCH_MAIL_FIELDS, SEARCH_CATEGORIES} from "../search/SearchUtils"
-import {getFolderName, getSortedSystemFolders, getSortedCustomFolders} from "../mail/MailUtils"
+import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
+import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {getStartOfDay, isToday, getEndOfDay, isSameDay} from "../api/common/utils/DateUtils"
+import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
@@ -100,7 +101,7 @@ export class SearchView {
 		let mailAttributes = SEARCH_MAIL_FIELDS.map(f => {
 			return {name: lang.get(f.textId), value: f.field}
 		})
-		this._mailFieldSelection = new DropDownSelector("field_label", null, mailAttributes, mailAttributes[0].value, 250)
+		this._mailFieldSelection = new DropDownSelector("field_label", null, mailAttributes, stream(mailAttributes[0].value), 250)
 		this._doNotUpdateQuery = true // the stream obeserver is immediately called when map() is called and we must not search again now
 		this._mailFieldSelection.selectedValue.map(newValue => {
 			if (logins.getUserController().isFreeAccount()) {
@@ -134,7 +135,7 @@ export class SearchView {
 			if (!mailFolders.find(f => f.value === newSelection)) {
 				newSelection = mailFolders[0].value
 			}
-			this._mailFolderSelection = new DropDownSelector("mailFolder_label", null, mailFolders, newSelection, 250)
+			this._mailFolderSelection = new DropDownSelector("mailFolder_label", null, mailFolders, stream(newSelection), 250)
 			this._doNotUpdateQuery = true
 			this._mailFolderSelection.selectedValue.map(newValue => {
 				if (logins.getUserController().isFreeAccount()) {
@@ -338,14 +339,15 @@ export class SearchView {
 			return
 		}
 
+		const lastQuery = locator.search.lastQuery()
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (args.hasOwnProperty('query')) {
 			if (locator.search.isNewSearch(args.query, restriction)) {
 				locator.search.search(args.query, restriction, 0)
 			}
-		} else if (locator.search.isNewSearch(locator.search.lastQuery(), restriction)) {
+		} else if (lastQuery && locator.search.isNewSearch(lastQuery, restriction)) {
 			// If query is not set for some reason (e.g. switching search type), use the last query value
-			locator.search.search(locator.search.lastQuery(), restriction, 0)
+			locator.search.search(lastQuery, restriction, 0)
 		}
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {

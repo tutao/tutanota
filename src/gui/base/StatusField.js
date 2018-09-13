@@ -8,9 +8,9 @@ assertMainOrNode()
 export class StatusField {
 
 	view: Function;
-	_status: stream<Status>;
+	_status: Stream<Status>;
 
-	constructor(status: stream<Status>) {
+	constructor(status: Stream<Status>) {
 		this._status = status
 		this.view = () => m("", lang.get(this._status().text))
 	}

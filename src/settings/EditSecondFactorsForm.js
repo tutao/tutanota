@@ -132,7 +132,7 @@ export class EditSecondFactorsForm {
 							      name: lang.get(SecondFactorTypeToNameTextId[key]),
 							      value: key
 						      }
-					      }), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
+					      }), stream(u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp), 300)
 				let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
 				let u2fRegistrationData = stream(null)
 
@@ -253,7 +253,7 @@ export class EditSecondFactorsForm {
 				let dialog = Dialog.showActionDialog({
 					title: lang.get("add_action"),
 					child: {
-						view: () =>  [
+						view: () => [
 							m(type),
 							m(name),
 							type.selectedValue() === SecondFactorType.totp ? m(".mb", [

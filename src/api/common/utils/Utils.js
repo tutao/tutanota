@@ -64,6 +64,10 @@ export function neverNull<T>(object: ?T): T {
 	return (object: any)
 }
 
+export function downcast<R>(object: *): R {
+	return (object: any)
+}
+
 export function string(object: any): string {
 	return (object: string)
 }

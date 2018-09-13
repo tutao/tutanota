@@ -416,7 +416,7 @@ export class Dialog {
 	 * @returns the Dialog
 	 */
 	static showActionDialog(props: {|
-		title: stream<string> | string,
+		title: Stream<string> | string,
 		child: Component,
 		validator?: validator,
 		okAction: (dialog: Dialog) => void,
@@ -541,7 +541,7 @@ export class Dialog {
 	}
 
 
-	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: stream<T> | T, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
 
