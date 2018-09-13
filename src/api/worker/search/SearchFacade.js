@@ -3,27 +3,27 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import {SearchIndexOS, ElementDataOS} from "./DbFacade"
+import {ElementDataOS, SearchIndexOS} from "./DbFacade"
 import {
-	TypeRef,
+	compareNewestFirst,
 	firstBiggerThanSecond,
 	isSameTypeRef,
-	compareNewestFirst,
-	resolveTypeReference
+	resolveTypeReference,
+	TypeRef
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
-import {arrayEquals, contains} from "../../common/utils/ArrayUtils"
-import {neverNull, asyncFind} from "../../common/utils/Utils"
+import {arrayHash, contains} from "../../common/utils/ArrayUtils"
+import {asyncFind, neverNull} from "../../common/utils/Utils"
 import type {
-	KeyToEncryptedIndexEntries,
-	EncryptedSearchIndexEntry,
-	KeyToIndexEntries,
+	Db,
 	ElementData,
-	SearchIndexEntry,
-	Db
+	EncryptedSearchIndexEntry,
+	KeyToEncryptedIndexEntries,
+	KeyToIndexEntries,
+	SearchIndexEntry
 } from "./SearchTypes"
-import {encryptIndexKeyBase64, decryptSearchIndexEntry} from "./IndexUtils"
-import {NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
+import {decryptSearchIndexEntry, encryptIndexKeyBase64, getPerformanceTimestamp} from "./IndexUtils"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
@@ -31,7 +31,7 @@ import {getStartOfDay} from "../../common/utils/DateUtils"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
-import {NotFoundError, NotAuthorizedError} from "../../common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -73,7 +73,6 @@ export class SearchFacade {
 				let isFirstWordSearch = searchTokens.length === 1
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
 				let searchPromise
-
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
 					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
 					                    .then(() => {
@@ -238,7 +237,13 @@ export class SearchFacade {
 				let indexKey = encryptIndexKeyBase64(this._db.key, token)
 				return transaction.getAsList(SearchIndexOS, indexKey)
 				                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {
-					                  return {indexKey, indexEntries}
+					                  return {
+						                  indexKey,
+						                  indexEntries: indexEntries.map(ie => ({
+							                  encEntry: ie,
+							                  idHash: arrayHash(ie[0])
+						                  }))
+					                  }
 				                  })
 			})
 		})
@@ -248,21 +253,25 @@ export class SearchFacade {
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
 	_filterByEncryptedId(results: KeyToEncryptedIndexEntries[]): KeyToEncryptedIndexEntries[] {
-		let matchingEncIds = null
+		// let matchingEncIds = null
+		let matchingEncIds: Set<number>
 		results.forEach(keyToEncryptedIndexEntry => {
 			if (matchingEncIds == null) {
-				matchingEncIds = keyToEncryptedIndexEntry.indexEntries.map(entry => entry[0])
+				matchingEncIds = new Set(keyToEncryptedIndexEntry.indexEntries.map(entry => entry.idHash))
 			} else {
-				matchingEncIds = matchingEncIds.filter((encId) => {
-					return keyToEncryptedIndexEntry.indexEntries.find(entry => arrayEquals(entry[0], encId))
+				let filtered = new Set()
+				keyToEncryptedIndexEntry.indexEntries.forEach(indexEntry => {
+					if (matchingEncIds.has(indexEntry.idHash)) {
+						filtered.add(indexEntry.idHash)
+					}
 				})
+				matchingEncIds = filtered
 			}
 		})
 		return results.map(r => {
 			return {
 				indexKey: r.indexKey,
-				indexEntries: r.indexEntries.filter(entry => neverNull(matchingEncIds)
-					.find(encId => arrayEquals(entry[0], encId)))
+				indexEntries: r.indexEntries.filter(entry => matchingEncIds.has(entry.idHash))
 			}
 		})
 	}
@@ -272,7 +281,7 @@ export class SearchFacade {
 		return results.map(searchResult => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry))
+				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry.encEntry))
 			}
 		})
 	}
@@ -280,32 +289,40 @@ export class SearchFacade {
 
 	_filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction): KeyToIndexEntries[] {
 		// first filter each index entry by itself
+		let endTimestamp = this._getSearchEndTimestamp(restriction)
+		const minIncludedId = timestampToGeneratedId(endTimestamp)
+		const maxExcludedId = restriction.start ? timestampToGeneratedId(restriction.start + 1) : null
 		results.forEach(result => {
 			result.indexEntries = result.indexEntries.filter(entry => {
-				return this._isValidTypeAndAttributeAndTime(restriction, entry)
+				return this._isValidTypeAndAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId)
 			})
 		})
 
 		// now filter all ids that are in all of the search words
-		let matchingIds: ?Id[] = null
+		let matchingIds: Set<Id>
 		results.forEach(keyToIndexEntry => {
 			if (!matchingIds) {
-				matchingIds = keyToIndexEntry.indexEntries.map(entry => entry.id)
+				matchingIds = new Set(keyToIndexEntry.indexEntries.map(entry => entry.id))
 			} else {
-				matchingIds = matchingIds.filter(id => {
-					return keyToIndexEntry.indexEntries.find(entry => entry.id === id)
+				let filtered = new Set()
+				keyToIndexEntry.indexEntries.forEach(entry => {
+					if (matchingIds.has(entry.id)) {
+						filtered.add(entry.id)
+					}
 				})
+				matchingIds = filtered
 			}
 		})
 		return results.map(r => {
 			return {
 				indexKey: r.indexKey,
-				indexEntries: r.indexEntries.filter(entry => neverNull(matchingIds).find(id => entry.id === id))
+				indexEntries: r.indexEntries.filter(entry => matchingIds.has(entry.id))
 			}
 		})
 	}
 
-	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry): boolean {
+	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry, minIncludedId: Id,
+	                                maxExcludedId: ?Id): boolean {
 		let typeInfo = typeRefToTypeInfo(restriction.type)
 		if (typeInfo.appId !== entry.app || typeInfo.typeId !== entry.type) {
 			return false
@@ -315,16 +332,14 @@ export class SearchFacade {
 				return false
 			}
 		}
-		if (restriction.start) {
-			// timestampToGeneratedId provides the lowest id with the given timestamp (server id and counter set to 0), so we add one millisecond to make sure all ids of the timestamp are covered
-			let maxExcluded = timestampToGeneratedId(restriction.start + 1)
-			if (!firstBiggerThanSecond(maxExcluded, entry.id)) {
+		if (maxExcludedId) {
+			// timestampToGeneratedId provides the lowest id with the given timestamp (server id and counter set to 0),
+			// so we add one millisecond to make sure all ids of the timestamp are covered
+			if (!firstBiggerThanSecond(maxExcludedId, entry.id)) {
 				return false
 			}
 		}
-		let endTimestamp = this._getSearchEndTimestamp(restriction)
-		let minIncluded = timestampToGeneratedId(endTimestamp)
-		if (firstBiggerThanSecond(minIncluded, entry.id)) {
+		if (firstBiggerThanSecond(minIncludedId, entry.id)) {
 			return false
 		}
 		return true
@@ -368,16 +383,16 @@ export class SearchFacade {
 	}
 
 	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
-		return Promise.each(results, entry => {
-			return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
+		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
+			return Promise.map(results, entry => {
 				return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId)))
 				                  .then((elementData: ElementData) => {
-					                  if (!searchResult.restriction.listId || searchResult.restriction.listId
-						                  === elementData[0]) {
+					                  if (!searchResult.restriction.listId
+						                  || searchResult.restriction.listId === elementData[0]) {
 						                  searchResult.results.push([elementData[0], entry.id])
 					                  }
 				                  })
-			})
+			}, {concurrency: 5})
 		}).return()
 	}
 
@@ -386,8 +401,8 @@ export class SearchFacade {
 		if (restriction.end) {
 			return restriction.end
 		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._mailIndexer.currentIndexTimestamp
-			=== NOTHING_INDEXED_TIMESTAMP ? new Date().getTime() : this._mailIndexer.currentIndexTimestamp
+			return this._mailIndexer.currentIndexTimestamp === NOTHING_INDEXED_TIMESTAMP
+				? Date.now() : this._mailIndexer.currentIndexTimestamp
 		} else {
 			return FULL_INDEXED_TIMESTAMP
 		}
@@ -402,30 +417,34 @@ type TypeInfo = {
 }
 
 const typeInfos = {
-	"tutanota|Mail": {
-		appId: 1,
-		typeId: MailModel.id,
-		attributeIds: getAttributeIds(MailModel)
+	tutanota: {
+		Mail: {
+			appId: 1,
+			typeId: MailModel.id,
+			attributeIds: getAttributeIds(MailModel)
+		},
+		Contact: {
+			appId: 1,
+			typeId: ContactModel.id,
+			attributeIds: getAttributeIds(ContactModel)
+		}
 	},
-	"tutanota|Contact": {
-		appId: 1,
-		typeId: ContactModel.id,
-		attributeIds: getAttributeIds(ContactModel)
-	},
-	"sys|GroupInfo": {
-		appId: 0,
-		typeId: GroupInfoModel.id,
-		attributeIds: getAttributeIds(GroupInfoModel)
-	},
-	"sys|WhitelabelChild": {
-		appId: 0,
-		typeId: WhitelabelChildModel.id,
-		attributeIds: getAttributeIds(WhitelabelChildModel)
+	sys: {
+		GroupInfo: {
+			appId: 0,
+			typeId: GroupInfoModel.id,
+			attributeIds: getAttributeIds(GroupInfoModel)
+		},
+		WhitelabelChild: {
+			appId: 0,
+			typeId: WhitelabelChildModel.id,
+			attributeIds: getAttributeIds(WhitelabelChildModel)
+		}
 	}
 }
 
 function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
-	return typeInfos[typeRef.app + "|" + typeRef.type]
+	return typeInfos[typeRef.app][typeRef.type]
 }
 
 function getAttributeIds(model: TypeModel) {

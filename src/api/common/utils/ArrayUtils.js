@@ -27,6 +27,16 @@ export function arrayEquals(a1: Uint8Array | Array<string>, a2: Uint8Array | Arr
 	return false;
 }
 
+export function arrayHash(array: Uint8Array): number {
+	let hash = 0;
+	hash |= 0;
+	for (let i = 0; i < array.length; i++) {
+		hash = ((hash << 5) - hash) + array[i];
+		hash |= 0; // Convert to 32bit integer
+	}
+	return hash;
+}
+
 /**
  * Remove the element from theArray if it is contained in the array.
  * @param theArray The array to remove the element from.

@@ -1,27 +1,27 @@
 // @flow
 import o from "ospec/ospec.js"
 import {SearchFacade} from "../../../../src/api/worker/search/SearchFacade"
-import {MailTypeRef, _TypeModel as MailTypeModel} from "../../../../src/api/entities/tutanota/Mail"
+import {_TypeModel as MailTypeModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {SearchIndexOS, ElementDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {ElementDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {
-	encryptSearchIndexEntry,
 	encryptIndexKeyBase64,
-	getAppId,
-	encryptIndexKeyUint8Array
+	encryptIndexKeyUint8Array,
+	encryptSearchIndexEntry,
+	getAppId
 } from "../../../../src/api/worker/search/IndexUtils"
 import type {
-	KeyToIndexEntries,
-	KeyToEncryptedIndexEntries,
-	SearchIndexEntry,
+	ElementData,
 	EncryptedSearchIndexEntry,
-	ElementData
+	KeyToEncryptedIndexEntries,
+	KeyToIndexEntries,
+	SearchIndexEntry
 } from "../../../../src/api/worker/search/SearchTypes"
-import {arrayEquals} from "../../../../src/api/common/utils/ArrayUtils"
+import {arrayEquals, arrayHash} from "../../../../src/api/common/utils/ArrayUtils"
 import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {firstBiggerThanSecond} from "../../../../src/api/common/EntityFunctions"
-import {ContactTypeRef, _TypeModel as ContactTypeModel} from "../../../../src/api/entities/tutanota/Contact"
+import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 
 o.spec("SearchFacade test", () => {
@@ -35,7 +35,8 @@ o.spec("SearchFacade test", () => {
 	let createDbContent = (dbData: KeyToIndexEntries[]): KeyToEncryptedIndexEntries[] => {
 		return dbData.map(keyToIndexEntries => {
 			let encryptedSearchIndexEntries = keyToIndexEntries.indexEntries.map(entry => {
-				return encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id))
+				let encryptedEntry = encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id))
+				return {encEntry: encryptedEntry, idHash: arrayHash(encryptedEntry[0])}
 			})
 			return {
 				indexKey: keyToIndexEntries.indexKey,
@@ -50,14 +51,16 @@ o.spec("SearchFacade test", () => {
 			getAsList: (os, indexKey): Promise<EncryptedSearchIndexEntry[]> => {
 				o(os).equals(SearchIndexOS)
 				let line = dbContent.find(keyToEncryptedIndexEntries => arrayEquals(keyToEncryptedIndexEntries.indexKey, indexKey))
-				return Promise.resolve(line ? line.indexEntries : [])
+				return Promise.resolve(line ? line.indexEntries.map(ie => ie.encEntry) : [])
 			},
 			get: (os, idKey): Promise<ElementData> => {
 				o(os).equals(ElementDataOS)
-				return Promise.resolve([neverNull(fullIds.find(id => {
-					let encId = encryptIndexKeyBase64(dbKey, id[1])
-					return arrayEquals(encId, idKey)
-				}))[0], new Uint8Array(0), ""])
+				return Promise.resolve([
+					neverNull(fullIds.find(id => {
+						let encId = encryptIndexKeyBase64(dbKey, id[1])
+						return arrayEquals(encId, idKey)
+					}))[0], new Uint8Array(0), ""
+				])
 			}
 		}
 
