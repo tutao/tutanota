@@ -38,6 +38,7 @@ import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessi
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -212,7 +213,8 @@ export class SubscriptionViewer {
 			.then(customer => {
 				this._updateOrderProcessingAgreement(customer)
 				return load(CustomerInfoTypeRef, customer.customerInfo)
-			}).then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+			})
+			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then(accountingInfo => {
 				this._updateAccountInfoData(accountingInfo)
 			})
@@ -307,24 +309,29 @@ export class SubscriptionViewer {
 
 	_updateBookings() {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-					.then(bookings => {
-						this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-						this._isCancelled = customer.canceledPremiumAccount
-						this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
-						this._updateSubscriptionField(this._isCancelled)
-						Promise.all([
-								this._updateUserField(),
-								this._updateStorageField(customer, customerInfo),
-								this._updateAliasField(customer, customerInfo),
-								this._updateGroupsField(),
-								this._updateWhitelabelField(),
-								this._updateContactFormsField()
-							]
-						).then(() => m.redraw())
-					})
-			})
+			load(CustomerInfoTypeRef, customer.customerInfo)
+				.catch(NotFoundError, e => console.log("could not update bookings as customer info does not exist (moved between free/premium lists)"))
+				.then(customerInfo => {
+					if (!customerInfo) {
+						return
+					}
+					loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+						.then(bookings => {
+							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+							this._isCancelled = customer.canceledPremiumAccount
+							this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+							this._updateSubscriptionField(this._isCancelled)
+							Promise.all([
+									this._updateUserField(),
+									this._updateStorageField(customer, customerInfo),
+									this._updateAliasField(customer, customerInfo),
+									this._updateGroupsField(),
+									this._updateWhitelabelField(),
+									this._updateContactFormsField()
+								]
+							).then(() => m.redraw())
+						})
+				})
 		})
 	}
 
