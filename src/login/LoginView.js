@@ -69,60 +69,14 @@ export class LoginView {
 
 		this.loginButton = new Button('login_action', () => this.login()).setType(ButtonType.Login)
 
-		this._knownCredentials = deviceConfig.getAllInternal()
-		this._showingKnownCredentials = this._knownCredentials.length > 0;
+		this._knownCredentials = []
 		this._isDeleteCredentials = false;
 
 		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/login/LoginViewController.js`)
 			.then(module => new module.LoginViewController(this))
 
-		let themeSwitch = () => {
-			return (themeId() !== 'custom')
-				? m(new Button("switchColorTheme_action", () => {
-					switch (themeId()) {
-						case 'light':
-							return deviceConfig.setTheme('dark')
-						case 'dark':
-							return deviceConfig.setTheme('light')
-					}
-				}).setType(ButtonType.Secondary))
-				: null
-		}
-
-		let signUp = () => {
-			return (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
-				? m(new Button('register_label', () => m.route.set('/signup')).setType(ButtonType.Secondary))
-				: null
-		}
-
-		let knownCredentials = () => {
-			return (this._knownCredentials.length > 0)
-				? m(new Button('knownCredentials_label', () => this._showCredentials())
-					.setType(ButtonType.Secondary))
-				: null
-		}
-
-		let loginOther = () => {
-			return m(new Button("loginOtherAccount_action", () => this._showLoginForm(""))
-				.setType(ButtonType.Secondary))
-		}
-
-		let deleteCredentials = () => {
-			return m(new Button(this._isDeleteCredentials
-				? "cancel_action"
-				: "deleteCredentials_action", () => this._switchDeleteCredentialsState())
-				.setType(ButtonType.Secondary))
-		}
-
-		let panel = {
-			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
-				? [loginOther(), deleteCredentials()]
-				: [knownCredentials(), signUp(), themeSwitch()]
-			)
-		}
-
-		let optionsExpander = new ExpanderButton('more_label', new ExpanderPanel(panel), false)
+		const optionsExpander = this._expanderButton()
 
 		this._setupShortcuts()
 
@@ -172,6 +126,54 @@ export class LoginView {
 			this.password.value("")
 			keyManager.unregisterShortcuts(shortcuts)
 		}
+	}
+
+	_expanderButton(): ExpanderButton {
+		const themeSwitch = () => {
+			return (themeId() !== 'custom')
+				? m(new Button("switchColorTheme_action", () => {
+					switch (themeId()) {
+						case 'light':
+							return deviceConfig.setTheme('dark')
+						case 'dark':
+							return deviceConfig.setTheme('light')
+					}
+				}).setType(ButtonType.Secondary))
+				: null
+		}
+
+		const signUp = () => {
+			return (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+				? m(new Button('register_label', () => m.route.set('/signup')).setType(ButtonType.Secondary))
+				: null
+		}
+
+		const knownCredentials = () => {
+			return (this._knownCredentials.length > 0)
+				? m(new Button('knownCredentials_label', () => this._showCredentials())
+					.setType(ButtonType.Secondary))
+				: null
+		}
+
+		const loginOther = () => {
+			return m(new Button("loginOtherAccount_action", () => this._showLoginForm(""))
+				.setType(ButtonType.Secondary))
+		}
+
+		const deleteCredentials = () => {
+			return m(new Button(this._isDeleteCredentials
+				? "cancel_action"
+				: "deleteCredentials_action", () => this._switchDeleteCredentialsState())
+				.setType(ButtonType.Secondary))
+		}
+
+		const panel = {
+			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
+				? [loginOther(), deleteCredentials()]
+				: [knownCredentials(), signUp(), themeSwitch()]
+			)
+		}
+		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
 	}
 
 	login() {
@@ -261,6 +263,7 @@ export class LoginView {
 				m.redraw()
 			} else {
 				this._knownCredentials = deviceConfig.getAllInternal()
+				this._showingKnownCredentials = this._knownCredentials.length > 0
 				let autoLoginCredentials: ?Credentials = null
 				if (args.noAutoLogin !== true) {
 					if (args.loginWith && deviceConfig.get(args.loginWith)) {
