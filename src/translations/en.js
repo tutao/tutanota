@@ -1091,6 +1091,7 @@ module.exports = {
 		"updateFound_label": "New Version was found. Please close all tabs to activate this version.",
 		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.",
 		"searchGroups_placeholder": "Search for groups",
-		"spamRuleEnterValue_msg": "Please enter a value."
+		"spamRuleEnterValue_msg": "Please enter a value.",
+		"knownCredentials_label": "Use saved Account"
 	}
 }

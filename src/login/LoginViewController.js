@@ -3,15 +3,15 @@ import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
-	NotAuthenticatedError,
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
-	TooManyRequestsError,
-	NotFoundError
+	NotAuthenticatedError,
+	NotFoundError,
+	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode, assertMainOrNode, isAdminClient, isApp} from "../api/Env"
+import {assertMainOrNode, isAdminClient, isApp, Mode} from "../api/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -240,8 +240,7 @@ export class LoginViewController {
 			      .then(() => {
 				      // not authenticated error is caught in worker
 				      deviceConfig.delete(credentials.mailAddress)
-				      this.view._visibleCredentials = deviceConfig.getAllInternal();
-				      m.redraw()
+				      this.view.setKnownCredentials(deviceConfig.getAllInternal());
 			      })
 		})
 	}

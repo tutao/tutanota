@@ -30,7 +30,8 @@ export class LoginView {
 	appButtons: Button[];
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 	view: Function;
-	_visibleCredentials: Credentials[];
+	_knownCredentials: Credentials[];
+	_showingKnownCredentials: boolean;
 	_isDeleteCredentials: boolean;
 	_viewController: Promise<ILoginViewController>;
 	oncreate: Function;
@@ -68,37 +69,57 @@ export class LoginView {
 
 		this.loginButton = new Button('login_action', () => this.login()).setType(ButtonType.Login)
 
-		this._visibleCredentials = []
+		this._knownCredentials = deviceConfig.getAllInternal()
+		this._showingKnownCredentials = this._knownCredentials.length > 0;
 		this._isDeleteCredentials = false;
 
 		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/login/LoginViewController.js`)
 			.then(module => new module.LoginViewController(this))
 
-		let themeSwitch = new Button("switchColorTheme_action", () => {
-			switch (themeId()) {
-				case 'light':
-					return deviceConfig.setTheme('dark')
-				case 'dark':
-					return deviceConfig.setTheme('light')
-			}
-		}).setType(ButtonType.Secondary)
+		let themeSwitch = () => {
+			return (themeId() !== 'custom')
+				? m(new Button("switchColorTheme_action", () => {
+					switch (themeId()) {
+						case 'light':
+							return deviceConfig.setTheme('dark')
+						case 'dark':
+							return deviceConfig.setTheme('light')
+					}
+				}).setType(ButtonType.Secondary))
+				: null
+		}
 
-		let signup = new Button('register_label', () => m.route.set('/signup')).setType(ButtonType.Secondary)
+		let signUp = () => {
+			return (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+				? m(new Button('register_label', () => m.route.set('/signup')).setType(ButtonType.Secondary))
+				: null
+		}
+
+		let knownCredentials = () => {
+			return (this._knownCredentials.length > 0)
+				? m(new Button('knownCredentials_label', () => this._showCredentials())
+					.setType(ButtonType.Secondary))
+				: null
+		}
+
+		let loginOther = () => {
+			return m(new Button("loginOtherAccount_action", () => this._showLoginForm(""))
+				.setType(ButtonType.Secondary))
+		}
+
+		let deleteCredentials = () => {
+			return m(new Button(this._isDeleteCredentials
+				? "cancel_action"
+				: "deleteCredentials_action", () => this._switchDeleteCredentialsState())
+				.setType(ButtonType.Secondary))
+		}
 
 		let panel = {
-			view: () => (this._visibleCredentials.length > 0 ? [
-				m(".flex-center.flex-column", [
-					m(new Button("loginOtherAccount_action", () => this._showLoginForm("")).setType(
-						ButtonType.Secondary)),
-					m(new Button(this._isDeleteCredentials ? "cancel_action" :
-						"deleteCredentials_action", () => this._switchDeleteCredentialsState()).setType(
-						ButtonType.Secondary))
-				]),
-			] : []).concat(m(".flex-center.flex-column", [
-				(isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0) ? m(signup) : null,
-				themeId() !== 'custom' ? m(themeSwitch) : null,
-			]))
+			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
+				? [loginOther(), deleteCredentials()]
+				: [knownCredentials(), signUp(), themeSwitch()]
+			)
 		}
 
 		let optionsExpander = new ExpanderButton('more_label', new ExpanderPanel(panel), false)
@@ -115,24 +136,24 @@ export class LoginView {
 			return m(".main-view.flex-center.scroll.pt-responsive", {
 				oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
-				style : {
+				style: {
 					marginBottom: bottomMargin + "px"
 				}
 			}, [
-					m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
-						style: {
-							// width: workaround for IE11 which does not center the area, otherwise
-							width: client.isDesktopDevice() ? "360px" : null,
-						}
-					}, [
-						this._visibleCredentials.length > 0 ? this.credentialsSelector() : this.loginForm(),
-						m(".flex-center.pt-l", [
-							m(optionsExpander),
-						]),
-						m(".pb-l", [
-							m(optionsExpander.panel),
-						]),
-					])
+				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
+					style: {
+						// width: workaround for IE11 which does not center the area, otherwise
+						width: client.isDesktopDevice() ? "360px" : null,
+					}
+				}, [
+					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
+					m(".flex-center.pt-l", [
+						m(optionsExpander),
+					]),
+					m(".pb-l", [
+						m(optionsExpander.panel),
+					]),
+				])
 			])
 		}
 	}
@@ -176,17 +197,23 @@ export class LoginView {
 	}
 
 	credentialsSelector(): Children {
-		return this._visibleCredentials.map(c => {
+		return this._knownCredentials.map(c => {
 			const credentialButtons = [];
 			credentialButtons.push(m(new Button(() => c.mailAddress, () => this._viewController.then(
 				(viewController: ILoginViewController) => viewController.autologin(c))).setType(ButtonType.Login)))
 			if (this._isDeleteCredentials) {
 				credentialButtons.push(m(new Button("delete_action", () => this._viewController.then(
-					(viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c))).setType(
-					ButtonType.Secondary)))
+					(viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c)))
+					.setType(ButtonType.Secondary)))
 			}
 			return m(".flex-space-between.pt-l.child-grow.last-child-fixed", credentialButtons)
 		})
+	}
+
+	setKnownCredentials(credentials: Credentials[]) {
+		this._knownCredentials = credentials
+		this._showingKnownCredentials = this._showingKnownCredentials && (credentials.length > 0)
+		m.redraw()
 	}
 
 	updateUrl(args: Object) {
@@ -210,7 +237,7 @@ export class LoginView {
 			}
 		}
 		else if (client.localStorage() && localStorage.getItem("config")) {
-			if (localStorage.getItem("tutanotaConfig")){
+			if (localStorage.getItem("tutanotaConfig")) {
 				localStorage.removeItem("config")
 			} else {
 				const oldCredentials = JSON.parse(neverNull(localStorage.getItem("config")))._credentials || []
@@ -230,10 +257,10 @@ export class LoginView {
 					this.mailAddress.animate()
 				}
 				this.password.focus()
-				this._visibleCredentials = []
+				this._knownCredentials = []
 				m.redraw()
 			} else {
-				this._visibleCredentials = deviceConfig.getAllInternal()
+				this._knownCredentials = deviceConfig.getAllInternal()
 				let autoLoginCredentials: ?Credentials = null
 				if (args.noAutoLogin !== true) {
 					if (args.loginWith && deviceConfig.get(args.loginWith)) {
@@ -241,9 +268,9 @@ export class LoginView {
 						autoLoginCredentials = deviceConfig.get(args.loginWith)
 					} else if (args.userId && deviceConfig.getByUserId(args.userId)) {
 						autoLoginCredentials = deviceConfig.getByUserId(args.userId)
-					} else if (this._visibleCredentials.length === 1) {
+					} else if (this._knownCredentials.length === 1) {
 						// there is one credentials stored, so try to auto login
-						autoLoginCredentials = this._visibleCredentials[0]
+						autoLoginCredentials = this._knownCredentials[0]
 					}
 				}
 				m.redraw()
@@ -261,8 +288,22 @@ export class LoginView {
 
 	_showLoginForm(mailAddress: string) {
 		this.mailAddress.value(mailAddress)
-		this._visibleCredentials = [];
+		this._isDeleteCredentials = false;
+		this._showingKnownCredentials = false;
 		m.redraw()
+	}
+
+	_showCredentials() {
+		this._showingKnownCredentials = true;
+		m.redraw()
+	}
+
+	onBackPress(): boolean {
+		if (!this._showingKnownCredentials && this._knownCredentials.length > 0) {
+			this._showCredentials()
+			return true
+		}
+		return false
 	}
 
 	openUrl(url: string) {
