@@ -3,6 +3,7 @@ import {getInboxFolder} from "../mail/MailUtils"
 import m from "mithril"
 import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
+import {LoginView} from "../login/LoginView"
 
 assertMainOrNode()
 
@@ -14,6 +15,8 @@ export function handleBackPress(): boolean {
 	if (window.tutao.modal.components.length > 0) { // first check if any modal dialog is visible
 		let activeComponent = window.tutao.modal.components[window.tutao.modal.components.length - 1]
 		activeComponent.component.onClose()
+		return true
+	} else if (tutao.currentView instanceof LoginView && tutao.currentView.onBackPress()) {
 		return true
 	} else { // otherwise try to navigate back in the current view
 		const viewSlider = window.tutao.header._getViewSlider()

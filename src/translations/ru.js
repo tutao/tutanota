@@ -754,6 +754,7 @@ module.exports = {
 		"xing_label": "XING",
 		"yearly_label": "Годовой",
 		"yesterday_label": "вчера",
-		"yes_label": "Да"
+		"yes_label": "Да",
+		"knownCredentials_label": "Сохранённые аккаунты"
 	}
 }
