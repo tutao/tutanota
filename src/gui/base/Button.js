@@ -298,14 +298,15 @@ export class Button {
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
                                      lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
-                                     originOverride: ?(() => PosRect)): Button {
+                                     originOverride: ?(() => PosRect), isFilterable?: boolean): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
-		originOverride)
+		originOverride, isFilterable)
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
                                           lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
-                                          width: number = 200, originOverride: ?(() => PosRect)): Button {
+                                          width: number = 200, originOverride: ?(() => PosRect), isFilterable?: boolean)
+	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
@@ -325,7 +326,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 						return module.Dialog.error("selectionNotAvailable_msg")
 					})
 			} else {
-				let dropdown = new Dropdown(() => buttons, width)
+				let dropdown = new Dropdown(() => buttons, width, isFilterable)
 				if (mainButton._domButton) {
 					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 					if (originOverride) {

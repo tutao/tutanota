@@ -127,7 +127,7 @@ export class MailEditor {
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._languageCodeField = new DropDownSelector("notificationMailLanguage_label", null, sortedLanguages.map(language => {
 			return {name: lang.get(language.textId), value: language.code}
-		}), stream(props.notificationMailLanguage || lang.code), 250)
+		}), stream(props.notificationMailLanguage || lang.code), 250, null, true)
 
 		this._confidentialButtonState = !props.defaultUnconfidential
 		this.subject = new TextField("subject_label", () => this.getConfidentialStateMessage())

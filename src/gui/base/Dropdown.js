@@ -4,12 +4,14 @@ import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
 import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
-import {size, px} from "../size"
+import {px, size} from "../size"
 import {Button} from "./Button"
 import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
 import {client} from "../../misc/ClientDetector"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import stream from "mithril/stream/stream.js"
+import {lang} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -57,6 +59,7 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 export class Dropdown {
 	children: Array<string | NavButton | Button>;
 	_domDropdown: HTMLElement;
+	_domInput: HTMLInputElement;
 	origin: ?PosRect;
 	maxHeight: number;
 	oninit: Function;
@@ -64,13 +67,16 @@ export class Dropdown {
 	_width: number;
 	shortcuts: Function;
 	_buttonsHeight: number;
+	_filterString: Stream<string>;
+	_alignRight: boolean;
 
-
-	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number) {
+	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number, isFilterable?: boolean) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
 		this._buttonsHeight = 0
+		this._filterString = stream("")
+		this._alignRight = false;
 
 		this.oninit = () => {
 			this.children = lazyChildren()
@@ -84,50 +90,80 @@ export class Dropdown {
 		this.view = (): VirtualElement => {
 			return m(".dropdown-panel.border-radius.backface_fix.scroll", {
 					oncreate: (vnode) => this.show(vnode.dom),
-				}, m(".dropdown-content.plr-l", {
-					oncreate: (vnode) => {
-						this.setContentHeight(vnode.dom)
-						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur === "function") {
-								document.activeElement.blur()
-							}
-						})
+					onkeypress: e => {
+						this._domInput.focus()
 					},
-					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
-				},
-				this.children.filter(b => isVisible(b))
-				    .map(button => (typeof button === "string") ?
-					    m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button) : m(button)))
+				}, [
+					isFilterable
+						? this._getInputField()
+						: null,
+					m(".dropdown-content.plr-l", {
+							oncreate: (vnode) => {
+								this.setContentHeight(vnode.dom)
+								window.requestAnimationFrame(() => {
+									if (document.activeElement && typeof document.activeElement.blur === "function") {
+										document.activeElement.blur()
+									}
+								})
+							},
+							// a fixed with for the content of this dropdown is needed to avoid that
+							// the elements in the dropdown move during animation
+							style: {width: px(this._width)}
+						},
+						this._visibleItems()
+						    .map(button => (typeof button === "string")
+							    ? m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button)
+							    : m(button))
+					)
+				]
 			)
 		}
+	}
+
+	_getInputField(): VirtualElement {
+		return m("input.text-field.doNotClose.dropdown-content.plr-l"
+			+ (this._alignRight ? ".right" : ""), {
+				placeholder: lang.get("typeToFilter_label"),
+				oncreate: (vnode) => {
+					this._domInput = vnode.dom
+					this._domInput.value = this._filterString()
+				},
+				oninput: e => {
+					this._filterString(this._domInput.value)
+				}
+			},
+			this._filterString()
+		)
 	}
 
 	backgroundClick(e: MouseEvent) {
 		if (!(e.target: any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target: any))
 			|| this._domDropdown.parentNode === e.target)) {
-			modal.remove(this)
+			this.close();
 		}
 	}
 
 	_createShortcuts() {
 		const next = () => {
-			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
-			visibleButtons = ((visibleButtons: any): Array<Button | NavButton>)
-			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
+			let visibleElements = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
+			visibleElements = [this._domInput].concat(visibleElements)
+			let selected = visibleElements.find(b => document.activeElement === b)
 			if (selected) {
-				visibleButtons[mod(visibleButtons.indexOf(selected) + 1, visibleButtons.length)]._domButton.focus()
-			} else if (visibleButtons.length > 0) {
-				visibleButtons[0]._domButton.focus()
+				visibleElements[mod(visibleElements.indexOf(selected) + 1, visibleElements.length)].focus()
+			} else if (visibleElements.length > 0) {
+				visibleElements[0].focus()
 			}
 		}
 		const previous = () => {
-			let visibleButtons = this.children.filter(b => (typeof b !== "string") && b.isVisible())
-			visibleButtons = ((visibleButtons: any): Array<Button | NavButton>)
-			let selected = visibleButtons.find(b => document.activeElement === b._domButton)
+			let visibleElements = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
+			visibleElements = [this._domInput].concat(visibleElements)
+			let selected = visibleElements.find(b => document.activeElement === b)
 			if (selected) {
-				visibleButtons[mod(visibleButtons.indexOf(selected) - 1, visibleButtons.length)]._domButton.focus()
-			} else if (visibleButtons.length > 0) {
-				visibleButtons[visibleButtons.length - 1]._domButton.focus()
+				visibleElements[mod(visibleElements.indexOf(selected) - 1, visibleElements.length)].focus()
+			} else if (visibleElements.length > 0) {
+				visibleElements[visibleElements.length - 1].focus()
 			}
 		}
 
@@ -196,7 +232,7 @@ export class Dropdown {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			let buttonsHeight = this.children.filter(b => isVisible(b))
+			let buttonsHeight = this._visibleItems()
 			                        .reduce((previous: number, current) =>
 				                        previous + ((typeof current === "string") ?
 				                        size.button_height : current.getHeight()), 0) + size.vpad_small * 2
@@ -219,7 +255,8 @@ export class Dropdown {
 
 	setContentHeight(domElement: HTMLElement) {
 		if (this._buttonsHeight > 0) {
-			// in ie the height of dropdown-content is too big because of the line-height. to prevent this set the height here.
+			// in ie the height of dropdown-content is too big because of the
+			// line-height. to prevent this set the height here.
 			domElement.style.height = this._buttonsHeight + "px"
 		}
 	}
@@ -236,9 +273,11 @@ export class Dropdown {
 		], {easing: ease.out})
 	}
 
-
-}
-
-function isVisible(dropDownElement: string | NavButton | Button) {
-	return (typeof dropDownElement === "string") || dropDownElement.isVisible()
+	_visibleItems() {
+		return this.children.filter(b => {
+			return (typeof b === "string")
+				? b.includes(this._filterString().toLowerCase())
+				: b.isVisible() && b.getLabel().toLowerCase().includes(this._filterString().toLowerCase())
+		})
+	}
 }
