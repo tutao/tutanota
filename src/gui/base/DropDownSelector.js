@@ -16,7 +16,7 @@ export class DropDownSelector<T> {
 
 	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>,
 	            items: {name: string, value: T}[], selectedValue: Stream<T>,
-	            dropdownWidth: ?number, icon: ?string, isFilterable?: boolean) {
+	            dropdownWidth: ?number, icon: ?string) {
 		this.selectedValue = selectedValue
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
@@ -42,7 +42,7 @@ export class DropDownSelector<T> {
 					}
 				}
 			}).setType(ButtonType.Dropdown).setSelected(() => this.selectedValue() === item.value))
-		}, (dropdownWidth) ? dropdownWidth : undefined, null, isFilterable)
+		}, (dropdownWidth) ? dropdownWidth : undefined)
 		this._field._injectionsRight = () => [m(itemChooser)]
 
 		this.view = () => {

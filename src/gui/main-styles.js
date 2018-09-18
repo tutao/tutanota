@@ -580,6 +580,23 @@ styles.registerStyle('main', () => {
 		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
 		'.dropdown-content:last-child': {'padding-bottom': px(size.vpad_small)},
 		'.dropdown-content > *': {width: '100%'},
+		'dropdown-content': {overflow: 'hidden'},
+
+		//dropdown filter bar
+		'.dropdown-bar': {
+			'border': 'none',
+			'outline': 'none',
+			'z-index': 1,
+			'box-shadow': `0 1px 1px 0 ${theme.content_fg}`,
+			'background-color': theme.content_bg,
+			color: theme.content_fg,
+		},
+
+		'.dropdown-bar:focus': {
+			'border': 'none',
+			'outline': 'none',
+			'box-shadow': `0 2px 1px 0 ${theme.content_fg}`,
+		},
 
 		'button, .nav-button': {
 			position: 'relative',

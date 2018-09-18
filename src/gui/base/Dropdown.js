@@ -60,26 +60,30 @@ export class Dropdown {
 	children: Array<string | NavButton | Button>;
 	_domDropdown: HTMLElement;
 	_domInput: HTMLInputElement;
+	_domContents: HTMLElement;
+	_domSpacer: HTMLElement;
 	origin: ?PosRect;
 	maxHeight: number;
 	oninit: Function;
 	view: Function;
 	_width: number;
 	shortcuts: Function;
-	_buttonsHeight: number;
+	_contentsHeight: number;
 	_filterString: Stream<string>;
 	_alignRight: boolean;
 
-	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number, isFilterable?: boolean) {
+	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
-		this._buttonsHeight = 0
+		this._contentsHeight = 0
 		this._filterString = stream("")
 		this._alignRight = false;
+		let isFilterable = false;
 
 		this.oninit = () => {
 			this.children = lazyChildren()
+			isFilterable = (this.children.length > 10)
 		}
 
 		let _shortcuts = this._createShortcuts()
@@ -87,53 +91,70 @@ export class Dropdown {
 			return _shortcuts
 		}
 
-		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix.scroll", {
-					oncreate: (vnode) => this.show(vnode.dom),
-					onkeypress: e => {
-						this._domInput.focus()
-					},
-				}, [
-					isFilterable
-						? this._getInputField()
-						: null,
-					m(".dropdown-content.plr-l", {
-							oncreate: (vnode) => {
-								this.setContentHeight(vnode.dom)
-								window.requestAnimationFrame(() => {
-									if (document.activeElement && typeof document.activeElement.blur === "function") {
-										document.activeElement.blur()
-									}
-								})
-							},
-							// a fixed with for the content of this dropdown is needed to avoid that
-							// the elements in the dropdown move during animation
-							style: {width: px(this._width)}
+		const _inputField = (): VirtualElement | null => {
+			return isFilterable
+				? m("input.dropdown-bar.doNotClose.pl-l.button-height.border-radius"
+					+ (this._alignRight ? ".right" : ""), {
+						placeholder: lang.get("typeToFilter_label"),
+						oncreate: (vnode) => {
+							this._domInput = vnode.dom
+							this._domInput.value = this._filterString()
 						},
-						this._visibleItems()
-						    .map(button => (typeof button === "string")
-							    ? m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button)
-							    : m(button))
-					)
-				]
+						oninput: e => {
+							this._filterString(this._domInput.value)
+							this.setContentHeight(this._domContents)
+						},
+						style: {width: px(this._width - size.hpad_large)}
+					},
+					this._filterString()
+				)
+				: null
+		}
+
+		const _spacer = (): VirtualElement | null => {
+			return isFilterable
+				? m(".button-height.doNotClose.mt-xs", {
+						oncreate: (vnode) => this._domSpacer = vnode.dom
+					},
+					lang.get("emptyString_msg")
+				)
+				: null
+		}
+
+		const _contents = (): VirtualElement => {
+			return m(".dropdown-content.plr-l.scroll", {
+					oncreate: (vnode) => {
+						this.setContentHeight(vnode.dom)
+						this._domContents = vnode.dom
+						window.requestAnimationFrame(() => {
+							if (document.activeElement && typeof document.activeElement.blur === "function") {
+								document.activeElement.blur()
+							}
+						})
+					},
+					// a fixed with for the content of this dropdown is needed to avoid that
+					// the elements in the dropdown move during animation
+					style: {width: px(this._width)}
+				},
+				this._visibleItems()
+				    .map(button => (typeof button === "string")
+					    ? m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button)
+					    : m(button))
 			)
 		}
-	}
 
-	_getInputField(): VirtualElement {
-		return m("input.text-field.doNotClose.dropdown-content.plr-l"
-			+ (this._alignRight ? ".right" : ""), {
-				placeholder: lang.get("typeToFilter_label"),
-				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-					this._domInput.value = this._filterString()
+		this.view = (): VirtualElement => {
+			return m(".dropdown-panel.border-radius.backface_fix", {
+					oncreate: (vnode) => this.show(vnode.dom),
+					onkeypress: e => {
+						if (this._domInput) {
+							this._domInput.focus()
+						}
+					},
 				},
-				oninput: e => {
-					this._filterString(this._domInput.value)
-				}
-			},
-			this._filterString()
-		)
+				[_inputField(), _spacer(), _contents()]
+			)
+		}
 	}
 
 	backgroundClick(e: MouseEvent) {
@@ -145,9 +166,11 @@ export class Dropdown {
 
 	_createShortcuts() {
 		const next = () => {
-			let visibleElements = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			let visibleElements = this._visibleItems().filter(b => (typeof b !== "string"))
 			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
-			visibleElements = [this._domInput].concat(visibleElements)
+			if (this._domInput) {
+				visibleElements = [this._domInput].concat(visibleElements)
+			}
 			let selected = visibleElements.find(b => document.activeElement === b)
 			if (selected) {
 				visibleElements[mod(visibleElements.indexOf(selected) + 1, visibleElements.length)].focus()
@@ -156,9 +179,11 @@ export class Dropdown {
 			}
 		}
 		const previous = () => {
-			let visibleElements = this.children.filter(b => (typeof b !== "string") && b.isVisible())
+			let visibleElements = this._visibleItems().filter(b => (typeof b !== "string"))
 			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
-			visibleElements = [this._domInput].concat(visibleElements)
+			if (this._domInput) {
+				visibleElements = [this._domInput].concat(visibleElements)
+			}
 			let selected = visibleElements.find(b => document.activeElement === b)
 			if (selected) {
 				visibleElements[mod(visibleElements.indexOf(selected) - 1, visibleElements.length)].focus()
@@ -232,32 +257,44 @@ export class Dropdown {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			let buttonsHeight = this._visibleItems()
-			                        .reduce((previous: number, current) =>
-				                        previous + ((typeof current === "string") ?
-				                        size.button_height : current.getHeight()), 0) + size.vpad_small * 2
-			this._buttonsHeight = buttonsHeight
-			this.maxHeight = Math.min(buttonsHeight, (top < bottom ? window.innerHeight - top : window.innerHeight
+			let contentsHeight = this._visibleItems()
+			                         .reduce((previous: number, current) =>
+				                         previous + ((typeof current === "string")
+				                         ? size.button_height
+				                         : current.getHeight()), 0) + size.vpad_small * 2
+			this._contentsHeight = contentsHeight
+			this.maxHeight = Math.min(contentsHeight, (top < bottom ? window.innerHeight - top : window.innerHeight
 				- bottom) - 10)
 			return animations.add(domElement, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				if (this.maxHeight < buttonsHeight) {
+				if (this.maxHeight < contentsHeight) {
 					if (this._domDropdown) {
 						// do not show the scrollbar during the animation.
-						this._domDropdown.style.overflowY = client.overflowAuto
+						this._domContents.style.maxHeight = px(this.maxHeight - this._domSpacer.clientHeight)
+						this._domContents.style.overflowY = client.overflowAuto
 					}
+				}
+				if (this._domInput) {
+					this._domInput.classList.add("fixed")
+					this._domInput.focus()
 				}
 			})
 		}
 	}
 
 	setContentHeight(domElement: HTMLElement) {
-		if (this._buttonsHeight > 0) {
+		this._contentsHeight = this._visibleItems()
+		                           .reduce((previous: number, current) =>
+			                           previous + ((typeof current === "string")
+			                           ? size.button_height
+			                           : current.getHeight()), 0) + size.vpad_small * 2
+
+		if (this._contentsHeight > size.vpad_small * 2) {
 			// in ie the height of dropdown-content is too big because of the
 			// line-height. to prevent this set the height here.
-			domElement.style.height = this._buttonsHeight + "px"
+			domElement.style.height = this._contentsHeight + "px"
 		}
 	}
 
@@ -266,6 +303,9 @@ export class Dropdown {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
+		if (this._domInput) {
+			this._domInput.classList.remove("fixed")
+		}
 		this._domDropdown.style.overflowY = 'hidden'
 		return animations.add(this._domDropdown, [
 			width(this._width, 0),

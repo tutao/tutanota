@@ -277,7 +277,7 @@ export class Button {
 
 	getWidth(): number {
 		if (this._type !== ButtonType.Action) throw new Error("width is not defined for buttons with type != action")
-		return size.button_height
+		return size.button_height //TODO why height?
 	}
 
 	getHeight(): number {
@@ -298,14 +298,14 @@ export class Button {
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
                                      lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
-                                     originOverride: ?(() => PosRect), isFilterable?: boolean): Button {
+                                     originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
-		originOverride, isFilterable)
+		originOverride)
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
                                           lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
-                                          width: number = 200, originOverride: ?(() => PosRect), isFilterable?: boolean)
+                                          width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
@@ -326,7 +326,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 						return module.Dialog.error("selectionNotAvailable_msg")
 					})
 			} else {
-				let dropdown = new Dropdown(() => buttons, width, isFilterable)
+				let dropdown = new Dropdown(() => buttons, width)
 				if (mainButton._domButton) {
 					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 					if (originOverride) {
