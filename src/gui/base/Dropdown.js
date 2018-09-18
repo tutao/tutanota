@@ -269,10 +269,13 @@ export class Dropdown {
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				if (this.maxHeight < contentsHeight) {
+				const offset = this._domSpacer
+					? this._domSpacer.clientHeight
+					: 0
+				if (this.maxHeight - offset < contentsHeight) {
 					if (this._domDropdown) {
 						// do not show the scrollbar during the animation.
-						this._domContents.style.maxHeight = px(this.maxHeight - this._domSpacer.clientHeight)
+						this._domContents.style.maxHeight = px(this.maxHeight - offset)
 						this._domContents.style.overflowY = client.overflowAuto
 					}
 				}
