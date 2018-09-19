@@ -488,10 +488,18 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMailAllowed = function() {
 
     if (tutao.locator.userController.isInternalUserLoggedIn()) {
         return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
-            if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
-                return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg")).then(function () {
-                    return false;
-                });
+	        if (["1", "5", "7"].indexOf(customer.getApprovalStatus()) != -1) {
+		        return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg")).then(function () {
+			        return false;
+		        });
+	        } else if (customer.getApprovalStatus() == "6") {
+		        return tutao.tutanota.gui.alert("Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de and describe what you would like to use this email account for.").then(function () {
+			        return true;
+		        });
+	        } else if (customer.getApprovalStatus() == "4") {
+		        return tutao.tutanota.gui.alert("Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.").then(function () {
+			        return false;
+		        });
             } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID && !tutao.locator.userController.isLoggedInUserAdmin()){
                 return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
             } else {
