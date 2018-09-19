@@ -28,7 +28,7 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
  * * caching for retrieved instances (GET)
  *
  */
-export class EntityRestClient {
+export class EntityRestClient implements EntityRestInterface {
 	_login: LoginFacade;
 
 	constructor(login: LoginFacade) {

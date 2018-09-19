@@ -81,10 +81,12 @@ declare class Promise<+R> {
 
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
-	static all<T, Elem: Promise<T>>(Promises: Array<Elem>): Promise<Array<T>>;
+	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 	static fromCallback<T>(callback: Function): Promise<T>;
-	static map<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<U[]>;
+	static map<T, U>(array: Promise<Iterable<T>> | Iterable<T>,
+	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
+	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;
 	static each<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
 	static join<T, A, B>(value1: $Promisable<A>, value2: $Promisable<B>, handler: (a: A, b: B) => $Promisable<T>): Promise<any>;

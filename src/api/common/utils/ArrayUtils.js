@@ -109,3 +109,14 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
 		remove(array, element)
 	})
 }
+
+export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
+	const map = new Map()
+	for (let el of iterable) {
+		const key = separator(el)
+		const list = map.get(key) || []
+		list.push(el)
+		map.set(key, list)
+	}
+	return map
+}

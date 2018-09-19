@@ -1,26 +1,26 @@
 //@flow
-import {SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS, DbTransaction} from "./DbFacade"
+import {DbTransaction, ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexOS} from "./DbFacade"
 import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
 import {
-	uint8ArrayToBase64,
-	stringToUtf8Uint8Array,
 	base64ToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
-import {IV_BYTE_LENGTH, aes256Encrypt, aes256Decrypt} from "../crypto/Aes"
+import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {
-	encryptIndexKeyBase64,
-	encryptSearchIndexEntry,
 	byteLength,
-	getAppId,
+	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
+	encryptSearchIndexEntry,
+	getAppId,
 	getPerformanceTimestamp
 } from "./IndexUtils"
-import type {B64EncInstanceId, SearchIndexEntry, AttributeHandler, IndexUpdate, GroupData, Db} from "./SearchTypes"
+import type {AttributeHandler, B64EncInstanceId, Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {EventQueue} from "./EventQueue"
 
 export class IndexerCore {
@@ -208,14 +208,17 @@ export class IndexerCore {
 		return Promise.all(promises).return(keysToUpdate)
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<void> {
+
+	/*_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<void> {
 		let promises = []
 		indexUpdate.create.indexMap.forEach((encryptedEntries, b64EncIndexKey) => {
 			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64((entry: any)[0])]
 				=== true)
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
+				console.log("get index entries for key: " + b64EncIndexKey)
 				promises.push(transaction.get(SearchIndexOS, b64EncIndexKey).then((result) => {
+					console.log("index entries for key: " + b64EncIndexKey + " size:" + result.length)
 					this._writeRequests += 1
 					let value
 					if (result && result.length > 0) {
@@ -238,6 +241,39 @@ export class IndexerCore {
 		} else {
 			return Promise.all(promises).return()
 		}
+	}*/
+
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<void> {
+		return Promise.map(indexUpdate.create.indexMap.keys(), (b64EncIndexKey) => {
+			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(b64EncIndexKey))
+			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(entry[0])])
+			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
+			if (filteredEncryptedEntries.length > 0) {
+				self.largestColumnIndexKey === b64EncIndexKey &&
+				console.time("insertNewIndexEntries" + self.largestColumnIndexKey)
+
+				return transaction.get(SearchIndexOS, b64EncIndexKey).then((result) => {
+					this._writeRequests += 1
+					let value
+					if (result && result.length > 0) {
+						value = result
+					} else {
+						this._storedBytes += encIndexKey.length
+						value = []
+						this._words += 1
+					}
+					value.push(...filteredEncryptedEntries)
+					this._largestColumn = value.length > this._largestColumn ? value.length : this._largestColumn
+					this._storedBytes += filteredEncryptedEntries.reduce((sum, e) => sum + e[0].length + e[1].length, 0)
+					return transaction.put(SearchIndexOS, b64EncIndexKey, value).then(result => {
+						self.largestColumnIndexKey === b64EncIndexKey &&
+						console.timeEnd("insertNewIndexEntries" + self.largestColumnIndexKey)
+						// console.log("length", value.length)
+						return result
+					})
+				})
+			}
+		}, {concurrency: 2}).return()
 	}
 
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {

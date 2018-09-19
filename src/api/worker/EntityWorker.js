@@ -1,17 +1,17 @@
 // @flow
 import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {
-	_setupEntity,
-	_updateEntity,
 	_eraseEntity,
 	_loadEntity,
-	_loadMultipleEntities,
 	_loadEntityRange,
+	_loadMultipleEntities,
 	_loadReverseRangeBetween,
-	resolveTypeReference,
-	TypeRef,
+	_setupEntity,
+	_updateEntity,
+	GENERATED_MIN_ID,
 	getLetId,
-	GENERATED_MIN_ID
+	resolveTypeReference,
+	TypeRef
 } from "../common/EntityFunctions"
 import {_service} from "./rest/ServiceRestClient"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
@@ -115,5 +115,9 @@ export class EntityWorker {
 
 	loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		return loadRange(typeRef, listId, start, count, reverse)
+	}
+
+	_loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<T[]> {
+		return _loadMultipleEntities(typeRef, listId, elementIds, target)
 	}
 }
