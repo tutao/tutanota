@@ -256,28 +256,22 @@ export class Dropdown {
 				this._domDropdown.style.top = ''
 				this._domDropdown.style.bottom = bottom + "px"
 			}
-
-			let contentsHeight = this._visibleItems()
-			                         .reduce((previous: number, current) =>
-				                         previous + ((typeof current === "string")
-				                         ? size.button_height
-				                         : current.getHeight()), 0) + size.vpad_small * 2
-			this._contentsHeight = contentsHeight
-			this.maxHeight = Math.min(contentsHeight, (top < bottom ? window.innerHeight - top : window.innerHeight
-				- bottom) - 10)
+			this.setContentHeight()
+			this.maxHeight = Math.min(
+				this._contentsHeight,
+				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
+			)
 			return animations.add(domElement, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
 				const offset = this._domSpacer
-					? this._domSpacer.clientHeight
+					? this._domSpacer.clientHeight + size.vpad_xs
 					: 0
-				if (this.maxHeight - offset < contentsHeight) {
-					if (this._domDropdown) {
-						// do not show the scrollbar during the animation.
-						this._domContents.style.maxHeight = px(this.maxHeight - offset)
-						this._domContents.style.overflowY = client.overflowAuto
-					}
+				if (this.maxHeight - offset < this._contentsHeight) {
+					// do not show the scrollbar during the animation.
+					this._domContents.style.maxHeight = px(this.maxHeight - offset)
+					this._domContents.style.overflowY = client.overflowAuto
 				}
 				if (this._domInput) {
 					this._domInput.classList.add("fixed")
@@ -287,14 +281,14 @@ export class Dropdown {
 		}
 	}
 
-	setContentHeight(domElement: HTMLElement) {
+	setContentHeight(domElement: ?HTMLElement) {
 		this._contentsHeight = this._visibleItems()
 		                           .reduce((previous: number, current) =>
 			                           previous + ((typeof current === "string")
 			                           ? size.button_height
 			                           : current.getHeight()), 0) + size.vpad_small * 2
 
-		if (this._contentsHeight > size.vpad_small * 2) {
+		if (domElement && this._contentsHeight > size.vpad_small * 2) {
 			// in ie the height of dropdown-content is too big because of the
 			// line-height. to prevent this set the height here.
 			domElement.style.height = this._contentsHeight + "px"
@@ -316,7 +310,7 @@ export class Dropdown {
 		], {easing: ease.out})
 	}
 
-	_visibleItems() {
+	_visibleItems(): Array<string | NavButton | Button> {
 		return this.children.filter(b => {
 			return (typeof b === "string")
 				? b.includes(this._filterString().toLowerCase())
