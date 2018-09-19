@@ -580,22 +580,27 @@ styles.registerStyle('main', () => {
 		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
 		'.dropdown-content:last-child': {'padding-bottom': px(size.vpad_small)},
 		'.dropdown-content > *': {width: '100%'},
-		'dropdown-content': {overflow: 'hidden'},
+		'.dropdown-content': {overflow: 'hidden'},
 
 		//dropdown filter bar
 		'.dropdown-bar': {
-			'border': 'none',
+			'border-style': 'solid',
+			'border-width': '0px 0px 1px 0px',
+			'border-color': theme.content_border,
+			'padding-bottom': '1px',
 			'outline': 'none',
 			'z-index': 1,
-			'box-shadow': `0 1px 1px 0 ${theme.content_fg}`,
 			'background-color': theme.content_bg,
+			'border-radius': `${size.border_radius}px ${size.border_radius}px 0 0`,
 			color: theme.content_fg,
 		},
 
 		'.dropdown-bar:focus': {
-			'border': 'none',
+			'border-style': 'solid',
+			'border-width': '0px 0px 2px 0px',
+			'border-color': `${theme.content_accent}`,
+			'padding-bottom': '0px',
 			'outline': 'none',
-			'box-shadow': `0 2px 1px 0 ${theme.content_fg}`,
 		},
 
 		'button, .nav-button': {

@@ -61,7 +61,6 @@ export class Dropdown {
 	_domDropdown: HTMLElement;
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
-	_domSpacer: HTMLElement;
 	origin: ?PosRect;
 	maxHeight: number;
 	oninit: Function;
@@ -71,6 +70,7 @@ export class Dropdown {
 	_contentsHeight: number;
 	_filterString: Stream<string>;
 	_alignRight: boolean;
+	_isFilterable: boolean
 
 	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number) {
 		this.children = []
@@ -79,11 +79,11 @@ export class Dropdown {
 		this._contentsHeight = 0
 		this._filterString = stream("")
 		this._alignRight = false;
-		let isFilterable = false;
+		this._isFilterable = false;
 
 		this.oninit = () => {
 			this.children = lazyChildren()
-			isFilterable = (this.children.length > 10)
+			this._isFilterable = (this.children.length > 10)
 		}
 
 		let _shortcuts = this._createShortcuts()
@@ -92,8 +92,8 @@ export class Dropdown {
 		}
 
 		const _inputField = (): VirtualElement | null => {
-			return isFilterable
-				? m("input.dropdown-bar.doNotClose.pl-l.button-height.border-radius"
+			return this._isFilterable
+				? m("input.dropdown-bar.doNotClose.pl-l.button-height.abs"
 					+ (this._alignRight ? ".right" : ""), {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: (vnode) => {
@@ -102,27 +102,22 @@ export class Dropdown {
 						},
 						oninput: e => {
 							this._filterString(this._domInput.value)
-							this.setContentHeight(this._domContents)
+							this.setContentHeight()
 						},
-						style: {width: px(this._width - size.hpad_large)}
+						style: {
+							width: px(this._width - size.hpad_large),
+							top: 0,
+							height: px(size.button_height),
+							left: 0,
+						}
 					},
 					this._filterString()
 				)
 				: null
 		}
 
-		const _spacer = (): VirtualElement | null => {
-			return isFilterable
-				? m(".button-height.doNotClose.mt-xs", {
-						oncreate: (vnode) => this._domSpacer = vnode.dom
-					},
-					lang.get("emptyString_msg")
-				)
-				: null
-		}
-
 		const _contents = (): VirtualElement => {
-			return m(".dropdown-content.plr-l.scroll", {
+			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
 						this.show(vnode.dom)
 						window.requestAnimationFrame(() => {
@@ -133,7 +128,11 @@ export class Dropdown {
 					},
 					// a fixed with for the content of this dropdown is needed to avoid that
 					// the elements in the dropdown move during animation
-					style: {width: px(this._width)}
+					style: {
+						width: px(this._width),
+						top: px(this._getFilterHeight()),
+						bottom: 0
+					}
 				},
 				this._visibleItems()
 				    .map(button => (typeof button === "string")
@@ -153,7 +152,7 @@ export class Dropdown {
 						}
 					},
 				},
-				[_inputField(), _spacer(), _contents()]
+				[_inputField(), _contents()]
 			)
 		}
 	}
@@ -163,6 +162,10 @@ export class Dropdown {
 			|| this._domDropdown.parentNode === e.target)) {
 			this.close();
 		}
+	}
+
+	_getFilterHeight(): number {
+		return this._isFilterable ? size.button_height + size.vpad_xs : 0
 	}
 
 	_createShortcuts() {
@@ -258,44 +261,33 @@ export class Dropdown {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			const spacerOffset = this._domSpacer
-				? this._domSpacer.clientHeight + size.vpad_xs
-				: 0
-
-			this.setContentHeight(this._domContents)
+			this.setContentHeight()
 			this.maxHeight = Math.min(
-				this._contentsHeight + spacerOffset,
+				this._contentsHeight + this._getFilterHeight(),
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
 			return animations.add(this._domDropdown, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				if (this.maxHeight - spacerOffset < this._contentsHeight) {
+				if (this.maxHeight - this._getFilterHeight() < this._contentsHeight) {
 					// do not show the scrollbar during the animation.
-					this._domContents.style.maxHeight = px(this.maxHeight - spacerOffset)
+					this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
 					this._domContents.style.overflowY = client.overflowAuto
 				}
 				if (this._domInput) {
-					this._domInput.classList.add("fixed")
 					this._domInput.focus()
 				}
 			})
 		}
 	}
 
-	setContentHeight(domElement: HTMLElement) {
+	setContentHeight(): void {
 		this._contentsHeight = this._visibleItems()
 		                           .reduce((previous: number, current) =>
 			                           previous + ((typeof current === "string")
 			                           ? size.button_height
 			                           : current.getHeight()), 0) + size.vpad_small * 2
-
-		if (this._contentsHeight > size.vpad_small * 2) {
-			// in ie the height of dropdown-content is too big because of the
-			// line-height. to prevent this set the height here.
-			domElement.style.height = this._contentsHeight + "px"
-		}
 	}
 
 	/**
@@ -303,10 +295,7 @@ export class Dropdown {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
-		if (this._domInput) {
-			this._domInput.classList.remove("fixed")
-		}
-		this._domDropdown.style.overflowY = 'hidden'
+		this._domContents.style.overflowY = 'hidden'
 		return animations.add(this._domDropdown, [
 			width(this._width, 0),
 			height(this.maxHeight, 0)
