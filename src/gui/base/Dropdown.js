@@ -67,7 +67,6 @@ export class Dropdown {
 	view: Function;
 	_width: number;
 	shortcuts: Function;
-	_contentsHeight: number;
 	_filterString: Stream<string>;
 	_alignRight: boolean;
 	_isFilterable: boolean
@@ -76,7 +75,6 @@ export class Dropdown {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
-		this._contentsHeight = 0
 		this._filterString = stream("")
 		this._alignRight = false;
 		this._isFilterable = false;
@@ -102,7 +100,6 @@ export class Dropdown {
 						},
 						oninput: e => {
 							this._filterString(this._domInput.value)
-							this.setContentHeight()
 						},
 						style: {
 							width: px(this._width - size.hpad_large),
@@ -261,16 +258,21 @@ export class Dropdown {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			this.setContentHeight()
+			const contentsHeight = this._visibleItems()
+			                           .reduce((previous: number, current) =>
+				                           previous + ((typeof current === "string")
+				                           ? size.button_height
+				                           : current.getHeight()), 0) + size.vpad_small * 2
+
 			this.maxHeight = Math.min(
-				this._contentsHeight + this._getFilterHeight(),
+				contentsHeight + this._getFilterHeight(),
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
 			return animations.add(this._domDropdown, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				if (this.maxHeight - this._getFilterHeight() < this._contentsHeight) {
+				if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
 					// do not show the scrollbar during the animation.
 					this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
 					this._domContents.style.overflowY = client.overflowAuto
@@ -280,14 +282,6 @@ export class Dropdown {
 				}
 			})
 		}
-	}
-
-	setContentHeight(): void {
-		this._contentsHeight = this._visibleItems()
-		                           .reduce((previous: number, current) =>
-			                           previous + ((typeof current === "string")
-			                           ? size.button_height
-			                           : current.getHeight()), 0) + size.vpad_small * 2
 	}
 
 	/**

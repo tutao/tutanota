@@ -277,7 +277,7 @@ export class Button {
 
 	getWidth(): number {
 		if (this._type !== ButtonType.Action) throw new Error("width is not defined for buttons with type != action")
-		return size.button_height //TODO why height?
+		return size.button_height
 	}
 
 	getHeight(): number {

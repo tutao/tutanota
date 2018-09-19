@@ -38,7 +38,7 @@ export class InvoiceDataInput {
 			() => lang.get("invoiceCountryInfoConsumer_msg"),
 			countries,
 			this.selectedCountry,
-			250, null).setSelectionChangedHandler(value => {
+			250).setSelectionChangedHandler(value => {
 			this.selectedCountry(value)
 		})
 
