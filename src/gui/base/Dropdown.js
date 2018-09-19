@@ -124,8 +124,7 @@ export class Dropdown {
 		const _contents = (): VirtualElement => {
 			return m(".dropdown-content.plr-l.scroll", {
 					oncreate: (vnode) => {
-						this.setContentHeight(vnode.dom)
-						this._domContents = vnode.dom
+						this.show(vnode.dom)
 						window.requestAnimationFrame(() => {
 							if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
@@ -145,7 +144,9 @@ export class Dropdown {
 
 		this.view = (): VirtualElement => {
 			return m(".dropdown-panel.border-radius.backface_fix", {
-					oncreate: (vnode) => this.show(vnode.dom),
+					oncreate: (vnode) => {
+						this._domDropdown = vnode.dom
+					},
 					onkeypress: e => {
 						if (this._domInput) {
 							this._domInput.focus()
@@ -236,7 +237,7 @@ export class Dropdown {
 	}
 
 	show(domElement: HTMLElement) {
-		this._domDropdown = domElement
+		this._domContents = domElement
 		if (this.origin) {
 			let left = this.origin.left
 			let right = window.innerWidth - this.origin.right
@@ -256,21 +257,23 @@ export class Dropdown {
 				this._domDropdown.style.top = ''
 				this._domDropdown.style.bottom = bottom + "px"
 			}
-			this.setContentHeight()
+
+			const spacerOffset = this._domSpacer
+				? this._domSpacer.clientHeight + size.vpad_xs
+				: 0
+
+			this.setContentHeight(this._domContents)
 			this.maxHeight = Math.min(
-				this._contentsHeight,
+				this._contentsHeight + spacerOffset,
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
-			return animations.add(domElement, [
+			return animations.add(this._domDropdown, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				const offset = this._domSpacer
-					? this._domSpacer.clientHeight + size.vpad_xs
-					: 0
-				if (this.maxHeight - offset < this._contentsHeight) {
+				if (this.maxHeight - spacerOffset < this._contentsHeight) {
 					// do not show the scrollbar during the animation.
-					this._domContents.style.maxHeight = px(this.maxHeight - offset)
+					this._domContents.style.maxHeight = px(this.maxHeight - spacerOffset)
 					this._domContents.style.overflowY = client.overflowAuto
 				}
 				if (this._domInput) {
@@ -281,14 +284,14 @@ export class Dropdown {
 		}
 	}
 
-	setContentHeight(domElement: ?HTMLElement) {
+	setContentHeight(domElement: HTMLElement) {
 		this._contentsHeight = this._visibleItems()
 		                           .reduce((previous: number, current) =>
 			                           previous + ((typeof current === "string")
 			                           ? size.button_height
 			                           : current.getHeight()), 0) + size.vpad_small * 2
 
-		if (domElement && this._contentsHeight > size.vpad_small * 2) {
+		if (this._contentsHeight > size.vpad_small * 2) {
 			// in ie the height of dropdown-content is too big because of the
 			// line-height. to prevent this set the height here.
 			domElement.style.height = this._contentsHeight + "px"
