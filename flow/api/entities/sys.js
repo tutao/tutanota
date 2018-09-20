@@ -803,7 +803,7 @@ type CustomerProperties = {
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: ?Date;
-
+	ipStorage: boolean;
 	bigLogo: ?SysFile;
 	smallLogo: ?SysFile;
 }

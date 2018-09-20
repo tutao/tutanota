@@ -3,22 +3,24 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
-import {ColumnWidth, Table} from "../gui/base/Table"
+import {Table, ColumnWidth} from "../gui/base/Table"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {neverNull} from "../api/common/utils/Utils"
-import {erase, loadAll} from "../api/main/Entity"
+import {loadAll, erase} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {DropDownSelector} from "../gui/base/DropDownSelector"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -27,10 +29,20 @@ export class LoginSettingsViewer {
 	_activeSessionTable: Table;
 	_closedSessionTable: Table;
 	_secondFactorsForm: EditSecondFactorsForm;
+	_props: Stream<CustomerProperties>;
 
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress)
-		                                                    .setDisabled()
+			.setDisabled()
+		//todo make this work please
+		this._props = stream()
+		let sessionOptn = stream(false)
+		this._props.map(props => sessionOptn(props.ipStorage))
+		let sessionOptnDropdown = new DropDownSelector("sessionOpt_label", null, [
+			{name: lang.get("yes_label"), value: true},
+			{name: lang.get("no_label"), value: false}
+		], sessionOptn, 250)
+
 		let password = new TextField("password_label").setValue("***").setDisabled()
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
@@ -62,6 +74,8 @@ export class LoginSettingsViewer {
 					]),
 					m(closedSessionExpander.panel),
 					m(".small", lang.get("sessionsInfo_msg")),
+					m(".h4.mt-l", lang.get('options_label')),
+					m(sessionOptnDropdown),
 				])
 			]
 		}
