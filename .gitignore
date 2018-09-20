@@ -1,5 +1,5 @@
 build
-app-native/out/*
+app-native/dist/*
 app-native/resources/*
 native_out.log
 node_modules
