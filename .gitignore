@@ -1,4 +1,7 @@
 build
+app-native/out/*
+app-native/resources/*
+native_out.log
 node_modules
 .idea
 .gradle

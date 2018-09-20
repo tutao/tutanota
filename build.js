@@ -7,6 +7,10 @@ const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const os = require("os")
+const spawn = require('child_process').spawn
+
+const packageJSON = require('./package.json')
+const version = packageJSON.version
 
 let start = new Date().getTime()
 
@@ -16,14 +20,13 @@ if (process.argv.indexOf("clean") !== -1) {
 }
 
 let watch = process.argv.indexOf("watch") === -1 ? undefined : () => {
-	}
+}
 
 promise
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images/'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/libs'), path.join(__dirname, '/build/libs')))
 	.then(() => {
-		const version = require('./package.json').version
 		if (process.argv.indexOf("test") !== -1) {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Browser")),
@@ -34,12 +37,12 @@ promise
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Browser")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App"))
 			])
-        } else if (process.argv.indexOf("host") !== -1) {
-            const hostname = process.argv[process.argv.indexOf("host") + 1]
-            return Promise.all([
-                createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
-                createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App"))
-            ])
+		} else if (process.argv.indexOf("host") !== -1) {
+			const hostname = process.argv[process.argv.indexOf("host") + 1]
+			return Promise.all([
+				createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App"))
+			])
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Browser")),
@@ -50,8 +53,37 @@ promise
 	})
 	.then(() => builder.build(["src"], watch))
 	.then(() => {
-		let time = Math.round((new Date().getTime() - start) / 1000 * 100) / 100
+		if (process.argv.indexOf("native") !== -1) {
+			console.log("building electron native client")
+			const electronSourcesDir = path.join(__dirname, '/app-native')
+			return fs.emptyDirAsync(electronSourcesDir + "/resources/")
+			         .then(() => {
+				         return Promise.all([
+					         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/resources/images"),
+					         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/resources/libs"),
+					         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/resources/src"),
+					         fs.copyAsync(path.join(__dirname, '/build/index.html'), electronSourcesDir + "/resources/index.html"),
+					         fs.copyAsync(path.join(__dirname, '/build/index.js'), electronSourcesDir + "/resources/index.js")
+				         ])
+			         })
+			         .then(() => {
+				         console.log("Starting native client...")
+				         const out = fs.openSync('./native_out.log', 'a');
+				         const err = fs.openSync('./native_out.log', 'a');
+				         //need to run "npm install --save-dev electron" in directory first!
+				         spawn("/bin/sh", ["-c", "npm start"], {
+					         cwd: path.join(__dirname, '/app-native/'),
+					         stdio: ['ignore', out, err],
+					         detached: true
+				         }).unref()
+			         })
+		}
+	})
+	.then(() => {
+		let now = new Date().getTime()
+		let time = Math.round((now - start) / 1000 * 100) / 100
 		console.log(`\n >>> Build completed in ${time}s\n`)
+		start = now
 	})
 	.then(() => {
 		if (process.argv.indexOf("watch") !== -1) {

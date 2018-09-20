@@ -3,7 +3,8 @@
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const Builder = require('systemjs-builder')
-let version = require('./package.json').version
+const packageJSON = require('./package.json')
+let version = packageJSON.version
 const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
 const spawnSync = require('child_process').spawnSync
@@ -15,6 +16,7 @@ const os = require("os")
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const builder = new Builder(SystemConfig.distBuildConfig()) // baseURL and configuration
 const babelCompile = require('./buildSrc/Builder.js').babelCompile
+const nativeBuilder = require('./buildSrc/NativeBuilder.js').packageNative
 
 let start = Date.now()
 
@@ -106,6 +108,7 @@ Promise.resolve()
        })
        .then(() => bundleSW(bundles))
        .then(copyDependencies)
+       .then(() => nativeBuilder(__dirname, packageJSON))
        .then(deb)
        .then(release)
        .then(() => console.log(`\nBuild time: ${measure()}s`))
