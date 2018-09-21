@@ -1,23 +1,18 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {OperationType, NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
+import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
-import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
-import {neverNull, defer} from "../../common/utils/Utils"
+import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
+import {GENERATED_MAX_ID, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {defer, neverNull} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
-import {
-	uint8ArrayToBase64,
-	stringToUtf8Uint8Array,
-	generatedIdToTimestamp,
-	timestampToGeneratedId
-} from "../../common/utils/Encoding"
-import {aes256RandomKey} from "../crypto/Aes"
-import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
-import {filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
+import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
+import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
+import {_createNewIndexUpdate, filterIndexMemberships} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -37,11 +32,13 @@ import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
 import {contains} from "../../common/utils/ArrayUtils"
 import {CancelledError} from "../../common/error/CancelledError"
+import {random} from "../crypto/Randomizer"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
 	mailIndexingEnabled: "mailIndexingEnabled",
-	excludedListIds: "excludedListIds" // stored in the database, so the mailbox does not need to be loaded when starting to index mails except spam folder after login
+	excludedListIds: "excludedListIds", // stored in the database, so the mailbox does not need to be loaded when starting to index mails except spam folder after login
+	encDbIv: "encDbIv"
 }
 
 export type InitParams = {
@@ -68,7 +65,12 @@ export class Indexer {
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
-		this.db = {dbFacade: new DbFacade(indexedDbSupported), key: neverNull(null), initialized: deferred.promise} // correctly initialized during init()
+		this.db = {
+			dbFacade: new DbFacade(indexedDbSupported),
+			key: neverNull(null),
+			iv: neverNull(null),
+			initialized: deferred.promise
+		} // correctly initialized during init()
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(() => this._processEntityEventFromQueue()))
 		this._entity = new EntityWorker()
@@ -98,9 +100,11 @@ export class Indexer {
 								           return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 								                      .then(t2 => {
 									                      this.db.key = aes256RandomKey()
+									                      this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
 									                      t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
 									                      t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
 									                      t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
+									                      t2.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(this.db.key, this.db.iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
 									                      return this._initGroupData(groupBatches, t2)
 								                      })
 							           })
@@ -112,13 +116,16 @@ export class Indexer {
 							           })
 						} else {
 							this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
-							return Promise.all([
+							return t.get(MetaDataOS, Metadata.encDbIv).then(encDbIv => {
+								this.db.iv = aes256Decrypt(this.db.key, encDbIv, true, false)
+							}).then(() => Promise.all([
 								t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
 									this._mail.mailIndexingEnabled = mailIndexingEnabled
 								}),
 								t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 									this._mail._excludedListIds = excludedListIds
 								}),
+
 								this._loadGroupDiff(user)
 								    .then(groupDiff => this._updateGroups(user, groupDiff))
 								    .then(() => this._mail.updateCurrentIndexTimestamp(user))
@@ -132,7 +139,7 @@ export class Indexer {
 									this._groupInfo.suggestionFacade.load(),
 									this._whitelabelChildIndexer.suggestionFacade.load()
 								])
-							}).return()
+							})).return()
 						}
 					})
 				})
@@ -186,7 +193,12 @@ export class Indexer {
 
 	enableMailIndexing(): Promise<void> {
 		return this.db.initialized.then(() => {
-			return this._mail.enableMailIndexing(this._initParams.user)
+			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
+				this._mail.mailboxIndexingPromise.catch(CancelledError, () => {
+					// Disable mail indexing if the user cancelled the initial mail indexing.
+					this.disableMailIndexing()
+				})
+			})
 		})
 	}
 
@@ -256,8 +268,9 @@ export class Indexer {
 	 */
 	_loadGroupData(user: User, restrictToTheseGroups: ?Id[]): Promise<{groupId: Id, groupData: GroupData}[]> {
 		let memberships = filterIndexMemberships(user)
-		if (restrictToTheseGroups) {
-			memberships = memberships.filter(membership => contains(restrictToTheseGroups, membership.group))
+		const restrictTo = restrictToTheseGroups // type check
+		if (restrictTo) {
+			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
 		return Promise.map(memberships, (membership: GroupMembership) => {
 			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true)

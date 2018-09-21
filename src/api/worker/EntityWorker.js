@@ -1,5 +1,5 @@
 // @flow
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HasIdTuple, HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -44,13 +44,13 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }
 
-export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
+export function loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 	return _loadAll(typeRef, listId, (start) ? start : GENERATED_MIN_ID)
 }
 
 const RANGE_ITEM_LIMIT = 1000
 
-function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
+function _loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length === RANGE_ITEM_LIMIT) {
 			let lastElementId = getLetId(elements[elements.length - 1])[1]
@@ -66,7 +66,7 @@ function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
 /**
  * Provides all entities with element ids between start (included) and end (excluded). This function may actually load more elements from the server, but just returns the requested ones.
  */
-export function loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
+export function loadReverseRangeBetween<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
 	return _loadReverseRangeBetween(typeRef, listId, start, end, locator.cache)
 }
 
@@ -97,11 +97,11 @@ export class EntityWorker {
 		return loadRoot(typeRef, groupId)
 	}
 
-	loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
+	loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 		return loadAll(typeRef, listId, start)
 	}
 
-	loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
+	loadReverseRangeBetween<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id): Promise<T[]> {
 		return loadReverseRangeBetween(typeRef, listId, start, end)
 	}
 

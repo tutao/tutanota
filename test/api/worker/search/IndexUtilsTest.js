@@ -1,24 +1,24 @@
 // @flow
 import o from "ospec/ospec.js"
 import {
-	htmlToText,
+	_createNewIndexUpdate,
 	byteLength,
-	getAppId,
-	encryptIndexKeyBase64,
-	encryptSearchIndexEntry,
+	containsEventOfType,
 	decryptSearchIndexEntry,
-	userIsLocalOrGlobalAdmin,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptSearchIndexEntry,
 	filterIndexMemberships,
 	filterMailMemberships,
-	_createNewIndexUpdate,
-	containsEventOfType,
-	encryptIndexKeyUint8Array,
-	userIsGlobalAdmin
+	getAppId,
+	htmlToText,
+	userIsGlobalAdmin,
+	userIsLocalOrGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {UserTypeRef, createUser} from "../../../../src/api/entities/sys/User"
-import {aes256RandomKey, aes256Decrypt} from "../../../../src/api/worker/crypto/Aes"
-import {utf8Uint8ArrayToString, base64ToUint8Array} from "../../../../src/api/common/utils/Encoding"
+import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
+import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
+import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import type {SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
@@ -30,7 +30,7 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
-		let encryptedKey = encryptIndexKeyBase64(key, "blubb")
+		let encryptedKey = encryptIndexKeyBase64(key, "blubb", fixedIv)
 		let decrypted = aes256Decrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true, false)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
@@ -38,7 +38,7 @@ o.spec("Index Utils", () => {
 	o("encryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
 		let entry: SearchIndexEntry = {id: "my-id", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encryptedInstanceId = encryptIndexKeyUint8Array(key, entry.id)
+		let encryptedInstanceId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encryptedInstanceId)
 		o(encryptedEntry.length).equals(2)
 		o(encryptedEntry[0]).deepEquals(encryptedInstanceId)
@@ -53,9 +53,9 @@ o.spec("Index Utils", () => {
 	o("decryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
 		let entry: SearchIndexEntry = {id: "122", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encId = encryptIndexKeyUint8Array(key, entry.id)
+		let encId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
-		let decrypted = decryptSearchIndexEntry(key, encryptedEntry)
+		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(decrypted.encId).deepEquals(encId)
 		delete decrypted.encId
 		o(JSON.stringify(decrypted)).deepEquals(JSON.stringify(entry))
@@ -101,7 +101,10 @@ o.spec("Index Utils", () => {
 
 	o("filterIndexMemberships", function () {
 		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership()]
+		user.memberships = [
+			createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(),
+			createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership()
+		]
 		user.memberships[0].groupType = GroupType.Admin
 		user.memberships[1].groupType = GroupType.Contact
 		user.memberships[2].groupType = GroupType.Customer
@@ -110,12 +113,17 @@ o.spec("Index Utils", () => {
 		user.memberships[5].groupType = GroupType.Mail
 		user.memberships[6].groupType = GroupType.Team
 		user.memberships[7].groupType = GroupType.User
-		o(filterIndexMemberships(user)).deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
+		o(filterIndexMemberships(user))
+			.deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
 	})
 
 	o("filterMailMemberships", function () {
 		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership()]
+		user.memberships = [
+			createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(),
+			createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership(),
+			createGroupMembership()
+		]
 		user.memberships[0].groupType = GroupType.Admin
 		user.memberships[1].groupType = GroupType.Contact
 		user.memberships[2].groupType = GroupType.Customer

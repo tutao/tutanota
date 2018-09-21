@@ -1,20 +1,19 @@
 //@flow
-import {utf8Uint8ArrayToString, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
-import type {SearchIndexEntry, EncryptedSearchIndexEntry, IndexUpdate} from "./SearchTypes"
-import {fixedIv} from "../crypto/CryptoFacade"
+import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
 
-export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string): Base64 {
-	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false)
-		.slice(fixedIv.length))
+export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
+	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
+		.slice(dbIv.length))
 }
 
-export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string): Uint8Array {
-	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), fixedIv, true, false).slice(fixedIv.length)
+export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
+	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length)
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
@@ -25,8 +24,8 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 	]
 }
 
-export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry): SearchIndexEntry {
-	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(fixedIv, entry[0]), true, false))
+export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): SearchIndexEntry {
+	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, entry[0]), true, false))
 	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry[1], true, false)))
 	return {
 		id: id,

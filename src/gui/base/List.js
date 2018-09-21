@@ -3,6 +3,7 @@ import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
+import type {HasIdTuple} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
@@ -20,7 +21,7 @@ import {BadRequestError} from "../../api/common/error/RestError"
 assertMainOrNode()
 
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
-const PageSize = 100
+export const PageSize = 100
 
 /**
  * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists.
@@ -29,7 +30,7 @@ const PageSize = 100
  * * T is the type of the entity
  * * R is the type of the Row
  */
-export class List<T, R:VirtualRow<T>> {
+export class List<T: HasIdTuple, R:VirtualRow<T>> {
 	_config: ListConfig<T, R>;
 	_loadedEntities: T[]; // sorted with _config.sortCompare
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
@@ -227,6 +228,10 @@ export class List<T, R:VirtualRow<T>> {
 	clear() {
 		this._loadedEntities.length = 0
 		this._loadedCompletely = false
+		if (this._domList) {
+			this._domList.style.height = this._calculateListHeight()
+			this._reposition()
+		}
 	}
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
@@ -273,7 +278,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
 		// unfortunately, IE only allowes "text" and "url"
-		neverNull(ev.dataTransfer).setData("text", getLetId(virtualRow.entity)[1]);
+		neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
 	}
 
 	getEntity(id: Id): ?T {
@@ -406,7 +411,8 @@ export class List<T, R:VirtualRow<T>> {
 			this._selectedEntities.splice(-1, 1)
 			this._reposition()
 			this._config.elementSelected(this.getSelectedEntities(), false, true, true)
-			this._scrollToLoadedEntityAndSelect(last(this._selectedEntities), true)
+			const lastEl = last(this._selectedEntities)
+			lastEl && this._scrollToLoadedEntityAndSelect(lastEl, true)
 		} else {
 			this._lastMultiSelectWasKeyUp = true
 			if (this._selectedEntities.length === 0 && this._loadedEntities.length > 0) {
@@ -476,7 +482,7 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this._displaySpinner(this._loadedEntities.length === 0)
+		this.displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
 		                    .then((newItems: T[]) => {
 			                    if (newItems.length < count) this.setLoadedCompletely()
@@ -506,9 +512,9 @@ export class List<T, R:VirtualRow<T>> {
 		})
 	}
 
-	_displaySpinner(delayed: boolean = true) {
+	displaySpinner(delayed: boolean = true, force?: boolean) {
 		setTimeout(() => {
-			if (!this._loading.isFulfilled() && this._domLoadingRow) {
+			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
 		}, delayed ? DefaultAnimationTime : 5)
@@ -855,7 +861,7 @@ export class List<T, R:VirtualRow<T>> {
 						if (this._loadedCompletely) {
 							this._addToLoadedEntities(newEntity)
 						} else if (this._loadedEntities.length > 0
-							&& this._config.sortCompare(newEntity, last(this._loadedEntities)) < 0) {
+							&& this._config.sortCompare(newEntity, neverNull(last(this._loadedEntities))) < 0) {
 							// new element is in the loaded range or newer than the first element
 							this._addToLoadedEntities(newEntity)
 						}

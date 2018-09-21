@@ -5,12 +5,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	MailFolderType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -40,6 +35,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {PageSize} from "../gui/base/List"
 
 assertMainOrNode()
 
@@ -340,14 +336,15 @@ export class SearchView {
 		}
 
 		const lastQuery = locator.search.lastQuery()
+		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? PageSize : null
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (args.hasOwnProperty('query')) {
 			if (locator.search.isNewSearch(args.query, restriction)) {
-				locator.search.search(args.query, restriction, 0)
+				locator.search.search(args.query, restriction, 0, maxResults)
 			}
 		} else if (lastQuery && locator.search.isNewSearch(lastQuery, restriction)) {
 			// If query is not set for some reason (e.g. switching search type), use the last query value
-			locator.search.search(lastQuery, restriction, 0)
+			locator.search.search(lastQuery, restriction, 0, maxResults)
 		}
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
