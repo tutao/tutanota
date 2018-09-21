@@ -74,4 +74,9 @@ export type Db = {
 	initialized: Promise<void>;
 }
 
+export type SearchIndexMetadataEntry = {
+	key: number,
+	size: number
+}
+
 

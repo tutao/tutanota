@@ -1,4 +1,6 @@
-export function concat(...arrays: Uint8Array): Uint8Array {
+//@flow
+
+export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
 	let index = 0
@@ -14,10 +16,12 @@ export function concat(...arrays: Uint8Array): Uint8Array {
  * @param {Array} a1 The first array.
  * @param {Array} a2 The second array.
  * @return {boolean} True if the arrays are equal, false otherwise.
+ *
+ * It is valid to compare Uint8Array to Array<T>, don't restrict it to be one type
  */
-export function arrayEquals(a1: Uint8Array | Array<string>, a2: Uint8Array | Array<string>) {
+export function arrayEquals<T, A: Uint8Array | Array<T>>(a1: A, a2: A) {
 	if (a1.length === a2.length) {
-		for (var i = 0; i < a1.length; i++) {
+		for (let i = 0; i < a1.length; i++) {
 			if (a1[i] !== a2[i]) {
 				return false;
 			}
@@ -119,4 +123,27 @@ export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R
 		map.set(key, list)
 	}
 	return map
+}
+
+export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Array<T>> {
+	if (chunkSize < 1) {
+		return []
+	}
+	let chunkNum = 0
+	const chunks = []
+	let end
+	do {
+		let start = chunkNum * chunkSize
+		end = start + chunkSize
+		chunks[chunkNum] = array.slice(start, end)
+		chunkNum++
+	} while (end < array.length)
+	return chunks
+}
+
+export function flat<T>(arrays: Array<Array<T>>): Array<T> {
+	return arrays.reduce((acc, val) => {
+		acc.push(...val)
+		return acc
+	}, [])
 }

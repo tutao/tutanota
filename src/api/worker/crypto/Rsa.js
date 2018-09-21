@@ -375,7 +375,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 		ps[i] = 0
 	}
 
-	let db = concat(ps, [1], salt)
+	let db = concat(ps, new Uint8Array([1]), salt)
 	_clear(ps)
 	let expectedDbLength = emLen - hashLength - 1
 	if (db.length != expectedDbLength) {
@@ -391,7 +391,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 
 	maskedDb[0] &= (0xff >> (8 * emLen - emBits))
 
-	let em = concat(maskedDb, message2Hash, [188]) // 0xbc
+	let em = concat(maskedDb, message2Hash, new Uint8Array([188])) // 0xbc
 	_clear(maskedDb)
 
 	return em

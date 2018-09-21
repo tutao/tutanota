@@ -1,30 +1,32 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {HttpMethodEnum} from "../common/EntityFunctions"
+import type {HasId, HasIdTuple, HttpMethodEnum} from "../common/EntityFunctions"
 import {
-	_setupEntity,
-	_updateEntity,
 	_eraseEntity,
 	_loadEntity,
-	_loadMultipleEntities,
 	_loadEntityRange,
+	_loadMultipleEntities,
+	_setupEntity,
+	_updateEntity,
 	_verifyType,
-	GENERATED_MIN_ID,
-	resolveTypeReference,
-	TypeRef,
-	getLetId,
-	getEtId,
-	HttpMethod,
 	CUSTOM_MIN_ID,
 	firstBiggerThanSecond,
-	RANGE_ITEM_LIMIT
+	GENERATED_MIN_ID,
+	getEtId,
+	getLetId,
+	HttpMethod,
+	RANGE_ITEM_LIMIT,
+	resolveTypeReference,
+	TypeRef
 } from "../common/EntityFunctions"
 import {createVersionData} from "../entities/sys/VersionData"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
 import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
-import EC from "../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import EC from "../common/EntityConstants"
+import {downcast} from "../common/utils/Utils"
+
 const Type = EC.Type
 const ValueType = EC.ValueType
 
@@ -57,7 +59,7 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 }
 
 
-export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
+export function loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
 			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
@@ -66,7 +68,7 @@ export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id
 	})
 }
 
-function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
+function _loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length === 0) return Promise.resolve(elements)
 		let lastElementId = getLetId(elements[elements.length - 1])[1]
@@ -93,7 +95,7 @@ export function loadVersion<T>(instance: T, version: Id): Promise<T> {
 	})
 }
 
-export function loadVersionInfo<T>(instance: T): Promise<VersionReturn> {
+export function loadVersionInfo<T: (HasId | HasIdTuple)>(instance: T): Promise<VersionReturn> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version info")
 		_verifyType(typeModel)
@@ -101,10 +103,10 @@ export function loadVersionInfo<T>(instance: T): Promise<VersionReturn> {
 		versionData.application = typeModel.app
 		versionData.typeId = typeModel.id + ""
 		if (typeModel.type === Type.ListElement) {
-			versionData.id = getLetId(instance)[1]
-			versionData.listId = getLetId(instance)[0]
+			versionData.id = getLetId(downcast(instance))[1]
+			versionData.listId = getLetId(downcast(instance))[0]
 		} else {
-			versionData.id = getEtId(instance)
+			versionData.id = getEtId(downcast(instance))
 		}
 		return serviceRequest(SysService.VersionService, HttpMethod.GET, versionData, VersionReturnTypeRef)
 	})

@@ -3,7 +3,6 @@ import o from "ospec/ospec.js"
 import {SearchFacade} from "../../../../src/api/worker/search/SearchFacade"
 import {_TypeModel as MailTypeModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
-import {ElementDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {
 	encryptIndexKeyBase64,
@@ -14,15 +13,20 @@ import {
 import type {
 	ElementData,
 	EncryptedSearchIndexEntry,
-	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
-	SearchIndexEntry
+	SearchIndexEntry,
+	SearchIndexMetadataEntry
 } from "../../../../src/api/worker/search/SearchTypes"
-import {arrayEquals, arrayHash} from "../../../../src/api/common/utils/ArrayUtils"
-import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {firstBiggerThanSecond} from "../../../../src/api/common/EntityFunctions"
 import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
+import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
+import {neverNull} from "../../../../src/api/common/utils/Utils"
+import {splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
+
+type MetaTable = {[Base64]: SearchIndexMetadataEntry[]}
+type IndexTable = {[number]: EncryptedSearchIndexEntry[]}
+type DB = {metaTable: MetaTable, indexTable: IndexTable}
 
 o.spec("SearchFacade test", () => {
 	let dbKey
@@ -32,49 +36,58 @@ o.spec("SearchFacade test", () => {
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
 
-	let createDbContent = (dbData: KeyToIndexEntries[]): KeyToEncryptedIndexEntries[] => {
-		return dbData.map(keyToIndexEntries => {
-			let encryptedSearchIndexEntries = keyToIndexEntries.indexEntries.map(entry => {
-				let encryptedEntry = encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id))
-				return {encEntry: encryptedEntry, idHash: arrayHash(encryptedEntry[0])}
+	let createDbContent = (dbData: KeyToIndexEntries[]): DB => {
+		const metaTable: MetaTable = {}
+		const indexTable: IndexTable = {}
+		let counter = 0
+		dbData.forEach((keyToIndexEntries, index) => {
+			const chunks = splitInChunks(2, keyToIndexEntries.indexEntries)
+			metaTable[keyToIndexEntries.indexKey] = []
+			chunks.forEach(chunk => {
+				counter++
+				metaTable[keyToIndexEntries.indexKey].push({key: counter, size: chunk.length})
+				indexTable[counter] = chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id)))
 			})
-			return {
-				indexKey: keyToIndexEntries.indexKey,
-				indexEntries: encryptedSearchIndexEntries
-			}
 		})
+		return {metaTable, indexTable}
 	}
 
-	let createSearchFacade = (dbData: KeyToIndexEntries[], fullIds: IdTuple[], currentIndexTimestamp: number) => {
-		let dbContent = createDbContent(dbData)
+	let createSearchFacade = (dbContent: KeyToIndexEntries[], fullIds: IdTuple[], currentIndexTimestamp: number) => {
+		let db = createDbContent(dbContent)
 		let transaction: any = {
-			getAsList: (os, indexKey): Promise<EncryptedSearchIndexEntry[]> => {
-				o(os).equals(SearchIndexOS)
-				let line = dbContent.find(keyToEncryptedIndexEntries => arrayEquals(keyToEncryptedIndexEntries.indexKey, indexKey))
-				return Promise.resolve(line ? line.indexEntries.map(ie => ie.encEntry) : [])
+			getAsList: (os, indexKey): Promise<EncryptedSearchIndexEntry[] | SearchIndexMetadataEntry[]> => {
+				if (os === SearchIndexMetaDataOS) {
+					return Promise.resolve(db.metaTable[indexKey] || [])
+				} else if (os === SearchIndexOS) {
+					return Promise.resolve(db.indexTable[indexKey] || [])
+				} else {
+					throw new Error()
+				}
 			},
-			get: (os, idKey): Promise<ElementData> => {
-				o(os).equals(ElementDataOS)
-				return Promise.resolve([
-					neverNull(fullIds.find(id => {
+			get: (os, key): Promise<ElementData> => {
+				if (os === ElementDataOS) {
+					const id = neverNull(fullIds.find(id => {
 						let encId = encryptIndexKeyBase64(dbKey, id[1])
-						return arrayEquals(encId, idKey)
-					}))[0], new Uint8Array(0), ""
-				])
+						return encId === key
+					}))[0]
+					return Promise.resolve([id, new Uint8Array(0), ""])
+				} else {
+					throw new Error()
+				}
 			}
 		}
 
 		return new SearchFacade(({
 			getLoggedInUser: () => user
-		}:any), {
+		}: any), {
 			key: dbKey,
-			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}:any),
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp,
 			indexMailboxes: (user, endIndexTime) => indexMailBoxReceiver.indexMailboxes(user, endIndexTime)
-		}:any), [])
+		}: any), [])
 	}
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntry[]): KeyToIndexEntries => {
@@ -151,6 +164,21 @@ o.spec("SearchFacade test", () => {
 		)
 	})
 
+	o("find entries from different rows", () => {
+		return testSearch(
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0]), createMailEntry(id3, 0, [0])
+				])
+			],
+			[["listId1", id1], ["listId2", id2], ["listId3", id3]],
+			"test",
+			createMailRestriction(),
+			[["listId1", id1], ["listId2", id2], ["listId3", id3]]
+		)
+	})
+
+
 	o("find type", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createContactEntry(id2, 0, [0])])],
@@ -214,7 +242,11 @@ o.spec("SearchFacade test", () => {
 		let start = new Date(2017, 5, 11).getTime()
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0]), createMailEntry(id3, 0, [0])])],
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0]), createMailEntry(id3, 0, [0])
+				])
+			],
 			[["listId1", id1], ["listId2", id2], ["listId3", id3]],
 			"test",
 			createMailRestriction(null, null, start, end),
@@ -239,8 +271,12 @@ o.spec("SearchFacade test", () => {
 		return testSearch(
 			[
 				// id1 must be found, id2 does not have the correct order, id3 has the order but in different attributes
-				createKeyToIndexEntries("test", [createMailEntry(id1, 0, [6]), createMailEntry(id2, 0, [6]), createMailEntry(id3, 1, [6])]),
-				createKeyToIndexEntries("ja", [createMailEntry(id1, 0, [5]), createMailEntry(id2, 0, [4]), createMailEntry(id3, 0, [5])])
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [6]), createMailEntry(id2, 0, [6]), createMailEntry(id3, 1, [6])
+				]),
+				createKeyToIndexEntries("ja", [
+					createMailEntry(id1, 0, [5]), createMailEntry(id2, 0, [4]), createMailEntry(id3, 0, [5])
+				])
 			],
 			[["listId1", id1], ["listId2", id2], ["listId3", id3]],
 			"\"ja,test\"",
@@ -310,7 +346,8 @@ o.spec("SearchFacade test", () => {
 		return s.search(query, restriction, minSuggestionCount).then(result => {
 			o(result.query).equals(query)
 			o(result.restriction).deepEquals(restriction)
-			o(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))
+			o(result.results)
+				.deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))
 		})
 	}
 })

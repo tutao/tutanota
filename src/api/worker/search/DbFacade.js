@@ -3,11 +3,13 @@ import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
 export const SearchIndexOS = "SearchIndex"
+export const SearchIndexMetaDataOS = "SearchIndexMeta"
 export const ElementDataOS = "ElementData"
 export const MetaDataOS = "MetaData"
 export const GroupDataOS = "GroupMetaData"
 export const SearchTermSuggestionsOS = "SearchTermSuggestions"
 
+const DB_VERSION = 2
 
 export class DbFacade {
 	_id: string;
@@ -24,7 +26,7 @@ export class DbFacade {
 					let DBOpenRequest
 					try {
 
-						DBOpenRequest = indexedDB.open(this._id, 1)
+						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
 						DBOpenRequest.onerror = (error) => {
 							callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
 						}
@@ -32,12 +34,24 @@ export class DbFacade {
 						DBOpenRequest.onupgradeneeded = (event) => {
 							//console.log("upgrade db", event)
 							let db = event.target.result
+							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
+								this._deleteObjectStores(db,
+									SearchIndexOS,
+									ElementDataOS,
+									MetaDataOS,
+									GroupDataOS,
+									SearchTermSuggestionsOS,
+									SearchIndexMetaDataOS)
+							}
+
 							try {
-								db.createObjectStore(SearchIndexOS)
+								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
+								db.createObjectStore(SearchIndexMetaDataOS)
 								db.createObjectStore(ElementDataOS)
 								db.createObjectStore(MetaDataOS)
 								db.createObjectStore(GroupDataOS)
 								db.createObjectStore(SearchTermSuggestionsOS)
+
 							} catch (e) {
 								callback(new DbError("could not create object store searchindex", e))
 							}
@@ -56,6 +70,16 @@ export class DbFacade {
 				})
 			}
 		})
+	}
+
+	_deleteObjectStores(db: IDBDatabase, ...oss: string[]) {
+		for (let os of oss) {
+			try {
+				db.deleteObjectStore(os)
+			} catch (e) {
+				console.log("Error while deleting old os", os, "ignoring", e)
+			}
+		}
 	}
 
 	open(id: string): Promise<void> {
@@ -152,7 +176,7 @@ export class DbTransaction {
 		})
 	}
 
-	get(objectStore: string, key: string): Promise<any> {
+	get(objectStore: string, key: (string | number)): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).get(key)
@@ -168,7 +192,7 @@ export class DbTransaction {
 		})
 	}
 
-	getAsList(objectStore: string, key: string): Promise<any[]> {
+	getAsList(objectStore: string, key: string | number): Promise<any[]> {
 		return this.get(objectStore, key).then(result => {
 			if (!result) {
 				return []
@@ -177,15 +201,17 @@ export class DbTransaction {
 		})
 	}
 
-	put(objectStore: string, key: string, value: any): Promise<void> {
+	put(objectStore: string, key: ?(string | number), value: any): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
-				let request = this._transaction.objectStore(objectStore).put(value, key)
+				let request = key
+					? this._transaction.objectStore(objectStore).put(value, key)
+					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
 					callback(new DbError("IDB Unable to write data to database!", event))
 				}
 				request.onsuccess = (event) => {
-					callback()
+					callback(null, event.target.result)
 				}
 			} catch (e) {
 				callback(new DbError("IDB could not write data", e))
@@ -194,7 +220,7 @@ export class DbTransaction {
 	}
 
 
-	delete(objectStore: string, key: string): Promise<void> {
+	delete(objectStore: string, key: string | number): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)

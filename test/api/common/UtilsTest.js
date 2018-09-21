@@ -35,7 +35,7 @@ o.spec("utils", function () {
 /**
  * modified deepEquals from ospec is only needed as long as we use custom classes (TypeRef) and Date is not properly handled
  */
-function deepEqual(a, b) {
+export function deepEqual(a, b) {
 	if (a === b) return true
 	if (a === null ^ b === null || a === undefined ^ b === undefined) return false
 	if (typeof a === "object" && typeof b === "object") {

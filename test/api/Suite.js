@@ -16,7 +16,6 @@ import "./error/RestErrorTest"
 import "./error/TutanotaErrorTest"
 import "./rest/RestClientTest"
 import "./rest/EntityRestCacheTest"
-import "./common/IntegrationTest"
 import "./worker/EventBusClientTest"
 import "./worker/search/TokenizerTest"
 import "./worker/search/IndexerTest"
@@ -32,6 +31,8 @@ import o from "ospec/ospec.js"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
+//import "./common/IntegrationTest"
+console.log("IntegrationTest is disabled, see Suite.js")
 
 // setup the Entropy for all testcases
 random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])

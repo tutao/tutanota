@@ -3,6 +3,7 @@ import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
+import type {HasIdTuple} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
@@ -29,7 +30,7 @@ const PageSize = 100
  * * T is the type of the entity
  * * R is the type of the Row
  */
-export class List<T, R:VirtualRow<T>> {
+export class List<T: HasIdTuple, R:VirtualRow<T>> {
 	_config: ListConfig<T, R>;
 	_loadedEntities: T[]; // sorted with _config.sortCompare
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
@@ -273,7 +274,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
 		// unfortunately, IE only allowes "text" and "url"
-		neverNull(ev.dataTransfer).setData("text", getLetId(virtualRow.entity)[1]);
+		neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
 	}
 
 	getEntity(id: Id): ?T {
@@ -406,7 +407,8 @@ export class List<T, R:VirtualRow<T>> {
 			this._selectedEntities.splice(-1, 1)
 			this._reposition()
 			this._config.elementSelected(this.getSelectedEntities(), false, true, true)
-			this._scrollToLoadedEntityAndSelect(last(this._selectedEntities), true)
+			const lastEl = last(this._selectedEntities)
+			lastEl && this._scrollToLoadedEntityAndSelect(lastEl, true)
 		} else {
 			this._lastMultiSelectWasKeyUp = true
 			if (this._selectedEntities.length === 0 && this._loadedEntities.length > 0) {
@@ -855,7 +857,7 @@ export class List<T, R:VirtualRow<T>> {
 						if (this._loadedCompletely) {
 							this._addToLoadedEntities(newEntity)
 						} else if (this._loadedEntities.length > 0
-							&& this._config.sortCompare(newEntity, last(this._loadedEntities)) < 0) {
+							&& this._config.sortCompare(newEntity, neverNull(last(this._loadedEntities))) < 0) {
 							// new element is in the loaded range or newer than the first element
 							this._addToLoadedEntities(newEntity)
 						}

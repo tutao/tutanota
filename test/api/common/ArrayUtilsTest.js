@@ -1,6 +1,6 @@
-// @flow
+//@flow
 import o from "ospec/ospec.js"
-import {concat, arrayEquals} from "../../../src/api/common/utils/ArrayUtils"
+import {arrayEquals, concat, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
 
 o.spec("array utils", function () {
 
@@ -10,7 +10,8 @@ o.spec("array utils", function () {
 		o([1]).deepEquals(Array.from(concat(new Uint8Array([1]), new Uint8Array([]))))
 		o([]).deepEquals(Array.from(concat(new Uint8Array(0), new Uint8Array(0))))
 		o([1, 2, 3]).deepEquals(Array.from(concat(new Uint8Array([1, 2, 3]))))
-		o([1, 2, 3, 4, 5, 6]).deepEquals(Array.from(concat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
+		o([1, 2, 3, 4, 5, 6])
+			.deepEquals(Array.from(concat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
 	})
 
 	o("ArrayEquals ", function () {
@@ -19,6 +20,14 @@ o.spec("array utils", function () {
 		o(arrayEquals(["a"], ["b"])).equals(false)
 		o(arrayEquals(["a"], [])).equals(false)
 		o(arrayEquals([], ["a"])).equals(false)
+	})
+
+	o("splitInChunks", function () {
+		o(splitInChunks(3, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3], [4, 5]])
+		o(splitInChunks(5, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
+		o(splitInChunks(6, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
+		o(splitInChunks(0, [1, 2, 3, 4, 5])).deepEquals([])
+		o(splitInChunks(3, [])).deepEquals([[]])
 	})
 
 })

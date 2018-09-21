@@ -9,11 +9,12 @@ import o from "ospec/ospec.js"
  * @param attributeMock The attribute mock.
  * @returns An object to be passed to unmockAttribute() in order to restore the original attribute.
  */
-export function mockAttribute(object: Object, attributeOnObject: Function|Object, attributeMock: Function|Object): Object {
+export function mockAttribute(object: Object, attributeOnObject: Function | Object, attributeMock: Function | Object): Object {
 	if (attributeOnObject == null) throw new Error("attributeOnObject is undefined")
 	let attributeName = Object.getOwnPropertyNames(object).find(key => object[key] === attributeOnObject)
 	if (!attributeName) {
-		attributeName = Object.getOwnPropertyNames(Object.getPrototypeOf(object)).find(key => object[key] === attributeOnObject)
+		attributeName = Object.getOwnPropertyNames(Object.getPrototypeOf(object))
+		                      .find(key => object[key] === attributeOnObject)
 	}
 	if (!attributeName) {
 		throw new Error("attribute not found on object")
@@ -28,4 +29,14 @@ export function mockAttribute(object: Object, attributeOnObject: Function|Object
 
 export function unmockAttribute(mock: Object) {
 	mock._originalObject[mock._attributeName] = mock._originalAttribute
+}
+
+export function spy(producer?: (...any) => any) {
+	const invocations = []
+	const s = (...args: any[]) => {
+		invocations.push(args)
+		return producer && producer(...args)
+	}
+	s.invocations = invocations
+	return s
 }

@@ -14,7 +14,7 @@ import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {firstBiggerThanSecond, isSameId} from "../../common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, isSameId, TypeRef} from "../../common/EntityFunctions"
 import {neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
@@ -33,10 +33,12 @@ import {EntityRestClient} from "../rest/EntityRestClient"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
-import {contains, groupBy} from "../../common/utils/ArrayUtils"
+import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
 import * as promises from "../../common/utils/PromiseUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
+const ENTITY_INDEXER_CHUNK = 20
+const MAIL_INDEXER_CHUNK = 500
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -211,8 +213,9 @@ export class MailIndexer {
 							           return;
 						           } else {
 							           return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-								           let startId = groupData.indexTimestamp
-								           === NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(groupData.indexTimestamp)
+								           let startId = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+									           ? GENERATED_MAX_ID
+									           : timestampToGeneratedId(groupData.indexTimestamp)
 								           return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp))
 								                      .then((finishedMailList) => {
 									                      this._worker.sendIndexState({
@@ -271,7 +274,8 @@ export class MailIndexer {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 
 		console.time("indexMailList " + mailListId)
-		return this._entity._loadEntityRange(MailTypeRef, mailListId, startId, 500, true, this._entityRestClient)
+
+		return this._entity._loadEntityRange(MailTypeRef, mailListId, startId, MAIL_INDEXER_CHUNK, true, this._entityRestClient)
 		           .then(mails => {
 			           if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 			           let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
@@ -293,7 +297,7 @@ export class MailIndexer {
 				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
 			                          })
 			                          .then(() => {
-				                          if (filteredMails.length === 500) { // not filtered and more emails are available
+				                          if (filteredMails.length === MAIL_INDEXER_CHUNK) { // not filtered and more emails are available
 					                          console.log("completed indexing range from", startId, "to", endId, "of mail list id", mailListId)
 					                          this._core.printStatus()
 					                          console.timeEnd("indexMailList " + mailListId)
@@ -312,13 +316,11 @@ export class MailIndexer {
 
 
 	_loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
-		return mails.length > 0 ?
-			this._entity._loadMultipleEntities(MailBodyTypeRef, null,
-				mails.map(m => m.body), this._entityRestClient)
-			: Promise.resolve([])
+		const ids = mails.map(m => m.body)
+		return this._loadInChunks(MailBodyTypeRef, null, ids)
 	}
 
-	_loadAttachments(mails: Mail[]): Promise<File[]> {
+	_loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
 		const attachmentIds = []
 		mails.forEach(mail => {
 			attachmentIds.push(...mail.attachments)
@@ -326,16 +328,20 @@ export class MailIndexer {
 		const filesByList = groupBy(attachmentIds, a => a[0])
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		filesByList.forEach((fileIds, listId) => {
-			fileLoadingPromises.push(this._entity._loadMultipleEntities(FileTypeRef, listId, fileIds.map(f => f[1]), this._entityRestClient))
+			fileLoadingPromises.push(this._loadInChunks(FileTypeRef, listId, fileIds.map(f => f[1])))
 		})
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
-		return Promise.all(fileLoadingPromises).then(filesResults => {
-			const file = []
-			for (let filesResult of filesResults) {
-				file.push(...filesResult)
-			}
-			return file
-		})
+		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
+	}
+
+	_loadInChunks<I, T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
+		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
+		return Promise.map(byChunk, (chunk) => {
+			return chunk.length > 0
+				? this._entity._loadMultipleEntities(typeRef, listId, chunk, this._entityRestClient)
+				: Promise.resolve([])
+		}, {concurrency: 2})
+		              .then(entityResults => flat(entityResults))
 	}
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {

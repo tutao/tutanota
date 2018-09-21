@@ -38,7 +38,13 @@ import {
 	TypeRef
 } from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {neverNull, defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/Utils"
+import {
+	neverNull,
+	defer,
+	getEnabledMailAddressesForGroupInfo,
+	getUserGroupMemberships,
+	downcast
+} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -198,7 +204,7 @@ export class MailFacade {
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
 				if (!attachments.find(attachment => (attachment._type !== "DataFile")
-					&& isSameId(getLetId(attachment), fileId))) {
+					&& isSameId(getLetId(downcast(attachment)), fileId))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})

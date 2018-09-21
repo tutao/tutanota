@@ -1,23 +1,23 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {OperationType, NOTHING_INDEXED_TIMESTAMP, GroupType} from "../../common/TutanotaConstants"
+import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
-import {DbFacade, MetaDataOS, GroupDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, isSameTypeRef, TypeRef, isSameId} from "../../common/EntityFunctions"
-import {neverNull, defer} from "../../common/utils/Utils"
+import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
+import {GENERATED_MAX_ID, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {defer, neverNull} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {
-	uint8ArrayToBase64,
-	stringToUtf8Uint8Array,
 	generatedIdToTimestamp,
-	timestampToGeneratedId
+	stringToUtf8Uint8Array,
+	timestampToGeneratedId,
+	uint8ArrayToBase64
 } from "../../common/utils/Encoding"
 import {aes256RandomKey} from "../crypto/Aes"
-import {encrypt256Key, decrypt256Key} from "../crypto/CryptoFacade"
-import {filterIndexMemberships, _createNewIndexUpdate} from "./IndexUtils"
+import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
+import {_createNewIndexUpdate, filterIndexMemberships} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -256,8 +256,9 @@ export class Indexer {
 	 */
 	_loadGroupData(user: User, restrictToTheseGroups: ?Id[]): Promise<{groupId: Id, groupData: GroupData}[]> {
 		let memberships = filterIndexMemberships(user)
-		if (restrictToTheseGroups) {
-			memberships = memberships.filter(membership => contains(restrictToTheseGroups, membership.group))
+		const restrictTo = restrictToTheseGroups // type check
+		if (restrictTo) {
+			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
 		return Promise.map(memberships, (membership: GroupMembership) => {
 			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true)

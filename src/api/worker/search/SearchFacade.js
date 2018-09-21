@@ -3,7 +3,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import {ElementDataOS, SearchIndexOS} from "./DbFacade"
+import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "./DbFacade"
 import {
 	compareNewestFirst,
 	firstBiggerThanSecond,
@@ -12,15 +12,17 @@ import {
 	TypeRef
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
-import {arrayHash, contains} from "../../common/utils/ArrayUtils"
+import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
 import {asyncFind, neverNull} from "../../common/utils/Utils"
 import type {
 	Db,
 	ElementData,
 	EncryptedSearchIndexEntry,
+	EncryptedSearchIndexEntryWithHash,
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
-	SearchIndexEntry
+	SearchIndexEntry,
+	SearchIndexMetadataEntry
 } from "./SearchTypes"
 import {decryptSearchIndexEntry, encryptIndexKeyBase64, getPerformanceTimestamp} from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
@@ -59,8 +61,12 @@ export class SearchFacade {
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+		console.timeStamp && console.timeStamp("search start")
 		return this._db.initialized.then(() => {
 			let searchTokens = tokenize(query)
+
+			let totalSearchTimeStart = getPerformanceTimestamp()
+			let timing = {}
 
 			let result = {
 				query,
@@ -71,35 +77,60 @@ export class SearchFacade {
 			if (searchTokens.length > 0) {
 				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
 				let isFirstWordSearch = searchTokens.length === 1
+				let before = getPerformanceTimestamp()
+				console.timeStamp && console.timeStamp("find suggestions")
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
+				timing.suggestionSearchTime = getPerformanceTimestamp() - before
 				let searchPromise
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
+					let addSuggestionBefore = getPerformanceTimestamp()
 					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
 					                    .then(() => {
+						                    timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
 						                    if (result.results.length < minSuggestionCount) {
 							                    // there may be fields that are not indexed with suggestions but which we can find with the normal search
-							                    // TODO: let suggestion facade and search facade know which fields are indexed with suggestions, so that we 1) know if we also have to search normally and 1) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+							                    // TODO: let suggestion facade and search facade know which fields are
+							                    // indexed with suggestions, so that we
+							                    // 1) know if we also have to search normally and
+							                    // 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
 							                    return this._searchForTokens(searchTokens, matchWordOrder, result)
+							                               .then((result) => {
+								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
+									                               - searchForTokensAfterSuggestionsBefore
+								                               return result
+							                               })
 						                    }
 					                    })
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
 					let suggestionToken = searchTokens[searchTokens.length - 1]
+					let beforeSearchTokens = getPerformanceTimestamp()
 					searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1),
 						matchWordOrder, result).then(() => {
+						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
 						result.results.sort(compareNewestFirst)
+						let beforeLoadAndReduce = getPerformanceTimestamp()
 						return this._loadAndReduce(restriction, result.results, suggestionToken, minSuggestionCount)
 						           .then(filteredResults => {
+							           timing._loadAndReduceTime = getPerformanceTimestamp() - beforeLoadAndReduce
 							           result.results = filteredResults
 						           })
 					})
 				} else {
-					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result)
+					let beforeSearchTokens = getPerformanceTimestamp()
+					console.timeStamp && console.timeStamp("search for tokens")
+					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result).then((result) => {
+						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
+						return result
+					})
 				}
 
 				return searchPromise.then(() => {
 					result.results.sort(compareNewestFirst)
+					timing.total = getPerformanceTimestamp() - totalSearchTimeStart
+					typeof self !== "undefined" && console.log(JSON.stringify(timing))
 					return result
 				})
 			} else {
@@ -192,14 +223,55 @@ export class SearchFacade {
 	 * Adds the found ids to the given search result
 	 */
 	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult): Promise<void> {
-		return this._tryExtendIndex(searchResult.restriction).then(() =>
-			this._findIndexEntries(searchTokens)
-			    .then(keyToEncryptedIndexEntries => this._filterByEncryptedId(keyToEncryptedIndexEntries))
-			    .then(keyToEncryptedIndexEntries => this._decryptSearchResult(keyToEncryptedIndexEntries))
-			    .then(keyToIndexEntries => this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction))
-			    .then(keyToIndexEntries => this._reduceWords(keyToIndexEntries, matchWordOrder))
-			    .then(searchIndexEntries => this._reduceToUniqueElementIds(searchIndexEntries, searchResult))
-			    .then(searchIndexEntries => this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult))
+		const makeStamp = (name) => {
+			console.timeEnd && console.timeEnd(name)
+			timings[name] = getPerformanceTimestamp() - stamp
+			stamp = getPerformanceTimestamp()
+		}
+		let stamp = getPerformanceTimestamp()
+		let timings = {}
+		console.time && console.time("_tryExtendIndex")
+		return this._tryExtendIndex(searchResult.restriction).then(() => {
+				makeStamp("_tryExtendIndex")
+
+				console.time && console.time("findIndexEntries")
+				return this._findIndexEntries(searchTokens)
+				           .then(keyToEncryptedIndexEntries => {
+					           makeStamp("findIndexEntries")
+					           console.time && console.time("_filterByEncryptedId")
+					           return this._filterByEncryptedId(keyToEncryptedIndexEntries)
+				           })
+				           .then(keyToEncryptedIndexEntries => {
+					           makeStamp("_filterByEncryptedId")
+					           console.time && console.time("_decryptSearchResult")
+					           return this._decryptSearchResult(keyToEncryptedIndexEntries)
+				           })
+				           .then(keyToIndexEntries => {
+					           makeStamp("_decryptSearchResult")
+					           console.time && console.time("_filterByTypeAndAttributeAndTime")
+					           return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
+				           })
+				           .then(keyToIndexEntries => {
+					           makeStamp("_filterByTypeAndAttributeAndTime")
+					           console.time && console.time("_reduceWords")
+					           return this._reduceWords(keyToIndexEntries, matchWordOrder)
+				           })
+				           .then(searchIndexEntries => {
+					           makeStamp("_reduceWords")
+					           console.time && console.time("_reduceToUniqueElementIds")
+					           return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
+				           })
+				           .then(searchIndexEntries => {
+					           makeStamp("_reduceToUniqueElementIds")
+					           console.time && console.time("_filterByListIdAndGroupSearchResults")
+					           return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult)
+				           })
+				           .then((result) => {
+					           makeStamp("_filterByListIdAndGroupSearchResults")
+					           typeof self !== "undefined" && console.log(JSON.stringify(timings))
+					           return result
+				           })
+			}
 		)
 	}
 
@@ -232,21 +304,33 @@ export class SearchFacade {
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
-		return this._db.dbFacade.createTransaction(true, [SearchIndexOS]).then(transaction => {
-			return Promise.map(searchTokens, (token) => {
-				let indexKey = encryptIndexKeyBase64(this._db.key, token)
-				return transaction.getAsList(SearchIndexOS, indexKey)
-				                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {
-					                  return {
-						                  indexKey,
-						                  indexEntries: indexEntries.map(ie => ({
-							                  encEntry: ie,
-							                  idHash: arrayHash(ie[0])
-						                  }))
-					                  }
-				                  })
-			})
-		})
+		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
+		           .then(transaction => Promise.map(searchTokens,
+			           (token) => this._findEntriesForSearchToken(transaction, token)))
+	}
+
+	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
+		return transaction.getAsList(SearchIndexOS, entry.key)
+	}
+
+	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {
+		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken)
+		return transaction.getAsList(SearchIndexMetaDataOS, indexKey)
+		                  .then(metadata => Promise.map(metadata, (entry) =>
+			                  this._findEntriesForMetadata(transaction, entry)))
+		                  .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
+		                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {
+			                  return indexEntries.map(entry => ({
+				                  encEntry: entry,
+				                  idHash: arrayHash(entry[0])
+			                  }))
+		                  })
+		                  .then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+			                  return {
+				                  indexKey: indexKey,
+				                  indexEntries: indexEntries
+			                  }
+		                  })
 	}
 
 	/**

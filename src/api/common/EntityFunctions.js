@@ -205,7 +205,7 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
-export function _loadReverseRangeBetween<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+export function _loadReverseRangeBetween<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target)
@@ -311,12 +311,20 @@ export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple) {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 
-export function getEtId(entity: any): Id {
-	return (entity: any)._id
+export type HasId = {
+	_id: Id
 }
 
-export function getLetId(entity: any): IdTuple {
-	return (entity: any)._id
+export type HasIdTuple = {
+	_id: IdTuple
+}
+
+export function getEtId(entity: HasId): Id {
+	return entity._id
+}
+
+export function getLetId(entity: HasIdTuple): IdTuple {
+	return entity._id
 }
 
 /**

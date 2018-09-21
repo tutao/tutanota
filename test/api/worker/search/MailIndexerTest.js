@@ -1,15 +1,15 @@
 // @flow
 import o from "ospec/ospec.js"
-import {NotFoundError, NotAuthorizedError} from "../../../../src/api/common/error/RestError"
-import type {Db, IndexUpdate, ElementData} from "../../../../src/api/worker/search/SearchTypes"
+import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
+import type {Db, ElementData, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
-import {GroupDataOS, ElementDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {
-	MailState,
-	NOTHING_INDEXED_TIMESTAMP,
 	FULL_INDEXED_TIMESTAMP,
 	GroupType,
+	MailState,
+	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
@@ -18,23 +18,26 @@ import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {
-	MailIndexer,
+	_getCurrentIndexTimestamp,
 	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	_getCurrentIndexTimestamp
+	MailIndexer
 } from "../../../../src/api/worker/search/MailIndexer"
-import {createMail, _TypeModel as MailModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import {_TypeModel as MailModel, createMail, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tutanota/MailBody"
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {isSameId, GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameId, isSameTypeRef} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
-import {getStartOfDay, getDayShifted} from "../../../../src/api/common/utils/DateUtils"
+import {getDayShifted, getStartOfDay} from "../../../../src/api/common/utils/DateUtils"
 import type {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
-import {MailboxGroupRootTypeRef, createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
+import {createMailboxGroupRoot, MailboxGroupRootTypeRef} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
 import {createMailBox, MailBoxTypeRef} from "../../../../src/api/entities/tutanota/MailBox"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {spy} from "../../TestUtils"
+import {neverNull} from "../../../../src/api/common/utils/Utils"
+import {deepEqual} from "../../common/UtilsTest"
 
 
 o.spec("MailIndexer test", () => {
@@ -42,7 +45,7 @@ o.spec("MailIndexer test", () => {
 		let mail = createMail()
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), (null:any), (null:any))
+		let indexer = new MailIndexer(new IndexerCore((null: any), (null: any)), (null: any), (null: any), (null: any), (null: any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(0)
 	})
@@ -52,14 +55,14 @@ o.spec("MailIndexer test", () => {
 		mail.subject = "Hello"
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore((null:any), (null:any)), (null:any), (null:any), (null:any), (null:any))
+		let indexer = new MailIndexer(new IndexerCore((null: any), (null: any)), (null: any), (null: any), (null: any), (null: any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(1)
 	})
 
 	o("createMailIndexEntries", function () {
-		let core = ({createIndexEntriesForAttributes: o.spy()}:any)
-		let indexer = new MailIndexer(core, (null:any), (null:any), (null:any), (null:any))
+		let core = ({createIndexEntriesForAttributes: o.spy()}: any)
+		let indexer = new MailIndexer(core, (null: any), (null: any), (null: any), (null: any))
 
 		let toRecipients = [createMailAddress(), createMailAddress()]
 		toRecipients[0].address = "tr0A"
@@ -131,8 +134,8 @@ o.spec("MailIndexer test", () => {
 		let files = [createFile()]
 		let keyToIndexEntries = new Map()
 
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
-		let core = ({createIndexEntriesForAttributes: () => keyToIndexEntries}:any)
+		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
+		let core = ({createIndexEntriesForAttributes: () => keyToIndexEntries}: any)
 		let entity = ({
 			load: (type, id) => {
 				if (type === MailTypeRef && isSameId(id, [event.instanceListId, event.instanceId])) {
@@ -144,8 +147,8 @@ o.spec("MailIndexer test", () => {
 				}
 				Promise.reject("Wrong type / id")
 			}
-		}:any)
-		let indexer: any = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
+		}: any)
+		let indexer: any = new MailIndexer((null: any), (null: any), entity, (null: any), (null: any))
 		indexer.createMailIndexEntries = o.spy((mailParam, bodyParam, filesParam) => {
 			o(mailParam).deepEquals(mail)
 			o(bodyParam).deepEquals(body)
@@ -161,9 +164,9 @@ o.spec("MailIndexer test", () => {
 	o("processNewMail catches NotFoundError", function (done) {
 		let entity = ({
 			load: () => Promise.reject(new NotFoundError("blah"))
-		}:any)
-		const indexer = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
+		}: any)
+		const indexer = new MailIndexer((null: any), (null: any), entity, (null: any), (null: any))
+		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).then(result => {
 			o(result).equals(null)
 		}).then(done)
@@ -172,9 +175,9 @@ o.spec("MailIndexer test", () => {
 	o("processNewMail catches NotAuthorizedError", function (done) {
 		let entity = ({
 			load: () => Promise.reject(new NotAuthorizedError("blah"))
-		}:any)
-		const indexer = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
+		}: any)
+		const indexer = new MailIndexer((null: any), (null: any), entity, (null: any), (null: any))
+		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).then(result => {
 			o(result).equals(null)
 		}).then(done)
@@ -183,18 +186,18 @@ o.spec("MailIndexer test", () => {
 	o("processNewMail passes other Errors", function (done) {
 		let entity = ({
 			load: () => Promise.reject(new Error("blah"))
-		}:any)
-		const indexer = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}:any)
+		}: any)
+		const indexer = new MailIndexer((null: any), (null: any), entity, (null: any), (null: any))
+		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).catch(Error, e => {
 			done()
 		})
 	})
 
 	o("processMovedMail", function (done) {
-		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
+		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}: any)
 		let elementData: ElementData = ["old-list-id", new Uint8Array(0), "owner-group-id"]
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
 
 		let transaction = {
@@ -205,7 +208,7 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		const indexer = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		const indexer = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		indexer.processMovedMail(event, indexUpdate).then(() => {
@@ -225,13 +228,13 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
 
-		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}:any)
+		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}: any)
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId)
 
 		const core: any = {encryptSearchIndexEntries: o.spy()}
-		const indexer: any = new MailIndexer(core, db, (null:any), (null:any), (null:any))
+		const indexer: any = new MailIndexer(core, db, (null: any), (null: any), (null: any))
 		let result = {mail: {_id: 'mail-id', _ownerGroup: 'owner-group'}, keyToIndexEntries: new Map()}
 		indexer.processNewMail = o.spy(() => Promise.resolve(result))
 
@@ -240,7 +243,8 @@ o.spec("MailIndexer test", () => {
 			o(indexUpdate.move.length).equals(0)
 			o(indexer.processNewMail.callCount).equals(1)
 			o(core.encryptSearchIndexEntries.callCount).equals(1)
-			o(core.encryptSearchIndexEntries.args).deepEquals([result.mail._id, result.mail._ownerGroup, result.keyToIndexEntries, indexUpdate])
+			o(core.encryptSearchIndexEntries.args)
+				.deepEquals([result.mail._id, result.mail._ownerGroup, result.keyToIndexEntries, indexUpdate])
 			done()
 		})
 	})
@@ -260,8 +264,8 @@ o.spec("MailIndexer test", () => {
 			wait: () => Promise.resolve()
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
-		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
+		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 		indexer.indexMailboxes = o.spy()
 		indexer.mailIndexingEnabled = false
 		indexer._excludedListIds = []
@@ -279,7 +283,8 @@ o.spec("MailIndexer test", () => {
 
 		indexer.enableMailIndexing(user).then(() => {
 			o(indexer.indexMailboxes.callCount).equals(1)
-			o(indexer.indexMailboxes.args).deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))])
+			o(indexer.indexMailboxes.args)
+				.deepEquals([user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))])
 
 			o(indexer.mailIndexingEnabled).equals(true)
 			o(indexer._excludedListIds).deepEquals([spamFolder.mails])
@@ -304,8 +309,8 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
-		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
+		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 		indexer.indexMailboxes = o.spy()
 
 		indexer.mailIndexingEnabled = false
@@ -321,8 +326,8 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("disableMailIndexing", function () {
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {deleteDatabase: o.spy()}}:any)
-		const indexer: any = new MailIndexer((null:any), db, (null:any), (null:any), (null:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {deleteDatabase: o.spy()}}: any)
+		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 		indexer._excludedListIds = [1]
 		indexer.disableMailIndexing()
@@ -333,7 +338,7 @@ o.spec("MailIndexer test", () => {
 
 	o("indexMailboxes disabled", function (done) {
 		let entity: any = {}
-		const indexer: any = new MailIndexer((null:any), (null:any), entity, (null:any), (null:any))
+		const indexer: any = new MailIndexer((null: any), (null: any), entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = false
 		indexer.indexMailboxes(createUser(), 1512946800000).then(done)
 	})
@@ -350,7 +355,7 @@ o.spec("MailIndexer test", () => {
 		indexMailboxTest(FULL_INDEXED_TIMESTAMP, 1512946800000, true, done)
 	})
 
-	o("_indexMailList", function (done) {
+	o("_indexMailList", function () {
 		let mailbox = createMailBox()
 		mailbox.sentAttachments = "sent-attachments-list"
 		mailbox.receivedAttachments = "received-attachments-list"
@@ -358,14 +363,14 @@ o.spec("MailIndexer test", () => {
 		let mailGroupId = "mail-group-id"
 		let startId = timestampToGeneratedId(1513033200000)
 		let endId = timestampToGeneratedId(1512946800000)
-		let loadedFileLists = []
 		let mails = [createMail(), createMail()]
 		mails[0]._id = [mailListId, timestampToGeneratedId(1512946800000 - 1)]// should be filtered out as id < endId
 		mails[1]._id = [mailListId, timestampToGeneratedId(1512946800000 + 1)]
-		mails[1].body = "body-id"
-		mails[1].attachments = [["attachment-listId", "attachment-element-id"]]
-		let file = createFile()
-		let body = createMailBody()
+		mails[1].body = "body-id1"
+		const fileIds = [
+			["attachment-listId", "attachment-element-id"], ["attachment-listId1", "attachment-element-id1"]
+		]
+		mails[1].attachments = fileIds
 
 		let entity = ({
 			_loadEntityRange: (type, listId, start, count, reverse, target) => {
@@ -377,43 +382,61 @@ o.spec("MailIndexer test", () => {
 				o(target).equals(entityRestClient)
 				return Promise.resolve(mails)
 			},
-			load: (type, id) => {
-				o(type).equals(FileTypeRef)
-				o(id).deepEquals(mails[1].attachments[0])
-				return Promise.resolve(file)
-			},
-			_loadEntity: (type, id, queryParams, target) => {
-				o(type).equals(MailBodyTypeRef)
-				o(id).deepEquals(mails[1].body)
-				o(target).equals(entityRestClient)
-				return Promise.resolve(body)
-			},
-		}:any)
+			_loadMultipleEntities: spy((typeRef, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<(MailBody | TutanotaFile)[]> => {
+				return Promise.resolve(elementIds.map((elId) => {
+					if (isSameTypeRef(typeRef, MailBodyTypeRef)) {
+						const body = createMailBody()
+						body._id = elId
+						return body
+					} else if (isSameTypeRef(typeRef, FileTypeRef)) {
+						const file = createFile()
+						file._id = [neverNull(listId), elId]
+						return file
+					} else {
+						throw new Error("Should not be called")
+					}
+				}))
+			})
+		}: any)
 
-		let db: Db = ({key: aes256RandomKey(), dbFacade: {}}:any)
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let db: Db = ({key: aes256RandomKey(), dbFacade: {}}: any)
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		let entityRestClient: any = {}
-		const indexer: any = new MailIndexer(core, db, entity, (null:any), entityRestClient)
+		const indexer: any = new MailIndexer(core, db, entity, (null: any), entityRestClient)
 
-		indexer._indexMailList(mailbox, mailGroupId, mailListId, startId, endId).then(fullyIndexed => {
+		return indexer._indexMailList(mailbox, mailGroupId, mailListId, startId, endId).then(fullyIndexed => {
 			o(core.writeIndexUpdate.callCount).equals(1)
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			let encInstanceId = encryptIndexKeyBase64(db.key, mails[1]._id[1])
 			o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
 			o(fullyIndexed).equals(false)
-			done()
+
+			const expectedInvocations = [
+				[FileTypeRef, fileIds[0][0], [fileIds[0][1]], entityRestClient],
+				[FileTypeRef, fileIds[1][0], [fileIds[1][1]], entityRestClient],
+				[MailBodyTypeRef, null, [mails[1].body], entityRestClient],
+			]
+
+			o(entity._loadMultipleEntities.invocations.length).equals(expectedInvocations.length)
+			for (let expected of expectedInvocations) {
+				o(!!entity._loadMultipleEntities.invocations.find(i => deepEqual(i, expected)))
+					.equals(true)("Should have invocation " + JSON.stringify(expected))
+			}
 		})
 	})
 
 	o("processEntityEvents do nothing if mailIndexing is disabled", function (done) {
 		let core: any = {writeIndexUpdate: o.spy()}
-		const indexer = new MailIndexer(core, (null:any), (null:any), (null:any), (null:any))
+		const indexer = new MailIndexer(core, (null: any), (null: any), (null: any), (null: any))
 		indexer.mailIndexingEnabled = false
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
-		let events = [createUpdate(OperationType.CREATE, "mail-list", "1"), createUpdate(OperationType.UPDATE, "mail-list", "2"), createUpdate(OperationType.DELETE, "mail-list", "3")]
+		let events = [
+			createUpdate(OperationType.CREATE, "mail-list", "1"), createUpdate(OperationType.UPDATE, "mail-list", "2"),
+			createUpdate(OperationType.DELETE, "mail-list", "3")
+		]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
@@ -425,7 +448,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents new mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -441,7 +464,7 @@ o.spec("MailIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new MailIndexer(core, db, entity, (null:any), (null:any))
+		const indexer = new MailIndexer(core, db, entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
@@ -457,7 +480,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents moved mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -473,12 +496,15 @@ o.spec("MailIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer: any = new MailIndexer(core, db, entity, (null:any), (null:any))
+		const indexer: any = new MailIndexer(core, db, entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 		indexer.processMovedMail = o.spy()
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
-		let events = [createUpdate(OperationType.CREATE, "new-mail-list", "1"), createUpdate(OperationType.DELETE, "old-mail-list", "1")]
+		let events = [
+			createUpdate(OperationType.CREATE, "new-mail-list", "1"),
+			createUpdate(OperationType.DELETE, "old-mail-list", "1")
+		]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
@@ -491,7 +517,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents deleted mail", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -507,7 +533,7 @@ o.spec("MailIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new MailIndexer(core, db, entity, (null:any), (null:any))
+		const indexer = new MailIndexer(core, db, entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
@@ -523,7 +549,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents update draft", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -540,7 +566,7 @@ o.spec("MailIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new MailIndexer(core, db, entity, (null:any), (null:any))
+		const indexer = new MailIndexer(core, db, entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
@@ -556,7 +582,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processEntityEvents don't update non-drafts", function (done) {
 		let db: any = {key: aes256RandomKey()}
-		let core: any = new IndexerCore(db, ({queueEvents: false}:any))
+		let core: any = new IndexerCore(db, ({queueEvents: false}: any))
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
@@ -573,7 +599,7 @@ o.spec("MailIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new MailIndexer(core, db, entity, (null:any), (null:any))
+		const indexer = new MailIndexer(core, db, entity, (null: any), (null: any))
 		indexer.mailIndexingEnabled = true
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
@@ -637,7 +663,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 			}
 			return Promise.reject("Wrong type / id")
 		},
-	}:any)
+	}: any)
 	let groupData = {indexTimestamp: startTimestamp}
 	let transaction = {
 		get: (os, groupId) => {
@@ -658,9 +684,9 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 		},
 		queue: {queue: o.spy(), processNext: o.spy()}
 	}
-	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}:any)
-	let worker: WorkerImpl = ({sendIndexState: o.spy()}:any)
-	const indexer: any = new MailIndexer(core, db, entity, worker, (null:any))
+	let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
+	let worker: WorkerImpl = ({sendIndexState: o.spy()}: any)
+	const indexer: any = new MailIndexer(core, db, entity, worker, (null: any))
 	indexer.mailIndexingEnabled = true
 	indexer._loadMailListIds = (mbox) => {
 		o(mbox).equals(mailbox)
@@ -676,7 +702,12 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 		o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
 
 		o(indexer._indexMailList.callCount).equals(1)
-		o(indexer._indexMailList.args).deepEquals([mailbox, user.memberships[0].group, mailListId, startTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(startTimestamp), timestampToGeneratedId(endIndexTimstamp)])
+		o(indexer._indexMailList.args)
+			.deepEquals([
+				mailbox, user.memberships[0].group, mailListId,
+				startTimestamp == NOTHING_INDEXED_TIMESTAMP ? GENERATED_MAX_ID : timestampToGeneratedId(startTimestamp),
+				timestampToGeneratedId(endIndexTimstamp)
+			])
 
 		done()
 	})
