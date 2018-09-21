@@ -314,7 +314,7 @@ export class SearchFacade {
 	}
 
 	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {
-		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken)
+		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction.getAsList(SearchIndexMetaDataOS, indexKey)
 		                  .then(metadata => Promise.map(metadata, (entry) =>
 			                  this._findEntriesForMetadata(transaction, entry)))
@@ -365,7 +365,7 @@ export class SearchFacade {
 		return results.map(searchResult => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry.encEntry))
+				indexEntries: searchResult.indexEntries.map(entry => decryptSearchIndexEntry(this._db.key, entry.encEntry, this._db.iv))
 			}
 		})
 	}

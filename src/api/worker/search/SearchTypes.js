@@ -70,6 +70,7 @@ export type IndexUpdate = {
 
 export type Db = {
 	key: Aes256Key; // @pre: must not be accessed before initialized promise is resolved.
+	iv: Uint8Array; // fixed iv for all search index entries
 	dbFacade: DbFacade;
 	initialized: Promise<void>;
 }

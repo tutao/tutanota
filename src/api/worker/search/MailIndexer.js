@@ -120,7 +120,7 @@ export class MailIndexer {
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
-		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 				if (elementData) {

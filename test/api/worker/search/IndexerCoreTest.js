@@ -31,7 +31,7 @@ import {
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {spy} from "../../TestUtils"
-
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 
 
 o.spec("IndexerCore test", () => {
@@ -107,7 +107,7 @@ o.spec("IndexerCore test", () => {
 
 
 	o("encryptSearchIndexEntries", function () {
-		const core = new IndexerCore(({key: aes256RandomKey()}: any), (null: any))
+		const core = new IndexerCore(({key: aes256RandomKey(), iv: fixedIv}: any), (null: any))
 		let id = ["1", "2"]
 		let ownerGroupId = "ownerGroupId"
 		let keyToIndexEntries: Map<string, SearchIndexEntry[]> = new Map([
@@ -138,7 +138,7 @@ o.spec("IndexerCore test", () => {
 		core.encryptSearchIndexEntries(id, ownerGroupId, keyToIndexEntries, indexUpdate)
 
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-		let elementData: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "2")))
+		let elementData: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "2", core.db.iv)))
 		let listId = elementData[0]
 		o(listId).equals(id[0])
 		let words = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData[1], true, false))
@@ -147,9 +147,9 @@ o.spec("IndexerCore test", () => {
 
 		o(indexUpdate.create.indexMap.size).equals(2)
 
-		let a: EncryptedSearchIndexEntry[] = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a")))
+		let a: EncryptedSearchIndexEntry[] = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a", core.db.iv)))
 		o(a.length).equals(1)
-		let entry = decryptSearchIndexEntry(core.db.key, a[0])
+		let entry = decryptSearchIndexEntry(core.db.key, a[0], core.db.iv)
 		delete entry.encId
 		o(entry).deepEquals({
 			id: "2",
@@ -159,9 +159,9 @@ o.spec("IndexerCore test", () => {
 			positions: [0],
 		})
 
-		let b: EncryptedSearchIndexEntry[] = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "b")))
+		let b: EncryptedSearchIndexEntry[] = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "b", core.db.iv)))
 		o(b.length).equals(1)
-		let entry2 = decryptSearchIndexEntry(core.db.key, b[0])
+		let entry2 = decryptSearchIndexEntry(core.db.key, b[0], core.db.iv)
 		delete entry2.encId
 		o(entry2).deepEquals({
 			id: "2",
@@ -190,16 +190,16 @@ o.spec("IndexerCore test", () => {
 		core.encryptSearchIndexEntries(id2, ownerGroupId, keyToIndexEntries2, indexUpdate)
 
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(2)
-		let elementData2: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "y")))
+		let elementData2: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "y", core.db.iv)))
 		let listId2 = elementData2[0]
 		o(listId2).equals(id2[0])
 		let words2 = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData2[1], true, false))
 		o(words2).equals("a")
 		o(ownerGroupId).equals(elementData2[2])
 
-		a = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a")))
+		a = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a", core.db.iv)))
 		o(a.length).equals(2)
-		entry = decryptSearchIndexEntry(core.db.key, a[0])
+		entry = decryptSearchIndexEntry(core.db.key, a[0], core.db.iv)
 		delete entry.encId
 		o(entry).deepEquals({
 			id: "2",
@@ -208,7 +208,7 @@ o.spec("IndexerCore test", () => {
 			attribute: 5,
 			positions: [0],
 		})
-		let newEntry = decryptSearchIndexEntry(core.db.key, a[1])
+		let newEntry = decryptSearchIndexEntry(core.db.key, a[1], core.db.iv)
 		delete newEntry.encId
 		o(newEntry).deepEquals({
 			id: "y",
@@ -609,6 +609,7 @@ o.spec("IndexerCore test", () => {
 
 		const core: any = new IndexerCore({
 			key: aes256RandomKey(),
+			iv: fixedIv,
 			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
 		}, ({queueEvents: false}: any))
@@ -644,8 +645,9 @@ o.spec("IndexerCore test", () => {
 		let event = createEntityUpdate()
 		event.instanceId = instanceId
 
-		const core: any = new IndexerCore({
+		const core = new IndexerCore({
 			key: aes256RandomKey(),
+			iv: fixedIv,
 			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
 		}, ({queueEvents: false}: any))
@@ -662,9 +664,9 @@ o.spec("IndexerCore test", () => {
 			},
 		}
 
-		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId)
+		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
 
-		let encWord1 = encryptIndexKeyBase64(core.db.key, "one")
+		let encWord1 = encryptIndexKeyBase64(core.db.key, "one", core.db.iv)
 		let otherId = uint8ArrayToBase64(new Uint8Array([88]))
 		indexUpdate.delete.encWordToEncInstanceIds.set(encWord1, [otherId])
 
@@ -679,7 +681,7 @@ o.spec("IndexerCore test", () => {
 			o(Array.from(ids[0])).deepEquals(Array.from(otherId))
 			o(Array.from(ids[1])).deepEquals(Array.from(encInstanceId))
 
-			let encWord2 = encryptIndexKeyBase64(core.db.key, "two")
+			let encWord2 = encryptIndexKeyBase64(core.db.key, "two", core.db.iv)
 			let ids2 = neverNull(indexUpdate.delete.encWordToEncInstanceIds.get(encWord2))
 			o(ids2.length).equals(1)
 			o(Array.from(ids2[0])).deepEquals(Array.from(encInstanceId))
@@ -698,8 +700,9 @@ o.spec("IndexerCore test", () => {
 		let event = createEntityUpdate()
 		event.instanceId = instanceId
 
-		const core: any = new IndexerCore({
+		const core = new IndexerCore({
 			key: aes256RandomKey(),
+			iv: fixedIv,
 			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
 		}, ({queueEvents: false}: any))
@@ -712,7 +715,7 @@ o.spec("IndexerCore test", () => {
 			},
 		}
 
-		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId)
+		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
 
 		core._processDeleted(event, indexUpdate).then(() => {
 			o(indexUpdate.delete.encWordToEncInstanceIds.size).equals(0)

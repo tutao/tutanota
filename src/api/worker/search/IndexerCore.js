@@ -96,13 +96,13 @@ export class IndexerCore {
 
 	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
 		let listId = id[0]
-		let encryptedInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1])
+		let encryptedInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1], this.db.iv)
 		let b64InstanceId = uint8ArrayToBase64(encryptedInstanceId)
 
 		let encryptionTimeStart = getPerformanceTimestamp()
 		let words = []
 		keyToIndexEntries.forEach((value, indexKey) => {
-			let encIndexKey = encryptIndexKeyBase64(this.db.key, indexKey)
+			let encIndexKey = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
 			let indexEntries = indexUpdate.create.indexMap.get(encIndexKey)
 			words.push(indexKey)
 			if (!indexEntries) {
@@ -121,7 +121,7 @@ export class IndexerCore {
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		let encInstanceId = encryptIndexKeyBase64(this.db.key, event.instanceId)
+		let encInstanceId = encryptIndexKeyBase64(this.db.key, event.instanceId, this.db.iv)
 		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 				if (!elementData) {
@@ -129,7 +129,7 @@ export class IndexerCore {
 					return
 				}
 				let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
-				let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word))
+				let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word, this.db.iv))
 				encWords.map(encWord => {
 					let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
 					if (ids == null) {

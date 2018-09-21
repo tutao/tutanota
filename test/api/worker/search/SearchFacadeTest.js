@@ -23,6 +23,7 @@ import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
 import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 
 type MetaTable = {[Base64]: SearchIndexMetadataEntry[]}
 type IndexTable = {[number]: EncryptedSearchIndexEntry[]}
@@ -46,7 +47,7 @@ o.spec("SearchFacade test", () => {
 			chunks.forEach(chunk => {
 				counter++
 				metaTable[keyToIndexEntries.indexKey].push({key: counter, size: chunk.length})
-				indexTable[counter] = chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id)))
+				indexTable[counter] = chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv)))
 			})
 		})
 		return {metaTable, indexTable}
@@ -67,7 +68,7 @@ o.spec("SearchFacade test", () => {
 			get: (os, key): Promise<ElementData> => {
 				if (os === ElementDataOS) {
 					const id = neverNull(fullIds.find(id => {
-						let encId = encryptIndexKeyBase64(dbKey, id[1])
+						let encId = encryptIndexKeyBase64(dbKey, id[1], fixedIv)
 						return encId === key
 					}))[0]
 					return Promise.resolve([id, new Uint8Array(0), ""])
@@ -81,6 +82,7 @@ o.spec("SearchFacade test", () => {
 			getLoggedInUser: () => user
 		}: any), {
 			key: dbKey,
+			iv: fixedIv,
 			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
 		}, ({
@@ -92,7 +94,7 @@ o.spec("SearchFacade test", () => {
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntry[]): KeyToIndexEntries => {
 		return {
-			indexKey: encryptIndexKeyBase64(dbKey, word),
+			indexKey: encryptIndexKeyBase64(dbKey, word, fixedIv),
 			indexEntries: entries
 		}
 	}
