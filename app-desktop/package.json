@@ -1,0 +1,11 @@
+{
+  "name": "tutanota-desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^3.0.0",
+    "electron-installer-debian": "^0.8.1"
+  }
+}

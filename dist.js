@@ -15,6 +15,7 @@ const os = require("os")
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const builder = new Builder(SystemConfig.distBuildConfig()) // baseURL and configuration
 const babelCompile = require('./buildSrc/Builder.js').babelCompile
+const desktopBuilder = require('./buildSrc/DesktopBuilder.js').packageDesktop
 
 let start = Date.now()
 
@@ -107,6 +108,7 @@ Promise.resolve()
        })
        .then(() => bundleSW(bundles))
        .then(copyDependencies)
+       .then(() => desktopBuilder(__dirname, packageJSON))
        .then(deb)
        .then(release)
        .then(() => console.log(`\nBuild time: ${measure()}s`))
