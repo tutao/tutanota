@@ -1,10 +1,10 @@
 // USE CASE              | TARGET SERVER     | HTML FILE  | BUILD COMMAND
 // local                 | location.hostname | index.html | node build
 // local app             | local IP address  | app.html   | node build
-// local native          | location.hostname | index.html | node build native
+// local desktop          | location.hostname | index.html | node build desktop
 // local test            | test.tutanota.com | index.html | node build test
 // local test app        | test.tutanota.com | app.html   | node build test
-// test native           | test.tutanota.com | index.html | node build test native
+// test desktop           | test.tutanota.com | index.html | node build test desktop
 // local prod            | mail.tutanota.com | index.html | node build prod
 // local prod app        | mail.tutanota.com | app.html   | node build prod
 
@@ -12,10 +12,10 @@
 // local app release     | local IP address  | app.html   | node dist
 // local test release    | test.tutanota.com | index.html | node dist test
 // test app release      | test.tutanota.com | app.html   | node dist test
-// test native release   | test.tutanota.com | index.html | node dist test
+// test desktop release  | test.tutanota.com | index.html | node dist test desktop
 // local prod release    | mail.tutanota.com | index.html | node dist prod
 // prod app release      | mail.tutanota.com | app.html   | node dist prod
-// prod native release   | mail.tutanota.com | index.html | node dist prod
+// prod desktop release  | mail.tutanota.com | index.html | node dist prod desktop
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
 function create(systemConfig, staticUrl, version, mode, dist, rootPathPrefix, adminTypes) {

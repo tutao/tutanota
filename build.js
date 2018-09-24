@@ -53,8 +53,8 @@ promise
 	})
 	.then(() => builder.build(["src"], watch))
 	.then(() => {
-		if (process.argv.indexOf("native") !== -1) {
-			console.log("building electron native client")
+		if (process.argv.indexOf("desktop") !== -1) {
+			console.log("building electron desktop client")
 			const electronSourcesDir = path.join(__dirname, '/app-native')
 			return fs.emptyDirAsync(electronSourcesDir + "/resources/")
 			         .then(() => {
@@ -67,9 +67,9 @@ promise
 				         ])
 			         })
 			         .then(() => {
-				         console.log("Starting native client...")
-				         const out = fs.openSync('./native_out.log', 'a');
-				         const err = fs.openSync('./native_out.log', 'a');
+				         console.log("Starting desktop client...")
+				         const out = fs.openSync('./desktop_out.log', 'a');
+				         const err = fs.openSync('./desktop_out.log', 'a');
 				         //need to run "npm install --save-dev electron" in directory first!
 				         spawn("/bin/sh", ["-c", "npm start"], {
 					         cwd: path.join(__dirname, '/app-native/'),

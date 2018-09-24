@@ -4,26 +4,6 @@
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
-  "electronPackagerOptions": {
-    "appBundleId": "com.tutao.tutanota",
-    "protocols": [
-      {
-        "name": "E-Mail",
-        "schemes": [
-          "mailto"
-        ]
-      }
-    ],
-    "arch": [
-      "x64"
-    ],
-    "platform": [
-      "linux",
-      "win32",
-      "darwin"
-    ],
-    "icon": "./resources/desktop-icons/icon-192"
-  },
   "devDependencies": {
     "autolinker": "1.4.1",
     "babel-cli": "6.18.0",
