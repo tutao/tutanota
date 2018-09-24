@@ -15,7 +15,7 @@ const os = require("os")
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const builder = new Builder(SystemConfig.distBuildConfig()) // baseURL and configuration
 const babelCompile = require('./buildSrc/Builder.js').babelCompile
-const desktopBuilder = require('./buildSrc/DesktopBuilder.js').packageDesktop
+const packageDesktop = require('./buildSrc/DesktopBuilder.js').packageDesktop
 
 let start = Date.now()
 
@@ -110,7 +110,7 @@ Promise.resolve()
        .then(copyDependencies)
        .then(() => {
 	       if (process.argv.indexOf("desktop") !== -1) {
-		       desktopBuilder(__dirname, packageJSON.version)
+		       return packageDesktop(__dirname, packageJSON.version)
 	       }
        })
        .then(deb)

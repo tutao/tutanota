@@ -2,6 +2,7 @@
   "name": "tutanota-desktop",
   "main": "main.js",
   "author": "Tutao GmbH",
+  "description": "The desktop client for Tutanota, the secure e-mail service.",
   "scripts": {
     "start": "electron ."
   },
@@ -42,12 +43,8 @@
       ]
     },
     "linux": {
-      "synopsis": "The desktop client for Tutanota, the secure e-mail service.",
+      "synopsis": "Tutanota Desktop Client",
       "category": "Network",
-      "desktop": {
-        "categories": "Electron;Network;Office",
-        "type": "application"
-      },
       "target": [
         {
           "target": "AppImage",
