@@ -50,11 +50,12 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
-export function loadMultiple<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
+export function loadMultiple<T: HasIdTuple>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
 }
 
-export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+export function loadRange<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+                                         reverse: boolean): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, worker)
 }
 

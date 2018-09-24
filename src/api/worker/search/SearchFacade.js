@@ -13,7 +13,7 @@ import {
 } from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
-import {asyncFind, neverNull} from "../../common/utils/Utils"
+import {asyncFind, defer, neverNull} from "../../common/utils/Utils"
 import type {
 	Db,
 	ElementData,
@@ -60,7 +60,8 @@ export class SearchFacade {
 	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
+	       maxResults: ?number): Promise<SearchResult> {
 		console.timeStamp && console.timeStamp("search start")
 		return this._db.initialized.then(() => {
 			let searchTokens = tokenize(query)
@@ -72,7 +73,8 @@ export class SearchFacade {
 				query,
 				restriction,
 				results: [],
-				currentIndexTimestamp: this._getSearchEndTimestamp(restriction)
+				currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
+				moreAvailable: false
 			}
 			if (searchTokens.length > 0) {
 				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
@@ -94,7 +96,8 @@ export class SearchFacade {
 							                    // 1) know if we also have to search normally and
 							                    // 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
 							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-							                    return this._searchForTokens(searchTokens, matchWordOrder, result)
+							                    return this._searchForTokens(searchTokens, matchWordOrder, result,
+								                    maxResults)
 							                               .then((result) => {
 								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
 									                               - searchForTokensAfterSuggestionsBefore
@@ -121,10 +124,11 @@ export class SearchFacade {
 				} else {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					console.timeStamp && console.timeStamp("search for tokens")
-					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result).then((result) => {
-						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
-						return result
-					})
+					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result, maxResults)
+					                    .then((result) => {
+						                    timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
+						                    return result
+					                    })
 				}
 
 				return searchPromise.then(() => {
@@ -222,7 +226,8 @@ export class SearchFacade {
 	/**
 	 * Adds the found ids to the given search result
 	 */
-	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult): Promise<void> {
+	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult,
+	                 maxResults: ?number): Promise<void> {
 		const makeStamp = (name) => {
 			console.timeEnd && console.timeEnd(name)
 			timings[name] = getPerformanceTimestamp() - stamp
@@ -264,7 +269,8 @@ export class SearchFacade {
 				           .then(searchIndexEntries => {
 					           makeStamp("_reduceToUniqueElementIds")
 					           console.time && console.time("_filterByListIdAndGroupSearchResults")
-					           return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult)
+					           return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult,
+						           maxResults)
 				           })
 				           .then((result) => {
 					           makeStamp("_filterByListIdAndGroupSearchResults")
@@ -278,13 +284,14 @@ export class SearchFacade {
 	/**
 	 * Adds suggestions for the given searchToken to the searchResult until at least minSuggestionCount results are existing
 	 */
-	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<void> {
+	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number,
+	                searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
 		return Promise.each(suggestions, suggestion => {
 			if (searchResult.results.length < minSuggestionCount) {
 				return this._searchForTokens([suggestion], false, searchResult)
 			}
-		}).return()
+		}).then(() => maxResults && searchResult.results.splice(maxResults)).return()
 	}
 
 
@@ -466,18 +473,30 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult): Promise<void> {
-		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
-			return Promise.map(results, entry => {
-				return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId)))
-				                  .then((elementData: ElementData) => {
-					                  if (!searchResult.restriction.listId
-						                  || searchResult.restriction.listId === elementData[0]) {
-						                  searchResult.results.push([elementData[0], entry.id])
-					                  }
-				                  })
-			}, {concurrency: 5})
-		}).return()
+	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult,
+	                                     maxResults: ?number): Promise<void> {
+		console.time("sort")
+		results.sort((l, r) => compareNewestFirst(l.id, r.id))
+		console.timeEnd("sort")
+		const {resolve: stop, promise} = defer()
+		return Promise.race([
+			promise, this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
+				return Promise.map(results, entry => {
+					if (maxResults && searchResult.results.length >= maxResults) {
+						searchResult.moreAvailable = true
+						stop()
+						return
+					}
+					return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId)))
+					                  .then((elementData: ElementData) => {
+						                  if (!searchResult.restriction.listId
+							                  || searchResult.restriction.listId === elementData[0]) {
+							                  searchResult.results.push([elementData[0], entry.id])
+						                  }
+					                  })
+				}, {concurrency: 5})
+			})
+		]).return()
 	}
 
 

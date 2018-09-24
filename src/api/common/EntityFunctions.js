@@ -283,12 +283,12 @@ export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number
 }
 
 
-export function sortCompareByReverseId(entity1: Object, entity2: Object): number {
-	return compareNewestFirst((entity1._id[1]: any), (entity2._id[1]: any))
+export function sortCompareByReverseId<T: HasIdTuple>(entity1: T, entity2: T): number {
+	return compareNewestFirst(getElementId(entity1), getElementId(entity2))
 }
 
-export function sortCompareById(entity1: Object, entity2: Object): number {
-	return compareOldestFirst((entity1._id[1]: any), (entity2._id[1]: any))
+export function sortCompareById<T: HasIdTuple>(entity1: T, entity2: T): number {
+	return compareOldestFirst(getElementId(entity1), getElementId(entity2))
 }
 
 
@@ -325,6 +325,22 @@ export function getEtId(entity: HasId): Id {
 
 export function getLetId(entity: HasIdTuple): IdTuple {
 	return entity._id
+}
+
+export function getElementId(entity: HasIdTuple): Id {
+	return elementIdPart(getLetId(entity))
+}
+
+export function getListId(entity: HasIdTuple): Id {
+	return listIdPart(getLetId(entity))
+}
+
+export function listIdPart(id: IdTuple): Id {
+	return id[0]
+}
+
+export function elementIdPart(id: IdTuple): Id {
+	return id[1]
 }
 
 /**

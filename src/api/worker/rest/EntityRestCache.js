@@ -1,16 +1,7 @@
 // @flow
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient"
 import type {HasIdTuple, HttpMethodEnum} from "../../common/EntityFunctions"
-import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getLetId,
-	HttpMethod,
-	isSameTypeRef,
-	resolveTypeReference,
-	TypeRef
-} from "../../common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId, HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {remove} from "../../common/utils/ArrayUtils"
 import {clone, downcast, neverNull} from "../../common/utils/Utils"
@@ -45,7 +36,7 @@ assertWorkerOrNode()
  * MIN_ID  lowerRangeId     ids in rage    upperRangeId    MAX_ID
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
-export class EntityRestCache {
+export class EntityRestCache implements EntityRestInterface {
 
 	_ignoredTypes: TypeRef<any>[];
 

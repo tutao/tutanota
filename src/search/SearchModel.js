@@ -31,7 +31,8 @@ export class SearchModel {
 		})
 	}
 
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
+	       maxResults: ?number): Promise<SearchResult> {
 		this.lastQuery(query)
 		let result = this.result()
 		if (result && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
@@ -41,7 +42,7 @@ export class SearchModel {
 			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
-		return worker.search(query, restriction, minSuggestionCount).then(result => {
+		return worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 			this.result(result)
 			return result
 		})

@@ -1,13 +1,13 @@
 // @flow
 import m from "mithril"
 import {List} from "../gui/base/List"
-import {GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
+import {compareNewestFirst, elementIdPart, GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {load} from "../api/main/Entity"
+import {load, loadMultiple} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
@@ -118,13 +118,21 @@ export class SearchListView {
 							startIndex++ // the start index is already in the list of loaded elements load from the next element
 						}
 					}
-					let toLoad = resultIds.slice(startIndex, startIndex + count)
-					return Promise.map(toLoad, (id) => load(result.restriction.type, id)
-							.then(instance => new SearchResultListEntry(instance))
-							.catch(NotFoundError, () => console.log("mail not found")),
-						{concurrency: 5})
-					              .then(sr => sr.filter(r => r)) // filter not found instances
-					              .finally(() => m.redraw())
+
+					const {listId, type} = result.restriction
+					let loadPromise
+					let toLoad = resultIds.slice(startIndex, startIndex + count).map(elementIdPart)
+					if (listId) {
+						loadPromise = loadMultiple(type, listId, toLoad)
+							.then(results => results.sort(compareNewestFirst))
+					} else {
+						loadPromise = Promise.map(toLoad, (id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
+							{concurrency: 5})
+						                     .then(sr => sr.filter(r => r)) // filter not found instances
+					}
+					return loadPromise
+						.then(results => results.map(instance => new SearchResultListEntry(instance)))
+						.finally(m.redraw)
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
 					return Promise.map(resultIds, (id) => load(result.restriction.type, id)
@@ -178,8 +186,8 @@ export class SearchListView {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: listElement => Promise.resolve(),
-				swipeRight: listElement => Promise.resolve(),
+				swipeLeft: () => Promise.resolve(),
+				swipeRight: () => Promise.resolve(),
 				enabled: false,
 			},
 			elementsDraggable: false,

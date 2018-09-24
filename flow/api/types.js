@@ -1,6 +1,6 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
-import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
-import type {PaymentMethodTypeEnum, BootstrapFeatureTypeEnum} from "../../src/api/common/TutanotaConstans"
+import {AssociationType, Cardinality, Type, ValueType} from "../../src/api/common/EntityConstants"
+import type {BootstrapFeatureTypeEnum, PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
 import type {Theme} from "../../src/gui/theme"
 import {Country} from "../../src/api/common/CountryList"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
@@ -273,6 +273,7 @@ type SearchResult = {
 	restriction: SearchRestriction,
 	results: IdTuple[];
 	currentIndexTimestamp: number;
+	moreAvailable: boolean;
 }
 
 type SearchIndexStateInfo = {

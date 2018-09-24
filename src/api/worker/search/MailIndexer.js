@@ -1,11 +1,5 @@
 //@flow
-import {
-	FULL_INDEXED_TIMESTAMP,
-	MailFolderType,
-	MailState,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../../common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker, load, loadAll} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
@@ -17,14 +11,7 @@ import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, isSameId, TypeRef} from "../../common/EntityFunctions"
 import {neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
-import {
-	_createNewIndexUpdate,
-	containsEventOfType,
-	encryptIndexKeyBase64,
-	filterMailMemberships,
-	getPerformanceTimestamp,
-	htmlToText
-} from "./IndexUtils"
+import {_createNewIndexUpdate, containsEventOfType, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -38,7 +25,7 @@ import * as promises from "../../common/utils/PromiseUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
-const MAIL_INDEXER_CHUNK = 500
+const MAIL_INDEXER_CHUNK = 100
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists

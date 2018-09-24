@@ -15,7 +15,6 @@ import {NavButton} from "../gui/base/NavButton"
 import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {load} from "../api/main/Entity"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {formatDateTimeFromYesterdayOn, formatDateWithMonth, formatDateWithWeekday} from "../misc/Formatter"
 import {getFolderIcon, getSenderOrRecipientHeading} from "../mail/MailUtils"
@@ -39,6 +38,7 @@ import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {BrowserType, client} from "../misc/ClientDetector";
 import {downcast} from "../api/common/utils/Utils"
+import {load} from "../api/main/Entity"
 
 assertMainOrNode()
 
@@ -58,6 +58,8 @@ type SearchBarAttrs = {
 }
 
 const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
+
+const MAX_SEARCH_PREVIEW_RESULTS = 10
 
 export class SearchBar {
 	view: Function;
@@ -291,72 +293,79 @@ export class SearchBar {
 		this._groupInfoRestrictionListId = listId
 	}
 
+	_downloadResults(searchResult: SearchResult): Promise<Array<Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction>> {
+		if (searchResult.results.length === 0) {
+			return Promise.resolve([])
+		}
+		const toFetch = searchResult.results.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
+		return Promise.map(toFetch, r => load(searchResult.restriction.type, r)
+			.catch(NotFoundError, () => console.log("mail from search index not found", r))
+			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r)))
+	}
+
 	showDropdown(searchResult: SearchResult) {
 		let newResults = []
-		Promise.all([
-				Promise.map(searchResult.results.slice(0, 10), r => load(searchResult.restriction.type, r)
-					.catch(NotFoundError, () => console.log("mail from search index not found", r))
-					.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r))
-				).then(resultInstances => {
-					let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
+		this._downloadResults(searchResult)
+		    .then(resultInstances => {
+			    let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
 
-					// filter group infos for local admins
-					if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController()
-					                                                                             .isGlobalAdmin()) {
-						let localAdminGroupIds = logins.getUserController()
-						                               .getLocalAdminGroupMemberships()
-						                               .map(gm => gm.group)
-						filteredInstances = filteredInstances.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
-					}
-					if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
-						filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
-					}
-					newResults = newResults.concat(filteredInstances)
-				})
-			]
-		).then(() => {
-			if (this.value() === searchResult.query) {
-				this._results = newResults
-				let resultCount = (searchResult.results.length)
-				if (resultCount === 0 || resultCount > 10 || searchResult.currentIndexTimestamp
-					!== FULL_INDEXED_TIMESTAMP) {
-					this._results.push({
-						resultCount: resultCount,
-						shownCount: this._results.length,
-						indexTimestamp: searchResult.currentIndexTimestamp,
-						allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
-						&& !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
-					}) // add SearchMoreAction
-				}
-				if (this._results.length > 0) {
-					this._selected = this._results[0]
-				} else {
-					this._selected = null
-				}
-			}
-			if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
-				this._closeOverlay()
-				this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
-					view: () => {
-						return m("ul.list.click.mail-list", [
-							this._results.map(result => {
-								return m("li.plr-l.pt-s.pb-s", {
-									style: {
-										height: px(52),
-										'border-left': px(size.border_selection) + " solid transparent",
-									},
-									onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
-									onclick: e => this._selectResult(result),
-									class: this._selected === result ? "row-selected" : "",
-								}, this.renderResult(result))
-							}),
-						])
-					}
-				})
-			}
-			// updates the suggestion list if the dropdown is already visible
-			m.redraw()
-		})
+			    // filter group infos for local admins
+			    if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController()
+			                                                                                 .isGlobalAdmin()) {
+				    let localAdminGroupIds = logins.getUserController()
+				                                   .getLocalAdminGroupMemberships()
+				                                   .map(gm => gm.group)
+				    filteredInstances = filteredInstances.filter(gi => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
+			    }
+			    if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
+				    filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
+			    }
+			    newResults.push(...filteredInstances)
+		    })
+		    .then(() => {
+			    if (this.value() === searchResult.query) {
+				    this._results = newResults
+				    let resultCount = (searchResult.results.length)
+				    if (resultCount === 0
+					    || searchResult.moreAvailable
+					    || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
+					    this._results.push({
+						    resultCount: resultCount,
+						    shownCount: this._results.length,
+						    indexTimestamp: searchResult.currentIndexTimestamp,
+						    allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
+						    && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
+					    }) // add SearchMoreAction
+				    }
+				    if (this._results.length > 0) {
+					    this._selected = this._results[0]
+				    } else {
+					    this._selected = null
+				    }
+			    }
+			    if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
+				    this._closeOverlay()
+				    this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
+					    view: () => {
+						    return m("ul.list.click.mail-list", [
+							    this._results.map(result => {
+								    return m("li.plr-l.pt-s.pb-s", {
+									    style: {
+										    height: px(52),
+										    'border-left': px(size.border_selection) + " solid transparent",
+									    },
+									    onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
+									    onclick: e => this._selectResult(result),
+									    class: this._selected === result ? "row-selected" : "",
+								    }, this.renderResult(result))
+							    }),
+						    ])
+					    }
+				    })
+			    }
+			    // updates the suggestion list if the dropdown is already visible
+			    m.redraw()
+		    })
 	}
 
 	renderResult(result: Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
@@ -538,18 +547,22 @@ export class SearchBar {
 					if (value === this.value()) {
 						if (this.value().trim() !== "") {
 							let useSuggestions = m.route.get().startsWith("/settings")
-							locator.search.search(value, restriction, useSuggestions ? 10 : 0).then(result => {
-								if (m.route.get().startsWith("/search")) {
-									// instances will be displayed as part of the list of the search view, when the search view is displayed
-									this.busy = false
-									setSearchUrl(getSearchUrl(value, restriction))
-								} else {
-									this.showDropdown(result)
-								}
-							}).finally(() => {
-								this.busy = false
-								m.redraw()
-							})
+							const isQuickSearch = !m.route.get().startsWith("/search")
+							locator.search.search(value, restriction, useSuggestions ? 10 : 0,
+								isQuickSearch ? MAX_SEARCH_PREVIEW_RESULTS : null) //TODO: put limit for full searches as well when indicator is there
+							       .then(result => {
+								       if (m.route.get().startsWith("/search")) {
+									       // instances will be displayed as part of the list of the search view, when the search view is displayed
+									       this.busy = false
+									       setSearchUrl(getSearchUrl(value, restriction))
+								       } else {
+									       this.showDropdown(result)
+								       }
+							       })
+							       .finally(() => {
+								       this.busy = false
+								       m.redraw()
+							       })
 						} else {
 							this.busy = false
 						}

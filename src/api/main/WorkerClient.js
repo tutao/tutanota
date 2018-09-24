@@ -356,7 +356,8 @@ export class WorkerClient {
 		return this._postRequest(new Request('generateTotpCode', arguments))
 	}
 
-	search(searchString: string, restriction: SearchRestriction, minSuggestionCount: number): Promise<SearchResult> {
+	search(searchString: string, restriction: SearchRestriction, minSuggestionCount: number,
+	       maxResults: ?number): Promise<SearchResult> {
 		return this._postRequest(new Request('search', arguments))
 	}
 
