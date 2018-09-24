@@ -2,9 +2,9 @@ const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function packageNative(dirname, packageJSON) {
-	console.log("Building native client...")
-	const electronSourcesDir = path.join(dirname, '/app-native/dist/')
+function packageDesktop(dirname, packageJSON) {
+	console.log("Building desktop client...")
+	const electronSourcesDir = path.join(dirname, '/app-desktop/dist/')
 	const resourcesDir = path.join(electronSourcesDir, "/resources/")
 	const electronOutDir = path.join(electronSourcesDir, '/out/')
 
@@ -23,7 +23,7 @@ function packageNative(dirname, packageJSON) {
 		description: 'Electron client for Tutanota',
 		productDescription: 'Tutanota, the secure email service with built-in end-to-end encryption',
 		maintainer: 'tutao GmbH <hello@tutao.de>',
-		icon: './resources/native-icons/icon-192.png'
+		icon: './resources/desktop-icons/icon-192.png'
 	}
 
 	// const installerWinOptions = {
@@ -40,8 +40,8 @@ function packageNative(dirname, packageJSON) {
 	         .then(() => {
 		         return Promise.all([
 			         fs.copyAsync(path.join(dirname, '/build/dist/'), resourcesDir),
-			         fs.copyAsync(path.join(dirname, '/app-native/', '/main.js'), path.join(electronSourcesDir, "main.js")),
-			         fs.copyAsync(path.join(dirname, '/app-native/', '/package.json'), path.join(electronSourcesDir, "package.json")),
+			         fs.copyAsync(path.join(dirname, '/app-desktop/', '/main.js'), path.join(electronSourcesDir, "main.js")),
+			         fs.copyAsync(path.join(dirname, '/app-desktop/', '/package.json'), path.join(electronSourcesDir, "package.json")),
 		         ])
 	         })
 	         .then(() => {
@@ -62,7 +62,7 @@ function packageNative(dirname, packageJSON) {
 		         return require('electron-packager')(electronPackagerOptions)
 	         })
 	         .then(() => {
-		         console.log("Packaging native client...")
+		         console.log("Packaging desktop client...")
 
 		         console.log(".deb...")
 		         const installerDeb = require('electron-installer-debian')
@@ -84,5 +84,5 @@ function packageNative(dirname, packageJSON) {
 }
 
 module.exports = {
-	packageNative
+	packageDesktop
 }

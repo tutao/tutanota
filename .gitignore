@@ -1,7 +1,7 @@
 build
-app-native/dist/*
-app-native/resources/*
-native_out.log
+app-desktop/dist/*
+app-desktop/resources/*
+desktop_out.log
 node_modules
 .idea
 .gradle
