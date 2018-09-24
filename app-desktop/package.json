@@ -1,11 +1,63 @@
 {
   "name": "tutanota-desktop",
   "main": "main.js",
+  "author": "Tutao GmbH",
   "scripts": {
     "start": "electron ."
   },
+  "dependencies": {
+    "electron-updater": "^3.1.2"
+  },
   "devDependencies": {
-    "electron": "^3.0.0",
-    "electron-installer-debian": "^0.8.1"
+    "electron": "^3.0.0"
+  },
+  "build": {
+    "publish": {
+      "provider": "generic",
+      "url": "http://192.168.178.123:9000/stuff/",
+      "channel": "latest",
+      "publishAutoUpdate": true
+    },
+    "appId": "com.tutao.tutanota",
+    "productName": "Tutanota Desktop",
+    "artifactName": "${name}-${version}-${os}.${ext}",
+    "directories": {
+      "buildResources": "buildResources",
+      "output": "installers"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": "x64"
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": "x64"
+        }
+      ]
+    },
+    "linux": {
+      "synopsis": "The desktop client for Tutanota, the secure e-mail service.",
+      "category": "Network",
+      "desktop": {
+        "categories": "Electron;Network;Office",
+        "type": "application"
+      },
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": "x64"
+        },
+        {
+          "target": "snap",
+          "arch": "x64"
+        }
+      ]
+    }
   }
 }

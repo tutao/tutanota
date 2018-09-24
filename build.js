@@ -50,7 +50,35 @@ promise
 	})
 	.then(() => builder.build(["src"], watch))
 	.then(() => {
-		let time = Math.round((new Date().getTime() - start) / 1000 * 100) / 100
+		if (process.argv.indexOf("desktop") !== -1) {
+			console.log("building electron desktop client")
+			const electronSourcesDir = path.join(__dirname, '/app-native')
+			return fs.emptyDirAsync(electronSourcesDir + "/resources/")
+			         .then(() => {
+				         return Promise.all([
+					         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/resources/images"),
+					         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/resources/libs"),
+					         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/resources/src"),
+					         fs.copyAsync(path.join(__dirname, '/build/index.html'), electronSourcesDir + "/resources/index.html"),
+					         fs.copyAsync(path.join(__dirname, '/build/index.js'), electronSourcesDir + "/resources/index.js")
+				         ])
+			         })
+			         .then(() => {
+				         console.log("Starting desktop client...")
+				         const out = fs.openSync('./desktop_out.log', 'a');
+				         const err = fs.openSync('./desktop_out.log', 'a');
+				         //need to run "npm install --save-dev electron" in directory first!
+				         spawn("/bin/sh", ["-c", "npm start"], {
+					         cwd: path.join(__dirname, '/app-native/'),
+					         stdio: ['ignore', out, err],
+					         detached: true
+				         }).unref()
+			         })
+		}
+	})
+	.then(() => {
+		let now = new Date().getTime()
+		let time = Math.round((now - start) / 1000 * 100) / 100
 		console.log(`\n >>> Build completed in ${time}s\n`)
 	})
 	.then(() => {

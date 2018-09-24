@@ -108,7 +108,11 @@ Promise.resolve()
        })
        .then(() => bundleSW(bundles))
        .then(copyDependencies)
-       .then(() => desktopBuilder(__dirname, packageJSON))
+       .then(() => {
+	       if (process.argv.indexOf("desktop") !== -1) {
+		       desktopBuilder(__dirname, packageJSON.version)
+	       }
+       })
        .then(deb)
        .then(release)
        .then(() => console.log(`\nBuild time: ${measure()}s`))
