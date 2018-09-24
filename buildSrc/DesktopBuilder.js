@@ -16,6 +16,7 @@ function packageDesktop(dirname, version) {
 		         ])
 	         })
 	         .then(() => {
+		         //remove app stuff
 		         return Promise.all([
 			         fs.unlink(resourcesDir + "app.html", (e) => {
 				         if (e) {
@@ -30,11 +31,12 @@ function packageDesktop(dirname, version) {
 		         ])
 	         })
 	         .then(() => {
+		         console.log("Creating config...")
 		         //create package.json for electron-builder
 		         const builderPackageJSON = Object.assign(require(path.join(dirname, '/app-desktop/', '/package.json')), {
 			         version: version
 		         })
-
+		         builderPackageJSON.build.icon = path.join(dirname, "/resources/desktop-icons/desktop-icon.png")
 		         return fs.writeFile(path.join(electronSourcesDir, "/package.json"),
 			         JSON.stringify(builderPackageJSON),
 			         'utf8',
