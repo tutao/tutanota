@@ -83,18 +83,21 @@ Promise.resolve()
 	       if (process.argv.indexOf("test") !== -1) {
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
 		       ])
 	       } else if (process.argv.indexOf("prod") !== -1) {
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 		       ])
 	       } else if (process.argv.indexOf("host") !== -1) {
 		       const hostname = process.argv[process.argv.indexOf("host") + 1]
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "Desktop", true), bundles)
 		       ])
 	       } else {
 		       const [major, minor] = version.split(".")
@@ -102,7 +105,8 @@ Promise.resolve()
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
-				       "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
+				       "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles),
+			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Desktop", true), bundles)
 		       ])
 	       }
        })
@@ -171,7 +175,17 @@ function copyDependencies() {
 }
 
 function createHtml(env, bundles) {
-	let filenamePrefix = (env.mode == "App") ? "app" : "index"
+	let filenamePrefix
+	switch (env.mode) {
+		case "App":
+			filenamePrefix = "app"
+			break
+		case "Browser":
+			filenamePrefix = "index"
+			break
+		case "Desktop":
+			filenamePrefix = "desktop"
+	}
 	let imports = ["libs.js", "main-boot.js", `${filenamePrefix}.js`]
 	return Promise.all([
 		_writeFile(`./build/dist/${filenamePrefix}.js`, [

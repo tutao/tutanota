@@ -10,7 +10,8 @@
 // local test app        | test.tutanota.com | app.html   | node build test
 // test desktop           | test.tutanota.com | index.html | node build test desktop
 // local prod            | mail.tutanota.com | index.html | node build prod
-// local prod app        | mail.tutanota.com | app.html   | node build prod
+// prod desktop          | mail.tutanota.com | index.html | node build prod desktop
+
 // test and prod release | location.hostname | index.html | node dist
 // local app release     | local IP address  | app.html   | node dist
 // local test release    | test.tutanota.com | index.html | node dist test

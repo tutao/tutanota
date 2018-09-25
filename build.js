@@ -27,49 +27,54 @@ promise
 		if (process.argv.indexOf("test") !== -1) {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "App")),
+				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Desktop"))
 			])
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App")),
+				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Desktop"))
 			])
-        } else if (process.argv.indexOf("host") !== -1) {
-            const hostname = process.argv[process.argv.indexOf("host") + 1]
-            return Promise.all([
-                createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
-                createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App"))
-            ])
+		} else if (process.argv.indexOf("host") !== -1) {
+			const hostname = process.argv[process.argv.indexOf("host") + 1]
+			return Promise.all([
+				createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App")),
+				createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Desktop"))
+			])
 		} else {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Browser")),
 				createHtml(env.create(SystemConfig.devConfig(true),
-					"http://" + os.hostname().split(".")[0] + ":9000", version, "App"))
+					"http://" + os.hostname().split(".")[0] + ":9000", version, "App")),
+				createHtml(env.create(SystemConfig.devConfig(true), null, version, "Desktop"))
 			])
 		}
 	})
 	.then(() => builder.build(["src"], watch))
 	.then(() => {
 		if (process.argv.indexOf("desktop") !== -1) {
-			console.log("building electron desktop client")
-			const electronSourcesDir = path.join(__dirname, '/app-native')
+			console.log("Building desktop client...")
+			const electronSourcesDir = path.join(__dirname, '/app-desktop')
 			return fs.emptyDirAsync(electronSourcesDir + "/resources/")
 			         .then(() => {
 				         return Promise.all([
 					         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/resources/images"),
 					         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/resources/libs"),
 					         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/resources/src"),
-					         fs.copyAsync(path.join(__dirname, '/build/index.html'), electronSourcesDir + "/resources/index.html"),
-					         fs.copyAsync(path.join(__dirname, '/build/index.js'), electronSourcesDir + "/resources/index.js")
+					         fs.copyAsync(path.join(__dirname, '/build/desktop.html'), electronSourcesDir + "/resources/desktop.html"),
+					         fs.copyAsync(path.join(__dirname, '/build/desktop.js'), electronSourcesDir + "/resources/desktop.js")
 				         ])
 			         })
 			         .then(() => {
-				         console.log("Starting desktop client...")
+				         console.log("Trying to start desktop client...")
+				         fs.unlink('./desktop_out.log', (e) => {})
 				         const out = fs.openSync('./desktop_out.log', 'a');
 				         const err = fs.openSync('./desktop_out.log', 'a');
-				         //need to run "npm install --save-dev electron" in directory first!
+				         //need to run "npm install --save-dev electron" in directory first
 				         spawn("/bin/sh", ["-c", "npm start"], {
-					         cwd: path.join(__dirname, '/app-native/'),
+					         cwd: path.join(__dirname, '/app-desktop/'),
 					         stdio: ['ignore', out, err],
 					         detached: true
 				         }).unref()
@@ -89,7 +94,17 @@ promise
 
 
 function createHtml(env) {
-	let filenamePrefix = (env.mode == "App") ? "app" : "index"
+	let filenamePrefix
+	switch (env.mode) {
+		case "App":
+			filenamePrefix = "app"
+			break
+		case "Browser":
+			filenamePrefix = "index"
+			break
+		case "Desktop":
+			filenamePrefix = "desktop"
+	}
 	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}.js`])
 	return Promise.all([
 		_writeFile(`./build/${filenamePrefix}.js`, [

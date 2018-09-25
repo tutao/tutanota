@@ -25,7 +25,7 @@ module.exports.renderHtml = function (scripts, env) {
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),
-				cors(m, env),
+				csp(m, env),
 				m("meta[name=apple-mobile-web-app-capable][content=yes]"),
 				m("meta[name=mobile-web-app-capable][content=yes]"),
 				m("meta[name=referrer][content=no-referrer]"),
@@ -69,11 +69,14 @@ module.exports.renderHtml = function (scripts, env) {
 	return html
 }
 
-const cors = (m, env) => {
+const csp = (m, env) => {
 	if (env.dist && env.mode === "App") {
 		// differences in comparison to web csp:
 		// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: data: *; " +
+			`style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)};]`)
+	} else if (env.dist && env.mode === "Desktop") {
+		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; font-src 'self'; img-src http: data: *; " +
 			`style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)};]`)
 	} else {
 		return null
