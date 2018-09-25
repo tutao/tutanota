@@ -61,7 +61,7 @@ export class LoginView {
 					(client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE))
 				.setType(ButtonType.ActionLarge),
 
-			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl(
+			new Button('appInfoAmazonImageAlt_alt', () => this.openUrl(
 				"http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE"), () => BootIcons.Amazon)
 				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge)

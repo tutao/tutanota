@@ -1093,6 +1093,7 @@ module.exports = {
 		"searchGroups_placeholder": "Search for groups",
 		"spamRuleEnterValue_msg": "Please enter a value.",
 		"knownCredentials_label": "Use saved account",
-		"typeToFilter_label": "Type to filter..."
+		"typeToFilter_label": "Type to filter...",
+		"appInfoAndroidImageAlt_alt": "Android App on Amazon"
 	}
 }
