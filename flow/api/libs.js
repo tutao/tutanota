@@ -87,7 +87,7 @@ declare class Promise<+R> {
 	static map<T, U>(array: Promise<Iterable<T>> | Iterable<T>,
 	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
 	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;
-	static each<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
+	static each<T, U>(array: Promise<Iterable<T>> | Iterable<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
 	static join<T, A, B>(value1: $Promisable<A>, value2: $Promisable<B>, handler: (a: A, b: B) => $Promisable<T>): Promise<any>;
 	static join<T, A, B, C>(value1: $Promisable<A>, value2: $Promisable<B>, value3: $Promisable<C>, handler: (a: A, b: B, c: C) => $Promisable<T>): Promise<any>;

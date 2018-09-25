@@ -21,7 +21,7 @@ import {BadRequestError} from "../../api/common/error/RestError"
 assertMainOrNode()
 
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
-const PageSize = 100
+export const PageSize = 100
 
 /**
  * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists.
@@ -228,6 +228,8 @@ export class List<T: HasIdTuple, R:VirtualRow<T>> {
 	clear() {
 		this._loadedEntities.length = 0
 		this._loadedCompletely = false
+		this._domList.style.height = this._calculateListHeight()
+		this._reposition()
 	}
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {

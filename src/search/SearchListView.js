@@ -1,21 +1,22 @@
 // @flow
 import m from "mithril"
 import {List} from "../gui/base/List"
-import {compareNewestFirst, elementIdPart, GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {load, loadMultiple} from "../api/main/Entity"
+import {load} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
-import {defer} from "../api/common/utils/Utils"
+import {defer, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -37,14 +38,18 @@ export class SearchListView {
 	oncreate: Function;
 	onremove: Function;
 	_lastType: TypeRef<Mail> | TypeRef<Contact>;
+	_searchResult: ?SearchResult;
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
 		this.oncreate = () => {
 			this.list = this._createList()
-			this._loadInitial(this.list)
+			if (!locator.search.result()) { // do not call loadInitial if we already have a result. It will be called during the subscription for result stream. This is only needed for mobile search or by navigating to /search url
+				this._loadInitial(neverNull(this.list))
+			}
 			this._resultStreamDependency = locator.search.result.map((result) => {
 				// if this search type is the same as the last one, don't re-create the list, just clear it
+				this._searchResult = result
 				if (result && isSameTypeRef(this._lastType, result.restriction.type) || result == null) {
 					if (this.list) {
 						const l = this.list
@@ -91,70 +96,23 @@ export class SearchListView {
 		return new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				let result = locator.search.result()
 				if (locator.search.indexState().initializing) {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!result || result.results.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0) {
 					return Promise.resolve([])
 				}
-				let mail = isSameTypeRef(result.restriction.type, MailTypeRef)
-				let contact = isSameTypeRef(result.restriction.type, ContactTypeRef)
-				let resultIds = [].concat(result.results) //create copy
-
-				if (!isSameTypeRef(this._lastType, result.restriction.type)) {
-					console.log("different type ref - don't load results")
-					return Promise.resolve([])
-				}
-
-				if (mail) {
-					let startIndex = 0
-					if (startId !== GENERATED_MAX_ID) {
-						startIndex = resultIds.findIndex(id => id[1] === startId)
-						if (startIndex === -1) {
-							throw new Error("start index not found")
-						} else {
-							startIndex++ // the start index is already in the list of loaded elements load from the next element
-						}
-					}
-
-					const {listId, type} = result.restriction
-					let loadPromise
-					let toLoad = resultIds.slice(startIndex, startIndex + count).map(elementIdPart)
-					if (listId) {
-						loadPromise = loadMultiple(type, listId, toLoad)
-							.then(results => results.sort(compareNewestFirst))
-					} else {
-						loadPromise = Promise.map(toLoad, (id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
-							{concurrency: 5})
-						                     .then(sr => sr.filter(r => r)) // filter not found instances
-					}
-					return loadPromise
-						.then(results => results.map(instance => new SearchResultListEntry(instance)))
-						.finally(m.redraw)
-				} else if (contact) {
-					// load all contacts to sort them by name afterwards
-					return Promise.map(resultIds, (id) => load(result.restriction.type, id)
-							.then(instance => new SearchResultListEntry(instance))
-							.catch(NotFoundError, () => console.log("contact not found")),
-						{concurrency: 5})
-					              .then(sr => sr.filter(r => r)) // filter not found instances
-					              .finally(() => {
-						              this.list && this.list.setLoadedCompletely()
-						              m.redraw()
-					              })
-				} else {
-					// this type is not shown in the search view, e.g. group info
-					return Promise.resolve([])
-				}
+				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
+				           .then(results => results.map(instance => new SearchResultListEntry(instance)))
+				           .finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
-				let result = locator.search.result()
-				if (result) {
-					let id = result.results.find(r => r[1] === elementId)
+				if (this._searchResult) {
+					const currentResult = this._searchResult
+					let id = currentResult.results.find(r => r[1] === elementId)
 					if (id) {
-						return load(result.restriction.type, id)
+						return load(currentResult.restriction.type, id)
 							.then(entity => new SearchResultListEntry(entity))
 							.catch(NotFoundError, (e) => {
 								// we return null if the entity does not exist
@@ -196,11 +154,79 @@ export class SearchListView {
 		})
 	}
 
+
+	_loadSearchResults<T : TypeRef<Mail> | TypeRef<Contact>>(currentResult: SearchResult, getMoreFromSearch: boolean, startId: Id, count: number): Promise<T[]> {
+		let mail = isSameTypeRef(currentResult.restriction.type, MailTypeRef)
+		let contact = isSameTypeRef(currentResult.restriction.type, ContactTypeRef)
+		if (!isSameTypeRef(this._lastType, currentResult.restriction.type)) {
+			//console.log("different type ref - don't load resuloadInitiallts")
+			return Promise.resolve([])
+		}
+		let loadingResultsPromise = Promise.resolve(currentResult)
+		if (getMoreFromSearch && currentResult.moreResultsEntries.length > 0) {
+			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
+		}
+		return loadingResultsPromise
+			.then((moreResults) => {
+				// we need to override global reference for other functions
+				this._searchResult = moreResults
+				if (mail) {
+					let startIndex = 0
+					if (startId !== GENERATED_MAX_ID) {
+						startIndex = moreResults.results.findIndex(id => id[1] === startId)
+						if (startIndex === -1) {
+							throw new Error("start index not found")
+						} else {
+							startIndex++ // the start index is already in the list of loaded elements load from the next element
+						}
+					}
+					let toLoad = moreResults.results.slice(startIndex, startIndex + count)
+					return this._loadAndFilterInstances(currentResult.restriction.type, toLoad, moreResults, startIndex)
+				} else if (contact) {
+					// load all contacts to sort them by name afterwards
+					return this._loadAndFilterInstances(currentResult.restriction.type, moreResults.results, moreResults, 0)
+					           .finally(() => {
+						           this.list && this.list.setLoadedCompletely()
+						           m.redraw()
+					           })
+				} else {
+					// this type is not shown in the search view, e.g. group info
+					return Promise.resolve([])
+				}
+			})
+			.then(results => {
+				return results.length < count && neverNull(this._searchResult).moreResultsEntries.length > 0
+					// Recursively load more until we have enough or there are no more results.
+					// Otherwise List thinks that this is the end
+					? this._loadSearchResults(neverNull(this._searchResult), true, startId, count)
+					: results
+			})
+
+	}
+
 	entityEventReceived(elementId: Id, operation: OperationTypeEnum): Promise<void> {
 		if (this.list) {
 			return this.list.entityEventReceived(elementId, operation)
 		}
 		return Promise.resolve()
+	}
+
+	_loadAndFilterInstances<T>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
+	                           startIndex: number): Promise<T[]> {
+		return Promise
+			.map(toLoad,
+				(id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
+				{concurrency: 5})
+			.then(sr =>
+				// Filter not found instances from this load result
+				sr.filter((r, index) => {
+					if (!r) {
+						// Filter not found instances from the current result as well so we don’t loop forever trying to load them
+						currentResult.results.splice(startIndex + index, 1)
+					}
+					return r
+				})
+			)
 	}
 
 	isEntitySelected(id: Id): boolean {

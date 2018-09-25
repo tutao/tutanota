@@ -4,16 +4,10 @@ import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
 import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "./DbFacade"
-import {
-	compareNewestFirst,
-	firstBiggerThanSecond,
-	isSameTypeRef,
-	resolveTypeReference,
-	TypeRef
-} from "../../common/EntityFunctions"
+import {compareNewestFirst, elementIdPart, firstBiggerThanSecond, isSameId, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
-import {asyncFind, defer, neverNull} from "../../common/utils/Utils"
+import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
 import type {
 	Db,
 	ElementData,
@@ -21,6 +15,7 @@ import type {
 	EncryptedSearchIndexEntryWithHash,
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
+	MoreResultsIndexEntry,
 	SearchIndexEntry,
 	SearchIndexMetadataEntry
 } from "./SearchTypes"
@@ -74,7 +69,7 @@ export class SearchFacade {
 				restriction,
 				results: [],
 				currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
-				moreAvailable: false
+				moreResultsEntries: []
 			}
 			if (searchTokens.length > 0) {
 				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
@@ -266,10 +261,10 @@ export class SearchFacade {
 					           console.time && console.time("_reduceToUniqueElementIds")
 					           return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
 				           })
-				           .then(searchIndexEntries => {
+				           .then((searchIndexEntries: SearchIndexEntry[]) => {
 					           makeStamp("_reduceToUniqueElementIds")
 					           console.time && console.time("_filterByListIdAndGroupSearchResults")
-					           return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult,
+					           return this._filterByListIdAndGroupSearchResults(downcast(searchIndexEntries), searchResult,
 						           maxResults)
 				           })
 				           .then((result) => {
@@ -473,30 +468,37 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(results: SearchIndexEntry[], searchResult: SearchResult,
+	_filterByListIdAndGroupSearchResults(indexEntries: MoreResultsIndexEntry[], searchResult: SearchResult,
 	                                     maxResults: ?number): Promise<void> {
-		console.time("sort")
-		results.sort((l, r) => compareNewestFirst(l.id, r.id))
-		console.timeEnd("sort")
-		const {resolve: stop, promise} = defer()
-		return Promise.race([
-			promise, this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
-				return Promise.map(results, entry => {
-					if (maxResults && searchResult.results.length >= maxResults) {
-						searchResult.moreAvailable = true
-						stop()
-						return
-					}
-					return transaction.get(ElementDataOS, uint8ArrayToBase64(neverNull(entry.encId)))
-					                  .then((elementData: ElementData) => {
-						                  if (!searchResult.restriction.listId
-							                  || searchResult.restriction.listId === elementData[0]) {
-							                  searchResult.results.push([elementData[0], entry.id])
-						                  }
-					                  })
-				}, {concurrency: 5})
-			})
-		]).return()
+		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
+		const {resolve: stop, promise: whenToStop} = defer()
+		return this._db.dbFacade.createTransaction(true, [ElementDataOS])
+		           .then((transaction) =>
+			           Promise.race([
+				           whenToStop,
+				           Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry) => {
+					           if (maxResults && searchResult.results.length >= maxResults) {
+						           stop()
+						           return
+					           }
+					           return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
+					                             .then((elementData: ElementData) => {
+						                             if (!searchResult.restriction.listId
+							                             || searchResult.restriction.listId === elementData[0]) {
+							                             searchResult.results.push([elementData[0], entry.id])
+						                             }
+					                             })
+				           }, {concurrency: 5})
+			           ]))
+		           .then(() => {
+			           searchResult.moreResultsEntries =
+				           indexEntries.filter(indexEntry => !searchResult.results.find((result) => isSameId(elementIdPart(result), indexEntry.id)))
+		           })
+	}
+
+	getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<void> {
+		return this._filterByListIdAndGroupSearchResults(searchResult.moreResultsEntries, searchResult, (searchResult.results.length + moreResultCount))
+		           .then(() => {searchResult.results.sort(compareNewestFirst)})
 	}
 
 

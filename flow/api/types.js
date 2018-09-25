@@ -3,6 +3,7 @@ import {AssociationType, Cardinality, Type, ValueType} from "../../src/api/commo
 import type {BootstrapFeatureTypeEnum, PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
 import type {Theme} from "../../src/gui/theme"
 import {Country} from "../../src/api/common/CountryList"
+import {MoreResultsIndexEntry} from "../../src/api/worker/search/SearchTypes"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -113,6 +114,7 @@ type WorkerRequestType = 'setup'
 	| 'generateSsePushIdentifer'
 	| 'decryptUserPassword'
 	| 'closeEventBus'
+	| 'getMoreSearchResults'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -273,7 +275,7 @@ type SearchResult = {
 	restriction: SearchRestriction,
 	results: IdTuple[];
 	currentIndexTimestamp: number;
-	moreAvailable: boolean;
+	moreResultsEntries: MoreResultsIndexEntry[];
 }
 
 type SearchIndexStateInfo = {

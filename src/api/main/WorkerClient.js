@@ -9,13 +9,7 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {
-	AccountTypeEnum,
-	BookingItemFeatureTypeEnum,
-	CloseEventBusOptionEnum,
-	ConversationTypeEnum,
-	EntropySrcEnum
-} from "../common/TutanotaConstants"
+import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
@@ -417,6 +411,10 @@ export class WorkerClient {
 
 	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
 		return this._queue.postMessage(new Request("closeEventBus", [closeOption]))
+	}
+
+	getMoreSearchResults(existingResult: SearchResult, moreResultCount: number): Promise<SearchResult> {
+		return this._queue.postMessage(new Request("getMoreSearchResults", [existingResult, moreResultCount]))
 	}
 }
 

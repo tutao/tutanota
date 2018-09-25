@@ -80,4 +80,8 @@ export type SearchIndexMetadataEntry = {
 	size: number
 }
 
+export type MoreResultsIndexEntry = {
+	id: Id,
+	encId: Uint8Array
+}
 

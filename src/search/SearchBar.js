@@ -39,6 +39,7 @@ import {styles} from "../gui/styles"
 import {BrowserType, client} from "../misc/ClientDetector";
 import {downcast} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
+import {PageSize} from "../gui/base/List"
 
 assertMainOrNode()
 
@@ -327,7 +328,7 @@ export class SearchBar {
 				    this._results = newResults
 				    let resultCount = (searchResult.results.length)
 				    if (resultCount === 0
-					    || searchResult.moreAvailable
+					    || searchResult.moreResultsEntries.length > 0
 					    || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
 					    this._results.push({
 						    resultCount: resultCount,
@@ -549,7 +550,9 @@ export class SearchBar {
 							let useSuggestions = m.route.get().startsWith("/settings")
 							const isQuickSearch = !m.route.get().startsWith("/search")
 							locator.search.search(value, restriction, useSuggestions ? 10 : 0,
-								isQuickSearch ? MAX_SEARCH_PREVIEW_RESULTS : null) //TODO: put limit for full searches as well when indicator is there
+								isSameTypeRef(MailTypeRef, restriction.type)
+									? isQuickSearch ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
+									: null)
 							       .then(result => {
 								       if (m.route.get().startsWith("/search")) {
 									       // instances will be displayed as part of the list of the search view, when the search view is displayed

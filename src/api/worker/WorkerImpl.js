@@ -1,10 +1,10 @@
 // @flow
-import {Queue, Request, errorToObj} from "../common/WorkerProtocol"
+import {errorToObj, Queue, Request} from "../common/WorkerProtocol"
 import {CryptoError} from "../common/error/CryptoError"
 import {bookingFacade} from "./facades/BookingFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
-import {locator, initLocator, resetLocator} from "./WorkerLocator"
+import {initLocator, locator, resetLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
 import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode} from "../Env"
@@ -230,6 +230,9 @@ export class WorkerImpl {
 			closeEventBus: (message: Request) => {
 				locator.eventBusClient.close(message.args[0])
 				return Promise.resolve()
+			},
+			getMoreSearchResults: (message: Request) => {
+				return locator.search.getMoreSearchResults.apply(locator.search, message.args).return(message.args[0])
 			}
 		})
 
