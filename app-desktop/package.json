@@ -1,6 +1,7 @@
 {
   "name": "tutanota-desktop",
   "main": "main.js",
+  "version": "0.0.1",
   "author": "Tutao GmbH",
   "description": "The desktop client for Tutanota, the secure e-mail service.",
   "scripts": {
@@ -15,7 +16,7 @@
   "build": {
     "publish": {
       "provider": "generic",
-      "url": "http://192.168.178.123:9000/stuff/",
+      "url": "https://mail.tutanota.com/",
       "channel": "latest",
       "publishAutoUpdate": true
     },

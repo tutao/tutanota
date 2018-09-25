@@ -12,22 +12,17 @@ function packageDesktop(dirname, version) {
 	         .then(() => {
 		         return Promise.all([
 			         fs.copyAsync(path.join(dirname, '/build/dist/'), resourcesDir),
-			         fs.copyAsync(path.join(dirname, '/app-desktop/', '/main.js'), path.join(electronSourcesDir, "main.js"))
+			         fs.copyAsync(path.join(dirname, '/app-desktop/', '/main.js'), path.join(electronSourcesDir, "main.js")),
+			         fs.copyAsync(path.join(dirname, '/app-desktop/', '/src/'), path.join(electronSourcesDir, "/src/"))
 		         ])
 	         })
 	         .then(() => {
-		         //remove app stuff
+		         //remove app & browser stuff
 		         return Promise.all([
-			         fs.unlink(resourcesDir + "app.html", (e) => {
-				         if (e) {
-					         console.log("error deleting app.html: ", e)
-				         }
-			         }),
-			         fs.unlink(resourcesDir + "app.js", (e) => {
-				         if (e) {
-					         console.log("error deleting app.js: ", e)
-				         }
-			         })
+			         fs.unlink(resourcesDir + "app.html", (e) => {}),
+			         fs.unlink(resourcesDir + "app.js", (e) => {}),
+			         fs.unlink(resourcesDir + "index.js", (e) => {}),
+			         fs.unlink(resourcesDir + "index.html", (e) => {})
 		         ])
 	         })
 	         .then(() => {
