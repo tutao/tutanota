@@ -23,7 +23,7 @@ exports.createWindow = () => {
 
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
 		const url = webContents.getURL()
-		if (!url.startsWith('https://mail.tutanota.com') || !permission === 'notifications') {
+		if (!url.startsWith('https://mail.tutanota.com') || !(permission === 'notifications')) {
 			return callback(false)
 		}
 		return callback(true)
