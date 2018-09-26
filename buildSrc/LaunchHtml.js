@@ -70,10 +70,7 @@ module.exports.renderHtml = function (scripts, env) {
 }
 
 const csp = (m, env) => {
-	if (env.dist && env.mode === "App") {
-		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; " +
-			`style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`)
-	} else if (env.dist && env.mode === "Desktop") {
+	if (env.dist && (env.mode === "App" || env.mode === "Desktop")) {
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; " +
 			`style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`)
 	} else {
