@@ -171,7 +171,7 @@ export class MailIndexer {
 	/**
 	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
 	 */
-	indexMailboxes(user: User, endIndexTimstamp: number): Promise<void> {
+	indexMailboxes(user: User, endIndexTimestamp: number): Promise<void> {
 		if (!this.mailIndexingEnabled) {
 			return Promise.resolve()
 		}
@@ -193,37 +193,18 @@ export class MailIndexer {
 			           .then(mbox => {
 				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					           return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-						           let progressCount = 1
+						           let progress = {count: 1}
 						           if (!groupData) {
-							           progressCount++
 							           // group data is not available if group has been added. group will be indexed after login.
-							           return;
+							           progress.count++
 						           } else {
-							           return this._loadMailListIds(mbox).map((mailListId, i, count) => {
-								           let startId = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-									           ? GENERATED_MAX_ID
-									           : timestampToGeneratedId(groupData.indexTimestamp)
-								           return this._indexMailList(mbox, mailGroupId, mailListId, startId, timestampToGeneratedId(endIndexTimstamp))
-								                      .then((finishedMailList) => {
-									                      this._worker.sendIndexState({
-										                      initializing: false,
-										                      indexingSupported: this._core.indexingSupported,
-										                      mailIndexEnabled: this.mailIndexingEnabled,
-										                      progress: Math.round(100 * (progressCount++) / count),
-										                      currentMailIndexTimestamp: this.currentIndexTimestamp
-									                      })
-									                      return finishedMailList
-								                      })
-							           }, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
-								           return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
-									           return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-										           groupData.indexTimestamp = finishedIndexing.find(finishedListIndexing => finishedListIndexing
-											           === false) == null ? FULL_INDEXED_TIMESTAMP : endIndexTimstamp
-										           t2.put(GroupDataOS, mailGroupId, groupData)
-										           return t2.wait()
-									           })
-								           })
-							           })
+							           let startId = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+								           ? GENERATED_MAX_ID
+								           : timestampToGeneratedId(groupData.indexTimestamp)
+							           const endId = timestampToGeneratedId(endIndexTimestamp)
+							           if (firstBiggerThanSecond(startId, endId)) {
+								           return this._indexMailLists(mbox, mailGroupId, startId, endId, endIndexTimestamp, progress)
+							           }
 						           }
 
 					           })
@@ -254,11 +235,38 @@ export class MailIndexer {
 		return this.mailboxIndexingPromise.return()
 	}
 
+
+	_indexMailLists(mbox: MailBox, mailGroupId: Id, startId: Id, endId: Id, endIndexTimstamp: number, progress: {count: number}): Promise<void> {
+		return this._loadMailListIds(mbox).map((mailListId, i, count) => {
+			return this._indexMailList(mbox, mailGroupId, mailListId, startId, endId)
+			           .then((finishedMailList) => {
+				           this._worker.sendIndexState({
+					           initializing: false,
+					           indexingSupported: this._core.indexingSupported,
+					           mailIndexEnabled: this.mailIndexingEnabled,
+					           progress: Math.round(100 * (progress.count++) / count),
+					           currentMailIndexTimestamp: this.currentIndexTimestamp
+				           })
+				           return finishedMailList
+			           })
+		}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
+			return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
+				return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+					groupData.indexTimestamp = finishedIndexing
+						.find(finishedListIndexing => finishedListIndexing === false) == null
+						? FULL_INDEXED_TIMESTAMP
+						: endIndexTimstamp
+					t2.put(GroupDataOS, mailGroupId, groupData)
+					return t2.wait()
+				})
+			})
+		})
+	}
+
 	/**@return returns true if the mail list has been fully indexed. */
 	_indexMailList(mailbox: MailBox, mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise<boolean> {
 		let startTimeLoad = getPerformanceTimestamp()
 		if (this._indexingCancelled) return Promise.reject(new CancelledError("cancelled indexing"))
-		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
 
 		console.time("indexMailList " + mailListId)
 
