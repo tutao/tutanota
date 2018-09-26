@@ -6,7 +6,6 @@ let mainWindow
 
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
-	return;
 }
 
 app.on('window-all-closed', () => {
@@ -32,8 +31,6 @@ app.on('second-instance', (e, argv, cwd) => {
 
 app.on('ready', () => {
 	mainWindow = createWindow()
-	// mainWindow.webContents.executeJavaScript(`window`, (res) => {
-	// 	res.foo = bar
-	// })
+	mainWindow.openDevTools()
 	autoUpdater.initAndCheck()
 })

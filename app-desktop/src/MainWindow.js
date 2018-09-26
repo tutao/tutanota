@@ -23,13 +23,10 @@ exports.createWindow = () => {
 
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
 		const url = webContents.getURL()
-		if (!url.startsWith('https://mail.tutanota.com')) {
+		if (!url.startsWith('https://mail.tutanota.com') || !permission === 'notifications') {
 			return callback(false)
 		}
-
-		if (permission === 'notifications') {
-			return callback(true)
-		}
+		return callback(true)
 	})
 
 	// we never open any new windows except for links in mails etc.
