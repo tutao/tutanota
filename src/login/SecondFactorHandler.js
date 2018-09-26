@@ -130,14 +130,6 @@ export class SecondFactorHandler {
 					.catch(AccessBlockedError, () => Dialog.error("loginFailedOften_msg"))
 					.then(() => deferred.resolve())
 			}
-			otpCodeField._keyHandler = key => {
-				switch (key.keyCode) {
-					case 13: // return
-						otpClickHandler()
-						return false
-				}
-				return true
-			}
 
 			u2fClient.isSupported().then(u2fSupport => {
 				let keyForThisDomainExisting = keys.filter(key => key.appId === u2fClient.appId).length > 0
