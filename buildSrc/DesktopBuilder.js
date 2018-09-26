@@ -53,6 +53,20 @@ function packageDesktop(dirname, version) {
 			         project: electronSourcesDir
 		         })
 	         })
+	         .then(() => {
+		         //copy installers to
+		         return fs.move(path.join(dirname, '/app-desktop/dist/installers'), path.join(dirname, '/app-desktop/installers/'))
+	         })
+	         .then(() => {
+		         return Promise.all([
+			         fs.remove(path.join(dirname, '/app-desktop/dist/'), (e) => {}),
+			         fs.remove(path.join(dirname, '/app-desktop/installers/', '/.icon-icns/'), (e) => {}),
+			         fs.remove(path.join(dirname, '/app-desktop/installers/', '/.icon-ico/'), (e) => {}),
+			         fs.remove(path.join(dirname, '/app-desktop/installers/', '/.icon-set/'), (e) => {}),
+			         fs.remove(path.join(dirname, '/app-desktop/installers/', '/linux-unpacked/'), (e) => {}),
+			         fs.remove(path.join(dirname, '/app-desktop/installers/', '/win-unpacked/'), (e) => {}),
+		         ])
+	         })
 }
 
 module.exports = {

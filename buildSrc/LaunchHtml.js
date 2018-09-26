@@ -70,13 +70,10 @@ module.exports.renderHtml = function (scripts, env) {
 }
 
 const csp = (m, env) => {
-	if (env.dist && env.mode === "App") {
+	if (env.dist && env.mode === "App" || env.mode === "Desktop") {
 		// differences in comparison to web csp:
 		// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: data: *; " +
-			`style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)};]`)
-	} else if (env.dist && env.mode === "Desktop") {
-		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; font-src 'self'; img-src http: data: *; " +
 			`style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)};]`)
 	} else {
 		return null

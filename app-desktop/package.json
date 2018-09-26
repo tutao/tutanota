@@ -16,7 +16,7 @@
   "build": {
     "publish": {
       "provider": "generic",
-      "url": "https://mail.tutanota.com/",
+      "url": "http://192.168.178.123:9001",
       "channel": "latest",
       "publishAutoUpdate": true
     },
@@ -24,7 +24,6 @@
     "productName": "Tutanota Desktop",
     "artifactName": "${name}-${version}-${os}.${ext}",
     "directories": {
-      "buildResources": "buildResources",
       "output": "installers"
     },
     "win": {
