@@ -29,6 +29,7 @@ import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {CancelledError} from "../../common/error/CancelledError"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -296,10 +297,10 @@ export class SearchFacade {
 				if (this._mailIndexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end
 					&& this._mailIndexer.currentIndexTimestamp > restriction.end) {
 					this._mailIndexer.indexMailboxes(this._loginFacade.getLoggedInUser(), getStartOfDay(new Date(neverNull(restriction.end)))
-						.getTime())
+						.getTime()).catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
 					return this._mailIndexer.mailboxIndexingPromise
 				}
-			})
+			}).catch(CancelledError, e => {console.log("extend mail index has been cancelled", e)})
 		} else {
 			return Promise.resolve()
 		}

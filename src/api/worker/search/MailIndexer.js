@@ -143,7 +143,9 @@ export class MailIndexer {
 						                         .then(t2 => {
 							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-							                         this.indexMailboxes(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))) // create index in background
+							                         // create index in background, cancellation is handled in Indexer.enableMailIndexing
+							                         this.indexMailboxes(user, getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)))
+							                             .catch(CancelledError, (e) => {console.log("cancelled initial indexing", e)})
 							                         return t2.wait()
 						                         })
 					              })
@@ -186,7 +188,7 @@ export class MailIndexer {
 		})
 		let memberships = filterMailMemberships(user)
 		this._core.queue.queue()
-		this.mailboxIndexingPromise = Promise.each(Promise.resolve(memberships), (mailGroupMembership) => {
+		this.mailboxIndexingPromise = Promise.each(memberships, (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
 			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId)
 			           .then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
@@ -213,8 +215,6 @@ export class MailIndexer {
 		}).then(() => {
 			this._core.printStatus()
 			console.log("finished indexing")
-		}).catch(CancelledError, (e) => {
-			console.log("indexing cancelled")
 		}).catch(e => {
 			// avoid that a rejected promise is stored
 			this.mailboxIndexingPromise = Promise.resolve()
@@ -266,13 +266,13 @@ export class MailIndexer {
 	/**@return returns true if the mail list has been fully indexed. */
 	_indexMailList(mailbox: MailBox, mailGroupId: Id, mailListId: Id, startId: Id, endId: Id): Promise<boolean> {
 		let startTimeLoad = getPerformanceTimestamp()
-		if (this._indexingCancelled) return Promise.reject(new CancelledError("cancelled indexing"))
+		if (this._indexingCancelled) return Promise.reject(new CancelledError("cancelled indexing - index mail list " + mailListId))
 
 		console.time("indexMailList " + mailListId)
 
 		return this._entity._loadEntityRange(MailTypeRef, mailListId, startId, MAIL_INDEXER_CHUNK, true, this._entityRestClient)
 		           .then(mails => {
-			           if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
+			           if (this._indexingCancelled) throw new CancelledError("cancelled indexing - load entity range")
 			           let filteredMails = mails.filter(m => firstBiggerThanSecond(m._id[1], endId))
 			           const bodies = this._loadMailBodies(filteredMails)
 			           const files = this._loadAttachments(filteredMails)
@@ -325,7 +325,7 @@ export class MailIndexer {
 		filesByList.forEach((fileIds, listId) => {
 			fileLoadingPromises.push(this._loadInChunks(FileTypeRef, listId, fileIds.map(f => f[1])))
 		})
-		if (this._indexingCancelled) throw new CancelledError("cancelled indexing")
+		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
 	}
 

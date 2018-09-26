@@ -9,12 +9,7 @@ import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {GENERATED_MAX_ID, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
 import {defer, neverNull} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
-import {
-	generatedIdToTimestamp,
-	stringToUtf8Uint8Array,
-	timestampToGeneratedId,
-	uint8ArrayToBase64
-} from "../../common/utils/Encoding"
+import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
 import {_createNewIndexUpdate, filterIndexMemberships} from "./IndexUtils"
@@ -198,7 +193,12 @@ export class Indexer {
 
 	enableMailIndexing(): Promise<void> {
 		return this.db.initialized.then(() => {
-			return this._mail.enableMailIndexing(this._initParams.user)
+			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
+				this._mail.mailboxIndexingPromise.catch(CancelledError, () => {
+					// Disable mail indexing if the user cancelled the initial mail indexing.
+					this.disableMailIndexing()
+				})
+			})
 		})
 	}
 
