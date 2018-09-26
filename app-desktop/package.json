@@ -20,7 +20,7 @@
       "channel": "latest",
       "publishAutoUpdate": true
     },
-    "appId": "com.tutao.tutanota",
+    "appId": "de.tutao.tutanota",
     "productName": "Tutanota Desktop",
     "artifactName": "${name}-${version}-${os}.${ext}",
     "directories": {
@@ -46,6 +46,9 @@
     "linux": {
       "synopsis": "Tutanota Desktop Client",
       "category": "Network",
+      "desktop": {
+        "StartupWMClass": "Tutanota"
+      },
       "target": [
         {
           "target": "AppImage",
