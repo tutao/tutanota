@@ -1094,6 +1094,6 @@ module.exports = {
 		"spamRuleEnterValue_msg": "Please enter a value.",
 		"knownCredentials_label": "Use saved account",
 		"typeToFilter_label": "Type to filter...",
-		"appInfoAndroidImageAlt_alt": "Android App on Amazon"
+		"appInfoAmazonImageAlt_alt": "Android App on Amazon"
 	}
 }
