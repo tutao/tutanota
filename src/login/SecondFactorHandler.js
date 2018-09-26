@@ -123,6 +123,7 @@ export class SecondFactorHandler {
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 					.catch(e => {
 						deferred.reject(e)
+						console.log("err: ", e)
 						throw e
 					})
 					.catch(NotAuthenticatedError, () => Dialog.error("loginFailed_msg"))
