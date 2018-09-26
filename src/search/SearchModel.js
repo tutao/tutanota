@@ -35,17 +35,30 @@ export class SearchModel {
 	       maxResults: ?number): Promise<SearchResult> {
 		this.lastQuery(query)
 		let result = this.result()
-		if (result && !isSameTypeRef(MailTypeRef, result.restriction.type)) {
+		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
 			// reset the result in case only the search type has changed
 			this.result(null)
 		} else if (this.indexState().progress > 0 && result && isSameTypeRef(MailTypeRef, result.restriction.type)) {
 			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
-		return worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+		if (query.trim() === "") {
+			// if there was an empty query, just send empty result
+			const result = {
+				query: query,
+				restriction: restriction,
+				results: [],
+				currentIndexTimestamp: this.indexState().currentMailIndexTimestamp,
+				moreResultsEntries: []
+			}
 			this.result(result)
-			return result
-		})
+			return Promise.resolve(result)
+		} else {
+			return worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+				this.result(result)
+				return result
+			})
+		}
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {

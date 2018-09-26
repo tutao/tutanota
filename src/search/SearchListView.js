@@ -48,9 +48,19 @@ export class SearchListView {
 				this._loadInitial(neverNull(this.list))
 			}
 			this._resultStreamDependency = locator.search.result.map((result) => {
-				// if this search type is the same as the last one, don't re-create the list, just clear it
+				const oldResult = this._searchResult
 				this._searchResult = result
-				if (result && isSameTypeRef(this._lastType, result.restriction.type) || result == null) {
+				if (!result) {
+					// result is null so we assume that a new search has been triggered. Show spinner in this case
+					if (this.list) {
+						const l = this.list
+						if (oldResult && oldResult.results.length > 0) {
+							l.clear()
+						}
+						l.displaySpinner(true, true)
+					}
+				} else if (isSameTypeRef(this._lastType, result.restriction.type)) {
+					// if this search type is the same as the last one, don't re-create the list, just clear it
 					if (this.list) {
 						const l = this.list
 						l.clear()
@@ -155,7 +165,7 @@ export class SearchListView {
 	}
 
 
-	_loadSearchResults<T : TypeRef<Mail> | TypeRef<Contact>>(currentResult: SearchResult, getMoreFromSearch: boolean, startId: Id, count: number): Promise<T[]> {
+	_loadSearchResults<T : Mail | Contact>(currentResult: SearchResult, getMoreFromSearch: boolean, startId: Id, count: number): Promise<T[]> {
 		let mail = isSameTypeRef(currentResult.restriction.type, MailTypeRef)
 		let contact = isSameTypeRef(currentResult.restriction.type, ContactTypeRef)
 		if (!isSameTypeRef(this._lastType, currentResult.restriction.type)) {

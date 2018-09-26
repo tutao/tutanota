@@ -228,8 +228,10 @@ export class List<T: HasIdTuple, R:VirtualRow<T>> {
 	clear() {
 		this._loadedEntities.length = 0
 		this._loadedCompletely = false
-		this._domList.style.height = this._calculateListHeight()
-		this._reposition()
+		if (this._domList) {
+			this._domList.style.height = this._calculateListHeight()
+			this._reposition()
+		}
 	}
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
@@ -480,7 +482,7 @@ export class List<T: HasIdTuple, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this._displaySpinner(this._loadedEntities.length === 0)
+		this.displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
 		                    .then((newItems: T[]) => {
 			                    if (newItems.length < count) this.setLoadedCompletely()
@@ -510,9 +512,9 @@ export class List<T: HasIdTuple, R:VirtualRow<T>> {
 		})
 	}
 
-	_displaySpinner(delayed: boolean = true) {
+	displaySpinner(delayed: boolean = true, force?: boolean) {
 		setTimeout(() => {
-			if (!this._loading.isFulfilled() && this._domLoadingRow) {
+			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
 		}, delayed ? DefaultAnimationTime : 5)

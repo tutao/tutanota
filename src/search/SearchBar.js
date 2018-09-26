@@ -531,8 +531,6 @@ export class SearchBar {
 		} else {
 			if (value.trim() === "") {
 				this.busy = false
-				locator.search.lastQuery("")
-				locator.search.result(null)
 				if (m.route.get().startsWith("/search")) {
 					setSearchUrl(getSearchUrl("", restriction))
 				}
