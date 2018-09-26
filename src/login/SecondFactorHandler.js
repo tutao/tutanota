@@ -9,7 +9,7 @@ import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthDa
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {defer, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fError, U2fWrongDeviceError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
 import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../api/common/error/RestError"
@@ -107,8 +107,7 @@ export class SecondFactorHandler {
 		}
 	}
 
-	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]): Promise<void> {
-		const deferred = defer()
+	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
 		if (!this._waitingForSecondFactorDialog) {
 			let u2fChallenge = challenges.find(challenge => challenge.type === SecondFactorType.u2f)
 			let otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
@@ -121,15 +120,9 @@ export class SecondFactorHandler {
 				auth.session = sessionId
 				auth.otpCode = otpCodeField.value().replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
-					.catch(e => {
-						deferred.reject(e)
-						console.log("err: ", e)
-						throw e
-					})
 					.catch(NotAuthenticatedError, () => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, () => Dialog.error("loginFailed_msg"))
 					.catch(AccessBlockedError, () => Dialog.error("loginFailedOften_msg"))
-					.then(() => deferred.resolve())
 			}
 
 			u2fClient.isSupported().then(u2fSupport => {
@@ -141,7 +134,6 @@ export class SecondFactorHandler {
 				const cancelAction = () => {
 					worker.cancelCreateSession()
 					this.closeWaitingForSecondFactorDialog()
-					deferred.resolve()
 				}
 				this._waitingForSecondFactorDialog = Dialog.showActionDialog({
 					title: "",
@@ -194,11 +186,7 @@ export class SecondFactorHandler {
 					registerResumeOnError()
 				}
 			})
-		} else {
-			deferred.resolve()
 		}
-
-		return deferred.promise
 	}
 
 }
