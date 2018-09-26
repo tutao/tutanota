@@ -145,7 +145,6 @@ export class SecondFactorHandler {
 				let otherLoginDomain = otherDomainAppIds.length > 0
 					? appIdToLoginDomain(otherDomainAppIds[0])
 					: null
-				const onlyCancel = !otpChallenge
 				const cancelAction = () => {
 					worker.cancelCreateSession()
 					this.closeWaitingForSecondFactorDialog()
@@ -170,10 +169,8 @@ export class SecondFactorHandler {
 								: null
 						])
 					},
-					okAction: onlyCancel ? cancelAction : otpClickHandler,
-					okActionTextId: onlyCancel ? "cancel_action" : "ok_action",
-					cancelAction,
-					allowCancel: !onlyCancel
+					okAction: otpChallenge ? otpClickHandler : null,
+					cancelAction: cancelAction
 				})
 				if (u2fSupport && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {

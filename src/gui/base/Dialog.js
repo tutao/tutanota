@@ -419,7 +419,7 @@ export class Dialog {
 		title: stream<string> | string,
 		child: Component,
 		validator?: validator,
-		okAction: (dialog: Dialog) => mixed,
+		okAction: null | (dialog: Dialog) => mixed,
 		allowCancel?: boolean,
 		okActionTextId?: string,
 		cancelAction?: (dialog: Dialog) => mixed,
@@ -444,6 +444,9 @@ export class Dialog {
 		}
 
 		let doAction = () => {
+			if (!okAction) {
+				return
+			}
 			let error_id = null
 			if (validator) {
 				error_id = validator()
@@ -456,7 +459,15 @@ export class Dialog {
 			}
 		}
 
-		actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
+		if (okAction) {
+			actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: doAction,
+				help: okActionTextId
+			})
+		}
 
 		if (allowCancel) {
 			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
@@ -467,13 +478,6 @@ export class Dialog {
 				help: "cancel_action"
 			})
 		}
-
-		dialog.addShortcut({
-			key: Keys.RETURN,
-			shift: false,
-			exec: doAction,
-			help: okActionTextId
-		})
 
 		if (title) {
 			if (title instanceof Function) {
