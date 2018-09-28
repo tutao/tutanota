@@ -2,8 +2,9 @@
 
 // http2 server
 const port = 9000
+const root = 'build' + ((process.argv.indexOf('dist') !== -1) ? '/dist' : '')
 const nodeStatic = require('node-static')
-const file = new nodeStatic.Server('build', {cache: false, gzip: true});
+const file = new nodeStatic.Server(root, {cache: false, gzip: true});
 const http = require('http')
 const fs = require('fs')
 const os = require('os')
