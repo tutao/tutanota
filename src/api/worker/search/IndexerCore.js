@@ -4,31 +4,11 @@ import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {
-	byteLength,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptSearchIndexEntry,
-	getAppId,
-	getPerformanceTimestamp
-} from "./IndexUtils"
-import type {
-	AttributeHandler,
-	B64EncInstanceId,
-	Db,
-	GroupData,
-	IndexUpdate,
-	SearchIndexEntry,
-	SearchIndexMetadataEntry
-} from "./SearchTypes"
+import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
+import type {AttributeHandler, B64EncInstanceId, Db, GroupData, IndexUpdate, SearchIndexEntry, SearchIndexMetadataEntry} from "./SearchTypes"
 import {EventQueue} from "./EventQueue"
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -275,10 +255,11 @@ export class IndexerCore {
 							                  // add new entries to existing search index row
 							                  return transaction.get(SearchIndexOS, vacantRow.key)
 							                                    .then((row) => {
-								                                    row.push(...filteredEncryptedEntries)
+								                                    let safeRow = row || []
+								                                    safeRow.push(...filteredEncryptedEntries)
 								                                    return transaction.put(SearchIndexOS, vacantRow.key, row)
 								                                                      .then(() => {
-									                                                      vacantRow.size = row.length
+									                                                      vacantRow.size = safeRow.length
 									                                                      return safeMetaData
 								                                                      })
 							                                    })
@@ -302,17 +283,16 @@ export class IndexerCore {
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		if (indexUpdate.batchId || indexUpdate.indexTimestamp != null) { // check timestamp for != null here because "0" is a valid value to write
 			// update group data
-			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: GroupData) => {
-
+			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: ?GroupData) => {
+				if (!groupData) {
+					throw new Error("GroupData not available for group " + indexUpdate.groupId)
+				}
 				if (indexUpdate.indexTimestamp != null) {
 					groupData.indexTimestamp = indexUpdate.indexTimestamp
 				}
-
 				if (indexUpdate.batchId) {
 					let batchId = indexUpdate.batchId
-					if (!groupData) {
-						throw new Error("GroupData not available for group " + indexUpdate.groupId)
-					}
+
 					if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
 						transaction.abort()
 					} else {

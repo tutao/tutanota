@@ -5,11 +5,7 @@ import type {WorkerImpl} from "./WorkerImpl"
 import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
 import {createAuthentication} from "../entities/sys/Authentication"
-import {
-	_TypeModel as WebsocketWrapperTypeModel,
-	createWebsocketWrapper,
-	WebsocketWrapperTypeRef
-} from "../entities/sys/WebsocketWrapper"
+import {_TypeModel as WebsocketWrapperTypeModel, createWebsocketWrapper, WebsocketWrapperTypeRef} from "../entities/sys/WebsocketWrapper"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
@@ -319,46 +315,50 @@ export class EventBusClient {
 	}
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		return Promise.map(events, event => {
-			return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
-			           .then(() => event)
-			           .catch(e => {
-				           if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-					           // skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
-					           return null
-				           } else {
-					           this._worker.sendError(e)
-					           throw e // do not continue processing the other events
-				           }
-			           })
-		}).filter(event => event != null).then(filteredEvents => {
-			this._executeIfNotTerminated(() => {
-				if (!isTest() && !isAdminClient()) {
-					return this._indexer.processEntityEvents(filteredEvents, groupId, batchId)
+		return Promise
+			.map(events, event => {
+				return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
+				           .then(() => event)
+				           .catch(e => {
+					           if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+						           // skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
+						           return null
+					           } else {
+						           this._worker.sendError(e)
+						           throw e // do not continue processing the other events
+					           }
+				           })
+			})
+			.filter(event => event != null)
+			.then(filteredEvents => {
+				this._executeIfNotTerminated(() => {
+					if (!isTest() && !isAdminClient()) {
+						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+						this._indexer.startProcessing()
+					}
+				})
+				return filteredEvents
+			}).each(event => {
+				return this._executeIfNotTerminated(() => this._login.entityEventReceived(event))
+				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
+				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
+			}).then(() => {
+				if (!this._lastEntityEventIds[groupId]) {
+					this._lastEntityEventIds[groupId] = []
+				}
+				this._lastEntityEventIds[groupId].push(batchId)
+				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+				this._lastEntityEventIds[groupId].sort((e1, e2) => {
+					if (e1 === e2) {
+						return 0
+					} else {
+						return firstBiggerThanSecond(e1, e2) ? 1 : -1
+					}
+				})
+				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+					this._lastEntityEventIds[groupId].shift()
 				}
 			})
-			return filteredEvents
-		}).each(event => {
-			return this._executeIfNotTerminated(() => this._login.entityEventReceived(event))
-			           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
-			           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
-		}).then(() => {
-			if (!this._lastEntityEventIds[groupId]) {
-				this._lastEntityEventIds[groupId] = []
-			}
-			this._lastEntityEventIds[groupId].push(batchId)
-			// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-			this._lastEntityEventIds[groupId].sort((e1, e2) => {
-				if (e1 === e2) {
-					return 0
-				} else {
-					return firstBiggerThanSecond(e1, e2) ? 1 : -1
-				}
-			})
-			if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-				this._lastEntityEventIds[groupId].shift()
-			}
-		})
 	}
 
 	/**

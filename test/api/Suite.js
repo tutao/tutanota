@@ -31,6 +31,7 @@ import o from "ospec/ospec.js"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
+import "./worker/search/EventQueueTest"
 //import "./common/IntegrationTest"
 console.log("IntegrationTest is disabled, see Suite.js")
 

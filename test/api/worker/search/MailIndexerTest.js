@@ -5,23 +5,13 @@ import type {Db, ElementData, IndexUpdate} from "../../../../src/api/worker/sear
 import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	GroupType,
-	MailState,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../../../../src/api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {
-	_getCurrentIndexTimestamp,
-	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	MailIndexer
-} from "../../../../src/api/worker/search/MailIndexer"
+import {_getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "../../../../src/api/worker/search/MailIndexer"
 import {_TypeModel as MailModel, createMail, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailBody, MailBodyTypeRef} from "../../../../src/api/entities/tutanota/MailBody"
 import {createFile, FileTypeRef} from "../../../../src/api/entities/tutanota/File"
@@ -39,9 +29,11 @@ import {spy} from "../../TestUtils"
 import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {deepEqual} from "../../common/UtilsTest"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import type {FutureBatchActions} from "../../../../src/api/worker/search/EventQueue"
 
 
 const dbMock: any = {iv: fixedIv}
+const emptyFutureActions: FutureBatchActions = {deleted: new Map(), moved: new Map()}
 
 o.spec("MailIndexer test", () => {
 	o("createMailIndexEntries without entries", function () {
@@ -448,7 +440,7 @@ o.spec("MailIndexer test", () => {
 			createUpdate(OperationType.CREATE, "mail-list", "1"), createUpdate(OperationType.UPDATE, "mail-list", "2"),
 			createUpdate(OperationType.DELETE, "mail-list", "3")
 		]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions).then(() => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
@@ -480,7 +472,7 @@ o.spec("MailIndexer test", () => {
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.CREATE, "mail-list", "1")]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions).then(() => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
@@ -549,7 +541,7 @@ o.spec("MailIndexer test", () => {
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.DELETE, "mail-list", "1")]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions).then(() => {
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
 			o(core._processDeleted.callCount).equals(1)
@@ -582,7 +574,7 @@ o.spec("MailIndexer test", () => {
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.UPDATE, "mail-list", "1")]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions).then(() => {
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
 			o(core._processDeleted.callCount).equals(1)
@@ -615,7 +607,7 @@ o.spec("MailIndexer test", () => {
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.UPDATE, "mail-list", "1")]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
+		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions).then(() => {
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
 			o(core._processDeleted.callCount).equals(0)

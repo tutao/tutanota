@@ -176,7 +176,7 @@ export class DbTransaction {
 		})
 	}
 
-	get(objectStore: string, key: (string | number)): Promise<any> {
+	get<T>(objectStore: string, key: (string | number)): Promise<?T> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).get(key)
@@ -192,7 +192,7 @@ export class DbTransaction {
 		})
 	}
 
-	getAsList(objectStore: string, key: string | number): Promise<any[]> {
+	getAsList<T>(objectStore: string, key: string | number): Promise<T[]> {
 		return this.get(objectStore, key).then(result => {
 			if (!result) {
 				return []

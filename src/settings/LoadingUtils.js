@@ -3,8 +3,9 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {load, loadAll, loadMultiple} from "../api/main/Entity"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {getGroupInfoDisplayName, neverNull, getUserGroupMemberships} from "../api/common/utils/Utils"
+import {getGroupInfoDisplayName, getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
 import {GroupType} from "../api/common/TutanotaConstants"
+import {flat} from "../api/common/utils/ArrayUtils"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.
@@ -56,10 +57,11 @@ export function loadEnabledUserMailGroups(customer: Customer): Promise<GroupData
 
 export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {
 	let groupedParticipantGroupInfos = _groupByListId(groupInfoIds)
-	return Promise.reduce(Object.keys(groupedParticipantGroupInfos).map(listId => {
-		return loadMultiple(GroupInfoTypeRef, listId, groupedParticipantGroupInfos[listId])
-			.then((groupInfos: GroupInfo[]) => groupInfos)
-	}), (all, value) => all.concat(value), ([]: GroupInfo[]))
+	return Promise
+		.map(Object.keys(groupedParticipantGroupInfos), (listId) => {
+			return loadMultiple(GroupInfoTypeRef, listId, groupedParticipantGroupInfos[listId])
+		}, {concurrency: 5})
+		.then(flat)
 }
 
 function _groupByListId(array: IdTuple[]): {[key: Id]: Id[]} {
