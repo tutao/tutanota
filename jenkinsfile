@@ -1,0 +1,116 @@
+pipeline {
+   environment {
+     UPDATE_REPO_SH = '''
+         #!/bin/bash
+		 if [ ! -d tutanota ]; then
+			 git clone https://github.com/tutao/tutanota.git
+		 fi
+		 cd tutanota
+		 git checkout origin electron-client
+		 git pull origin electron-client
+		 cd ..
+     '''
+
+     UPDATE_REPO_CMD = '''
+     	@ECHO OFF
+        IF NOT EXIST "tutanota" (
+        	git clone https://github.com/tutao/tutanota.git
+        )
+        cd tutanota
+        git checkout electron-client
+        git pull origin electron-client
+        cd ..
+     '''
+
+   }
+
+    agent {
+       label 'linux'
+    }
+
+    stages {
+        stage('Build Webapp') {
+            steps {
+                sh '${UPDATE_REPO_SH}'
+                dir('tutanota') {
+					sh 'sh jenkins.sh'
+                }
+                stash includes: 'build/dist/*', name: 'webapp-files'
+            }
+        }
+
+        stage('Build Desktop clients'){
+            parallel {
+                stage('desktop-win') {
+                    agent {
+                        label 'win'
+                    }
+                    steps {
+						bat(script:'%UPDATE_REPO_BAT%')
+						dir('tutanota'){
+							bat(script: 'npm prune')
+							bat(script: 'npm install')
+							unstash 'webapp_files'
+							bat(script: 'node dist -P D w')
+							dir('app-desktop/dist/installers') {
+								stash includes: '**', excludes: '*.yaml', name:'win_installer'
+							}
+						}
+                   }
+                }
+
+                stage('desktop-mac') {
+                    agent {
+                        label 'mac'
+                    }
+                    steps {
+                    	sh '${UPDATE_REPO_SH}'
+                    	dir('tutanota') {
+                    		sh 'npm prune'
+                    		sh 'npm install'
+                    		unstash 'webapp_files'
+                    		sh 'node dist -P -D m'
+                    		dir('app-desktop/dist/installers') {
+	                        	stash includes: '**', excludes: '*.yaml', name:'mac_installer'
+	                        }
+                    	}
+                    }
+                }
+
+                stage('desktop-linux'){
+                    agent {
+                        label 'linux'
+                    }
+                    steps {
+                    	sh '${UPDATE_REPO_SH}'
+                    	dir('tutanota') {
+                    		sh 'npm prune'
+                            sh 'npm install'
+                    		unstash 'webapp_files'
+                    		sh 'node dist -P -D l'
+							dir('app-desktop/dist/installers') {
+								stash includes: '**', excludes: '*.yaml', name:'linux_installer'
+							}
+                    	}
+                    }
+                }
+            }
+        }
+
+        stage('Build deb') {
+            agent {
+                label 'linux'
+            }
+            steps {
+            	dir('tutanota'){
+            		dir('app-desktop/dist/installers'){
+						unstash 'linux_installer'
+						unstash 'mac_installer'
+						unstash 'win_installer'
+						archiveArtifacts artifacts: '**', onlyIfSuccessful: true
+					}
+            	}
+            }
+        }
+    }
+}
