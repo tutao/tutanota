@@ -15,18 +15,9 @@ pipeline {
 		 git stash clear
 		 git checkout electron-client;
 		 git pull origin electron-client;
+		 npm prune;
+		 npm install;
 		 cd ..
-     '''
-
-     UPDATE_REPO_CMD = '''
-     	@ECHO OFF
-        IF NOT EXIST "tutanota" (
-        	git clone https://github.com/tutao/tutanota.git
-        )
-        cd tutanota
-        git checkout electron-client
-        git pull origin electron-client
-        cd ..
      '''
     }
 
@@ -45,8 +36,6 @@ pipeline {
                 sh 'sh update_repo.sh'
                 sh 'rm update_repo.sh'
                 dir('tutanota') {
-					sh 'npm prune'
-					sh 'npm install'
 					sh 'node dist -h prod'
 					stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 					stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
@@ -68,8 +57,6 @@ pipeline {
                         sh 'sh update_repo.sh'
                         sh 'rm update_repo.sh'
 						dir('tutanota'){
-        					sh 'npm prune'
-        					sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
 							sh 'node dist -h prod -P -D w'
@@ -90,8 +77,6 @@ pipeline {
                         sh 'sh update_repo.sh'
                         sh 'rm update_repo.sh'
                     	dir('tutanota') {
-                    		sh 'npm prune'
-                    		sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
                     		sh 'node dist -h prod -P -D m'
@@ -112,8 +97,6 @@ pipeline {
                         sh 'sh update_repo.sh'
                         sh 'rm update_repo.sh'
                     	dir('tutanota') {
-                    		sh 'npm prune'
-                            sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
                     		sh 'node dist -h prod -P -D l'
@@ -138,9 +121,7 @@ pipeline {
             	dir('tutanota'){
             	    sh 'rm -rf ./build/dist/'
 					unstash 'web_base'
-					sh 'ls -al ./build/dist/'
 					unstash 'web_add'
-					sh 'ls -al ./build/dist/'
             		dir('build/dist/desktop'){
 						unstash 'linux_installer'
 						unstash 'mac_installer'
