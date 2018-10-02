@@ -8,6 +8,13 @@ function build(dirname, version, targets, updateUrl) {
 	const electronSourcesDir = path.join(dirname, '/app-desktop/dist/')
 	const resourcesDir = path.join(electronSourcesDir, "/resources/")
 
+	console.log("Updating config...")
+	const builderPackageJSON = Object.assign(require(path.join(dirname, '/app-desktop/', '/package.json')), {
+		version: version
+	})
+	builderPackageJSON.build.publish.url = updateUrl
+	builderPackageJSON.build.icon = path.join(dirname, "/resources/desktop-icons/desktop-icon.png")
+
 	//prepare files
 	return Promise.resolve()
 	              .then(() => {
@@ -33,13 +40,6 @@ function build(dirname, version, targets, updateUrl) {
 		              ])
 	              })
 	              .then(() => {
-		              console.log("Updating config...")
-		              //create package.json for electron-builder
-		              const builderPackageJSON = Object.assign(require(path.join(dirname, '/app-desktop/', '/package.json')), {
-			              version: version
-		              })
-		              builderPackageJSON.build.publish.url = updateUrl
-		              builderPackageJSON.build.icon = path.join(dirname, "/resources/desktop-icons/desktop-icon.png")
 		              return fs.writeFile(path.join(electronSourcesDir, "/package.json"),
 			              JSON.stringify(builderPackageJSON),
 			              'utf8',
@@ -61,6 +61,18 @@ function build(dirname, version, targets, updateUrl) {
 			              p: 'always',
 			              project: electronSourcesDir
 		              })
+	              })
+	              .then(() => {
+		              console.log("Move output to /build/dist/desktop/...")
+		              return Promise.all(
+			              fs.readdirSync(path.join(electronSourcesDir, 'installers'))
+			                .filter((file => file.startsWith(builderPackageJSON.name) || file.endsWith('.yml')))
+			                .map(file => fs.copyAsync(
+				                path.join(electronSourcesDir, '/installers/', file),
+				                path.join(dirname, '/build/dist/desktop/', file)
+				                )
+			                )
+		              ).then(() => fs.removeAsync(path.join(electronSourcesDir)))
 	              })
 }
 
