@@ -1,3 +1,4 @@
+const options = require('commander')
 const Promise = require('bluebird')
 const path = require("path")
 const Builder = require('./buildSrc/Builder.js').Builder
@@ -8,40 +9,50 @@ const LaunchHtml = require('./buildSrc/LaunchHtml.js')
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const os = require("os")
 
+const packageJSON = require('./package.json')
+const version = packageJSON.version
 let start = new Date().getTime()
 
+options
+	.usage('[options] [test|prod|URL] ')
+	.arguments('<targetUrl>')
+	.option('-c, --clean', 'Clean build directory')
+	.option('-w, --watch', 'Watch build dir for changes and rebuild if necessary')
+	.option('-d, --desktop', 'assemble & start desktop client')
+	.parse(process.argv)
+options.host = options.args[0]
+
 let promise = Promise.resolve()
-if (process.argv.indexOf("clean") !== -1) {
+
+if (options.clean) {
 	promise = builder.clean()
 }
 
-let watch = process.argv.indexOf("watch") === -1 ? undefined : () => {
-	}
+
+let watch = !options.watch ? undefined : () => {}
 
 promise
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/resources/images/'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/libs'), path.join(__dirname, '/build/libs')))
 	.then(() => {
-		const version = require('./package.json').version
-		if (process.argv.indexOf("test") !== -1) {
+		if (options.host === 'test') {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Browser")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "App")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://test.tutanota.com", version, "Desktop"))
 			])
-		} else if (process.argv.indexOf("prod") !== -1) {
+		} else if (options.host === 'prod') {
 			return Promise.all([
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Browser")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "App")),
 				createHtml(env.create(SystemConfig.devConfig(true), "https://mail.tutanota.com", version, "Desktop"))
 			])
-		} else if (process.argv.indexOf("host") !== -1) {
-			const hostname = process.argv[process.argv.indexOf("host") + 1]
+		} else if (options.host) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(false), hostname, version, "App")),
-				createHtml(env.create(SystemConfig.devConfig(true), hostname, version, "Desktop"))
+				createHtml(env.create(SystemConfig.devConfig(true), options.host, version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(false), options.host, version, "App")),
+				createHtml(env.create(SystemConfig.devConfig(true), options.host, version, "Desktop"))
 			])
 		} else {
 			return Promise.all([
@@ -54,7 +65,7 @@ promise
 	})
 	.then(() => builder.build(["src"], watch))
 	.then(() => {
-		if (process.argv.indexOf("desktop") !== -1) {
+		if (options.desktop) {
 			console.log("Building desktop client...")
 			const electronSourcesDir = path.join(__dirname, '/app-desktop')
 			return fs.emptyDirAsync(electronSourcesDir + "/resources/")
@@ -87,7 +98,7 @@ promise
 		console.log(`\n >>> Build completed in ${time}s\n`)
 	})
 	.then(() => {
-		if (process.argv.indexOf("watch") !== -1) {
+		if (options.watch) {
 			require('chokidar-socket-emitter')({port: 9082, path: 'build', relativeTo: 'build'})
 		}
 	})

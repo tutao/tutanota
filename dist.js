@@ -1,5 +1,5 @@
 "use strict"
-
+const options = require('commander')
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const Builder = require('systemjs-builder')
@@ -40,7 +40,20 @@ function getAsyncImports(file) {
 
 const distLoc = (filename) => `${DistDir}/${filename}`
 
+options
+	.usage('[options] [test|prod|URL] ')
+	.arguments('<targetUrl>')
+	.option('-p, --prebuilt', 'Use prebuilt Webapp files in /build/dist/')
+	.option('-w --win', 'Build desktop client for windows')
+	.option('-l --linux', 'Build desktop client for linux')
+	.option('-m --mac', 'Build desktop client for mac')
+	.option('-d, --deb', 'Build .deb package')
+	.option('-r, --release', 'Release .deb and tag commit. Implies --deb.')
+	.parse(process.argv)
+options.host = options.args[0]
+
 Promise.resolve()
+       .then(processOptions)
        .then(buildWebapp)
        .then(buildDesktopClient)
        .then(packageDeb)
@@ -51,30 +64,31 @@ Promise.resolve()
 	       process.exit(1)
        })
 
-function getTargetUrl() {
-	//reject invalid desktop targets
-	if (program.desktop && !program.desktop.match('^[wml]+$')) {
-		return Promise.reject("invalid argument to -D: " + program.desktop.toString())
+function processOptions() {
+
+	options.desktop = {
+		win: options.win ? [] : undefined,
+		linux: options.linux ? [] : undefined,
+		mac: options.mac ? [] : undefined
 	}
 
 	//set target url
-	//only print if we actually use the url
-	if (program.desktop || !program.prebuilt) {
-		if (program.host === 'test') {
+	if (options.desktop || !options.prebuilt) {
+		if (options.host === 'test') {
 			targetUrl = "https://test.tutanota.com"
-		} else if (program.host === 'prod') {
+		} else if (options.host === 'prod') {
 			targetUrl = "https://mail.tutanota.com"
-		} else if (program.host) {
-			targetUrl = program.host
+		} else if (options.host) {
+			targetUrl = options.host
 		} else {
-			version = program.deb ? new Date().getTime() : version
+			version = options.deb ? new Date().getTime() : version
 			targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
 		}
 		console.log("targetUrl: ", targetUrl)
 	}
 
 	//--release implies --deb
-	program.deb = program.release ? true : program.deb
+	options.deb = options.release ? true : options.deb
 	return Promise.resolve()
 }
 
@@ -88,7 +102,7 @@ function clean() {
 }
 
 function buildWebapp() {
-	if (process.argv.indexOf("-P") !== -1) {
+	if (options.prebuilt) {
 		console.log("Found prebuilt option (-P). Skipping Webapp build.")
 		return Promise.resolve()
 	}
@@ -155,14 +169,8 @@ function buildWebapp() {
 }
 
 function buildDesktopClient() {
-	const indexDesktop = process.argv.indexOf("-D")
-	if (indexDesktop !== -1) {
-		const targets = process.argv[indexDesktop + 1]
-		if (!(targets && targets.match('^[wml]+$'))) {
-			console.log('invalid argument to Desktop option (-D ', targets, "): skipping.")
-			return null
-		}
-		return desktopBuilder.build(__dirname, packageJSON.version, targets, targetUrl + "/desktop")
+	if (Object.values(options.desktop).reduce((pre, cur) => pre || !!cur, false)) {
+		return desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl)
 	}
 }
 
@@ -255,7 +263,7 @@ function _writeFile(targetFile, content) {
 let debName = `tutanota-next-${version}_1_amd64.deb`
 
 function packageDeb() {
-	if (program.deb) {
+	if (options.deb) {
 		console.log("create " + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
@@ -270,7 +278,7 @@ function packageDeb() {
 }
 
 function release() {
-	if (process.argv.indexOf("release") !== -1) {
+	if (options.release) {
 		console.log("create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]

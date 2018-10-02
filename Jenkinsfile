@@ -34,7 +34,7 @@ pipeline {
                 sh 'sh update_repo.sh'
                 sh 'rm update_repo.sh'
                 dir('tutanota') {
-					sh 'node dist -h prod'
+					sh 'node dist prod'
 					stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 					stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
 					stash includes: '**/desktop.html, **/desktop.js', name: 'web_desktop'
@@ -56,7 +56,7 @@ pipeline {
 						dir('tutanota'){
 							unstash 'web_base'
 							unstash 'web_desktop'
-							sh 'node dist -h prod -P -D w'
+							sh 'node dist -pw prod'
 							dir('build/dist/desktop') {
 								stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
 							}
@@ -76,7 +76,7 @@ pipeline {
                     	dir('tutanota') {
 							unstash 'web_base'
 							unstash 'web_desktop'
-                    		sh 'node dist -h prod -P -D m'
+                    		sh 'node dist -pm prod'
                     		dir('build/dist/desktop') {
 	                        	stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
 	                        }
@@ -96,7 +96,7 @@ pipeline {
                     	dir('tutanota') {
 							unstash 'web_base'
 							unstash 'web_desktop'
-                    		sh 'node dist -h prod -P -D l'
+                    		sh 'node dist -pl prod'
 							dir('build/dist/desktop') {
 								stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
 							}
@@ -124,7 +124,7 @@ pipeline {
 						unstash 'mac_installer'
 						unstash 'win_installer'
 					}
-					sh 'node dist -Pd'
+					sh 'node dist -pd'
 					archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
             	}
             }
