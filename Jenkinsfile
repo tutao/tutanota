@@ -1,8 +1,3 @@
-// this pipeline might fail if the checked out branch gets
-// commits between the stages.
-// deciding on a commit to check out at the start might be
-// more robust
-
 pipeline {
     agent {
         label 'master'
@@ -14,6 +9,8 @@ pipeline {
                 label 'linux'
             }
             steps {
+            	sh 'npm prune'
+            	sh 'npm install'
 				sh 'node dist prod'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 				stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
@@ -29,6 +26,8 @@ pipeline {
                         label 'win'
                     }
                     steps {
+						sh 'npm prune'
+						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
 						unstash 'web_base'
 						unstash 'web_desktop'
@@ -44,6 +43,8 @@ pipeline {
                         label 'mac'
                     }
                     steps {
+						sh 'npm prune'
+						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
 						unstash 'web_base'
 						unstash 'web_desktop'
@@ -59,6 +60,8 @@ pipeline {
                         label 'linux'
                     }
                     steps {
+						sh 'npm prune'
+						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
 						unstash 'web_base'
 						unstash 'web_desktop'
@@ -76,6 +79,8 @@ pipeline {
                 label 'linux'
             }
             steps {
+            	sh 'npm prune'
+            	sh 'npm install'
 				sh 'rm -rf ./build/dist/'
 				unstash 'web_base'
 				unstash 'web_add'
