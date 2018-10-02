@@ -65,12 +65,15 @@ Promise.resolve()
        })
 
 function processOptions() {
-
 	options.desktop = {
 		win: options.win ? [] : undefined,
 		linux: options.linux ? [] : undefined,
 		mac: options.mac ? [] : undefined
 	}
+
+	options.desktop = Object.values(options.desktop).reduce((prev, curr) => prev || !!curr, false)
+		? options.desktop
+		: undefined
 
 	//set target url
 	if (options.desktop || !options.prebuilt) {
@@ -103,7 +106,7 @@ function clean() {
 
 function buildWebapp() {
 	if (options.prebuilt) {
-		console.log("Found prebuilt option (-P). Skipping Webapp build.")
+		console.log("Found prebuilt option (-p). Skipping Webapp build.")
 		return Promise.resolve()
 	}
 	return Promise.resolve()
@@ -169,7 +172,7 @@ function buildWebapp() {
 }
 
 function buildDesktopClient() {
-	if (Object.values(options.desktop).reduce((pre, cur) => pre || !!cur, false)) {
+	if (options.desktop) {
 		return desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl)
 	}
 }
@@ -279,7 +282,7 @@ function packageDeb() {
 
 function release() {
 	if (options.release) {
-		console.log("create git tag and copy .deb")
+		console.log("Create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
