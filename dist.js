@@ -1,5 +1,5 @@
 "use strict"
-
+const program = require('commander')
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const Builder = require('systemjs-builder')
@@ -41,7 +41,17 @@ function getAsyncImports(file) {
 
 const distLoc = (filename) => `${DistDir}/${filename}`
 
+program
+	.arguments('<file>')
+	.option('-P, --prebuilt', 'Skip Webapp build.')
+	.option('-h, --host <host>', 'The target URL of the client. Defaults to local hostname.')
+	.option('-D, --desktop <target>', 'The Targets to build desktop clients for.')
+	.option('-d, --deb', 'Build .deb package')
+	.option('-r, --release', 'Release .deb to production and tag commit. Implies --deb.')
+	.parse(process.argv);
+
 Promise.resolve()
+       .then(getTargetUrl)
        .then(buildWebapp)
        .then(buildDesktopClient)
        .then(packageDeb)
@@ -51,6 +61,26 @@ Promise.resolve()
 	       console.log("\nBuild error:", e)
 	       process.exit(1)
        })
+
+function getTargetUrl() {
+	if (program.host === 'test') {
+		targetUrl = "https://test.tutanota.com"
+	} else if (program.host === 'prod') {
+		targetUrl = "https://mail.tutanota.com"
+	} else if (program.host) {
+		targetUrl = program.host
+	} else {
+		version = program.deb ? new Date().getTime() : version
+		targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+	}
+	console.log("targetUrl: ", targetUrl)
+
+	if (program.desktop && !program.desktop.match('^[wml]+$')) {
+		return Promise.reject("invalid argument to -D: " + program.desktop.toString())
+	}
+	program.deb = program.release ? true : program.deb
+	return Promise.resolve()
+}
 
 function measure() {
 	return (Date.now() - start) / 1000
@@ -62,7 +92,7 @@ function clean() {
 }
 
 function buildWebapp() {
-	if (process.argv.indexOf("-P") !== -1) {
+	if (program.prebuilt) {
 		console.log("Found prebuilt option (-P). Skipping Webapp build.")
 		return Promise.resolve()
 	}
@@ -108,16 +138,6 @@ function buildWebapp() {
 	              .then(() => console.log("creating language bundles"))
 	              .then(() => createLanguageBundles(bundles))
 	              .then(() => {
-		              if (process.argv.indexOf("test") !== -1) {
-			              targetUrl = "https://test.tutanota.com"
-		              } else if (process.argv.indexOf("prod") !== -1) {
-			              targetUrl = "https://mail.tutanota.com"
-		              } else if (process.argv.indexOf("host") !== -1) {
-			              targetUrl = process.argv[process.argv.indexOf("host") + 1]
-		              } else {
-			              version = process.argv.indexOf("deb") == -1 ? new Date().getTime() : version
-			              targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
-		              }
 		              return Promise.all([
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Browser", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "App", true), bundles),
@@ -129,14 +149,8 @@ function buildWebapp() {
 }
 
 function buildDesktopClient() {
-	const indexDesktop = process.argv.indexOf("-D")
-	if (indexDesktop !== -1) {
-		const targets = process.argv[indexDesktop + 1]
-		if (!(targets && targets.match('^[wml]+$'))) {
-			console.log('invalid argument to Desktop option (-D ', targets, "): skipping.")
-			return null
-		}
-		return desktopBuilder.build(__dirname, packageJSON.version, targets, targetUrl + "/desktop")
+	if (program.desktop) {
+		return desktopBuilder.build(__dirname, packageJSON.version, program.desktop, targetUrl + "/desktop")
 	}
 }
 
@@ -229,7 +243,7 @@ function _writeFile(targetFile, content) {
 let debName = `tutanota-next-${version}_1_amd64.deb`
 
 function packageDeb() {
-	if (process.argv.indexOf("deb") !== -1) {
+	if (program.deb) {
 		console.log("create q" + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
@@ -245,7 +259,7 @@ function packageDeb() {
 }
 
 function release() {
-	if (process.argv.indexOf("release") !== -1) {
+	if (program.release) {
 		console.log("create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]

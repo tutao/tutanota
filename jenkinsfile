@@ -11,6 +11,8 @@ pipeline {
 			 git clone https://github.com/tutao/tutanota.git;
 		 fi;
 		 cd tutanota;
+		 git stash
+		 git stash clear
 		 git checkout electron-client;
 		 git pull origin electron-client;
 		 cd ..
@@ -45,10 +47,10 @@ pipeline {
                 dir('tutanota') {
 					sh 'npm prune'
 					sh 'npm install'
-					sh 'node dist prod'
-					stash includes: 'build/dist/**', excludes:'*.html, */index.js, */app.js, */desktop.js', name: 'web_base'
-					stash includes: 'build/dist/index.html, build/dist/index.js, build/dist/app.html, build/dist/app.js', name: 'web_add'
-					stash includes: 'build/dist/desktop.html, build/dist/desktop.js', name: 'web_desktop'
+					sh 'node dist -h prod'
+					stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
+					stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
+					stash includes: '**/desktop.html, **/desktop.js', name: 'web_desktop'
                 }
             }
         }
@@ -58,18 +60,19 @@ pipeline {
 
                 stage('desktop-win') {
                     agent {
-                        label 'win'
+                        label 'linux'
                     }
                     steps {
-                    	bat(script:'echo %UPDATE_REPO_CMD% > update_repo.cmd')
-						bat(script:'update_repo.cmd')
-						bat(script:'del update_repo.cmd')
+                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
+                        sh 'chmod u+x update_repo.sh'
+                        sh 'sh update_repo.sh'
+                        sh 'rm update_repo.sh'
 						dir('tutanota'){
-							bat(script: 'npm prune')
-							bat(script: 'npm install')
+        					sh 'npm prune'
+        					sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
-							bat(script: 'node dist -P D w')
+							sh 'node dist -h prod -P -D w'
 							dir('app-desktop/dist/installers') {
 								stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
 							}
@@ -91,7 +94,7 @@ pipeline {
                     		sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
-                    		sh 'node dist -P -D m'
+                    		sh 'node dist -h prod -P -D m'
                     		dir('app-desktop/dist/installers') {
 	                        	stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
 	                        }
@@ -113,7 +116,7 @@ pipeline {
                             sh 'npm install'
 							unstash 'web_base'
 							unstash 'web_desktop'
-                    		sh 'node dist -P -D l'
+                    		sh 'node dist -h prod -P -D l'
 							dir('app-desktop/dist/installers') {
 								stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
 							}
@@ -135,13 +138,15 @@ pipeline {
             	dir('tutanota'){
             	    sh 'rm -rf ./build/dist/'
 					unstash 'web_base'
+					sh 'ls -al ./build/dist/'
 					unstash 'web_add'
+					sh 'ls -al ./build/dist/'
             		dir('build/dist/desktop'){
 						unstash 'linux_installer'
 						unstash 'mac_installer'
 						unstash 'win_installer'
 					}
-					sh 'node dist -P deb'
+					sh 'node dist -P -d'
 					archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
             	}
             }
