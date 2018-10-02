@@ -3,7 +3,6 @@ import "./common/EncodingTest"
 import "./common/ArrayUtilsTest"
 import "./common/MapUtilsTest"
 import "./common/UtilsTest"
-import "./common/WorkerTest"
 import "./crypto/AesTest"
 import "./crypto/BcryptTest"
 import "./crypto/CryptoFacadeTest.js"
@@ -27,13 +26,14 @@ import "./worker/search/IndexUtilsTest"
 import "./worker/search/SearchFacadeTest"
 import "./worker/search/SuggestionFacadeTest"
 import "./common/SwTest"
+import "./worker/search/EventQueueTest"
 import o from "ospec/ospec.js"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
-import "./worker/search/EventQueueTest"
-//import "./common/IntegrationTest"
-console.log("IntegrationTest is disabled, see Suite.js")
+
+const disabledTests = ["./common/IntegrationTest", "./common/WorkerTest"]
+console.log("!!! Some tests are disabled because they need a server instance, see Suite.js", disabledTests)
 
 // setup the Entropy for all testcases
 random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])

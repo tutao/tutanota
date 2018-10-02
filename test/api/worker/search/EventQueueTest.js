@@ -83,4 +83,38 @@ o.spec("EventQueueTest", function () {
 
 		o(replaceAllMaps(processElement.invocations)).deepEquals(batches.map((b) => [b, expectedFutureActions]))
 	})
+
+
+	o("pause and resume", async function () {
+		queue.pause()
+		const groupId = "groupId"
+		const batchWithOnlyDelete: QueuedBatch = {
+			events: [newUpdate(OperationType.DELETE, "1")],
+			groupId,
+			batchId: "1"
+		}
+		queue.addBatches([batchWithOnlyDelete])
+
+		await Promise.delay(5, Promise.resolve())
+		o(queue._eventQueue.length).equals(1)
+
+		queue.resume()
+		await lastProcess.promise
+		o(queue._eventQueue.length).equals(0)
+	})
+
+	o("start after pause", async function () {
+		queue.pause()
+		const groupId = "groupId"
+		const batchWithOnlyDelete: QueuedBatch = {
+			events: [newUpdate(OperationType.DELETE, "1")],
+			groupId,
+			batchId: "1"
+		}
+		queue.addBatches([batchWithOnlyDelete])
+
+		await Promise.delay(5, Promise.resolve())
+		queue.start()
+		o(queue._eventQueue.length).equals(1)
+	})
 })

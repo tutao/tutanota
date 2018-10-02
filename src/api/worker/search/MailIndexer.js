@@ -26,7 +26,7 @@ import type {FutureBatchActions} from "./EventQueue"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
-const MAIL_INDEXER_CHUNK = 100
+export const MAIL_INDEXER_CHUNK = 100
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -390,6 +390,25 @@ export class MailIndexer {
 			})
 	}
 
+	/**
+	 * Prepare IndexUpdate in response to the new entity events.
+	 * This implementation uses futureActions as a lookahead to optimize some operations. Namely:
+	 *  create + delete = nothing
+	 *  create + move   = create*          (create with list id from move operation)
+	 *  move   + delete = delete
+	 *  move   + move   = move*            (move to the final folder only)
+	 *  update + move   = update* + move   (only delete in update and use create event from move)
+	 *  update + delete = delete
+	 * There are other possible combinations but we only optimize these because they would not work
+	 * because of the different server state anyway.
+	 * {@see MailIndexerTest.js}
+	 * @param events Events from one batch
+	 * @param groupId
+	 * @param batchId
+	 * @param indexUpdate which will be populated with operations
+	 * @param futureActions lookahead for actions optimizations. Actions will be removed when processed.
+	 * @returns {Promise<*>} Indication that we're done.
+	 */
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, futureActions: FutureBatchActions): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		return Promise.each(events, (event) => {
@@ -397,15 +416,18 @@ export class MailIndexer {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// move mail
 					const finalDestinationEvent = futureActions.moved.get(event.instanceId)
+
+					const futureMoveEvent = futureActions.moved.get(event.instanceId)
+					if (futureMoveEvent && isSameId(futureMoveEvent._id, event._id)) {
+						// Remove from futureActions if we process this event
+						futureActions.moved.delete(futureMoveEvent.instanceId)
+					}
+
 					// do not execute move operation if there is a delete event or another move event.
 					if (futureActions.deleted.has(event.instanceId)
-						|| (finalDestinationEvent && isSameId(finalDestinationEvent.instanceListId, event.instanceListId))) {
+						|| (finalDestinationEvent && !isSameId(finalDestinationEvent.instanceListId, event.instanceListId))) {
 						return Promise.resolve()
 					} else {
-						const futureDeleteEvent = futureActions.moved.get(event.instanceId)
-						if (futureDeleteEvent && isSameId(futureDeleteEvent._id, event._id)) {
-							futureActions.moved.delete(futureDeleteEvent._id)
-						}
 						return this.processMovedMail(event, indexUpdate)
 					}
 				} else {
@@ -447,7 +469,7 @@ export class MailIndexer {
 				const futureDeleteEvent = futureActions.deleted.get(event.instanceId)
 				if (futureDeleteEvent && isSameId(futureDeleteEvent._id, event._id)) {
 					// Welcome to the Future
-					futureActions.deleted.delete(futureDeleteEvent._id)
+					futureActions.deleted.delete(futureDeleteEvent.instanceId)
 				}
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
 					return this._core._processDeleted(event, indexUpdate)
