@@ -14,12 +14,10 @@ pipeline {
                 label 'linux'
             }
             steps {
-                dir('tutanota') {
-					sh 'node dist prod'
-					stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
-					stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
-					stash includes: '**/desktop.html, **/desktop.js', name: 'web_desktop'
-                }
+				sh 'node dist prod'
+				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
+				stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
+				stash includes: '**/desktop.html, **/desktop.js', name: 'web_desktop'
             }
         }
 
@@ -31,14 +29,12 @@ pipeline {
                         label 'win'
                     }
                     steps {
-						dir('tutanota'){
-							sh 'rm -rf ./app-desktop/dist/'
-							unstash 'web_base'
-							unstash 'web_desktop'
-							sh 'node dist -pw prod'
-							dir('build/dist/desktop') {
-								stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
-							}
+						sh 'rm -rf ./app-desktop/dist/'
+						unstash 'web_base'
+						unstash 'web_desktop'
+						sh 'node dist -pw prod'
+						dir('build/dist/desktop') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
 						}
                 	}
                 }
@@ -48,15 +44,13 @@ pipeline {
                         label 'mac'
                     }
                     steps {
-                    	dir('tutanota') {
-                    		sh 'rm -rf ./app-desktop/dist/'
-							unstash 'web_base'
-							unstash 'web_desktop'
-                    		sh 'node dist -pm prod'
-                    		dir('build/dist/desktop') {
-	                        	stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
-	                        }
-                    	}
+						sh 'rm -rf ./app-desktop/dist/'
+						unstash 'web_base'
+						unstash 'web_desktop'
+						sh 'node dist -pm prod'
+						dir('build/dist/desktop') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
+						}
                     }
                 }
 
@@ -65,15 +59,13 @@ pipeline {
                         label 'linux'
                     }
                     steps {
-                    	dir('tutanota') {
-                    		sh 'rm -rf ./app-desktop/dist/'
-							unstash 'web_base'
-							unstash 'web_desktop'
-                    		sh 'node dist -pl prod'
-							dir('build/dist/desktop') {
-								stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
-							}
-                    	}
+						sh 'rm -rf ./app-desktop/dist/'
+						unstash 'web_base'
+						unstash 'web_desktop'
+						sh 'node dist -pl prod'
+						dir('build/dist/desktop') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
+						}
                     }
                 }
             }
@@ -84,18 +76,16 @@ pipeline {
                 label 'linux'
             }
             steps {
-            	dir('tutanota'){
-            	    sh 'rm -rf ./build/dist/'
-					unstash 'web_base'
-					unstash 'web_add'
-            		dir('build/dist/desktop'){
-						unstash 'linux_installer'
-						unstash 'mac_installer'
-						unstash 'win_installer'
-					}
-					sh 'node dist -pd'
-					archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
-            	}
+				sh 'rm -rf ./build/dist/'
+				unstash 'web_base'
+				unstash 'web_add'
+				dir('build/dist/desktop'){
+					unstash 'linux_installer'
+					unstash 'mac_installer'
+					unstash 'win_installer'
+				}
+				sh 'node dist -pd'
+				archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
             }
         }
     }
