@@ -2,9 +2,10 @@ const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, updateUrl) {
+function build(dirname, version, targets, targetUrl) {
 	console.log("Building desktop client for v" + version + " (" + targets + ")...")
-
+	const updateSubdir = '/desktop'
+	const updateUrl = targetUrl + updateSubdir
 	const electronSourcesDir = path.join(dirname, '/app-desktop/dist/')
 	const resourcesDir = path.join(electronSourcesDir, "/resources/")
 
@@ -55,21 +56,21 @@ function build(dirname, version, targets, updateUrl) {
 		              const builder = require("electron-builder")
 		              return builder.build({
 			              _: ['build'],
-			              win: targets.includes('w') ? [] : undefined,
-			              mac: targets.includes('m') ? [] : undefined,
-			              linux: targets.includes('l') ? [] : undefined,
+			              win: targets.win,
+			              mac: targets.mac,
+			              linux: targets.linux,
 			              p: 'always',
 			              project: electronSourcesDir
 		              })
 	              })
 	              .then(() => {
-		              console.log("Move output to /build/dist/desktop/...")
+		              console.log("Move output to /build/dist" + updateSubdir + "/...")
 		              return Promise.all(
 			              fs.readdirSync(path.join(electronSourcesDir, 'installers'))
 			                .filter((file => file.startsWith(builderPackageJSON.name) || file.endsWith('.yml')))
 			                .map(file => fs.copyAsync(
 				                path.join(electronSourcesDir, '/installers/', file),
-				                path.join(dirname, '/build/dist/desktop/', file)
+				                path.join(dirname, '/build/dist', updateSubdir, file)
 				                )
 			                )
 		              ).then(() => fs.removeAsync(path.join(electronSourcesDir)))
