@@ -4,23 +4,6 @@
 // more robust
 
 pipeline {
-   environment {
-     UPDATE_REPO_SH = '''
-         #!/bin/sh
-		 if [ ! -d tutanota ]; then
-			 git clone https://github.com/tutao/tutanota.git;
-		 fi;
-		 cd tutanota;
-		 git stash
-		 git stash clear
-		 git checkout electron-client;
-		 git pull origin electron-client;
-		 npm prune;
-		 npm install;
-		 cd ..
-     '''
-    }
-
     agent {
         label 'master'
     }
@@ -31,10 +14,6 @@ pipeline {
                 label 'linux'
             }
             steps {
-                sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
-                sh 'chmod u+x update_repo.sh'
-                sh 'sh update_repo.sh'
-                sh 'rm update_repo.sh'
                 dir('tutanota') {
 					sh 'node dist prod'
 					stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
@@ -52,11 +31,8 @@ pipeline {
                         label 'linux'
                     }
                     steps {
-                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
-                        sh 'chmod u+x update_repo.sh'
-                        sh 'sh update_repo.sh'
-                        sh 'rm update_repo.sh'
 						dir('tutanota'){
+							sh 'rm -rf ./app-desktop/dist/'
 							unstash 'web_base'
 							unstash 'web_desktop'
 							sh 'node dist -pw prod'
@@ -72,11 +48,8 @@ pipeline {
                         label 'mac'
                     }
                     steps {
-                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
-                        sh 'chmod u+x update_repo.sh'
-                        sh 'sh update_repo.sh'
-                        sh 'rm update_repo.sh'
                     	dir('tutanota') {
+                    		sh 'rm -rf ./app-desktop/dist/'
 							unstash 'web_base'
 							unstash 'web_desktop'
                     		sh 'node dist -pm prod'
@@ -92,11 +65,8 @@ pipeline {
                         label 'linux'
                     }
                     steps {
-                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
-                        sh 'chmod u+x update_repo.sh'
-                        sh 'sh update_repo.sh'
-                        sh 'rm update_repo.sh'
                     	dir('tutanota') {
+                    		sh 'rm -rf ./app-desktop/dist/'
 							unstash 'web_base'
 							unstash 'web_desktop'
                     		sh 'node dist -pl prod'
@@ -114,10 +84,6 @@ pipeline {
                 label 'linux'
             }
             steps {
-                sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
-                sh 'chmod u+x update_repo.sh'
-                sh 'sh update_repo.sh'
-                sh 'rm update_repo.sh'
             	dir('tutanota'){
             	    sh 'rm -rf ./build/dist/'
 					unstash 'web_base'
