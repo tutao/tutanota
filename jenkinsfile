@@ -1,13 +1,18 @@
+// this pipeline might fail if the checked out branch gets
+// commits between the stages.
+// deciding on a commit to check out at the start might be
+// more robust
+
 pipeline {
    environment {
      UPDATE_REPO_SH = '''
-         #!/bin/bash
+         #!/bin/sh
 		 if [ ! -d tutanota ]; then
-			 git clone https://github.com/tutao/tutanota.git
-		 fi
-		 cd tutanota
-		 git checkout origin electron-client
-		 git pull origin electron-client
+			 git clone https://github.com/tutao/tutanota.git;
+		 fi;
+		 cd tutanota;
+		 git checkout electron-client;
+		 git pull origin electron-client;
 		 cd ..
      '''
 
@@ -21,42 +26,55 @@ pipeline {
         git pull origin electron-client
         cd ..
      '''
-
-   }
+    }
 
     agent {
-       label 'linux'
+        label 'master'
     }
 
     stages {
         stage('Build Webapp') {
+            agent {
+                label 'linux'
+            }
             steps {
-                sh '${UPDATE_REPO_SH}'
+                sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
+                sh 'chmod u+x update_repo.sh'
+                sh 'sh update_repo.sh'
+                sh 'rm update_repo.sh'
                 dir('tutanota') {
-					sh 'sh jenkins.sh'
+					sh 'npm prune'
+					sh 'npm install'
+					sh 'node dist prod'
+					stash includes: 'build/dist/**', excludes:'*.html, */index.js, */app.js, */desktop.js', name: 'web_base'
+					stash includes: 'build/dist/index.html, build/dist/index.js, build/dist/app.html, build/dist/app.js', name: 'web_add'
+					stash includes: 'build/dist/desktop.html, build/dist/desktop.js', name: 'web_desktop'
                 }
-                stash includes: 'build/dist/*', name: 'webapp-files'
             }
         }
 
         stage('Build Desktop clients'){
             parallel {
+
                 stage('desktop-win') {
                     agent {
                         label 'win'
                     }
                     steps {
-						bat(script:'%UPDATE_REPO_BAT%')
+                    	bat(script:'echo %UPDATE_REPO_CMD% > update_repo.cmd')
+						bat(script:'update_repo.cmd')
+						bat(script:'del update_repo.cmd')
 						dir('tutanota'){
 							bat(script: 'npm prune')
 							bat(script: 'npm install')
-							unstash 'webapp_files'
+							unstash 'web_base'
+							unstash 'web_desktop'
 							bat(script: 'node dist -P D w')
 							dir('app-desktop/dist/installers') {
-								stash includes: '**', excludes: '*.yaml', name:'win_installer'
+								stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
 							}
 						}
-                   }
+                	}
                 }
 
                 stage('desktop-mac') {
@@ -64,14 +82,18 @@ pipeline {
                         label 'mac'
                     }
                     steps {
-                    	sh '${UPDATE_REPO_SH}'
+                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
+                        sh 'chmod u+x update_repo.sh'
+                        sh 'sh update_repo.sh'
+                        sh 'rm update_repo.sh'
                     	dir('tutanota') {
                     		sh 'npm prune'
                     		sh 'npm install'
-                    		unstash 'webapp_files'
+							unstash 'web_base'
+							unstash 'web_desktop'
                     		sh 'node dist -P -D m'
                     		dir('app-desktop/dist/installers') {
-	                        	stash includes: '**', excludes: '*.yaml', name:'mac_installer'
+	                        	stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
 	                        }
                     	}
                     }
@@ -82,14 +104,18 @@ pipeline {
                         label 'linux'
                     }
                     steps {
-                    	sh '${UPDATE_REPO_SH}'
+                        sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
+                        sh 'chmod u+x update_repo.sh'
+                        sh 'sh update_repo.sh'
+                        sh 'rm update_repo.sh'
                     	dir('tutanota') {
                     		sh 'npm prune'
                             sh 'npm install'
-                    		unstash 'webapp_files'
+							unstash 'web_base'
+							unstash 'web_desktop'
                     		sh 'node dist -P -D l'
 							dir('app-desktop/dist/installers') {
-								stash includes: '**', excludes: '*.yaml', name:'linux_installer'
+								stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
 							}
                     	}
                     }
@@ -102,13 +128,21 @@ pipeline {
                 label 'linux'
             }
             steps {
+                sh ''' echo "${UPDATE_REPO_SH}" > update_repo.sh '''
+                sh 'chmod u+x update_repo.sh'
+                sh 'sh update_repo.sh'
+                sh 'rm update_repo.sh'
             	dir('tutanota'){
-            		dir('app-desktop/dist/installers'){
+            	    sh 'rm -rf ./build/dist/'
+					unstash 'web_base'
+					unstash 'web_add'
+            		dir('build/dist/desktop'){
 						unstash 'linux_installer'
 						unstash 'mac_installer'
 						unstash 'win_installer'
-						archiveArtifacts artifacts: '**', onlyIfSuccessful: true
 					}
+					sh 'node dist -P deb'
+					archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
             	}
             }
         }

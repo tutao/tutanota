@@ -8,5 +8,5 @@ if [ "$RELEASE" == "true" ]; then
   echo "Starting the release build"
   node dist deb release
 else
-  node dist deb
+  node dist prod
 fi
