@@ -105,7 +105,6 @@ export class IndexerCore {
 		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 				if (!elementData) {
-					console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
 					return
 				}
 				let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
@@ -203,31 +202,46 @@ export class IndexerCore {
 	 */
 	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]: boolean}> {
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only for FF)
+		performance.mark("insertNewElementData-start")
 
 		let keysToUpdate: {[B64EncInstanceId]: boolean} = {}
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
+			performance.mark("insertNewElementData_get-start")
 			promises.push(transaction.get(ElementDataOS, b64EncInstanceId).then(result => {
+				performance.mark("insertNewElementData_get-end")
 				if (!result) { // only add the element to the index if it has not been indexed before
 					this._writeRequests += 1
 					this._storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
 					keysToUpdate[b64EncInstanceId] = true
-					transaction.put(ElementDataOS, b64EncInstanceId, elementData)
+
+					performance.mark("insertNewElementData_put-start")
+					transaction.put(ElementDataOS, b64EncInstanceId, elementData).finally(() => {
+						performance.mark("insertNewElementData_put-end")
+						performance.measure("insertNewElementData_put", "insertNewElementData_put-start", "insertNewElementData_put-end")
+					})
 				}
 			}))
 		}, {concurrency: 1})
-		return Promise.all(promises).return(keysToUpdate)
+		return Promise.all(promises).return(keysToUpdate).finally(() => {
+			performance.mark("insertNewElementData-end")
+			performance.measure("insertNewElementData", "insertNewElementData-start", "insertNewElementData-end")
+		})
 	}
 
 	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): Promise<void> {
+		performance.mark("insertNewIndexEntries-start")
 		return Promise.map(indexUpdate.create.indexMap.keys(), (b64EncIndexKey) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(b64EncIndexKey))
 			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(entry[0])])
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
+				performance.mark("insertNewIndexEntries_getMeta-start")
 				return transaction.get(SearchIndexMetaDataOS, b64EncIndexKey)
 				                  .then((metadata: ?SearchIndexMetadataEntry[]) => {
+					                  performance.mark("insertNewIndexEntries_getMeta-end")
+					                  performance.measure("insertNewIndexEntries_getMeta", "insertNewIndexEntries_getMeta-start", "insertNewIndexEntries_getMeta-end")
 					                  if (!metadata) { // no meta data entry for enc word create new search index row and meta data entry
 						                  this._storedBytes += encIndexKey.length
 						                  this._words += 1
@@ -242,6 +256,7 @@ export class IndexerCore {
 						                  const safeMetaData = neverNull(metadata)
 						                  const maxSize = SEARCH_INDEX_ROW_LENGTH - filteredEncryptedEntries.length
 						                  const vacantRow = metadata.find(entry => entry.size < maxSize)
+						                  performance.mark("insertNewIndexEntries_putIndexNew-start")
 						                  if (!vacantRow) { // new entries do not fit into existing search index row, create new row
 							                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
 							                                    .then(newId => {
@@ -251,10 +266,19 @@ export class IndexerCore {
 								                                    })
 								                                    return safeMetaData
 							                                    })
+							                                    .finally(() => {
+								                                    performance.mark("insertNewIndexEntries_putIndexNew-end")
+								                                    performance.measure("insertNewIndexEntries_putIndexNew", "insertNewIndexEntries_putIndexNew-start", "insertNewIndexEntries_putIndexNew-end")
+							                                    })
 						                  } else {
 							                  // add new entries to existing search index row
+
+							                  performance.mark("insertNewIndexEntries_getRow-start")
 							                  return transaction.get(SearchIndexOS, vacantRow.key)
 							                                    .then((row) => {
+								                                    performance.mark("insertNewIndexEntries_getRow-end")
+								                                    performance.measure("insertNewIndexEntries_getRow", "insertNewIndexEntries_getRow-start", "insertNewIndexEntries_getRow-end")
+								                                    performance.mark("insertNewIndexEntries_putIndex-start")
 								                                    let safeRow = row || []
 								                                    safeRow.push(...filteredEncryptedEntries)
 								                                    return transaction.put(SearchIndexOS, vacantRow.key, row)
@@ -262,6 +286,10 @@ export class IndexerCore {
 									                                                      vacantRow.size = safeRow.length
 									                                                      return safeMetaData
 								                                                      })
+							                                    })
+							                                    .finally(() => {
+								                                    performance.mark("insertNewIndexEntries_putIndex-end")
+								                                    performance.measure("insertNewIndexEntries_putIndex", "insertNewIndexEntries_putIndex-start", "insertNewIndexEntries_putIndex-end")
 							                                    })
 						                  }
 					                  }
@@ -274,10 +302,18 @@ export class IndexerCore {
 						                  ? columnSize : this._largestColumn
 					                  this._storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
 						                  sum + e[0].length + e[1].length, 0)
+					                  performance.mark("insertNewIndexEntries_putMeta-start")
 					                  return transaction.put(SearchIndexMetaDataOS, b64EncIndexKey, metaData)
+					                                    .finally(() => {
+						                                    performance.mark("insertNewIndexEntries_putMeta-end")
+						                                    performance.measure("insertNewIndexEntries_putMeta", "insertNewIndexEntries_putMeta-start", "insertNewIndexEntries_putMeta-end")
+					                                    })
 				                  })
 			}
-		}, {concurrency: 2}).return()
+		}, {concurrency: 1}).return().finally(() => {
+			performance.mark("insertNewIndexEntries-end")
+			performance.measure("insertNewIndexEntries", "insertNewIndexEntries-start", "insertNewIndexEntries-end")
+		})
 	}
 
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
@@ -322,4 +358,16 @@ export class IndexerCore {
 			+ this._storageTime + this._downloadingTime
 			+ this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
 	}
+}
+
+export function measure(names: string[]) {
+	const measures = {}
+	for (let name of names) {
+		try {
+			measures[name] = performance.getEntriesByName(name, "measure").reduce((acc, entry) => acc + entry.duration, 0)
+		} catch (e) {
+		}
+	}
+	performance.clearMeasures()
+	console.log(JSON.stringify(measures))
 }

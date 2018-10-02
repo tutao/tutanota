@@ -6,7 +6,7 @@ import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
 import {defer, neverNull} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
@@ -22,7 +22,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
-import {IndexerCore} from "./IndexerCore"
+import {IndexerCore, measure} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
@@ -318,23 +318,28 @@ export class Indexer {
 					// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
 					let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
 					return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
-					           .then(eventBatches => {
+					           .then(eventBatchesOnServer => {
 						           const batchesToQueue: QueuedBatch[] = []
-						           for (let batch of eventBatches) {
+						           for (let batch of eventBatchesOnServer) {
 							           const batchId = getElementId(batch)
-							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1) {
+							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, lastBatchId)) {
 								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
 							           }
 						           }
 						           // Good scenario: we know when we stopped, we can process events we did not process yet and catch up the server
-						           // [7, 8, 6, 5, 4]              - last X events
-						           //             [4, 3, 2, 1]     - processed events
+						           //
+						           //
+						           // [4, 3, 2, 1]                          - processed events, lastBatchId =1
+						           // load from lowest id 1 -1
+						           // [0.9, 1, 2, 3, 4, 5, 6, 7, 8]         - last X events from server
+						           // => [5, 6, 7, 8]                       - batches to queue
 						           //
 						           // Bad scenario: we don' know where we stopped, server doesn't have events to fill the gap anymore, we cannot fix the index.
-						           // [10, 9, 8, 7]
-						           //                    [4, 3, 2, 1]
+						           // [4, 3, 2, 1] - processed events, lastBatchId = 1
+						           // [7, 5, 9, 10] - last events from server
+						           // => [7, 5, 9, 10] - batches to queue - nothing has been processed before so we are out of sync
 
-						           if (eventBatches.length === batchesToQueue.length) {
+						           if (eventBatchesOnServer.length === batchesToQueue.length) {
 							           // Bad scenario happened.
 							           // None of the events we want to process were processed before, we're too far away, stop the process and delete
 							           // the index.
@@ -383,6 +388,7 @@ export class Indexer {
 			if (this._indexedGroupIds.indexOf(groupId) === -1) {
 				return Promise.resolve()
 			}
+			performance.mark("processEntityEvents-start")
 			let indexUpdate = _createNewIndexUpdate(groupId)
 			indexUpdate.batchId = [groupId, batchId]
 			let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
@@ -403,6 +409,8 @@ export class Indexer {
 				[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []],
 				[WhitelabelChildTypeRef, []]
 			]))
+			performance.mark("processEvent-start")
+
 			return Promise
 				.all([
 					this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate, futureActions),
@@ -412,7 +420,22 @@ export class Indexer {
 					this._processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
 				])
 				.then(() => {
+					performance.mark("processEvent-end")
+					performance.measure("processEvent", "processEvent-start", "processEvent-end")
+					performance.mark("writeIndexUpdate-start")
 					return this._core.writeIndexUpdate(indexUpdate)
+				}).then(() => {
+					performance.mark("writeIndexUpdate-end")
+					performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
+					performance.mark("processEntityEvents-end")
+					performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
+					// measure([
+					// 	"processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
+					// 	"processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get", "insertNewElementData_put",
+					// 	"insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
+					// 	"insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
+					// 	"insertNewIndexEntries_putMeta"
+					// ])
 				})
 		})
 	}
