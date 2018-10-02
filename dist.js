@@ -51,6 +51,33 @@ Promise.resolve()
 	       process.exit(1)
        })
 
+function getTargetUrl() {
+	//reject invalid desktop targets
+	if (program.desktop && !program.desktop.match('^[wml]+$')) {
+		return Promise.reject("invalid argument to -D: " + program.desktop.toString())
+	}
+
+	//set target url
+	//only print if we actually use the url
+	if (program.desktop || !program.prebuilt) {
+		if (program.host === 'test') {
+			targetUrl = "https://test.tutanota.com"
+		} else if (program.host === 'prod') {
+			targetUrl = "https://mail.tutanota.com"
+		} else if (program.host) {
+			targetUrl = program.host
+		} else {
+			version = program.deb ? new Date().getTime() : version
+			targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		}
+		console.log("targetUrl: ", targetUrl)
+	}
+
+	//--release implies --deb
+	program.deb = program.release ? true : program.deb
+	return Promise.resolve()
+}
+
 function measure() {
 	return (Date.now() - start) / 1000
 }
@@ -228,8 +255,8 @@ function _writeFile(targetFile, content) {
 let debName = `tutanota-next-${version}_1_amd64.deb`
 
 function packageDeb() {
-	if (process.argv.indexOf("deb") !== -1) {
-		console.log("create q" + debName)
+	if (program.deb) {
+		console.log("create " + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
