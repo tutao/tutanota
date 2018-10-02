@@ -43,7 +43,7 @@ const distLoc = (filename) => `${DistDir}/${filename}`
 Promise.resolve()
        .then(buildWebapp)
        .then(buildDesktopClient)
-       .then(deb)
+       .then(packageDeb)
        .then(release)
        .then(() => console.log(`\nBuild time: ${measure()}s`))
        .catch(e => {
@@ -227,9 +227,9 @@ function _writeFile(targetFile, content) {
 
 let debName = `tutanota-next-${version}_1_amd64.deb`
 
-function deb() {
+function packageDeb() {
 	if (process.argv.indexOf("deb") !== -1) {
-		console.log("create" + debName)
+		console.log("create q" + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]

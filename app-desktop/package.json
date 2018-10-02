@@ -16,7 +16,7 @@
   "build": {
     "publish": {
       "provider": "generic",
-      "url": "http://192.168.178.123:9001",
+      "url": "gets set in buildSrc/DesktopBuilder.js",
       "channel": "latest",
       "publishAutoUpdate": true
     },
@@ -51,10 +51,6 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": "x64"
-        },
-        {
-          "target": "snap",
           "arch": "x64"
         }
       ]
