@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 1250,
-			"since": 24,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"feature": {
-			"name": "feature",
-			"id": 1309,
-			"since": 28,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 1250, "since": 24, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"feature": {"name": "feature", "id": 1309, "since": 28, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createBootstrapFeature(): BootstrapFeature {

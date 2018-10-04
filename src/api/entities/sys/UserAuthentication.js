@@ -11,17 +11,7 @@ export const _TypeModel: TypeModel = {
 	"rootId": "A3N5cwAEtg",
 	"versioned": false,
 	"encrypted": false,
-	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 1207,
-			"since": 23,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
-	},
+	"values": {"_id": {"name": "_id", "id": 1207, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"secondFactors": {
 			"name": "secondFactors",
@@ -45,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createUserAuthentication(): UserAuthentication {

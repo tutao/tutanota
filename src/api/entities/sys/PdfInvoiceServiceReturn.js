@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 781,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"data": {
-			"name": "data",
-			"id": 782,
-			"since": 9,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": true
-		}
+		"_format": {"name": "_format", "id": 781, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"data": {"name": "data", "id": 782, "since": 9, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createPdfInvoiceServiceReturn(): PdfInvoiceServiceReturn {

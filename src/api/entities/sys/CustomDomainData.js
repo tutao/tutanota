@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 736,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"domain": {
-			"name": "domain",
-			"id": 737,
-			"since": 9,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 736, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"domain": {"name": "domain", "id": 737, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"catchAllMailGroup": {
@@ -44,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createCustomDomainData(): CustomDomainData {

@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 979,
-			"since": 16,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"activatedFeature": {
-			"name": "activatedFeature",
-			"id": 980,
-			"since": 16,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 979, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"activatedFeature": {"name": "activatedFeature", "id": 980, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createPremiumFeatureReturn(): PremiumFeatureReturn {

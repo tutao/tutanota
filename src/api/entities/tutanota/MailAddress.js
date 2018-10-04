@@ -12,33 +12,9 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 93,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"address": {
-			"name": "address",
-			"id": 95,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"name": {
-			"name": "name",
-			"id": 94,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": true
-		}
+		"_id": {"name": "_id", "id": 93, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"address": {"name": "address", "id": 95, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"name": {"name": "name", "id": 94, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {
 		"contact": {

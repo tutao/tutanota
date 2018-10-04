@@ -63,7 +63,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createUpdatePermissionKeyData(): UpdatePermissionKeyData {

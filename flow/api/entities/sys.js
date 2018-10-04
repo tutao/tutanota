@@ -1122,6 +1122,7 @@ type CustomerServerProperties = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	requirePasswordUpdateAfterReset: boolean;
+	saveEncryptedIpAddressInSession: boolean;
 	whitelabelCode: string;
 
 	emailSenderList: EmailSenderListElement[];
@@ -1306,7 +1307,7 @@ type Session = {
 	accessKey: ?Uint8Array;
 	clientIdentifier: string;
 	lastAccessTime: Date;
-	loginIpAddress: string;
+	loginIpAddress: ?string;
 	loginTime: Date;
 	state: NumberString;
 
@@ -1480,13 +1481,6 @@ type OrderProcessingAgreement = {
 	signerUserGroupInfo: IdTuple;
 }
 
-type OrderProcessingAgreements = {
-	_type: TypeRef<OrderProcessingAgreements>;
-	_id: Id;
-
-	agreements: Id;
-}
-
 type SignOrderProcessingAgreementData = {
 	_type: TypeRef<SignOrderProcessingAgreementData>;
 	_format: NumberString;
@@ -1508,31 +1502,4 @@ type SseConnectData = {
 	identifier: string;
 
 	userIds: GeneratedIdWrapper[];
-}
-
-type NotificationInfo = {
-	_type: TypeRef<NotificationInfo>;
-	_id: Id;
-	counter: NumberString;
-	mailAddress: string;
-	userId: Id;
-
-}
-
-type MissedNotification = {
-	_type: TypeRef<MissedNotification>;
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-	confirmationId: Id;
-
-	notificationInfos: NotificationInfo[];
-}
-
-type MissedNotifications = {
-	_type: TypeRef<MissedNotifications>;
-	_id: Id;
-
-	notifications: Id;
 }

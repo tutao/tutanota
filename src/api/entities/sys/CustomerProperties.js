@@ -68,27 +68,11 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"bigLogo": {
-			"name": "bigLogo",
-			"id": 923,
-			"since": 11,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "File",
-			"final": false
-		},
-		"smallLogo": {
-			"name": "smallLogo",
-			"id": 922,
-			"since": 11,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "File",
-			"final": false
-		}
+		"bigLogo": {"name": "bigLogo", "id": 923, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false},
+		"smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createCustomerProperties(): CustomerProperties {

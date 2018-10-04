@@ -12,46 +12,14 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 1226,
-			"since": 23,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"clientData": {
-			"name": "clientData",
-			"id": 1228,
-			"since": 23,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"keyHandle": {
-			"name": "keyHandle",
-			"id": 1227,
-			"since": 23,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"signatureData": {
-			"name": "signatureData",
-			"id": 1229,
-			"since": 23,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 1226, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"clientData": {"name": "clientData", "id": 1228, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"keyHandle": {"name": "keyHandle", "id": 1227, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"signatureData": {"name": "signatureData", "id": 1229, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createU2fResponseData(): U2fResponseData {

@@ -12,64 +12,16 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 1314,
-			"since": 30,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"cardHolderName": {
-			"name": "cardHolderName",
-			"id": 1315,
-			"since": 30,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"cvv": {
-			"name": "cvv",
-			"id": 1317,
-			"since": 30,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"expirationMonth": {
-			"name": "expirationMonth",
-			"id": 1318,
-			"since": 30,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"expirationYear": {
-			"name": "expirationYear",
-			"id": 1319,
-			"since": 30,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"number": {
-			"name": "number",
-			"id": 1316,
-			"since": 30,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		}
+		"_id": {"name": "_id", "id": 1314, "since": 30, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"cardHolderName": {"name": "cardHolderName", "id": 1315, "since": 30, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"cvv": {"name": "cvv", "id": 1317, "since": 30, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"expirationMonth": {"name": "expirationMonth", "id": 1318, "since": 30, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"expirationYear": {"name": "expirationYear", "id": 1319, "since": 30, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"number": {"name": "number", "id": 1316, "since": 30, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createCreditCard(): CreditCard {

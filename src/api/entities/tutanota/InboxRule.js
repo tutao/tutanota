@@ -12,33 +12,9 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 574,
-			"since": 12,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"type": {
-			"name": "type",
-			"id": 575,
-			"since": 12,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"value": {
-			"name": "value",
-			"id": 576,
-			"since": 12,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		}
+		"_id": {"name": "_id", "id": 574, "since": 12, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"type": {"name": "type", "id": 575, "since": 12, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"value": {"name": "value", "id": 576, "since": 12, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"targetFolder": {

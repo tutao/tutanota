@@ -12,37 +12,13 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 679,
-			"since": 7,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"challenge": {
-			"name": "challenge",
-			"id": 681,
-			"since": 7,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
-		"token": {
-			"name": "token",
-			"id": 680,
-			"since": 7,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 679, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"challenge": {"name": "challenge", "id": 681, "since": 7, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"token": {"name": "token", "id": 680, "since": 7, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createRegistrationCaptchaServiceReturn(): RegistrationCaptchaServiceReturn {

@@ -418,49 +418,6 @@ type CreateFileData = {
 	parentFolder: ?IdTuple;
 }
 
-type CreateFileReturn = {
-	_type: TypeRef<CreateFileReturn>;
-	_errors: Object;
-	_format: NumberString;
-
-	file: IdTuple;
-}
-
-type CreateFolderData = {
-	_type: TypeRef<CreateFolderData>;
-	_errors: Object;
-	_format: NumberString;
-	fileName: string;
-	group: Id;
-	ownerEncSessionKey: Uint8Array;
-	symEncSessionKey: Uint8Array;
-
-	parentFolder: ?IdTuple;
-}
-
-type CreateFolderReturn = {
-	_type: TypeRef<CreateFolderReturn>;
-	_errors: Object;
-	_format: NumberString;
-
-	file: IdTuple;
-}
-
-type UpdateFileData = {
-	_type: TypeRef<UpdateFileData>;
-	_format: NumberString;
-
-	file: IdTuple;
-	fileData: Id;
-}
-
-type DeleteFileData = {
-	_type: TypeRef<DeleteFileData>;
-	_format: NumberString;
-
-	file: IdTuple;
-}
-
 type DeleteMailData = {
 	_type: TypeRef<DeleteMailData>;
 	_format: NumberString;

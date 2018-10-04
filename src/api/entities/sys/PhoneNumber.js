@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 64,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"number": {
-			"name": "number",
-			"id": 65,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 64, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"number": {"name": "number", "id": 65, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createPhoneNumber(): PhoneNumber {
