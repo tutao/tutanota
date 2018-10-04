@@ -1,14 +1,14 @@
 // @flow
-import {serviceRequest, load, update, serviceRequestVoid} from "../EntityWorker"
+import {load, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
 import type {AccountTypeEnum} from "../../common/TutanotaConstants"
-import {Const, AccountType, BookingItemFeatureType, GroupType} from "../../common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {bookingFacade} from "./BookingFacade"
 import {assertWorkerOrNode} from "../../Env"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
-import {uint8ArrayToBase64, stringToUtf8Uint8Array, uint8ArrayToHex} from "../../common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
 import {hash} from "../crypto/Sha256"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
 import {neverNull} from "../../common/utils/Utils"
@@ -16,7 +16,7 @@ import {aes128RandomKey} from "../crypto/Aes"
 import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/CreateCustomerServerPropertiesReturn"
-import {uint8ArrayToBitArray, bitArrayToUint8Array} from "../crypto/CryptoUtils"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {SysService} from "../../entities/sys/Services"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
@@ -35,7 +35,7 @@ import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {createContactFormStatisticField} from "../../entities/tutanota/ContactFormStatisticField"
 import type {LoginFacade} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
-import {readCounterValue} from "./CounterFacade"
+import {CounterFacade} from "./CounterFacade"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataServicePutData"
@@ -53,14 +53,16 @@ export class CustomerFacade {
 	_groupManagement: GroupManagementFacade;
 	_userManagement: UserManagementFacade;
 	_worker: WorkerImpl;
+	_counters: CounterFacade
 	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 
 
-	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, userManagement: UserManagementFacade) {
+	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, userManagement: UserManagementFacade, counters: CounterFacade) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
 		this._userManagement = userManagement
+		this._counters = counters
 	}
 
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
@@ -113,11 +115,13 @@ export class CustomerFacade {
 	}
 
 	readUsedCustomerStorage(customerId: Id): Promise<number> {
-		return readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
-			return readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
-				return (Number(usedMemoryInternal) + Number(usedMemoryExternal));
-			})
-		})
+		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId)
+		           .then(usedMemoryInternal => {
+			           return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId)
+			                      .then(usedMemoryExternal => {
+				                      return (Number(usedMemoryInternal) + Number(usedMemoryExternal));
+			                      })
+		           })
 	}
 
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {

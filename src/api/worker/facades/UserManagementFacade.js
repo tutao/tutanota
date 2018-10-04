@@ -1,13 +1,13 @@
 // @flow
 import {assertWorkerOrNode} from "../../Env"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {Const, GroupType, AccountType} from "../../common/TutanotaConstants"
+import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
 import {load, serviceRequestVoid} from "../EntityWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
-import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {generateRandomSalt, generateKeyFromPassphrase} from "../crypto/Bcrypt"
+import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {neverNull, asyncFind} from "../../common/utils/Utils"
+import {asyncFind, neverNull} from "../../common/utils/Utils"
 import {createAuthVerifier} from "../crypto/CryptoUtils"
 import {createResetPasswordData} from "../../entities/sys/ResetPasswordData"
 import {HttpMethod} from "../../common/EntityFunctions"
@@ -23,7 +23,7 @@ import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import type {LoginFacade} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
-import {readCounterValue} from "./CounterFacade"
+import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
 
@@ -34,11 +34,13 @@ export class UserManagementFacade {
 	_worker: WorkerImpl;
 	_login: LoginFacade;
 	_groupManagement: GroupManagementFacade;
+	_counters: CounterFacade
 
-	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade) {
+	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, counters: CounterFacade) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
+		this._counters = counters
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -127,15 +129,17 @@ export class UserManagementFacade {
 	}
 
 	readUsedUserStorage(user: User): Promise<number> {
-		return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
-			return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact))
-				.then(contactStorage => {
-					return readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File))
-						.then(fileStorage => {
-							return (Number(mailStorage) + Number(contactStorage) + Number(fileStorage));
-						})
-				})
-		})
+		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail))
+		           .then(mailStorage => {
+			           return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact))
+			                      .then(contactStorage => {
+				                      return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File))
+				                                 .then(fileStorage => {
+					                                 return (Number(mailStorage) + Number(contactStorage)
+						                                 + Number(fileStorage));
+				                                 })
+			                      })
+		           })
 	}
 
 	deleteUser(user: User, restore: boolean): Promise<void> {

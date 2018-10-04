@@ -214,6 +214,9 @@ export class WorkerImpl {
 			cancelMailIndexing: (message: Request) => {
 				return locator.indexer.cancelMailIndexing()
 			},
+			readCounterValue: (message: Request) => {
+				return locator.counters.readCounterValue.apply(locator.counters, message.args)
+			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},

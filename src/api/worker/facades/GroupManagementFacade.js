@@ -5,9 +5,9 @@ import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroup
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array} from "../../common/utils/Encoding"
-import {encryptRsaKey, encryptKey, decryptKey, encryptString} from "../crypto/CryptoFacade"
+import {decryptKey, encryptKey, encryptRsaKey, encryptString} from "../crypto/CryptoFacade"
 import type {LoginFacade} from "./LoginFacade"
-import {serviceRequestVoid, load} from "../EntityWorker"
+import {load, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {aes128RandomKey} from "../crypto/Aes"
@@ -17,20 +17,22 @@ import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {neverNull} from "../../common/utils/Utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
-import {readCounterValue} from "./CounterFacade"
+import {CounterFacade} from "./CounterFacade"
 
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
 
 	_login: LoginFacade;
+	_counters: CounterFacade
 
-	constructor(login: LoginFacade) {
+	constructor(login: LoginFacade, counters: CounterFacade) {
 		this._login = login
+		this._counters = counters
 	}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
-		return readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
+		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
 			return Number(usedStorage)
 		})
 	}

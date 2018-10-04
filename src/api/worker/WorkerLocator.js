@@ -12,6 +12,7 @@ import {MailAddressFacade} from "./facades/MailAddressFacade"
 import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacade} from "./facades/CustomerFacade"
+import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption} from "../common/TutanotaConstants"
@@ -28,6 +29,7 @@ type WorkerLocatorType = {
 	file: FileFacade;
 	mail: MailFacade;
 	mailAddress: MailAddressFacade;
+	counters: CounterFacade;
 	eventBusClient: EventBusClient;
 	_indexedDbSupported: boolean;
 }
@@ -43,9 +45,10 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean) {
 		locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade
 	])
-	locator.groupManagement = new GroupManagementFacade(locator.login)
-	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement)
-	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement)
+	locator.counters = new CounterFacade()
+	locator.groupManagement = new GroupManagementFacade(locator.login, locator.counters)
+	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
+	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
 	locator.mailAddress = new MailAddressFacade(locator.login)

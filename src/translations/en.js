@@ -1094,6 +1094,7 @@ module.exports = {
 		"spamRuleEnterValue_msg": "Please enter a value.",
 		"knownCredentials_label": "Use saved account",
 		"typeToFilter_label": "Type to filter...",
-		"appInfoAmazonImageAlt_alt": "Android App on Amazon"
+		"appInfoAmazonImageAlt_alt": "Android App on Amazon",
+		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de and describe what you would like to use this email account for.",
 	}
 }

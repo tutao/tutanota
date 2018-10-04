@@ -367,6 +367,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('cancelMailIndexing', arguments))
 	}
 
+	readCounterValue(monitorValue: string, ownerId: Id): Promise<string> {
+		return this._postRequest(new Request('readCounterValue', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
