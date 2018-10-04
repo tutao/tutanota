@@ -15,7 +15,7 @@ import {_createNewIndexUpdate, containsEventOfType, encryptIndexKeyBase64, filte
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
-import {IndexerCore, measure} from "./IndexerCore"
+import {IndexerCore} from "./IndexerCore"
 import {EntityRestClient} from "../rest/EntityRestClient"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
@@ -169,6 +169,7 @@ export class MailIndexer {
 
 	disableMailIndexing(): Promise<void> {
 		this.mailIndexingEnabled = false
+		this._indexingCancelled = true
 		this._excludedListIds = []
 		return this._db.dbFacade.deleteDatabase()
 	}
@@ -230,15 +231,19 @@ export class MailIndexer {
 		}).finally(() => {
 			this._core.queue.resume()
 			// update our index timestamp and send the information to the main thread. this can be done async
-			this.updateCurrentIndexTimestamp(user).then(() => {
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: this._core.indexingSupported,
-					mailIndexEnabled: this.mailIndexingEnabled,
-					progress: 0,
-					currentMailIndexTimestamp: this.currentIndexTimestamp
+			if (this._indexingCancelled) {
+				console.log("Indexing is cancelled, do not write current index timestamp")
+			} else {
+				this.updateCurrentIndexTimestamp(user).then(() => {
+					this._worker.sendIndexState({
+						initializing: false,
+						indexingSupported: this._core.indexingSupported,
+						mailIndexEnabled: this.mailIndexingEnabled,
+						progress: 0,
+						currentMailIndexTimestamp: this.currentIndexTimestamp
+					})
 				})
-			})
+			}
 		})
 		return this.mailboxIndexingPromise.return()
 	}
