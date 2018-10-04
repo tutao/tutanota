@@ -169,7 +169,7 @@ export class LoginView {
 
 		const panel = {
 			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
-				? [loginOther(), deleteCredentials()]
+				? [loginOther(), deleteCredentials(), themeSwitch()]
 				: [knownCredentials(), signUp(), themeSwitch()]
 			)
 		}
