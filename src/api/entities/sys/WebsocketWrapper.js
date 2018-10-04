@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 473,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"clientVersion": {
-			"name": "clientVersion",
-			"id": 1086,
-			"since": 20,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 473, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"clientVersion": {"name": "clientVersion", "id": 1086, "since": 20, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"eventBatchId": {
 			"name": "eventBatchId",
 			"id": 1087,
@@ -48,33 +32,9 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"modelVersions": {
-			"name": "modelVersions",
-			"id": 683,
-			"since": 7,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"msgId": {
-			"name": "msgId",
-			"id": 474,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"type": {
-			"name": "type",
-			"id": 475,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"modelVersions": {"name": "modelVersions", "id": 683, "since": 7, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"msgId": {"name": "msgId", "id": 474, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"type": {"name": "type", "id": 475, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"authentication": {
@@ -86,15 +46,7 @@ export const _TypeModel: TypeModel = {
 			"refType": "Authentication",
 			"final": false
 		},
-		"chat": {
-			"name": "chat",
-			"id": 477,
-			"since": 1,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "Chat",
-			"final": false
-		},
+		"chat": {"name": "chat", "id": 477, "since": 1, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Chat", "final": false},
 		"entityUpdate": {
 			"name": "entityUpdate",
 			"id": 478,
@@ -104,24 +56,8 @@ export const _TypeModel: TypeModel = {
 			"refType": "EntityUpdate",
 			"final": false
 		},
-		"eventBatch": {
-			"name": "eventBatch",
-			"id": 1089,
-			"since": 20,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"refType": "EntityUpdate",
-			"final": false
-		},
-		"exception": {
-			"name": "exception",
-			"id": 479,
-			"since": 1,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "Exception",
-			"final": false
-		}
+		"eventBatch": {"name": "eventBatch", "id": 1089, "since": 20, "type": "AGGREGATION", "cardinality": "Any", "refType": "EntityUpdate", "final": false},
+		"exception": {"name": "exception", "id": 479, "since": 1, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Exception", "final": false}
 	},
 	"app": "sys",
 	"version": "35"

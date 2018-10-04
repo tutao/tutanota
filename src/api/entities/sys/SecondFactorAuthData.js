@@ -17,15 +17,7 @@ export const _TypeModel: TypeModel = {
 		"type": {"name": "type", "id": 1230, "since": 23, "type": "Number", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"u2f": {
-			"name": "u2f",
-			"id": 1231,
-			"since": 23,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "U2fResponseData",
-			"final": true
-		},
+		"u2f": {"name": "u2f", "id": 1231, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "U2fResponseData", "final": true},
 		"session": {
 			"name": "session",
 			"id": 1232,

@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 701,
-			"since": 9,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"currentCount": {
-			"name": "currentCount",
-			"id": 703,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 701, "since": 9, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"currentCount": {"name": "currentCount", "id": 703, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"currentInvoicedCount": {
 			"name": "currentInvoicedCount",
 			"id": 706,
@@ -39,51 +23,11 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"featureType": {
-			"name": "featureType",
-			"id": 702,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"maxCount": {
-			"name": "maxCount",
-			"id": 704,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"price": {
-			"name": "price",
-			"id": 707,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"priceType": {
-			"name": "priceType",
-			"id": 708,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"totalInvoicedCount": {
-			"name": "totalInvoicedCount",
-			"id": 705,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"featureType": {"name": "featureType", "id": 702, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"maxCount": {"name": "maxCount", "id": 704, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"price": {"name": "price", "id": 707, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"priceType": {"name": "priceType", "id": 708, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"totalInvoicedCount": {"name": "totalInvoicedCount", "id": 705, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",

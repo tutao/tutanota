@@ -12,15 +12,7 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 826,
-			"since": 22,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 826, "since": 22, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"bucketEncSessionKey": {
 			"name": "bucketEncSessionKey",
 			"id": 827,

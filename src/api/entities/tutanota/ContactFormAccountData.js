@@ -31,15 +31,7 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactFormStatisticEntry",
 			"final": true
 		},
-		"userData": {
-			"name": "userData",
-			"id": 793,
-			"since": 19,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"refType": "ContactFormUserData",
-			"final": false
-		},
+		"userData": {"name": "userData", "id": 793, "since": 19, "type": "AGGREGATION", "cardinality": "One", "refType": "ContactFormUserData", "final": false},
 		"userGroupData": {
 			"name": "userGroupData",
 			"id": 794,

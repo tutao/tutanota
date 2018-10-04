@@ -12,33 +12,9 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 454,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"accessToken": {
-			"name": "accessToken",
-			"id": 1239,
-			"since": 23,
-			"type": "String",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
-		"authVerifier": {
-			"name": "authVerifier",
-			"id": 456,
-			"since": 1,
-			"type": "String",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 454, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"accessToken": {"name": "accessToken", "id": 1239, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"authVerifier": {"name": "authVerifier", "id": 456, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"externalAuthToken": {
 			"name": "externalAuthToken",
 			"id": 968,

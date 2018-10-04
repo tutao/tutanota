@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 147,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"_id": {
-			"name": "_id",
-			"id": 145,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 147, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 145, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
 			"id": 1010,
@@ -39,69 +23,13 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
-			"id": 1009,
-			"since": 17,
-			"type": "GeneratedId",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
-		"_permissions": {
-			"name": "_permissions",
-			"id": 146,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"business": {
-			"name": "business",
-			"id": 761,
-			"since": 9,
-			"type": "Boolean",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"invoiceAddress": {
-			"name": "invoiceAddress",
-			"id": 763,
-			"since": 9,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"invoiceCountry": {
-			"name": "invoiceCountry",
-			"id": 764,
-			"since": 9,
-			"type": "String",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": true
-		},
-		"invoiceName": {
-			"name": "invoiceName",
-			"id": 762,
-			"since": 9,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"invoiceVatIdNo": {
-			"name": "invoiceVatIdNo",
-			"id": 766,
-			"since": 9,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 1009, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 146, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"business": {"name": "business", "id": 761, "since": 9, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
+		"invoiceAddress": {"name": "invoiceAddress", "id": 763, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"invoiceCountry": {"name": "invoiceCountry", "id": 764, "since": 9, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true},
+		"invoiceName": {"name": "invoiceName", "id": 762, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"invoiceVatIdNo": {"name": "invoiceVatIdNo", "id": 766, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"lastInvoiceNbrOfSentSms": {
 			"name": "lastInvoiceNbrOfSentSms",
 			"id": 593,
@@ -129,24 +57,8 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"paymentInterval": {
-			"name": "paymentInterval",
-			"id": 769,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"paymentMethod": {
-			"name": "paymentMethod",
-			"id": 767,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": true
-		},
+		"paymentInterval": {"name": "paymentInterval", "id": 769, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"paymentMethod": {"name": "paymentMethod", "id": 767, "since": 9, "type": "Number", "cardinality": "ZeroOrOne", "final": false, "encrypted": true},
 		"paymentMethodInfo": {
 			"name": "paymentMethodInfo",
 			"id": 768,
@@ -174,15 +86,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"secondCountryInfo": {
-			"name": "secondCountryInfo",
-			"id": 765,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		}
+		"secondCountryInfo": {"name": "secondCountryInfo", "id": 765, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"invoiceInfo": {

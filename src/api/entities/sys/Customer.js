@@ -12,51 +12,11 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 35,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"_id": {
-			"name": "_id",
-			"id": 33,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
-			"id": 991,
-			"since": 17,
-			"type": "GeneratedId",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
-		"_permissions": {
-			"name": "_permissions",
-			"id": 34,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"approvalStatus": {
-			"name": "approvalStatus",
-			"id": 926,
-			"since": 12,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 35, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 33, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 991, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 34, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"approvalStatus": {"name": "approvalStatus", "id": 926, "since": 12, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"canceledPremiumAccount": {
 			"name": "canceledPremiumAccount",
 			"id": 902,
@@ -75,26 +35,10 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"type": {
-			"name": "type",
-			"id": 36,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"type": {"name": "type", "id": 36, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"auditLog": {
-			"name": "auditLog",
-			"id": 1161,
-			"since": 22,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "AuditLogRef",
-			"final": true
-		},
+		"auditLog": {"name": "auditLog", "id": 1161, "since": 22, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "AuditLogRef", "final": true},
 		"contactFormUserAreaGroups": {
 			"name": "contactFormUserAreaGroups",
 			"id": 1160,

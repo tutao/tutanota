@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 1330,
-			"since": 31,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"_id": {
-			"name": "_id",
-			"id": 1328,
-			"since": 31,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 1330, "since": 31, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 1328, "since": 31, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
 			"id": 1332,
@@ -39,51 +23,11 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
-			"id": 1331,
-			"since": 31,
-			"type": "GeneratedId",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
-		"_permissions": {
-			"name": "_permissions",
-			"id": 1329,
-			"since": 31,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"customerAddress": {
-			"name": "customerAddress",
-			"id": 1334,
-			"since": 31,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"signatureDate": {
-			"name": "signatureDate",
-			"id": 1335,
-			"since": 31,
-			"type": "Date",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"version": {
-			"name": "version",
-			"id": 1333,
-			"since": 31,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_ownerGroup": {"name": "_ownerGroup", "id": 1331, "since": 31, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 1329, "since": 31, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"customerAddress": {"name": "customerAddress", "id": 1334, "since": 31, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"signatureDate": {"name": "signatureDate", "id": 1335, "since": 31, "type": "Date", "cardinality": "One", "final": false, "encrypted": false},
+		"version": {"name": "version", "id": 1333, "since": 31, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"customer": {

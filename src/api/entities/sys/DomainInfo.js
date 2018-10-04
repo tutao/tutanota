@@ -12,15 +12,7 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 697,
-			"since": 9,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 697, "since": 9, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"certificateExpiryDate": {
 			"name": "certificateExpiryDate",
 			"id": 1134,
@@ -30,24 +22,8 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"domain": {
-			"name": "domain",
-			"id": 698,
-			"since": 9,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"validatedMxRecord": {
-			"name": "validatedMxRecord",
-			"id": 699,
-			"since": 9,
-			"type": "Boolean",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"domain": {"name": "domain", "id": 698, "since": 9, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"validatedMxRecord": {"name": "validatedMxRecord", "id": 699, "since": 9, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"catchAllMailGroup": {

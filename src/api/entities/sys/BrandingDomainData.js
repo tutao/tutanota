@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 1150,
-			"since": 22,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"domain": {
-			"name": "domain",
-			"id": 1151,
-			"since": 22,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 1150, "since": 22, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"domain": {"name": "domain", "id": 1151, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
 		"sessionEncPemCertificateChain": {
 			"name": "sessionEncPemCertificateChain",
 			"id": 1152,

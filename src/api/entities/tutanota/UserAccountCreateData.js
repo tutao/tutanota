@@ -16,15 +16,7 @@ export const _TypeModel: TypeModel = {
 		"date": {"name": "date", "id": 665, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {
-		"userData": {
-			"name": "userData",
-			"id": 666,
-			"since": 16,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"refType": "UserAccountUserData",
-			"final": false
-		},
+		"userData": {"name": "userData", "id": 666, "since": 16, "type": "AGGREGATION", "cardinality": "One", "refType": "UserAccountUserData", "final": false},
 		"userGroupData": {
 			"name": "userGroupData",
 			"id": 667,
