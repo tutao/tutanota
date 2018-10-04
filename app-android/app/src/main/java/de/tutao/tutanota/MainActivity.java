@@ -193,11 +193,11 @@ public class MainActivity extends Activity {
         switch (themeName) {
             case "dark":
                 elemsColor = R.color.colorPrimaryDark;
-                backgroundRes = R.drawable.splash_background_dark;
+                backgroundRes = R.color.windowBackgroundDark;
                 break;
             default:
                 elemsColor = R.color.colorPrimary;
-                backgroundRes = R.drawable.splash_background;
+                backgroundRes = R.color.windowBackground;
         }
         int colorInt = getResources().getColor(elemsColor);
         getWindow().setStatusBarColor(colorInt);
