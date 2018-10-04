@@ -1,7 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {HasId, HasIdTuple, HttpMethodEnum} from "../common/EntityFunctions"
+import type {Element, ListElement, HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -50,17 +50,17 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
-export function loadMultiple<T: HasIdTuple>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
+export function loadMultiple<T: (ListElement | Element)>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
 }
 
-export function loadRange<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
-                                         reverse: boolean): Promise<T[]> {
+export function loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+                                          reverse: boolean): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, worker)
 }
 
 
-export function loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
+export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
 			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
@@ -69,7 +69,7 @@ export function loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: ?
 	})
 }
 
-function _loadAll<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
+function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length === 0) return Promise.resolve(elements)
 		let lastElementId = getLetId(elements[elements.length - 1])[1]
@@ -96,7 +96,7 @@ export function loadVersion<T>(instance: T, version: Id): Promise<T> {
 	})
 }
 
-export function loadVersionInfo<T: (HasId | HasIdTuple)>(instance: T): Promise<VersionReturn> {
+export function loadVersionInfo<T: (Element | ListElement)>(instance: T): Promise<VersionReturn> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version info")
 		_verifyType(typeModel)

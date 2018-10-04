@@ -205,7 +205,7 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
-export function _loadReverseRangeBetween<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target)
@@ -283,11 +283,11 @@ export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number
 }
 
 
-export function sortCompareByReverseId<T: HasIdTuple>(entity1: T, entity2: T): number {
+export function sortCompareByReverseId<T: ListElement>(entity1: T, entity2: T): number {
 	return compareNewestFirst(getElementId(entity1), getElementId(entity2))
 }
 
-export function sortCompareById<T: HasIdTuple>(entity1: T, entity2: T): number {
+export function sortCompareById<T: ListElement>(entity1: T, entity2: T): number {
 	return compareOldestFirst(getElementId(entity1), getElementId(entity2))
 }
 
@@ -311,27 +311,27 @@ export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple) {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 
-export type HasId = {
+export type Element = {
 	_id: Id
 }
 
-export type HasIdTuple = {
+export type ListElement = {
 	_id: IdTuple
 }
 
-export function getEtId(entity: HasId): Id {
+export function getEtId(entity: Element): Id {
 	return entity._id
 }
 
-export function getLetId(entity: HasIdTuple): IdTuple {
+export function getLetId(entity: ListElement): IdTuple {
 	return entity._id
 }
 
-export function getElementId(entity: HasIdTuple): Id {
+export function getElementId(entity: ListElement): Id {
 	return elementIdPart(getLetId(entity))
 }
 
-export function getListId(entity: HasIdTuple): Id {
+export function getListId(entity: ListElement): Id {
 	return listIdPart(getLetId(entity))
 }
 

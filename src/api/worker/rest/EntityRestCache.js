@@ -1,6 +1,6 @@
 // @flow
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient"
-import type {HasIdTuple, HttpMethodEnum} from "../../common/EntityFunctions"
+import type {ListElement, HttpMethodEnum} from "../../common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId, HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {remove} from "../../common/utils/ArrayUtils"
@@ -128,7 +128,7 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_loadRange<T: HasIdTuple>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	_loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		let path = typeRefToPath(typeRef)
 		let listCache = (this._listEntities[path]
 			&& this._listEntities[path][listId]) ? this._listEntities[path][listId] : null
@@ -214,7 +214,7 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_handleElementRangeResult<T: HasIdTuple>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean, elements: T[], targetCount: number): T[] {
+	_handleElementRangeResult<T: ListElement>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean, elements: T[], targetCount: number): T[] {
 		let elementsToAdd = elements
 		if (elements.length > 0) {
 			// Ensure that elements are cached in ascending (not reverse) order
