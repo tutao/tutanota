@@ -29,6 +29,7 @@ pipeline {
 						sh 'npm prune'
 						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
+						rm -rf ./build/dist/
 						unstash 'web_base'
 						unstash 'web_desktop'
 						sh 'node dist -pw prod'
@@ -46,6 +47,7 @@ pipeline {
 						sh 'npm prune'
 						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
+						rm -rf ./build/dist/
 						unstash 'web_base'
 						unstash 'web_desktop'
 						sh 'node dist -pm prod'
@@ -63,6 +65,7 @@ pipeline {
 						sh 'npm prune'
 						sh 'npm install'
 						sh 'rm -rf ./app-desktop/dist/'
+						rm -rf ./build/dist/
 						unstash 'web_base'
 						unstash 'web_desktop'
 						sh 'node dist -pl prod'
