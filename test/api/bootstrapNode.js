@@ -1,3 +1,5 @@
+import {noOp} from "../../src/api/common/utils/Utils"
+
 global.env = require('../../buildSrc/env.js').create(null, "http://localhost:9000", require('../../../package.json').version, "Test")
 
 // node environment: mock a few browser functions
@@ -37,6 +39,12 @@ global.performance = {
 	now: function () {
 		return Date.now() - nowOffset;
 	}
+}
+
+global.performance = {
+	now: Date.now,
+	mark: noOp,
+	measure: noOp,
 }
 
 

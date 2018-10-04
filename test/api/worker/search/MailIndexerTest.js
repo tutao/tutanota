@@ -58,7 +58,7 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("createMailIndexEntries", function () {
-		let core = ({createIndexEntriesForAttributes: o.spy()}: any)
+		let core: IndexerCore = ({createIndexEntriesForAttributes: o.spy(), _stats: {}}: any)
 		let indexer = new MailIndexer(core, dbMock, (null: any), (null: any), (null: any))
 
 		let toRecipients = [createMailAddress(), createMailAddress()]

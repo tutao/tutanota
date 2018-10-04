@@ -7,7 +7,7 @@ import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
-import {defer, neverNull} from "../../common/utils/Utils"
+import {defer, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
@@ -34,6 +34,7 @@ import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
 import {contains} from "../../common/utils/ArrayUtils"
 import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
+import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -96,51 +97,10 @@ export class Indexer {
 				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
 						if (!userEncDbKey) {
-							return this._loadGroupData(user)
-							           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
-								           return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
-								                      .then(t2 => {
-									                      this.db.key = aes256RandomKey()
-									                      this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
-									                      t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
-									                      t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
-									                      t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
-									                      t2.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(this.db.key, this.db.iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
-									                      return this._initGroupData(groupBatches, t2)
-								                      })
-							           })
-							           .then(() => {
-								           return this._updateIndexedGroups()
-							           })
-							           .then(() => {
-								           this._dbInitializedCallback()
-							           })
+							// database was opened for the first time - create new tables
+							return this._createIndexTables(user, userGroupKey)
 						} else {
-							this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
-							return t.get(MetaDataOS, Metadata.encDbIv).then(encDbIv => {
-								this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true, false)
-							}).then(() => Promise.all([
-								t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
-									this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)
-								}),
-								t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
-									this._mail._excludedListIds = neverNull(excludedListIds)
-								}),
-
-								this._loadGroupDiff(user)
-								    .then(groupDiff => this._updateGroups(user, groupDiff))
-								    .then(() => this._mail.updateCurrentIndexTimestamp(user))
-							]).then(() => {
-								return this._updateIndexedGroups()
-							}).then(() => {
-								this._dbInitializedCallback()
-							}).then(() => {
-								return Promise.all([
-									this._contact.suggestionFacade.load(),
-									this._groupInfo.suggestionFacade.load(),
-									this._whitelabelChildIndexer.suggestionFacade.load()
-								])
-							})).return()
+							return this._loadIndexTables(t, user, userGroupKey, userEncDbKey)
 						}
 					})
 				})
@@ -154,6 +114,7 @@ export class Indexer {
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
 				})
+				this._core.startProcessing()
 				return this._contact.indexFullContactList(user.userGroup.group)
 				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
 				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
@@ -164,7 +125,7 @@ export class Indexer {
 					           console.log("out of sync - delete database and disable mail indexing")
 					           return this.disableMailIndexing()
 				           })
-			}).catch(CancelledError, e => {
+			}).catch(MembershipRemovedError, e => {
 				// mail or contact group has been removed from user, disable mail indexing and init index again
 				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
 				// initialized promise will be resolved in this.init later.
@@ -204,11 +165,14 @@ export class Indexer {
 	}
 
 	disableMailIndexing(): Promise<void> {
-		return this.db.initialized.then(() => {
-			return this._mail.disableMailIndexing().then(() => {
-				return this.init(this._initParams.user, this._initParams.groupKey)
-			})
-		})
+		return this.db.initialized
+		           .then(() => {
+			           if (!this._core.isStoppedProcessing()) {
+				           this._core.stopProcessing()
+				           return this._mail.disableMailIndexing()
+				                      .then(() => this.init(this._initParams.user, this._initParams.groupKey))
+			           }
+		           })
 	}
 
 	cancelMailIndexing(): Promise<void> {
@@ -217,12 +181,63 @@ export class Indexer {
 
 
 	addBatchesToQueue(batches: QueuedBatch[]) {
-		this._core.queue.addBatches(batches)
+		this._core.addBatchesToQueue(batches)
 	}
 
 	startProcessing() {
 		this._core.queue.start()
 	}
+
+
+	_createIndexTables(user: User, userGroupKey: Aes128Key): Promise<void> {
+		return this._loadGroupData(user)
+		           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
+			           return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
+			                      .then(t2 => {
+				                      this.db.key = aes256RandomKey()
+				                      this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
+				                      t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
+				                      t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
+				                      t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
+				                      t2.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(this.db.key, this.db.iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
+				                      return this._initGroupData(groupBatches, t2)
+			                      })
+		           })
+		           .then(() => this._updateIndexedGroups())
+		           .then(() => {
+			           this._dbInitializedCallback()
+		           })
+	}
+
+
+	_loadIndexTables(t: DbTransaction, user: User, userGroupKey: Aes128Key, userEncDbKey: Uint8Array): Promise<void> {
+		this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
+		return t.get(MetaDataOS, Metadata.encDbIv).then(encDbIv => {
+			this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true, false)
+		}).then(() => Promise.all([
+			t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
+				this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)
+			}),
+			t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
+				this._mail._excludedListIds = neverNull(excludedListIds)
+			}),
+
+			this._loadGroupDiff(user)
+			    .then(groupDiff => this._updateGroups(user, groupDiff))
+			    .then(() => this._mail.updateCurrentIndexTimestamp(user))
+		]).then(() => {
+			return this._updateIndexedGroups()
+		}).then(() => {
+			this._dbInitializedCallback()
+		}).then(() => {
+			return Promise.all([
+				this._contact.suggestionFacade.load(),
+				this._groupInfo.suggestionFacade.load(),
+				this._whitelabelChildIndexer.suggestionFacade.load()
+			])
+		})).return()
+	}
+
 
 	_updateIndexedGroups(): Promise<void> {
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS])
@@ -260,7 +275,7 @@ export class Indexer {
 	 */
 	_updateGroups(user: User, groupDiff: {deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}): Promise<void> {
 		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
-			return Promise.reject(new CancelledError("user has been removed from contact or mail group")) // user has been removed from a shared group
+			return Promise.reject(new MembershipRemovedError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
 			return this._loadGroupData(user, groupDiff.newGroups.map(g => g.id))
 			           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
@@ -424,7 +439,8 @@ export class Indexer {
 					performance.measure("processEvent", "processEvent-start", "processEvent-end")
 					performance.mark("writeIndexUpdate-start")
 					return this._core.writeIndexUpdate(indexUpdate)
-				}).then(() => {
+				})
+				.then(() => {
 					performance.mark("writeIndexUpdate-end")
 					performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
 					performance.mark("processEntityEvents-end")
@@ -437,7 +453,7 @@ export class Indexer {
 					// 	"insertNewIndexEntries_putMeta"
 					// ])
 				})
-		})
+		}).catch(CancelledError, noOp)
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {

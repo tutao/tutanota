@@ -23,6 +23,7 @@ import type {WorkerImpl} from "../WorkerImpl"
 import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
 import * as promises from "../../common/utils/PromiseUtils"
 import type {FutureBatchActions} from "./EventQueue"
+import {DbError} from "../../common/error/DbError"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -82,7 +83,7 @@ export class MailIndexer {
 				value: () => files.map(file => file.name).join(" ")
 			}
 		])
-		this._core._indexingTime += (getPerformanceTimestamp() - startTimeIndex)
+		this._core._stats.indexingTime += (getPerformanceTimestamp() - startTimeIndex)
 		return keyToIndexEntries
 	}
 
@@ -227,23 +228,27 @@ export class MailIndexer {
 		}).catch(e => {
 			// avoid that a rejected promise is stored
 			this.mailboxIndexingPromise = Promise.resolve()
-			throw e
+			if (e instanceof DbError && this._core.isStoppedProcessing()) {
+				console.log("The database was closed, ignore indexing error", e)
+			} else {
+				throw e
+			}
 		}).finally(() => {
 			this._core.queue.resume()
 			// update our index timestamp and send the information to the main thread. this can be done async
-			if (this._indexingCancelled) {
-				console.log("Indexing is cancelled, do not write current index timestamp")
-			} else {
-				this.updateCurrentIndexTimestamp(user).then(() => {
-					this._worker.sendIndexState({
-						initializing: false,
-						indexingSupported: this._core.indexingSupported,
-						mailIndexEnabled: this.mailIndexingEnabled,
-						progress: 0,
-						currentMailIndexTimestamp: this.currentIndexTimestamp
-					})
-				})
-			}
+			this.updateCurrentIndexTimestamp(user)
+			    .catch((err) => {
+				    if (err instanceof DbError && this._core.isStoppedProcessing()) {
+					    console.log("The database was closed, do not write currentIndexTimestamp")
+				    }
+			    })
+			    .finally(() => this._worker.sendIndexState({
+				    initializing: false,
+				    indexingSupported: this._core.indexingSupported,
+				    mailIndexEnabled: this.mailIndexingEnabled,
+				    progress: 0,
+				    currentMailIndexTimestamp: this.currentIndexTimestamp
+			    }))
 		})
 		return this.mailboxIndexingPromise.return()
 	}
@@ -302,19 +307,19 @@ export class MailIndexer {
 			                          })))
 			                          .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
 				                          let indexUpdate = _createNewIndexUpdate(mailGroupId)
-				                          this._core._downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
-				                          this._core._mailcount += mailWithBodyAndFiles.length
+				                          this._core._stats.downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
+				                          this._core._stats.mailcount += mailWithBodyAndFiles.length
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 				                          }).then(() => this._core.writeIndexUpdate(indexUpdate)).finally(() => {
 					                          // measure([
-						                       //    "processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
-						                       //    "processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get",
-						                       //    "insertNewElementData_put",
-						                       //    "insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
-						                       //    "insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
-						                       //    "insertNewIndexEntries_putMeta"
+					                          //    "processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
+					                          //    "processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get",
+					                          //    "insertNewElementData_put",
+					                          //    "insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
+					                          //    "insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
+					                          //    "insertNewIndexEntries_putMeta"
 					                          // ])
 				                          })
 			                          })

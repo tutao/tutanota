@@ -16,12 +16,12 @@ import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {decrypt256Key, encrypt256Key, fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
-import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 import {mock, spy} from "../../TestUtils"
 import type {FutureBatchActions, QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
+import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 
 const restClientMock: EntityRestClient = downcast({})
 
@@ -246,7 +246,7 @@ o.spec("Indexer test", () => {
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Mail}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
 			o(true).equals(false)
-		}).catch(CancelledError, (e) => {
+		}).catch(MembershipRemovedError, (e) => {
 			done()
 		})
 	})
@@ -260,7 +260,7 @@ o.spec("Indexer test", () => {
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Contact}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
 			o(true).equals(false)
-		}).catch(CancelledError, (e) => {
+		}).catch(MembershipRemovedError, (e) => {
 			done()
 		})
 	})
@@ -462,7 +462,7 @@ o.spec("Indexer test", () => {
 		]
 
 		let batches = [createEntityEventBatch(), createEntityEventBatch()]
-		batches[0]._id = ["group-mail", "batch-id"]
+		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 		batches[1]._id = ["group-mail", lastBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
@@ -532,7 +532,7 @@ o.spec("Indexer test", () => {
 		]
 
 		let batches = [createEntityEventBatch()]
-		batches[0]._id = ["group-mail", "batch-id"]
+		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer = mock(new Indexer(restClientMock, (null: any), true), (mock) => {

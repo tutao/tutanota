@@ -9,7 +9,9 @@ import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
 import type {AttributeHandler, B64EncInstanceId, Db, GroupData, IndexUpdate, SearchIndexEntry, SearchIndexMetadataEntry} from "./SearchTypes"
+import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
+import {CancelledError} from "../../common/error/CancelledError"
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
 
@@ -18,32 +20,39 @@ export class IndexerCore {
 	indexingSupported: boolean;
 	queue: EventQueue;
 	db: Db;
-	_indexingTime: number;
-	_storageTime: number;
-	_downloadingTime: number;
-	_mailcount: number;
-	_storedBytes: number;
-	_encryptionTime: number;
-	_writeRequests: number;
-	_largestColumn: number;
-	_words: number;
-	_indexedBytes: number;
+	_isStopped: boolean;
+
+	_stats: {
+		indexingTime: number,
+		storageTime: number,
+		downloadingTime: number,
+		mailcount: number,
+		storedBytes: number,
+		encryptionTime: number,
+		writeRequests: number,
+		largestColumn: number,
+		words: number,
+		indexedBytes: number,
+	}
 
 	constructor(db: Db, queue: EventQueue) {
 		this.indexingSupported = true
 		this.queue = queue
 		this.db = db
+		this._isStopped = false;
 
-		this._indexingTime = 0
-		this._storageTime = 0
-		this._downloadingTime = 0
-		this._mailcount = 0
-		this._storedBytes = 0
-		this._encryptionTime = 0
-		this._writeRequests = 0
-		this._largestColumn = 0
-		this._words = 0
-		this._indexedBytes = 0
+		this._stats = {
+			indexingTime: 0,
+			storageTime: 0,
+			downloadingTime: 0,
+			mailcount: 0,
+			storedBytes: 0,
+			encryptionTime: 0,
+			writeRequests: 0,
+			largestColumn: 0,
+			words: 0,
+			indexedBytes: 0,
+		}
 	}
 
 	/**
@@ -53,7 +62,7 @@ export class IndexerCore {
 		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map(attributeHandler => {
 			let value = attributeHandler.value()
 			let tokens = tokenize(value)
-			this._indexedBytes += byteLength(value)
+			this._stats.indexedBytes += byteLength(value)
 			let attributeKeyToIndexMap: Map<string, SearchIndexEntry> = new Map()
 			for (let index = 0; index < tokens.length; index++) {
 				let token = tokens[index]
@@ -97,7 +106,7 @@ export class IndexerCore {
 			ownerGroup
 		])
 
-		this._encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
+		this._stats.encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
@@ -125,24 +134,54 @@ export class IndexerCore {
 	/*********************************************** Write index update ***********************************************/
 
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
+		const cancelIfNeeded = (v) => this._isStopped ? Promise.reject(new CancelledError("indexing is cancelled")) : v
+
 		let startTimeStorage = getPerformanceTimestamp()
+
+		if (this._isStopped) {
+			return Promise.reject(new CancelledError("mail indexing cancelled"))
+		}
 		return this.db.dbFacade.createTransaction(false, [
 			SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS
 		])
 		           .then(transaction => {
 			           return Promise.resolve()
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._moveIndexedInstance(indexUpdate, transaction))
 			                         .then(() => this._deleteIndexedInstance(indexUpdate, transaction))
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._insertNewElementData(indexUpdate, transaction))
-			                         .then(keysToUpdate => keysToUpdate
-			                         != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
+			                         .then(cancelIfNeeded)
+			                         .then(keysToUpdate => keysToUpdate != null
+				                         ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
+				                         : null)
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._updateGroupData(indexUpdate, transaction))
 			                         .then(() => {
 				                         return transaction.wait().then(() => {
-					                         this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
+					                         this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
 				                         })
 			                         })
 		           })
+	}
+
+	stopProcessing() {
+		this._isStopped = true;
+		this.queue.clear()
+	}
+
+	isStoppedProcessing(): boolean {
+		return this._isStopped
+	}
+
+	startProcessing() {
+		this._isStopped = false;
+	}
+
+	addBatchesToQueue(batches: QueuedBatch[]): void {
+		if (!this._isStopped) {
+			this.queue.addBatches(batches)
+		}
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
@@ -212,8 +251,8 @@ export class IndexerCore {
 			promises.push(transaction.get(ElementDataOS, b64EncInstanceId).then(result => {
 				performance.mark("insertNewElementData_get-end")
 				if (!result) { // only add the element to the index if it has not been indexed before
-					this._writeRequests += 1
-					this._storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
+					this._stats.writeRequests += 1
+					this._stats.storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
 					keysToUpdate[b64EncInstanceId] = true
 
 					performance.mark("insertNewElementData_put-start")
@@ -243,8 +282,8 @@ export class IndexerCore {
 					                  performance.mark("insertNewIndexEntries_getMeta-end")
 					                  performance.measure("insertNewIndexEntries_getMeta", "insertNewIndexEntries_getMeta-start", "insertNewIndexEntries_getMeta-end")
 					                  if (!metadata) { // no meta data entry for enc word create new search index row and meta data entry
-						                  this._storedBytes += encIndexKey.length
-						                  this._words += 1
+						                  this._stats.storedBytes += encIndexKey.length
+						                  this._stats.words += 1
 						                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
 						                                    .then(newId => [
 							                                    {
@@ -297,10 +336,10 @@ export class IndexerCore {
 				                  .then((metaData) => {
 					                  const columnSize = metaData.reduce((result, metaDataEntry) => result
 						                  + metaDataEntry.size, 0)
-					                  this._writeRequests += 1
-					                  this._largestColumn = columnSize > this._largestColumn
-						                  ? columnSize : this._largestColumn
-					                  this._storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
+					                  this._stats.writeRequests += 1
+					                  this._stats.largestColumn = columnSize > this._stats.largestColumn
+						                  ? columnSize : this._stats.largestColumn
+					                  this._stats.storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
 						                  sum + e[0].length + e[1].length, 0)
 					                  performance.mark("insertNewIndexEntries_putMeta-start")
 					                  return transaction.put(SearchIndexMetaDataOS, b64EncIndexKey, metaData)
@@ -354,9 +393,8 @@ export class IndexerCore {
 	}
 
 	printStatus() {
-		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime
-			+ this._storageTime + this._downloadingTime
-			+ this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
+		const totalTime = this._stats.indexingTime + this._stats.storageTime + this._stats.downloadingTime + this._stats.encryptionTime
+		console.log(JSON.stringify(this._stats), "total time: ", totalTime)
 	}
 }
 

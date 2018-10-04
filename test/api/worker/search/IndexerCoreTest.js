@@ -1,37 +1,19 @@
 // @flow
 import o from "ospec/ospec.js"
-import type {
-	B64EncInstanceId,
-	ElementData,
-	EncryptedSearchIndexEntry,
-	GroupData,
-	SearchIndexEntry
-} from "../../../../src/api/worker/search/SearchTypes"
-import {
-	_createNewIndexUpdate,
-	decryptSearchIndexEntry,
-	encryptIndexKeyBase64,
-	getAppId
-} from "../../../../src/api/worker/search/IndexUtils"
+import type {B64EncInstanceId, ElementData, EncryptedSearchIndexEntry, GroupData, SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
+import {_createNewIndexUpdate, decryptSearchIndexEntry, encryptIndexKeyBase64, getAppId} from "../../../../src/api/worker/search/IndexUtils"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
-import {
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "../../../../src/api/common/utils/Encoding"
-import {neverNull} from "../../../../src/api/common/utils/Utils"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
+import {defer, downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {
-	ElementDataOS,
-	GroupDataOS,
-	SearchIndexMetaDataOS,
-	SearchIndexOS
-} from "../../../../src/api/worker/search/DbFacade"
+import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {spy} from "../../TestUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
+import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 
 
 o.spec("IndexerCore test", () => {
@@ -380,6 +362,7 @@ o.spec("IndexerCore test", () => {
 				o(key).equals(encInstanceId)
 				o(value).deepEquals(elementData)
 				insertedElementData = true
+				return Promise.resolve()
 			}
 		}
 
@@ -705,7 +688,7 @@ o.spec("IndexerCore test", () => {
 			iv: fixedIv,
 			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
 			initialized: Promise.resolve()
-		}, ({queueEvents: false}: any))
+		}, downcast({_eventQueue: []}))
 
 		let transaction: any = {
 			get: (os, key) => {
@@ -724,4 +707,50 @@ o.spec("IndexerCore test", () => {
 		})
 	})
 
+	o("stopProcessing", async function () {
+		const queue: EventQueue = downcast({_eventQueue: [], clear: spy()})
+		const deferred = defer()
+
+		const core = new IndexerCore({
+			key: aes256RandomKey(),
+			iv: fixedIv,
+			dbFacade: ({createTransaction: () => deferred.promise}: any),
+			initialized: Promise.resolve()
+		}, queue)
+
+		const result = core.writeIndexUpdate((null: any))
+		core.stopProcessing()
+		o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
+
+		try {
+			deferred.resolve()
+			await result
+			o(false).equals(true)("Should throw an error")
+		} catch (e) {
+			o(e instanceof CancelledError).equals(true)("Should throw cancelledError")
+		}
+	})
+
+	o("startProcessing", async function () {
+		const queue: EventQueue = downcast({_eventQueue: [1, 2, 3], clear: spy()})
+
+		const transaction = {
+			get: () => Promise.resolve(null),
+			put: () => Promise.resolve(null),
+			wait: () => Promise.resolve()
+		}
+
+		const core = new IndexerCore({
+			key: aes256RandomKey(),
+			iv: fixedIv,
+			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
+			initialized: Promise.resolve()
+		}, queue)
+
+		core.stopProcessing()
+		core.startProcessing()
+
+		// Should not throw
+		await core.writeIndexUpdate(_createNewIndexUpdate("group-id"))
+	})
 })
