@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 220,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"_id": {
-			"name": "_id",
-			"id": 218,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 220, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 218, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
 			"id": 598,
@@ -39,24 +23,8 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
-			"id": 597,
-			"since": 13,
-			"type": "GeneratedId",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
-		"_permissions": {
-			"name": "_permissions",
-			"id": 219,
-			"since": 1,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 597, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 219, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"customEmailSignature": {
 			"name": "customEmailSignature",
 			"id": 471,
@@ -66,15 +34,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"defaultSender": {
-			"name": "defaultSender",
-			"id": 469,
-			"since": 8,
-			"type": "String",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
+		"defaultSender": {"name": "defaultSender", "id": 469, "since": 8, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"defaultUnconfidential": {
 			"name": "defaultUnconfidential",
 			"id": 470,
@@ -84,24 +44,8 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"emailSignatureType": {
-			"name": "emailSignatureType",
-			"id": 472,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"groupEncEntropy": {
-			"name": "groupEncEntropy",
-			"id": 410,
-			"since": 2,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
+		"emailSignatureType": {"name": "emailSignatureType", "id": 472, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"groupEncEntropy": {"name": "groupEncEntropy", "id": 410, "since": 2, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"noAutomaticContacts": {
 			"name": "noAutomaticContacts",
 			"id": 568,
@@ -120,15 +64,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"sendPlaintextOnly": {
-			"name": "sendPlaintextOnly",
-			"id": 676,
-			"since": 18,
-			"type": "Boolean",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		}
+		"sendPlaintextOnly": {"name": "sendPlaintextOnly", "id": 676, "since": 18, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"imapSyncConfig": {
@@ -140,15 +76,7 @@ export const _TypeModel: TypeModel = {
 			"refType": "ImapSyncConfiguration",
 			"final": false
 		},
-		"inboxRules": {
-			"name": "inboxRules",
-			"id": 578,
-			"since": 12,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"refType": "InboxRule",
-			"final": false
-		},
+		"inboxRules": {"name": "inboxRules", "id": 578, "since": 12, "type": "AGGREGATION", "cardinality": "Any", "refType": "InboxRule", "final": false},
 		"lastPushedMail": {
 			"name": "lastPushedMail",
 			"id": 221,

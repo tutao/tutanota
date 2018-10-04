@@ -11,27 +11,9 @@ export const _TypeModel: TypeModel = {
 	"rootId": "CHR1dGFub3RhAAIH",
 	"versioned": false,
 	"encrypted": true,
-	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 520,
-			"since": 11,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
-	},
+	"values": {"_format": {"name": "_format", "id": 520, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
-		"draftData": {
-			"name": "draftData",
-			"id": 521,
-			"since": 11,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"refType": "DraftData",
-			"final": false
-		},
+		"draftData": {"name": "draftData", "id": 521, "since": 11, "type": "AGGREGATION", "cardinality": "One", "refType": "DraftData", "final": false},
 		"draft": {
 			"name": "draft",
 			"id": 522,

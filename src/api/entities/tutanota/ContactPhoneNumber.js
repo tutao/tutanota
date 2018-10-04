@@ -12,42 +12,10 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 50,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"customTypeName": {
-			"name": "customTypeName",
-			"id": 53,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"number": {
-			"name": "number",
-			"id": 52,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"type": {
-			"name": "type",
-			"id": 51,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		}
+		"_id": {"name": "_id", "id": 50, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"customTypeName": {"name": "customTypeName", "id": 53, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"number": {"name": "number", "id": 52, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"type": {"name": "type", "id": 51, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},
 	"app": "tutanota",

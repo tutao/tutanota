@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 1350,
-			"since": 32,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"value": {
-			"name": "value",
-			"id": 1351,
-			"since": 32,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 1350, "since": 32, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"value": {"name": "value", "id": 1351, "since": 32, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createGeneratedIdWrapper(): GeneratedIdWrapper {

@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 689,
-			"since": 8,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"mailAddress": {
-			"name": "mailAddress",
-			"id": 690,
-			"since": 8,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 689, "since": 8, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"mailAddress": {"name": "mailAddress", "id": 690, "since": 8, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"group": {
@@ -44,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createMailAddressAliasServiceData(): MailAddressAliasServiceData {

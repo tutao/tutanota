@@ -4,7 +4,7 @@ import {EntityWorker} from "../EntityWorker"
 import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {neverNull} from "../../common/utils/Utils"
-import type {GroupData, Db, SearchIndexEntry, IndexUpdate} from "./SearchTypes"
+import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
@@ -66,8 +66,8 @@ export class GroupInfoIndexer {
 		if (userIsLocalOrGlobalAdmin(user)) {
 			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
 				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-					return t.get(GroupDataOS, customer.customerGroup).then((groupData: GroupData) => {
-						if (groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
+					return t.get(GroupDataOS, customer.customerGroup).then((groupData: ?GroupData) => {
+						if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 							return Promise.all([
 								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
 								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)

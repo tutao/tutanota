@@ -12,15 +12,7 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 755,
-			"since": 19,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 755, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"mailEncMailBoxSessionKey": {
 			"name": "mailEncMailBoxSessionKey",
 			"id": 763,
@@ -39,42 +31,10 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"pwEncUserGroupKey": {
-			"name": "pwEncUserGroupKey",
-			"id": 759,
-			"since": 19,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"salt": {
-			"name": "salt",
-			"id": 756,
-			"since": 19,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"userEncClientKey": {
-			"name": "userEncClientKey",
-			"id": 758,
-			"since": 19,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"userEncEntropy": {
-			"name": "userEncEntropy",
-			"id": 761,
-			"since": 19,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 759, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"salt": {"name": "salt", "id": 756, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {"name": "userEncClientKey", "id": 758, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncEntropy": {"name": "userEncEntropy", "id": 761, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncMailGroupKey": {
 			"name": "userEncMailGroupKey",
 			"id": 760,
@@ -93,15 +53,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"verifier": {
-			"name": "verifier",
-			"id": 757,
-			"since": 19,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"verifier": {"name": "verifier", "id": 757, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",

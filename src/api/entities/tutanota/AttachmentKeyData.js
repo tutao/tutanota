@@ -12,15 +12,7 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 543,
-			"since": 11,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 543, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"bucketEncFileSessionKey": {
 			"name": "bucketEncFileSessionKey",
 			"id": 544,
@@ -30,15 +22,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"fileSessionKey": {
-			"name": "fileSessionKey",
-			"id": 545,
-			"since": 11,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		}
+		"fileSessionKey": {"name": "fileSessionKey", "id": 545, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"file": {

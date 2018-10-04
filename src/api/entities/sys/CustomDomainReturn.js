@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 732,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"statusCode": {
-			"name": "statusCode",
-			"id": 733,
-			"since": 9,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 732, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"statusCode": {"name": "statusCode", "id": 733, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"invalidDnsRecords": {
@@ -43,7 +27,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createCustomDomainReturn(): CustomDomainReturn {

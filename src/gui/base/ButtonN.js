@@ -66,8 +66,7 @@ export type ButtonAttrs = {|
 	isVisible?: lazy<boolean>,
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
-	staticRightText?: string,
-	type?: ButtonTypeEnum
+	staticRightText?: string
 |}
 
 /**

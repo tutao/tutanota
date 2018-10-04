@@ -12,51 +12,11 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 210,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"host": {
-			"name": "host",
-			"id": 211,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"password": {
-			"name": "password",
-			"id": 214,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"port": {
-			"name": "port",
-			"id": 212,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"user": {
-			"name": "user",
-			"id": 213,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 210, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"host": {"name": "host", "id": 211, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"password": {"name": "password", "id": 214, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"port": {"name": "port", "id": 212, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"user": {"name": "user", "id": 213, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"imapSyncState": {

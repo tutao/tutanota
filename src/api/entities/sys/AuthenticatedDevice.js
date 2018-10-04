@@ -12,46 +12,14 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 44,
-			"since": 1,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"authType": {
-			"name": "authType",
-			"id": 45,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"deviceKey": {
-			"name": "deviceKey",
-			"id": 47,
-			"since": 1,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"deviceToken": {
-			"name": "deviceToken",
-			"id": 46,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 44, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"authType": {"name": "authType", "id": 45, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false},
+		"deviceKey": {"name": "deviceKey", "id": 47, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"deviceToken": {"name": "deviceToken", "id": 46, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createAuthenticatedDevice(): AuthenticatedDevice {

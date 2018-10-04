@@ -12,33 +12,9 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 766,
-			"since": 19,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"encryptedName": {
-			"name": "encryptedName",
-			"id": 823,
-			"since": 22,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"encryptedValue": {
-			"name": "encryptedValue",
-			"id": 824,
-			"since": 22,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 766, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"encryptedName": {"name": "encryptedName", "id": 823, "since": 22, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"encryptedValue": {"name": "encryptedValue", "id": 824, "since": 22, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",

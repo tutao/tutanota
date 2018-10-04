@@ -4,32 +4,14 @@ import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {
-	byteLength,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptSearchIndexEntry,
-	getAppId,
-	getPerformanceTimestamp
-} from "./IndexUtils"
-import type {
-	AttributeHandler,
-	B64EncInstanceId,
-	Db,
-	GroupData,
-	IndexUpdate,
-	SearchIndexEntry,
-	SearchIndexMetadataEntry
-} from "./SearchTypes"
+import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
+import type {AttributeHandler, B64EncInstanceId, Db, GroupData, IndexUpdate, SearchIndexEntry, SearchIndexMetadataEntry} from "./SearchTypes"
+import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
+import {CancelledError} from "../../common/error/CancelledError"
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
 
@@ -38,32 +20,39 @@ export class IndexerCore {
 	indexingSupported: boolean;
 	queue: EventQueue;
 	db: Db;
-	_indexingTime: number;
-	_storageTime: number;
-	_downloadingTime: number;
-	_mailcount: number;
-	_storedBytes: number;
-	_encryptionTime: number;
-	_writeRequests: number;
-	_largestColumn: number;
-	_words: number;
-	_indexedBytes: number;
+	_isStopped: boolean;
+
+	_stats: {
+		indexingTime: number,
+		storageTime: number,
+		downloadingTime: number,
+		mailcount: number,
+		storedBytes: number,
+		encryptionTime: number,
+		writeRequests: number,
+		largestColumn: number,
+		words: number,
+		indexedBytes: number,
+	}
 
 	constructor(db: Db, queue: EventQueue) {
 		this.indexingSupported = true
 		this.queue = queue
 		this.db = db
+		this._isStopped = false;
 
-		this._indexingTime = 0
-		this._storageTime = 0
-		this._downloadingTime = 0
-		this._mailcount = 0
-		this._storedBytes = 0
-		this._encryptionTime = 0
-		this._writeRequests = 0
-		this._largestColumn = 0
-		this._words = 0
-		this._indexedBytes = 0
+		this._stats = {
+			indexingTime: 0,
+			storageTime: 0,
+			downloadingTime: 0,
+			mailcount: 0,
+			storedBytes: 0,
+			encryptionTime: 0,
+			writeRequests: 0,
+			largestColumn: 0,
+			words: 0,
+			indexedBytes: 0,
+		}
 	}
 
 	/**
@@ -73,7 +62,7 @@ export class IndexerCore {
 		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map(attributeHandler => {
 			let value = attributeHandler.value()
 			let tokens = tokenize(value)
-			this._indexedBytes += byteLength(value)
+			this._stats.indexedBytes += byteLength(value)
 			let attributeKeyToIndexMap: Map<string, SearchIndexEntry> = new Map()
 			for (let index = 0; index < tokens.length; index++) {
 				let token = tokens[index]
@@ -117,7 +106,7 @@ export class IndexerCore {
 			ownerGroup
 		])
 
-		this._encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
+		this._stats.encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
@@ -125,7 +114,6 @@ export class IndexerCore {
 		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
 				if (!elementData) {
-					console.log("index data not available (instance is not indexed)", encInstanceId, event.instanceId)
 					return
 				}
 				let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
@@ -146,24 +134,54 @@ export class IndexerCore {
 	/*********************************************** Write index update ***********************************************/
 
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
+		const cancelIfNeeded = (v) => this._isStopped ? Promise.reject(new CancelledError("indexing is cancelled")) : v
+
 		let startTimeStorage = getPerformanceTimestamp()
+
+		if (this._isStopped) {
+			return Promise.reject(new CancelledError("mail indexing cancelled"))
+		}
 		return this.db.dbFacade.createTransaction(false, [
 			SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS
 		])
 		           .then(transaction => {
 			           return Promise.resolve()
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._moveIndexedInstance(indexUpdate, transaction))
 			                         .then(() => this._deleteIndexedInstance(indexUpdate, transaction))
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._insertNewElementData(indexUpdate, transaction))
-			                         .then(keysToUpdate => keysToUpdate
-			                         != null ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction) : null)
+			                         .then(cancelIfNeeded)
+			                         .then(keysToUpdate => keysToUpdate != null
+				                         ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
+				                         : null)
+			                         .then(cancelIfNeeded)
 			                         .then(() => this._updateGroupData(indexUpdate, transaction))
 			                         .then(() => {
 				                         return transaction.wait().then(() => {
-					                         this._storageTime += (getPerformanceTimestamp() - startTimeStorage)
+					                         this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
 				                         })
 			                         })
 		           })
+	}
+
+	stopProcessing() {
+		this._isStopped = true;
+		this.queue.clear()
+	}
+
+	isStoppedProcessing(): boolean {
+		return this._isStopped
+	}
+
+	startProcessing() {
+		this._isStopped = false;
+	}
+
+	addBatchesToQueue(batches: QueuedBatch[]): void {
+		if (!this._isStopped) {
+			this.queue.addBatches(batches)
+		}
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
@@ -223,34 +241,49 @@ export class IndexerCore {
 	 */
 	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]: boolean}> {
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only for FF)
+		performance.mark("insertNewElementData-start")
 
 		let keysToUpdate: {[B64EncInstanceId]: boolean} = {}
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
+			performance.mark("insertNewElementData_get-start")
 			promises.push(transaction.get(ElementDataOS, b64EncInstanceId).then(result => {
+				performance.mark("insertNewElementData_get-end")
 				if (!result) { // only add the element to the index if it has not been indexed before
-					this._writeRequests += 1
-					this._storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
+					this._stats.writeRequests += 1
+					this._stats.storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
 					keysToUpdate[b64EncInstanceId] = true
-					transaction.put(ElementDataOS, b64EncInstanceId, elementData)
+
+					performance.mark("insertNewElementData_put-start")
+					transaction.put(ElementDataOS, b64EncInstanceId, elementData).finally(() => {
+						performance.mark("insertNewElementData_put-end")
+						performance.measure("insertNewElementData_put", "insertNewElementData_put-start", "insertNewElementData_put-end")
+					})
 				}
 			}))
 		}, {concurrency: 1})
-		return Promise.all(promises).return(keysToUpdate)
+		return Promise.all(promises).return(keysToUpdate).finally(() => {
+			performance.mark("insertNewElementData-end")
+			performance.measure("insertNewElementData", "insertNewElementData-start", "insertNewElementData-end")
+		})
 	}
 
 	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): Promise<void> {
+		performance.mark("insertNewIndexEntries-start")
 		return Promise.map(indexUpdate.create.indexMap.keys(), (b64EncIndexKey) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(b64EncIndexKey))
 			let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(entry[0])])
 			let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 			if (filteredEncryptedEntries.length > 0) {
+				performance.mark("insertNewIndexEntries_getMeta-start")
 				return transaction.get(SearchIndexMetaDataOS, b64EncIndexKey)
 				                  .then((metadata: ?SearchIndexMetadataEntry[]) => {
+					                  performance.mark("insertNewIndexEntries_getMeta-end")
+					                  performance.measure("insertNewIndexEntries_getMeta", "insertNewIndexEntries_getMeta-start", "insertNewIndexEntries_getMeta-end")
 					                  if (!metadata) { // no meta data entry for enc word create new search index row and meta data entry
-						                  this._storedBytes += encIndexKey.length
-						                  this._words += 1
+						                  this._stats.storedBytes += encIndexKey.length
+						                  this._stats.words += 1
 						                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
 						                                    .then(newId => [
 							                                    {
@@ -262,6 +295,7 @@ export class IndexerCore {
 						                  const safeMetaData = neverNull(metadata)
 						                  const maxSize = SEARCH_INDEX_ROW_LENGTH - filteredEncryptedEntries.length
 						                  const vacantRow = metadata.find(entry => entry.size < maxSize)
+						                  performance.mark("insertNewIndexEntries_putIndexNew-start")
 						                  if (!vacantRow) { // new entries do not fit into existing search index row, create new row
 							                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
 							                                    .then(newId => {
@@ -271,16 +305,30 @@ export class IndexerCore {
 								                                    })
 								                                    return safeMetaData
 							                                    })
+							                                    .finally(() => {
+								                                    performance.mark("insertNewIndexEntries_putIndexNew-end")
+								                                    performance.measure("insertNewIndexEntries_putIndexNew", "insertNewIndexEntries_putIndexNew-start", "insertNewIndexEntries_putIndexNew-end")
+							                                    })
 						                  } else {
 							                  // add new entries to existing search index row
+
+							                  performance.mark("insertNewIndexEntries_getRow-start")
 							                  return transaction.get(SearchIndexOS, vacantRow.key)
 							                                    .then((row) => {
-								                                    row.push(...filteredEncryptedEntries)
+								                                    performance.mark("insertNewIndexEntries_getRow-end")
+								                                    performance.measure("insertNewIndexEntries_getRow", "insertNewIndexEntries_getRow-start", "insertNewIndexEntries_getRow-end")
+								                                    performance.mark("insertNewIndexEntries_putIndex-start")
+								                                    let safeRow = row || []
+								                                    safeRow.push(...filteredEncryptedEntries)
 								                                    return transaction.put(SearchIndexOS, vacantRow.key, row)
 								                                                      .then(() => {
-									                                                      vacantRow.size = row.length
+									                                                      vacantRow.size = safeRow.length
 									                                                      return safeMetaData
 								                                                      })
+							                                    })
+							                                    .finally(() => {
+								                                    performance.mark("insertNewIndexEntries_putIndex-end")
+								                                    performance.measure("insertNewIndexEntries_putIndex", "insertNewIndexEntries_putIndex-start", "insertNewIndexEntries_putIndex-end")
 							                                    })
 						                  }
 					                  }
@@ -288,31 +336,38 @@ export class IndexerCore {
 				                  .then((metaData) => {
 					                  const columnSize = metaData.reduce((result, metaDataEntry) => result
 						                  + metaDataEntry.size, 0)
-					                  this._writeRequests += 1
-					                  this._largestColumn = columnSize > this._largestColumn
-						                  ? columnSize : this._largestColumn
-					                  this._storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
+					                  this._stats.writeRequests += 1
+					                  this._stats.largestColumn = columnSize > this._stats.largestColumn
+						                  ? columnSize : this._stats.largestColumn
+					                  this._stats.storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
 						                  sum + e[0].length + e[1].length, 0)
+					                  performance.mark("insertNewIndexEntries_putMeta-start")
 					                  return transaction.put(SearchIndexMetaDataOS, b64EncIndexKey, metaData)
+					                                    .finally(() => {
+						                                    performance.mark("insertNewIndexEntries_putMeta-end")
+						                                    performance.measure("insertNewIndexEntries_putMeta", "insertNewIndexEntries_putMeta-start", "insertNewIndexEntries_putMeta-end")
+					                                    })
 				                  })
 			}
-		}, {concurrency: 2}).return()
+		}, {concurrency: 1}).return().finally(() => {
+			performance.mark("insertNewIndexEntries-end")
+			performance.measure("insertNewIndexEntries", "insertNewIndexEntries-start", "insertNewIndexEntries-end")
+		})
 	}
 
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		if (indexUpdate.batchId || indexUpdate.indexTimestamp != null) { // check timestamp for != null here because "0" is a valid value to write
 			// update group data
-			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: GroupData) => {
-
+			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: ?GroupData) => {
+				if (!groupData) {
+					throw new Error("GroupData not available for group " + indexUpdate.groupId)
+				}
 				if (indexUpdate.indexTimestamp != null) {
 					groupData.indexTimestamp = indexUpdate.indexTimestamp
 				}
-
 				if (indexUpdate.batchId) {
 					let batchId = indexUpdate.batchId
-					if (!groupData) {
-						throw new Error("GroupData not available for group " + indexUpdate.groupId)
-					}
+
 					if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
 						transaction.abort()
 					} else {
@@ -338,8 +393,19 @@ export class IndexerCore {
 	}
 
 	printStatus() {
-		console.log("mail count", this._mailcount, "indexing time", this._indexingTime, "storageTime", this._storageTime, "downloading time", this._downloadingTime, "encryption time", this._encryptionTime, "total time", this._indexingTime
-			+ this._storageTime + this._downloadingTime
-			+ this._encryptionTime, "stored bytes", this._storedBytes, "writeRequests", this._writeRequests, "largestColumn", this._largestColumn, "words", this._words, "indexedBytes", this._indexedBytes)
+		const totalTime = this._stats.indexingTime + this._stats.storageTime + this._stats.downloadingTime + this._stats.encryptionTime
+		console.log(JSON.stringify(this._stats), "total time: ", totalTime)
 	}
+}
+
+export function measure(names: string[]) {
+	const measures = {}
+	for (let name of names) {
+		try {
+			measures[name] = performance.getEntriesByName(name, "measure").reduce((acc, entry) => acc + entry.duration, 0)
+		} catch (e) {
+		}
+	}
+	performance.clearMeasures()
+	console.log(JSON.stringify(measures))
 }

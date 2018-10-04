@@ -483,9 +483,10 @@ export class SearchFacade {
 						           return
 					           }
 					           return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
-					                             .then((elementData: ElementData) => {
-						                             if (!searchResult.restriction.listId
-							                             || searchResult.restriction.listId === elementData[0]) {
+					                             .then((elementData: ?ElementData) => {
+						                             if (elementData
+							                             && (!searchResult.restriction.listId
+								                             || searchResult.restriction.listId === elementData[0])) {
 							                             searchResult.results.push([elementData[0], entry.id])
 						                             }
 					                             })

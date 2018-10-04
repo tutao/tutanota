@@ -139,7 +139,7 @@ const init = (sw: ServiceWorker, urlsToCache: string[]) => {
 }
 
 // do not add listeners for Node tests
-if (typeof self !== "undefined") {
+if (!(env && env.mode === "Test")) {
 	const cacheName = "CODE_CACHE-v" + version()
 	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 	const exclusions = customDomainCacheExclusions()

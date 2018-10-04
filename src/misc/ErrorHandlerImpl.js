@@ -29,7 +29,6 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
-import {LogoutUrl} from "../gui/base/Header";
 
 assertMainOrNode()
 
@@ -206,8 +205,10 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		if (customer.approvalStatus === ApprovalStatus.RegistrationApprovalNeeded) {
+		if (["1", "5", "7"].indexOf(customer.approvalStatus) != -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
+		} else if (customer.approvalStatus == "6") {
+			return Dialog.error("requestApproval_msg").return(true)
 		} else if (customer.approvalStatus === ApprovalStatus.InvoiceNotPaid) {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
@@ -225,7 +226,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 				return Dialog.error("invoiceNotPaidUser_msg").return(false)
 			}
 		} else if (customer.approvalStatus === ApprovalStatus.SpamSender) {
-			Dialog.error("loginAbuseDetected_msg").then(() => m.route.set(LogoutUrl))
+			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
 			return false
 		} else {
 			return true

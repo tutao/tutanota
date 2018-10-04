@@ -109,30 +109,6 @@ type ListConfig<T, R: VirtualRow<T>> = {
 	emptyMessage: string;
 }
 
-declare interface TableRow<T> {
-	render: (entity: T, odd: boolean, index: number) => Children;
-}
-
-declare interface TableHead {
-	render: () => Children;
-}
-
-declare interface TableAttrs<T> {
-	row: TableRow<T>; // The component to render all rows
-	head?: TableHead;
-	cache: RowCache<T>; // The cache for this table
-	style?: Object;
-	class?: string;
-}
-
-declare interface RowCache<T> {
-	cache: T[];
-
-	loadMore(): Promise<void>;
-
-	complete: boolean;
-	loading: ?Promise<void>;
-}
 
 type SwipeConfiguration<T> = {
 	renderLeftSpacer(): Children;

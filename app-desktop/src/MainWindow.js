@@ -1,5 +1,7 @@
 const {BrowserWindow} = require('electron')
+const ipc = require('electron').ipcMain
 const open = require('./open')
+const path = require('path')
 
 const startFile = './resources/desktop.html'
 
@@ -15,9 +17,11 @@ exports.createWindow = () => {
 			// https://github.com/electron-userland/electron-builder/issues/2562
 			// https://electronjs.org/docs/api/sandbox-option
 			sandbox: true,
-			contextIsolation: true,
-			webSecurity: true
-			//preload: './preload.js'
+			// can't use contextIsolation because this will isolate
+			// the preload script from the web app
+			//contextIsolation: true,
+			webSecurity: true,
+			preload: path.join(__dirname, '/preload.js')
 		}
 	})
 
@@ -40,6 +44,17 @@ exports.createWindow = () => {
 	// we kill it
 	mainWindow.webContents.on('will-attach-webview', (e, webPreferences, params) => {
 		e.preventDefault()
+	})
+
+	//we only have one window to communicate with
+	ipc.send = (...args) => mainWindow.webContents.send.apply(mainWindow.webContents, args)
+
+	mainWindow.on('close', () => {
+		ipc.send('close')
+	})
+
+	ipc.on('hello', () => {
+		console.log('hello from renderer')
 	})
 
 	// handle navigation events. needed since webSecurity = true will

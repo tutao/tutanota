@@ -3,23 +3,22 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {neverNull} from "../api/common/utils/Utils"
-import {loadAll, erase} from "../api/main/Entity"
+import {erase, loadAll} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {showDeleteAccountDialog} from "../subscription/DeleteAccountDialog"
 
 assertMainOrNode()
 
@@ -84,14 +83,17 @@ export class LoginSettingsViewer {
 					}
 					let identifier = (thisSession) ? lang.get("thisClient_label") : session.clientIdentifier
 					return new TableLine([
-						identifier, formatDateTimeFromYesterdayOn(session.lastAccessTime), session.loginIpAddress
+						identifier,
+						formatDateTimeFromYesterdayOn(session.lastAccessTime),
+						(session.loginIpAddress) ? session.loginIpAddress : ""
 					], closeSessionButton)
 				}))
 			this._closedSessionTable.updateEntries(sessions.filter(session => session.state
 				!== SessionState.SESSION_STATE_ACTIVE).map(session => {
 				return new TableLine([
-					session.clientIdentifier, formatDateTimeFromYesterdayOn(session.lastAccessTime),
-					session.loginIpAddress
+					session.clientIdentifier,
+					formatDateTimeFromYesterdayOn(session.lastAccessTime),
+					(session.loginIpAddress) ? session.loginIpAddress : ""
 				])
 			}))
 		})

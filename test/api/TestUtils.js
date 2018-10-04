@@ -31,7 +31,7 @@ export function unmockAttribute(mock: Object) {
 	mock._originalObject[mock._attributeName] = mock._originalAttribute
 }
 
-export function spy(producer?: (...any) => any) {
+export function spy(producer?: (...any) => any): any {
 	const invocations = []
 	const s = (...args: any[]) => {
 		invocations.push(args)
@@ -39,4 +39,36 @@ export function spy(producer?: (...any) => any) {
 	}
 	s.invocations = invocations
 	return s
+}
+
+
+export const mock = <T>(obj: T, mocker: any => any): T => {
+	mocker(obj)
+	return obj
+}
+
+export function mapToObject<K, V>(map: Map<K, V>): {[K]: V} {
+	const obj: {[K]: V} = {}
+	map.forEach((value, key) => {
+		obj[key] = value
+	})
+	return obj
+}
+
+export function mapObject<K, V, R>(mapper: (V) => R, obj: {[K]: V}): {[K]: R} {
+	const newObj = {}
+	for (let key of Object.keys(obj)) {
+		newObj[key] = mapper(obj[key])
+	}
+	return newObj
+}
+
+export function replaceAllMaps(toReplace: any): any {
+	return toReplace instanceof Map
+		? replaceAllMaps(mapToObject(toReplace))
+		: toReplace instanceof Array
+			? toReplace.map(replaceAllMaps)
+			: toReplace != null && Object.getPrototypeOf(toReplace) === (Object: any).prototype // plain object
+				? mapObject(replaceAllMaps, toReplace)
+				: toReplace
 }

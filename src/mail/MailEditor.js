@@ -7,13 +7,7 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {ConversationTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {
-	ApprovalState,
-	ConversationType,
-	MAX_ATTACHMENT_SIZE,
-	OperationType,
-	ReplyType
-} from "../api/common/TutanotaConstants"
+import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
@@ -24,7 +18,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
-import {assertMainOrNode, getHttpOrigin, Mode} from "../api/Env"
+import {assertMainOrNode, Mode} from "../api/Env"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
@@ -67,6 +61,7 @@ import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
+import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -150,7 +145,6 @@ export class MailEditor {
 			}
 		}
 
-
 		let closeButton = createDropDownButton('close_alt', null, () => {
 			return [
 				new Button('discardChanges_action', () => this._close()).setType(ButtonType.Secondary),
@@ -158,7 +152,6 @@ export class MailEditor {
 				                                         .then(() => this._close())).setType(ButtonType.Secondary)
 			]
 		}, 250).setType(ButtonType.Secondary)
-
 
 		let headerBar = new DialogHeaderBar()
 			.addLeft(closeButton)
@@ -191,10 +184,15 @@ export class MailEditor {
 				])
 		}), false)
 
-
 		this.view = () => {
 			return m("#mail-editor.full-height.text.touch-callout", {
-				oncreate: vnode => this._domElement = vnode.dom,
+				oncreate: vnode => {
+					this._domElement = vnode.dom
+					window.electron.sendMessage('hello')
+					window.electron.onMessage('close', () => {
+						closeButton.clickHandler()
+					})
+				},
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this.editor.squire.focus()
@@ -637,26 +635,15 @@ export class MailEditor {
 						                          })
 						                          .catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
 						                          .catch(AccessBlockedError, e => {
-							                          return logins.getUserController()
-							                                       .loadCustomer()
-							                                       .then(customer => {
-								                                       if (customer.approvalStatus
-									                                       === ApprovalState.REGISTRATION_APPROVAL_NEEDED) {
-									                                       return Dialog.error("tooManyMails_msg")
-								                                       } else if (customer.approvalStatus
-									                                       === ApprovalState.INVOICE_NOT_PAID) {
-									                                       if (logins.getUserController()
-									                                                 .isGlobalAdmin()) {
-										                                       // TODO display payment dialog
-										                                       return Dialog.error(() =>
-											                                       lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()}))
-									                                       } else {
-										                                       return Dialog.error("invoiceNotPaidUser_msg")
-									                                       }
-								                                       } else {
-									                                       throw e
-								                                       }
-							                                       })
+							                          return checkApprovalStatus(true)
+								                          .then(sendAllowed => {
+									                          if (sendAllowed) {
+										                          // special case: the approval status is set to SpamSender, but the update has not been received yet, so show the dialog manually
+										                          Dialog.error("loginAbuseDetected_msg")
+									                          } else {
+										                          console.log("could not send mail (blocked access)", e)
+									                          }
+								                          })
 						                          })
 					               })
 

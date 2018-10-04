@@ -11,17 +11,7 @@ export const _TypeModel: TypeModel = {
 	"rootId": "CHR1dGFub3RhAAHH",
 	"versioned": false,
 	"encrypted": true,
-	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 456,
-			"since": 7,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
-	},
+	"values": {"_format": {"name": "_format", "id": 456, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"newFolder": {
 			"name": "newFolder",

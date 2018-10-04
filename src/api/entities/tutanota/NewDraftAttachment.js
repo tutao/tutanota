@@ -12,33 +12,9 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 487,
-			"since": 11,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"encFileName": {
-			"name": "encFileName",
-			"id": 488,
-			"since": 11,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"encMimeType": {
-			"name": "encMimeType",
-			"id": 489,
-			"since": 11,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 487, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"encFileName": {"name": "encFileName", "id": 488, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"encMimeType": {"name": "encMimeType", "id": 489, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"fileData": {

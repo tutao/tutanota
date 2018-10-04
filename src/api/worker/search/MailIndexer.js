@@ -22,10 +22,12 @@ import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
 import * as promises from "../../common/utils/PromiseUtils"
+import type {FutureBatchActions} from "./EventQueue"
+import {DbError} from "../../common/error/DbError"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
-const MAIL_INDEXER_CHUNK = 100
+export const MAIL_INDEXER_CHUNK = 100
 
 export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
@@ -81,20 +83,25 @@ export class MailIndexer {
 				value: () => files.map(file => file.name).join(" ")
 			}
 		])
-		this._core._indexingTime += (getPerformanceTimestamp() - startTimeIndex)
+		this._core._stats.indexingTime += (getPerformanceTimestamp() - startTimeIndex)
 		return keyToIndexEntries
 	}
 
 	processNewMail(event: EntityUpdate): Promise<?{mail: Mail, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
+		performance.mark("processNewMail-start")
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
+		performance.mark("processNewMail_load-start")
 		return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 			return Promise.all([
 				Promise.map(mail.attachments, attachmentId => this._entity.load(FileTypeRef, attachmentId)),
 				this._entity.load(MailBodyTypeRef, mail.body)
 			]).spread((files, body) => {
+				performance.mark("processNewMail_load-end")
+				performance.mark("processNewMail_createIndexEnties-start")
 				let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
+				performance.mark("processNewMail_createIndexEnties-end")
 				return {mail, keyToIndexEntries}
 			})
 		}).catch(NotFoundError, () => {
@@ -103,6 +110,8 @@ export class MailIndexer {
 		}).catch(NotAuthorizedError, () => {
 			console.log("tried to index contact without permission")
 			return null
+		}).finally(() => {
+			performance.mark("processNewMail-end")
 		})
 	}
 
@@ -152,7 +161,7 @@ export class MailIndexer {
 				} else {
 					return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 						this.mailIndexingEnabled = true
-						this._excludedListIds = excludedListIds
+						this._excludedListIds = excludedListIds || []
 					})
 				}
 			})
@@ -161,6 +170,7 @@ export class MailIndexer {
 
 	disableMailIndexing(): Promise<void> {
 		this.mailIndexingEnabled = false
+		this._indexingCancelled = true
 		this._excludedListIds = []
 		return this._db.dbFacade.deleteDatabase()
 	}
@@ -187,14 +197,14 @@ export class MailIndexer {
 			currentMailIndexTimestamp: this.currentIndexTimestamp
 		})
 		let memberships = filterMailMemberships(user)
-		this._core.queue.queue()
+		this._core.queue.pause()
 		this.mailboxIndexingPromise = Promise.each(memberships, (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
 			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId)
 			           .then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			           .then(mbox => {
 				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-					           return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
+					           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
 						           let progress = {count: 1}
 						           if (!groupData) {
 							           // group data is not available if group has been added. group will be indexed after login.
@@ -218,19 +228,27 @@ export class MailIndexer {
 		}).catch(e => {
 			// avoid that a rejected promise is stored
 			this.mailboxIndexingPromise = Promise.resolve()
-			throw e
+			if (e instanceof DbError && this._core.isStoppedProcessing()) {
+				console.log("The database was closed, ignore indexing error", e)
+			} else {
+				throw e
+			}
 		}).finally(() => {
-			this._core.queue.processNext()
+			this._core.queue.resume()
 			// update our index timestamp and send the information to the main thread. this can be done async
-			this.updateCurrentIndexTimestamp(user).then(() => {
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: this._core.indexingSupported,
-					mailIndexEnabled: this.mailIndexingEnabled,
-					progress: 0,
-					currentMailIndexTimestamp: this.currentIndexTimestamp
-				})
-			})
+			this.updateCurrentIndexTimestamp(user)
+			    .catch((err) => {
+				    if (err instanceof DbError && this._core.isStoppedProcessing()) {
+					    console.log("The database was closed, do not write currentIndexTimestamp")
+				    }
+			    })
+			    .finally(() => this._worker.sendIndexState({
+				    initializing: false,
+				    indexingSupported: this._core.indexingSupported,
+				    mailIndexEnabled: this.mailIndexingEnabled,
+				    progress: 0,
+				    currentMailIndexTimestamp: this.currentIndexTimestamp
+			    }))
 		})
 		return this.mailboxIndexingPromise.return()
 	}
@@ -251,13 +269,18 @@ export class MailIndexer {
 			           })
 		}, {concurrency: 1}).then((finishedIndexing: boolean[]) => {
 			return this._db.dbFacade.createTransaction(false, [GroupDataOS]).then(t2 => {
-				return t2.get(GroupDataOS, mailGroupId).then((groupData: GroupData) => {
-					groupData.indexTimestamp = finishedIndexing
-						.find(finishedListIndexing => finishedListIndexing === false) == null
-						? FULL_INDEXED_TIMESTAMP
-						: endIndexTimstamp
-					t2.put(GroupDataOS, mailGroupId, groupData)
-					return t2.wait()
+				return t2.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
+					if (groupData) {
+						groupData.indexTimestamp = finishedIndexing
+							.find(finishedListIndexing => finishedListIndexing === false) == null
+							? FULL_INDEXED_TIMESTAMP
+							: endIndexTimstamp
+						t2.put(GroupDataOS, mailGroupId, groupData)
+						return t2.wait()
+					} else {
+						throw Error("no group data for mail group " + mailGroupId)
+					}
+
 				})
 			})
 		})
@@ -284,12 +307,21 @@ export class MailIndexer {
 			                          })))
 			                          .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
 				                          let indexUpdate = _createNewIndexUpdate(mailGroupId)
-				                          this._core._downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
-				                          this._core._mailcount += mailWithBodyAndFiles.length
+				                          this._core._stats.downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
+				                          this._core._stats.mailcount += mailWithBodyAndFiles.length
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
+				                          }).then(() => this._core.writeIndexUpdate(indexUpdate)).finally(() => {
+					                          // measure([
+					                          //    "processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
+					                          //    "processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get",
+					                          //    "insertNewElementData_put",
+					                          //    "insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
+					                          //    "insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
+					                          //    "insertNewIndexEntries_putMeta"
+					                          // ])
+				                          })
 			                          })
 			                          .then(() => {
 				                          if (filteredMails.length === MAIL_INDEXER_CHUNK) { // not filtered and more emails are available
@@ -342,7 +374,7 @@ export class MailIndexer {
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 			return Promise.all(filterMailMemberships(user).map((mailGroupMembership, index) => {
-				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData) => {
+				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: ?GroupData) => {
 					if (!groupData) {
 						return NOTHING_INDEXED_TIMESTAMP
 					} else {
@@ -384,35 +416,87 @@ export class MailIndexer {
 			})
 	}
 
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	/**
+	 * Prepare IndexUpdate in response to the new entity events.
+	 * This implementation uses futureActions as a lookahead to optimize some operations. Namely:
+	 *  create + delete = nothing
+	 *  create + move   = create*          (create with list id from move operation)
+	 *  move   + delete = delete
+	 *  move   + move   = move*            (move to the final folder only)
+	 *  update + move   = update* + move   (only delete in update and use create event from move)
+	 *  update + delete = delete
+	 * There are other possible combinations but we only optimize these because they would not work
+	 * because of the different server state anyway.
+	 * {@see MailIndexerTest.js}
+	 * @param events Events from one batch
+	 * @param groupId
+	 * @param batchId
+	 * @param indexUpdate which will be populated with operations
+	 * @param futureActions lookahead for actions optimizations. Actions will be removed when processed.
+	 * @returns {Promise<*>} Indication that we're done.
+	 */
+	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, futureActions: FutureBatchActions): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return Promise.each(events, (event, index) => {
+		return Promise.each(events, (event) => {
 			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// move mail
-					return this.processMovedMail(event, indexUpdate)
+					const finalDestinationEvent = futureActions.moved.get(event.instanceId)
+
+					const futureMoveEvent = futureActions.moved.get(event.instanceId)
+					if (futureMoveEvent && isSameId(futureMoveEvent._id, event._id)) {
+						// Remove from futureActions if we process this event
+						futureActions.moved.delete(futureMoveEvent.instanceId)
+					}
+
+					// do not execute move operation if there is a delete event or another move event.
+					if (futureActions.deleted.has(event.instanceId)
+						|| (finalDestinationEvent && !isSameId(finalDestinationEvent.instanceListId, event.instanceListId))) {
+						return Promise.resolve()
+					} else {
+						return this.processMovedMail(event, indexUpdate)
+					}
 				} else {
-					// new mail
-					return this.processNewMail(event).then((result) => {
-						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						}
-					})
+					// do not create the index entry if the element has been deleted or moved
+					// if moved the element will be indexed in the move event.
+					if (futureActions.deleted.has(event.instanceId) || futureActions.moved.has(event.instanceId)) {
+						return Promise.resolve()
+					} else {
+						return this.processNewMail(event).then((result) => {
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							}
+						})
+					}
 				}
 			} else if (event.operation === OperationType.UPDATE) {
+				// do not execute update if event has been deleted.
+				if (futureActions.deleted.has(event.instanceId)) {
+					return Promise.resolve()
+				}
+
 				return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 					if (mail.state === MailState.DRAFT) {
 						return Promise.all([
 							this._core._processDeleted(event, indexUpdate),
-							this.processNewMail(event).then(result => {
-								if (result) {
-									this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-								}
-							})
+							// only index updated draft if the draft has not been moved.
+							// the moved draft will be indexed in the move event.
+							!futureActions.moved.get(event.instanceId)
+								? this.processNewMail(event).then(result => {
+									if (result) {
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+									}
+								})
+								: Promise.resolve()
 						])
 					}
 				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
 			} else if (event.operation === OperationType.DELETE) {
+				const futureDeleteEvent = futureActions.deleted.get(event.instanceId)
+				if (futureDeleteEvent && isSameId(futureDeleteEvent._id, event._id)) {
+					// Welcome to the Future
+					futureActions.deleted.delete(futureDeleteEvent.instanceId)
+				}
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) { // move events are handled separately
 					return this._core._processDeleted(event, indexUpdate)
 				}

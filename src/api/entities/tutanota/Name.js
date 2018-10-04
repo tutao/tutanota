@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 726,
-			"since": 19,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"name": {
-			"name": "name",
-			"id": 727,
-			"since": 19,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_id": {"name": "_id", "id": 726, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"name": {"name": "name", "id": 727, "since": 19, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",

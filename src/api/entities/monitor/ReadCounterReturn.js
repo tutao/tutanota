@@ -12,28 +12,12 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 17,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"value": {
-			"name": "value",
-			"id": 18,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 17, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"value": {"name": "value", "id": 18, "since": 1, "type": "Number", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "6"
+	"version": "7"
 }
 
 export function createReadCounterReturn(): ReadCounterReturn {

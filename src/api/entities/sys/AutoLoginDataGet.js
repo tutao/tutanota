@@ -12,24 +12,8 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 432,
-			"since": 1,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"deviceToken": {
-			"name": "deviceToken",
-			"id": 434,
-			"since": 1,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 432, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"deviceToken": {"name": "deviceToken", "id": 434, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"userId": {
@@ -44,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createAutoLoginDataGet(): AutoLoginDataGet {

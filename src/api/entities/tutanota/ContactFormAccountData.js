@@ -11,17 +11,7 @@ export const _TypeModel: TypeModel = {
 	"rootId": "CHR1dGFub3RhAAMX",
 	"versioned": false,
 	"encrypted": false,
-	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 792,
-			"since": 19,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
-	},
+	"values": {"_format": {"name": "_format", "id": 792, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"statisticFields": {
 			"name": "statisticFields",
@@ -41,15 +31,7 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactFormStatisticEntry",
 			"final": true
 		},
-		"userData": {
-			"name": "userData",
-			"id": 793,
-			"since": 19,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"refType": "ContactFormUserData",
-			"final": false
-		},
+		"userData": {"name": "userData", "id": 793, "since": 19, "type": "AGGREGATION", "cardinality": "One", "refType": "ContactFormUserData", "final": false},
 		"userGroupData": {
 			"name": "userGroupData",
 			"id": 794,

@@ -93,9 +93,9 @@ function startDesktop() {
 			         const err = fs.openSync('./desktop_out.log', 'a');
 			         spawn("/bin/sh", ["-c", "npm start"], {
 				         cwd: path.join(__dirname, '/app-desktop/'),
-				         stdio: ['ignore', out, err],
-				         detached: true
-			         }).unref()
+				         stdio: ['ignore', 'inherit', 'inherit'],
+				         detached: false
+			         })
 		         })
 	}
 }

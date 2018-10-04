@@ -12,56 +12,16 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {
-			"name": "_format",
-			"id": 664,
-			"since": 6,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"accountType": {
-			"name": "accountType",
-			"id": 666,
-			"since": 6,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"message": {
-			"name": "message",
-			"id": 665,
-			"since": 6,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"_format": {"name": "_format", "id": 664, "since": 6, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"accountType": {"name": "accountType", "id": 666, "since": 6, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"message": {"name": "message", "id": 665, "since": 6, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
-		"bigLogo": {
-			"name": "bigLogo",
-			"id": 925,
-			"since": 11,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "File",
-			"final": false
-		},
-		"smallLogo": {
-			"name": "smallLogo",
-			"id": 924,
-			"since": 11,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "File",
-			"final": false
-		}
+		"bigLogo": {"name": "bigLogo", "id": 925, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false},
+		"smallLogo": {"name": "smallLogo", "id": 924, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "34"
+	"version": "35"
 }
 
 export function createExternalPropertiesReturn(): ExternalPropertiesReturn {

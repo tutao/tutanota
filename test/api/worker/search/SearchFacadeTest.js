@@ -4,12 +4,7 @@ import {SearchFacade} from "../../../../src/api/worker/search/SearchFacade"
 import {_TypeModel as MailTypeModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createUser} from "../../../../src/api/entities/sys/User"
-import {
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptSearchIndexEntry,
-	getAppId
-} from "../../../../src/api/worker/search/IndexUtils"
+import {encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId} from "../../../../src/api/worker/search/IndexUtils"
 import type {
 	ElementData,
 	EncryptedSearchIndexEntry,
@@ -32,7 +27,7 @@ type DB = {metaTable: MetaTable, indexTable: IndexTable}
 o.spec("SearchFacade test", () => {
 	let dbKey
 	let user = createUser()
-	let indexMailBoxReceiver = {indexMailboxes: (user, endIndexTime) => null}
+	let indexMailBoxReceiver = {indexMailboxes: (user, endIndexTime) => Promise.resolve()}
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
@@ -307,6 +302,7 @@ o.spec("SearchFacade test", () => {
 			o(user).deepEquals(user)
 			o(endIndexTime).equals(end)
 			indexCalled = true
+			return Promise.resolve()
 		}
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],

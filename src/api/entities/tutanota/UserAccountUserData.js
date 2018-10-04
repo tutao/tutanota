@@ -12,15 +12,7 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {
-			"name": "_id",
-			"id": 623,
-			"since": 16,
-			"type": "CustomId",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
+		"_id": {"name": "_id", "id": 623, "since": 16, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"contactEncContactListSessionKey": {
 			"name": "contactEncContactListSessionKey",
 			"id": 637,
@@ -57,15 +49,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"encryptedName": {
-			"name": "encryptedName",
-			"id": 625,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"encryptedName": {"name": "encryptedName", "id": 625, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"fileEncFileSystemSessionKey": {
 			"name": "fileEncFileSystemSessionKey",
 			"id": 638,
@@ -75,15 +59,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"mailAddress": {
-			"name": "mailAddress",
-			"id": 624,
-			"since": 16,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"mailAddress": {"name": "mailAddress", "id": 624, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"mailEncMailBoxSessionKey": {
 			"name": "mailEncMailBoxSessionKey",
 			"id": 636,
@@ -93,33 +69,9 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"pwEncUserGroupKey": {
-			"name": "pwEncUserGroupKey",
-			"id": 629,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"salt": {
-			"name": "salt",
-			"id": 626,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"userEncClientKey": {
-			"name": "userEncClientKey",
-			"id": 628,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 629, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"salt": {"name": "salt", "id": 626, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {"name": "userEncClientKey", "id": 628, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncContactGroupKey": {
 			"name": "userEncContactGroupKey",
 			"id": 632,
@@ -138,15 +90,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncEntropy": {
-			"name": "userEncEntropy",
-			"id": 634,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
+		"userEncEntropy": {"name": "userEncEntropy", "id": 634, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncFileGroupKey": {
 			"name": "userEncFileGroupKey",
 			"id": 633,
@@ -174,15 +118,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"verifier": {
-			"name": "verifier",
-			"id": 627,
-			"since": 16,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		}
+		"verifier": {"name": "verifier", "id": 627, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",

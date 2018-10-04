@@ -3,7 +3,7 @@ import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import type {HasIdTuple} from "../../api/common/EntityFunctions"
+import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
@@ -30,7 +30,7 @@ export const PageSize = 100
  * * T is the type of the entity
  * * R is the type of the Row
  */
-export class List<T: HasIdTuple, R:VirtualRow<T>> {
+export class List<T: ListElement, R:VirtualRow<T>> {
 	_config: ListConfig<T, R>;
 	_loadedEntities: T[]; // sorted with _config.sortCompare
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
