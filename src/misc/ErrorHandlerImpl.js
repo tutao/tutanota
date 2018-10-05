@@ -29,6 +29,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
+import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 
 assertMainOrNode()
 
@@ -210,7 +211,11 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 		if (["1", "5", "7"].indexOf(status) != -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
 		} else if (status == "6") {
-			return Dialog.error("requestApproval_msg").return(true)
+			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
+				return Dialog.error("requestApproval_msg").return(true)
+			} else {
+				return Dialog.error("waitingForApproval_msg").return(false)
+			}
 		} else if (status === "3") {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
