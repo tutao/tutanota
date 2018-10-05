@@ -453,7 +453,15 @@ export class Indexer {
 					// 	"insertNewIndexEntries_putMeta"
 					// ])
 				})
-		}).catch(CancelledError, noOp)
+		})
+		           .catch(CancelledError, noOp)
+		           .catch(DbError, (e) => {
+			           if (this._core.isStoppedProcessing()) {
+				           console.log("Ignoring DBerror when indexing is disabled", e)
+			           } else {
+				           throw e
+			           }
+		           })
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {

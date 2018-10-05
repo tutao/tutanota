@@ -403,7 +403,7 @@ o.spec("IndexerCore test", () => {
 		})
 	})
 
-	o("writeIndexUpdate _insertNewIndexEntries new word", function () {
+	o("writeIndexUpdate _insertNewIndexEntries new word", async function () {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)
 		let encInstanceId = new Uint8Array([8])
@@ -426,15 +426,15 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null: any), (null: any))
-		return core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
-		           .then(() => {
-			           o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, [entry]])
-			           o(transaction.put.invocations[1])
-				           .deepEquals([SearchIndexMetaDataOS, encWord, [{key: searchIndexEntryId, size: 1}]])
-		           })
+		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
+
+		o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, [entry]])
+		o(transaction.put.invocations[1])
+			.deepEquals([SearchIndexMetaDataOS, encWord, [{key: searchIndexEntryId, size: 1}]])
+
 	})
 
-	o("writeIndexUpdate _insertNewIndexEntries existing word", function () {
+	o("writeIndexUpdate _insertNewIndexEntries existing word", async function () {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)
 		let encInstanceId = new Uint8Array([8])
@@ -459,17 +459,16 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null: any), (null: any))
-		return core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
-		           .then(() => {
-			           o(transaction.put.invocations[0])
-				           .deepEquals([SearchIndexOS, searchIndexMeta.key, [existingEntry, entry]])
-			           let updatedMetadata = {key: 1, size: 2}
-			           o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, [updatedMetadata]])
-		           })
+		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
+
+		o(transaction.put.invocations[0])
+			.deepEquals([SearchIndexOS, searchIndexMeta.key, [existingEntry, entry]])
+		let updatedMetadata = {key: 1, size: 2}
+		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, [updatedMetadata]])
 
 	})
 
-	o("writeIndexUpdate _insertNewIndexEntries metadata limit reached", function () {
+	o("writeIndexUpdate _insertNewIndexEntries metadata limit reached", async function () {
 		let groupId = "my-group"
 		let indexUpdate = _createNewIndexUpdate(groupId)
 		let encWord = uint8ArrayToBase64(new Uint8Array([77, 83, 2, 23]))
@@ -499,12 +498,10 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = new IndexerCore((null: any), (null: any))
-		return core._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction).then(() => {
-			o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, newEntries])
-			let updatedMetadata = searchIndexMeta.concat({key: newKey, size: newEntries.length})
-			o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, updatedMetadata])
-		})
-
+		await core._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
+		o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, newEntries])
+		let updatedMetadata = searchIndexMeta.concat({key: newKey, size: newEntries.length})
+		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, updatedMetadata])
 	})
 
 	o("writeIndexUpdate _insertNewIndexEntries already indexed (keysToUpdate param empty)", function () {
