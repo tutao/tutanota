@@ -68,10 +68,6 @@ export function downcast<R>(object: *): R {
 	return (object: any)
 }
 
-export function string(object: any): string {
-	return (object: string)
-}
-
 export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
 		return instance.slice()
@@ -151,6 +147,11 @@ export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
 	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
 }
 
+/**
+ * Function which accepts another function. On first invocation
+ * of this resulting function result will be remembered and returned
+ * on consequent invocations.
+ */
 export function lazyMemoized<T>(source: () => T): () => T {
 	// Using separate variable for tracking because value can be undefined and we want to the function call only once
 	let cached = false
@@ -165,8 +166,14 @@ export function lazyMemoized<T>(source: () => T): () => T {
 	}
 }
 
+/**
+ * Function which returns what was passed into it
+ */
 export function identity<T>(t: T): T {
 	return t
 }
 
+/**
+ * Function which does nothing.
+ */
 export function noOp() {}
