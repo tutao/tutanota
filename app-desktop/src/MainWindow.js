@@ -1,5 +1,5 @@
+const ipc = require('./IPC')
 const {BrowserWindow} = require('electron')
-const ipc = require('electron').ipcMain
 const open = require('./open')
 const path = require('path')
 
@@ -25,6 +25,8 @@ exports.createWindow = () => {
 		}
 	})
 
+	ipc.init(mainWindow)
+
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
 		const url = webContents.getURL()
 		if (!url.startsWith('https://mail.tutanota.com') || !(permission === 'notifications')) {
@@ -46,15 +48,13 @@ exports.createWindow = () => {
 		e.preventDefault()
 	})
 
-	//we only have one window to communicate with
-	ipc.send = (...args) => mainWindow.webContents.send.apply(mainWindow.webContents, args)
-
+	// user clicked 'x' button
 	mainWindow.on('close', () => {
 		ipc.send('close')
 	})
 
-	ipc.on('hello', () => {
-		console.log('hello from renderer')
+	ipc.on('hello', (ev, data) => {
+		console.log('hello from renderer: ', data)
 	})
 
 	// handle navigation events. needed since webSecurity = true will

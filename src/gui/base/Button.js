@@ -68,6 +68,7 @@ export class Button {
 	propagateClickEvents: boolean;
 	icon: ?lazy<Vnode<IconAttrs>>;
 	isVisible: lazy<boolean>;
+	isActive: boolean;
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
 	_domButton: HTMLElement;
@@ -84,6 +85,7 @@ export class Button {
 		this._staticRightText = null
 
 		this.isVisible = TRUE_CLOSURE
+		this.isActive = true
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
 		this.getLabel = labelTextIdOrTextFunction instanceof Function
@@ -308,6 +310,9 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
+		if (!mainButton.isActive) {
+			return
+		}
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
 		if (!resultPromise.isFulfilled()) {
@@ -326,7 +331,11 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 						return module.Dialog.error("selectionNotAvailable_msg")
 					})
 			} else {
+				mainButton.isActive = false
 				let dropdown = new Dropdown(() => buttons, width)
+				dropdown.closeHandler = () => {
+					mainButton.isActive = true
+				}
 				if (mainButton._domButton) {
 					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 					if (originOverride) {

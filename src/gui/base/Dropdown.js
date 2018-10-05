@@ -62,6 +62,7 @@ export class Dropdown {
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
 	origin: ?PosRect;
+	closeHandler: ?Function;
 	maxHeight: number;
 	oninit: Function;
 	view: Function;
@@ -229,6 +230,9 @@ export class Dropdown {
 	}
 
 	close(): void {
+		if (this.closeHandler) {
+			this.closeHandler()
+		}
 		modal.remove(this)
 	}
 
