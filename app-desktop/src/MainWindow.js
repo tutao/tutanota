@@ -44,6 +44,15 @@ exports.createWindow = () => {
 	mainWindow.webContents.on('will-attach-webview', (e, webPreferences, params) => {
 		e.preventDefault()
 	})
+	
+	// user clicked 'x' button
+	mainWindow.on('close', () => {
+		ipc.send('close')
+	})
+
+	ipc.on('hello', (ev, data) => {
+		console.log('hello from renderer: ', data)
+	})
 
 	// handle navigation events. needed since webSecurity = true will
 	// prevent us from opening any local files directly
