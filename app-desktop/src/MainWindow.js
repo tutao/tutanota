@@ -1,3 +1,4 @@
+const ipc = require('./IPC')
 const {BrowserWindow} = require('electron')
 const open = require('./open')
 
@@ -20,6 +21,8 @@ exports.createWindow = () => {
 			//preload: './preload.js'
 		}
 	})
+
+	ipc.init(mainWindow)
 
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
 		const url = webContents.getURL()

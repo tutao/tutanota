@@ -1,7 +1,6 @@
 const {app} = require('electron')
 const autoUpdater = require('./src/AutoUpdate')
 const createWindow = require('./src/MainWindow').createWindow
-
 let mainWindow
 
 if (!app.requestSingleInstanceLock()) {
