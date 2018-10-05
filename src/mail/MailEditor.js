@@ -632,14 +632,10 @@ export class MailEditor {
 						                          })
 						                          .catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
 						                          .catch(AccessBlockedError, e => {
-							                          return checkApprovalStatus(true)
-								                          .then(sendAllowed => {
-									                          if (sendAllowed) {
-										                          // special case: the approval status is set to SpamSender, but the update has not been received yet, so show the dialog manually
-										                          Dialog.error("loginAbuseDetected_msg")
-									                          } else {
-										                          console.log("could not send mail (blocked access)", e)
-									                          }
+							                          // special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
+							                          return checkApprovalStatus(true, "4")
+								                          .then(() => {
+									                          console.log("could not send mail (blocked access)", e)
 								                          })
 						                          })
 					               })

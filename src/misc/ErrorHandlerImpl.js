@@ -16,7 +16,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
-import {AccountType, ApprovalStatus, ConversationType} from "../api/common/TutanotaConstants"
+import {AccountType, ConversationType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
@@ -198,18 +198,20 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
  * @param includeInvoiceNotPaidForAdmin If true, also shows a warning for an admin if the invoice is not paid (use at login), if false does not show this warning (use when sending an email).
+ * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
  */
-export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Promise<boolean> {
+export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defaultStatus: ?string): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) { // external users are not authorized to load the customer
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		if (["1", "5", "7"].indexOf(customer.approvalStatus) != -1) {
+		let status = (customer.approvalStatus == "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
+		if (["1", "5", "7"].indexOf(status) != -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (customer.approvalStatus == "6") {
+		} else if (status == "6") {
 			return Dialog.error("requestApproval_msg").return(true)
-		} else if (customer.approvalStatus === ApprovalStatus.InvoiceNotPaid) {
+		} else if (status === "3") {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
@@ -225,7 +227,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean): Pro
 			} else {
 				return Dialog.error("invoiceNotPaidUser_msg").return(false)
 			}
-		} else if (customer.approvalStatus === ApprovalStatus.SpamSender) {
+		} else if (status === "4") {
 			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
 			return false
 		} else {
