@@ -95,13 +95,6 @@ export type AccountTypeEnum = $Values<typeof AccountType>;
 
 export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
 
-export const ApprovalStatus = {
-	InvoiceNotPaid: '3',
-	SpamSender: '4',
-}
-export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
-
-
 export const BookingItemFeatureType = {
 	Users: '0',
 	Storage: '1',
