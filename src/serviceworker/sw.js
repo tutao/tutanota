@@ -139,7 +139,9 @@ const init = (sw: ServiceWorker, urlsToCache: string[]) => {
 }
 
 // do not add listeners for Node tests
-if (!(env && env.mode === "Test")) {
+if (typeof env !== "undefined" && env.mode === "Test") {
+	module.exports = {ServiceWorker}
+} else {
 	const cacheName = "CODE_CACHE-v" + version()
 	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 	const exclusions = customDomainCacheExclusions()
@@ -151,6 +153,4 @@ if (!(env && env.mode === "Test")) {
 	const sw = new ServiceWorker(caches, cacheName, selfLocation, applicationPaths, fromNetwork,
 		isTutanotaDomain())
 	init(sw, urlsToCache)
-} else {
-	module.exports = {ServiceWorker}
 }
