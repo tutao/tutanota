@@ -30,6 +30,7 @@ import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {CancelledError} from "../../common/error/CancelledError"
+import {mapInCallContext} from "../../common/utils/PromiseUtils"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -234,7 +235,6 @@ export class SearchFacade {
 		console.time && console.time("_tryExtendIndex")
 		return this._tryExtendIndex(searchResult.restriction).then(() => {
 				makeStamp("_tryExtendIndex")
-
 				console.time && console.time("findIndexEntries")
 				return this._findIndexEntries(searchTokens)
 				           .then(keyToEncryptedIndexEntries => {
@@ -308,8 +308,8 @@ export class SearchFacade {
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
-		           .then(transaction => Promise.map(searchTokens,
-			           (token) => this._findEntriesForSearchToken(transaction, token)))
+		           .then(transaction =>
+			           mapInCallContext(searchTokens, (token) => this._findEntriesForSearchToken(transaction, token)))
 	}
 
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
@@ -319,7 +319,7 @@ export class SearchFacade {
 	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction.getAsList(SearchIndexMetaDataOS, indexKey)
-		                  .then(metadata => Promise.map(metadata, (entry) =>
+		                  .then(metadata => mapInCallContext(metadata, (entry) =>
 			                  this._findEntriesForMetadata(transaction, entry)))
 		                  .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
 		                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {

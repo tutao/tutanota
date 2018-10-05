@@ -20,7 +20,7 @@ export type GroupData = {
 }
 
 // runtime types
-type B64EncIndexKey = Base64;
+export type B64EncIndexKey = Base64;
 type EncIndexKey = Uint8Array
 type EncInstanceId = Uint8Array;
 export type B64EncInstanceId = Base64;
