@@ -47,6 +47,15 @@ exports.createWindow = () => {
 	mainWindow.webContents.on('will-attach-webview', (e, webPreferences, params) => {
 		e.preventDefault()
 	})
+	
+	// user clicked 'x' button
+	mainWindow.on('close', () => {
+		ipc.send('close')
+	})
+
+	ipc.on('hello', (ev, data) => {
+		console.log('hello from renderer: ', data)
+	})
 
 	// user clicked 'x' button
 	mainWindow.on('close', () => {
