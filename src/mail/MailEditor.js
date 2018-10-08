@@ -62,6 +62,7 @@ import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
+import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 
 assertMainOrNode()
 
@@ -453,12 +454,18 @@ export class MailEditor {
 
 	_showFileChooserForAttachments() {
 		if (env.mode === Mode.App) {
-			return fileApp.openFileChooser(this._attachFilesButton._domButton.getBoundingClientRect()).then(files => {
-				this._attachFiles((files: any))
-				m.redraw()
-			}).catch(PermissionError, () => {
-				Dialog.error("fileAccessDeniedMobile_msg")
-			})
+			return fileApp
+				.openFileChooser(this._attachFilesButton._domButton.getBoundingClientRect())
+				.then(files => {
+					this._attachFiles((files: any))
+					m.redraw()
+				})
+				.catch(PermissionError, () => {
+					Dialog.error("fileAccessDeniedMobile_msg")
+				})
+				.catch(FileNotFoundError, () => {
+					Dialog.error("couldNotAttachFile_msg")
+				})
 		} else {
 			return fileController.showFileChooser(true).then(files => {
 				this._attachFiles((files: any))
@@ -532,9 +539,10 @@ export class MailEditor {
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)
-		if (this.draft != null) {
+		const draft = this.draft
+		if (draft != null) {
 			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(),
-				senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft: any))
+				senderName, to, cc, bcc, attachments, this._isConfidential(), draft)
 			                .catch(NotFoundError, e => {
 				                console.log("draft has been deleted, creating new one")
 				                return createMailDraft()
@@ -548,9 +556,10 @@ export class MailEditor {
 			this.draft = draft
 			return Promise.map(draft.attachments, fileId => load(FileTypeRef, fileId)).then(attachments => {
 				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
-				this._attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
+				this._attachFiles(attachments)
 			})
 		})
+
 		if (showProgress) {
 			return showProgressDialog("save_msg", promise)
 		} else {
@@ -575,81 +584,85 @@ export class MailEditor {
 	}
 
 	send() {
-		return Promise.resolve().then(() => {
-			if (this.toRecipients.textField.value().trim() !== "" ||
-				this.ccRecipients.textField.value().trim() !== "" ||
-				this.bccRecipients.textField.value().trim() !== "") {
-				throw new UserError("invalidRecipients_msg")
-			} else if (this.toRecipients.bubbles.length === 0 &&
-				this.ccRecipients.bubbles.length === 0 &&
-				this.bccRecipients.bubbles.length === 0) {
-				throw new UserError("noRecipients_msg")
-			}
+		return Promise
+			.resolve()
+			.then(() => {
+				if (this.toRecipients.textField.value().trim() !== "" ||
+					this.ccRecipients.textField.value().trim() !== "" ||
+					this.bccRecipients.textField.value().trim() !== "") {
+					throw new UserError("invalidRecipients_msg")
+				} else if (this.toRecipients.bubbles.length === 0 &&
+					this.ccRecipients.bubbles.length === 0 &&
+					this.bccRecipients.bubbles.length === 0) {
+					throw new UserError("noRecipients_msg")
+				}
 
-			let subjectConfirmPromise = Promise.resolve(true)
+				let subjectConfirmPromise = Promise.resolve(true)
 
-			if (this.subject.value().trim().length === 0) {
-				subjectConfirmPromise = Dialog.confirm("noSubject_msg")
-			}
-			return subjectConfirmPromise.then(confirmed => {
+				if (this.subject.value().trim().length === 0) {
+					subjectConfirmPromise = Dialog.confirm("noSubject_msg")
+				}
+				return subjectConfirmPromise
+			})
+			.then(confirmed => {
 				if (confirmed) {
-					let send = this.saveDraft(true, false)
-					               .then(() => {
-						               return this._waitForResolvedRecipients().then(resolvedRecipients => {
-							               let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
-							               if (this._confidentialButtonState && externalRecipients.length > 0
-								               && externalRecipients.find(r => this.getPasswordField(r).value().trim()
-									               !== "") == null) {
-								               throw new UserError("noPreSharedPassword_msg")
-							               }
+					let send = this
+						.saveDraft(true, false)
+						.then(() => this._waitForResolvedRecipients())
+						.then(resolvedRecipients => {
+							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
+							if (this._confidentialButtonState && externalRecipients.length > 0
+								&& externalRecipients.find(r => this.getPasswordField(r).value().trim()
+									!== "") == null) {
+								throw new UserError("noPreSharedPassword_msg")
+							}
 
-							               let sendMail = Promise.resolve(true)
-							               if (this._confidentialButtonState
-								               && externalRecipients.reduce((min, current) =>
-									               Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
-								               sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-							               }
+							let sendMail = Promise.resolve(true)
+							if (this._confidentialButtonState
+								&& externalRecipients.reduce((min, current) =>
+									Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
+								sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+							}
 
-							               return sendMail.then(ok => {
-								               if (ok) {
-									               return this._updateContacts(resolvedRecipients)
-									                          .then(() => worker.sendMailDraft(neverNull(this.draft),
-										                          resolvedRecipients,
-										                          this._languageCodeField.selectedValue()))
-									                          .then(() => this._updatePreviousMail())
-									                          .then(() => this._updateExternalLanguage())
-									                          .then(() => this._close())
-								               }
-							               })
-						               })
-						                          .catch(RecipientNotResolvedError, e => {
-							                          return Dialog.error("recipientNotResolvedTooManyRequests_msg")
-						                          })
-						                          .catch(RecipientsNotFoundError, e => {
-							                          let invalidRecipients = e.message.join("\n")
-							                          return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-								                          + invalidRecipients)
-						                          })
-						                          .catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
-						                          .catch(AccessBlockedError, e => {
-							                          // special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
-							                          return checkApprovalStatus(true, "4")
-								                          .then(() => {
-									                          console.log("could not send mail (blocked access)", e)
-								                          })
-						                          })
-					               })
+							return sendMail.then(ok => {
+								if (ok) {
+									return this._updateContacts(resolvedRecipients)
+									           .then(() => worker.sendMailDraft(
+										           neverNull(this.draft),
+										           resolvedRecipients,
+										           this._languageCodeField.selectedValue()))
+									           .then(() => this._updatePreviousMail())
+									           .then(() => this._updateExternalLanguage())
+									           .then(() => this._close())
+								}
+							})
+						})
+						.catch(RecipientNotResolvedError, e => {
+							return Dialog.error("recipientNotResolvedTooManyRequests_msg")
+						})
+						.catch(RecipientsNotFoundError, e => {
+							let invalidRecipients = e.message.join("\n")
+							return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+								+ invalidRecipients)
+						})
+						.catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
+						.catch(AccessBlockedError, e => {
+							// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
+							return checkApprovalStatus(true, "4")
+								.then(() => {
+									console.log("could not send mail (blocked access)", e)
+								})
+						})
+						.catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
 
 					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
 			})
-
-		}).catch(UserError, e => Dialog.error(e.message))
-		              .catch(e => {
-			              console.log(typeof e, e)
-			              throw e
-		              })
-
+			.catch(UserError, e => Dialog.error(e.message))
+			.catch(e => {
+				console.log(typeof e, e)
+				throw e
+			})
 	}
 
 	_updateExternalLanguage() {
