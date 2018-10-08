@@ -14,6 +14,7 @@ import android.webkit.MimeTypeMap;
 import com.ipaulpro.afilechooser.utils.FileUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.jdeferred.Deferred;
 import org.jdeferred.DoneFilter;
 import org.jdeferred.DonePipe;
 import org.jdeferred.Promise;
@@ -112,16 +113,16 @@ public class FileUtil {
     }
 
     /**
-     * @param context
-     * @param uri     that starts with content:/ and is not directly accessible as a file
+     * @param context used to open file
+     * @param uri that starts with content:/ and is not directly accessible as a file
      * @return a resolved file path
-     * @throws Exception if the file does not exist
+     * @throws FileNotFoundException if the file does not exist
      */
     public static String uriToFile(Context context, Uri uri) throws FileNotFoundException {
         Log.v(TAG, "uri of selected file: " + uri.toString());
         File file = Utils.uriToFile(context, uri.toString());
-        if (!file.exists()) {
-            throw new FileNotFoundException("Selected file does not exist: " + file.getAbsolutePath());
+        if (file == null || !file.exists()) {
+            throw new FileNotFoundException("Selected file does not exist: " + uri);
         } else {
             String fileUri = file.toURI().toString();
             Log.i(TAG, "selected file: " + fileUri);
@@ -144,7 +145,8 @@ public class FileUtil {
             return activity.startActivityForResult(intent)
                     .then((DoneFilter<ActivityResult, Boolean>) result -> result.resultCode == RESULT_OK);
         } else {
-            throw new Error("file does not exist");
+            return new DeferredObject<Boolean, Exception, Void>()
+                    .reject(new FileNotFoundException(fileName));
         }
     }
 

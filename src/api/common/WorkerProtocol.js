@@ -8,26 +8,26 @@
  */
 import {isWorker} from "../Env"
 import {
-	ConnectionError,
-	BadRequestError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	NotFoundError,
-	MethodNotAllowedError,
-	PreconditionFailedError,
-	TooManyRequestsError,
+	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
-	AccessBlockedError,
+	BadGatewayError,
+	BadRequestError,
+	ConnectionError,
+	InsufficientStorageError,
+	InternalServerError,
 	InvalidDataError,
 	InvalidSoftwareVersionError,
 	LimitReachedError,
-	InternalServerError,
-	BadGatewayError,
+	MethodNotAllowedError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	PreconditionFailedError,
 	ResourceError,
-	InsufficientStorageError,
+	ServiceUnavailableError,
 	SessionExpiredError,
-	ServiceUnavailableError
+	TooManyRequestsError
 } from "./error/RestError"
 import {ProgrammingError} from "./error/ProgrammingError"
 import {RecipientsNotFoundError} from "./error/RecipientsNotFoundError"
@@ -39,6 +39,7 @@ import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
 import {DbError} from "./error/DbError"
 import {CancelledError} from "./error/CancelledError"
 import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
+import {FileNotFoundError} from "./error/FileNotFoundError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -210,5 +211,6 @@ const ErrorNameToType = {
 	"java.io.EOFException": ConnectionError,
 	"java.net.UnknownHostException": ConnectionError,
 	"java.lang.SecurityException": PermissionError,
-	"de.tutao.tutanota.CryptoError": CryptoError
+	"de.tutao.tutanota.CryptoError": CryptoError,
+	"java.io.FileNotFoundException": FileNotFoundError
 }
