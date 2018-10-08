@@ -1,5 +1,6 @@
 package de.tutao.tutanota;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.job.JobInfo;
@@ -16,6 +17,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -34,6 +36,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import org.jdeferred.Deferred;
+import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -351,12 +354,25 @@ public class MainActivity extends Activity {
                 jsonAddresses.put(address);
             }
         }
-        nativeImpl.sendRequest(JsRequest.createMailEditor,
-                new Object[]{files, text, jsonAddresses, subject, mailToUrlString});
+        Promise<Void, Exception, Void> permissionPromise;
+        if (files.length() > 0) {
+            permissionPromise = this.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        } else {
+            permissionPromise = new DeferredObject<Void, Exception, Void>().resolve(null);
+        }
+
+        // Satisfy Java's lambda requirements
+        final String fText = text;
+        final JSONArray fJsonAddresses = jsonAddresses;
+        permissionPromise.then((__) -> {
+            nativeImpl.sendRequest(JsRequest.createMailEditor,
+                    new Object[]{files, fText, fJsonAddresses, subject, mailToUrlString});
+        });
     }
 
     @NonNull
     private JSONArray getFilesFromIntent(@NonNull Intent intent) {
+        Debug.waitForDebugger();
         ClipData clipData = intent.getClipData();
         final JSONArray filesArray = new JSONArray();
         if (clipData != null) {
