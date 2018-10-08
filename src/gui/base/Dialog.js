@@ -315,7 +315,7 @@ export class Dialog {
 
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => [
-					m(".dialog-contentButtonsBottom.text-break.text-prewrap",
+					m(".dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
 						messageIdOrMessageFunction instanceof Function ?
 							messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
