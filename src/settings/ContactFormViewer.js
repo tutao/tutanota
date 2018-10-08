@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
-import {Table, ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, Table} from "../gui/base/Table"
 import {erase, load, loadAll} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
@@ -103,9 +103,9 @@ export class ContactFormViewer {
 					m(".mt-l", [
 						m(".h4", lang.get("contactFormReport_label")),
 						m(".small", lang.get("contactFormReportInfo_msg")),
-						m(".flex-space-between.items-center.mb-s", [
-							m(contactFormReportFrom),
-							m(contactFormReportTo),
+						m(".flex.items-center.mb-s", [
+							m(".flex-column.pr-l", m(contactFormReportFrom)),
+							m(".flex-column.pr-l", m(contactFormReportTo)),
 							m(contactFormReportButton)
 						]),
 					])
