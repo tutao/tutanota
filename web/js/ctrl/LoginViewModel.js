@@ -258,18 +258,20 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._migrateGroupInfos = function () {
 	var user = tutao.locator.userController.getLoggedInUser();
 	if (tutao.locator.userController.isLoggedInUserAdmin() && user.getOwnerGroup() && !tutao.locator.userController.getUserGroupInfo().getOwnerGroup()) {
 		return user.loadCustomer().then(function (customer) {
-			return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.GroupInfo, customer.getUserGroups(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function (groupInfos) {
-				var customerGroupKey = tutao.locator.userController.getGroupKey(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CUSTOMER));
-				var data = new tutao.entity.sys.MigrateGroupInfosData();
-				return Promise.each(groupInfos, function (groupInfo) {
-					var groupInfoData = new tutao.entity.sys.MigratedGroupInfoData(data);
-					groupInfoData.setGroupInfo(groupInfo.getId());
-					groupInfoData.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, groupInfo.getEntityHelper().getSessionKey()));
-					data.getGroupInfos().push(groupInfoData);
-				}).then(function () {
-					return data.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
-				});
-			});
+			return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.GroupInfo, customer.getUserGroups(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID)
+			            .then(function (groupInfos) {
+				            var customerGroupKey = tutao.locator.userController.getGroupKey(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CUSTOMER));
+				            var data = new tutao.entity.sys.MigrateGroupInfosData();
+				            return Promise.each(groupInfos, function (groupInfo) {
+					            var groupInfoData = new tutao.entity.sys.MigratedGroupInfoData(data);
+					            groupInfoData.setGroupInfo(groupInfo.getId());
+					            groupInfoData.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, groupInfo.getEntityHelper()
+					                                                                                                               .getSessionKey()));
+					            data.getGroupInfos().push(groupInfoData);
+				            }).then(function () {
+					            return data.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
+				            });
+			            });
 		});
 	} else {
 		return Promise.resolve();
@@ -287,10 +289,13 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._showUpgradeReminder = function () 
 		return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
 			return customer.loadProperties().then(function (properties) {
 				return customer.loadCustomerInfo().then(function (customerInfo) {
-					if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime() + tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
+					if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime()
+						+ tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
 						var message = tutao.lang("premiumOffer_msg") + " " + tutao.lang("moreInfo_msg");
 						var title = tutao.lang("upgradeReminderTitle_msg");
-						return tutao.locator.modalDialogViewModel.showDialog([message], ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function (selection) {
+						return tutao.locator.modalDialogViewModel.showDialog([message], [
+							"upgradeToPremium_action", "upgradeReminderCancel_action"
+						], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function (selection) {
 							if (selection == 0) {
 								tutao.locator.navigator.settings();
 								tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
@@ -319,35 +324,40 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._checkStorageLimit = function () {
 		return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
 			// load used memory
 			var usedMemory = 0;
-			return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_INTERNAL, customer.getId()).then(function (usedMemoryInternal) {
-				return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_EXTERNAL, customer.getId()).then(function (usedMemoryExternal) {
-					usedMemory = (Number(usedMemoryInternal) + Number(usedMemoryExternal));
-				})
-			}).then(function () {
-				return customer.loadCustomerInfo().then(function (customerInfo) {
-					var includedStorage = Number(customerInfo.getIncludedStorageCapacity());
-					var promotionStorage = Number(customerInfo.getPromotionStorageCapacity());
-					var availableStorage = Math.max(includedStorage, promotionStorage)
-					var bookedStorage = 0;
-					if (usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR)) {
-						if (tutao.locator.viewManager.isPremiumAccount()) {
-							// load booked storage capacity
-							return tutao.util.BookingUtils.getCurrentPrice().then(function (price) {
-								var currentStorageItem = tutao.util.BookingUtils.getPriceItem(price.getCurrentPriceNextPeriod(), tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE);
-								if (currentStorageItem != null) {
-									bookedStorage = Number(currentStorageItem.getCount());
-								}
-								availableStorage = Math.max(bookedStorage, availableStorage);
-								if (usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR)) {
-									return self._showStorageWarning();
-								}
-							})
-						} else {
-							return self._showStorageWarning();
-						}
-					}
-				});
-			})
+			return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_INTERNAL, customer.getId())
+			            .then(function (usedMemoryInternal) {
+				            return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_EXTERNAL, customer.getId())
+				                        .then(function (usedMemoryExternal) {
+					                        usedMemory = (Number(usedMemoryInternal) + Number(usedMemoryExternal));
+				                        })
+			            })
+			            .then(function () {
+				            return customer.loadCustomerInfo().then(function (customerInfo) {
+					            var includedStorage = Number(customerInfo.getIncludedStorageCapacity());
+					            var promotionStorage = Number(customerInfo.getPromotionStorageCapacity());
+					            var availableStorage = Math.max(includedStorage, promotionStorage)
+					            var bookedStorage = 0;
+					            if (usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB
+						            * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR)) {
+						            if (tutao.locator.viewManager.isPremiumAccount()) {
+							            // load booked storage capacity
+							            return tutao.util.BookingUtils.getCurrentPrice().then(function (price) {
+								            var currentStorageItem = tutao.util.BookingUtils.getPriceItem(price.getCurrentPriceNextPeriod(), tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE);
+								            if (currentStorageItem != null) {
+									            bookedStorage = Number(currentStorageItem.getCount());
+								            }
+								            availableStorage = Math.max(bookedStorage, availableStorage);
+								            if (usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB
+									            * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR)) {
+									            return self._showStorageWarning();
+								            }
+							            })
+						            } else {
+							            return self._showStorageWarning();
+						            }
+					            }
+				            });
+			            })
 		});
 	} else {
 		return Promise.resolve();
@@ -363,10 +373,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._showStorageWarning = function () {
 
 tutao.tutanota.ctrl.LoginViewModel.prototype._showApprovalRequestInfo = function () {
 	return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
-		if (["1", "5", "7"].indexOf(customer.getApprovalStatus()) != -1) {
+		if (["1", "5", "6", "7"].indexOf(customer.getApprovalStatus()) != -1) {
 			return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
-		} else if (customer.getApprovalStatus() == "6") {
-			return tutao.tutanota.gui.alert("Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de and describe what you would like to use this email account for.");
 		} else if (customer.getApprovalStatus() == "4") {
 			return tutao.tutanota.gui.alert("Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.")
 		} else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID) {
@@ -576,7 +584,10 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function (userId, 
 };
 
 tutao.tutanota.ctrl.LoginViewModel.showAppInfo = function () {
-	return (tutao.env.mode != tutao.Mode.App) && (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE);
+	return (tutao.env.mode != tutao.Mode.App) && (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP
+		|| tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID
+		|| tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD
+		|| tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE);
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.loginOtherAccount = function () {
