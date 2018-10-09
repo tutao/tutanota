@@ -37,6 +37,10 @@ export function isApp(): boolean {
 	return env.mode === Mode.App
 }
 
+export function isDesktop(): boolean {
+	return env.mode === Mode.Desktop
+}
+
 let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
 let node = (typeof process === 'object' && typeof process.versions === 'object'
 	&& typeof process.versions.node !== 'undefined')

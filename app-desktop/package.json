@@ -1,6 +1,6 @@
 {
   "name": "tutanota-desktop",
-  "main": "main.js",
+  "main": "./src/desktop/main.js",
   "version": "0.0.1",
   "author": "Tutao GmbH",
   "description": "The desktop client for Tutanota, the secure e-mail service.",

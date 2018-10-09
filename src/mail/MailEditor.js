@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import bridge from "../bridge"
+import bridge from "../desktop/bridge.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
