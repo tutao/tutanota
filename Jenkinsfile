@@ -1,4 +1,8 @@
 pipeline {
+	environment {
+		PATH='$PATH:/opt/node-v10.11.0-linux-x64/bin/'
+	}
+
     agent {
         label 'master'
     }
