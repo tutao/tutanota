@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import bridge from "../bridge"
+import bridge from "../desktop/bridge.js"
 import {Dialog} from "../gui/base/Dialog"
 import {TextField, Type} from "../gui/base/TextField"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"

@@ -40,36 +40,37 @@ class Builder {
 	build(srcDirs, watch) {
 		return new Promise((resolve, reject) => {
 			let watcher = chokidar.watch(srcDirs, {ignoreInitial: true, followSymlinks: true, cwd: this.baseDir})
-				.on('change', (file) => this._translateIfChanged(file).then(() => watch()))
-				.on('add', (file) => this._translateIfChanged(file).then(() => watch()))
-				.on('unlink', file => this._deleteFile(file).then(() => watch()))
-				.on('ready', () => {
-					let watched = watcher.getWatched()
-					let dirs = Object.keys(watched)
-					let currentFiles = []
-					for (let dir of dirs) {
-						for (let filename of watched[dir]) {
-							var file = path.join(this.baseDir, dir + "/" + filename)
-							if (fs.statSync(file).isFile())
-								currentFiles.push(file)
-						}
-					}
+			                      .on('change', (file) => this._translateIfChanged(file).then(() => watch()))
+			                      .on('add', (file) => this._translateIfChanged(file).then(() => watch()))
+			                      .on('unlink', file => this._deleteFile(file).then(() => watch()))
+			                      .on('ready', () => {
+				                      let watched = watcher.getWatched()
+				                      let dirs = Object.keys(watched)
+				                      let currentFiles = []
+				                      for (let dir of dirs) {
+					                      for (let filename of watched[dir]) {
+						                      var file = path.join(this.baseDir, dir + "/" + filename)
+						                      if (fs.statSync(file).isFile()) {
+							                      currentFiles.push(file)
+						                      }
+					                      }
+				                      }
 
-					let cachedFiles = this._buildCache.getCachedFiles()
+				                      let cachedFiles = this._buildCache.getCachedFiles()
 
-					let promises = currentFiles.map(file => this._translateIfChanged(file))
-					let deletedFiles = cachedFiles.filter(file => currentFiles.indexOf(file) === -1)
-					Promise.all(promises.concat(deletedFiles.map(file => this._deleteFile(file))))
-						.then(() => {
-							this._ready = true
-							this._runFlow()
-						})
-						.then(resolve)
+				                      let promises = currentFiles.map(file => this._translateIfChanged(file))
+				                      let deletedFiles = cachedFiles.filter(file => currentFiles.indexOf(file) === -1)
+				                      Promise.all(promises.concat(deletedFiles.map(file => this._deleteFile(file))))
+				                             .then(() => {
+					                             this._ready = true
+					                             this._runFlow()
+				                             })
+				                             .then(resolve)
 
-					if (!watch) {
-						watcher.close()
-					}
-				})
+				                      if (!watch) {
+					                      watcher.close()
+				                      }
+			                      })
 		})
 
 	}

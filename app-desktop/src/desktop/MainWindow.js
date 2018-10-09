@@ -1,10 +1,12 @@
-const ipc = require('./IPC')
-const {BrowserWindow} = require('electron')
-const open = require('./open')
+// @flow
+import IPC from './IPC'
+import {BrowserWindow} from 'electron'
+import open from './open'
+import path from 'path'
 
-const startFile = './resources/desktop.html'
+const startFile = 'desktop.html'
 
-exports.createWindow = () => {
+export function createWindow(): BrowserWindow {
 	let mainWindow = new BrowserWindow({
 		width: 1280,
 		height: 800,
@@ -22,7 +24,7 @@ exports.createWindow = () => {
 		}
 	})
 
-	ipc.init(mainWindow)
+	IPC.init(mainWindow)
 
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
 		const url = webContents.getURL()
@@ -41,17 +43,13 @@ exports.createWindow = () => {
 
 	// should never be called, but if somehow a webview gets created
 	// we kill it
-	mainWindow.webContents.on('will-attach-webview', (e, webPreferences, params) => {
+	mainWindow.webContents.on('will-attach-webview', (e: Event, webPreferences, params) => {
 		e.preventDefault()
 	})
-	
+
 	// user clicked 'x' button
 	mainWindow.on('close', () => {
-		ipc.send('close')
-	})
-
-	ipc.on('hello', (ev, data) => {
-		console.log('hello from renderer: ', data)
+		IPC.send('close')
 	})
 
 	// handle navigation events. needed since webSecurity = true will

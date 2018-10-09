@@ -73,26 +73,29 @@ function startDesktop() {
 	if (options.desktop) {
 		console.log("Building desktop client...")
 		const electronSourcesDir = path.join(__dirname, '/app-desktop')
-		return fs.emptyDirAsync(electronSourcesDir + "/resources/")
+		return fs.emptyDirAsync(electronSourcesDir + "/build")
 		         .then(() => {
 			         return Promise.all([
-				         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/resources/images"),
-				         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/resources/libs"),
-				         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/resources/src"),
-				         fs.copyAsync(path.join(__dirname, '/build/desktop.html'), electronSourcesDir + "/resources/desktop.html"),
-				         fs.copyAsync(path.join(__dirname, '/build/desktop.js'), electronSourcesDir + "/resources/desktop.js")
+				         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/build/images"),
+				         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/build/libs"),
+				         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/build/src"),
+				         fs.copyAsync(path.join(__dirname, '/build/desktop.html'), electronSourcesDir + "/build/desktop.html"),
+				         fs.copyAsync(path.join(__dirname, '/build/desktop.js'), electronSourcesDir + "/build/desktop.js"),
+				         fs.copyAsync(path.join(electronSourcesDir, '/package.json'), path.join(electronSourcesDir, '/build/package.json')),
+				         fs.copyAsync(path.join(electronSourcesDir, '/node_modules'), path.join(electronSourcesDir, '/build/node_modules'))
 			         ])
 		         })
 		         .then(() => {
+			         return new Builder(electronSourcesDir, path.join(electronSourcesDir, "/build/"))
+				         .build(['src'], false)
+		         })
+		         .then(() => {
 			         console.log("Trying to start desktop client...")
-			         fs.unlink('./desktop_out.log', (e) => {})
-			         const out = fs.openSync('./desktop_out.log', 'a');
-			         const err = fs.openSync('./desktop_out.log', 'a');
 			         spawn("/bin/sh", ["-c", "npm start"], {
-				         cwd: path.join(__dirname, '/app-desktop/'),
-				         stdio: ['ignore', out, err],
-				         detached: true
-			         }).unref()
+				         cwd: path.join(__dirname, '/app-desktop/build/'),
+				         stdio: ['ignore', 'inherit', 'inherit'],
+				         detached: false
+			         })
 		         })
 	}
 }

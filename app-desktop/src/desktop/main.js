@@ -1,7 +1,9 @@
-const {app} = require('electron')
-const autoUpdater = require('./src/AutoUpdate')
-const createWindow = require('./src/MainWindow').createWindow
-let mainWindow
+// @flow
+import {app, BrowserWindow} from 'electron'
+import ElectronUpdater from './ElectronUpdater.js'
+import {createWindow} from './MainWindow'
+
+let mainWindow: BrowserWindow
 
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
@@ -30,6 +32,6 @@ app.on('second-instance', (e, argv, cwd) => {
 
 app.on('ready', () => {
 	mainWindow = createWindow()
-	mainWindow.openDevTools()
-	autoUpdater.initAndCheck()
+	//mainWindow.openDevTools()
+	ElectronUpdater.initAndCheck()
 })
