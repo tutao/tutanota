@@ -47,8 +47,8 @@ export const languages: Language[] = [
 	{code: 'tr', textId: 'languageTurkish_label'},
 	{code: 'uk_ua', textId: 'languageUkrainian_label'},
 	{code: 'vi', textId: 'languageVietnamese_label'},
-	{code: 'zh_hant', textId: 'languageChineseTraditional_label'},
-	{code: 'zh_tw', textId: 'languageChineseSimplified_label'}
+	{code: 'zh', textId: 'languageChineseSimplified_label'},
+	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
 ]
 
 /**
@@ -215,12 +215,23 @@ class LanguageViewModel {
 		if (languageTags) {
 			for (let tag of languageTags) {
 				let code = tag.toLowerCase().replace("-", "_")
+
+				// Try exact match: zh_tw(code) --> zh_tw(language)
 				let language = languages.find(l => l.code === code && (restrictions == null
 					|| restrictions.indexOf(l.code) !== -1))
-				if (language == null) {
+
+				// Try main language match: zh_cn(code) --> zh(language)
+				if (!language) {
+					language = languages.find(l => l.code === code.substring(0, 2) && (restrictions == null
+						|| restrictions.indexOf(l.code) !== -1))
+				}
+
+				// Try other variant match: bg_xx(code) --> bg_bg(language)
+				if (!language) {
 					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null
 						|| restrictions.indexOf(l.code) !== -1))
 				}
+
 				if (language) {
 					if (language.code === 'de' && whitelabelCustomizations
 						&& whitelabelCustomizations.germanLanguageCode) {
