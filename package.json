@@ -1,11 +1,11 @@
 {
   "name": "tutanota",
-  "version": "3.38.0",
+  "version": "3.38.1",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "devDependencies": {
-    "autolinker": "1.4.1",
+    "autolinker": "1.7.1",
     "babel-cli": "6.18.0",
     "babel-core": "6.21.0",
     "babel-plugin-transform-class-properties": "6.18.0",

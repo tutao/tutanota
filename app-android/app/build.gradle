@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.2"
     defaultConfig {
         applicationId "de.tutao.tutanota"
         minSdkVersion 21
@@ -57,10 +57,10 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'commons-io:commons-io:2.4'
+    implementation 'commons-io:commons-io:2.5'
     implementation 'org.jdeferred:jdeferred-core:1.2.4'
-    implementation 'com.android.support:support-compat:27.1.1'
-    implementation 'com.android.support:support-core-utils:27.1.1'
+    implementation 'com.android.support:support-compat:28.0.0'
+    implementation 'com.android.support:support-core-utils:28.0.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.robolectric:robolectric:3.3.2"

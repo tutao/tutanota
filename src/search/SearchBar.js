@@ -62,7 +62,7 @@ const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 
-export class SearchBar {
+export class SearchBar implements Component {
 	view: Function;
 	_domInput: HTMLInputElement;
 	_domWrapper: HTMLElement;
@@ -80,6 +80,7 @@ export class SearchBar {
 	lastSelectedGroupInfoResult: Stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
 	_closeOverlayFunction: ?(() => void);
+	_overlayContentComponent: {view: () => Children};
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
@@ -99,6 +100,7 @@ export class SearchBar {
 		let b = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
 		this.dropdown = new Dropdown(() => [b], 250)
 		this._results = []
+		this._overlayContentComponent = {view: () => null}
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
 				m(".search-bar.flex-end.items-center", {
@@ -228,22 +230,34 @@ export class SearchBar {
 			let cancelButton = new Button("cancel_action", () => {
 				worker.cancelMailIndexing()
 			}, () => Icons.Cancel)
-			this._closeOverlay()
-			this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
-				view: () => {
-					return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
-						style: {
-							height: px(52)
-						}
-					}, [
-						m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
-						newState.progress !== 100
-							? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
-					])
-				}
+			this._showOverlay(() => {
+				return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
+					style: {
+						height: px(52)
+					}
+				}, [
+					m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
+					newState.progress !== 100
+						? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
+				])
 			})
 		} else if ((route.startsWith("/search/mail") && newState.progress === 0)) {
 			this._closeOverlay()
+		}
+	}
+
+	/**
+	 * Replace contents of the overlay if it was shown or display a new one
+	 * if it wasn't
+	 * @param contentFunction what to show in overlay
+	 * @private
+	 */
+	_showOverlay(contentFunction: () => Children) {
+		this._overlayContentComponent.view = contentFunction;
+		if (this._closeOverlayFunction == null) {
+			this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), this._overlayContentComponent)
+		} else {
+			m.redraw()
 		}
 	}
 
@@ -251,6 +265,7 @@ export class SearchBar {
 		if (this._closeOverlayFunction) {
 			this._closeOverlayFunction()
 			this._closeOverlayFunction = null
+			this._overlayContentComponent.view = () => null
 		}
 	}
 
@@ -345,24 +360,20 @@ export class SearchBar {
 				    }
 			    }
 			    if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
-				    this._closeOverlay()
-				    this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), {
-					    view: () => {
-						    return m("ul.list.click.mail-list", [
-							    this._results.map(result => {
-								    return m("li.plr-l.pt-s.pb-s", {
-									    style: {
-										    height: px(52),
-										    'border-left': px(size.border_selection) + " solid transparent",
-									    },
-									    onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
-									    onclick: e => this._selectResult(result),
-									    class: this._selected === result ? "row-selected" : "",
-								    }, this.renderResult(result))
-							    }),
-						    ])
-					    }
-				    })
+				    this._showOverlay(() =>
+					    m("ul.list.click.mail-list", [
+						    this._results.map(result => {
+							    return m("li.plr-l.pt-s.pb-s", {
+								    style: {
+									    height: px(52),
+									    'border-left': px(size.border_selection) + " solid transparent",
+								    },
+								    onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
+								    onclick: e => this._selectResult(result),
+								    class: this._selected === result ? "row-selected" : "",
+							    }, this.renderResult(result))
+						    }),
+					    ]))
 			    }
 			    // updates the suggestion list if the dropdown is already visible
 			    m.redraw()

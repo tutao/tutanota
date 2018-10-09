@@ -16,7 +16,7 @@ const dependencyMap = {
 	"mithril/stream/stream.js": "./libs/stream.js",
 	"squire-rte": "./libs/squire.js",
 	"dompurify": "./libs/purify.min.js",
-	"autolinker": "./libs/Autolinker.js",
+	"autolinker": "./libs/Autolinker.min.js",
 	"qrcode": "./libs/qrcode-svg.min.js",
 	"@hot": "@empty", // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
 	"util": "@empty" // used by ospec to provide debug output in node
