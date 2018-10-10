@@ -46,21 +46,26 @@ export function createWindow(): BrowserWindow {
 	mainWindow.webContents.on('will-attach-webview', (e: Event, webPreferences, params) => {
 		e.preventDefault()
 	})
-	
+
+	<< <
+	<
+	<
+	<< HEAD:app-desktop/src/MainWindow.js
+=======
 	// user clicked 'x' button
-	mainWindow.on('close', () => {
-		ipc.send('close')
+mainWindow.on('close', () => {
+		IPC.send('close')
 	})
 
-	ipc.on('hello', (ev, data) => {
-		console.log('hello from renderer: ', data)
-	})
-
+<<<<<<< HEAD:app-desktop/src/desktop/MainWindow.js
 	// user clicked 'x' button
 	mainWindow.on('close', () => {
 		IPC.send('close')
 	})
 
+=======
+>>>>>>> 70f13169... Babel, Flow, Bridge:app-desktop/src/desktop/MainWindow.js
+>>>>>>> b41d321e... merged master into electron-client:app-desktop/src/desktop/MainWindow.js
 	// handle navigation events. needed since webSecurity = true will
 	// prevent us from opening any local files directly
 	mainWindow.webContents.on('did-start-navigation', (e, url) => {
