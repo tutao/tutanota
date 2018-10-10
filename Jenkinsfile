@@ -37,9 +37,11 @@ pipeline {
 						unstash 'web_base'
 						unstash 'web_desktop'
 						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
-						    sh 'export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12"'
-						    sh 'export WIN_CSC_KEY_PASSWORD=${PW}'
-						    sh 'node dist -pw prod'
+						    sh '''
+						    export WIN_CSC_KEY_PASSWORD=${PW};
+						    export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12";
+						    node dist -pw prod
+						    '''
 						}
 						dir('build/dist/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
