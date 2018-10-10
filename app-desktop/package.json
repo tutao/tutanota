@@ -36,6 +36,11 @@
       "output": "installers"
     },
     "win": {
+      "publisherName": "Tutao GmbH",
+      "sign": "./app-desktop/winsigner.js",
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
       "target": [
         {
           "target": "nsis",

@@ -31,6 +31,9 @@ function build(dirname, version, targets, targetUrl) {
 		              return fs.copyAsync(path.join(dirname, '/build/dist/'), electronSourcesDir)
 	              })
 	              .then(() => {
+		              return fs.removeAsync(path.join(electronSourcesDir, '/desktop/'))
+	              })
+	              .then(() => {
 		              return new Builder(path.join(dirname, '/app-desktop/'), electronSourcesDir)
 			              .build(['src'], false)
 	              })
@@ -76,7 +79,7 @@ function build(dirname, version, targets, targetUrl) {
 				                path.join(dirname, '/build/dist', updateSubdir, file)
 				                )
 			                )
-		              ).then(() => fs.removeAsync(path.join(electronSourcesDir)))
+		              )
 	              })
 }
 
