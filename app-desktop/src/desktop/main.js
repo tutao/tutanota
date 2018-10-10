@@ -5,6 +5,7 @@ import {createWindow} from './MainWindow'
 
 let mainWindow: BrowserWindow
 
+
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
 }
