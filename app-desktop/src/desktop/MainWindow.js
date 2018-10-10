@@ -47,25 +47,11 @@ export function createWindow(): BrowserWindow {
 		e.preventDefault()
 	})
 
-	<< <
-	<
-	<
-	<< HEAD:app-desktop/src/MainWindow.js
-=======
-	// user clicked 'x' button
-mainWindow.on('close', () => {
-		IPC.send('close')
-	})
-
-<<<<<<< HEAD:app-desktop/src/desktop/MainWindow.js
 	// user clicked 'x' button
 	mainWindow.on('close', () => {
 		IPC.send('close')
 	})
 
-=======
->>>>>>> 70f13169... Babel, Flow, Bridge:app-desktop/src/desktop/MainWindow.js
->>>>>>> b41d321e... merged master into electron-client:app-desktop/src/desktop/MainWindow.js
 	// handle navigation events. needed since webSecurity = true will
 	// prevent us from opening any local files directly
 	mainWindow.webContents.on('did-start-navigation', (e, url) => {
