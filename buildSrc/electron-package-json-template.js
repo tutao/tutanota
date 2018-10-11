@@ -15,7 +15,8 @@ module.exports = function (version, targetUrl, iconPath) {
 			"start": "electron ."
 		},
 		"dependencies": {
-			"electron-updater": "^3.1.2"
+			"electron-updater": "^3.1.2",
+			"electron-debug": "^2.0.0"
 		},
 		"devDependencies": {
 			"electron": "^3.0.0"
@@ -45,7 +46,7 @@ module.exports = function (version, targetUrl, iconPath) {
 			},
 			"win": {
 				"publisherName": "Tutao GmbH",
-				"sign": "./app-desktop/winsigner.js",
+				"sign": "./buildSrc/winsigner.js",
 				"signingHashAlgorithms": [
 					"sha256"
 				],

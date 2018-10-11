@@ -1,9 +1,15 @@
 // @flow
 import {app, BrowserWindow} from 'electron'
+import electronDebug from 'electron-debug'
 import ElectronUpdater from './ElectronUpdater.js'
 import {createWindow} from './MainWindow'
 
 let mainWindow: BrowserWindow
+
+electronDebug({
+	enabled: true,
+	showDevTools: false,
+})
 
 if (!app.requestSingleInstanceLock()) {
 	app.quit()

@@ -52,9 +52,11 @@ function build(dirname, version, targets, targetUrl, updateSubDir) {
 					  )
 				  )
 			).then(() => Promise.all([
-				// fs.removeAsync(path.join(distDir, '/installers/')),
-			    fs.removeAsync(path.join(distDir, '/node_modules/')),
-			    fs.removeAsync(path.join(distDir, '/cache.json')),
+				fs.removeAsync(path.join(distDir, '/installers/')),
+				fs.removeAsync(path.join(distDir, '/node_modules/')),
+				fs.removeAsync(path.join(distDir, '/cache.json')),
+				fs.removeAsync(path.join(distDir, '/package.json')),
+				fs.removeAsync(path.join(distDir, '/package-lock.json')),
 				fs.removeAsync(path.join(distDir, '/src/')),
 			]))
 		})
