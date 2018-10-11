@@ -1088,7 +1088,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"updateFound_label": "New Version was found. Please close all tabs to activate this version.",
+		"updateFound_label": "New version is available.",
 		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.",
 		"searchGroups_placeholder": "Search for groups",
 		"spamRuleEnterValue_msg": "Please enter a value.",
@@ -1096,5 +1096,8 @@ module.exports = {
 		"typeToFilter_label": "Type to filter...",
 		"appInfoAmazonImageAlt_alt": "Android App on Amazon",
 		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de and describe what you would like to use this email account for.",
+		"refresh_action": "Refresh",
+		"releaseNotes_action": "Release notes",
+		"dismissNotification_action": "Dismiss"
 	}
 }

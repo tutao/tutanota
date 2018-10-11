@@ -1094,9 +1094,12 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"updateFound_label": "Es ist eine neue Version verfügbar. Schließen Sie alle Tabs um die neue Version zu aktivieren.",
+		"updateFound_label": "Neue Version ist verfügbar.",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"spamRuleEnterValue_msg": "Bitte geben Sie einen Wert ein.",
-		"knownCredentials_label": "Gespeicherte Zugangsdaten"
+		"knownCredentials_label": "Gespeicherte Zugangsdaten",
+		"refresh_action": "Aktualisieren",
+		"releaseNotes_action": "Freigabemitteilungen",
+		"dismissNotification_action": "Verwerfen"
 	}
 }

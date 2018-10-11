@@ -13,11 +13,13 @@ export type PositionRect = {
 	height?: ?string,
 }
 
+type AnimtationProvider = (dom: HTMLElement) => DomMutation
+
 type OverlayAttrs = {
 	component: Component;
 	position: PositionRect;
-	createAnimation?: DomMutation;
-	closeAnimation?: DomMutation;
+	createAnimation?: AnimtationProvider;
+	closeAnimation?: AnimtationProvider;
 }
 
 const overlays: Array<[OverlayAttrs, ?HTMLElement]> = []
@@ -26,8 +28,8 @@ const boxShadow = (() => {
 	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
 })()
 
-export function displayOverlay(position: PositionRect, component: Component, createAnimation?: DomMutation,
-                               closeAnimation?: DomMutation): () => void {
+export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimtationProvider,
+                               closeAnimation?: AnimtationProvider): () => void {
 	const newAttrs = {
 		position,
 		component,
@@ -38,7 +40,7 @@ export function displayOverlay(position: PositionRect, component: Component, cre
 	overlays.push(pair)
 	return () => {
 		const dom = pair[1];
-		(newAttrs.closeAnimation && dom ? animations.add(dom, newAttrs.closeAnimation) : Promise.resolve())
+		(newAttrs.closeAnimation && dom ? animations.add(dom, newAttrs.closeAnimation(dom)) : Promise.resolve())
 			.then(() => {
 				overlays.splice(overlays.indexOf(pair), 1)
 				m.redraw()
@@ -67,7 +69,7 @@ export const overlay = {
 			oncreate: (vnode: Vnode<any>) => {
 				pair[1] = vnode.dom
 				if (attrs.createAnimation) {
-					animations.add(vnode.dom, attrs.createAnimation)
+					animations.add(vnode.dom, attrs.createAnimation(vnode.dom))
 				}
 			},
 			onremove: () => {

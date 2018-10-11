@@ -1,17 +1,31 @@
 //@flow
-import {isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isApp} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
+import {windowFacade} from "../misc/WindowFacade"
 
+assertMainOrNodeBoot()
 
-function showUpdateOverlay() {
-	notificationOverlay.show(lang.get("updateFound_label"))
+function showUpdateOverlay(onUpdate: () => void) {
+	notificationOverlay.show(lang.get("updateFound_label"), [
+		{
+			label: lang.get("releaseNotes_action"),
+			onclick: () => windowFacade.openLink(`https://github.com/tutao/tutanota/releases/tag/tutanota-release-${env.versionNumber}`)
+		},
+		{
+			label: lang.get("refresh_action"),
+			onclick: onUpdate,
+		}
+	])
 }
 
 function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 	const pending = registration.waiting || registration.installing
 	if (pending && registration.active) {
-		showUpdateOverlay()
+		showUpdateOverlay(() => {
+			console.log("registration.waiting: ", registration.waiting)
+			registration.waiting && registration.waiting.postMessage("update")
+		})
 	}
 }
 
@@ -28,6 +42,18 @@ export function init() {
 				             registration.addEventListener("updatefound", () => {
 					             console.log("updatefound")
 					             showUpdateMessageIfNeeded(registration)
+				             })
+				             serviceWorker.addEventListener("controllerchange", () => {
+					             console.log("controllerchange")
+					             // Prevent losing user data, ask instead
+					             // Even if it is a new ServiceWorker already, all code should be loaded at this point.
+					             if (windowFacade.windowCloseConfirmation) {
+						             if (window.confirm(lang.get("closeWindowConfirmation_msg"))) {
+							             windowFacade.reload({})
+						             }
+					             } else {
+						             windowFacade.reload({})
+					             }
 				             })
 			             })
 		}

@@ -84,12 +84,9 @@ class ServiceWorker {
 	}
 
 	_fromCache(requestUrl: string): Promise<?Response> {
-		return this._caches.open(this._cacheName)
+		return this._caches
+		           .open(this._cacheName)
 		           .then(cache => cache.match(requestUrl))
-		           .then(cached => {
-			           cached && console.log("SW: found in cache: ", requestUrl)
-			           return cached
-		           })
 	}
 
 	// needed because FF fails to cache.addAll()
@@ -113,7 +110,7 @@ class ServiceWorker {
 	_shouldRedirectToDefaultPage(url: string): boolean {
 		return !url.startsWith(this._possibleRest)
 			&& url.startsWith(this._selfLocation)
-			&& urlWithoutQuery(url) !== this._selfLocation // if we are already on the page we need				S
+			&& urlWithoutQuery(url) !== this._selfLocation // if we are already on the page we need
 			&& this._applicationPaths.includes(this._getFirstPathComponent(url))
 	}
 
@@ -135,6 +132,13 @@ const init = (sw: ServiceWorker, urlsToCache: string[]) => {
 	})
 	self.addEventListener('fetch', (evt) => {
 		evt.respondWith(sw.respond(evt.request))
+	})
+
+	self.addEventListener("message", (event) => {
+		console.log("sw message", event)
+		if (event.data === "update") {
+			self.skipWaiting()
+		}
 	})
 }
 

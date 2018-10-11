@@ -814,6 +814,10 @@ styles.registerStyle('main', () => {
 			color: theme.content_button_icon,
 		},
 
+		'.uppercase': {
+			'text-transform': 'uppercase'
+		},
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},

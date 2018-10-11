@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Mode, assertMainOrNodeBoot, isApp, isAndroidApp} from "../api/Env"
+import {assertMainOrNodeBoot, isAndroidApp, isApp, Mode} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"

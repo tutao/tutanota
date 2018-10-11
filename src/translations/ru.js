@@ -755,6 +755,10 @@ module.exports = {
 		"yearly_label": "Годовой",
 		"yesterday_label": "вчера",
 		"yes_label": "Да",
-		"knownCredentials_label": "Сохранённые аккаунты"
+		"knownCredentials_label": "Сохранённые аккаунты",
+		"updateFound_label": "Доступна новая версия.",
+		"refresh_action": "Обновить",
+		"releaseNotes_action": "Изменения",
+		"dismissNotification_action": "Скрыть"
 	}
 }
