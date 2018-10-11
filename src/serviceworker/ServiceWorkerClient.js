@@ -1,5 +1,5 @@
 //@flow
-import {isApp} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 
@@ -19,7 +19,7 @@ function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 export function init() {
 	const serviceWorker = navigator.serviceWorker
 	if (serviceWorker) {
-		if (env.dist && !isApp()) {
+		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
 			serviceWorker.register("sw.js")
 			             .then((registration) => {
