@@ -1,0 +1,50 @@
+// From
+// https://electronjs.org/docs/tutorial/security
+/////////////////////////////////////////////////
+1) Only Load Secure Content
+	Only loading local files in App windows, all external links get
+	opened in the Web Browser
+
+2) Disable Node.js Integration for Remote Content
+	Disabled node Integration MainWindow.js for all content for now
+	(MainWindow.js)
+
+3) Enable Context Isolation for Remote Content
+	can't use global contextIsolation because this will isolate
+    the preload script from the web app, which is needed for
+    IPC.
+
+4) Handle Session Permission Requests From Remote Content
+	allow notifications, disallow everything
+	that's not coming from https://mail.tutanota.com
+	(main.js)
+
+5) Do Not Disable WebSecurity
+	On by default
+
+6) Define a Content Security Policy
+	set in desktop.html
+
+7) Override and Disable eval
+	eval seems to be used in libs/systemjs-hmr.js
+
+8) Do Not Set allowRunningInsecureContent to true
+	disabled by default
+
+9) Do Not Enable Experimental Features
+	disabled by default
+
+10) Do Not Use enableBlinkFeatures
+	disabled by default
+
+11) Do Not Use allowpopups
+	disabled by default
+
+12) Verify WebView Options Before Creation
+	no webviews used in app
+
+13) Disable or limit navigation
+	handled in MainWindow.js
+
+14) Disable or limit creation of new windows
+	disabled in MainWindow.js

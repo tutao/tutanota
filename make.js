@@ -56,6 +56,8 @@ function prepareAssets() {
 			              targetUrl = 'https://test.tutanota.com'
 		              } else if (options.host === 'prod') {
 			              targetUrl = 'https://mail.tutanota.com'
+		              } else if (options.host === 'local') {
+			              targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
 		              } else if (options.host) {
 			              targetUrl = options.host
 		              }
@@ -72,27 +74,15 @@ function prepareAssets() {
 function startDesktop() {
 	if (options.desktop) {
 		console.log("Building desktop client...")
-		const electronSourcesDir = path.join(__dirname, '/app-desktop')
-		return fs.emptyDirAsync(electronSourcesDir + "/build")
+		console.log("Trying to start desktop client...")
+		const content = JSON.stringify(require('./buildSrc/electron-package-json-template')(
+			"0.0.1",
+			null,
+			path.join(__dirname, "/resources/desktop-icons/desktop-icon.png")
+		))
+		return fs.writeFileAsync("./build/package.json", content, 'utf-8')
 		         .then(() => {
-			         return Promise.all([
-				         fs.copyAsync(path.join(__dirname, '/build/images'), electronSourcesDir + "/build/images"),
-				         fs.copyAsync(path.join(__dirname, '/build/libs'), electronSourcesDir + "/build/libs"),
-				         fs.copyAsync(path.join(__dirname, '/build/src'), electronSourcesDir + "/build/src"),
-				         fs.copyAsync(path.join(__dirname, '/build/desktop.html'), electronSourcesDir + "/build/desktop.html"),
-				         fs.copyAsync(path.join(__dirname, '/build/desktop.js'), electronSourcesDir + "/build/desktop.js"),
-				         fs.copyAsync(path.join(electronSourcesDir, '/package.json'), path.join(electronSourcesDir, '/build/package.json')),
-				         fs.copyAsync(path.join(electronSourcesDir, '/node_modules'), path.join(electronSourcesDir, '/build/node_modules'))
-			         ])
-		         })
-		         .then(() => {
-			         return new Builder(electronSourcesDir, path.join(electronSourcesDir, "/build/"))
-				         .build(['src'], false)
-		         })
-		         .then(() => {
-			         console.log("Trying to start desktop client...")
 			         spawn("/bin/sh", ["-c", "npm start"], {
-				         cwd: path.join(__dirname, '/app-desktop/build/'),
 				         stdio: ['ignore', 'inherit', 'inherit'],
 				         detached: false
 			         })

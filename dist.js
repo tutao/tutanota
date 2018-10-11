@@ -22,7 +22,8 @@ let start = Date.now()
 const DistDir = 'build/dist'
 let targetUrl
 
-const bundles = {}
+let bundles = {}
+const bundlesCache = "build/bundles.json"
 
 
 function getAsyncImports(file) {
@@ -81,11 +82,11 @@ function processOptions() {
 			targetUrl = "https://test.tutanota.com"
 		} else if (options.host === 'prod') {
 			targetUrl = "https://mail.tutanota.com"
-		} else if (options.host) {
-			targetUrl = options.host
-		} else {
+		} else if (options.host === 'local') {
 			version = options.deb ? new Date().getTime() : version
 			targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		} else if (options.host) {
+			targetUrl = options.host
 		}
 		console.log("targetUrl: ", targetUrl)
 	}
@@ -107,7 +108,9 @@ function clean() {
 function buildWebapp() {
 	if (options.prebuilt) {
 		console.log("Found prebuilt option (-p). Skipping Webapp build.")
-		return Promise.resolve()
+		return fs.readFileAsync(path.join(__dirname, bundlesCache)).then(bundlesCache => {
+			bundles = JSON.parse(bundlesCache)
+		})
 	}
 	return Promise.resolve()
 	              .then(() => console.log("started cleaning", measure()))
@@ -166,16 +169,24 @@ function buildWebapp() {
 				              ? null
 				              : targetUrl, version, "Browser", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "App", true), bundles),
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
 		              ])
 	              })
-	              .then(() => bundleSW(bundles))
+	              .then(() => bundleServiceWorker(bundles))
 	              .then(copyDependencies)
+	              .then(() => _writeFile(path.join(__dirname, bundlesCache), JSON.stringify(bundles)))
 }
 
 function buildDesktopClient() {
 	if (options.desktop) {
-		return desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl)
+		if (options.host === undefined) {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://mail.tutanota.com", "desktop"))
+				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://test.tutanota.com", "desktop-test"))
+		} else {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl, "desktop"))
+		}
 	}
 }
 
@@ -198,7 +209,7 @@ function bundle(src, targetFile, bundles) {
 	})
 }
 
-function bundleSW(bundles) {
+function bundleServiceWorker(bundles) {
 	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
@@ -219,7 +230,7 @@ function copyDependencies() {
 	return fs.writeFileSync('build/dist/libs.js', libs, 'utf-8')
 }
 
-function createHtml(env, bundles) {
+function createHtml(env) {
 	let filenamePrefix
 	switch (env.mode) {
 		case "App":
@@ -276,7 +287,8 @@ function packageDeb() {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
+		const target = `/opt/releases/tutanota-next-${version}`
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=${target} desktop/=${target}/desktop desktop-test/=${target}/desktop-test`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))

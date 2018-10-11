@@ -1,5 +1,5 @@
 //@flow
-import {assertMainOrNodeBoot, isApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isTutanotaDomain, isDesktop} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
@@ -50,7 +50,7 @@ function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 export function init() {
 	const serviceWorker = navigator.serviceWorker
 	if (serviceWorker) {
-		if (env.dist && !isApp()) {
+		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
 			let location = window.location.pathname.endsWith("/")
 				? "../sw.js"
