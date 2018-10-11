@@ -103,7 +103,6 @@ pipeline {
 					unstash 'win_installer'
 				}
 				sh 'node dist -pd'
-				archiveArtifacts artifacts: 'build/*.deb', onlyIfSuccessful: true
             }
         }
     }

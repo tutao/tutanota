@@ -153,7 +153,9 @@ function buildWebapp() {
 	              .then(() => createLanguageBundles(bundles))
 	              .then(() => {
 		              return Promise.all([
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Browser", true), bundles),
+			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host === null
+				              ? null
+				              : targetUrl, version, "Browser", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "App", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
 		              ])
