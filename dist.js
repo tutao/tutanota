@@ -162,7 +162,9 @@ function buildWebapp() {
 			              targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
 		              }
 		              return Promise.all([
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Browser", true), bundles),
+			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host === null
+				              ? null
+				              : targetUrl, version, "Browser", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "App", true), bundles),
 			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
 		              ])
