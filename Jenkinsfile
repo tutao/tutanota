@@ -15,10 +15,9 @@ pipeline {
             steps {
             	sh 'npm prune'
             	sh 'npm install'
-				sh 'node dist prod'
+				sh 'node dist'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
-				stash includes: '**/index.html, **/index.js, **/app.html, **/app.js', name: 'web_add'
-				stash includes: '**/desktop.html, **/desktop.js', name: 'web_desktop'
+				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
             }
         }
 
@@ -32,19 +31,20 @@ pipeline {
                     steps {
 						sh 'npm prune'
 						sh 'npm install'
-						sh 'rm -rf ./app-desktop/dist/'
-						sh 'rm -rf ./build/dist/'
+						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'web_desktop'
 						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
 						    sh '''
 						    export WIN_CSC_KEY_PASSWORD=${PW};
 						    export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12";
-						    node dist -pw prod
+						    node dist -pw
 						    '''
 						}
-						dir('build/dist/desktop') {
+						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
+						}
+						dir('/build/desktop-test') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer_test'
 						}
                 	}
                 }
@@ -56,13 +56,14 @@ pipeline {
                     steps {
 						sh 'npm prune'
 						sh 'npm install'
-						sh 'rm -rf ./app-desktop/dist/'
-						sh 'rm -rf ./build/dist/'
+						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'web_desktop'
-						sh 'node dist -pm prod'
+						sh 'node dist -pm'
 						dir('build/dist/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
+						}
+						dir('/build/desktop-test') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer_test'
 						}
                     }
                 }
@@ -74,13 +75,14 @@ pipeline {
                     steps {
 						sh 'npm prune'
 						sh 'npm install'
-						sh 'rm -rf ./app-desktop/dist/'
-						sh 'rm -rf ./build/dist/'
+						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'web_desktop'
-						sh 'node dist -pl prod'
+						sh 'node dist -pl'
 						dir('build/dist/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
+						}
+						dir('/build/desktop-test') {
+							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer_test'
 						}
                     }
                 }
@@ -94,13 +96,18 @@ pipeline {
             steps {
             	sh 'npm prune'
             	sh 'npm install'
-				sh 'rm -rf ./build/dist/'
+				sh 'rm -rf ./build/*'
 				unstash 'web_base'
 				unstash 'web_add'
 				dir('build/dist/desktop'){
 					unstash 'linux_installer'
 					unstash 'mac_installer'
 					unstash 'win_installer'
+				}
+				dir('build/dist/desktop-test'){
+					unstash 'linux_installer_test'
+					unstash 'mac_installer_test'
+					unstash 'win_installer_test'
 				}
 				sh 'node dist -pd'
             }
