@@ -14,7 +14,7 @@ function build(dirname, version, targets, targetUrl, nameSuffix) {
 
 	console.log("Updating config...")
 	const content = require('./electron-package-json-template')(
-		updateSubDir,
+		nameSuffix,
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/desktop-icon.png")
@@ -44,7 +44,7 @@ function build(dirname, version, targets, targetUrl, nameSuffix) {
 			})
 		})
 		.then(() => {
-			console.log("Move output to /build/dist/" + updateSubDir + "/...")
+			console.log("Move output to /build/" + updateSubDir + "/...")
 			return Promise.all(
 				fs.readdirSync(path.join(distDir, '/installers'))
 				  .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
