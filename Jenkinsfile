@@ -103,6 +103,7 @@ pipeline {
 				sh 'rm -rf ./build/*'
 				unstash 'web_base'
 				unstash 'web_add'
+				unstash 'bundles'
 				dir('build/desktop'){
 					unstash 'linux_installer'
 					unstash 'mac_installer'
