@@ -1,6 +1,7 @@
 import o from "ospec/ospec.js"
 import {Button} from "../../../../src/gui/base/Button"
-import {client, DeviceType} from "../../../../src/misc/ClientDetector"
+import {client} from "../../../../src/misc/ClientDetector"
+import {DeviceType} from "../../../../src/misc/ClientConstants"
 
 let device = client.device
 

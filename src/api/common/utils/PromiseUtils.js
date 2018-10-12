@@ -36,3 +36,10 @@ function _mapInCallContext<T, U>(values: T[], callback: (T) => Promise<U> | U, i
 		return _mapInCallContext(values, callback, index + 1, acc)
 	}
 }
+
+
+export type PromiseMapFn = <T, U>(values: T[], callback: (T) => Promise<U> | U,
+                                  concurrency?: Bluebird$ConcurrencyOption) => Promise<U[]> | U[]
+
+export const promiseMapCompat = (microtaskBySpec: boolean): PromiseMapFn =>
+	microtaskBySpec ? Promise.map : mapInCallContext

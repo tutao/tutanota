@@ -10,8 +10,9 @@ import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
-import {client, BrowserType} from "./ClientDetector"
+import {client} from "./ClientDetector"
 import u2f from "./u2f-api"
+import {BrowserType} from "./ClientConstants"
 
 assertMainOrNode()
 

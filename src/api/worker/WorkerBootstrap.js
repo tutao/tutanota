@@ -4,7 +4,7 @@ importScripts('../../../libs/polyfill.js', '../../../libs/bluebird.min.js', '../
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
  */
 self.onmessage = function (msg) {
-	var data = msg.data
+	const data = msg.data
 	if (data.type === 'setup') {
 		self.env = data.args[0]
 		System.config(self.env.systemConfig)
@@ -19,10 +19,14 @@ self.onmessage = function (msg) {
 			      }
 
 			      System.import('src/api/worker/WorkerImpl').then((workerModule) => {
-				      let initialRandomizerEntropy = data.args[1]
-				      let indexedDbSupported = data.args[2]
+				      const initialRandomizerEntropy = data.args[1]
+				      const indexedDbSupported = data.args[2]
+				      const browserData = data.args[3]
+				      if (initialRandomizerEntropy == null || indexedDbSupported == null || browserData == null) {
+				      	throw new Error("Invalid Worker arguments")
+				      }
 				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null,
-					      indexedDbSupported)
+					      indexedDbSupported, browserData)
 				      workerImpl.addEntropy(initialRandomizerEntropy)
 				      self.postMessage({id: data.id, type: 'response', value: {}})
 			      })

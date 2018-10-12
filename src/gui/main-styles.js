@@ -1,10 +1,11 @@
 //@flow
 import {styles} from "./styles"
 import {px, size} from "./size"
-import {BrowserType, client} from "../misc/ClientDetector"
+import {client} from "../misc/ClientDetector"
 import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp} from "../api/Env"
 import {theme} from "./theme.js"
+import {BrowserType} from "../misc/ClientConstants"
 
 assertMainOrNodeBoot()
 

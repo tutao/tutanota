@@ -1,7 +1,8 @@
 import o from "ospec/ospec.js"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List"
-import {client, DeviceType} from "../../../../src/misc/ClientDetector"
+import {client} from "../../../../src/misc/ClientDetector"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
+import {DeviceType} from "../../../../src/misc/ClientConstants"
 
 client.device = DeviceType.DESKTOP
 

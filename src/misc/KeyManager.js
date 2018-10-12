@@ -5,9 +5,10 @@ import {Button, ButtonType} from "../gui/base/Button"
 import {neverNull, asyncImport} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
-import {client, BrowserType} from "./ClientDetector"
+import {client} from "./ClientDetector"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
+import {BrowserType} from "./ClientConstants"
 
 assertMainOrNodeBoot()
 

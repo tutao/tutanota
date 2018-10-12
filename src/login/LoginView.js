@@ -3,7 +3,7 @@ import m from "mithril"
 import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
-import {client, DeviceType} from "../misc/ClientDetector"
+import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
@@ -16,6 +16,7 @@ import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
+import {DeviceType} from "../misc/ClientConstants"
 
 assertMainOrNode()
 

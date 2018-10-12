@@ -179,8 +179,9 @@ o.spec("rsa", function () {
 		try {
 			verifySignature(publicKey, input, signature)
 		} catch (e) {
-			o(e.message.startsWith("failed RSA verify sign> CryptoError: Hashes do not match")).equals(true)
-			o(e instanceof CryptoError).equals(true)
+			o(e.message.startsWith("failed RSA verify sign> CryptoError: Hashes do not match"))
+				.equals(true)("Error message doesn't match, got: " + e.message)
+			o(e instanceof CryptoError).equals(true)("Error should be CryptoError, got: ", e)
 			done()
 		}
 	})
@@ -200,8 +201,9 @@ o.spec("rsa", function () {
 		try {
 			verifySignature(publicKey, input, signature)
 		} catch (e) {
-			o(e.message.startsWith("failed RSA verify sign> Error: rightmost octet of EM must be 188 (0xbc)")).equals(true)
-			o(e instanceof CryptoError).equals(true)
+			o(e.message.startsWith("failed RSA verify sign> Error: rightmost octet of EM must be 188 (0xbc)"))
+				.equals(true)("Error message doesn't match, got: " + e.message)
+			o(e instanceof CryptoError).equals(true)("Error should be CryptoError, got: ", e)
 			done()
 		}
 	})

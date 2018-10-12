@@ -1,5 +1,13 @@
 // @flow
 import o from "ospec/ospec.js"
+import {BrowserType} from "../../src/misc/ClientConstants"
+import type {BrowserData} from "../../src/misc/ClientConstants"
+import type {Db} from "../../src/api/worker/search/SearchTypes"
+import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
+import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
+import {EventQueue} from "../../src/api/worker/search/EventQueue"
+import {DbTransaction} from "../../src/api/worker/search/DbFacade"
+import {fixedIv} from "../../src/api/worker/crypto/CryptoFacade"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -71,4 +79,27 @@ export function replaceAllMaps(toReplace: any): any {
 			: toReplace != null && Object.getPrototypeOf(toReplace) === (Object: any).prototype // plain object
 				? mapObject(replaceAllMaps, toReplace)
 				: toReplace
+}
+
+
+export const browserDataStub: BrowserData = {browserType: BrowserType.OTHER, browserVersion: 0}
+
+export function makeCore(args?: {
+	db?: Db,
+	queue?: EventQueue,
+	browserData?: BrowserData,
+	transaction?: DbTransaction
+}, mocker?: (any) => void): IndexerCore {
+	const safeArgs = args || {}
+	const {transaction = (null: any)} = safeArgs
+	const defaultDb = {
+		key: aes256RandomKey(),
+		iv: fixedIv,
+		dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
+		initialized: Promise.resolve()
+	}
+	const {db = defaultDb, queue = (null: any), browserData = browserDataStub} = safeArgs
+	const core = new IndexerCore(db, queue, browserData)
+	mocker && mock(core, mocker)
+	return core
 }

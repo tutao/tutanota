@@ -1,6 +1,8 @@
+//@flow
 import o from "ospec/ospec.js"
-import {client, BrowserType, DeviceType} from "../../../src/misc/ClientDetector"
+import {client} from "../../../src/misc/ClientDetector"
 import {Mode} from "../../../src/api/Env"
+import {BrowserType, DeviceType} from "../../../src/misc/ClientConstants"
 
 o.spec("ClientDetector test", function () {
 	o("ClientDetector detect chrome windows", () => {

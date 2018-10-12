@@ -35,6 +35,7 @@ import {contains} from "../../common/utils/ArrayUtils"
 import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
+import type {BrowserData} from "../../../misc/ClientConstants"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -64,7 +65,8 @@ export class Indexer {
 	_entity: EntityWorker;
 	_indexedGroupIds: Array<Id>;
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean,
+	            browserData: BrowserData) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
 		this.db = {
@@ -74,7 +76,8 @@ export class Indexer {
 			initialized: deferred.promise
 		} // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db, new EventQueue((batch, futureActions) => this._processEntityEvents(batch, futureActions)))
+		this._core = new IndexerCore(this.db, new EventQueue((batch, futureActions) => this._processEntityEvents(batch, futureActions)),
+			browserData)
 		this._entity = new EntityWorker()
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))

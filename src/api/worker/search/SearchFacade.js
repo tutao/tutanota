@@ -7,7 +7,7 @@ import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from
 import {compareNewestFirst, elementIdPart, firstBiggerThanSecond, isSameId, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
-import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
+import {asyncFind, defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import type {
 	Db,
 	ElementData,
@@ -19,7 +19,7 @@ import type {
 	SearchIndexEntry,
 	SearchIndexMetadataEntry
 } from "./SearchTypes"
-import {decryptSearchIndexEntry, encryptIndexKeyBase64, getPerformanceTimestamp} from "./IndexUtils"
+import {decryptSearchIndexEntry, encryptIndexKeyBase64, getPerformanceTimestamp, timeEnd, timeStart} from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
@@ -226,45 +226,45 @@ export class SearchFacade {
 	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult,
 	                 maxResults: ?number): Promise<void> {
 		const makeStamp = (name) => {
-			console.timeEnd && console.timeEnd(name)
+			timeEnd(name)
 			timings[name] = getPerformanceTimestamp() - stamp
 			stamp = getPerformanceTimestamp()
 		}
 		let stamp = getPerformanceTimestamp()
 		let timings = {}
-		console.time && console.time("_tryExtendIndex")
+		timeStart("_tryExtendIndex")
 		return this._tryExtendIndex(searchResult.restriction).then(() => {
 				makeStamp("_tryExtendIndex")
-				console.time && console.time("findIndexEntries")
+				timeStart("findIndexEntries")
 				return this._findIndexEntries(searchTokens)
 				           .then(keyToEncryptedIndexEntries => {
 					           makeStamp("findIndexEntries")
-					           console.time && console.time("_filterByEncryptedId")
+					           timeStart("_filterByEncryptedId")
 					           return this._filterByEncryptedId(keyToEncryptedIndexEntries)
 				           })
 				           .then(keyToEncryptedIndexEntries => {
 					           makeStamp("_filterByEncryptedId")
-					           console.time && console.time("_decryptSearchResult")
+					           timeStart("_decryptSearchResult")
 					           return this._decryptSearchResult(keyToEncryptedIndexEntries)
 				           })
 				           .then(keyToIndexEntries => {
 					           makeStamp("_decryptSearchResult")
-					           console.time && console.time("_filterByTypeAndAttributeAndTime")
+					           timeStart("_filterByTypeAndAttributeAndTime")
 					           return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
 				           })
 				           .then(keyToIndexEntries => {
 					           makeStamp("_filterByTypeAndAttributeAndTime")
-					           console.time && console.time("_reduceWords")
+					           timeStart("_reduceWords")
 					           return this._reduceWords(keyToIndexEntries, matchWordOrder)
 				           })
 				           .then(searchIndexEntries => {
 					           makeStamp("_reduceWords")
-					           console.time && console.time("_reduceToUniqueElementIds")
+					           timeStart("_reduceToUniqueElementIds")
 					           return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
 				           })
 				           .then((searchIndexEntries: SearchIndexEntry[]) => {
 					           makeStamp("_reduceToUniqueElementIds")
-					           console.time && console.time("_filterByListIdAndGroupSearchResults")
+					           timeStart("_filterByListIdAndGroupSearchResults")
 					           return this._filterByListIdAndGroupSearchResults(downcast(searchIndexEntries), searchResult,
 						           maxResults)
 				           })

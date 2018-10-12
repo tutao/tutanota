@@ -84,7 +84,7 @@ export class WorkerClient {
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
 			this.initialized = this._queue.postMessage(new Request('setup', [
-				window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb()
+				window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb(), client.browserData()
 			]))
 			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
@@ -96,7 +96,7 @@ export class WorkerClient {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
 			const workerModule = requireNodeOnly('./../worker/WorkerImpl.js')
-			const workerImpl = new workerModule.WorkerImpl(this)
+			const workerImpl = new workerModule.WorkerImpl(this, true, client.browserData())
 			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
 			this._queue = new Queue(({
 				postMessage: function (msg) {

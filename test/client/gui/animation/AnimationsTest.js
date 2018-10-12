@@ -9,7 +9,8 @@ import {
 	rgbToHex
 } from "../../../../src/gui/animation/Animations"
 import {ease} from "../../../../src/gui/animation/Easing"
-import {client, DeviceType} from "../../../../src/misc/ClientDetector"
+import {client} from "../../../../src/misc/ClientDetector"
+import {DeviceType} from "../../../../src/misc/ClientConstants"
 
 client.device = DeviceType.DESKTOP
 

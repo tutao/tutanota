@@ -6,6 +6,7 @@ import {random} from "../crypto/Randomizer"
 import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
+import {noOp} from "../../common/utils/Utils"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
@@ -237,3 +238,9 @@ const HTML_ENTITIES = {
 export function getPerformanceTimestamp(): number {
 	return typeof performance === "undefined" ? Date.now() : performance.now()  // performance is not available in Safari 10 worker scope
 }
+
+
+export const timeStart: (string) => void =
+	typeof self !== "undefined" && console.time ? console.time.bind(console) : noOp
+export const timeEnd: (string) => void =
+	typeof self !== "undefined" && console.timeEnd ? console.timeEnd.bind(console) : noOp

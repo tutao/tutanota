@@ -4,10 +4,22 @@ import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
+import {
+	base64ToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
+} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
+import {
+	byteLength,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptSearchIndexEntry,
+	getAppId,
+	getPerformanceTimestamp
+} from "./IndexUtils"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -22,7 +34,11 @@ import type {
 import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
-import {mapInCallContext} from "../../common/utils/PromiseUtils"
+import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
+import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import type {BrowserData} from "../../../misc/ClientDetector"
+import {BrowserType} from "../../../misc/ClientConstants"
+
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
 
@@ -40,6 +56,7 @@ export class IndexerCore {
 	queue: EventQueue;
 	db: Db;
 	_isStopped: boolean;
+	_promiseMapCompat: PromiseMapFn;
 
 	_stats: {
 		indexingTime: number,
@@ -54,11 +71,12 @@ export class IndexerCore {
 		indexedBytes: number,
 	}
 
-	constructor(db: Db, queue: EventQueue) {
+	constructor(db: Db, queue: EventQueue, browserData: BrowserData) {
 		this.indexingSupported = true
 		this.queue = queue
 		this.db = db
 		this._isStopped = false;
+		this._promiseMapCompat = promiseMapCompat(!this._needsMicrotaskHack(browserData))
 
 		this._stats = {
 			indexingTime: 0,
@@ -292,23 +310,17 @@ export class IndexerCore {
 		})
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<void> {
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<*> {
 		this._cancelIfNeeded()
 		performance.mark("insertNewIndexEntries-start")
 		let keys = [...indexUpdate.create.indexMap.keys()]
-		const result = mapInCallContext(keys, (key: B64EncIndexKey) => {
-			//for (let key of items) {
+
+		const result = this._promiseMapCompat(keys, (key) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(key))
 			return this._putEncryptedEntity(indexUpdate.groupId, transaction, keysToUpdate, key, encryptedEntries)
-			//}
-		})
-		if (result instanceof Promise) {
-			return result.return()
-		} else {
-			null
-		}
+		}, {concurrency: 1})
+		return result instanceof Promise ? result : null
 	}
-
 
 	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, keysToUpdate: {[B64EncInstanceId]: boolean}, b64EncIndexKey: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<void> {
 		this._cancelIfNeeded()
@@ -429,8 +441,15 @@ export class IndexerCore {
 		}
 	}
 
+
+	_needsMicrotaskHack(browserData: BrowserData): boolean {
+		return browserData.browserType === BrowserType.SAFARI && browserData.browserVersion < 12.1
+			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60;
+	}
+
 	printStatus() {
-		const totalTime = this._stats.indexingTime + this._stats.storageTime + this._stats.downloadingTime + this._stats.encryptionTime
+		const totalTime = this._stats.indexingTime + this._stats.storageTime + this._stats.downloadingTime
+			+ this._stats.encryptionTime
 		console.log(JSON.stringify(this._stats), "total time: ", totalTime)
 	}
 }
@@ -439,7 +458,8 @@ export function measure(names: string[]) {
 	const measures = {}
 	for (let name of names) {
 		try {
-			measures[name] = performance.getEntriesByName(name, "measure").reduce((acc, entry) => acc + entry.duration, 0)
+			measures[name] = performance.getEntriesByName(name, "measure")
+			                            .reduce((acc, entry) => acc + entry.duration, 0)
 		} catch (e) {
 		}
 	}

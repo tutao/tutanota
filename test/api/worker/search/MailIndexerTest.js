@@ -25,7 +25,7 @@ import type {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
 import {createMailboxGroupRoot, MailboxGroupRootTypeRef} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
 import {createMailBox, MailBoxTypeRef} from "../../../../src/api/entities/tutanota/MailBox"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {mock, replaceAllMaps, spy} from "../../TestUtils"
+import {browserDataStub, mock, replaceAllMaps, spy} from "../../TestUtils"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import {deepEqual} from "../../common/UtilsTest"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
@@ -42,7 +42,7 @@ o.spec("MailIndexer test", () => {
 		let mail = createMail()
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any)), (null: any), (null: any), (null: any), (null: any))
+		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(0)
 	})
@@ -52,7 +52,7 @@ o.spec("MailIndexer test", () => {
 		mail.subject = "Hello"
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any)), (null: any), (null: any), (null: any), (null: any))
+		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any))
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(1)
 	})
@@ -405,7 +405,7 @@ o.spec("MailIndexer test", () => {
 		}: any)
 
 		let db: Db = ({key: aes256RandomKey(), iv: fixedIv, dbFacade: {}}: any)
-		let core = mock(new IndexerCore(db, ({queueEvents: false}: any)), (mocked) => {
+		let core = mock(new IndexerCore(db, ({queueEvents: false}: any), browserDataStub), (mocked) => {
 			mocked.writeIndexUpdate = o.spy()
 		})
 		let entityRestClient: any = {}
@@ -813,7 +813,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 		dbFacade: {createTransaction: () => Promise.resolve(transaction)}
 	})
 
-	let core = mock(new IndexerCore(db, ({queueEvents: false}: any)), (mocked) => {
+	let core = mock(new IndexerCore(db, ({queueEvents: false}: any), browserDataStub), (mocked) => {
 		mocked.writeIndexUpdate = o.spy()
 		mocked._processDeleted = o.spy()
 	})

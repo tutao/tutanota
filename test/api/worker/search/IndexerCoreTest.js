@@ -1,25 +1,47 @@
 // @flow
 import o from "ospec/ospec.js"
-import type {B64EncInstanceId, ElementData, EncryptedSearchIndexEntry, GroupData, SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
-import {_createNewIndexUpdate, decryptSearchIndexEntry, encryptIndexKeyBase64, getAppId} from "../../../../src/api/worker/search/IndexUtils"
+import type {
+	B64EncInstanceId, Db,
+	ElementData,
+	EncryptedSearchIndexEntry,
+	GroupData,
+	SearchIndexEntry
+} from "../../../../src/api/worker/search/SearchTypes"
+import {
+	_createNewIndexUpdate,
+	decryptSearchIndexEntry,
+	encryptIndexKeyBase64,
+	getAppId
+} from "../../../../src/api/worker/search/IndexUtils"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
+import {
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
+} from "../../../../src/api/common/utils/Encoding"
 import {defer, downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
+import {
+	DbTransaction,
+	ElementDataOS,
+	GroupDataOS,
+	SearchIndexMetaDataOS,
+	SearchIndexOS
+} from "../../../../src/api/worker/search/DbFacade"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
-import {spy} from "../../TestUtils"
+import {browserDataStub, makeCore, mock, spy} from "../../TestUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {CancelledError} from "../../../../src/api/common/error/CancelledError"
+import type {BrowserData} from "../../../../src/misc/ClientConstants"
 
 
 o.spec("IndexerCore test", () => {
 
 	o("createIndexEntriesForAttributes", function () {
-		let core = new IndexerCore((null: any), (null: any))
+		let core = makeCore()
 
 		let contact = createContact()
 		contact._id = ["", "L-dNNLe----0"]
@@ -89,7 +111,9 @@ o.spec("IndexerCore test", () => {
 
 
 	o("encryptSearchIndexEntries", function () {
-		const core = new IndexerCore(({key: aes256RandomKey(), iv: fixedIv}: any), (null: any))
+		const core = makeCore({
+			db: ({key: aes256RandomKey(), iv: fixedIv}: any)
+		})
 		let id = ["1", "2"]
 		let ownerGroupId = "ownerGroupId"
 		let keyToIndexEntries: Map<string, SearchIndexEntry[]> = new Map([
@@ -225,7 +249,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		core._moveIndexedInstance(indexUpdate, transaction)
 	})
 
@@ -250,7 +274,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		neverNull(core._moveIndexedInstance(indexUpdate, transaction)).then(() => done())
 	})
 
@@ -277,7 +301,7 @@ o.spec("IndexerCore test", () => {
 			put: spy((os, key, value) => Promise.resolve()),
 			delete: spy((os, key) => Promise.resolve())
 		}
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		return neverNull(core._deleteIndexedInstance(indexUpdate, transaction)).then(() => {
 			o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, 1, [other1]])
 			o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, [{key: 1, size: 1}]])
@@ -307,7 +331,7 @@ o.spec("IndexerCore test", () => {
 			put: spy((os, key, value) => Promise.resolve()),
 			delete: spy((os, key) => Promise.resolve())
 		}
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		return neverNull(core._deleteIndexedInstance(indexUpdate, transaction)).then(() => {
 			o(transaction.put.invocations).deepEquals([])
 			o(transaction.delete.invocations).deepEquals([
@@ -334,7 +358,7 @@ o.spec("IndexerCore test", () => {
 			delete: spy(() => Promise.resolve())
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		return neverNull(core._deleteIndexedInstance(indexUpdate, transaction)).then(() => {
 			o(transaction.delete.invocations).deepEquals([
 				[ElementDataOS, uint8ArrayToBase64(entry[0])]
@@ -366,7 +390,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		neverNull(core._insertNewElementData(indexUpdate, transaction)).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({[encInstanceId]: true}))
 			if (insertedElementData) done()
@@ -396,7 +420,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		neverNull(core._insertNewElementData(indexUpdate, transaction)).then(keysToUpdate => {
 			o(JSON.stringify(keysToUpdate)).equals(JSON.stringify({}))
 			if (!insertedElementData) done()
@@ -425,7 +449,7 @@ o.spec("IndexerCore test", () => {
 			})
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 
 		o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, [entry]])
@@ -458,7 +482,7 @@ o.spec("IndexerCore test", () => {
 			})
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 
 		o(transaction.put.invocations[0])
@@ -497,7 +521,7 @@ o.spec("IndexerCore test", () => {
 			})
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		await core._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
 		o(transaction.put.invocations[0]).deepEquals([SearchIndexOS, null, newEntries])
 		let updatedMetadata = searchIndexMeta.concat({key: newKey, size: newEntries.length})
@@ -521,7 +545,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		return core._insertNewIndexEntries(indexUpdate, {}, transaction)
 	})
 
@@ -543,7 +567,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		core._updateGroupData(indexUpdate, transaction)
 	})
 
@@ -568,7 +592,7 @@ o.spec("IndexerCore test", () => {
 			}
 		}
 
-		const core = new IndexerCore((null: any), (null: any))
+		const core = makeCore()
 		core._updateGroupData(indexUpdate, transaction)
 	})
 
@@ -587,17 +611,14 @@ o.spec("IndexerCore test", () => {
 
 		let keysToUpdate: {[B64EncInstanceId]: boolean} = {"test": true}
 
-		const core: any = new IndexerCore({
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
-			initialized: Promise.resolve()
-		}, ({queueEvents: false}: any))
-		core._moveIndexedInstance = o.spy(() => Promise.resolve())
-		core._deleteIndexedInstance = o.spy()
-		core._insertNewElementData = o.spy(() => Promise.resolve(keysToUpdate))
-		core._insertNewIndexEntries = o.spy()
-		core._updateGroupData = o.spy()
+		const core = makeCore({transaction}, (mocked) => {
+			mocked._moveIndexedInstance = o.spy(() => Promise.resolve())
+			mocked._deleteIndexedInstance = o.spy()
+			mocked._insertNewElementData = o.spy(() => Promise.resolve(keysToUpdate))
+			mocked._insertNewIndexEntries = o.spy()
+			mocked._updateGroupData = o.spy()
+		})
+
 		core.writeIndexUpdate(indexUpdate).then(() => {
 			o(core._moveIndexedInstance.callCount).equals(1)
 			o(core._moveIndexedInstance.args).deepEquals([indexUpdate, transaction])
@@ -625,17 +646,6 @@ o.spec("IndexerCore test", () => {
 		let event = createEntityUpdate()
 		event.instanceId = instanceId
 
-		const core = new IndexerCore({
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
-			initialized: Promise.resolve()
-		}, ({queueEvents: false}: any))
-
-		let listId = "list-id"
-		let encryptedWords = aes256Encrypt(core.db.key, stringToUtf8Uint8Array("one two"), random.generateRandomData(IV_BYTE_LENGTH), true, false)
-		let elementData: ElementData = [listId, encryptedWords, groupId]
-
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
@@ -643,6 +653,12 @@ o.spec("IndexerCore test", () => {
 				return Promise.resolve(elementData)
 			},
 		}
+
+		const core = makeCore({transaction})
+
+		let listId = "list-id"
+		let encryptedWords = aes256Encrypt(core.db.key, stringToUtf8Uint8Array("one two"), random.generateRandomData(IV_BYTE_LENGTH), true, false)
+		let elementData: ElementData = [listId, encryptedWords, groupId]
 
 		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
 
@@ -680,13 +696,6 @@ o.spec("IndexerCore test", () => {
 		let event = createEntityUpdate()
 		event.instanceId = instanceId
 
-		const core = new IndexerCore({
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
-			initialized: Promise.resolve()
-		}, downcast({_eventQueue: []}))
-
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
@@ -694,6 +703,11 @@ o.spec("IndexerCore test", () => {
 				return Promise.resolve()
 			},
 		}
+
+		const core = makeCore({
+			queue: downcast({_eventQueue: []}),
+			transaction
+		})
 
 		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
 
@@ -708,12 +722,15 @@ o.spec("IndexerCore test", () => {
 		const queue: EventQueue = downcast({_eventQueue: [], clear: spy()})
 		const deferred = defer()
 
-		const core = new IndexerCore({
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: ({createTransaction: () => deferred.promise}: any),
-			initialized: Promise.resolve()
-		}, queue)
+		const core = makeCore({
+			queue,
+			db: {
+				key: aes256RandomKey(),
+				iv: fixedIv,
+				dbFacade: ({createTransaction: () => deferred.promise}: any),
+				initialized: Promise.resolve()
+			}
+		})
 
 		const result = core.writeIndexUpdate((null: any))
 		core.stopProcessing()
@@ -731,18 +748,13 @@ o.spec("IndexerCore test", () => {
 	o("startProcessing", async function () {
 		const queue: EventQueue = downcast({_eventQueue: [1, 2, 3], clear: spy()})
 
-		const transaction = {
+		const transaction: DbTransaction = downcast({
 			get: () => Promise.resolve(null),
 			put: () => Promise.resolve(null),
 			wait: () => Promise.resolve()
-		}
+		})
 
-		const core = new IndexerCore({
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
-			initialized: Promise.resolve()
-		}, queue)
+		const core = makeCore({queue, transaction})
 
 		core.stopProcessing()
 		core.startProcessing()

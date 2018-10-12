@@ -9,7 +9,7 @@ import {createContactSocialId} from "../../../../src/api/entities/tutanota/Conta
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
 import {ContactListTypeRef, createContactList} from "../../../../src/api/entities/tutanota/ContactList"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
-import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {DbTransaction, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {
 	FULL_INDEXED_TIMESTAMP,
@@ -22,6 +22,8 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {browserDataStub, makeCore} from "../../TestUtils"
+import {downcast} from "../../../../src/api/common/utils/Utils"
 
 
 const dbMock: any = {iv: fixedIv}
@@ -39,7 +41,7 @@ o.spec("ContactIndexer test", () => {
 
 	o("createContactIndexEntries without entries", function () {
 		let c = createContact()
-		let contact = new ContactIndexer(new IndexerCore(dbMock, (null: any)), (null: any), (null: any), suggestionFacadeMock)
+		let contact = new ContactIndexer(makeCore(), (null: any), (null: any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
@@ -49,7 +51,7 @@ o.spec("ContactIndexer test", () => {
 	o("createContactIndexEntries with one entry", function () {
 		let c = createContact()
 		c.company = "test"
-		let contact = new ContactIndexer(new IndexerCore(dbMock, (null: any)), (null: any), (null: any), suggestionFacadeMock)
+		let contact = new ContactIndexer(makeCore(), (null: any), (null: any), suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(1)
@@ -187,29 +189,26 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("indexFullContactList", function (done) {
-		let db: Db = ({
-			key: aes256RandomKey(),
-			dbFacade: {createTransaction: () => Promise.resolve(transaction)},
-			iv: fixedIv
-		}: any)
-		let core: any = new IndexerCore(db, (null: any))
-		core.writeIndexUpdate = o.spy()
+		let groupData = {indexTimestamp: NOTHING_INDEXED_TIMESTAMP}
+		let transaction: DbTransaction = downcast({
+			get: (os, groupId) => {
+				if (os != GroupDataOS || groupId != contactList._ownerGroup) {
+					throw new Error("unexpected params " + os + " " + groupId)
+				}
+				return Promise.resolve(groupData)
+			}
+		})
+
+		const core = makeCore({transaction}, (mocked) => {
+			mocked.writeIndexUpdate = o.spy()
+		})
+
 
 		let userGroupId = "userGroupId"
 		let contactList = createContactList()
 		contactList._ownerGroup = "ownerGroupId"
 		contactList.contacts = "contactListId"
 
-		let groupData = {indexTimestamp: NOTHING_INDEXED_TIMESTAMP}
-		let transaction = {
-			get: (os, groupId) => {
-				if (os != GroupDataOS || groupId != contactList._ownerGroup) {
-					throw new Error("unexpected params " + os
-						+ " " + groupId)
-				}
-				return Promise.resolve(groupData)
-			}
-		}
 
 		let contacts = [createContact(), createContact()]
 		contacts[0]._id = [contactList.contacts, "c0"]
@@ -233,13 +232,13 @@ o.spec("ContactIndexer test", () => {
 				return Promise.resolve(contacts)
 			}
 		}: any)
-		const contactIndexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
+		const contactIndexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
 			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
 			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			let expectedKeys = [
-				encryptIndexKeyBase64(db.key, contacts[0]._id[1], fixedIv),
-				encryptIndexKeyBase64(db.key, contacts[1]._id[1], fixedIv)
+				encryptIndexKeyBase64(core.db.key, contacts[0]._id[1], fixedIv),
+				encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv)
 			]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(contacts.length)
@@ -248,21 +247,8 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("indexFullContactList already indexed", function (done) {
-		let db: Db = ({
-			key: aes256RandomKey(),
-			dbFacade: {createTransaction: () => Promise.resolve(transaction)},
-			iv: fixedIv
-		}: any)
-		let core: any = new IndexerCore(db, (null: any))
-		core.writeIndexUpdate = o.spy()
-
-		let userGroupId = "userGroupId"
-		let contactList = createContactList()
-		contactList._ownerGroup = "ownerGroupId"
-		contactList.contacts = "contactListId"
-
 		let groupData = {indexTimestamp: FULL_INDEXED_TIMESTAMP}
-		let transaction = {
+		let transaction: DbTransaction = downcast({
 			get: (os, groupId) => {
 				if (os != GroupDataOS || groupId != contactList._ownerGroup) {
 					throw new Error("unexpected params " + os
@@ -270,7 +256,17 @@ o.spec("ContactIndexer test", () => {
 				}
 				return Promise.resolve(groupData)
 			}
-		}
+		})
+
+		const core = makeCore({transaction}, (mocked) => {
+			mocked.writeIndexUpdate = o.spy()
+		})
+
+		let userGroupId = "userGroupId"
+		let contactList = createContactList()
+		contactList._ownerGroup = "ownerGroupId"
+		contactList.contacts = "contactListId"
+
 
 		let contacts = [createContact(), createContact()]
 		contacts[0]._id = [contactList.contacts, "c0"]
@@ -290,17 +286,17 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("should not be invoked as contacts are already indexed")
 			}
 		}: any)
-		const contactIndexer = new ContactIndexer(core, db, entity, (null: any))
+		const contactIndexer = new ContactIndexer(core, core.db, entity, (null: any))
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		}).then(done)
 	})
 
 	o("processEntityEvents new contact", function (done) {
-		let db: any = {key: aes256RandomKey(), iv: fixedIv}
-		let core: any = new IndexerCore(db, (null: any))
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		const core = makeCore({}, (mocked) => {
+			mocked.writeIndexUpdate = o.spy()
+			mocked._processDeleted = o.spy()
+		})
 
 		let contact = createContact()
 		contact._id = ["contact-list", "1"]
@@ -310,7 +306,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
+		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.CREATE, "contact-list", "1")]
@@ -324,10 +320,10 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("processEntityEvents update contact", function (done) {
-		let db: any = {key: aes256RandomKey(), iv: fixedIv}
-		let core: any = new IndexerCore(db, (null: any))
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		const core = makeCore({}, (mocked) => {
+			mocked.writeIndexUpdate = o.spy()
+			mocked._processDeleted = o.spy()
+		})
 
 		let contact = createContact()
 		contact._id = ["contact-list", "1"]
@@ -337,7 +333,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
+		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.UPDATE, "contact-list", "1")]
@@ -352,10 +348,10 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("processEntityEvents delete contact", function (done) {
-		let db: any = {key: aes256RandomKey(), iv: fixedIv}
-		let core: any = new IndexerCore(db, (null: any))
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		const core = makeCore({}, (mocked) => {
+			mocked.writeIndexUpdate = o.spy()
+			mocked._processDeleted = o.spy()
+		})
 
 		let contact = createContact()
 		contact._id = ["contact-list", "1"]
@@ -365,7 +361,7 @@ o.spec("ContactIndexer test", () => {
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
 			}
 		}
-		const indexer = new ContactIndexer(core, db, entity, suggestionFacadeMock)
+		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id")
 		let events = [createUpdate(OperationType.DELETE, "contact-list", "1")]

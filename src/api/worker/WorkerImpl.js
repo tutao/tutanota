@@ -15,6 +15,7 @@ import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
+import type {BrowserData} from "../../misc/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -24,14 +25,17 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean) {
+	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean, browserData: BrowserData) {
+		if (browserData == null) {
+			throw new ProgrammingError("Browserdata is not passed")
+		}
 		const workerScope = self
 		this._queue = new Queue(workerScope)
 		nativeApp.setWorkerQueue(this._queue)
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this, indexedDbSupported);
+		initLocator(this, indexedDbSupported, browserData);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),

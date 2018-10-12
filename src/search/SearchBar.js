@@ -36,10 +36,11 @@ import {compareContacts} from "../contacts/ContactUtils"
 import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
-import {BrowserType, client} from "../misc/ClientDetector";
+import {client} from "../misc/ClientDetector";
 import {downcast} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
+import {BrowserType} from "../misc/ClientConstants"
 
 assertMainOrNode()
 
