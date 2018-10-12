@@ -45,7 +45,7 @@ pipeline {
 						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
 						}
-						dir('/build/desktop-test') {
+						dir('build/desktop-test') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer_test'
 						}
                 	}
@@ -65,7 +65,7 @@ pipeline {
 						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
 						}
-						dir('/build/desktop-test') {
+						dir('build/desktop-test') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer_test'
 						}
                     }
@@ -85,7 +85,7 @@ pipeline {
 						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
 						}
-						dir('/build/desktop-test') {
+						dir('build/desktop-test') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer_test'
 						}
                     }
