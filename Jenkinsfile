@@ -18,6 +18,7 @@ pipeline {
 				sh 'node dist'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
+				stash includes: 'build/bundlesCache.json' 'bundles'
             }
         }
 
@@ -33,6 +34,7 @@ pipeline {
 						sh 'npm install'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
+						unstash 'bundles'
 						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
 						    sh '''
 						    export WIN_CSC_KEY_PASSWORD=${PW};
@@ -58,6 +60,7 @@ pipeline {
 						sh 'npm install'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
+						unstash 'bundles'
 						sh 'node dist -pm'
 						dir('build/dist/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
@@ -77,6 +80,7 @@ pipeline {
 						sh 'npm install'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
+						unstash 'bundles'
 						sh 'node dist -pl'
 						dir('build/dist/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
