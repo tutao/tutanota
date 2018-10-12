@@ -26,7 +26,6 @@ function signer(args) {
 		console.log("\t• set WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD env vars")
 		return Promise.resolve(args.path)
 	}
-	console.log(`  ${chalk.blue("• ")} signing "` + args.path.split(path.sep).pop() + "\"")
 	fs.renameSync(args.path, unsignedFileName)
 	console.log(`spawning "${command}"`)
 	// only for testing, would print certificate password to logs, otherwise
