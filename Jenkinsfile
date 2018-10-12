@@ -3,6 +3,10 @@ pipeline {
 		PATH="${env.PATH}:/opt/node-v10.11.0-linux-x64/bin/"
 	}
 
+	parameters {
+        booleanParam(name: 'RELEASE', defaultValue: false, description: '')
+    }
+
     agent {
         label 'master'
     }
@@ -26,6 +30,9 @@ pipeline {
             parallel {
 
                 stage('desktop-win') {
+               		when {
+                    	expression { params.RELEASE }
+                    }
                     agent {
                         label 'win'
                     }
@@ -42,16 +49,16 @@ pipeline {
 						    node dist -pw
 						    '''
 						}
-						dir('build/desktop') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer'
-						}
-						dir('build/desktop-test') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'win_installer_test'
+						dir('build') {
+							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'win_installer'
 						}
                 	}
                 }
 
                 stage('desktop-mac') {
+                	when {
+                    	expression { params.RELEASE }
+                    }
                     agent {
                         label 'mac'
                     }
@@ -62,11 +69,8 @@ pipeline {
 						unstash 'web_base'
 						unstash 'bundles'
 						sh 'node dist -pm'
-						dir('build/desktop') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
-						}
-						dir('build/desktop-test') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer_test'
+						dir('build') {
+							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'mac_installer'
 						}
                     }
                 }
@@ -81,12 +85,9 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						sh 'node dist -pl'
-						dir('build/desktop') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
-						}
-						dir('build/desktop-test') {
-							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer_test'
+						sh 'node dist -pl ' + (params.RELEASE ? "prod":"")
+						dir('build') {
+							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'linux_installer'
 						}
                     }
                 }
@@ -94,6 +95,9 @@ pipeline {
         }
 
         stage('Build deb') {
+            when {
+                    	expression { params.RELEASE }
+            }
             agent {
                 label 'linux'
             }
@@ -104,17 +108,26 @@ pipeline {
 				unstash 'web_base'
 				unstash 'web_add'
 				unstash 'bundles'
-				dir('build/desktop'){
+				dir('build'){
 					unstash 'linux_installer'
 					unstash 'mac_installer'
 					unstash 'win_installer'
 				}
-				dir('build/desktop-test'){
-					unstash 'linux_installer_test'
-					unstash 'mac_installer_test'
-					unstash 'win_installer_test'
-				}
 				sh 'node dist -pr'
+            }
+        }
+
+        stage('Copy Snapshot'){
+			agent {
+				label 'master'
+			}
+            when {
+                expression {!params.RELEASE}
+            }
+            steps {
+            	dir('/opt/tutanota-snapshot') {
+					unstash 'linux_installer'
+            	}
             }
         }
     }
