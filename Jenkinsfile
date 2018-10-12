@@ -18,7 +18,7 @@ pipeline {
 				sh 'node dist'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
-				stash includes: 'build/bundlesCache.json', name: 'bundles'
+				stash includes: 'build/bundles.json', name: 'bundles'
             }
         }
 
