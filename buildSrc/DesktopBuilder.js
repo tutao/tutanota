@@ -3,13 +3,12 @@ const Builder = require('./Builder.js').Builder
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, targetUrl, nameSuffix) {
+function build(dirname, version, targets, targetUrl, updateUrl, nameSuffix) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
 	const updateSubDir = "desktop" + nameSuffix
-	const updateUrl = targetUrl + "/" + updateSubDir
 	const distDir = path.join(dirname, '/build/dist/')
 
 	console.log("Updating config...")
