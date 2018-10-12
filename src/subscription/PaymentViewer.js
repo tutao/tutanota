@@ -156,7 +156,7 @@ export class PaymentViewer {
 		let showExpanderWarning = false
 		this._invoiceTable.updateEntries(this._invoices.map((invoice) => {
 			const downloadButton = new Button("download_action", () => {
-				worker.downloadInvoice(invoice).then(pdfInvoice => fileController.open(pdfInvoice))
+				showProgressDialog("pleaseWait_msg", worker.downloadInvoice(invoice)).then(pdfInvoice => fileController.open(pdfInvoice))
 			}, () => Icons.Download)
 
 			let invoiceButton;
@@ -209,10 +209,6 @@ export class PaymentViewer {
 			return Promise.resolve()
 		}
 		this._paymentBusy = true
-		let confirmMessage = lang.get("invoicePayConfirm_msg", {
-			"{invoiceNumber}": invoice.number,
-			"{invoiceDate}": formatDate(invoice.date)
-		})
 		return _showPayInvoiceConfirmDialog(invoice.number, invoice.date, Number(invoice.grandTotal))
 			.then(confirmed => {
 				if (confirmed) {
@@ -268,6 +264,6 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
 
 		dialog.setCloseHandler(cancelAction)
-		      .show()
+			.show()
 	})
 }

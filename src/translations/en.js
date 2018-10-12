@@ -1098,6 +1098,13 @@ module.exports = {
 		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de and describe what you would like to use this email account for.",
 		"refresh_action": "Refresh",
 		"releaseNotes_action": "Release notes",
-		"dismissNotification_action": "Dismiss"
+		"dismissNotification_action": "Dismiss",
+		"saveEncryptedIpAddress_label": "Save encrypted IP address in session",
+		"formatTextBold_msg": "Make selected text bold.",
+		"formatTextUnderline_msg": "Make selected text underlined.",
+		"formatTextItalic_msg": "Make selected text italic.",
+		"oneContactSelected_msg": "1 contact selected.",
+		"finallyDeleteSelectedEmails_msg": "You have selected emails from the trash folder, they will be finally deleted.",
+		"exportSelectedAsVCard_action": "Export selected contacts as vCard."
 	}
 }

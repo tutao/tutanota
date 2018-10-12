@@ -59,6 +59,15 @@ export class GlobalSettingsViewer {
 		this._props = stream()
 		this._customer = stream()
 
+		let saveIpAddress = stream(false)
+		this._props.map(props => saveIpAddress(props.saveEncryptedIpAddressInSession))
+		let saveIpAddressDropdown = new DropDownSelector("saveEncryptedIpAddress_label", null, [
+			{name: lang.get("yes_label"), value: true},
+			{name: lang.get("no_label"), value: false}
+		], saveIpAddress, 250).setSelectionChangedHandler(v => {
+			update(Object.assign({}, this._props(), {saveEncryptedIpAddressInSession: v}))
+		})
+
 		let addDomainButton = new Button("addCustomDomain_action", () => {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog()
@@ -103,9 +112,10 @@ export class GlobalSettingsViewer {
 					m("small", lang.get("moreInfo_msg") + " "),
 					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
 					logins.getUserController().isGlobalAdmin() && logins.getUserController()
-					                                                    .isPremiumAccount() ? m(".mt-l", [
+						.isPremiumAccount() ? m(".mt-l", [
 						m(".h4", lang.get('security_title')),
 						m(requirePasswordUpdateAfterResetDropdown),
+						m(saveIpAddressDropdown),
 						this._customer() ?
 							m(".mt-l", [
 								m(".flex-space-between.items-center.mb-s", [
@@ -277,16 +287,16 @@ export class GlobalSettingsViewer {
 								})).then(availableAndSelectedGroupDatas => {
 								const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
-								             .then(selectedMailGroupId => {
-									             return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
-								             })
+									.then(selectedMailGroupId => {
+										return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+									})
 							})
 						}).setType(ButtonType.Dropdown))
 						buttons.push(new Button("delete_action", () => {
 							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
 								let registrationDomains = this._props() != null ? this._props()
-								                                                      .whitelabelRegistrationDomains
-								                                                      .map(domainWrapper => domainWrapper.value) : []
+									.whitelabelRegistrationDomains
+									.map(domainWrapper => domainWrapper.value) : []
 								if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
 									Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 								} else {
@@ -314,7 +324,7 @@ export class GlobalSettingsViewer {
 	}
 }
 
-export function getSpamRuleTypeNameMapping(): {value: string, name: string}[] {
+export function getSpamRuleTypeNameMapping(): { value: string, name: string }[] {
 	return [
 		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},

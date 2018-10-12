@@ -3,7 +3,7 @@ import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButton, NavButtonColors} from "./NavButton"
 import {styles} from "../styles"
-import {neverNull, asyncImport} from "../../api/common/utils/Utils"
+import {asyncImport, neverNull} from "../../api/common/utils/Utils"
 import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
@@ -11,7 +11,7 @@ import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
-import {Mode, assertMainOrNodeBoot, isIOSApp} from "../../api/Env"
+import {assertMainOrNodeBoot, isIOSApp, Mode} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
@@ -68,22 +68,20 @@ class Header {
 			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()
-					&& !logins.isEnabled(FeatureType.DisableContacts)))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()
-					&& !isIOSApp() && logins.getUserController().isFreeAccount())
-				.setClickHandler(() => this._showUpgradeDialog()), 0, true)
+				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount())
+				.setClickHandler(() => this._showUpgradeDialog()), 0, false)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
 			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
 			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
-				                                                                       .isPremiumAccount())
+					.isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)

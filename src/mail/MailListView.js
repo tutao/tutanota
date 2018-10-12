@@ -11,7 +11,13 @@ import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder} from "./MailUtils"
+import {
+	getArchiveFolder,
+	getInboxFolder,
+	getSenderOrRecipientHeading,
+	getTrashFolder,
+	showDeleteConfirmationDialog
+} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -82,8 +88,14 @@ export class MailListView {
 					m(Icon, {icon: Icons.Folder}),
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
-				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
-				swipeLeft: (listElement: Mail) => mailModel.deleteMails([listElement]),
+				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO test finalDelete_action if the mail is deleted from trash
+				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
+					if (confirmed == true) {
+						mailModel.deleteMails([listElement])
+					} else {
+						return Promise.resolve()
+					}
+				}),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
 						return Promise.resolve() // externals don't have an archive folder

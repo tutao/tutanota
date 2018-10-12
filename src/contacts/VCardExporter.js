@@ -25,13 +25,7 @@ export function exportAsVCard(): Promise<void> {
 				if (allContacts.length === 0) {
 					return 0
 				} else {
-					let vCardFile = contactsToVCard(allContacts)
-					let data = stringToUtf8Uint8Array(vCardFile)
-					let tmpFile = createFile()
-					tmpFile.name = "vCard3.0.vcf"
-					tmpFile.mimeType = "vCard/rfc2426"
-					tmpFile.size = String(data.byteLength)
-					return fileController.open(createDataFile(tmpFile, data)).return(allContacts.length)
+					return exportContacts(allContacts).return(allContacts.length)
 				}
 			})
 		})
@@ -40,6 +34,17 @@ export function exportAsVCard(): Promise<void> {
 			Dialog.error("noContacts_msg")
 		}
 	})
+}
+
+
+export function exportContacts(contacts: Contact[]): Promise<void> {
+	let vCardFile = contactsToVCard(contacts)
+	let data = stringToUtf8Uint8Array(vCardFile)
+	let tmpFile = createFile()
+	tmpFile.name = "vCard3.0.vcf"
+	tmpFile.mimeType = "vCard/rfc2426"
+	tmpFile.size = String(data.byteLength)
+	return fileController.open(createDataFile(tmpFile, data))
 }
 
 /**
@@ -102,7 +107,7 @@ export function _contactToVCard(contact: Contact): string {
  * Works for mail addresses the same as for addresses
  * Returns all mail-addresses/addresses and their types in an object array
  */
-export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): {KIND: string, CONTENT: string}[] {
+export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): { KIND: string, CONTENT: string }[] {
 	return addresses.map(ad => {
 		let kind = ""
 		switch (ad.type) {
@@ -122,7 +127,7 @@ export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | Con
  * export for testing
  * Returns all phone numbers and their types in an object array
  */
-export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): {KIND: string, CONTENT: string}[] {
+export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): { KIND: string, CONTENT: string }[] {
 	return numbers.map(num => {
 		let kind = ""
 		switch (num.type) {
@@ -149,7 +154,7 @@ export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]):
  *  Returns all socialIds as a vCard Url in an object array
  *  Type is not defined here. URL tag has no fitting type implementation
  */
-export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {KIND: string, CONTENT: string}[] {
+export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): { KIND: string, CONTENT: string }[] {
 	return socialIds.map(sId => {
 		//IN VCARD 3.0 is no type for URLS
 		return {KIND: "", CONTENT: sId.socialId}
@@ -160,7 +165,7 @@ export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {KIND
  * export for testing
  * Returns a multiple line string from the before created object arrays of addresses, mail addresses and socialIds
  */
-export function _vCardFormatArrayToString(typeAndContentArray: {KIND: string, CONTENT: string}[], tagContent: string): string {
+export function _vCardFormatArrayToString(typeAndContentArray: { KIND: string, CONTENT: string }[], tagContent: string): string {
 	return typeAndContentArray.reduce((result, elem) => {
 		if (elem.KIND) {
 			return result + _getFoldedString(tagContent + ";TYPE=" + elem.KIND + ":" + _getVCardEscaped(elem.CONTENT))

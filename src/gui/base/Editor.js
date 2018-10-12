@@ -42,6 +42,9 @@ export class Editor {
 		return this.isEmpty() ? "" : this.squire.getHTML()
 	}
 
+	addChangeListener(callback: Function) {
+		this.squire.addEventListener("input", callback)
+	}
 
 	setMinHeight(minHeight: number): Editor {
 		this._minHeight = minHeight

@@ -42,7 +42,8 @@ import {
 	getMailboxName,
 	getSenderOrRecipientHeading,
 	getSortedCustomFolders,
-	getSortedSystemFolders
+	getSortedSystemFolders,
+	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -70,6 +71,7 @@ import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
 import {client} from "../misc/ClientDetector"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -218,7 +220,13 @@ export class MailViewer {
 				})
 			}))
 		}
-		actions.add(new Button('delete_action', () => mailModel.deleteMails([this.mail]), () => Icons.Trash))
+		actions.add(new Button('delete_action', () => {
+			showDeleteConfirmationDialog([this.mail]).then((confirmed) => {
+				if (confirmed) {
+					mailModel.deleteMails([this.mail])
+				}
+			})
+		}, () => Icons.Trash))
 		if (mail.state !== MailState.DRAFT) {
 			actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 				let moreButtons = []
@@ -227,30 +235,31 @@ export class MailViewer {
 				}
 				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
 					() => Icons.Download).setType(ButtonType.Dropdown)
-				                         .setIsVisibleHandler(() => env.mode !== Mode.App
-					                         && !logins.isEnabled(FeatureType.DisableMailExport)))
+					.setIsVisibleHandler(() => env.mode !== Mode.App
+						&& !logins.isEnabled(FeatureType.DisableMailExport)))
+				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.People).setType(ButtonType.Dropdown))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
 						if (this.mail.headers) {
-							return load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
-									let headers = mailHeaders.headers.split("\n").filter(headerLine =>
-										headerLine.toLowerCase().startsWith("list-unsubscribe"))
-									if (headers.length > 0) {
-										let data = createListUnsubscribeData()
-										data.mail = this.mail._id
-										data.recipient = this._getSenderOfResponseMail()
-										data.headers = headers.join("\n")
-										return serviceRequestVoid(TutanotaService.ListUnsubscribeService,
-											HttpMethod.POST, data)
-											.then(() => {
-												Dialog.error("unsubscribeSuccessful_msg")
-											})
-											.catch(e => {
-												Dialog.error("unsubscribeFailed_msg")
-											})
-									}
+							return showProgressDialog("pleaseWait_msg", load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+								let headers = mailHeaders.headers.split("\n").filter(headerLine =>
+									headerLine.toLowerCase().startsWith("list-unsubscribe"))
+								if (headers.length > 0) {
+									let data = createListUnsubscribeData()
+									data.mail = this.mail._id
+									data.recipient = this._getSenderOfResponseMail()
+									data.headers = headers.join("\n")
+									return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, data).return(true)
+								} else {
+									return false
 								}
-							)
+							})).then(success => {
+								if (success) {
+									return Dialog.error("unsubscribeSuccessful_msg")
+								}
+							}).catch(e => {
+								return Dialog.error("unsubscribeFailed_msg")
+							})
 						}
 					}, () => Icons.Cancel).setType(ButtonType.Dropdown))
 				}
@@ -280,14 +289,14 @@ export class MailViewer {
 		} else {
 			this._loadingAttachments = true
 			Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			       .then(files => {
-				       this._attachments = files
-				       this._attachmentButtons = this._createAttachmentsButtons(files)
-				       this._loadingAttachments = false
-				       m.redraw()
-			       })
-			       .catch(NotFoundError, e =>
-				       console.log("could load attachments as they have been moved/deleted already", e))
+				.then(files => {
+					this._attachments = files
+					this._attachmentButtons = this._createAttachmentsButtons(files)
+					this._loadingAttachments = false
+					m.redraw()
+				})
+				.catch(NotFoundError, e =>
+					console.log("could load attachments as they have been moved/deleted already", e))
 		}
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
@@ -414,10 +423,10 @@ export class MailViewer {
 				}
 				if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount()
 					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim()
-					                                                    .toLowerCase(), defaultInboxRuleField)) {
+						.toLowerCase(), defaultInboxRuleField)) {
 					buttons.push(new Button("addInboxRule_action", () => {
 						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim()
-						                                                                                                         .toLowerCase())
+							.toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn()) {
@@ -489,9 +498,9 @@ export class MailViewer {
 				}
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				return editor.initAsResponse(this.mail, ConversationType.REPLY, this._getSenderOfResponseMail(), toRecipients, ccRecipients, bccRecipients, [], subject, body, [], true)
-				             .then(() => {
-					             editor.show()
-				             })
+					.then(() => {
+						editor.show()
+					})
 			}
 		})
 	}
@@ -511,12 +520,12 @@ export class MailViewer {
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 		if (this.mail.toRecipients.length > 0) {
 			infoLine += lang.get("to_label") + ": " + this.mail.toRecipients.map(recipient => recipient.address)
-			                                              .join(", ")
+				.join(", ")
 			infoLine += "<br>";
 		}
 		if (this.mail.ccRecipients.length > 0) {
 			infoLine += lang.get("cc_label") + ": " + this.mail.ccRecipients.map(recipient => recipient.address)
-			                                              .join(", ")
+				.join(", ")
 			infoLine += "<br>";
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
@@ -590,9 +599,9 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-					          .then(() => {
-						          mailEditor.show()
-					          })
+						.then(() => {
+							mailEditor.show()
+						})
 				}
 			}
 		}

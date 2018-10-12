@@ -1,8 +1,8 @@
 //@flow
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
-import {SearchResultListEntry, SearchListView} from "./SearchListView"
-import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {SearchListView, SearchResultListEntry} from "./SearchListView"
+import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
@@ -11,20 +11,23 @@ import {ContactViewer} from "../contacts/ContactViewer"
 import MessageBox from "../gui/base/MessageBox"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
+import {MultiSearchViewer} from "./MultiSearchViewer"
 
 assertMainOrNode()
 
 export class SearchResultDetailsViewer {
 	_listView: SearchListView;
-	_viewer: ?MailViewer | ContactViewer;
+	_viewer: ?MailViewer | ContactViewer | MultiSearchViewer;
 	_messageBox: MessageBox;
 	_viewerEntityId: ?IdTuple;
+	_multiSearchViewer: MultiSearchViewer;
 
 	constructor(list: SearchListView) {
 		this._listView = list
 		this._viewer = null
 		this._viewerEntityId = null
 		this._messageBox = new MessageBox(() => lang.get("noSelection_msg"))
+		this._multiSearchViewer = new MultiSearchViewer(list)
 	}
 
 	view(): Children {
@@ -64,10 +67,14 @@ export class SearchResultDetailsViewer {
 		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer)) {
 			// set or update the visible mail
 			this.showEntity(entries[0].entry, true)
-		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation) && this._viewer) {
+		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation)) {
 			// remove the visible mail
-			this._viewer = null
-			this._viewerEntityId = null
+			if (entries.length == 0) {
+				this._viewer = null
+				this._viewerEntityId = null
+			} else {
+				this._viewer = this._multiSearchViewer
+			}
 			//let url = `/mail/${this.mailList.listId}`
 			//this._folderToUrl[this.selectedFolder._id[1]] = url
 			//this._setUrl(url)

@@ -1,19 +1,19 @@
 // @flow
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
-import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
+import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import {header} from "../gui/base/Header"
-import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/base/Button"
+import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
-import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
-import {load, setup, erase, loadAll, update} from "../api/main/Entity"
+import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, GroupType, ContactMergeAction} from "../api/common/TutanotaConstants"
+import {ContactMergeAction, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
@@ -195,9 +195,9 @@ export class ContactView {
 						let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
 						let contactList = vCardListToContacts(flatvCards,
 							neverNull(logins.getUserController()
-							                .user
-							                .memberships
-							                .find(m => m.groupType === GroupType.Contact)).group)
+								.user
+								.memberships
+								.find(m => m.groupType === GroupType.Contact)).group)
 						return LazyContactListId.getAsync().then(contactListId => {
 							let promises = []
 							contactList.forEach((contact) => {
@@ -232,14 +232,14 @@ export class ContactView {
 				if (mergeableAndDuplicates.deletable.length > 0) {
 					deletePromise = Dialog.confirm(() =>
 						lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length}))
-					                      .then((confirmed) => {
-						                      if (confirmed) {
-							                      // delete async in the background
-							                      mergeableAndDuplicates.deletable.forEach((dc) => {
-								                      erase(dc)
-							                      })
-						                      }
-					                      })
+						.then((confirmed) => {
+							if (confirmed) {
+								// delete async in the background
+								mergeableAndDuplicates.deletable.forEach((dc) => {
+									erase(dc)
+								})
+							}
+						})
 				}
 				deletePromise.then(() => {
 					if (mergeableAndDuplicates.mergeable.length === 0) {
@@ -343,7 +343,10 @@ export class ContactView {
 	 */
 	_setUrl(url: string) {
 		header.contactsUrl = url
-		m.route.set(url)
+		// do not change the url if the search view is active
+		if (m.route.get().startsWith("/contact")) {
+			m.route.set(url)
+		}
 	}
 
 	_deleteSelected(): Promise<void> {
@@ -425,7 +428,7 @@ export class ContactView {
 		&& this._contactList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this._contactList.list.selectNone(),
 			selectedEntiesLength: this._contactList.list.getSelectedEntities().length,
-			content: this._multiContactViewer.createActionBar(() => this._contactList.list.selectNone())
+			content: this._multiContactViewer.createActionBar(() => this._contactList.list.selectNone(), true)
 		}) : null
 	}
 }

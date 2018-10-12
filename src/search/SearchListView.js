@@ -159,7 +159,7 @@ export class SearchListView {
 				enabled: false,
 			},
 			elementsDraggable: false,
-			multiSelectionAllowed: false,
+			multiSelectionAllowed: true,
 			emptyMessage: lang.get("searchNoResults_msg") + "\n" + lang.get("switchSearchInMenu_label")
 		})
 	}

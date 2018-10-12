@@ -7,6 +7,7 @@ import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {ContactView} from "./ContactView"
+import {exportContacts} from "./VCardExporter"
 
 assertMainOrNode()
 
@@ -35,13 +36,6 @@ export class MultiContactViewer {
 		}
 	}
 
-	// Contact Export May Come Soon
-	// _exportAll(contacts: Contact[]) {
-	// 	Promise.map(contacts, contact => load(MailBodyTypeRef, mail.body).then(body => {
-	// 		return exportAsEml(contact, htmlSanitizer.sanitize(body.text, false).text)
-	// 	}), {concurrency: 5})
-	// }
-
 	_getContactSelectionMessage(contactView: ContactView) {
 		var nbrOfSelectedContacts = (contactView._contactList) ? contactView._contactList.list.getSelectedEntities().length : 0
 		if (nbrOfSelectedContacts === 0) {
@@ -51,13 +45,23 @@ export class MultiContactViewer {
 		}
 	}
 
-	createActionBar(actionCallback: () => void = () => {}): Component {
+	createActionBar(actionCallback: () => void = () => {
+	}, prependCancel: boolean = false): Component {
+
 		const actions = new ActionBar()
+		if (prependCancel) {
+			actions.add(new Button("cancel_action", () =>
+					actionCallback
+				, () => Icons.Cancel))
+		}
 		actions.add(new Button('delete_action',
 			() => this._contactView._deleteSelected().then(actionCallback), () => Icons.Trash))
 		actions.add(new Button("merge_action", () => this._contactView.mergeSelected().then(actionCallback),
 			() => Icons.People)
 			.setIsVisibleHandler(() => this._contactView._contactList.list.getSelectedEntities().length === 2))
+		actions.add(new Button("exportSelectedAsVCard_action", () => {
+			exportContacts(this._contactView._contactList.list.getSelectedEntities())
+		}, () => Icons.Download))
 		return actions
 	}
 }

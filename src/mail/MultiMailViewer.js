@@ -11,7 +11,13 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "./MailUtils"
+import {
+	getFolderIcon,
+	getFolderName,
+	getSortedCustomFolders,
+	getSortedSystemFolders,
+	showDeleteConfirmationDialog
+} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
@@ -104,9 +110,15 @@ export class MultiMailViewer {
 					})
 			}
 		}))
-		actions.add(new Button('delete_action',
-			this._actionBarAction((mails) => mailModel.deleteMails(mails)),
-			() => Icons.Trash
+		actions.add(new Button('delete_action', () => {
+				let mails = this._mailView.mailList.list.getSelectedEntities()
+				showDeleteConfirmationDialog(mails).then((confirmed) => {
+					if (confirmed) {
+						this._mailView.mailList.list.selectNone()
+						mailModel.deleteMails(mails)
+					}
+				})
+			}, () => Icons.Trash
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
@@ -130,7 +142,7 @@ export class MultiMailViewer {
 
 	/**
 	 * Helper function to generate action which will first unselect everything and then execute action with previously
-	 * selected mails. Workaround for cases when callback is called too late.
+	 * selected mails. Workaround to avoid selecting the next email after the selected emails are removed.
 	 * @param action
 	 * @returns {Function}
 	 * @private

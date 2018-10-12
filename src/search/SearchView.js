@@ -5,7 +5,12 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
+import {
+	FULL_INDEXED_TIMESTAMP,
+	MailFolderType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -25,7 +30,12 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
-import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
+import {
+	getFolderName,
+	getSortedCustomFolders,
+	getSortedSystemFolders,
+	showDeleteConfirmationDialog
+} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
@@ -297,7 +307,7 @@ export class SearchView {
 			{
 				key: Keys.DELETE,
 				exec: () => this._deleteSelected(),
-				help: "deleteContacts_action"
+				help: "delete_action"
 			},
 		]
 
@@ -310,9 +320,11 @@ export class SearchView {
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		this._viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
-
-		if (entries.length === 1 && m.route.get().startsWith("/search/")) {
-			setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
+		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer._viewer)) {
+			// do not set the search url if an element is removed from this list by another view
+			if (m.route.get().startsWith("/search")) {
+				setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
+			}
 		}
 		if (!multiSelectOperation && elementClicked) {
 			this._searchList.loading().then(() => {
@@ -369,16 +381,26 @@ export class SearchView {
 		let selected = this._searchList.getSelectedEntities()
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMail = ((selected[0].entry: any): Mail)
-				mailModel.deleteMails([selectedMail])
-				         .then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
+				let selectedMails = []
+				selected.forEach((m) => {
+					selectedMails.push(((m.entry: any): Mail))
+				})
+				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
+					if (confirmed) {
+						mailModel.deleteMails(selectedMails).then(() => {
+							selected.forEach((sm) => this._searchList.deleteLoadedEntity(sm._id[1]))
+						})
+					}
+				})
+
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContact = ((selected[0].entry: any): Contact)
+				let selectedContacts = ((selected: any): Contact[])
 				Dialog.confirm("deleteContacts_msg").then(confirmed => {
 					if (confirmed) {
-						erase(selectedContact).catch(NotFoundError, e => {
+						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
 							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}).then(() => this._searchList.deleteLoadedEntity(selected[0]._id[1]))
+						}))
+						selected.forEach((sc) => this._searchList.deleteLoadedEntity(sc._id[1]))
 					}
 				})
 			}

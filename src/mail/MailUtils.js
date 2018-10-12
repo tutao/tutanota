@@ -7,12 +7,12 @@ import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddr
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ContactAddressType,
-	GroupType,
-	MailState,
 	EmailSignatureType as TutanotaConstants,
-	MailFolderType
+	GroupType,
+	MailFolderType,
+	MailState
 } from "../api/common/TutanotaConstants"
-import {neverNull, getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
 import {serviceRequest} from "../api/main/Entity"
@@ -28,7 +28,9 @@ import {lang} from "../misc/LanguageViewModel"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {Icons} from "../gui/base/icons/Icons"
 import type {MailboxDetail} from "./MailModel"
+import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -89,9 +91,9 @@ export function createNewContact(mailAddress: string, name: string): Contact {
 	let contact = createContact()
 	contact._owner = logins.getUserController().user._id
 	contact._ownerGroup = neverNull(logins.getUserController()
-	                                      .user
-	                                      .memberships
-	                                      .find(m => m.groupType === GroupType.Contact)).group
+		.user
+		.memberships
+		.find(m => m.groupType === GroupType.Contact)).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 
@@ -161,7 +163,7 @@ export function getDefaultSignature() {
 }
 
 
-export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
+export function parseMailtoUrl(mailtoUrl: string): { to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string } {
 	let url = new URL(mailtoUrl)
 	let toRecipients = []
 	let ccRecipients = []
@@ -196,16 +198,16 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
 			} else if (paramName === "cc") {
 				paramValue.split(",")
-				          .forEach((ccAddress) => ccAddress
-					          && ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
+					.forEach((ccAddress) => ccAddress
+						&& ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
 			} else if (paramName === "bcc") {
 				paramValue.split(",")
-				          .forEach((bccAddress) => bccAddress
-					          && bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+					.forEach((bccAddress) => bccAddress
+						&& bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
 			} else if (paramName === "to") {
 				paramValue.split(",")
-				          .forEach((toAddress) => toAddress
-					          && toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
+					.forEach((toAddress) => toAddress
+						&& toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
 			}
 		}
 	}
@@ -331,6 +333,27 @@ export function getDefaultSender(mailboxDetails: MailboxDetail): string {
 
 export function isFinalDelete(folder: ?MailFolder): boolean {
 	return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
+}
+
+export function showDeleteConfirmationDialog(mails: Mail[]): Promise<boolean> {
+	let groupedMails = mails.reduce((all, mail) => {
+		isFinalDelete(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
+		return all
+	}, {trash: [], move: []})
+
+	let confirmationTextId = null
+	if (groupedMails.trash.length > 0) {
+		if (groupedMails.move.length > 0) {
+			confirmationTextId = "finallyDeleteSelectedEmails_msg"
+		} else {
+			confirmationTextId = "finallyDeleteEmails_msg"
+		}
+	}
+	if (confirmationTextId != null) {
+		return Dialog.confirm(confirmationTextId)
+	} else {
+		return Promise.resolve(true)
+	}
 }
 
 export function getSenderName(mailboxDetails: MailboxDetail): string {

@@ -78,14 +78,13 @@ export class SubscriptionViewer {
 				showSwitchDialog(this._accountingInfo, this._isPro)
 			}
 		}, () => Icons.Edit)
-		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show())
-			.setType(ButtonType.Accent)
+		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
 		this._subscriptionField._injectionsRight = () => (logins.getUserController()
-		                                                        .isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController()
-		                                                                                                                                                       .isPremiumAccount()
+			.isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController()
+			.isPremiumAccount()
 		&& !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg"))
-		                                                                    .setDisabled()
+			.setDisabled()
 		let usageTypeAction = new Button("businessUse_label", () => {
 			this._switchToBusinessUse()
 		}, () => Icons.Edit)
@@ -93,7 +92,7 @@ export class SubscriptionViewer {
 		&& !this._accountingInfo.business ? m(usageTypeAction) : null
 
 		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg"))
-		                                                                                                                               .setDisabled()
+			.setDisabled()
 		let signOrderAgreementAction = new Button("sign_action", () => {
 			SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo))
 		}, () => Icons.Edit)
@@ -133,7 +132,7 @@ export class SubscriptionViewer {
 
 
 		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg"))
-		                                                                                                                                                                                .setDisabled()
+			.setDisabled()
 		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {
 			"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))
 		}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
@@ -150,7 +149,7 @@ export class SubscriptionViewer {
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
 		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg"))
-		                                                                 .setDisabled()
+			.setDisabled()
 		const changeEmailAliasPackageButton = createNotAvailableForFreeButton("emailAlias_label", () => {
 			EmailAliasOptionsDialog.show()
 		}, () => Icons.Edit)
@@ -375,9 +374,9 @@ export class SubscriptionViewer {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
 		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = sharedMailCount > 0 ? sharedMailCount + " " + lang.get("sharedMailbox_label") : ""
+		const sharedMailText = sharedMailCount + " " + lang.get("sharedMailbox_label")
 		if (localAdminCount === 0 && sharedMailCount === 0) {
-			this._groupsField.setValue("0")
+			this._groupsField.setValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
 			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
 		} else {

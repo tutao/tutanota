@@ -5,21 +5,21 @@ import type {
 	ContactPhoneNumberTypeEnum,
 	ContactSocialTypeEnum
 } from "../api/common/TutanotaConstants"
-import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
+import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {createRestriction} from "../search/SearchUtils"
-import {loadRoot, load, loadAll} from "../api/main/Entity"
+import {load, loadAll, loadRoot} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
-import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {locator} from "../api/main/MainLocator"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {formatSortableDate, formatDateWithMonth, formatDate} from "../misc/Formatter"
+import {formatDate, formatDateWithMonth, formatSortableDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -37,7 +37,7 @@ export const LazyContactListId: LazyLoaded<Id> = new LazyLoaded(() => {
 		})
 })
 
-export const ContactMailAddressTypeToLabel: {[key: ContactAddressTypeEnum]: string} = {
+export const ContactMailAddressTypeToLabel: { [key: ContactAddressTypeEnum]: string } = {
 	[ContactAddressType.PRIVATE]: "private_label",
 	[ContactAddressType.WORK]: "work_label",
 	[ContactAddressType.OTHER]: "other_label",
@@ -52,7 +52,7 @@ export function getContactAddressTypeLabel(type: ContactAddressTypeEnum, custom:
 	}
 }
 
-export const ContactPhoneNumberTypeToLabel: {[key: ContactPhoneNumberTypeEnum]: string} = {
+export const ContactPhoneNumberTypeToLabel: { [key: ContactPhoneNumberTypeEnum]: string } = {
 	[ContactPhoneNumberType.PRIVATE]: "private_label",
 	[ContactPhoneNumberType.WORK]: "work_label",
 	[ContactPhoneNumberType.MOBILE]: "mobile_label",
@@ -69,7 +69,7 @@ export function getContactPhoneNumberTypeLabel(type: ContactPhoneNumberTypeEnum,
 	}
 }
 
-export const ContactSocialTypeToLabel: {[key: ContactSocialTypeEnum]: string} = {
+export const ContactSocialTypeToLabel: { [key: ContactSocialTypeEnum]: string } = {
 	[ContactSocialType.TWITTER]: "twitter_label",
 	[ContactSocialType.FACEBOOK]: "facebook_label",
 	[ContactSocialType.XING]: "xing_label",
@@ -126,7 +126,7 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 				return sortCompareByReverseId(contact1, contact2)
 			} else {
 				result = contact1.mailAddresses[0].address.trim()
-				                                  .localeCompare(contact2.mailAddresses[0].address.trim())
+					.localeCompare(contact2.mailAddresses[0].address.trim())
 				if (result === 0) {
 					// see Multiselect with shift and up arrow not working properly #152 at github
 					return sortCompareByReverseId(contact1, contact2)
@@ -145,16 +145,16 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
  */
 export function searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
 	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
-	             .then(result => {
-		             // load one by one because they may be in different lists when we have different lists
-		             return Promise.map(result.results, idTuple => {
-			             return load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
-				             return null
-			             }).catch(NotAuthorizedError, e => {
-				             return null
-			             })
-		             }).filter(contact => contact != null)
-	             })
+		.then(result => {
+			// load one by one because they may be in different lists when we have different lists
+			return Promise.map(result.results, idTuple => {
+				return load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
+					return null
+				}).catch(NotAuthorizedError, e => {
+					return null
+				})
+			}).filter(contact => contact != null)
+		})
 }
 
 /**

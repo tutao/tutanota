@@ -8,10 +8,8 @@ import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardInput} from "./CreditCardInput"
 import MessageBox from "../gui/base/MessageBox"
 import {PayPalLogo} from "../gui/base/icons/Icons"
-import {SysService} from "../api/entities/sys/Services"
-import {load, serviceRequest} from "../api/main/Entity"
-import {HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
-import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
+import {load} from "../api/main/Entity"
+import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -30,16 +28,18 @@ export class PaymentMethodInput {
 	_selectedCountry: Stream<?Country>;
 	_selectedPaymentMethod: PaymentMethodTypeEnum;
 	_subscriptionOptions: SubscriptionOptions;
-	_payPalRequestUrl: LazyLoaded<string>
+	_payPalRequestUrl: LazyLoaded<string>;
 	_accountingInfo: AccountingInfo;
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo) {
+	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()
 		this._accountingInfo = accountingInfo;
+		this._payPalRequestUrl = payPalRequestUrl
+
 
 		const accountingInfoListener = (typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
 			if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
@@ -83,11 +83,6 @@ export class PaymentMethodInput {
 			}
 		}
 
-
-		this._payPalRequestUrl = new LazyLoaded(() => {
-			return serviceRequest(SysService.PaymentDataService, HttpMethod.GET, null, PaymentDataServiceGetReturnTypeRef)
-				.then((result) => result.loginUrl)
-		}, null)
 		this._currentPaymentMethodComponent = this._creditCardComponent
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard
 		this.view = () => m(this._currentPaymentMethodComponent)
@@ -151,7 +146,7 @@ export class PaymentMethodInput {
 		}
 	}
 
-	getAvailablePaymentMethods(): Array<{name: string, value: PaymentMethodTypeEnum}> {
+	getAvailablePaymentMethods(): Array<{ name: string, value: PaymentMethodTypeEnum }> {
 		const availablePaymentMethods = [
 			{name: lang.get("paymentMethodCreditCard_label"), value: PaymentMethodType.CreditCard},
 			{name: "PayPal", value: PaymentMethodType.Paypal}
