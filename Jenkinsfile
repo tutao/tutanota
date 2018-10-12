@@ -62,7 +62,7 @@ pipeline {
 						unstash 'web_base'
 						unstash 'bundles'
 						sh 'node dist -pm'
-						dir('build/dist/desktop') {
+						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'mac_installer'
 						}
 						dir('/build/desktop-test') {
@@ -82,7 +82,7 @@ pipeline {
 						unstash 'web_base'
 						unstash 'bundles'
 						sh 'node dist -pl'
-						dir('build/dist/desktop') {
+						dir('build/desktop') {
 							stash includes: 'tutanota-desktop-*, *.yml', name:'linux_installer'
 						}
 						dir('/build/desktop-test') {
@@ -103,12 +103,12 @@ pipeline {
 				sh 'rm -rf ./build/*'
 				unstash 'web_base'
 				unstash 'web_add'
-				dir('build/dist/desktop'){
+				dir('build/desktop'){
 					unstash 'linux_installer'
 					unstash 'mac_installer'
 					unstash 'win_installer'
 				}
-				dir('build/dist/desktop-test'){
+				dir('build/desktop-test'){
 					unstash 'linux_installer_test'
 					unstash 'mac_installer_test'
 					unstash 'win_installer_test'
