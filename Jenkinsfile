@@ -125,7 +125,7 @@ pipeline {
                 expression {!params.RELEASE}
             }
             steps {
-            	sh 'rm /opt/desktop-snapshot/*'
+            	sh 'rm -f /opt/desktop-snapshot/*'
             	sh 'ls -l /opt/desktop-snapshot/'
             	dir('/opt') {
 					unstash 'linux_installer'
