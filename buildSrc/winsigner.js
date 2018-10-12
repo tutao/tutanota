@@ -16,7 +16,7 @@ function signer(args) {
 		"-pkcs12", certificateFile,
 		"-pass", certificatePassword,
 		"-h", args.hash ? args.hash : "sha256",
-		"-t", "http://timestamp.comodoca.com?td=" + args.hash ? args.hash : "sha256",
+		"-t", "http://timestamp.verisign.com/scripts/timstamp.dll",
 		"-n", "tutanota-desktop"
 	]
 
