@@ -221,6 +221,10 @@ export class WorkerImpl {
 			readCounterValue: (message: Request) => {
 				return locator.counters.readCounterValue.apply(locator.counters, message.args)
 			},
+			cancelCreateSession: (message: Request) => {
+				locator.login.cancelCreateSession()
+				return Promise.resolve()
+			},
 			entropy: (message: Request) => {
 				return this.addEntropy(message.args[0])
 			},

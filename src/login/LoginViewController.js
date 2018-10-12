@@ -31,6 +31,7 @@ import {mailModel} from "../mail/MailModel"
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -135,6 +136,11 @@ export class LoginViewController {
 		            })
 		            .catch(TooManyRequestsError, e => {
 			            this.view.helpText = lang.get('tooManyAttempts_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(CancelledError, () => {
+			            this.view.helpText = lang.get('emptyString_msg')
 			            m.redraw()
 			            return errorAction()
 		            })
