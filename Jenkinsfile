@@ -50,7 +50,7 @@ pipeline {
 						    '''
 						}
 						dir('build') {
-							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'win_installer'
+							stash includes: 'desktop*/*', name:'win_installer'
 						}
                 	}
                 }
@@ -70,7 +70,7 @@ pipeline {
 						unstash 'bundles'
 						sh 'node dist -pm'
 						dir('build') {
-							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'mac_installer'
+							stash includes: 'desktop*/*', name:'mac_installer'
 						}
                     }
                 }
@@ -87,7 +87,7 @@ pipeline {
 						unstash 'bundles'
 						sh 'node dist -pl ' + (params.RELEASE ? "" : "prod")
 						dir('build') {
-							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'linux_installer'
+							stash includes: 'desktop*/*', name:'linux_installer'
 						}
                     }
                 }
@@ -126,9 +126,11 @@ pipeline {
             }
             steps {
             	sh 'rm /opt/desktop-snapshot/*'
+            	sh 'ls -l /opt/desktop-snapshot/*'
             	dir('/opt') {
 					unstash 'linux_installer'
             	}
+            	sh 'ls -l /opt/desktop-snapshot/*'
 				sh '''
 					target=`ls /opt/desktop-snapshot/tutanota-desktop*`;
 					ln -s ${target} /opt/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage
