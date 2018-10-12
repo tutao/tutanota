@@ -114,7 +114,7 @@ pipeline {
 					unstash 'mac_installer_test'
 					unstash 'win_installer_test'
 				}
-				sh 'node dist -pd'
+				sh 'node dist -pr'
             }
         }
     }

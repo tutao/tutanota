@@ -4,9 +4,9 @@
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (version, targetUrl, iconPath) {
+module.exports = function (nameSuffix, version, targetUrl, iconPath) {
 	return {
-		"name": "tutanota-desktop",
+		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/mainDesktop.js",
 		"version": version,
 		"author": "Tutao GmbH",
@@ -39,7 +39,7 @@ module.exports = function (version, targetUrl, iconPath) {
 				"publishAutoUpdate": true
 			},
 			"appId": "de.tutao.tutanota",
-			"productName": "Tutanota Desktop",
+			"productName": "Tutanota Desktop" + nameSuffix,
 			"artifactName": "${name}-${version}-${os}.${ext}",
 			"directories": {
 				"output": "installers"
