@@ -34,6 +34,7 @@ import type {
 import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
+import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientDetector"
@@ -97,6 +98,9 @@ export class IndexerCore {
 	 */
 	createIndexEntriesForAttributes(model: TypeModel, instance: Object, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
 		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map(attributeHandler => {
+			if (typeof attributeHandler.value !== "function") {
+				throw new ProgrammingError("Value for attributeHandler is not a function: " + JSON.stringify(attributeHandler.attribute))
+			}
 			let value = attributeHandler.value()
 			let tokens = tokenize(value)
 			this._stats.indexedBytes += byteLength(value)
