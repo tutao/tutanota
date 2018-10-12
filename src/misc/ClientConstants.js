@@ -1,3 +1,5 @@
+//@flow
+
 export const BrowserType = {
 	CHROME: "Chrome",
 	FIREFOX: "Firefox",
@@ -24,6 +26,6 @@ export const DeviceType = {
 export type DeviceTypeEnum = $Values<typeof DeviceType>;
 
 export type BrowserData = {
-	browserType: BrowserType,
+	browserType: BrowserTypeEnum,
 	browserVersion: number
 }

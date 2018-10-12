@@ -33,11 +33,13 @@ type WorkerLocatorType = {
 	counters: CounterFacade;
 	eventBusClient: EventBusClient;
 	_indexedDbSupported: boolean;
+	_browserData: BrowserData;
 }
 
 export const locator: WorkerLocatorType = ({}: any)
 
 export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, browserData: BrowserData) {
+	locator._browserData = browserData
 	locator._indexedDbSupported = indexedDbSupported
 	locator.login = new LoginFacade(worker)
 	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker, indexedDbSupported, browserData)
@@ -58,7 +60,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported))
+	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported, locator._browserData))
 }
 
 if (typeof self !== "undefined") {
