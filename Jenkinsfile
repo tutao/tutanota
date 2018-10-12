@@ -54,27 +54,7 @@ pipeline {
 						}
                 	}
                 }
-/*
-                stage('desktop-mac') {
-                	when {
-                    	expression { params.RELEASE }
-                    }
-                    agent {
-                        label 'mac'
-                    }
-                    steps {
-						sh 'npm prune'
-						sh 'npm install'
-						sh 'rm -rf ./build/*'
-						unstash 'web_base'
-						unstash 'bundles'
-						sh 'node dist -pm'
-						dir('build') {
-							stash includes: 'desktop*/*', name:'mac_installer'
-						}
-                    }
-                }
-*/
+
                 stage('desktop-linux'){
                     agent {
                         label 'linux'
