@@ -90,7 +90,6 @@ pipeline {
 				unstash 'bundles'
 				dir('build'){
 					unstash 'linux_installer'
-					unstash 'mac_installer'
 					unstash 'win_installer'
 				}
 				sh 'node dist -pr'
