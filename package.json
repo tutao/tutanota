@@ -29,6 +29,7 @@
     "electron-packager": "^12.1.2",
     "electron": "^3.0.4",
     "electron-updater": "^3.1.2",
+    "electron-debug": "^2.0.0",
     "electron-builder": "^20.28.4",
     "flow-bin": "0.77.0",
     "fs-extra": "7.0.0",
