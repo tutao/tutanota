@@ -43,3 +43,11 @@ export type PromiseMapFn = <T, U>(values: T[], callback: (T) => Promise<U> | U,
 
 export const promiseMapCompat = (microtaskBySpec: boolean): PromiseMapFn =>
 	microtaskBySpec ? Promise.map : mapInCallContext
+
+export function thenOrApply<A, R>(v: $Promisable<A>, mapper: (A) => R): R | Promise<R> {
+	if (v instanceof Promise) {
+		return v.then(mapper)
+	} else {
+		return mapper(v)
+	}
+}

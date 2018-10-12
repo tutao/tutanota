@@ -4,22 +4,10 @@ import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {
-	byteLength,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptSearchIndexEntry,
-	getAppId,
-	getPerformanceTimestamp
-} from "./IndexUtils"
+import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -36,7 +24,7 @@ import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientDetector"
 import {BrowserType} from "../../../misc/ClientConstants"
 
@@ -246,28 +234,25 @@ export class IndexerCore {
 		let deleteElementDataPromise = indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId))
 		return Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
 			return transaction.getAsList(SearchIndexMetaDataOS, encWord).then(metaDataEntries => {
-				let deleteSearchIndexPromise = Promise.resolve()
 				if (metaDataEntries.length > 0) {
-					deleteSearchIndexPromise = this._deleteSearchIndexEntries(transaction, metaDataEntries, encInstanceIds)
-					                               .then(updatedMetaDataEntries => {
-						                               const nonEmptyEntries = updatedMetaDataEntries
-							                               .filter(e => e.size > 0)
-						                               if (nonEmptyEntries.length === 0) {
-							                               return transaction.delete(SearchIndexMetaDataOS, encWord)
-						                               } else {
-							                               return transaction.put(SearchIndexMetaDataOS, encWord,
-								                               nonEmptyEntries)
-						                               }
-					                               })
+					return thenOrApply(this._deleteSearchIndexEntries(transaction, metaDataEntries, encInstanceIds), (updatedMetaDataEntries) => {
+						const nonEmptyEntries = updatedMetaDataEntries
+							.filter(e => e.size > 0)
+						if (nonEmptyEntries.length === 0) {
+							return transaction.delete(SearchIndexMetaDataOS, encWord)
+						} else {
+							return transaction.put(SearchIndexMetaDataOS, encWord,
+								nonEmptyEntries)
+						}
+					})
 				}
-				return deleteSearchIndexPromise
 			})
 		})).then(() => deleteElementDataPromise).return()
 	}
 
-	_deleteSearchIndexEntries(transaction: DbTransaction, metaDataEntries: SearchIndexMetadataEntry[], encInstanceIds: B64EncInstanceId[]): Promise<SearchIndexMetadataEntry[]> {
+	_deleteSearchIndexEntries(transaction: DbTransaction, metaDataEntries: SearchIndexMetadataEntry[], encInstanceIds: B64EncInstanceId[]): $Promisable<SearchIndexMetadataEntry[]> {
 		this._cancelIfNeeded()
-		return Promise.map(metaDataEntries, metaData => {
+		return this._promiseMapCompat(metaDataEntries, metaData => {
 			return transaction.getAsList(SearchIndexOS, metaData.key).then(encryptedSearchIndexEntries => {
 				let remainingEntries = encryptedSearchIndexEntries.filter(e =>
 					!encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) === encInstanceId))
