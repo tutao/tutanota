@@ -126,6 +126,11 @@ pipeline {
             }
             steps {
             	dir('/opt') {
+            	    sh 'rm -r desktop*'
+            	    sh '''
+            	    	target=`ls desktop-snapshot/tutanota-desktop*`;
+            	    	ln -s $target desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage
+            	    '''
 					unstash 'linux_installer'
             	}
             }
