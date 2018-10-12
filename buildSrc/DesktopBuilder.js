@@ -3,16 +3,18 @@ const Builder = require('./Builder.js').Builder
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, targetUrl, updateSubDir) {
+function build(dirname, version, targets, targetUrl, nameSuffix) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
+	const updateSubDir = "desktop" + nameSuffix
 	const updateUrl = targetUrl + "/" + updateSubDir
 	const distDir = path.join(dirname, '/build/dist/')
 
 	console.log("Updating config...")
 	const content = require('./electron-package-json-template')(
+		updateSubDir,
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/desktop-icon.png")

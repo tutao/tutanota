@@ -180,12 +180,12 @@ function buildDesktopClient() {
 	if (options.desktop) {
 		if (options.host === undefined) {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://mail.tutanota.com", "desktop"))
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://mail.tutanota.com", ""))
 				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://test.tutanota.com", "desktop-test"))
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://test.tutanota.com", "-test"))
 		} else {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl, "desktop"))
+				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, targetUrl, "-snapshot"))
 		}
 	}
 }
