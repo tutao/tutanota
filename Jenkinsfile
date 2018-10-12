@@ -54,7 +54,7 @@ pipeline {
 						}
                 	}
                 }
-
+/*
                 stage('desktop-mac') {
                 	when {
                     	expression { params.RELEASE }
@@ -74,7 +74,7 @@ pipeline {
 						}
                     }
                 }
-
+*/
                 stage('desktop-linux'){
                     agent {
                         label 'linux'
@@ -96,7 +96,7 @@ pipeline {
 
         stage('Build deb') {
             when {
-                    	expression { params.RELEASE }
+            	expression { params.RELEASE }
             }
             agent {
                 label 'linux'
