@@ -3,7 +3,8 @@ import DOMPurify from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/\"/g, "'")
+// '#' character is reserved in URL and FF won't display SVG otherwise
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
 
 class HtmlSanitizer {
