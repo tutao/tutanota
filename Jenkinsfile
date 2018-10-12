@@ -85,7 +85,7 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						sh 'node dist -pl ' + (params.RELEASE ? "prod":"")
+						sh 'node dist -pl ' + (params.RELEASE ? "" : "prod")
 						dir('build') {
 							stash includes: 'desktop*/tutanota-desktop-*, desktop*/*.yml', name:'linux_installer'
 						}
