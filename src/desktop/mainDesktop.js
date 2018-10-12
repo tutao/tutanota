@@ -38,6 +38,5 @@ app.on('second-instance', (e, argv, cwd) => {
 
 app.on('ready', () => {
 	mainWindow = createWindow()
-	mainWindow.openDevTools()
 	ElectronUpdater.initAndCheck()
 })
