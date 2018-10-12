@@ -125,7 +125,7 @@ pipeline {
                 expression {!params.RELEASE}
             }
             steps {
-            	dir('/opt/tutanota-snapshot') {
+            	dir('/opt') {
 					unstash 'linux_installer'
             	}
             }
