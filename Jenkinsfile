@@ -125,14 +125,14 @@ pipeline {
                 expression {!params.RELEASE}
             }
             steps {
+            	sh 'rm /opt/desktop-snapshot/*'
             	dir('/opt') {
-            	    sh 'rm desktop-snapshot/*'
-            	    sh '''
-            	    	target=`ls desktop-snapshot/tutanota-desktop*`;
-            	    	ln -s $target desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage
-            	    '''
 					unstash 'linux_installer'
             	}
+				sh '''
+					target=`ls /opt/desktop-snapshot/tutanota-desktop*`;
+					ln -s ${target} /opt/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage
+				'''
             }
         }
     }
