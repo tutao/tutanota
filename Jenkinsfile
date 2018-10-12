@@ -126,7 +126,7 @@ pipeline {
             }
             steps {
             	dir('/opt') {
-            	    sh 'rm -r desktop*'
+            	    sh 'rm desktop-snapshot/*'
             	    sh '''
             	    	target=`ls desktop-snapshot/tutanota-desktop*`;
             	    	ln -s $target desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage
