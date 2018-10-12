@@ -185,7 +185,7 @@ function buildDesktopClient() {
 				.then(() => desktopBuilder.build(__dirname, packageJSON.version, options.desktop, "https://test.tutanota.com", "https://test.tutanota.com/desktop-test", "-test"))
 		} else {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, new Date().getTime().toString(),
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
 					options.desktop, targetUrl, "https://next.tutao.de/desktop-snapshot", "-snapshot"))
 		}
 	}
