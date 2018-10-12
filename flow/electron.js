@@ -14,6 +14,7 @@ declare module 'electron' {
 		focus: () => void;
 		restore: () => void;
 		loadFile: (file: string) => void;
+		loadUrl: (url: string) => void;
 		isMinimized: () => boolean;
 		openDevTools: () => void;
 		webContents: WebContents;
@@ -22,6 +23,10 @@ declare module 'electron' {
 
 declare module 'electron-updater' {
 	declare export var autoUpdater: AutoUpdater
+}
+
+declare module 'electron-debug' {
+	declare export default typeof Function;
 }
 
 declare class ElectronSession {
