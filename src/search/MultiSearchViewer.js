@@ -31,6 +31,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
+import {lazyMemoized} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -38,6 +39,8 @@ export class MultiSearchViewer {
 	view: Function;
 	_searchListView: SearchListView;
 	_isMailList: boolean;
+	_mobileMailActionBar = lazyMemoized(() => this.createMailActionBar(false))
+	_mobileContactActionBar = lazyMemoized(() => this.createContactActionBar(false))
 
 	constructor(searchListView: SearchListView) {
 		const mailActionBar = this.createMailActionBar(true)
@@ -63,7 +66,7 @@ export class MultiSearchViewer {
 						m(".button-height"), // just for the margin
 						m(".flex-space-between", [
 							m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-							m(this._searchListView._lastType.type == "Mail" ? mailActionBar : contactActionBar)
+							m(this._viewingMails() ? mailActionBar : contactActionBar)
 						])
 					] : [m(emptyMessageBox)])
 			]
@@ -289,4 +292,11 @@ export class MultiSearchViewer {
 
 	}
 
+	actionBar(): ActionBar {
+		return this._viewingMails() ? this._mobileMailActionBar() : this._mobileContactActionBar()
+	}
+
+	_viewingMails() {
+		return this._searchListView._lastType.type === "Mail"
+	}
 }

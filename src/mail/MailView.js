@@ -12,7 +12,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
-import {header} from "../gui/base/Header"
+import {CurrentView, header} from "../gui/base/Header"
 import {HttpMethod, isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
@@ -61,7 +61,7 @@ type MailboxExpander = {
 }
 
 
-export class MailView {
+export class MailView implements CurrentView {
 	listColumn: ViewColumn;
 	folderColumn: ViewColumn;
 	mailColumn: ViewColumn;
@@ -152,6 +152,10 @@ export class MailView {
 		this._setupShortcuts()
 
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+	}
+
+	getViewSlider(): ?IViewSlider {
+		return this.viewSlider
 	}
 
 	_setupShortcuts() {

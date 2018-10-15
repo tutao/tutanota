@@ -46,10 +46,12 @@ import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/util
 import {logins} from "../api/main/LoginController"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {PageSize} from "../gui/base/List"
+import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
+import type {CurrentView} from "../gui/base/Header"
 
 assertMainOrNode()
 
-export class SearchView {
+export class SearchView implements CurrentView {
 	resultListColumn: ViewColumn;
 	resultDetailsColumn: ViewColumn;
 	folderColumn: ViewColumn;
@@ -206,6 +208,10 @@ export class SearchView {
 		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
+	getViewSlider(): ?IViewSlider {
+		return this.viewSlider
+	}
+
 	/**
 	 * @returns null if the complete mailbox is indexed
 	 */
@@ -326,7 +332,7 @@ export class SearchView {
 				setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
 			}
 		}
-		if (elementClicked) {
+		if (!multiSelectOperation && elementClicked) {
 			this._searchList.loading().then(() => {
 				this.viewSlider.focus(this.resultDetailsColumn)
 			})
@@ -433,5 +439,19 @@ export class SearchView {
 
 	newResultReceived() {
 		this.viewSlider.focus(this.viewSlider._mainColumn);
+	}
+
+	/**
+	 * Used by Header to figure out when content needs to be injected there
+	 * @returns {Children} Mithril children or null
+	 */
+	headerView(): Children {
+		return this.viewSlider.getVisibleBackgroundColumns().length === 1
+		&& this._searchList.list
+		&& this._searchList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
+			selectNoneHandler: () => this._searchList.selectNone(),
+			selectedEntiesLength: this._searchList.getSelectedEntities().length,
+			content: this._viewer.multiSearchActionBar()
+		}) : null
 	}
 }

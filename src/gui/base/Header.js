@@ -22,9 +22,9 @@ export const LogoutUrl = '/login?noAutoLogin=true'
 
 assertMainOrNodeBoot()
 
-interface CurrentView extends Component {
-	headerView?: () => void;
-	viewSlider: ?IViewSlider;
+export interface CurrentView extends Component {
+	+headerView?: () => Children;
+	+getViewSlider?: () => ?IViewSlider;
 }
 
 class Header {
@@ -90,7 +90,9 @@ class Header {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			const injectedView = this._currentView && this._currentView.headerView && this._currentView.headerView()
+			// Do not return undefined if headerView is not present
+			const injectedView = this._currentView && this._currentView.headerView ?
+				this._currentView.headerView() : null
 			return m(".header-nav.overflow-hidden", [this._connectionIndicator()].concat(injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
@@ -214,9 +216,7 @@ class Header {
 		)
 	}
 
-	_getCenterContent()
-		:
-		Vnode<mixed> | null {
+	_getCenterContent(): Vnode<mixed> | null {
 		const viewSlider = this._getViewSlider()
 		const header = (title: string) => m(".flex-center.header-middle.items-center.text-ellipsis.b", title)
 		if (this._searchBarVisible()) {
@@ -277,8 +277,8 @@ class Header {
 	}
 
 	_getViewSlider(): ?IViewSlider {
-		if (this._currentView) {
-			return this._currentView.viewSlider
+		if (this._currentView && this._currentView.getViewSlider) {
+			return this._currentView.getViewSlider()
 		}
 		else {
 			return null

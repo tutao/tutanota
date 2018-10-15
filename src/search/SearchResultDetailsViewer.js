@@ -12,6 +12,7 @@ import MessageBox from "../gui/base/MessageBox"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
 import {MultiSearchViewer} from "./MultiSearchViewer"
+import {ActionBar} from "../gui/base/ActionBar"
 
 assertMainOrNode()
 
@@ -83,5 +84,9 @@ export class SearchResultDetailsViewer {
 			// update the multi mail viewer
 			m.redraw()
 		}
+	}
+
+	multiSearchActionBar(): ActionBar {
+		return this._multiSearchViewer.actionBar()
 	}
 }
