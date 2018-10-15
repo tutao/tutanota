@@ -4,22 +4,10 @@ import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {
-	byteLength,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptSearchIndexEntry,
-	getAppId,
-	getPerformanceTimestamp
-} from "./IndexUtils"
+import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -77,7 +65,7 @@ export class IndexerCore {
 		this.queue = queue
 		this.db = db
 		this._isStopped = false;
-		this._promiseMapCompat = promiseMapCompat(!this._needsMicrotaskHack(browserData))
+		this._promiseMapCompat = promiseMapCompat(this._needsMicrotaskHack(browserData))
 
 		this._stats = {
 			indexingTime: 0,
