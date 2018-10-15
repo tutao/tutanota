@@ -1094,12 +1094,12 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"updateFound_label": "Neue Version ist verfügbar.",
+		"updateFound_label": "Es ist eine neue Version verfügbar.",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"spamRuleEnterValue_msg": "Bitte geben Sie einen Wert ein.",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",
 		"refresh_action": "Aktualisieren",
-		"releaseNotes_action": "Freigabemitteilungen",
+		"releaseNotes_action": "Release Notes",
 		"dismissNotification_action": "Verwerfen"
 	}
 }

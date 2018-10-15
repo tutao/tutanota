@@ -3,18 +3,30 @@ import {assertMainOrNodeBoot, isApp} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
+import {ButtonType} from "../gui/base/ButtonN"
+import m from "mithril"
 
 assertMainOrNodeBoot()
 
 function showUpdateOverlay(onUpdate: () => void) {
-	notificationOverlay.show(lang.get("updateFound_label"), [
+
+	const notificationMessage: Component = {
+		view: () => {
+			return m("span", [
+				lang.get("updateFound_label"),
+				" ",
+				m("a", {
+					href: "https://github.com/tutao/tutanota/releases/tag/tutanota-release-${env.versionNumber}",
+					target: "_blank"
+				}, lang.get("releaseNotes_action"))
+			])
+		}
+	}
+	notificationOverlay.show(notificationMessage, [
 		{
-			label: lang.get("releaseNotes_action"),
-			onclick: () => windowFacade.openLink(`https://github.com/tutao/tutanota/releases/tag/tutanota-release-${env.versionNumber}`)
-		},
-		{
-			label: lang.get("refresh_action"),
-			onclick: onUpdate,
+			label: "refresh_action",
+			click: onUpdate,
+			type: ButtonType.Primary
 		}
 	])
 }
@@ -23,6 +35,7 @@ function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 	const pending = registration.waiting || registration.installing
 	if (pending && registration.active) {
 		showUpdateOverlay(() => {
+			// user has confirmed update so we have to notify the service worker to force update of version.
 			console.log("registration.waiting: ", registration.waiting)
 			registration.waiting && registration.waiting.postMessage("update")
 		})

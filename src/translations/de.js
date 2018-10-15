@@ -1091,13 +1091,13 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"updateFound_label": "Neue Version ist verfügbar.",
+		"updateFound_label": "Es ist eine neue Version verfügbar.",
 		"loginAbuseDetected_msg": "Dein Account kann nicht mehr verwendet werden, da gegen die AGB von Tutanota verstoßen wurde, z.B. indem Spam-E-Mails gesendet wurden.",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"spamRuleEnterValue_msg": "Bitte gib einen Wert ein.",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",
 		"refresh_action": "Aktualisieren",
-		"releaseNotes_action": "Freigabemitteilungen",
+		"releaseNotes_action": "Release Notes",
 		"dismissNotification_action": "Verwerfen"
 	}
 }

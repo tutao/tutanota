@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
@@ -101,8 +101,8 @@ class _Button {
 		)
 	}
 
-	getLabel(label: string | lazy<string>) {
-		return label instanceof Function ? label() : lang.get.bind(lang, label)
+	getLabel(label: string | lazy<string>): string {
+		return label instanceof Function ? label() : lang.get(label)
 	}
 
 	getType(type: ?ButtonTypeEnum) {
