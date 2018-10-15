@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2018-08-14T09:01:04Z",
+	"updated_at": "2018-09-12T11:27:30Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sayangnya, akun Tutanota Anda telah dinonaktifkan. Mohon hubungi administrator Anda.",

@@ -1,4 +1,5 @@
 NSCameraUsageDescription = "添付するために写真あるいはビデオを撮る。";
+NSMicrophoneUsageDescription = "添付ファイルとして動画を収録する際使われます。";
 NSContactsUsageDescription = "連絡先で受信者の電子メールアドレスを検索します。";
 TutaoChoosePhotosAction = "写真";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";

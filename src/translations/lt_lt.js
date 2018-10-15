@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2018-08-14T09:12:58Z",
+	"updated_at": "2018-09-12T11:27:30Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Deja, jūsų Tutanota paskyra išjungta. Kreipkitės į jūsų administratorių.",

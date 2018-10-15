@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:48:29Z",
-	"updated_at": "2018-01-12T09:56:51Z",
+	"updated_at": "2018-08-30T15:16:32Z",
 	"source_locale": null,
 	"keys": {
 		"canNotOpenFileOnDevice_msg": "This file cannot be opened on this device.",

@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-14T08:11:48Z",
-	"updated_at": "2017-06-23T08:25:48Z",
+	"updated_at": "2018-09-12T11:27:21Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është pezullu. Të lutem, kontaktoje përgjegjësin.",

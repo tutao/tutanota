@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-02-19T16:32:05Z",
-	"updated_at": "2017-06-23T08:25:49Z",
+	"updated_at": "2018-09-12T11:27:21Z",
 	"source_locale": null,
 	"keys": {
 		"adminPremiumFeatures_action": "Estyniadau",

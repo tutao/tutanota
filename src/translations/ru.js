@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2018-08-14T10:20:48Z",
+	"updated_at": "2018-10-15T11:54:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -189,6 +189,7 @@ module.exports = {
 		"customers_label": "клиенты",
 		"custom_label": "Индивидуальный",
 		"dataExpired_msg": "Ваши загруженные данные устарели и не синхронизированы с данными на серверах Tutanota. Чтобы обновить свои данные, выйдете  и снова войдите в систему.",
+		"dateInvalidRange_msg": "Пожалуйста введите корректный диапазон",
 		"date_label": "Дата",
 		"db_label": "db",
 		"deactivateAlias_msg": "Сейчас мы деактивируем альтернативный адрес {1}. Вы можете зарегистрировать его как новую почту или снова использовать как альтернативную.",
@@ -223,6 +224,7 @@ module.exports = {
 		"discardContactChangesFor_msg": "Отменить изменения контакта {1}?",
 		"discardContactChanges_msg": "Отменить изменения контакта?",
 		"discardContact_msg": "Отменить новый контакт?",
+		"dismissNotification_action": "Скрыть",
 		"dismiss_action": "Отменить",
 		"display_action": "Показать",
 		"domain_label": "Домен",
@@ -362,6 +364,7 @@ module.exports = {
 		"invoices_label": "Счета",
 		"invoiceVatIdNo_label": "ИНН",
 		"IpAddress_label": "IP адрес",
+		"knownCredentials_label": "Сохранённые аккаунты",
 		"languageAlbanianref_label": "Албанский",
 		"languageAlbanian_label": "Албанский",
 		"languageArabic_label": "Арабский",
@@ -602,11 +605,13 @@ module.exports = {
 		"receivedMail_alt": "Полученное письмо",
 		"received_action": "Входящие",
 		"receiveMsg_label": "Получить сообщение",
+		"refresh_action": "Обновить",
 		"regDisabledFree_msg": "Количество бесплатных пользователей Tutanota ограничено и регистрация в настоящее время отключена. Пожалуйста, поддерживайте с нами связь здесь, чтобы получить уведомление, как только регистрация будет возможно снова:",
 		"register_alt": "Регистрация",
 		"register_label": "Регистрация",
 		"registrationHeadline_msg": "Зарегистрироваться",
 		"regLinkInvalid_msg": "Извините, ссылка регистрации негодна.",
+		"releaseNotes_action": "Изменения",
 		"remindersUsageDescription_msg": "Показывает уведомление когда приходит новое сообщение. ",
 		"removeAddress_alt": "Удалить этот адрес",
 		"removeAttachment_alt": "Удалить вложение",
@@ -726,6 +731,7 @@ module.exports = {
 		"unsubscribe_action": "Отписаться",
 		"unsupportedBrowser_msg": "О! Приносим свои извинения. К сожалению, Ваш браузер не поддерживается. Пожалуйста, используйте один из следующих браузеров:",
 		"unsupportedMailFeature_msg": "Вы выбрали опции выбора или отложенное время доставки. К сожалению, эти функции пока не поддерживаются Tutanota. Все все равно хотите отправить сообщение?",
+		"updateFound_label": "Доступна новая версия.",
 		"update_action": "Обновление",
 		"upgradeLater_msg": "Используйте Tutanota бесплатно и обновите позже. Только для частного использования.",
 		"upgradePremium_label": "Премиум",
@@ -754,11 +760,6 @@ module.exports = {
 		"xing_label": "XING",
 		"yearly_label": "Годовой",
 		"yesterday_label": "вчера",
-		"yes_label": "Да",
-		"knownCredentials_label": "Сохранённые аккаунты",
-		"updateFound_label": "Доступна новая версия.",
-		"refresh_action": "Обновить",
-		"releaseNotes_action": "Изменения",
-		"dismissNotification_action": "Скрыть"
+		"yes_label": "Да"
 	}
 }

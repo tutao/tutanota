@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2018-08-14T09:01:04Z",
+	"updated_at": "2018-09-12T11:27:21Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Thật tiếc, tài khoản Tutanota của bạn đã bị vô hiệu hoá. Xin liên hệ với quản trị viên.",

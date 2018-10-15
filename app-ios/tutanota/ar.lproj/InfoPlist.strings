@@ -7,6 +7,6 @@ NSRemindersUsageDescription = "أظهر الإشعار عند وصول رسال�
 TutaoShowCameraAction = "كاميرا";
 TutaoChoosePhotosAction = "الصور";
 TutaoNoPermissionTitle = "لا يوجد إذن";
-TutaoChangePermissionMsg = "لمنح حق الوصول يجب عليك تعديل الأذونات لهذا الجهاز.";
+TutaoChangePermissionMsg = "لمنح حق الوصول يجب عليك تعديل تسريحات هذا الجهاز.";
 TutaoCancelAction = "إلغاء";
 TutaoSettingsAction = "إعدادات";

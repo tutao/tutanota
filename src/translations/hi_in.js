@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2018-08-14T09:01:16Z",
+	"updated_at": "2018-09-12T11:27:30Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "दुर्भाग्य से, आपका टुटानोटा खाता निष्क्रिय हो गया है. कृपया अपने व्यवस्थापक से संपर्क करें.",

@@ -9,11 +9,10 @@ module.exports = {
 		"zero",
 		"one",
 		"few",
-		"many",
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2018-08-14T09:01:04Z",
+	"updated_at": "2018-09-12T11:27:20Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Nažalost vaš Tutanota nalog je deaktiviran. Molimo kontaktirajte vašeg administratora.",
