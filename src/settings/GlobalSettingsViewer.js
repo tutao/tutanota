@@ -111,21 +111,24 @@ export class GlobalSettingsViewer {
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
 					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
-					logins.getUserController().isGlobalAdmin() && logins.getUserController()
-						.isPremiumAccount() ? m(".mt-l", [
+					m(".mt-l", [
 						m(".h4", lang.get('security_title')),
-						m(requirePasswordUpdateAfterResetDropdown),
 						m(saveIpAddressDropdown),
-						this._customer() ?
-							m(".mt-l", [
-								m(".flex-space-between.items-center.mb-s", [
-									m(".h4", lang.get('auditLog_title')),
-									m(auditLogExpander)
-								]),
-								m(auditLogExpander.panel),
-								m("small", lang.get("auditLogInfo_msg")),
-							]) : null
-					]) : null,
+						logins.getUserController().isGlobalAdmin() && logins.getUserController()
+							.isPremiumAccount() ? m("", [
+							m(requirePasswordUpdateAfterResetDropdown),
+							this._customer() ?
+								m(".mt-l", [
+									m(".flex-space-between.items-center.mb-s", [
+										m(".h4", lang.get('auditLog_title')),
+										m(auditLogExpander)
+									]),
+									m(auditLogExpander.panel),
+									m("small", lang.get("auditLogInfo_msg")),
+								]) : null
+						]) : null,
+					]),
+
 				]),
 			]
 		}
