@@ -1,7 +1,7 @@
 // @flow
 import {_TypeModel as FileDataDataGetTypModel, createFileDataDataGet} from "../../entities/tutanota/FileDataDataGet"
-import {restClient, addParamsToUrl} from "../rest/RestClient"
-import {encryptAndMapToLiteral, resolveSessionKey, encryptBytes} from "../crypto/CryptoFacade"
+import {addParamsToUrl, restClient} from "../rest/RestClient"
+import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto/CryptoFacade"
 import {aes128Decrypt} from "../crypto/Aes"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
 import {neverNull} from "../../common/utils/Utils"
@@ -14,7 +14,7 @@ import {random} from "../crypto/Randomizer"
 import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../Env"
-import {aesEncryptFile, aesDecryptFile} from "../../../native/AesApp"
+import {aesDecryptFile, aesEncryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
 import {createDataFile} from "../../common/DataFile"
@@ -95,16 +95,13 @@ export class FileFacade {
 							if (responseCode === 200) {
 								return fileDataId;
 							} else {
-								throw new handleRestError(responseCode, "failed to natively upload attachment");
+								throw handleRestError(responseCode, "failed to natively upload attachment");
 							}
 						})
 					})
-					.finally(() => {
-						return fileApp.deleteFile(encryptedFileLocation)
-					})
-			})
-			.finally(() => {
-				return fileApp.deleteFile(fileReference.location)
+					.finally(() =>
+						fileApp.deleteFile(encryptedFileLocation)
+						       .catch((e) => console.warn("Failed to delete file at " + fileReference.location)))
 			})
 	}
 }
