@@ -6,6 +6,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import {DbError} from "../api/common/error/DbError"
 
 assertMainOrNode()
 
@@ -57,6 +58,15 @@ export class SearchModel {
 			return worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
+			}).catch(DbError, (e) => {
+				console.log("DBError while search", e)
+				const lastQuery = this.lastQuery()
+				if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
+					console.log("Mail indexing was disabled, ignoring DBError")
+					this.result(null)
+				} else {
+					throw e
+				}
 			})
 		}
 	}
