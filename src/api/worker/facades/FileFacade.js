@@ -101,7 +101,12 @@ export class FileFacade {
 					})
 					.finally(() =>
 						fileApp.deleteFile(encryptedFileLocation)
-						       .catch((e) => console.warn("Failed to delete file at " + fileReference.location)))
+						       .catch((e) => console.warn("Failed to delete file at " + encryptedFileLocation)))
 			})
+			.finally(() => {
+				return fileApp.deleteFile(fileReference.location)
+				              .catch((e) => console.warn("Failed to delete file at " + fileReference.location))
+			})
+
 	}
 }
