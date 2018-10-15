@@ -1,4 +1,4 @@
-import {Mode, assertMainOrNodeBoot} from "../api/Env"
+import {assertMainOrNodeBoot, Mode} from "../api/Env"
 import {BrowserType, DeviceType} from "./ClientConstants"
 
 assertMainOrNodeBoot()
@@ -299,7 +299,7 @@ class ClientDetector {
 	}
 
 	getIdentifier() {
-		return client.browser + " " + client.device
+		return env.mode === "App" ? client.device + " App" : client.browser + " " + client.device
 	}
 
 
