@@ -937,7 +937,7 @@ module.exports = {
 		"settingsView_action": "Switch to the settings view",
 		"settings_alt": "Settings",
 		"settings_label": "Settings",
-		"sharedMailbox_label": "Shared mailbox",
+		"sharedMailbox_label": "Shared mailboxes",
 		"showAddress_alt": "Show this address in Openstreetmap",
 		"showAttachment_label": "Display attachment",
 		"showBlockedContent_action": "Show",

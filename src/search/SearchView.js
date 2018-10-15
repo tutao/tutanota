@@ -326,7 +326,7 @@ export class SearchView {
 				setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
 			}
 		}
-		if (!multiSelectOperation && elementClicked) {
+		if (elementClicked) {
 			this._searchList.loading().then(() => {
 				this.viewSlider.focus(this.resultDetailsColumn)
 			})
