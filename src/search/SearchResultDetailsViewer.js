@@ -80,7 +80,11 @@ export class SearchResultDetailsViewer {
 			//this._folderToUrl[this.selectedFolder._id[1]] = url
 			//this._setUrl(url)
 			m.redraw()
-		} else if (selectionChanged) {
+		} else if (!multiSelectOperation) {
+			//need for showing entity after clicking on one multiselected entity
+			this.showEntity(entries[0].entry, true)
+		}
+		else if (selectionChanged) {
 			// update the multi mail viewer
 			m.redraw()
 		}
