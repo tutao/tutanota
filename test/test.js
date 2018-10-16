@@ -31,30 +31,36 @@ if (process.argv.indexOf("api") !== -1) {
 let watch = process.argv.indexOf("watch") === -1 ? undefined : () => runTest()
 
 promise.then(() => fs.copyAsync(path.join(__dirname, '../libs'), path.join(__dirname, '../build/libs')))
-	.then(() => fs.readFileAsync('../src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
-		let lines = bootstrap.split("\n")
-		lines[0] = lines[0].replace(/..\/..\/..\/..\/build\/libs/g, "../../../../libs")
-		let code = babelCompile(lines.join("\n")).code
-		return fs.writeFileAsync('../build/src/api/worker/WorkerBootstrap.js', code, 'utf-8')
-	}))
-	.then(() => builder.build(["buildSrc/env.js", "src", "test/client", "test/api"], watch))
-	.then(createUnitTestHtml)
-	.then(runTest)
-	.then(() => {
-		if (process.argv.indexOf("watch") !== -1) {
-			require('chokidar-socket-emitter')({port: 9082, path: '../build', relativeTo: '../build'})
-		}
-	})
+       .then(() => fs.readFileAsync('../src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
+	       let lines = bootstrap.split("\n")
+	       lines[0] = lines[0].replace(/..\/..\/..\/..\/build\/libs/g, "../../../../libs")
+	       let code = babelCompile(lines.join("\n")).code
+	       return fs.writeFileAsync('../build/src/api/worker/WorkerBootstrap.js', code, 'utf-8')
+       }))
+       .then(() => builder.build(["buildSrc/env.js", "src", "test/client", "test/api"], watch))
+       .then(createUnitTestHtml)
+       .then(runTest)
+       .then((code) => {
+	       if (process.argv.indexOf("watch") !== -1) {
+		       require('chokidar-socket-emitter')({port: 9082, path: '../build', relativeTo: '../build'})
+	       } else {
+		       // If it's not watch, exit with the same exit code as test process so we can tell if tests failed
+		       process.exit(code)
+	       }
+       })
 
-var testRunner = null
+let testRunner = null
 
 function runTest() {
 	if (testRunner != null) {
 		console.log("> skipping test run as test are already executed")
 	} else {
-		let testRunner = child_process.fork(`../build/test/${project}/bootstrapNode.js`)
-		testRunner.on('exit', () => {
-			testRunner = null
+		return new Promise((resolve) => {
+			let testRunner = child_process.fork(`../build/test/${project}/bootstrapNode.js`)
+			testRunner.on('exit', (code) => {
+				resolve(code)
+				testRunner = null
+			})
 		})
 	}
 }
