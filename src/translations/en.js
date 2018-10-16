@@ -937,7 +937,6 @@ module.exports = {
 		"settingsView_action": "Switch to the settings view",
 		"settings_alt": "Settings",
 		"settings_label": "Settings",
-		"sharedMailbox_label": "Shared mailboxes",
 		"showAddress_alt": "Show this address in Openstreetmap",
 		"showAttachment_label": "Display attachment",
 		"showBlockedContent_action": "Show",
@@ -1105,6 +1104,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now."
+		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now.",
+		"sharedMailbox_label": "Shared mailboxes: "
 	}
 }

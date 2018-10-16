@@ -374,7 +374,7 @@ export class SubscriptionViewer {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
 		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = sharedMailCount + " " + lang.get("sharedMailbox_label")
+		const sharedMailText = lang.get("sharedMailbox_label") + sharedMailCount
 		if (localAdminCount === 0 && sharedMailCount === 0) {
 			this._groupsField.setValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {

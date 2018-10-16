@@ -944,7 +944,6 @@ module.exports = {
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
 		"settings_alt": "Einstellungen",
 		"settings_label": "Einstellungen",
-		"sharedMailbox_label": "Geteilte Mailbox",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
 		"showAttachment_label": "Anhang anzeigen",
 		"showBlockedContent_action": "Anzeigen",
@@ -1112,6 +1111,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!"
+		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!",
+		"sharedMailbox_label": "Geteilte Mailboxen: "
 	}
 }
