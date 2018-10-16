@@ -80,7 +80,7 @@ export class SubscriptionViewer {
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
 		this._subscriptionField._injectionsRight = () => (logins.getUserController()
-			.isFreeAccount()) ? [m(".mr-s", {style: {'margin-bottom': '3px'}}, m(upgradeAction))] : (logins.getUserController()
+			.isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
 			.isPremiumAccount()
 		&& !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg"))
