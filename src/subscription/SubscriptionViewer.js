@@ -138,41 +138,41 @@ export class SubscriptionViewer {
 		}), () => lang.get("nextSubscriptionPrice_msg")).setValue(lang.get("loading_msg")).setDisabled()
 
 		this._usersField = new TextField("bookingItemUsers_label").setValue(lang.get("loading_msg")).setDisabled()
-		const addUserActionButton = createNotAvailableForFreeButton("addUsers_action", () => AddUserDialog.show(), () => Icons.Add);
-		const editUsersAction = createNotAvailableForFreeButton("bookingItemUsers_label", () => m.route.set("/settings/users"), () => Icons.Edit)
+		const addUserActionButton = createNotAvailableForFreeButton("addUsers_action", () => AddUserDialog.show(), () => Icons.Add, false);
+		const editUsersAction = createNotAvailableForFreeButton("bookingItemUsers_label", () => m.route.set("/settings/users"), () => Icons.Edit, false)
 		this._usersField._injectionsRight = () => [m(addUserActionButton), m(editUsersAction)]
 
 		this._storageField = new TextField("storageCapacity_label").setValue(lang.get("loading_msg")).setDisabled()
 		const changeStorageCapacityButton = createNotAvailableForFreeButton("storageCapacity_label", () => {
 			StorageCapacityOptionsDialog.show()
-		}, () => Icons.Edit)
+		}, () => Icons.Edit, false)
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
 		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg"))
 			.setDisabled()
 		const changeEmailAliasPackageButton = createNotAvailableForFreeButton("emailAlias_label", () => {
 			EmailAliasOptionsDialog.show()
-		}, () => Icons.Edit)
+		}, () => Icons.Edit, true)
 		this._emailAliasField._injectionsRight = () => m(changeEmailAliasPackageButton)
 
 		this._groupsField = new TextField("groups_label").setValue(lang.get("loading_msg")).setDisabled()
 		const addGroupsAction = createNotAvailableForFreeButton("addGroup_label", () => {
 			AddGroupDialog.show()
-		}, () => Icons.Add)
-		const editGroupsAction = createNotAvailableForFreeButton("groups_label", () => m.route.set("/settings/groups"), () => Icons.Edit)
+		}, () => Icons.Add, false)
+		const editGroupsAction = createNotAvailableForFreeButton("groups_label", () => m.route.set("/settings/groups"), () => Icons.Edit, false)
 		this._groupsField._injectionsRight = () => [m(addGroupsAction), m(editGroupsAction)]
 
 		this._contactFormsField = new TextField("contactForms_label").setValue(lang.get("loading_msg")).setDisabled()
 		const addContactFormAction = createNotAvailableForFreeButton("createContactForm_label", () => {
 			ContactFormEditor.show(null, true, contactFormId => {
 			})
-		}, () => Icons.Add)
-		const editContactFormsAction = createNotAvailableForFreeButton("contactForms_label", () => m.route.set("/settings/contactforms"), () => Icons.Edit)
+		}, () => Icons.Add, false)
+		const editContactFormsAction = createNotAvailableForFreeButton("contactForms_label", () => m.route.set("/settings/contactforms"), () => Icons.Edit, false)
 		this._contactFormsField._injectionsRight = () => [m(addContactFormAction), m(editContactFormsAction)]
 
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
-		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit)
-		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel)
+		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit, false)
+		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel, false)
 		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking)
 			=== 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
 

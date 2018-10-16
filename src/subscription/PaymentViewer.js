@@ -82,7 +82,7 @@ export class PaymentViewer {
 					}
 				)
 			}
-		}, () => Icons.Edit)
+		}, () => Icons.Edit, true)
 
 		const changePaymentDataButton = createNotAvailableForFreeButton("edit_action", () => {
 			if (this._accountingInfo) {
@@ -96,7 +96,7 @@ export class PaymentViewer {
 					}
 				})
 			}
-		}, () => Icons.Edit)
+		}, () => Icons.Edit, true)
 
 
 		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [

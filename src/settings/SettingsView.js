@@ -104,7 +104,7 @@ export class SettingsView {
 
 		let newAction = new Button('add_action', () => {
 			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog()
+				showNotAvailableForFreeDialog(false)
 			} else {
 				(this._currentViewer: any).addButtonClicked()
 			}

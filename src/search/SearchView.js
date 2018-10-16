@@ -83,7 +83,7 @@ export class SearchView implements CurrentView {
 		this._time = new TextField("periodOfTime_label").setValue().setDisabled()
 		let changeTimeButton = new Button("selectPeriodOfTime_label", () => {
 			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog()
+				showNotAvailableForFreeDialog(true)
 			} else {
 				showDatePickerDialog((this._startDate) ? this._startDate : new Date(),
 					(this._endDate) ? this._endDate : this._getCurrentMailIndexDate(), false)
@@ -115,7 +115,7 @@ export class SearchView implements CurrentView {
 			if (logins.getUserController().isFreeAccount()) {
 				if (newValue != null) {
 					this._mailFieldSelection.selectedValue(null)
-					showNotAvailableForFreeDialog()
+					showNotAvailableForFreeDialog(true)
 				}
 			} else {
 				this._searchAgain()
@@ -149,7 +149,7 @@ export class SearchView implements CurrentView {
 				if (logins.getUserController().isFreeAccount()) {
 					if (newValue != null) {
 						this._mailFolderSelection.selectedValue(null)
-						showNotAvailableForFreeDialog()
+						showNotAvailableForFreeDialog(true)
 					}
 				} else {
 					this._searchAgain()

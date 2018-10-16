@@ -79,7 +79,7 @@ export class EditAliasesForm {
 	_showAddAliasDialog() {
 		if (this._nbrOfAliases === 0) {
 			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog()
+				showNotAvailableForFreeDialog(true)
 			} else {
 				Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " "
 					+ lang.get("orderAliasesConfirm_msg")).then(confirmed => {

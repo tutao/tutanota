@@ -85,10 +85,10 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 	}
 }
 
-export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazy<SVG>): Button {
+export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazy<SVG>,isInPremiumIncluded:boolean): Button {
 	return new Button(labelId, () => {
 		if (logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(isInPremiumIncluded)
 		} else {
 			buyAction()
 		}

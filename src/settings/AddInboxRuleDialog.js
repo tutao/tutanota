@@ -20,7 +20,7 @@ assertMainOrNode()
 
 export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: string, preselectedValue: string) {
 	if (logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog()
+		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
 		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), stream(preselectedInboxRuleType))
 		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue()

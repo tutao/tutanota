@@ -156,7 +156,7 @@ export class MailSettingNotificationViewer {
 		if (!this._user) return
 		const user = this._user
 		if (logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(true)
 		} else {
 
 			let emailAddressInputField = new TextField("mailAddress_label")

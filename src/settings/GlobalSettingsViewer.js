@@ -70,7 +70,7 @@ export class GlobalSettingsViewer {
 
 		let addDomainButton = new Button("addCustomDomain_action", () => {
 			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog()
+				showNotAvailableForFreeDialog(true)
 			} else {
 				this._customerInfo.getAsync().then(customerInfo => AddDomainDialog.show(customerInfo))
 			}
