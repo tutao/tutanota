@@ -65,7 +65,7 @@ export class SearchResultDetailsViewer {
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer)) {
+		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer || this._viewer == this._multiSearchViewer)) {
 			// set or update the visible mail
 			this.showEntity(entries[0].entry, true)
 		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation)) {
@@ -80,11 +80,7 @@ export class SearchResultDetailsViewer {
 			//this._folderToUrl[this.selectedFolder._id[1]] = url
 			//this._setUrl(url)
 			m.redraw()
-		} else if (!multiSelectOperation) {
-			//need for showing entity after clicking on one multiselected entity
-			this.showEntity(entries[0].entry, true)
-		}
-		else if (selectionChanged) {
+		} else if (selectionChanged) {
 			// update the multi mail viewer
 			m.redraw()
 		}
