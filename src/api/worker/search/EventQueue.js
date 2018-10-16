@@ -61,7 +61,9 @@ export class EventQueue {
 				}
 			}
 		}
-		this._eventQueue.push(...batches)
+		for (let el of batches) {
+			this._eventQueue.push(el)
+		}
 	}
 
 	clear() {
