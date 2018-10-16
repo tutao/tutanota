@@ -110,7 +110,7 @@ export class SearchListView {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0 && this._searchResult.moreResultsEntries.length === 0) {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)

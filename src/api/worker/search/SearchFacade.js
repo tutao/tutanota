@@ -4,10 +4,10 @@ import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
 import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "./DbFacade"
-import {compareNewestFirst, elementIdPart, firstBiggerThanSecond, isSameId, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
-import {asyncFind, defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
+import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
 import type {
 	Db,
 	ElementData,
@@ -469,21 +469,27 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(indexEntries: MoreResultsIndexEntry[], searchResult: SearchResult,
+	_filterByListIdAndGroupSearchResults(indexEntries: Array<MoreResultsIndexEntry>, searchResult: SearchResult,
 	                                     maxResults: ?number): Promise<void> {
 		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
+		// We filter out everything we've processed from moreEntries, even if we didn't include it
+		// downcast: Array of optional elements in not subtype of non-optional elements
+		const entriesCopy: Array<?MoreResultsIndexEntry> = downcast(indexEntries.slice())
 		const {resolve: stop, promise: whenToStop} = defer()
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS])
 		           .then((transaction) =>
 			           Promise.race([
 				           whenToStop,
-				           Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry) => {
+				           Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
 					           if (maxResults && searchResult.results.length >= maxResults) {
 						           stop()
 						           return
 					           }
+
 					           return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
 					                             .then((elementData: ?ElementData) => {
+						                             // mark result index id as processed to not query result in next load more operation
+						                             entriesCopy[index] = null
 						                             if (elementData
 							                             && (!searchResult.restriction.listId
 								                             || searchResult.restriction.listId === elementData[0])) {
@@ -493,8 +499,7 @@ export class SearchFacade {
 				           }, {concurrency: 5})
 			           ]))
 		           .then(() => {
-			           searchResult.moreResultsEntries =
-				           indexEntries.filter(indexEntry => !searchResult.results.find((result) => isSameId(elementIdPart(result), indexEntry.id)))
+			           searchResult.moreResultsEntries = entriesCopy.filter(indexEntry => indexEntry !== null)
 		           })
 	}
 
