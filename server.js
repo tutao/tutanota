@@ -18,10 +18,10 @@ const server = http.createServer(function (req, res) {
 		if (err && err.status === 404) {
 			console.log(req.url + " not found -> reset to root url")
 			res.statusCode = 302;
-			const targetUrl = req.url.startsWith(prefix)
-				? url.substring(prefix.length)
-				: req.url.startsWith(distPrefix)
-					? url.substring(distPrefix.length)
+			const targetUrl = req.url.startsWith(distPrefix)
+				? url.substring(distPrefix.length)
+				: req.url.startsWith(prefix)
+					? url.substring(prefix.length)
 					: req.url
 			res.setHeader('Location', `${prefix}?r=${req.url.replace(/\?/g, "&")}`);
 			res.end();
