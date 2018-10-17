@@ -4,7 +4,14 @@ import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -230,7 +237,7 @@ export class MailViewer {
 					() => Icons.Download).setType(ButtonType.Dropdown)
 					.setIsVisibleHandler(() => env.mode !== Mode.App
 						&& !logins.isEnabled(FeatureType.DisableMailExport)))
-				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.People).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
 						if (this.mail.headers) {
