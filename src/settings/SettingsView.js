@@ -7,15 +7,16 @@ import {NavButton} from "../gui/base/NavButton"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
 import {lang} from "../misc/LanguageViewModel"
+import type {CurrentView} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
-import {ButtonType, Button, ButtonColors} from "../gui/base/Button"
+import {Button, ButtonColors, ButtonType} from "../gui/base/Button"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -33,7 +34,7 @@ import {PaymentViewer} from "../subscription/PaymentViewer"
 
 assertMainOrNode()
 
-export class SettingsView {
+export class SettingsView implements CurrentView {
 
 	view: Function;
 	viewSlider: ViewSlider;
@@ -203,5 +204,9 @@ export class SettingsView {
 		if (this.detailsViewer) {
 			this.detailsViewer.entityEventReceived(typeRef, listId, elementId, operation)
 		}
+	}
+
+	getViewSlider(): ?IViewSlider {
+		return this.viewSlider
 	}
 }

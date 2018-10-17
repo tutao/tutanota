@@ -3,6 +3,7 @@ import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
+import type {CurrentView} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
 import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
@@ -39,7 +40,7 @@ import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 
 assertMainOrNode()
 
-export class ContactView {
+export class ContactView implements CurrentView {
 	listColumn: ViewColumn;
 	contactColumn: ViewColumn;
 	folderColumn: ViewColumn;
@@ -195,9 +196,9 @@ export class ContactView {
 						let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
 						let contactList = vCardListToContacts(flatvCards,
 							neverNull(logins.getUserController()
-								.user
-								.memberships
-								.find(m => m.groupType === GroupType.Contact)).group)
+							                .user
+							                .memberships
+							                .find(m => m.groupType === GroupType.Contact)).group)
 						return LazyContactListId.getAsync().then(contactListId => {
 							let promises = []
 							contactList.forEach((contact) => {
@@ -232,14 +233,14 @@ export class ContactView {
 				if (mergeableAndDuplicates.deletable.length > 0) {
 					deletePromise = Dialog.confirm(() =>
 						lang.get("duplicatesNotification_msg", {"{1}": mergeableAndDuplicates.deletable.length}))
-						.then((confirmed) => {
-							if (confirmed) {
-								// delete async in the background
-								mergeableAndDuplicates.deletable.forEach((dc) => {
-									erase(dc)
-								})
-							}
-						})
+					                      .then((confirmed) => {
+						                      if (confirmed) {
+							                      // delete async in the background
+							                      mergeableAndDuplicates.deletable.forEach((dc) => {
+								                      erase(dc)
+							                      })
+						                      }
+					                      })
 				}
 				deletePromise.then(() => {
 					if (mergeableAndDuplicates.mergeable.length === 0) {
@@ -416,6 +417,10 @@ export class ContactView {
 				}
 			})
 		}
+	}
+
+	getViewSlider(): ?IViewSlider {
+		return this.viewSlider
 	}
 
 
