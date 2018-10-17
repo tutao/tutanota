@@ -388,7 +388,11 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=" + HabReminderImage + "].dialog-img.pb")
+							m("img[src=" + HabReminderImage + "].dialog-img.pb", {
+								style: {
+									'min-width': '150px'
+								}
+							})
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
@@ -545,7 +549,7 @@ export class Dialog {
 	}
 
 
-	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: { name: string, value: T }[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
 
