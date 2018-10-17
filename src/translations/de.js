@@ -1109,6 +1109,6 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechsel jetzt zu Premium!",
-		"sharedMailbox_label": "Geteilte Mailboxen: "
+		"sharedMailbox_label": "Geteilte Mailboxen:"
 	}
 }

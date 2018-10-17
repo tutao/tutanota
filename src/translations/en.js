@@ -1105,6 +1105,6 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now.",
-		"sharedMailbox_label": "Shared mailboxes: "
+		"sharedMailbox_label": "Shared mailboxes:"
 	}
 }
