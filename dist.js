@@ -96,7 +96,8 @@ Promise.resolve()
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
 		       ])
 	       } else {
-		       version = process.argv.indexOf("deb") == -1 ? new Date().getTime() : version
+		       const [major, minor] = version.split(".")
+		       version = process.argv.indexOf("deb") === -1 ? [major, minor, String(new Date().getTime())].join(".") : version
 		       return Promise.all([
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
 			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),

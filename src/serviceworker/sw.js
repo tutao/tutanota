@@ -11,8 +11,6 @@ const isTutanotaDomain = () =>
 
 type RequestHandler = (Request | string) => Promise<?Response>
 
-const fromNetwork: RequestHandler = (request: string | Request) => fetch(request)
-
 const urlWithoutQuery = (urlString) => {
 	const queryIndex = urlString.indexOf("?")
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
@@ -25,25 +23,23 @@ class ServiceWorker {
 	_selfLocation: string
 	_possibleRest: string
 	_applicationPaths: string[]
-	_fromNetwork: RequestHandler
 	_isTutanotaDomain: boolean
 	_urlsToCache: string[]
 
 	constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
-	            fromNetwork: RequestHandler, isTutanotaDomain: boolean) {
+	            isTutanotaDomain: boolean) {
 		this._urlsToCache = urlsToCache
 		this._caches = caches
 		this._cacheName = cacheName
 		this._selfLocation = selfLocation
 		this._possibleRest = selfLocation + "rest"
 		this._applicationPaths = applicationPaths
-		this._fromNetwork = fromNetwork
 		this._isTutanotaDomain = isTutanotaDomain
 	}
 
 	respond(evt: FetchEvent): void {
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
-		if (this._urlsToCache.indexOf(urlWithoutParams) != -1 || this._selfLocation == urlWithoutParams) {
+		if (this._urlsToCache.includes(urlWithoutParams) || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
 			evt.respondWith(this._fromCache(urlWithoutParams))
 		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
 			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
@@ -157,7 +153,6 @@ if (typeof env !== "undefined" && env.mode === "Test") {
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
 	const applicationPaths = ["login", "signup", "mail", "contact", "settings", "search", "contactform"]
-	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, fromNetwork,
-		isTutanotaDomain())
+	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
 	init(sw)
 }
