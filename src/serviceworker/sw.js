@@ -27,9 +27,11 @@ class ServiceWorker {
 	_applicationPaths: string[]
 	_fromNetwork: RequestHandler
 	_isTutanotaDomain: boolean
+	_urlsToCache: string[]
 
-	constructor(caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
+	constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
 	            fromNetwork: RequestHandler, isTutanotaDomain: boolean) {
+		this._urlsToCache = urlsToCache
 		this._caches = caches
 		this._cacheName = cacheName
 		this._selfLocation = selfLocation
@@ -39,18 +41,19 @@ class ServiceWorker {
 		this._isTutanotaDomain = isTutanotaDomain
 	}
 
-	respond(request: Request): Promise<?Response> {
-		const withoutQuery = urlWithoutQuery(request.url)
-		return this._fromCache(withoutQuery)
-		           .then(response => response || (this._shouldRedirectToDefaultPage(request.url)
-			           ? this._redirectToDefaultPage(request.url)
-			           : this._fromNetwork(request)))
+	respond(evt: FetchEvent): void {
+		const urlWithoutParams = urlWithoutQuery(evt.request.url)
+		if (this._urlsToCache.indexOf(urlWithoutParams) != -1 || this._selfLocation == urlWithoutParams) {
+			evt.respondWith(this._fromCache(urlWithoutParams))
+		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
+			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
+		}
 	}
 
 
-	precache(urlsToCache: string[]): Promise<*> {
+	precache(): Promise<*> {
 		return this._caches.open(this._cacheName).then(cache =>
-			this._addAllToCache(cache, urlsToCache)
+			this._addAllToCache(cache, this._urlsToCache)
 			    .then(() => cache.match("index.html"))
 			    .then((r: ?Response) => {
 				    if (!r) {
@@ -83,7 +86,7 @@ class ServiceWorker {
 		           })
 	}
 
-	_fromCache(requestUrl: string): Promise<?Response> {
+	_fromCache(requestUrl: string): Promise<Response> {
 		return this._caches
 		           .open(this._cacheName)
 		           .then(cache => cache.match(requestUrl))
@@ -107,11 +110,11 @@ class ServiceWorker {
 	}
 
 
-	_shouldRedirectToDefaultPage(url: string): boolean {
-		return !url.startsWith(this._possibleRest)
-			&& url.startsWith(this._selfLocation)
-			&& urlWithoutQuery(url) !== this._selfLocation // if we are already on the page we need
-			&& this._applicationPaths.includes(this._getFirstPathComponent(url))
+	_shouldRedirectToDefaultPage(urlWithout: string): boolean {
+		return !urlWithout.startsWith(this._possibleRest)
+			&& urlWithout.startsWith(this._selfLocation)
+			&& urlWithout !== this._selfLocation // if we are already on the page we need
+			&& this._applicationPaths.includes(this._getFirstPathComponent(urlWithout))
 	}
 
 	_getFirstPathComponent(url: string): string {
@@ -122,16 +125,16 @@ class ServiceWorker {
 
 }
 
-const init = (sw: ServiceWorker, urlsToCache: string[]) => {
+const init = (sw: ServiceWorker) => {
 	self.addEventListener("install", (evt) => {
 		console.log("SW: being installed")
-		evt.waitUntil(sw.precache(urlsToCache))
+		evt.waitUntil(sw.precache())
 	})
 	self.addEventListener('activate', (event) => {
 		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
 	})
 	self.addEventListener('fetch', (evt) => {
-		evt.respondWith(sw.respond(evt.request))
+		sw.respond(evt)
 	})
 
 	self.addEventListener("message", (event) => {
@@ -154,7 +157,7 @@ if (typeof env !== "undefined" && env.mode === "Test") {
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
 	const applicationPaths = ["login", "signup", "mail", "contact", "settings", "search", "contactform"]
-	const sw = new ServiceWorker(caches, cacheName, selfLocation, applicationPaths, fromNetwork,
+	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, fromNetwork,
 		isTutanotaDomain())
-	init(sw, urlsToCache)
+	init(sw)
 }

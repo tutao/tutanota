@@ -14,7 +14,7 @@ o.spec("ServiveWorkerTest ", node(function () {
 
 	o.before((done, timeout) => {
 		exclusions = []
-		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork, true)
+		sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, fromNetwork, true)
 		done()
 	})
 
@@ -48,7 +48,7 @@ o.spec("ServiveWorkerTest ", node(function () {
 	})
 
 	o("shouldNotRedirectExclusionOnCustonDomain", function () {
-		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork, false)
+		sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, fromNetwork, false)
 		exclusions.push("index.html")
 		exclusions.push("index.js")
 		o(sw._shouldRedirectToDefaultPage(root + "index.html")).equals(false)
@@ -56,7 +56,7 @@ o.spec("ServiveWorkerTest ", node(function () {
 	})
 
 	o("shouldRedirectOnCustonDomain", function () {
-		sw = new ServiceWorker(caches, "testCache", root, applicationPaths, fromNetwork,
+		sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, fromNetwork,
 			false)
 		exclusions.push("index.html")
 		o(sw._shouldRedirectToDefaultPage(root + "mail/blah")).equals(true)
