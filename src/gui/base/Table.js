@@ -63,10 +63,13 @@ export class Table {
 			cells.push(m("td", {
 				style: {
 					width: px(size.button_height),
-					position: 'relative',
-					'right': px(-size.hpad_button) // same as .mr-negative-s
 				}
-			}, (actionButton) ? [m(actionButton)] : []))
+			}, (actionButton) ? [m("", {
+				style: {
+					position: 'relative',
+					right: px(-size.hpad_button) // same as .mr-negative-s
+				}
+			}, m(actionButton))] : []))
 		}
 		return m("tr.selectable", cells)
 	}

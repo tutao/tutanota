@@ -202,9 +202,7 @@ class Header {
 		})
 	}
 
-	_createMailEditor()
-		:
-		Promise<MailEditor> {
+	_createMailEditor():Promise<MailEditor> {
 		return Promise.join(
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
