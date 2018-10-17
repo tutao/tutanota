@@ -90,27 +90,27 @@ export function handleUncaughtError(e: Error) {
 					showProgressDialog("pleaseWait_msg",
 						worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
 							pwInput.value(), client.getIdentifier(), false, true)
-							.then(() => {
-								dialog.close()
-								loginDialogActive = false
-							})
-							.catch(AccessBlockedError, e => {
-								errorMessage(lang.get('loginFailedOften_msg'))
-								m.redraw()
-							})
-							.catch(NotAuthenticatedError, e => {
-								errorMessage(lang.get('loginFailed_msg'))
-								m.redraw()
-							})
-							.catch(AccessDeactivatedError, e => {
-								errorMessage(lang.get('loginFailed_msg'))
-								m.redraw()
-							})
-							.catch(ConnectionError, e => {
-								errorMessage(lang.get('emptyString_msg'))
-								m.redraw()
-								throw e;
-							})
+						      .then(() => {
+							      dialog.close()
+							      loginDialogActive = false
+						      })
+						      .catch(AccessBlockedError, e => {
+							      errorMessage(lang.get('loginFailedOften_msg'))
+							      m.redraw()
+						      })
+						      .catch(NotAuthenticatedError, e => {
+							      errorMessage(lang.get('loginFailed_msg'))
+							      m.redraw()
+						      })
+						      .catch(AccessDeactivatedError, e => {
+							      errorMessage(lang.get('loginFailed_msg'))
+							      m.redraw()
+						      })
+						      .catch(ConnectionError, e => {
+							      errorMessage(lang.get('emptyString_msg'))
+							      m.redraw()
+							      throw e;
+						      })
 					)
 						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				},
@@ -176,7 +176,7 @@ export function handleUncaughtError(e: Error) {
 
 function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Promise<void> {
 	let type = neverNull(Object.keys(AccountType)
-		.find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
+	                           .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
 	message += "\n\n Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
 		+ " app" : "Browser")
 	message += "\n Type: " + type
@@ -193,9 +193,9 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 		+ type
 	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
 	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, [])
-		.then(draft => {
-			return worker.sendMailDraft(draft, [recipient], "de")
-		})
+	             .then(draft => {
+		             return worker.sendMailDraft(draft, [recipient], "de")
+	             })
 }
 
 /**
@@ -247,14 +247,14 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 	if (isIOSApp()) {
 		Dialog.error("notAvailableInApp_msg")
 	} else {
-		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " " + lang.get("premiumOffer_msg") + " "
-			+ lang.get("moreInfo_msg")
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/pricing")
-			.then(confirmed => {
-				if (confirmed) {
-					UpgradeWizard.show()
-				}
-			})
+		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
+			+ lang.get("premiumOffer_msg")
+		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
+		      .then(confirmed => {
+			      if (confirmed) {
+				      UpgradeWizard.show()
+			      }
+		      })
 	}
 }
 
