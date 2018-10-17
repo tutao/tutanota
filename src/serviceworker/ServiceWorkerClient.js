@@ -56,15 +56,25 @@ export function init() {
 					             console.log("updatefound")
 					             showUpdateMessageIfNeeded(registration)
 				             })
-				             serviceWorker.addEventListener("controllerchange", () => {
+				             const active = registration.active // Upon registration, check if we had an sw.
+				             let refreshing = false // Prevent infinite reloading with devtools
+				             serviceWorker.addEventListener("controllerchange", (e) => {
 					             console.log("controllerchange")
+					             if (!active || refreshing) {
+						             // If we didn't have an sw, there's no need to reload, it's "installation" and not "update"
+						             console.log(`Skip refreshing: active: ${active} refreshing: ${String(refreshing)}`)
+						             return
+					             }
+
 					             // Prevent losing user data, ask instead
 					             // Even if it is a new ServiceWorker already, all code should be loaded at this point.
 					             if (windowFacade.windowCloseConfirmation) {
 						             if (window.confirm(lang.get("closeWindowConfirmation_msg"))) {
+							             refreshing = true
 							             windowFacade.reload({})
 						             }
 					             } else {
+						             refreshing = true
 						             windowFacade.reload({})
 					             }
 				             })

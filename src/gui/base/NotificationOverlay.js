@@ -28,7 +28,7 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 		}, [
 			m(vnode.attrs.message),
 			m(".flex.justify-end.flex-wrap",
-				vnode.attrs.buttons.map((b, index) => m(ButtonN, b)))
+				vnode.attrs.buttons.map((b) => m(ButtonN, b)))
 		])
 	}
 }
@@ -36,7 +36,6 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 export function show(message: Component, buttons: Array<ButtonAttrs>) {
 	const width = window.innerWidth
 	const margin = (width - Math.min(400, width)) / 2
-	const height = size.notification_overlay_height
 	const buttonsWithDismiss = buttons.slice()
 	const closeFunction = displayOverlay({top: px(0), left: px(margin), right: px(margin)}, {
 			view: () => m(NotificationOverlay, {message, closeFunction, buttons: buttonsWithDismiss})
