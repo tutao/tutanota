@@ -48,13 +48,13 @@ export class Dialog {
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
-				shift: false,
+				shift: true,
 				exec: () => focusNext(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
-				shift: true,
+				shift: false,
 				exec: () => focusPrevious(this._domDialog),
 				help: "selectNext_action"
 			},

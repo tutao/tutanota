@@ -167,6 +167,8 @@ export class MultiSearchViewer {
 								Array.from(groupedMails.values()).forEach(mails => {
 									mailModel.moveMails(mails, f).then(() => {
 										mails.forEach(mail => this._searchListView.deleteLoadedEntity(mail._id[1]))
+									}).then(() => {//is needed for correct selection behavior on mobile
+										this._searchListView.selectNone()
 									})
 								})
 							}, getFolderIcon(f)
@@ -224,9 +226,13 @@ export class MultiSearchViewer {
 				})
 				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
 					if (confirmed) {
+
 						mailModel.deleteMails(selectedMails).then(() => {
 							selected.forEach((sm) => this._searchListView.deleteLoadedEntity(sm._id[1]))
+						}).then(() => {//is needed for correct selection behavior on mobile
+							this._searchListView.selectNone()
 						})
+
 					}
 				})
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
@@ -239,8 +245,9 @@ export class MultiSearchViewer {
 						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
 							// ignore because the delete key shortcut may be executed again while the contact is already deleted
 						}))
-						selected.forEach((sc) => this._searchListView.deleteLoadedEntity(sc._id[1]))
 					}
+				}).then(() => {	//is needed for correct selection behavior on mobile
+					this._searchListView.selectNone()
 				})
 			}
 		}
@@ -260,6 +267,8 @@ export class MultiSearchViewer {
 							return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
 								return erase(goodbyeContact).catch(NotFoundError, e => {
 									// ignore
+								}).then(() => {//is needed for correct selection behavior on mobile
+									this._searchListView.selectNone()
 								})
 							}))
 						}
