@@ -1,22 +1,22 @@
 // @flow
 import {
+	base64ToBase64Url,
 	base64ToUint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString,
-	stringToUtf8Uint8Array,
 	hexToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
 	uint8ArrayToHex,
-	base64ToBase64Url
+	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Encrypt, aes128Decrypt, aes128RandomKey, IV_BYTE_LENGTH, ENABLE_MAC} from "./Aes"
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {GroupType, PermissionType, BucketPermissionType} from "../../common/TutanotaConstants"
-import {loadAll, load, serviceRequestVoid} from "../EntityWorker"
+import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
+import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {rsaDecrypt, privateKeyToHex, hexToPrivateKey} from "./Rsa"
+import {hexToPrivateKey, privateKeyToHex, rsaDecrypt} from "./Rsa"
 import {random} from "./Randomizer"
-import {resolveTypeReference, TypeRef, isSameTypeRef, HttpMethod} from "../../common/EntityFunctions"
+import {HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
@@ -29,7 +29,7 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
@@ -348,6 +348,12 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 		let value = instance[valueType.name]
 		try {
 			decrypted[valueType.name] = decryptValue(valueType, value, sk)
+		} catch (e) {
+			if (decrypted._errors == null) {
+				decrypted._errors = {}
+			}
+			decrypted._errors[valueType.name] = JSON.stringify(e)
+		} finally {
 			if (valueType.encrypted) {
 				if (valueType.final) {
 					// we have to store the encrypted value to be able to restore it when updating the instance. this is not needed for data transfer types, but it does not hurt
@@ -357,11 +363,6 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 					decrypted["_defaultEncrypted_" + valueType.name] = decrypted[valueType.name]
 				}
 			}
-		} catch (e) {
-			if (decrypted._errors == null) {
-				decrypted._errors = {}
-			}
-			decrypted._errors[valueType.name] = JSON.stringify(e)
 		}
 	}
 	return Promise.map(Object.keys(model.associations), (associationName) => {
