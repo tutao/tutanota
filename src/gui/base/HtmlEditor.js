@@ -103,10 +103,9 @@ export class HtmlEditor {
 					m(".wysiwyg.rel.overflow-hidden.selectable", {
 						style: {display: this._mode() === Mode.WYSIWYG ? '' : 'none'}
 					}, m(this._editor)),
-					m(".html", {
-						style: {
-							display: this._mode() === Mode.HTML ? '' : 'none'
-						}
+					//todo fragen ob das ok ist oder ob man irgendwo diesen html code braucht als display non
+					this._mode() === Mode.HTML ? m(".html", {
+						style: {}
 					}, m("textarea.input-area.selectable", {
 						oncreate: vnode => {
 							this._domTextArea = vnode.dom
@@ -125,7 +124,7 @@ export class HtmlEditor {
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 						},
 						disabled: !this._editor._enabled
-					}))
+					})) : null
 				])
 			])
 		}

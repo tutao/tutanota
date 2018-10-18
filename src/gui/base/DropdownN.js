@@ -4,7 +4,7 @@ import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
 import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
-import {size, px} from "../size"
+import {px, size} from "../size"
 import {Button} from "./Button"
 import {Keys} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
@@ -24,7 +24,14 @@ export function focusNext(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
+		//work around for squire so tabulator actions are executed properly
+		//squiere makes a list which can be indented and manages this with tab and shift tab
+		if (window.getSelection().focusNode.nodeName == "LI") {
+			//dont change selection if selection is in list
+		}
+		else {
+			tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
+		}
 	} else if (tabbable.length > 0) {
 		tabbable[tabbable.length - 1].focus()
 	}
@@ -34,7 +41,14 @@ export function focusPrevious(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
+		//work around for squire so tabulator actions are executed properly
+		//squiere makes a list which can be indented and manages this with tab and shift tab
+		if (window.getSelection().focusNode.nodeName == "LI") {
+			//dont change selection
+		}
+		else {
+			tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
+		}
 	} else if (tabbable.length > 0) {
 		tabbable[0].focus()
 	}
@@ -168,7 +182,7 @@ export class DropdownN {
 			}
 
 			this._buttonsHeight = this.children.filter(b => isVisible((b: any)))
-			                          .reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
+				.reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
 			this.maxHeight = Math.min(this._buttonsHeight, (top < bottom ? window.innerHeight - top :
 				window.innerHeight - bottom) - 10)
 			return animations.add(domElement, [

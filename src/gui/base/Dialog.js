@@ -48,13 +48,13 @@ export class Dialog {
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
-				shift: true,
+				shift: false,
 				exec: () => focusNext(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
-				shift: false,
+				shift: true,
 				exec: () => focusPrevious(this._domDialog),
 				help: "selectNext_action"
 			},
@@ -463,14 +463,17 @@ export class Dialog {
 			}
 		}
 
+
 		if (okAction) {
 			actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
-			dialog.addShortcut({
+			//todo check if you want to have this option or just have a text area where you can shift enter to add line breaks to a div
+			/*dialog.addShortcut({
 				key: Keys.RETURN,
-				shift: false,
+				shift: true,
 				exec: doAction,
 				help: okActionTextId
 			})
+		*/
 		}
 
 		if (allowCancel) {
