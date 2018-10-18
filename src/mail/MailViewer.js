@@ -82,7 +82,7 @@ export class MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
-	_htmlBody: string;
+	_htmlBody: string; // always sanitized
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
