@@ -16,7 +16,7 @@ function showUpdateOverlay(onUpdate: () => void) {
 				lang.get("updateFound_label"),
 				" ",
 				m("a", {
-					href: `https://github.com/tutao/tutanota/releases/tag/tutanota-release-${env.versionNumber}`,
+					href: `https://github.com/tutao/tutanota/releases/`,
 					target: "_blank"
 				}, lang.get("releaseNotes_action"))
 			])
