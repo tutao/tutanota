@@ -1,7 +1,16 @@
 // @flow
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient"
-import type {ListElement, HttpMethodEnum} from "../../common/EntityFunctions"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId, HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	getLetId,
+	HttpMethod,
+	isSameTypeRef,
+	resolveTypeReference,
+	TypeRef
+} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {remove} from "../../common/utils/ArrayUtils"
 import {clone, downcast, neverNull} from "../../common/utils/Utils"
@@ -12,6 +21,7 @@ import EC from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
+import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
 
 const ValueType = EC.ValueType
 
@@ -78,7 +88,7 @@ export class EntityRestCache implements EntityRestInterface {
 		this._listEntities = {}
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			StatisticLogEntryTypeRef
+			StatisticLogEntryTypeRef, SecondFactorTypeRef
 		]
 	}
 
