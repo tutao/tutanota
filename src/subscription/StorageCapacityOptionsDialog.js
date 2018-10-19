@@ -45,13 +45,13 @@ export function show(): Promise<void> {
 							return buyStorage(amount)
 						}
 					}).then(() => {
-						callback(null, null)
+						callback(null)
 					})
 				}
 
 				const cancelAction = () => {
 					dialog.close()
-					callback(null, null)
+					callback(null)
 				}
 
 				const storageBuyOptions = [

@@ -1,11 +1,6 @@
 //@flow
 import {TutanotaError} from "../api/common/error/TutanotaError"
-import {
-	uint8ArrayToBase64,
-	base64ToBase64Url,
-	base64UrlToBase64,
-	base64ToUint8Array
-} from "../api/common/utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
@@ -103,7 +98,7 @@ export class U2fClient {
 		              })
 	}
 
-	_handleError(rawResponse: Object, cb: Callback) {
+	_handleError(rawResponse: Object, cb: Callback<Object>) {
 		if (!rawResponse.errorCode) {
 			cb(null, rawResponse)
 		} else if (rawResponse.errorCode === 4) {

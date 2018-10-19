@@ -83,7 +83,7 @@ export class Queue {
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
-	_queue: {[key: string]: Callback};
+	_queue: {[key: string]: Callback<any>};
 	_commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command};
 	_transport: Worker | DedicatedWorkerGlobalScope;
 

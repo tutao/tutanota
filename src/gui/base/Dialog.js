@@ -348,7 +348,7 @@ export class Dialog {
 
 			let closeAction = () => {
 				saveDialog.close()
-				setTimeout(() => cb(null, false), DefaultAnimationTime)
+				setTimeout(() => cb(), DefaultAnimationTime)
 			}
 			actionBar.addLeft(new Button("close_alt", closeAction).setType(ButtonType.Secondary))
 			actionBar.addRight(new Button("save_action", () => {
@@ -549,7 +549,7 @@ export class Dialog {
 	}
 
 
-	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: { name: string, value: T }[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
 

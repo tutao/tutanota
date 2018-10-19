@@ -43,7 +43,7 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: string | lazy<
 			setTimeout(() => {
 				worker.unregisterProgressUpdater(updater)
 				progressDialog.close()
-				setTimeout(() => cb(e, null), DefaultAnimationTime)
+				setTimeout(() => cb(e), DefaultAnimationTime)
 			}, Math.max(1000 - diff, 0))
 		})
 	})

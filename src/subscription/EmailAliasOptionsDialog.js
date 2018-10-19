@@ -46,13 +46,13 @@ export function show(): Promise<void> {
 							return buyAliases(amount)
 						}
 					}).then(() => {
-						callback(null, null)
+						callback(null)
 					})
 				}
 
 				const cancelAction = () => {
 					dialog.close()
-					callback(null, null)
+					callback(null)
 				}
 
 				const emailAliasesBuyOptions = [

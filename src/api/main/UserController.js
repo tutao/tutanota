@@ -1,11 +1,11 @@
 // @flow
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
-import {AccountType, OperationType, GroupType} from "../common/TutanotaConstants"
+import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot} from "./Entity"
 import {neverNull} from "../common/utils/Utils"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import {UserTypeRef} from "../entities/sys/User"
-import {isSameTypeRef, isSameId} from "../common/EntityFunctions"
+import {isSameId, isSameTypeRef} from "../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
@@ -114,28 +114,28 @@ export class UserController {
 
 	deleteSession(sync: boolean): Promise<void> {
 		if (this.persistentSession) return Promise.resolve()
-		let path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
+		const path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
 
-		return Promise.fromCallback((resolve, reject) => {
-			var xhr = new XMLHttpRequest()
+		return Promise.fromCallback((callback) => {
+			const xhr = new XMLHttpRequest()
 			xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
 			xhr.setRequestHeader('accessToken', this.accessToken)
 			xhr.setRequestHeader('v', SessionModelType.version)
 			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
 				if (xhr.status === 200) {
 					console.log("deleted session")
-					resolve()
+					callback(null)
 				} else if (xhr.status === 401) {
 					console.log("authentication failed => session is already deleted")
-					resolve()
+					callback(null)
 				} else {
 					console.error("could not delete session " + xhr.status)
-					reject("could not delete session " + xhr.status)
+					callback("could not delete session " + xhr.status)
 				}
 			}
 			xhr.onerror = function () {
 				console.error("failed to request delete session")
-				reject("failed to request delete session")
+				callback("failed to request delete session")
 			}
 			xhr.send()
 		})

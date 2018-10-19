@@ -83,7 +83,7 @@ declare class Promise<+R> {
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
-	static fromCallback<T>(callback: Function): Promise<T>;
+	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
 	static map<T, U>(array: Promise<Iterable<T>> | Iterable<T>,
 	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
 	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;

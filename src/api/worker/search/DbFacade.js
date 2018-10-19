@@ -96,7 +96,7 @@ export class DbFacade {
 			return Promise.fromCallback(cb => {
 				let deleteRequest = indexedDB.deleteDatabase(this._db.getLoaded().name)
 				deleteRequest.onerror = (event) => {
-					cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event), null)
+					cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
 				}
 				deleteRequest.onsuccess = (event) => {
 					this._db.reset()

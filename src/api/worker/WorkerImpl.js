@@ -286,7 +286,7 @@ export class WorkerImpl {
 			// the worker sometimes does not send the request if it does not get time
 			return Promise.fromCallback(cb => {
 				setTimeout(() => {
-					cb(null, null)
+					cb()
 				}, 0)
 			})
 		})

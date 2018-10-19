@@ -118,7 +118,7 @@ export class FileController {
 					if (evt.target.readyState === (FileReader: any).DONE && evt.target.result) { // DONE == 2
 						cb(null, createDataFile(nativeFile, new Uint8Array(evt.target.result)))
 					} else {
-						cb(new Error("could not load file"), null)
+						cb(new Error("could not load file"))
 					}
 				}
 				reader.readAsArrayBuffer(nativeFile)

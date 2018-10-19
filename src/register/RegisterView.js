@@ -219,7 +219,7 @@ export class RegisterView {
 class CaptchaDialog {
 	dialog: Dialog;
 	captchaReturn: RegistrationCaptchaServiceReturn;
-	callback: Callback;
+	callback: Callback<RegistrationCaptchaServiceReturn>;
 
 	constructor(registerView: RegisterView, captchaReturn: RegistrationCaptchaServiceReturn) {
 		this.captchaReturn = captchaReturn
@@ -242,7 +242,7 @@ class CaptchaDialog {
 		let actionBar = new DialogHeaderBar()
 		let cancelAction = () => {
 			this.dialog.close()
-			this.callback(null, null)
+			this.callback(null)
 		}
 		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
 		actionBar.addRight(new Button("ok_action", () => {
@@ -268,11 +268,11 @@ class CaptchaDialog {
 					.catch(AccessExpiredError, e => {
 						Dialog.error("createAccountAccessDeactivated_msg")
 						this.dialog.close()
-						this.callback(null, null)
+						this.callback(null)
 					})
 					.catch(e => {
 						this.dialog.close()
-						this.callback(e, null)
+						this.callback(e)
 					})
 			} else {
 				Dialog.error("captchaEnter_msg")
