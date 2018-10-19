@@ -9,7 +9,7 @@ import {CreditCardInput} from "./CreditCardInput"
 import MessageBox from "../gui/base/MessageBox"
 import {PayPalLogo} from "../gui/base/icons/Icons"
 import {load} from "../api/main/Entity"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {equalsTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -41,12 +41,14 @@ export class PaymentMethodInput {
 		this._payPalRequestUrl = payPalRequestUrl
 
 
-		const accountingInfoListener = (typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
-			if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
-				load(AccountingInfoTypeRef, elementId).then(accountingInfo => {
-					this._accountingInfo = accountingInfo
-					m.redraw()
-				})
+		const accountingInfoListener = (updates) => {
+			for (let update of updates) {
+				if (equalsTypeRef(AccountingInfoTypeRef, update.application, update.type)) {
+					load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
+						this._accountingInfo = accountingInfo
+						m.redraw()
+					})
+				}
 			}
 		}
 		this._payPalComponent = {
@@ -146,7 +148,7 @@ export class PaymentMethodInput {
 		}
 	}
 
-	getAvailablePaymentMethods(): Array<{ name: string, value: PaymentMethodTypeEnum }> {
+	getAvailablePaymentMethods(): Array<{name: string, value: PaymentMethodTypeEnum}> {
 		const availablePaymentMethods = [
 			{name: lang.get("paymentMethodCreditCard_label"), value: PaymentMethodType.CreditCard},
 			{name: "PayPal", value: PaymentMethodType.Paypal}

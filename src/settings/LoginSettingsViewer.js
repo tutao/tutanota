@@ -5,7 +5,6 @@ import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {Icons} from "../gui/base/icons/Icons"
@@ -14,15 +13,15 @@ import {SessionTypeRef} from "../api/entities/sys/Session"
 import {neverNull} from "../api/common/utils/Utils"
 import {erase, loadAll} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class LoginSettingsViewer {
+export class LoginSettingsViewer implements UpdatableComponent {
 	view: Function;
 	_activeSessionTable: Table;
 	_closedSessionTable: Table;
@@ -31,7 +30,7 @@ export class LoginSettingsViewer {
 
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress)
-			.setDisabled()
+		                                                    .setDisabled()
 		let password = new TextField("password_label").setValue("***").setDisabled()
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
@@ -100,11 +99,12 @@ export class LoginSettingsViewer {
 		})
 	}
 
-
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, SessionTypeRef)) {
-			this._updateSessions()
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(SessionTypeRef, update)) {
+				this._updateSessions()
+			}
+			this._secondFactorsForm.entityEventReceived(update)
 		}
-		this._secondFactorsForm.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 }

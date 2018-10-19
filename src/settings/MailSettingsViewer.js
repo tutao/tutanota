@@ -4,9 +4,8 @@ import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {ColumnWidth, Table} from "../gui/base/Table"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
 import {load, update} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
@@ -32,10 +31,12 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
 import stream from "mithril/stream/stream.js"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class MailSettingsViewer {
+export class MailSettingsViewer implements UpdatableComponent {
 	view: Function
 
 	_senderName: TextField;
@@ -205,26 +206,29 @@ export class MailSettingsViewer {
 		}
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation === OperationType.UPDATE) {
-			load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
-				this._updatePropertiesSettings(props)
-				this._updateInboxRules(props)
-			})
-		} else if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
-			this._updateInboxRules(logins.getUserController().props)
-		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
-			this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
-		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE
-			&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(listId), elementId])) {
-			load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(groupInfo => {
-				this._senderName.setValue(groupInfo.name)
-			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE
-			&& isSameId(logins.getUserController().user._id, elementId)) {
-			// for editing sender name and email aliases
-			m.redraw()
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			const {instanceListId, instanceId, operation} = update
+			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
+					this._updatePropertiesSettings(props)
+					this._updateInboxRules(props)
+				})
+			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+				this._updateInboxRules(logins.getUserController().props)
+			} else if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
+				this._notificationViewer.loadPushIdentifiers(logins.getUserController().user)
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
+				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
+				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+					this._senderName.setValue(groupInfo.name)
+				})
+			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE
+				&& isSameId(logins.getUserController().user._id, instanceId)) {
+				// for editing sender name and email aliases
+				m.redraw()
+			}
+			this._aliases.entityEventReceived(update)
 		}
-		this._aliases.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 }

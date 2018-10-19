@@ -1,14 +1,27 @@
 // @flow
 import {remove} from "../common/utils/ArrayUtils"
-import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../Env"
 import type {LoginController} from "./LoginController"
+import type {OperationTypeEnum} from "../common/TutanotaConstants"
+import {equalsTypeRef} from "../common/EntityFunctions"
 
 assertMainOrNode()
 
+export type EntityUpdateData = {
+	application: string,
+	type: string,
+	instanceListId: string,
+	instanceId: string,
+	operation: OperationTypeEnum
+}
+
+export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>) => mixed;
+
+export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => equalsTypeRef(typeRef, update.application, update.type)
+
 export class EntityEventController {
 
-	_listeners: Array<EntityEventReceived>;
+	_listeners: Array<EntityEventsListener>;
 	_logins: LoginController;
 
 	constructor(logins: LoginController) {
@@ -16,26 +29,24 @@ export class EntityEventController {
 		this._logins = logins
 	}
 
-	addListener(listener: EntityEventReceived) {
+	addListener(listener: EntityEventsListener) {
 		this._listeners.push(listener)
 	}
 
-	removeListener(listener: EntityEventReceived) {
+	removeListener(listener: EntityEventsListener) {
 		remove(this._listeners, listener)
 	}
 
-	notificationReceived(entityUpdate: EntityUpdate) {
-		let typeRef = new TypeRef(entityUpdate.application, entityUpdate.type)
+	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>) {
 		let promise = Promise.resolve()
 		if (this._logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			promise = this._logins.getUserController()
-			              .entityEventReceived(typeRef, entityUpdate.instanceListId, entityUpdate.instanceId, entityUpdate.operation)
+			              .entityEventsReceived(entityUpdates)
 		}
-		promise.then(() => {
-			this._listeners.forEach(listener => {
-				listener(typeRef, entityUpdate.instanceListId, entityUpdate.instanceId, entityUpdate.operation);
-			})
+
+		this._listeners.forEach(listener => {
+			listener(entityUpdates)
 		})
 	}
 }

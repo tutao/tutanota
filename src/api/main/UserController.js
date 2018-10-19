@@ -1,19 +1,20 @@
 // @flow
-import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot} from "./Entity"
 import {neverNull} from "../common/utils/Utils"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import {UserTypeRef} from "../entities/sys/User"
-import {isSameId, isSameTypeRef} from "../common/EntityFunctions"
+import {isSameId} from "../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {_TypeModel as SessionModelType} from "../entities/sys/Session"
+import type {EntityUpdateData} from "./EntityEventController"
+import {isUpdateForTypeRef} from "./EntityEventController"
 
 assertMainOrNode()
 
-export class UserController {
+export class UserController implements IUserController {
 	user: User;
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
@@ -93,23 +94,26 @@ export class UserController {
 		return this.user.memberships.filter(membership => membership.groupType === GroupType.LocalAdmin)
 	}
 
-	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): Promise<void> {
-		if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, UserTypeRef)
-			&& isSameId(this.user._id, elementId)) {
-			return load(UserTypeRef, this.user._id).then(updatedUser => {
-				this.user = updatedUser
-			})
-		} else if (operation === OperationType.UPDATE && isSameTypeRef(typeRef, GroupInfoTypeRef)
-			&& isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
-			return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
-				this.userGroupInfo = updatedUserGroupInfo
-			})
-		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation === OperationType.UPDATE) {
-			return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
-				this.props = props
-			})
-		}
-		return Promise.resolve()
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, (update) => {
+			const {instanceListId, instanceId, operation} = update
+			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update)
+				&& isSameId(this.user._id, instanceId)) {
+				return load(UserTypeRef, this.user._id).then(updatedUser => {
+					this.user = updatedUser
+				})
+			} else if (operation === OperationType.UPDATE && isUpdateForTypeRef(GroupInfoTypeRef, update)
+				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
+				return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+					this.userGroupInfo = updatedUserGroupInfo
+				})
+			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
+					this.props = props
+				})
+			}
+			return Promise.resolve()
+		}).return()
 	}
 
 	deleteSession(sync: boolean): Promise<void> {

@@ -152,7 +152,11 @@ export class MailView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((updates) => {
+			for (let update of updates) {
+				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+			}
+		})
 	}
 
 	getViewSlider(): ?IViewSlider {
@@ -345,24 +349,21 @@ export class MailView implements CurrentView {
 		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
 
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
-			view: () => m(".folders", this._mailboxExpanders[mailGroupId]
-				.systemFolderButtons.map(fb =>
-					m(".folder-row.flex-space-between.plr-l"
-						+ (fb.isSelected() ? ".row-selected" : ""), [
-						m(fb),
-						fb.isSelected() && this.selectedFolder
-						&& isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
-							oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-							onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-						}) : null
-					]))
+			view: () => m(".folders", this._mailboxExpanders[mailGroupId].systemFolderButtons.map(fb =>
+				m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
+					m(fb),
+					fb.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
+						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+					}) : null
+				]))
 				.concat(
 					logins.isInternalUserLoggedIn() ? [
 						m(".folder-row.flex-space-between.plr-l", [
 							m("small.b.pt-s.align-self-center.ml-negative-xs",
 								{style: {color: theme.navigation_button}},
 								lang.get("yourFolders_action")
-								    .toLocaleUpperCase()),
+									.toLocaleUpperCase()),
 							m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
 						])
 					] : []

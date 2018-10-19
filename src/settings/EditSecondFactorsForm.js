@@ -4,7 +4,6 @@ import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {Button, ButtonType} from "../gui/base/Button"
 import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
 import {erase, load, loadAll, setup} from "../api/main/Entity"
@@ -13,7 +12,6 @@ import TableLine from "../gui/base/TableLine"
 import {lang} from "../misc/LanguageViewModel"
 import {U2fClient, U2fError} from "../misc/U2fClient"
 import {TextField} from "../gui/base/TextField"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SecondFactorType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -30,6 +28,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {openLinkNative} from "../native/SystemApp"
 import {copyToClipboard} from "../misc/ClipboardUtils"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
@@ -292,8 +291,8 @@ export class EditSecondFactorsForm {
 	}
 
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, SecondFactorTypeRef)) {
+	entityEventReceived(update: EntityUpdateData): void {
+		if (isUpdateForTypeRef(SecondFactorTypeRef, update)) {
 			this._updateSecondFactors()
 		}
 	}

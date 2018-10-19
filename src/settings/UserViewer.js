@@ -9,13 +9,12 @@ import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {EditAliasesForm} from "./EditAliasesForm"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {CUSTOM_MIN_ID, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {CUSTOM_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -37,6 +36,8 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
 import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import stream from "mithril/stream/stream.js"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -416,32 +417,35 @@ export class UserViewer {
 		}))
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE
-			&& isSameId(this.userGroupInfo._id, [neverNull(listId), elementId])) {
-			load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
-				this.userGroupInfo = updatedUserGroupInfo
-				this._senderName.setValue(updatedUserGroupInfo.name)
-				this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			const {instanceListId, instanceId, operation} = update
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
+				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
+				load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+					this.userGroupInfo = updatedUserGroupInfo
+					this._senderName.setValue(updatedUserGroupInfo.name)
+					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
+					this._updateUsedStorageAndAdminFlag()
+					if (this._administratedBy) {
+						this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
+					}
+					m.redraw()
+				})
+			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE && this._user.isLoaded()
+				&& isSameId(this._user.getLoaded()._id, instanceId)) {
+				this._user.reset()
 				this._updateUsedStorageAndAdminFlag()
-				if (this._administratedBy) {
-					this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
-				}
-				m.redraw()
-			})
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE && this._user.isLoaded()
-			&& isSameId(this._user.getLoaded()._id, elementId)) {
-			this._user.reset()
-			this._updateUsedStorageAndAdminFlag()
-			this._updateGroups()
-		} else if (isSameTypeRef(typeRef, MailboxServerPropertiesTypeRef)) {
-			this._createOrUpdateWhitelistProtectionField()
-		} else if (isSameTypeRef(typeRef, MailboxGroupRootTypeRef)) {
-			this._updateContactForms()
-		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && this._user.isLoaded()) {
-			this._notificationViewer.loadPushIdentifiers(this._user.getLoaded())
+				this._updateGroups()
+			} else if (isUpdateForTypeRef(MailboxServerPropertiesTypeRef, update)) {
+				this._createOrUpdateWhitelistProtectionField()
+			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
+				this._updateContactForms()
+			} else if (isUpdateForTypeRef(PushIdentifierTypeRef, update) && this._user.isLoaded()) {
+				this._notificationViewer.loadPushIdentifiers(this._user.getLoaded())
+			}
+			this._secondFactorsForm.entityEventReceived(update)
+			this._aliases.entityEventReceived(update)
 		}
-		this._secondFactorsForm.entityEventReceived(typeRef, listId, elementId, operation)
-		this._aliases.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 }

@@ -1,12 +1,5 @@
 // @flow
-import {
-	base64ToBase64Url,
-	base64ToUint8Array,
-	base64UrlToBase64,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "./utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "./utils/Encoding"
 import EC from "./EntityConstants"
 import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
@@ -61,8 +54,12 @@ export class TypeRef<T> {
 	}
 }
 
+export function equalsTypeRef(typeRef: TypeRef<any>, app: string, type: string): boolean {
+	return typeRef.app === app && typeRef.type === type
+}
+
 export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
-	return typeRef1.app === typeRef2.app && typeRef1.type === typeRef2.type
+	return equalsTypeRef(typeRef1, typeRef2.type, typeRef2.app)
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {

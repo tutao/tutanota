@@ -5,7 +5,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {erase, load, loadAll} from "../api/main/Entity"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Button} from "../gui/base/Button"
@@ -31,7 +30,7 @@ import {formatSortableDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
-export class ContactFormViewer {
+export class ContactFormViewer implements UpdatableComponent {
 	view: Function;
 	contactForm: ContactForm;
 	_newContactFormIdReceiver: Function
@@ -182,7 +181,7 @@ export class ContactFormViewer {
 		return pageTitle
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>) {
 		// the contact form list view creates a new viewer if my contact form is updated
 	}
 }

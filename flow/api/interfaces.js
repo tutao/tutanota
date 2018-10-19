@@ -1,5 +1,5 @@
-import type {TypeRef, HttpMethodEnum} from "../../src/api/common/EntityFunctions"
-import type {OperationTypeEnum, EntropySrcEnum} from "../../src/api/common/TutanotaConstants"
+import type {HttpMethodEnum, TypeRef} from "../../src/api/common/EntityFunctions"
+import type {EntropySrcEnum} from "../../src/api/common/TutanotaConstants"
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.
@@ -11,13 +11,13 @@ interface ClientRandomizer {
 	 * @param entropy The amount of entropy in the number in bit.
 	 * @param source The source of the number. One of RandomizerInterface.ENTROPY_SRC_*.
 	 */
-	addEntropy(number: number, entropy: number, source: EntropySrcEnum):void;
+	addEntropy(number: number, entropy: number, source: EntropySrcEnum): void;
 
 	/**
 	 * Verifies if the randomizer is ready to serve.
 	 * @return true, if it is ready, false otherwise.
 	 */
-	isReady():boolean;
+	isReady(): boolean;
 
 	/**
 	 * Generates random data. The function initRandomDataGenerator must have been called prior to the first call to this function.
@@ -25,7 +25,7 @@ interface ClientRandomizer {
 	 * @return A hex coded string of random data.
 	 * @throws {CryptoError} if the randomizer is not seeded (isReady == false)
 	 */
-	generateRandomData(nbrOfBytes: number):Uint8Array;
+	generateRandomData(nbrOfBytes: number): Uint8Array;
 }
 
 /**
@@ -43,35 +43,37 @@ interface EntityRestInterface {
 	 * @param queryParams
 	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
 	 */
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params):Promise<?T | T[] | Id>
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<?T | T[] | Id>
 
 }
 
 interface ProgressListener {
 	upload(percent: number): void;
+
 	download(percent: number): void;
 }
 
 interface LoginInterface {
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<?Credentials|{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<?Credentials|{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
-	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple}|void>;
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, connectEventBus: boolean): Promise<?Credentials | {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
+
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<?Credentials | {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}>;
+
+	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple} | void>;
+
 	changePassword(oldPassword: string, newPassword: string): Promise<void>;
 }
-
-declare function EntityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void;
 
 interface EventBusListener {
 	/**
 	 * Notifies the listener that new data has been received.
 	 * @param data The update notification.
 	 */
-	notifyNewDataReceived(data: EntityUpdate):void;
+	notifyNewDataReceived(data: EntityUpdate): void;
 
 	/**
 	 * Notifies a listener about the reconnect event,
 	 */
-	notifyReconnected():void;
+	notifyReconnected(): void;
 }
 
 

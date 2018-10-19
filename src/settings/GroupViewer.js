@@ -7,11 +7,10 @@ import {Dialog} from "../gui/base/Dialog"
 import {load, loadAll, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -29,6 +28,8 @@ import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 import stream from "mithril/stream/stream.js"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -288,31 +289,34 @@ export class GroupViewer {
 		}
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && operation === OperationType.UPDATE) {
-			load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
-				if (isSameId(this.groupInfo._id, [neverNull(listId), elementId])) {
-					this.groupInfo = updatedUserGroupInfo
-					this._name.setValue(updatedUserGroupInfo.name)
-					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
-					if (this._administratedBy) {
-						this._administratedBy.selectedValue(this.groupInfo.localAdmin)
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			const {instanceListId, instanceId, operation} = update
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
+				load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
+					if (isSameId(this.groupInfo._id, [neverNull(instanceListId), instanceId])) {
+						this.groupInfo = updatedUserGroupInfo
+						this._name.setValue(updatedUserGroupInfo.name)
+						this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
+						if (this._administratedBy) {
+							this._administratedBy.selectedValue(this.groupInfo.localAdmin)
+						}
+						this._updateUsedStorage()
+						m.redraw()
+					} else {
+						// a member name may have changed
+						this._updateMembers()
 					}
-					this._updateUsedStorage()
-					m.redraw()
-				} else {
-					// a member name may have changed
-					this._updateMembers()
-				}
-			})
-		} else if (isSameTypeRef(typeRef, GroupMemberTypeRef) && this._group.isLoaded()
-			&& this._group.getLoaded().members === neverNull(listId)) {
-			// the members have changed
-			this._updateMembers()
-		} else if (isSameTypeRef(typeRef, AdministratedGroupTypeRef) && this._group.isLoaded()
-			&& this._group.getLoaded().administratedGroups
-			&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(listId)) {
-			this._updateAdministratedGroups()
+				})
+			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update) && this._group.isLoaded()
+				&& this._group.getLoaded().members === neverNull(instanceListId)) {
+				// the members have changed
+				this._updateMembers()
+			} else if (isUpdateForTypeRef(AdministratedGroupTypeRef, update) && this._group.isLoaded()
+				&& this._group.getLoaded().administratedGroups
+				&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(instanceListId)) {
+				this._updateAdministratedGroups()
+			}
 		}
 	}
 }

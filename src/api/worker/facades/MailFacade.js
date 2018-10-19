@@ -1,7 +1,7 @@
 // @flow
-import {encryptKey, decryptKey, resolveSessionKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {aes128RandomKey} from "../crypto/Aes"
-import {serviceRequestVoid, load, serviceRequest, loadRoot} from "../EntityWorker"
+import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
 import type {ConversationTypeEnum} from "../../common/TutanotaConstants"
@@ -10,16 +10,16 @@ import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFold
 import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
 import {createDraftData} from "../../entities/tutanota/DraftData"
 import {DraftCreateReturnTypeRef} from "../../entities/tutanota/DraftCreateReturn"
-import {MailTypeRef, _TypeModel as MailTypeModel} from "../../entities/tutanota/Mail"
+import {_TypeModel as MailTypeModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {createDraftRecipient} from "../../entities/tutanota/DraftRecipient"
 import {createDraftUpdateData} from "../../entities/tutanota/DraftUpdateData"
 import {DraftUpdateReturnTypeRef} from "../../entities/tutanota/DraftUpdateReturn"
 import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
 import {isExternalSecureRecipient, recipientInfoType} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {generateRandomSalt, generateKeyFromPassphrase} from "../crypto/Bcrypt"
+import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {createAuthVerifier, keyToUint8Array, bitArrayToUint8Array} from "../crypto/CryptoUtils"
+import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {SysService} from "../../entities/sys/Services"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
@@ -28,23 +28,9 @@ import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {
-	stringToCustomId,
-	getLetId,
-	containsId,
-	isSameId,
-	HttpMethod,
-	isSameTypeRef,
-	TypeRef
-} from "../../common/EntityFunctions"
+import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRef, stringToCustomId, TypeRef} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {
-	neverNull,
-	defer,
-	getEnabledMailAddressesForGroupInfo,
-	getUserGroupMemberships,
-	downcast
-} from "../../common/utils/Utils"
+import {defer, downcast, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -438,18 +424,20 @@ export class MailFacade {
 		})
 	}
 
-	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (this._deferredDraftUpdate && this._deferredDraftId && data.operation === OperationType.UPDATE
-			&& isSameTypeRef(new TypeRef(data.application, data.type), MailTypeRef)
-			&& isSameId(this._deferredDraftId, [data.instanceListId, data.instanceId])) {
-			return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
-				let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
-				this._deferredDraftUpdate = null
-				deferredPromiseWrapper.resolve(mail)
-			})
-		} else {
-			return Promise.resolve()
-		}
+	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+		return Promise.each(data, (update) => {
+			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
+				&& isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
+				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {
+				return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
+					let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
+					this._deferredDraftUpdate = null
+					deferredPromiseWrapper.resolve(mail)
+				})
+			} else {
+				return Promise.resolve()
+			}
+		}).return()
 	}
 
 

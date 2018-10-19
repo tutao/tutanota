@@ -5,10 +5,9 @@ import {TextField, Type} from "../gui/base/TextField"
 import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull} from "../api/common/utils/Utils"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
@@ -16,6 +15,8 @@ import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
 import {Button} from "../gui/base/Button"
 import stream from "mithril/stream/stream.js"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -67,16 +68,18 @@ export class WhitelabelChildViewer {
 		}
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && operation === OperationType.UPDATE
-			&& isSameId(this.whitelabelChild._id, [neverNull(listId), elementId])) {
-			load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
-				this.whitelabelChild = updatedWhitelabelChild
-				this._mailAddress.setValue(updatedWhitelabelChild.mailAddress)
-				this._deactivated.selectedValue(updatedWhitelabelChild.deletedDate != null)
-				this._comment.setValue(updatedWhitelabelChild.comment)
-				m.redraw()
-			})
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && update.operation === OperationType.UPDATE
+				&& isSameId(this.whitelabelChild._id, [neverNull(update.instanceListId), update.instanceId])) {
+				load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
+					this.whitelabelChild = updatedWhitelabelChild
+					this._mailAddress.setValue(updatedWhitelabelChild.mailAddress)
+					this._deactivated.selectedValue(updatedWhitelabelChild.deletedDate != null)
+					this._comment.setValue(updatedWhitelabelChild.comment)
+					m.redraw()
+				})
+			}
 		}
 	}
 }

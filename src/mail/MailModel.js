@@ -5,7 +5,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -20,6 +20,10 @@ import {FeatureType, GroupType, MailFolderType, OperationType} from "../api/comm
 import {module as replaced} from "@hot"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {locator} from "../api/main/MainLocator"
+import {MailTypeRef} from "../api/entities/tutanota/Mail"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import * as Notifications from "../gui/Notifications"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -37,7 +41,9 @@ class MailModel {
 		this.mailboxDetails = stream([])
 		this._initialization = null
 
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((updates) => {
+			this.entityEventsReceived(updates)
+		})
 	}
 
 	init(): Promise<void> {
@@ -159,32 +165,57 @@ class MailModel {
 		return Promise.all(promises).return()
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, MailFolderTypeRef)) {
-			this._initialization = null
-			this.init().then(() => m.redraw())
-		} else if (isSameTypeRef(typeRef, GroupInfoTypeRef)) {
-			if (operation === OperationType.UPDATE) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				this._initialization = null
 				this.init().then(() => m.redraw())
-			}
-		} else if (isSameTypeRef(typeRef, UserTypeRef)) {
-			if (operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, elementId)) {
-				load(UserTypeRef, elementId).then(updatedUser => {
-					let newMemberships = updatedUser.memberships
-						.filter(membership => membership.groupType === GroupType.Mail)
-					let currentDetails = this.mailboxDetails()
-					if (newMemberships.length !== currentDetails.length) {
-						this._initialization = null
-						this.init().then(() => m.redraw())
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
+				if (update.operation === OperationType.UPDATE) {
+					this._initialization = null
+					this.init().then(() => m.redraw())
+				}
+			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
+				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
+					load(UserTypeRef, update.instanceId).then(updatedUser => {
+						let newMemberships = updatedUser.memberships
+						                                .filter(membership => membership.groupType === GroupType.Mail)
+						let currentDetails = this.mailboxDetails()
+						if (newMemberships.length !== currentDetails.length) {
+							this._initialization = null
+							this.init().then(() => m.redraw())
+						}
+					})
+				}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
+				const inboxFoldersIds = this
+					.mailboxDetails()
+					.map(m => {
+						const inbox = m.folders.find(f => f.folderType === MailFolderType.INBOX)
+						if (inbox) {
+							return inbox.mails
+						} else {
+							return null
+						}
+					})
+					.filter(id => id != null)
+
+				if (inboxFoldersIds.indexOf(update.instanceListId) !== -1) {
+					const isCreateBatch = updates.find(u => isUpdateForTypeRef(MailTypeRef, u) && u.instanceId === update.instanceId
+						&& u.operation !== OperationType.CREATE) == null
+					if (isCreateBatch) {
+						this._sendNotification(update)
 					}
-				})
+				}
 			}
 		}
 	}
 
-}
 
+	_sendNotification(update: EntityUpdateData) {
+		Notifications.showNotification("New mail", "body", () => console.log("onclick"))
+	}
+}
 
 export const mailModel = new MailModel()
 

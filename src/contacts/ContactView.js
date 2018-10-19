@@ -9,11 +9,10 @@ import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/bas
 import {ContactEditor} from "./ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
-import {isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {ContactMergeAction, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -36,6 +35,8 @@ import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 
 assertMainOrNode()
@@ -97,7 +98,9 @@ export class ContactView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener(updates => {
+			updates.forEach((update) => this._processEntityUpdate(update))
+		})
 	}
 
 	createNewContact() {
@@ -405,11 +408,12 @@ export class ContactView implements CurrentView {
 		m.redraw()
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && this._contactList && listId === this._contactList.listId) {
-			this._contactList.list.entityEventReceived(elementId, operation).then(() => {
+	_processEntityUpdate(update: EntityUpdateData): void {
+		const {instanceListId, instanceId, operation} = update
+		if (isUpdateForTypeRef(ContactTypeRef, update) && this._contactList && instanceListId === this._contactList.listId) {
+			this._contactList.list.entityEventReceived(instanceId, operation).then(() => {
 				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id,
-					[neverNull(listId), elementId])) {
+					[neverNull(instanceListId), instanceId])) {
 					load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
 						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()

@@ -65,6 +65,7 @@ import {modal} from "../gui/base/Modal"
 import type {PosRect} from "../gui/base/Dropdown"
 import {Dropdown} from "../gui/base/Dropdown"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
+import type {EntityEventsListener} from "../api/main/EntityEventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
@@ -91,7 +92,7 @@ export class MailEditor {
 	_mailChanged: boolean;
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
 	_previousMail: ?Mail;
-	_entityEventReceived: EntityEventReceived;
+	_entityEventReceived: EntityEventsListener;
 	_attachFilesButton: Button;
 	_mailboxDetails: MailboxDetail;
 	_replyTos: RecipientInfo[];
@@ -262,7 +263,11 @@ export class MailEditor {
 			])
 		}
 
-		this._entityEventReceived = (typeRef, listId, elementId, operation) => this._handleEntityEvent(typeRef, listId, elementId, operation)
+		this._entityEventReceived = (updates) => {
+			for (let update of updates) {
+				this._handleEntityEvent(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+			}
+		}
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
 		                    .addShortcut({

@@ -273,7 +273,7 @@ export class WorkerImpl {
 		}
 	}
 
-	entityEventReceived(data: EntityUpdate): Promise<void> {
+	entityEventReceived(data: EntityUpdate[]): Promise<void> {
 		return this._queue.postMessage(new Request("entityEvent", [data]))
 	}
 

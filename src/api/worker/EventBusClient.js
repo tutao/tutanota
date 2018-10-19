@@ -17,7 +17,8 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
-import {CloseEventBusOption} from "../common/TutanotaConstants"
+import {CloseEventBusOption, OperationType} from "../common/TutanotaConstants"
+import * as Notifications from "../../gui/Notifications"
 
 assertWorkerOrNode()
 
@@ -80,6 +81,8 @@ export class EventBusClient {
 		if (env.mode === Mode.Test) {
 			return
 		}
+		Notifications.requestPermission()
+
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
 		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
@@ -174,6 +177,7 @@ export class EventBusClient {
 		return applyMigrations(WebsocketWrapperTypeRef, JSON.parse((message.data: any))).then(data => {
 			return decryptAndMapToInstance(WebsocketWrapperTypeModel, data, null).then(wrapper => {
 				if (wrapper.type === 'entityUpdate') {
+
 					// When an event batch is received only process it if there is no other event batch currently processed. Otherwise put it into the cache. After processing an event batch we
 					// start processing the next one from the cache. This makes sure that all events are processed in the order they are received and we do not get an inconsistent state
 					if (this._queueWebsocketEvents) {
@@ -194,6 +198,12 @@ export class EventBusClient {
 				}
 			})
 		})
+	}
+
+	_isCreateOperation(event: EntityUpdate, batch: EntityUpdate[]): boolean {
+		return event.operation === OperationType.CREATE
+			&& batch.find((u) =>
+				u.instanceId === event.instanceId && u.instanceListId === event.instanceListId && event.operation === OperationType.DELETE) == null
 	}
 
 	_close(event: CloseEvent) {
@@ -338,10 +348,10 @@ export class EventBusClient {
 					}
 				})
 				return filteredEvents
-			}).each(event => {
-				return this._executeIfNotTerminated(() => this._login.entityEventReceived(event))
-				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventReceived(event)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(event)))
+			}).then(events => {
+				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(events))
+				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(events)))
+				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(events)))
 			}).then(() => {
 				if (!this._lastEntityEventIds[groupId]) {
 					this._lastEntityEventIds[groupId] = []

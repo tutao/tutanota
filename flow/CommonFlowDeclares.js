@@ -1,4 +1,4 @@
-import {TypeRef} from "../src/api/common/EntityFunctions"
+import type {EntityUpdateData} from "../src/api/main/EntityEventController"
 
 // FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
 declare function finder(any): boolean
@@ -23,11 +23,11 @@ declare function clickHandler(event: MouseEvent): void;
 
 declare function dropHandler(dragData: string): void;
 
-type KeyPress = { keyCode: number, ctrl: boolean, shift: boolean };
+type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
 
 declare function keyMatcher(key: KeyPress): boolean;
 
-type Key = { code: number, name: string };
+type Key = {code: number, name: string};
 
 declare interface Shortcut {
 	key: Key;
@@ -50,9 +50,9 @@ declare function keyHandler(key: KeyPress): boolean;
 declare interface UpdatableComponent {
 	view(): VirtualElement | VirtualElement[];
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void;
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void;
 
-	addButtonClicked?: boolean;
+	+addButtonClicked?: () => void;
 }
 
 declare interface MithrilEvent {
@@ -120,7 +120,7 @@ type SwipeConfiguration<T> = {
 
 	swipeRight(listElement: T): Promise<void>;
 
-	enabled : boolean;
+	enabled: boolean;
 
 }
 
@@ -160,7 +160,7 @@ declare interface ModalComponent {
 	backgroundClick(e: MouseEvent): void;
 }
 
-type LogCategory = { [key: string]: string }
+type LogCategory = {[key: string]: string}
 
 // Enums
 type ThemeId = 'light' | 'dark' | 'custom'
@@ -194,11 +194,11 @@ type Status = {
 	text: string
 }
 
-type ButtonColors = { button: string, button_selected: string, icon: string, icon_selected: string }
+type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
 
 declare class Notification {
 	static permission: string;
-	static requestPermission(callback: Function): void;
+	static requestPermission(callback?: Function): Promise<string>;
 	constructor(application: string, options?: Object): void;
 	onshow: any;
 	onclick: any;

@@ -1,9 +1,8 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -12,7 +11,6 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "../api/common/utils/Utils"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
@@ -20,6 +18,8 @@ import {header} from "../gui/base/Header"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -128,9 +128,11 @@ export class WhitelabelChildrenListView {
 		}
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, WhitelabelChildTypeRef) && this._listId.getSync() === listId) {
-			this.list.entityEventReceived(elementId, operation)
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && this._listId.getSync() === update.instanceListId) {
+				this.list.entityEventReceived(update.instanceId, update.operation)
+			}
 		}
 	}
 }

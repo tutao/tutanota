@@ -38,6 +38,7 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

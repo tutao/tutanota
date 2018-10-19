@@ -1,21 +1,24 @@
 //@flow
 import m from "mithril"
-import {loadAll, load} from "../api/main/Entity"
+import {loadAll} from "../api/main/Entity"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {module as replaced} from "@hot"
-import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
-import {GroupTypeRef} from "../api/entities/sys/Group"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;
 	groupInfos: GroupInfo[];
 
 	constructor() {
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener(updates => {
+			for (let update of updates) {
+				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+			}
+		})
 		this._initialization = null
 		this.groupInfos = []
 	}

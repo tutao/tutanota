@@ -14,7 +14,7 @@ import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {Button, ButtonColors, ButtonType} from "../gui/base/Button"
 import {logins} from "../api/main/LoginController"
@@ -24,13 +24,14 @@ import {ContactFormListView} from "./ContactFormListView"
 import {WhitelabelSettingsViewer} from "./WhitelabelSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
 import {PaymentViewer} from "../subscription/PaymentViewer"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -107,7 +108,7 @@ export class SettingsView implements CurrentView {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(false)
 			} else {
-				(this._currentViewer: any).addButtonClicked()
+				this._currentViewer && this._currentViewer.addButtonClicked && this._currentViewer.addButtonClicked()
 			}
 		}, () => Icons.Add)
 			.setType(ButtonType.Floating)
@@ -120,7 +121,9 @@ export class SettingsView implements CurrentView {
 					m(newAction) : null
 			])
 		}
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((updates) => {
+			this.entityEventsReceived(updates)
+		})
 	}
 
 	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {
@@ -187,22 +190,24 @@ export class SettingsView implements CurrentView {
 		this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, UserTypeRef) && isSameId(elementId, logins.getUserController().user._id)) {
-			load(UserTypeRef, elementId).then(user => {
-				// the user admin status might have changed
-				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer
-					&& this._adminFolders.find(f => f.isActive())) {
-					this._setUrl(this._userFolders[0].url)
-				}
-				m.redraw()
-			})
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
+				load(UserTypeRef, update.instanceId).then(user => {
+					// the user admin status might have changed
+					if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer
+						&& this._adminFolders.find(f => f.isActive())) {
+						this._setUrl(this._userFolders[0].url)
+					}
+					m.redraw()
+				})
+			}
 		}
 		if (this._currentViewer) {
-			this._currentViewer.entityEventReceived(typeRef, listId, elementId, operation)
+			this._currentViewer.entityEventsReceived(updates)
 		}
 		if (this.detailsViewer) {
-			this.detailsViewer.entityEventReceived(typeRef, listId, elementId, operation)
+			this.detailsViewer.entityEventsReceived(updates)
 		}
 	}
 

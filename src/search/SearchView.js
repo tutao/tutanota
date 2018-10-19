@@ -5,12 +5,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	MailFolderType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -30,12 +25,7 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
-import {
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	showDeleteConfirmationDialog
-} from "../mail/MailUtils"
+import {getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
@@ -205,7 +195,11 @@ export class SearchView implements CurrentView {
 		}
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((updates) => {
+			for (let update of updates) {
+				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+			}
+		})
 	}
 
 	getViewSlider(): ?IViewSlider {

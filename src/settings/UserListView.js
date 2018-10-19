@@ -1,21 +1,19 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull, compareGroupInfos} from "../api/common/utils/Utils"
+import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
@@ -25,12 +23,14 @@ import {header} from "../gui/base/Header"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {contains} from "../api/common/utils/ArrayUtils"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
 const className = "user-list"
 
-export class UserListView {
+export class UserListView implements UpdatableComponent {
 	list: List<GroupInfo, UserRow>;
 	view: Function;
 	_listId: LazyLoaded<Id>;
@@ -162,33 +162,36 @@ export class UserListView {
 		AddUserDialog.show()
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() === listId) {
-			if (!logins.getUserController().isGlobalAdmin()) {
-				let listEntity = this.list.getEntity(elementId)
-				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
-					let localAdminGroupIds = logins.getUserController()
-					                               .getLocalAdminGroupMemberships()
-					                               .map(gm => gm.group)
-					if (listEntity) {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) === -1) {
-							this.list.entityEventReceived(elementId, OperationType.DELETE)
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
+		for (let update of updates) {
+			const {instanceListId, instanceId, operation} = update
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
+				if (!logins.getUserController().isGlobalAdmin()) {
+					let listEntity = this.list.getEntity(instanceId)
+					load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+						let localAdminGroupIds = logins.getUserController()
+						                               .getLocalAdminGroupMemberships()
+						                               .map(gm => gm.group)
+						if (listEntity) {
+							if (localAdminGroupIds.indexOf(gi.localAdmin) === -1) {
+								this.list.entityEventReceived(instanceId, OperationType.DELETE)
+							} else {
+								this.list.entityEventReceived(instanceId, operation)
+							}
 						} else {
-							this.list.entityEventReceived(elementId, operation)
+							if (localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
+								this.list.entityEventReceived(instanceId, OperationType.CREATE)
+							}
 						}
-					} else {
-						if (localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
-							this.list.entityEventReceived(elementId, OperationType.CREATE)
-						}
-					}
+					})
+				} else {
+					this.list.entityEventReceived(instanceId, operation)
+				}
+			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE) {
+				this._loadAdmins().then(() => {
+					this.list.redraw()
 				})
-			} else {
-				this.list.entityEventReceived(elementId, operation)
 			}
-		} else if (isSameTypeRef(typeRef, UserTypeRef) && operation === OperationType.UPDATE) {
-			this._loadAdmins().then(() => {
-				this.list.redraw()
-			})
 		}
 	}
 }

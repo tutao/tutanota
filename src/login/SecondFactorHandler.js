@@ -4,9 +4,8 @@ import {SessionTypeRef} from "../api/entities/sys/Session"
 import {load, serviceRequestVoid} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod, isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
@@ -17,6 +16,7 @@ import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -40,12 +40,15 @@ export class SecondFactorHandler {
 	}
 
 	setupAcceptOtherClientLoginListener() {
-		if (!this._otherLoginListenerInitialized) {
-			this._otherLoginListenerInitialized = true
-			locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => {
-				let sessionId = [neverNull(listId), elementId];
-				if (isSameTypeRef(typeRef, SessionTypeRef)) {
-					if (operation === OperationType.CREATE) {
+		if (this._otherLoginListenerInitialized) {
+			return
+		}
+		this._otherLoginListenerInitialized = true
+		locator.entityEvent.addListener((updates) => Promise
+			.each(updates, (update) => {
+				let sessionId = [neverNull(update.instanceListId), update.instanceId];
+				if (isUpdateForTypeRef(SessionTypeRef, update)) {
+					if (update.operation === OperationType.CREATE) {
 						return load(SessionTypeRef, sessionId).then(session => {
 							if (session.state === SessionState.SESSION_STATE_PENDING) {
 								if (this._otherLoginDialog != null) {
@@ -84,7 +87,7 @@ export class SecondFactorHandler {
 								}, 60 * 1000)
 							}
 						})
-					} else if (operation === OperationType.UPDATE && this._otherLoginSessionId
+					} else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId
 						&& isSameId(this._otherLoginSessionId, sessionId)) {
 						return load(SessionTypeRef, sessionId).then(session => {
 							if (session.state !== SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
@@ -97,7 +100,7 @@ export class SecondFactorHandler {
 					}
 				}
 			})
-		}
+			.return())
 	}
 
 	closeWaitingForSecondFactorDialog() {
