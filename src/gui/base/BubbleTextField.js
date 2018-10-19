@@ -92,10 +92,11 @@ export class BubbleTextField<T> {
 						this.selectedSuggestion = null
 					}
 					this.previousQuery = query
-					if (this.textField.value() !== this.textField._domInput.value) {
+					let input = this.textField._domInput
+					if (input && this.textField.value() !== input.value) {
 						// 1.) update before redraw to workaround missing updates
 						// 2.) only update in case of an updated value
-						this.textField.value(this.textField._domInput.value)
+						this.textField.value(input.value)
 					}
 					m.redraw()
 				} else {
@@ -167,8 +168,9 @@ export class BubbleTextField<T> {
 	}
 
 	handleBackspace() {
-		if (this.bubbles.length > 0 && this.textField._domInput.selectionStart === 0
-			&& this.textField._domInput.selectionEnd === 0) {
+		const input = this.textField._domInput
+		if (input && this.bubbles.length > 0 && input.selectionStart === 0
+			&& input.selectionEnd === 0) {
 			const bubble = this.bubbles.pop()
 			this.bubbleHandler.bubbleDeleted(bubble)
 			this.textField.value(bubble.text)
@@ -198,7 +200,9 @@ export class BubbleTextField<T> {
 				selected.button.setSelected(() => false)
 				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
 			}
-		} else if (this.textField._domInput.selectionStart === 0 && this.textField._domInput.selectionEnd === 0) {
+		} else if (this.textField._domInput
+			&& this.textField._domInput.selectionStart === 0
+			&& this.textField._domInput.selectionEnd === 0) {
 			this.selectLastBubble()
 		}
 		return true

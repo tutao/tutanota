@@ -36,7 +36,7 @@ export class LoginView {
 	_isDeleteCredentials: boolean;
 	_viewController: Promise<ILoginViewController>;
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -123,7 +123,7 @@ export class LoginView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => {
+		this.onremove = () => {
 			this.password.value("")
 			keyManager.unregisterShortcuts(shortcuts)
 		}

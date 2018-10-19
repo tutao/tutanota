@@ -77,7 +77,7 @@ export class MailEditor {
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
-	mailAddressToPasswordField: Map<string, TextField>;
+	_mailAddressToPasswordField: Map<string, TextField>;
 	subject: TextField;
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
@@ -107,7 +107,7 @@ export class MailEditor {
 		this.ccRecipients = new BubbleTextField("cc_label", new MailBubbleHandler(this))
 		this.bccRecipients = new BubbleTextField("bcc_label", new MailBubbleHandler(this))
 		this._replyTos = []
-		this.mailAddressToPasswordField = new Map()
+		this._mailAddressToPasswordField = new Map()
 		this._attachments = []
 		this._mailChanged = false
 		this._attachmentButtons = []
@@ -344,7 +344,7 @@ export class MailEditor {
 	}
 
 	getPasswordField(recipientInfo: RecipientInfo): TextField {
-		if (!this.mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
+		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
 			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
 			textField.setType(Type.ExternalPassword)
@@ -352,9 +352,9 @@ export class MailEditor {
 			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
 				textField.setValue(recipientInfo.contact.presharedPassword)
 			}
-			this.mailAddressToPasswordField.set(recipientInfo.mailAddress, textField)
+			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textField)
 		}
-		return neverNull(this.mailAddressToPasswordField.get(recipientInfo.mailAddress))
+		return neverNull(this._mailAddressToPasswordField.get(recipientInfo.mailAddress))
 	}
 
 	getPasswordStrength(recipientInfo: RecipientInfo) {
@@ -890,8 +890,8 @@ export class MailEditor {
 			} else {
 				let newBubble = this.createBubble(`${updatedContact.firstName} ${updatedContact.lastName}`.trim(), emailAddress, updatedContact)
 				replace(bubbles, oldBubble, newBubble)
-				if (updatedContact.presharedPassword && this.mailAddressToPasswordField.has(emailAddress)) {
-					neverNull(this.mailAddressToPasswordField.get(emailAddress))
+				if (updatedContact.presharedPassword && this._mailAddressToPasswordField.has(emailAddress)) {
+					neverNull(this._mailAddressToPasswordField.get(emailAddress))
 						.setValue(updatedContact.presharedPassword)
 				}
 			}

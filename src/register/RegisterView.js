@@ -5,10 +5,10 @@ import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button, ButtonType} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
-import {TUTANOTA_MAIL_ADDRESS_DOMAINS, AccountType} from "../api/common/TutanotaConstants"
+import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {AccessDeactivatedError, InvalidDataError, AccessExpiredError} from "../api/common/error/RestError"
+import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
 import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {Checkbox} from "../gui/base/Checkbox"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
@@ -30,7 +30,6 @@ assertMainOrNode()
 
 export class RegisterView {
 	view: Function;
-	isRegisterView: boolean; // just a static value to let app.js notice this view as the register view
 
 	constructor() {
 		let mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())

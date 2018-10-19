@@ -5,15 +5,10 @@ import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {
-	NotAuthenticatedError,
-	ConnectionError,
-	AccessBlockedError,
-	AccessDeactivatedError
-} from "../api/common/error/RestError"
+import {AccessBlockedError, AccessDeactivatedError, ConnectionError, NotAuthenticatedError} from "../api/common/error/RestError"
 import {createCustomerProperties} from "../api/entities/sys/CustomerProperties"
 import {GENERATED_MIN_ID, HttpMethod} from "../api/common/EntityFunctions"
-import {base64UrlToBase64, base64ToUint8Array} from "../api/common/utils/Encoding"
+import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
 import {ExternalPropertiesReturnTypeRef} from "../api/entities/sys/ExternalPropertiesReturn"
 import {SysService} from "../api/entities/sys/Services"
 import {serviceRequest} from "../api/main/Entity"
@@ -40,7 +35,7 @@ export class ExternalLoginView {
 	_isDeleteCredentials: boolean;
 	_id: string;
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 
 	constructor() {
 		this._errorMessageId = null
@@ -75,7 +70,10 @@ export class ExternalLoginView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onremove = () => {
+			this.password.value("")
+			keyManager.unregisterShortcuts(shortcuts)
+		}
 	}
 
 	updateUrl(args: Object) {
