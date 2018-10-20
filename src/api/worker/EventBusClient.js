@@ -18,7 +18,6 @@ import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, OperationType} from "../common/TutanotaConstants"
-import * as Notifications from "../../gui/Notifications"
 
 assertWorkerOrNode()
 
@@ -81,7 +80,6 @@ export class EventBusClient {
 		if (env.mode === Mode.Test) {
 			return
 		}
-		Notifications.requestPermission()
 
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
 		this._worker.updateWebSocketState("connecting")
