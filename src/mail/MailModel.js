@@ -23,8 +23,8 @@ import {locator} from "../api/main/MainLocator"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
-import * as Notifications from "../gui/Notifications"
 import {lang} from "../misc/LanguageViewModel"
+import {Notifications} from "../gui/Notifications"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -33,13 +33,15 @@ export type MailboxDetail = {
 	mailGroup: Group
 }
 
-class MailModel {
+export class MailModel {
 	mailboxDetails: Stream<MailboxDetail[]>
 	_initialization: ?Promise<void>
+	_notifications: Notifications
 
-	constructor() {
+	constructor(notifications: Notifications) {
 		this.mailboxDetails = stream([])
 		this._initialization = null
+		this._notifications = notifications
 
 		locator.entityEvent.addListener((updates) => {
 			this.entityEventsReceived(updates)
@@ -201,9 +203,11 @@ class MailModel {
 	}
 
 	_showNotification(update: EntityUpdateData) {
-		Notifications.showNotification(lang.get("newMails_msg"), null, () => {
-			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
-			window.focus()
+		this._notifications.showNotification(lang.get("newMails_msg"), {
+			onclick: () => {
+				m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+				window.focus()
+			}
 		})
 	}
 
@@ -222,7 +226,7 @@ class MailModel {
 	}
 }
 
-export const mailModel = new MailModel()
+export const mailModel = new MailModel(new Notifications())
 
 if (replaced) {
 	Object.assign(mailModel, replaced.mailModel)

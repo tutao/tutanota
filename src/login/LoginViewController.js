@@ -32,7 +32,7 @@ import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
-import * as Notifications from "../gui/Notifications"
+import {notifications} from "../gui/Notifications"
 
 assertMainOrNode()
 
@@ -159,7 +159,7 @@ export class LoginViewController {
 	}
 
 	_postLoginActions() {
-		Notifications.requestPermission()
+		notifications.requestPermission()
 		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
 
 		windowFacade.addResumeAfterSuspendListener(() => {

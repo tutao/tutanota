@@ -3,32 +3,13 @@
 import {noOp} from "../api/common/utils/Utils"
 import {NotificationIcon} from "./base/icons/Icons"
 
-/**
- * Requests user permission if notifications are supported
- * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
- */
-export function requestPermission(): Promise<boolean> {
-	if (typeof Notification === "undefined") {
-		return Promise.resolve(false)
-	}
-	if (Notification.permission === "granted") {
-		return Promise.resolve(true)
-	} else if (Notification.permission !== "denied") {
-		return Notification.requestPermission().then((answer) => answer === "granted")
-	} else {
-		return Promise.resolve(false)
-	}
-}
-
-function _showNotificaiton(title: string, body: ?string, onClick: () => void) {
+function _showNotificaiton(title: string, options: ?NotificationOptions): ?Notification {
 	if (Notification.permission === "granted") {
 		try {
-			const options: NotificationOptions = {
+			const actualOptions: NotificationOptions = Object.assign({}, {
 				icon: NotificationIcon
-			}
-			if (body != null) options.body = body // so that null will not be converted to string
-			let notification = new Notification(title, options)
-			notification.onclick = onClick
+			}, options)
+			return new Notification(title, actualOptions)
 		} catch (e) {
 			// new Notification() throws an error in new chrome browsers on android devices.
 			// According to the error message ServiceWorkerRegistration.showNotification() should be used instead.
@@ -37,7 +18,29 @@ function _showNotificaiton(title: string, body: ?string, onClick: () => void) {
 			console.warn("notification error", e);
 		}
 	}
+	return null
 }
 
-export const showNotification: (title: string, body: ?string, onclick: () => void) => void =
-	typeof Notification !== "undefined" ? _showNotificaiton : noOp
+export class Notifications {
+	/**
+	 * Requests user permission if notifications are supported
+	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
+	 */
+	requestPermission(): Promise<boolean> {
+		if (typeof Notification === "undefined") {
+			return Promise.resolve(false)
+		}
+		if (Notification.permission === "granted") {
+			return Promise.resolve(true)
+		} else if (Notification.permission !== "denied") {
+			return Notification.requestPermission().then((answer) => answer === "granted")
+		} else {
+			return Promise.resolve(false)
+		}
+	}
+
+	showNotification: (title: string, options?: NotificationOptions) => ?Notification =
+		typeof Notification !== "undefined" ? _showNotificaiton : noOp
+}
+
+export const notifications = new Notifications()

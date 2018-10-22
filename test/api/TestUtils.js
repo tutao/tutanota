@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
-import {BrowserType} from "../../src/misc/ClientConstants"
 import type {BrowserData} from "../../src/misc/ClientConstants"
+import {BrowserType} from "../../src/misc/ClientConstants"
 import type {Db} from "../../src/api/worker/search/SearchTypes"
 import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
@@ -39,7 +39,9 @@ export function unmockAttribute(mock: Object) {
 	mock._originalObject[mock._attributeName] = mock._originalAttribute
 }
 
-export function spy(producer?: (...any) => any): any {
+export type Spy = ((...any) => any) & {invocations: any[]}
+
+export function spy(producer?: (...any) => any): Spy {
 	const invocations = []
 	const s = (...args: any[]) => {
 		invocations.push(args)
