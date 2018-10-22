@@ -198,3 +198,56 @@ export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
 	attrs: Attrs,
 	dom: HTMLElement,
 }
+
+
+// Notification backported from the future version of Flow
+// https://github.com/facebook/flow/commit/b67c4e9adf7239433222eaa0ddc52ab4dac5502f
+type NotificationPermission = 'default' | 'denied' | 'granted';
+type NotificationDirection = 'auto' | 'ltr' | 'rtl';
+type VibratePattern = number | Array<number>;
+type NotificationAction = {action: string, title: string, icon?: string};
+type NotificationOptions = {
+	dir?: NotificationDirection,
+	lang?: string,
+	body?: string,
+	tag?: string,
+	image?: string,
+	icon?: string,
+	badge?: string,
+	sound?: string,
+	vibrate?: VibratePattern,
+	timestamp?: number,
+	renotify?: boolean,
+	silent?: boolean,
+	requireInteraction?: boolean,
+	data?: ?any,
+	actions?: Array<NotificationAction>
+};
+
+declare class Notification extends EventTarget {
+	constructor(title: string, options?: NotificationOptions): void;
+	static permission: NotificationPermission;
+	static requestPermission(
+		callback?: (perm: NotificationPermission) => mixed
+	): Promise<NotificationPermission>;
+	static maxActions: number;
+	onclick: (evt: Event) => any;
+	onerror: (evt: Event) => any;
+	title: string;
+	dir: NotificationDirection;
+	lang: string;
+	body: string;
+	tag: string;
+	image: string;
+	icon: string;
+	badge: string;
+	sound: string;
+	vibrate: Array<number>;
+	timestamp: number;
+	renotify: boolean;
+	silent: boolean;
+	requireInteraction: boolean;
+	data: any;
+	actions: Array<NotificationAction>;
+	close(): void;
+}

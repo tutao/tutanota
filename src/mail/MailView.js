@@ -10,10 +10,10 @@ import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import type {MailFolderTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
+import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {CurrentView, header} from "../gui/base/Header"
-import {HttpMethod, isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -51,6 +51,8 @@ import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -154,7 +156,7 @@ export class MailView implements CurrentView {
 
 		locator.entityEvent.addListener((updates) => {
 			for (let update of updates) {
-				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+				this.entityEventReceived(update)
 			}
 		})
 	}
@@ -619,17 +621,18 @@ export class MailView implements CurrentView {
 	}
 
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, MailTypeRef) && this.mailList) {
+	entityEventReceived<T>(update: EntityUpdateData): void {
+		if (isUpdateForTypeRef(MailTypeRef, update) && this.mailList) {
+			const {instanceListId, instanceId, operation} = update
 			let promise = Promise.resolve()
-			if (listId === this.mailList.listId) {
-				promise = this.mailList.list.entityEventReceived(elementId, operation)
+			if (instanceListId === this.mailList.listId) {
+				promise = this.mailList.list.entityEventReceived(instanceId, operation)
 			}
 			promise.then(() => {
 				// run the displayed mail update after the update on the list is finished to avoid parallel email loading
 				// update the displayed or edited mail if necessary
 				if (operation === OperationType.UPDATE && this.mailViewer
-					&& isSameId(this.mailViewer.mail._id, [neverNull(listId), elementId])) {
+					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
 						this.mailViewer = new MailViewer(updatedMail, false)
 					}).catch(() => {

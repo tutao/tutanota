@@ -59,7 +59,7 @@ export function equalsTypeRef(typeRef: TypeRef<any>, app: string, type: string):
 }
 
 export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
-	return equalsTypeRef(typeRef1, typeRef2.type, typeRef2.app)
+	return equalsTypeRef(typeRef1, typeRef2.app, typeRef2.type)
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {

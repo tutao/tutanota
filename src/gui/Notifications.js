@@ -20,13 +20,14 @@ export function requestPermission(): Promise<boolean> {
 	}
 }
 
-function _showNotificaiton(title: string, body: string, onClick: () => void) {
+function _showNotificaiton(title: string, body: ?string, onClick: () => void) {
 	if (Notification.permission === "granted") {
 		try {
-			let notification = new Notification(title, {
-				body,
+			const options: NotificationOptions = {
 				icon: NotificationIcon
-			})
+			}
+			if (body != null) options.body = body // so that null will not be converted to string
+			let notification = new Notification(title, options)
 			notification.onclick = onClick
 		} catch (e) {
 			// new Notification() throws an error in new chrome browsers on android devices.
@@ -38,5 +39,5 @@ function _showNotificaiton(title: string, body: string, onClick: () => void) {
 	}
 }
 
-export const showNotification: (title: string, body: string, onclick: () => void) => void =
+export const showNotification: (title: string, body: ?string, onclick: () => void) => void =
 	typeof Notification !== "undefined" ? _showNotificaiton : noOp

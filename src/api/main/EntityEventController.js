@@ -38,15 +38,16 @@ export class EntityEventController {
 	}
 
 	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>) {
-		let promise = Promise.resolve()
+		let loginsUpdates = Promise.resolve()
 		if (this._logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			promise = this._logins.getUserController()
-			              .entityEventsReceived(entityUpdates)
+			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates)
 		}
 
-		this._listeners.forEach(listener => {
-			listener(entityUpdates)
+		loginsUpdates.then(() => {
+			this._listeners.forEach(listener => {
+				listener(entityUpdates)
+			})
 		})
 	}
 }

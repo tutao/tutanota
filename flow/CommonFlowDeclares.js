@@ -196,13 +196,4 @@ type Status = {
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
 
-declare class Notification {
-	static permission: string;
-	static requestPermission(callback?: Function): Promise<string>;
-	constructor(application: string, options?: Object): void;
-	onshow: any;
-	onclick: any;
-	close: Function;
-}
-
 declare var indexedDB: any;

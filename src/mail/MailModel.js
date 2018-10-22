@@ -24,6 +24,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import * as Notifications from "../gui/Notifications"
+import {lang} from "../misc/LanguageViewModel"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -33,7 +34,6 @@ export type MailboxDetail = {
 }
 
 class MailModel {
-
 	mailboxDetails: Stream<MailboxDetail[]>
 	_initialization: ?Promise<void>
 
@@ -188,32 +188,37 @@ class MailModel {
 					})
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				const inboxFoldersIds = this
-					.mailboxDetails()
-					.map(m => {
-						const inbox = m.folders.find(f => f.folderType === MailFolderType.INBOX)
-						if (inbox) {
-							return inbox.mails
-						} else {
-							return null
-						}
-					})
-					.filter(id => id != null)
-
-				if (inboxFoldersIds.indexOf(update.instanceListId) !== -1) {
-					const isCreateBatch = updates.find(u => isUpdateForTypeRef(MailTypeRef, u) && u.instanceId === update.instanceId
-						&& u.operation !== OperationType.CREATE) == null
+				if (this._getInboxIds().indexOf(update.instanceListId) !== -1) {
+					// If we don't find another operation on this email in the batch, then it should be a create operation
+					const isCreateBatch = updates.find(u =>
+						isUpdateForTypeRef(MailTypeRef, u) && u.instanceId === update.instanceId && u.operation !== OperationType.CREATE) == null
 					if (isCreateBatch) {
-						this._sendNotification(update)
+						this._showNotification(update)
 					}
 				}
 			}
 		}
 	}
 
+	_showNotification(update: EntityUpdateData) {
+		Notifications.showNotification(lang.get("newMails_msg"), null, () => {
+			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+			window.focus()
+		})
+	}
 
-	_sendNotification(update: EntityUpdateData) {
-		Notifications.showNotification("New mail", "body", () => console.log("onclick"))
+	_getInboxIds(): Array<Id> {
+		return this
+			.mailboxDetails()
+			.map(m => {
+				const inbox = m.folders.find(f => f.folderType === MailFolderType.INBOX)
+				if (inbox) {
+					return inbox.mails
+				} else {
+					return null
+				}
+			})
+			.filter(Boolean) // this tells flow that result is non-null
 	}
 }
 
