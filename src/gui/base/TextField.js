@@ -43,7 +43,7 @@ export class TextField {
 	_injectionsRight: ?Function;
 	_domWrapper: HTMLElement;
 	_domLabel: HTMLElement;
-	_domInput: HTMLInputElement;
+	_domInput: ?HTMLInputElement;
 	view: Function;
 	onblur: Stream<*>;
 	skipNextBlur: boolean;
@@ -61,8 +61,9 @@ export class TextField {
 		this.value = stream("")
 		this.value.map(v => {
 			if (this._domInput) {
-				if (this.value() !== this._domInput.value) {
-					this._domInput.value = this.value()
+				const input = this._domInput
+				if (this.value() !== input.value) {
+					input.value = this.value()
 				}
 			}
 		})
@@ -146,7 +147,7 @@ export class TextField {
 						})
 					}
 					if (this.type !== Type.Password) {
-						this._domInput.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+						vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
 					}
 				},
 				onfocus: (e) => this.focus(),
@@ -154,9 +155,10 @@ export class TextField {
 				onkeydown: e => {
 					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
-					if (this._domInput.value !== this.value()) {
-						this.value(this._domInput.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
-						if (this._domInput.value !== "" && !this.active) {
+					const input = this._domInput
+					if (input && input.value !== this.value()) {
+						this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
+						if (input.value !== "" && !this.active) {
 							this.animate()
 						}
 					}
@@ -165,13 +167,19 @@ export class TextField {
 				onremove: e => {
 					// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
 					// TODO test if still needed with newer mithril releases
-					this._domInput.onblur = null
+					if (this._domInput) {
+						this._domInput.onblur = null
+					}
+					this._domInput = null
 				},
 				oninput: e => {
-					if (this.isEmpty() && this._domInput.value !== "" && !this.active && !this.webkitAutofill) {
-						this.animate() // animate in case of browser autocompletion (non-webkit)
+					const input = this._domInput
+					if (input) {
+						if (this.isEmpty() && input.value !== "" && !this.active && !this.webkitAutofill) {
+							this.animate() // animate in case of browser autocompletion (non-webkit)
+						}
+						this.value(input.value) // update the input on each change
 					}
-					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
 					"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
@@ -194,8 +202,8 @@ export class TextField {
 			return m("textarea.input-area.text-pre", {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
-					this._domInput.value = this.value()
-					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+					vnode.dom.value = this.value()
+					vnode.dom.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
@@ -204,12 +212,16 @@ export class TextField {
 					return this._keyHandler != null ? this._keyHandler(key) : true
 				},
 				oninput: e => {
-					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
-						this.animate() // animate in case of browser autocompletion
+					const input = this._domInput
+					if (input) {
+						if (this.isEmpty() && input.value !== "" && !this.active) {
+							this.animate() // animate in case of browser autocompletion
+						}
+						input.style.height = '0px'
+						input.style.height = px(input.scrollHeight)
+						this.value(input.value) // update the input on each change
 					}
-					this._domInput.style.height = '0px'
-					this._domInput.style.height = px(this._domInput.scrollHeight)
-					this.value(this._domInput.value) // update the input on each change
+
 				},
 				style: {
 					marginTop: px(inputMarginTop),
@@ -259,7 +271,9 @@ export class TextField {
 
 	blur(e: MouseEvent) {
 		if (this.skipNextBlur) {
-			this._domInput.focus()
+			if (this._domInput) {
+				this._domInput.focus()
+			}
 		} else {
 			this._domWrapper.classList.remove("active")
 			this.animate()

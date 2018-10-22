@@ -71,12 +71,18 @@ export class PasswordForm {
 		}, [this._newPasswordField.value, this._repeatedPasswordField.value]))
 
 		this.view = () => {
-			return [
+			return m("", {
+				onremove: () => {
+					this._oldPasswordField.value("")
+					this._newPasswordField.value("")
+					this._repeatedPasswordField.value("")
+				}
+			}, [
 				(validateOldPassword) ? m(this._oldPasswordField) : null,
 				m(this._newPasswordField),
 				(passwordInfoTextId) ? m(".small.mt-s", lang.get(passwordInfoTextId)) : null,
 				(repeatPassword) ? m(this._repeatedPasswordField) : null
-			]
+			])
 		}
 	}
 

@@ -299,7 +299,7 @@ export class ContactFormRequestDialog {
 							                                     }))
 					                                     })
 					                                     .then(() => {
-						                                     return {userEmailAddress, password}
+						                                     return {userEmailAddress}
 					                                     })
 				                        })
 

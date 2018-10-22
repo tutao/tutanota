@@ -1,6 +1,5 @@
 // @flow
 import {CryptoError} from "../error/CryptoError"
-import {TutanotaError} from "../error/TutanotaError"
 
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 
@@ -153,17 +152,12 @@ export function base64UrlToBase64(base64url: Base64Url): Base64 {
  * @return The array.
  */
 export function stringToUtf8Uint8Array(string: string): Uint8Array {
-	try {
-		let utf8 = unescape(encodeURIComponent(string))
-		let uint8Array = new Uint8Array(utf8.length)
-		for (let i = 0; i < utf8.length; i++) {
-			uint8Array[i] = utf8.charCodeAt(i)
-		}
-		return uint8Array
-	} catch (e) {
-		// Added for debugging issues
-		throw new TutanotaError(`Error in stringToUtf8Uint8Array, string: ${string}`)
+	let utf8 = unescape(encodeURIComponent(string))
+	let uint8Array = new Uint8Array(utf8.length)
+	for (let i = 0; i < utf8.length; i++) {
+		uint8Array[i] = utf8.charCodeAt(i)
 	}
+	return uint8Array
 }
 
 /**

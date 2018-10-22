@@ -11,13 +11,7 @@ import {
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {
-	base64ToKey,
-	createAuthVerifier,
-	createAuthVerifierAsBase64Url,
-	keyToUint8Array,
-	uint8ArrayToKey
-} from "../crypto/CryptoUtils"
+import {base64ToKey, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
 import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
@@ -31,14 +25,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {defer, neverNull} from "../../common/utils/Utils"
-import {
-	GENERATED_ID_BYTES_LENGTH,
-	HttpMethod,
-	isSameId,
-	isSameTypeRef,
-	MediaType,
-	TypeRef
-} from "../../common/EntityFunctions"
+import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRef, MediaType, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -66,7 +53,6 @@ export class LoginFacade {
 	_user: ?User;
 	_userGroupInfo: ?GroupInfo;
 	_accessToken: ?string;
-	_authVerifierAfterNextRequest: ?Base64Url; // needed for password changes
 	groupKeys: {[key: Id]: Aes128Key};
 	_eventBusClient: EventBusClient;
 	_worker: WorkerImpl;
@@ -98,7 +84,6 @@ export class LoginFacade {
 		this._user = null
 		this._userGroupInfo = null
 		this._accessToken = null
-		this._authVerifierAfterNextRequest = null
 		this.groupKeys = {}
 		if (this._eventBusClient) {
 			this._eventBusClient.close(CloseEventBusOption.Terminate)
@@ -481,14 +466,12 @@ export class LoginFacade {
 		let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
 		let pwEncUserGroupKey = encryptKey(userPassphraseKey, this.getUserGroupKey())
 		let authVerifier = createAuthVerifier(userPassphraseKey)
-		let authVerifierBase64Url = base64ToBase64Url(uint8ArrayToBase64(authVerifier))
 
 		let service = createChangePasswordData()
 		service.oldVerifier = oldAuthVerifier
 		service.salt = salt
 		service.verifier = authVerifier
 		service.pwEncUserGroupKey = pwEncUserGroupKey
-		this._authVerifierAfterNextRequest = authVerifierBase64Url
 		return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, service)
 	}
 
