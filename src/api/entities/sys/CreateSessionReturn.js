@@ -16,7 +16,15 @@ export const _TypeModel: TypeModel = {
 		"accessToken": {"name": "accessToken", "id": 1221, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"challenges": {"name": "challenges", "id": 1222, "since": 23, "type": "AGGREGATION", "cardinality": "Any", "refType": "Challenge", "final": true},
+		"challenges": {
+			"name": "challenges",
+			"id": 1222,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "Challenge",
+			"final": true
+		},
 		"user": {
 			"name": "user",
 			"id": 1223,

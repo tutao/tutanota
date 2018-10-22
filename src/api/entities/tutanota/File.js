@@ -32,7 +32,15 @@ export const _TypeModel: TypeModel = {
 		"size": {"name": "size", "id": 22, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"subFiles": {"name": "subFiles", "id": 26, "since": 1, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Subfiles", "final": true},
+		"subFiles": {
+			"name": "subFiles",
+			"id": 26,
+			"since": 1,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Subfiles",
+			"final": true
+		},
 		"data": {
 			"name": "data",
 			"id": 24,

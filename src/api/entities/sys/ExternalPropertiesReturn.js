@@ -17,8 +17,15 @@ export const _TypeModel: TypeModel = {
 		"message": {"name": "message", "id": 665, "since": 6, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
-		"bigLogo": {"name": "bigLogo", "id": 925, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false},
-		"smallLogo": {"name": "smallLogo", "id": 924, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
+		"bigLogo": {
+			"name": "bigLogo",
+			"id": 925,
+			"since": 11,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "File",
+			"final": false
+		}, "smallLogo": {"name": "smallLogo", "id": 924, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
 	"version": "35"

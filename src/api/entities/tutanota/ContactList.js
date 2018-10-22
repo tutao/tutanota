@@ -27,7 +27,15 @@ export const _TypeModel: TypeModel = {
 		"_permissions": {"name": "_permissions", "id": 156, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"photos": {"name": "photos", "id": 856, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "PhotosRef", "final": false},
+		"photos": {
+			"name": "photos",
+			"id": 856,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "PhotosRef",
+			"final": false
+		},
 		"contacts": {
 			"name": "contacts",
 			"id": 160,

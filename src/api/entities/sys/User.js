@@ -32,7 +32,15 @@ export const _TypeModel: TypeModel = {
 		"verifier": {"name": "verifier", "id": 91, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"auth": {"name": "auth", "id": 1210, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "UserAuthentication", "final": true},
+		"auth": {
+			"name": "auth",
+			"id": 1210,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "UserAuthentication",
+			"final": true
+		},
 		"authenticatedDevices": {
 			"name": "authenticatedDevices",
 			"id": 97,

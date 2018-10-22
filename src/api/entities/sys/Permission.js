@@ -47,7 +47,15 @@ export const _TypeModel: TypeModel = {
 		"type": {"name": "type", "id": 137, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
-		"bucket": {"name": "bucket", "id": 142, "since": 1, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Bucket", "final": false},
+		"bucket": {
+			"name": "bucket",
+			"id": 142,
+			"since": 1,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Bucket",
+			"final": false
+		},
 		"group": {
 			"name": "group",
 			"id": 141,

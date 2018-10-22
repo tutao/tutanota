@@ -55,7 +55,15 @@ export const _TypeModel: TypeModel = {
 		"title": {"name": "title", "id": 850, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
 	},
 	"associations": {
-		"addresses": {"name": "addresses", "id": 82, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "ContactAddress", "final": false},
+		"addresses": {
+			"name": "addresses",
+			"id": 82,
+			"since": 1,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "ContactAddress",
+			"final": false
+		},
 		"birthday": {"name": "birthday", "id": 851, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Birthday", "final": false},
 		"mailAddresses": {
 			"name": "mailAddresses",

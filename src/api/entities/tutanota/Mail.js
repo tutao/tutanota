@@ -47,7 +47,15 @@ export const _TypeModel: TypeModel = {
 		"unread": {"name": "unread", "id": 109, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
-		"bccRecipients": {"name": "bccRecipients", "id": 114, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "MailAddress", "final": true},
+		"bccRecipients": {
+			"name": "bccRecipients",
+			"id": 114,
+			"since": 1,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "MailAddress",
+			"final": true
+		},
 		"ccRecipients": {"name": "ccRecipients", "id": 113, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "MailAddress", "final": true},
 		"replyTos": {"name": "replyTos", "id": 616, "since": 14, "type": "AGGREGATION", "cardinality": "Any", "refType": "EncryptedMailAddress", "final": true},
 		"restrictions": {
