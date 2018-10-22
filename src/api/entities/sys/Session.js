@@ -33,7 +33,15 @@ export const _TypeModel: TypeModel = {
 		"state": {"name": "state", "id": 1203, "since": 23, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"challenges": {"name": "challenges", "id": 1204, "since": 23, "type": "AGGREGATION", "cardinality": "Any", "refType": "Challenge", "final": true},
+		"challenges": {
+			"name": "challenges",
+			"id": 1204,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "Challenge",
+			"final": true
+		},
 		"user": {
 			"name": "user",
 			"id": 1205,

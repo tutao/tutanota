@@ -81,7 +81,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"bookings": {"name": "bookings", "id": 727, "since": 9, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "BookingsRef", "final": true},
+		"bookings": {
+			"name": "bookings",
+			"id": 727,
+			"since": 9,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "BookingsRef",
+			"final": true
+		},
 		"domainInfos": {"name": "domainInfos", "id": 726, "since": 9, "type": "AGGREGATION", "cardinality": "Any", "refType": "DomainInfo", "final": true},
 		"accountingInfo": {
 			"name": "accountingInfo",

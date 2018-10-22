@@ -16,8 +16,15 @@ export const _TypeModel: TypeModel = {
 		"type": {"name": "type", "id": 1189, "since": 23, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"otp": {"name": "otp", "id": 1247, "since": 24, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "OtpChallenge", "final": true},
-		"u2f": {"name": "u2f", "id": 1190, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "U2fChallenge", "final": true}
+		"otp": {
+			"name": "otp",
+			"id": 1247,
+			"since": 24,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OtpChallenge",
+			"final": true
+		}, "u2f": {"name": "u2f", "id": 1190, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "U2fChallenge", "final": true}
 	},
 	"app": "sys",
 	"version": "35"

@@ -38,7 +38,15 @@ export const _TypeModel: TypeModel = {
 		"type": {"name": "type", "id": 36, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
-		"auditLog": {"name": "auditLog", "id": 1161, "since": 22, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "AuditLogRef", "final": true},
+		"auditLog": {
+			"name": "auditLog",
+			"id": 1161,
+			"since": 22,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "AuditLogRef",
+			"final": true
+		},
 		"contactFormUserAreaGroups": {
 			"name": "contactFormUserAreaGroups",
 			"id": 1160,
