@@ -16,7 +16,7 @@ export class DropDownSelector<T> {
 
 	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>,
 	            items: {name: string, value: T}[], selectedValue: Stream<T>,
-	            dropdownWidth: ?number, icon: ?string) {
+	            dropdownWidth: ?number) {
 		this.selectedValue = selectedValue
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
@@ -31,7 +31,7 @@ export class DropDownSelector<T> {
 				return ''
 			}
 		})
-		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => icon ? icon : Icons.Edit, () => {
+		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
 			return items.map(item => new Button(() => item.name, () => {
 				if (this.selectedValue() !== item.value) {
 					if (this._changeHandler) {
