@@ -349,7 +349,7 @@ export class EventBusClient {
 			}).then(events => {
 				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(events))
 				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(events)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventReceived(events)))
+				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(events)))
 			}).then(() => {
 				if (!this._lastEntityEventIds[groupId]) {
 					this._lastEntityEventIds[groupId] = []

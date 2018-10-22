@@ -18,7 +18,7 @@ o.spec("EventBusClient test", () => {
 				} else if (cacheMock.cacheCallState == "firstFinished") {
 					cacheMock.cacheCallState = "secondEntered"
 				} else {
-					o(cacheMock.cacheCallState).equals("invalid state found entering entityEventReceived")
+					o(cacheMock.cacheCallState).equals("invalid state found entering entityEventsReceived")
 				}
 				return Promise.delay(10).then(() => {
 					//console.log("finish", cacheCallState)
@@ -27,23 +27,23 @@ o.spec("EventBusClient test", () => {
 					} else if (cacheMock.cacheCallState == "secondEntered") {
 						cacheMock.cacheCallState = "secondFinished"
 					} else {
-						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventReceived")
+						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventsReceived")
 					}
 				})
 			}
-		}:any)
+		}: any)
 		let loginMock: any = {
-			entityEventReceived: () => {
+			entityEventsReceived: () => {
 				return Promise.resolve()
 			}
 		}
 		let mailMock: any = {
-			entityEventReceived: () => {
+			entityEventsReceived: () => {
 				return Promise.resolve()
 			}
 		}
 		let workerMock: any = {
-			entityEventReceived: () => {
+			entityEventsReceived: () => {
 				return Promise.resolve()
 			}
 		}
@@ -55,7 +55,7 @@ o.spec("EventBusClient test", () => {
 
 
 		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock)
-		let e = (ebc:any)
+		let e = (ebc: any)
 		e.connect = function (reconnect: boolean) {
 		}
 	})
@@ -84,8 +84,8 @@ o.spec("EventBusClient test", () => {
 		let messageData2 = _createMessageData(2)
 
 		// call twice as if it was received in parallel
-		let p1 = ebc._message(({data: JSON.stringify(messageData1)}:any))
-		let p2 = ebc._message(({data: JSON.stringify(messageData2)}:any))
+		let p1 = ebc._message(({data: JSON.stringify(messageData1)}: any))
+		let p2 = ebc._message(({data: JSON.stringify(messageData2)}: any))
 		Promise.all([p1, p2]).then(() => {
 			// make sure the second queued event was also processed
 			o(cacheMock.cacheCallState).equals("secondFinished")
@@ -106,14 +106,16 @@ o.spec("EventBusClient test", () => {
 			chat: null,
 			entityUpdate: null,
 			exception: null,
-			eventBatch: [{
-				_id: "eventbatchid",
-				application: "tutanota",
-				type: "Mail",
-				instanceListId: "listId1",
-				instanceId: "id1",
-				operation: OperationType.UPDATE
-			}]
+			eventBatch: [
+				{
+					_id: "eventbatchid",
+					application: "tutanota",
+					type: "Mail",
+					instanceListId: "listId1",
+					instanceId: "id1",
+					operation: OperationType.UPDATE
+				}
+			]
 		}
 	}
 
