@@ -1,21 +1,14 @@
 import o from "ospec/ospec.js"
+import {hexToPrivateKey, hexToPublicKey, rsaDecryptSync, rsaEncryptSync, sign, verifySignature} from "../../../src/api/worker/crypto/Rsa"
 import {
-	rsaEncryptSync,
-	rsaDecryptSync,
-	sign,
-	verifySignature,
-	hexToPublicKey,
-	hexToPrivateKey
-} from "../../../src/api/worker/crypto/Rsa"
-import {
-	uint8ArrayToBase64,
 	base64ToUint8Array,
 	hexToUint8Array,
 	stringToUtf8Uint8Array,
-	utf8Uint8ArrayToString,
-	uint8ArrayToHex
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+	utf8Uint8ArrayToString
 } from "../../../src/api/common/utils/Encoding"
-import {aes256Encrypt, aes256Decrypt, aes128Encrypt, aes128Decrypt} from "../../../src/api/worker/crypto/Aes"
+import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt} from "../../../src/api/worker/crypto/Aes"
 import {generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
 import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
@@ -116,7 +109,7 @@ o.spec("crypto compatibility", function () {
 		})
 	})
 
-	o("StringToUint8Array compatibility test", function () {
+	o("unicodeEncoding", function () {
 		compatibilityTestData.encodingTests.forEach(td => {
 			let encoded = stringToUtf8Uint8Array(td.string)
 			o(uint8ArrayToBase64(encoded)).deepEquals(td.encodedString)
