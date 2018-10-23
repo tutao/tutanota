@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -72,9 +73,16 @@ public final class Crypto {
     public static final String HMAC_256 = "HmacSHA256";
 
     public Crypto(Context context) {
-        this.context = context;
-        this.randomizer = new SecureRandom();
+        this(context, new SecureRandom());
     }
+
+    @VisibleForTesting
+    protected Crypto(Context context, SecureRandom randomizer) {
+        this.context = context;
+        this.randomizer = randomizer;
+    }
+
+
 
 
     protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchProviderException, NoSuchAlgorithmException {
@@ -134,18 +142,18 @@ public final class Crypto {
     /**
      * Encrypts an aes key with RSA to a byte array.
      */
-    String rsaEncrypt(JSONObject publicKeyJson, byte[] key, byte[] random) throws JSONException, NoSuchAlgorithmException,
+    String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws JSONException, NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         PublicKey publicKey = jsonToPublicKey(publicKeyJson);
         this.randomizer.setSeed(random);
-        byte[] encrypted = rsaEncrypt(key, publicKey, this.randomizer);
+        byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
         return Utils.bytesToBase64(encrypted);
     }
 
-    private byte[] rsaEncrypt(byte[] key, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM, PROVIDER);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey, randomizer);
-        return cipher.doFinal(key);
+        return cipher.doFinal(data);
     }
 
     /**
