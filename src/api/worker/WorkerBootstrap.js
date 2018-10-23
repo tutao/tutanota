@@ -1,4 +1,9 @@
-importScripts('../../../libs/polyfill.js', '../../../libs/bluebird.min.js', '../../../libs/system.src.js')
+importScripts('../../../libs/polyfill.js', '../../../libs/bluebird.js', '../../../libs/system.src.js')
+
+Promise.config({
+	longStackTraces: false,
+	warnings: false
+})
 
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
@@ -23,7 +28,7 @@ self.onmessage = function (msg) {
 				      const indexedDbSupported = data.args[2]
 				      const browserData = data.args[3]
 				      if (initialRandomizerEntropy == null || indexedDbSupported == null || browserData == null) {
-				      	throw new Error("Invalid Worker arguments")
+					      throw new Error("Invalid Worker arguments")
 				      }
 				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null,
 					      indexedDbSupported, browserData)

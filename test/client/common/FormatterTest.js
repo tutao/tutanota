@@ -1,18 +1,18 @@
 // @flow
 import o from "ospec/ospec.js"
-import {languages, lang} from "../../../src/misc/LanguageViewModel"
+import {lang, languages} from "../../../src/misc/LanguageViewModel"
 import en from "../../../src/translations/en"
 import {
 	formatDate,
-	parseDate,
-	isMailAddress,
-	getCleanedMailAddress,
-	stringToNameAndMailAddress,
-	fullNameToFirstAndLastName,
-	mailAddressToFirstAndLastName,
-	isRegularExpression,
 	formatNameAndAddress,
-	parseBirthday
+	fullNameToFirstAndLastName,
+	getCleanedMailAddress,
+	isMailAddress,
+	isRegularExpression,
+	mailAddressToFirstAndLastName,
+	parseBirthday,
+	parseDate,
+	stringToNameAndMailAddress
 } from "../../../src/misc/Formatter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
@@ -217,15 +217,15 @@ o.spec("FormatterTest", function () {
 		o(parseBirthday("a")).equals(null)
 		o(parseBirthday("1.13.1950")).equals(null)
 		o(parseBirthday("a.4.12")).equals(null)
-		o(_checkParseBirthday("1a.1.2001", 1, 1, 2001))
-		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
-		o(_checkParseBirthday("1.12.2001", 1, 12, 2001))
-		o(_checkParseBirthday("01.01.2001", 1, 1, 2001))
-		o(_checkParseBirthday("01.12.2001", 1, 12, 2001))
-		o(_checkParseBirthday("1.1.", 1, 1, null))
-		o(_checkParseBirthday("1.1.2001", 1, 1, 2001))
-		o(_checkParseBirthday("1.1.18", 1, 1, 2018))
-		o(_checkParseBirthday("1.1.19", 1, 1, 1919))
+		_checkParseBirthday("1a.1.2001", 1, 1, 2001)
+		_checkParseBirthday("1.1.2001", 1, 1, 2001)
+		_checkParseBirthday("1.12.2001", 1, 12, 2001)
+		_checkParseBirthday("01.01.2001", 1, 1, 2001)
+		_checkParseBirthday("01.12.2001", 1, 12, 2001)
+		_checkParseBirthday("1.1.", 1, 1, null)
+		_checkParseBirthday("1.1.2001", 1, 1, 2001)
+		_checkParseBirthday("1.1.18", 1, 1, 2018)
+		_checkParseBirthday("1.1.19", 1, 1, 1919)
 	}))
 
 	o("parseBirthdayUsLocale", browser(function () {
@@ -234,15 +234,15 @@ o.spec("FormatterTest", function () {
 		o(parseBirthday("a")).equals(null)
 		o(parseBirthday("13/1/1950")).equals(null)
 		o(parseBirthday("a/4/12")).equals(null)
-		o(_checkParseBirthday("1a/1/2001", 1, 1, 2001))
-		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
-		o(_checkParseBirthday("12/1/2001", 1, 12, 2001))
-		o(_checkParseBirthday("01/01/2001", 1, 1, 2001))
-		o(_checkParseBirthday("12/01/2001", 1, 12, 2001))
-		o(_checkParseBirthday("1/1", 1, 1, null))
-		o(_checkParseBirthday("1/1/2001", 1, 1, 2001))
-		o(_checkParseBirthday("1/1/18", 1, 1, 2018))
-		o(_checkParseBirthday("1/1/19", 1, 1, 1919))
+		_checkParseBirthday("1a/1/2001", 1, 1, 2001)
+		_checkParseBirthday("1/1/2001", 1, 1, 2001)
+		_checkParseBirthday("12/1/2001", 1, 12, 2001)
+		_checkParseBirthday("01/01/2001", 1, 1, 2001)
+		_checkParseBirthday("12/01/2001", 1, 12, 2001)
+		_checkParseBirthday("1/1", 1, 1, null)
+		_checkParseBirthday("1/1/2001", 1, 1, 2001)
+		_checkParseBirthday("1/1/18", 1, 1, 2018)
+		_checkParseBirthday("1/1/19", 1, 1, 1919)
 	}))
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {

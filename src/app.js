@@ -24,6 +24,11 @@ import {windowFacade} from "./misc/WindowFacade"
 assertMainOrNodeBoot()
 bootFinished()
 
+Promise.config({
+	longStackTraces: false,
+	warnings: false
+})
+
 let currentView: ?Component = null
 
 window.tutao = {

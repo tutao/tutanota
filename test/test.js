@@ -11,7 +11,6 @@ const SystemConfig = require('../buildSrc/SystemConfig.js')
 
 const builder = new Builder(path.join(__dirname, '../'), destDir)
 
-
 let promise = Promise.resolve()
 if (process.argv.indexOf("clean") !== -1) {
 	promise = builder.clean()

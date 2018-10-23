@@ -2,6 +2,11 @@ import {bootFinished} from "../../src/api/Env"
 
 window.isBrowser = true
 
+Promise.config({
+	longStackTraces: false,
+	warnings: false
+})
+
 /**
  * runs this test exclusively on browsers (not nodec)
  */
