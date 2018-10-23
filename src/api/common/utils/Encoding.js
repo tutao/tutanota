@@ -210,6 +210,13 @@ export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
 	return btoa(binary)
 }
 
+export function int8ArrayToBase64(bytes: Int8Array): Base64 {
+	// Values 0 to 127 are the same for signed and unsigned bytes
+	// and -128 to -1 are mapped to the same chars as 128 to 255.
+	let converted = new Uint8Array(bytes)
+	return uint8ArrayToBase64(converted)
+}
+
 /**
  * Converts a base64 encoded string to a Uint8Array.
  *
