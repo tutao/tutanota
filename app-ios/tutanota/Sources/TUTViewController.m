@@ -114,7 +114,7 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"init" isEqualToString:type]) {
 		[self sendResponseWithId:requestId value:@"ios"];
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
-		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] completion:sendResponseBlock];
+		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] base64Seed:arguments[2] completion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {
 		[_crypto rsaDecryptWithPrivateKey:arguments[0]
 							   base64Data:arguments[1]
@@ -264,6 +264,10 @@ typedef void(^VoidCallback)(void);
 - (nonnull NSURL *)appUrl {
 	NSString *filePath = [NSString stringWithFormat:@"%@%@", NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"], @"app"];
 	let path = [NSBundle.mainBundle pathForResource:filePath ofType:@"html"];
+	// For running tests
+	if (path == nil) {
+		return NSBundle.mainBundle.resourceURL;
+	}
 	return [NSURL fileURLWithPath:path];
 }
 

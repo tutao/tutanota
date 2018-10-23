@@ -10,6 +10,10 @@
 #import "TUTAes128Facade.h"
 #import "TUTEncodingConverter.h"
 #import <Foundation/Foundation.h>
+#import "TUTCrypto.h"
+#import "Swiftier.h"
+#import <openssl/bn.h>
+#import <openssl/ossl_typ.h>
 
 @interface CompatibilityTest : XCTestCase
 
@@ -32,60 +36,40 @@
 	}
 }
 
-- (void)tearDown {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
-    [super tearDown];
+- (void) testBignumToB64 {
+	BIGNUM *number = BN_new();
+	BN_dec2bn(&number, "1");
+	NSString *b64Number = [TUTCrypto toB64:number];
+	BIGNUM *convertedNumber = BN_new();
+	[TUTCrypto toBIGNUM:convertedNumber fromB64:b64Number];
+	XCTAssertEqual(0, BN_cmp(number, convertedNumber));
 }
 
-
-- (void)rsaEncryption {
-/*
+- (void)testRsaEncryption {
 	NSArray *testsCases = self.testData[@"rsaEncryptionTests"];
-	
-	for	(NSDictionary *testCase in testsCases ){
-		
-			BCRSAPrivateCrtKey privateKey = RsaFacade.hexToPrivateKey(td[@"PrivateKey());
-            RSAPublicKey publicKey = RsaFacade.hexToPublicKey(td[@"PublicKey());
+	let crypto = [TUTCrypto new];
+	NSMutableArray<XCTestExpectation *> *expectations = [NSMutableArray new];
+	for	(NSDictionary *testCase in testsCases ) {
+		XCTestExpectation *expectation = [self expectationWithDescription:[NSString stringWithFormat:@"Testing %@", testCase]];
+		[expectations addObject:expectation];
 
-            RsaFacadeImpl rsa = new RsaFacadeImpl(stubRandom(td[@"Seed()));
-
-            byte[] unencryptedInput = EncodingConverter.hexToBytes(td[@"Input());
-            byte[] encryptedKey = rsa.encryptAesKey(publicKey, unencryptedInput.length == 16 ? AesFacade.bytesToKey(unencryptedInput) : Aes256GcmFacade.bytesToKey(unencryptedInput));
-            XCTAssertEquals(td[@"Result(), EncodingConverter.bytesToHex(encryptedKey));
-            XCTAssertEquals(td[@"Input(), EncodingConverter.bytesToHex(AesFacade.keyToBytes(RsaFacade.decryptAesKey(privateKey, encryptedKey))));
-
+		let publicKey = [CompatibilityTest hexToPublicKey: testCase[@"publicKey"]];
+		let plainTextB64 = [self hexToB64:testCase[@"input"]];
+		let seed = [self hexToB64:testCase[@"seed"]];
+		[crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seed
+							 completion:^(NSString * _Nullable encryptedBase64, NSError * _Nullable error) {
+								 // Cannot compare encrypted data because random number generation differs, should be okay if decrypted is the same
+								 let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
+								 [crypto rsaDecryptWithPrivateKey:privateKey base64Data:encryptedBase64
+													   completion:^(NSString * _Nullable decryptedBase64, NSError * _Nullable error) {
+														   XCTAssertEqualObjects(decryptedBase64, plainTextB64);
+														   [expectation fulfill];
+													   }];
+							 }];
 	}
-	*/
-   }
 
-
-- (void)rsaSignature {
-/*
-        for (SignatureTestData td : CompatibilityTest.testData.getRsaSignatureTests()) {
-            BCRSAPrivateCrtKey privateKey = RsaFacade.hexToPrivateKey(td[@"PrivateKey());
-            RSAPublicKey publicKey = RsaFacade.hexToPublicKey(td[@"PublicKey());
-
-            RsaFacadeImpl rsa = new RsaFacadeImpl(stubRandom(td[@"Seed()));
-
-            byte[] signature = rsa.sign(privateKey, EncodingConverter.hexToBytes(td[@"Input()));
-            XCTAssertEquals(td[@"Result(), EncodingConverter.bytesToHex(signature));
-            RsaFacade.verifySignature(publicKey, EncodingConverter.hexToBytes(td[@"Input()), signature);
-        }
-		*/
-    }
-
-- (void)aes256{
-/*
-        for (AesTestData td : CompatibilityTest.testData.getAes256Tests()) {
-            SecretKeySpec key = Aes256GcmFacade.bytesToKey(EncodingConverter.hexToBytes(td[@"HexKey()));
-            byte[] encryptedBytes = Aes256GcmFacade.encryptWithIv(key, EncodingConverter.base64ToBytes(td[@"PlainTextBase64()), EncodingConverter.base64ToBytes(td[@"IvBase64()), true);
-            XCTAssertEquals(td[@"CipherTextBase64(), EncodingConverter.bytesToBase64(encryptedBytes));
-            byte[] decryptedBytes = Aes256GcmFacade.decryptBytes(key, encryptedBytes);
-            XCTAssertEquals(td[@"PlainTextBase64(), EncodingConverter.bytesToBase64(decryptedBytes));
-        }
-*/
-    }
-
+	[self waitForExpectations:expectations timeout:10000];
+}
 
 - (void)testAes128{
 	TUTAes128Facade *aesFacade = [[TUTAes128Facade alloc]init];
@@ -131,14 +115,14 @@
 }
 
 - (void)testUnicodeEncoding {
-        for (NSDictionary *td in self.testData[@"encodingTests"]) {
-            NSData *encoded = [TUTEncodingConverter stringToBytes:td[@"string"]];
-			XCTAssertEqualObjects([TUTEncodingConverter base64ToBytes:td[@"encodedString"]], encoded);
-			XCTAssertEqualObjects([TUTEncodingConverter bytesToBase64:encoded], td[@"encodedString"]);
-            NSString *decoded = [TUTEncodingConverter bytesToString:encoded];
-            XCTAssertEqualObjects(decoded, td[@"string"]);
-			return;
-        }
+	for (NSDictionary *td in self.testData[@"encodingTests"]) {
+		NSData *encoded = [TUTEncodingConverter stringToBytes:td[@"string"]];
+		XCTAssertEqualObjects([TUTEncodingConverter base64ToBytes:td[@"encodedString"]], encoded);
+		XCTAssertEqualObjects([TUTEncodingConverter bytesToBase64:encoded], td[@"encodedString"]);
+		NSString *decoded = [TUTEncodingConverter bytesToString:encoded];
+		XCTAssertEqualObjects(decoded, td[@"string"]);
+		return;
+	}
 }
 
 - (void)testEncodingSimple {
@@ -188,48 +172,49 @@
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:hexData]);
 }
 
++ (NSArray<NSString *>*) hexToKeyArray:(NSString*) hexKey {
+		let key = [NSMutableArray new];
+		var pos = 0;
+		while (pos < hexKey.length) {
+			let nextParamLenHex = [hexKey substringWithRange:NSMakeRange(pos, 4)];
+			unsigned nextParamLen = 0;
+			[[NSScanner scannerWithString:nextParamLenHex]scanHexInt:&nextParamLen];
+			pos += 4;
+			let nextParamValueHex = [hexKey substringWithRange:NSMakeRange(pos, nextParamLen)];
+			//let nextParamValue = [TUTEncodingConverter bytesToBase64: [TUTEncodingConverter hexToBytes:nextParamValueHex]];
+			var nextParamValue = BN_new();
+			BN_hex2bn(&nextParamValue, nextParamValueHex.UTF8String);
+			[key addObject:[TUTCrypto toB64:nextParamValue]];
+			pos += nextParamLen;
+		}
+		//_validateKeyLength(key)
+		return key;
 
-- (void)testEncodingComplex {
-	NSData *data = [TUTEncodingConverter stringToBytes:@""];
-	NSData* b64Data = [TUTEncodingConverter base64ToBytes:@""];
-	NSData* hexData = [TUTEncodingConverter hexToBytes:@""];
-	
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:b64Data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:hexData]);
-	
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:b64Data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:hexData]);
-
-
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:b64Data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:hexData]);
-	
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:data]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:hexData]);
-	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:hexData]);
 }
 
 
-- (void)bcrypt128 {
-/*
-        for (BcryptTestData td : CompatibilityTest.testData.getBcrypt128Tests()) {
-            byte[] key = AesFacade.keyToBytes(BCryptFacade.generateKeyFromPassphrase(td[@"Password(), EncodingConverter.hexToBytes(td[@"SaltHex()), AesKeyLength.Aes128));
-            assertArrayEquals(EncodingConverter.hexToBytes(td.keyHex), key);
-        }
-		*/
-    }
++ (NSDictionary<NSString*, NSString*>*) hexToPrivateKey:( NSString*) hexKey {
+	let privateKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
+	return @{
+				 @"modulus": privateKeyArray[0],
+				 @"privateExponent":privateKeyArray[1],
+				 @"primeP":privateKeyArray[2],
+				 @"primeQ":privateKeyArray[3],
+				 @"primeExponentP":privateKeyArray[4],
+				 @"primeExponentQ":privateKeyArray[5],
+				 @"crtCoefficient":privateKeyArray[6],
+				 };
+}
 
-- (void)bcrypt256 {
-	/*
-		for (BcryptTestData td : CompatibilityTest.testData.getBcrypt256Tests()) {
-            byte[] key = AesFacade.keyToBytes(BCryptFacade.generateKeyFromPassphrase(td[@"Password(), EncodingConverter.hexToBytes(td[@"SaltHex()), AesKeyLength.Aes256));
-            assertArrayEquals(EncodingConverter.hexToBytes(td.keyHex), key);
-        }
-		*/
-    }
++ (NSDictionary<NSString*, NSString*>*) hexToPublicKey:( NSString*) hexKey {
+	let publicKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
+	return @{
+			 @"modulus":publicKeyArray[0]
+			 };
+}
 
+- (NSString*) hexToB64:(NSString *) hexString {
+	return [TUTEncodingConverter bytesToBase64:[TUTEncodingConverter hexToBytes:hexString]];
+}
 
 @end

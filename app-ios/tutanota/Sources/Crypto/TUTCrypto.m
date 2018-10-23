@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
-#import <openssl/ossl_typ.h>
 #import <openssl/md5.h>
 #import <openssl/rsa.h>
 #import <openssl/err.h>
@@ -62,6 +61,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 - (void)rsaEncryptWithPublicKey:(NSObject * _Nonnull)publicKey
 					 base64Data:(NSString * _Nonnull)base64Data
+					 base64Seed:(NSString * _Nonnull)base64Seed
 					completion:(void (^ _Nonnull)(NSString * _Nullable encryptedBase64, NSError * _Nullable error))completion {
 	//convert json data to private key;
 	RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
@@ -78,7 +78,10 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [decodedData bytes], (int) [decodedData length], NULL, 0);
 
 		NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
-		if (status >= 0){
+		if (status >= 0) {
+			// seeds the PRNG (pseudorandom number generator)
+			NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
+			RAND_seed([seed bytes], (int) [seed length]);
 			// encrypt
 			status = RSA_public_encrypt(paddingLength, [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
 		}
@@ -193,9 +196,9 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 
 
-+ (BIGNUM *)toBIGNUM:(BIGNUM *) number fromB64:(NSString*)value{
++ (void)toBIGNUM:(BIGNUM *) number fromB64:(NSString*)value{
 	NSData *valueData =  [[NSData alloc] initWithBase64EncodedString:value options: 0];
-	return BN_bin2bn((unsigned char *) [valueData bytes], (int) [valueData length], number);
+	BN_bin2bn((unsigned char *) [valueData bytes], (int) [valueData length], number);
 }
 
 + (NSString *)toB64:(BIGNUM*)number{
