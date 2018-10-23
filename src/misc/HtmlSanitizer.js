@@ -37,8 +37,10 @@ class HtmlSanitizer {
 					}
 				}
 				// set target="_blank" for all links
-				if (currentNode.tagName && (currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase()
-					=== "area")) {
+				if (currentNode.tagName && (
+					currentNode.tagName.toLowerCase() === "a"
+					|| currentNode.tagName.toLowerCase() === "area"
+					|| currentNode.tagName.toLowerCase() === "form")) {
 					currentNode.setAttribute('rel', 'noopener noreferrer')
 					currentNode.setAttribute('target', '_blank')
 				}

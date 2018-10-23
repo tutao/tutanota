@@ -130,7 +130,7 @@ o.spec("rsa", function () {
 		try {
 			rsaDecryptSync(privateKey, encrypted)
 		} catch (e) {
-			o(e instanceof CryptoError)
+			o(e instanceof CryptoError).equals(true)
 			done()
 		}
 	})
@@ -145,7 +145,7 @@ o.spec("rsa", function () {
 		try {
 			rsaDecryptSync(privateKey, concat(encrypted, stringToUtf8Uint8Array("hello")))
 		} catch (e) {
-			o(e instanceof CryptoError)
+			o(e instanceof CryptoError).equals(true)
 			done()
 		}
 	})

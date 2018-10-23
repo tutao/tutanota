@@ -1,34 +1,22 @@
 //@flow
 import o from "ospec/ospec.js"
-import {
-	aes128Encrypt,
-	aes128Decrypt,
-	aes128RandomKey,
-	IV_BYTE_LENGTH,
-	ENABLE_MAC
-} from "../../../src/api/worker/crypto/Aes"
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
+import {base64ToUint8Array, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../../src/api/common/utils/Encoding"
 import {
-	uint8ArrayToBase64,
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	utf8Uint8ArrayToString,
-	hexToUint8Array
-} from "../../../src/api/common/utils/Encoding"
-import {
-	encryptKey,
-	decryptKey,
 	decryptAndMapToInstance,
-	encryptAndMapToLiteral,
-	encryptValue,
+	decryptKey,
+	decryptRsaKey,
 	decryptValue,
-	resolveSessionKey,
+	encryptAndMapToLiteral,
+	encryptKey,
 	encryptRsaKey,
-	decryptRsaKey
+	encryptValue,
+	resolveSessionKey
 } from "../../../src/api/worker/crypto/CryptoFacade"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {Cardinality, ValueType} from "../../../src/api/common/EntityConstants"
-import {PermissionType, BucketPermissionType} from "../../../src/api/common/TutanotaConstants"
+import {BucketPermissionType, PermissionType} from "../../../src/api/common/TutanotaConstants"
 import {hexToPrivateKey, hexToPublicKey, rsaEncrypt} from "../../../src/api/worker/crypto/Rsa"
 import * as Mail from "../../../src/api/entities/tutanota/Mail"
 import {isSameTypeRef} from "../../../src/api/common/EntityFunctions"
@@ -44,7 +32,7 @@ import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress"
-import {unmockAttribute, mockAttribute} from "../TestUtils"
+import {mockAttribute, unmockAttribute} from "../TestUtils"
 import {restClient} from "../../../src/api/worker/rest/RestClient"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
@@ -418,7 +406,7 @@ o.spec("crypto facade", function () {
 			o(decrypted.replyType).equals("0")
 
 			// aggregates
-			o(isSameTypeRef(decrypted.sender._type, MailAddressTypeRef))
+			o(isSameTypeRef(decrypted.sender._type, MailAddressTypeRef)).equals(true)
 			o(decrypted.sender.name).equals(senderName)
 			o(decrypted.sender.address).equals("hello@tutao.de")
 

@@ -245,6 +245,7 @@ export const FeatureType = {
 	DisableDefaultSignature: "7"
 }
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
+export const ValueToFeatureType = reverse(FeatureType)
 
 export const BootstrapFeatureType = {
 	DisableSavePassword: "0",

@@ -316,8 +316,8 @@ export class SearchBar implements Component {
 		}
 		const toFetch = searchResult.results.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
 		return Promise.map(toFetch, r => load(searchResult.restriction.type, r)
-			.catch(NotFoundError, () => console.log("mail from search index not found", r))
-			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index", r)))
+			.catch(NotFoundError, () => console.log("mail from search index not found"))
+			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index")))
 	}
 
 	showDropdown(searchResult: SearchResult) {

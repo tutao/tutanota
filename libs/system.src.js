@@ -1,5 +1,5 @@
 /*
- * SystemJS v0.20.15 Dev
+ * SystemJS v0.20.19 Dev
  */
 (function () {
 'use strict';
@@ -170,12 +170,12 @@ function resolveIfNotPlain (relUrl, parentUrl) {
       // new segment - check if it is relative
       if (segmented[i] === '.') {
         // ../ segment
-        if (segmented[i + 1] === '.' && segmented[i + 2] === '/') {
+        if (segmented[i + 1] === '.' && (segmented[i + 2] === '/' || i + 2 === segmented.length)) {
           output.pop();
           i += 2;
         }
         // ./ segment
-        else if (segmented[i + 1] === '/') {
+        else if (segmented[i + 1] === '/' || i + 1 === segmented.length) {
           i += 1;
         }
         else {
@@ -188,9 +188,6 @@ function resolveIfNotPlain (relUrl, parentUrl) {
         if (parentIsPlain && output.length === 0)
           throwResolveError(relUrl, parentUrl);
 
-        // trailing . or .. segment
-        if (i === segmented.length)
-          output.push('');
         continue;
       }
 
@@ -1017,7 +1014,7 @@ function makeDynamicRequire (loader, key, dependencies, dependencyInstantiations
         else
           module = ensureEvaluate(loader, depLoad, depLoad.linkRecord, registry, state, seen);
 
-        return module.__useDefault || module;
+        return '__useDefault' in module ? module.__useDefault : module;
       }
     }
     throw new Error('Module ' + name + ' not declared as a System.registerDynamic dependency of ' + key);
@@ -1092,7 +1089,7 @@ function doEvaluate (loader, load, link, registry, state, seen) {
       err = dynamicExecute(link.execute, require, moduleObj.default, module);
 
       // pick up defineProperty calls to module.exports when we can
-      if (module.exports !== moduleObj.default)
+      if (module.exports !== moduleObj.__useDefault)
         moduleObj.default = moduleObj.__useDefault = module.exports;
 
       var moduleDefault = moduleObj.default;
@@ -1309,7 +1306,6 @@ function preloadScript (url) {
   }
   link.href = url;
   document.head.appendChild(link);
-  document.head.removeChild(link);
 }
 
 function workerImport (src, resolve, reject) {
@@ -1440,7 +1436,7 @@ function getMapMatch (map, name) {
 }
 
 // RegEx adjusted from https://github.com/jbrantly/yabble/blob/master/lib/yabble.js#L339
-var cjsRequireRegEx = /(?:^\uFEFF?|[^$_a-zA-Z\xA0-\uFFFF."'])require\s*\(\s*("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')\s*\)/g;
+var cjsRequireRegEx = /(?:^\uFEFF?|[^$_a-zA-Z\xA0-\uFFFF."'])require\s*\(\s*("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*'|`[^`\\]*(?:\\.[^`\\]*)*`)\s*\)/g;
 
 /*
  * Source loading
@@ -2096,7 +2092,7 @@ function applyPackageConfigSync (loader, config, pkg, pkgKey, subPath, metadata,
 
     // we then check map with the default extension adding
     if (!mapMatch) {
-      mapPath = './' + addDefaultExtension(loader, pkg, pkgKey, subPath, skipExtensions);
+      mapPath = './' + addDefaultExtension(config, pkg, pkgKey, subPath, skipExtensions);
       if (mapPath !== './' + subPath)
         mapMatch = getMapMatch(pkg.map, mapPath);
     }
@@ -2108,7 +2104,7 @@ function applyPackageConfigSync (loader, config, pkg, pkgKey, subPath, metadata,
   }
 
   // normal package resolution
-  return pkgKey + '/' + addDefaultExtension(loader, pkg, pkgKey, subPath, skipExtensions);
+  return pkgKey + '/' + addDefaultExtension(config, pkg, pkgKey, subPath, skipExtensions);
 }
 
 function validMapping (mapMatch, mapped, path) {
@@ -2131,7 +2127,7 @@ function doMapSync (loader, config, pkg, pkgKey, mapMatch, path, metadata, skipE
   if (!validMapping(mapMatch, mapped, path) || typeof mapped !== 'string')
     return;
 
-  return packageResolveSync.call(this, config, mapped + path.substr(mapMatch.length), pkgKey + '/', metadata, metadata, skipExtensions);
+  return packageResolveSync.call(loader, config, mapped + path.substr(mapMatch.length), pkgKey + '/', metadata, metadata, skipExtensions);
 }
 
 function applyPackageConfig (loader, config, pkg, pkgKey, subPath, metadata, skipExtensions) {
@@ -2155,7 +2151,7 @@ function applyPackageConfig (loader, config, pkg, pkgKey, subPath, metadata, ski
 
     // we then check map with the default extension adding
     if (!mapMatch) {
-      mapPath = './' + addDefaultExtension(loader, pkg, pkgKey, subPath, skipExtensions);
+      mapPath = './' + addDefaultExtension(config, pkg, pkgKey, subPath, skipExtensions);
       if (mapPath !== './' + subPath)
         mapMatch = getMapMatch(pkg.map, mapPath);
     }
@@ -2167,7 +2163,7 @@ function applyPackageConfig (loader, config, pkg, pkgKey, subPath, metadata, ski
       return Promise.resolve(mapped);
 
     // normal package resolution / fallback resolution for no conditional match
-    return Promise.resolve(pkgKey + '/' + addDefaultExtension(loader, pkg, pkgKey, subPath, skipExtensions));
+    return Promise.resolve(pkgKey + '/' + addDefaultExtension(config, pkg, pkgKey, subPath, skipExtensions));
   });
 }
 
@@ -3435,10 +3431,14 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
 
     readMetaSyntax(source, metadata);
 
-    if (!metadata.pluginModule || !metadata.pluginModule.translate)
+    if (!metadata.pluginModule)
       return source;
 
     metadata.pluginLoad.source = source;
+
+    if (!metadata.pluginModule.translate)
+      return source;
+
     return Promise.resolve(metadata.pluginModule.translate.call(loader, metadata.pluginLoad, metadata.traceOpts))
     .then(function (translated) {
       if (metadata.load.sourceMap) {
@@ -3642,7 +3642,7 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
 var globalName = typeof self != 'undefined' ? 'self' : 'global';
 
 // good enough ES6 module detection regex - format detections not designed to be accurate, but to handle the 99% use case
-var esmRegEx = /(^\s*|[}\);\n]\s*)(import\s*(['"]|(\*\s+as\s+)?[^"'\(\)\n;]+\s*from\s*['"]|\{)|export\s+\*\s+from\s+["']|export\s*(\{|default|function|class|var|const|let|async\s+function))/;
+var esmRegEx = /(^\s*|[}\);\n]\s*)(import\s*(['"]|(\*\s+as\s+)?(?!type)([^"'\(\)\n; ]+)\s*from\s*['"]|\{)|export\s+\*\s+from\s+["']|export\s*(\{|default|function|class|var|const|let|async\s+function))/;
 
 var leadingCommentAndMetaRegEx = /^(\s*\/\*[^\*]*(\*(?!\/)[^\*]*)*\*\/|\s*\/\/[^\n]*|\s*"[^"]+"\s*;?|\s*'[^']+'\s*;?)*\s*/;
 function detectRegisterFormat(source) {
@@ -3985,7 +3985,7 @@ SystemJSLoader$1.prototype.registerDynamic = function (key, deps, executingRequi
   return RegisterLoader$1.prototype.registerDynamic.call(this, key, deps, executingRequire, execute);
 };
 
-SystemJSLoader$1.prototype.version = "0.20.15 Dev";
+SystemJSLoader$1.prototype.version = "0.20.19 Dev";
 
 var System = new SystemJSLoader$1();
 

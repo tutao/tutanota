@@ -1,12 +1,6 @@
 // @flow
-import {
-	base64ToUint8Array,
-	hexToUint8Array,
-	uint8ArrayToHex,
-	uint8ArrayToBase64,
-	base64ToHex
-} from "../../common/utils/Encoding"
-import {concat, arrayEquals} from "../../common/utils/ArrayUtils"
+import {base64ToHex, base64ToUint8Array, hexToUint8Array, int8ArrayToBase64, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
+import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -547,23 +541,22 @@ function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	return {
 		version: 0,
 		keyLength: keyLengthInBits,
-		modulus: uint8ArrayToBase64(new Uint8Array(publicKey[0].toByteArray())),
+		modulus: int8ArrayToBase64(new Int8Array(publicKey[0].toByteArray())),
 		publicExponent: publicExponent
 	}
 }
 
 function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
-	var self = this
 	return {
 		version: 0,
 		keyLength: keyLengthInBits,
-		modulus: uint8ArrayToBase64(new Uint8Array(privateKey[0].toByteArray())),
-		privateExponent: uint8ArrayToBase64(new Uint8Array(privateKey[1].toByteArray())),
-		primeP: uint8ArrayToBase64(new Uint8Array(privateKey[2].toByteArray())),
-		primeQ: uint8ArrayToBase64(new Uint8Array(privateKey[3].toByteArray())),
-		primeExponentP: uint8ArrayToBase64(new Uint8Array(privateKey[4].toByteArray())),
-		primeExponentQ: uint8ArrayToBase64(new Uint8Array(privateKey[5].toByteArray())),
-		crtCoefficient: uint8ArrayToBase64(new Uint8Array(privateKey[6].toByteArray()))
+		modulus: int8ArrayToBase64(new Int8Array(privateKey[0].toByteArray())),
+		privateExponent: int8ArrayToBase64(new Int8Array(privateKey[1].toByteArray())),
+		primeP: int8ArrayToBase64(new Int8Array(privateKey[2].toByteArray())),
+		primeQ: int8ArrayToBase64(new Int8Array(privateKey[3].toByteArray())),
+		primeExponentP: int8ArrayToBase64(new Int8Array(privateKey[4].toByteArray())),
+		primeExponentQ: int8ArrayToBase64(new Int8Array(privateKey[5].toByteArray())),
+		crtCoefficient: int8ArrayToBase64(new Int8Array(privateKey[6].toByteArray()))
 	}
 }
 

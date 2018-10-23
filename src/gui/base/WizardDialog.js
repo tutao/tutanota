@@ -117,7 +117,7 @@ export class WizardDialog<T> {
 			this._close()
 		} else {
 			this._currentPage = currentIndex < lastIndex ? this._pages[currentIndex + 1] : this._pages[lastIndex]
-			console.log("handle page confirm new index=", currentIndex + 1, wizardData, this._currentPage)
+			console.log("handle page confirm new index=", currentIndex + 1, this._currentPage)
 			this._currentPage.updateWizardData(wizardData)
 		}
 	}

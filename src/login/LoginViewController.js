@@ -196,9 +196,9 @@ export class LoginViewController {
 					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 						if (properties.lastUpgradeReminder == null && (customerInfo.creationTime.getTime()
 							+ Const.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
-							let message = lang.get("premiumOffer_msg") + " " + lang.get("moreInfo_msg")
+							let message = lang.get("premiumOffer_msg")
 							let title = lang.get("upgradeReminderTitle_msg")
-							return Dialog.reminder(title, message, "https://tutanota.com/pricing").then(confirm => {
+							return Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
 								if (confirm) {
 									UpgradeWizard.show()
 								}

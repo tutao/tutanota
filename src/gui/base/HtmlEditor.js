@@ -109,9 +109,7 @@ export class HtmlEditor {
 					}, m("textarea.input-area.selectable", {
 						oncreate: vnode => {
 							this._domTextArea = vnode.dom
-							console.log("create textarea", this._value())
 							if (!this.isEmpty()) {
-
 								this._domTextArea.value = this._value()
 							}
 						},
