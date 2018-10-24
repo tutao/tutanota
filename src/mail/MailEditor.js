@@ -40,7 +40,6 @@ import {contains, remove, replace} from "../api/common/utils/ArrayUtils"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
@@ -66,6 +65,7 @@ import {modal} from "../gui/base/Modal"
 import type {PosRect} from "../gui/base/Dropdown"
 import {Dropdown} from "../gui/base/Dropdown"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -184,7 +184,6 @@ export class MailEditor {
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)
 			this._editor.initialized.promise.then(() => {
-				this._editor.setHTML(getEmailSignature())
 				this._mailChanged = false
 				this._editor.addChangeListener(() => this._mailChanged = true)
 			})
@@ -367,7 +366,6 @@ export class MailEditor {
 	}
 
 	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
-		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		if (addSignature) {
 			bodyText = "<br><br><br>" + bodyText
 			let signature = getEmailSignature()
@@ -399,7 +397,6 @@ export class MailEditor {
 		if (recipientMailAddress) {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
-		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), recipients, [], [], [], subject, bodyText, [])
 		return Promise.resolve()
 	}
@@ -412,8 +409,6 @@ export class MailEditor {
 		if (logins.getUserController().isInternalUser() && signature) {
 			bodyText = bodyText + signature
 		}
-
-		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), result.to, result.cc, result.bcc, [], result.subject, bodyText, [])
 		return Promise.resolve()
 	}
@@ -426,7 +421,7 @@ export class MailEditor {
 		let attachments: TutanotaFile[] = []
 
 		let p1 = load(MailBodyTypeRef, draft.body).then(body => {
-			bodyText = htmlSanitizer.sanitize(body.text, false).text
+			bodyText = body.text
 		})
 		let p2 = load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
 			conversationType = (ce.conversationType: any)

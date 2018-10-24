@@ -34,6 +34,7 @@ import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
+	getEmailSignature,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -75,8 +76,8 @@ export class MailView implements CurrentView {
 	mailHeaderInfo: string;
 	oncreate: Function;
 	onbeforeremove: Function;
-	_mailboxExpanders: { [mailGroupId: Id]: MailboxExpander }
-	_folderToUrl: { [folderId: Id]: string };
+	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
+	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
 	_actionBar: lazy<ActionBar>
 
@@ -90,14 +91,14 @@ export class MailView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden",
 				Object.keys(this._mailboxExpanders)
-					.map(mailGroupId => {
-							let expander = this._mailboxExpanders[mailGroupId]
-							return [
-								m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-								m(neverNull(expander.expanderButton).panel)
-							]
-						}
-					))
+				      .map(mailGroupId => {
+						      let expander = this._mailboxExpanders[mailGroupId]
+						      return [
+							      m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+							      m(neverNull(expander.expanderButton).panel)
+						      ]
+					      }
+				      ))
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
@@ -336,29 +337,32 @@ export class MailView implements CurrentView {
 		let folderMoreButton = this.createFolderMoreButton(mailGroupId)
 		let purgeAllButton = new Button('delete_action', () => {
 			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.selectedFolder)}))
-				.then(confirmed => {
-					if (confirmed) {
-						this._finallyDeleteAllMailsInSelectedFolder()
-					}
-				})
+			      .then(confirmed => {
+				      if (confirmed) {
+					      this._finallyDeleteAllMailsInSelectedFolder()
+				      }
+			      })
 		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
 
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
-			view: () => m(".folders", this._mailboxExpanders[mailGroupId].systemFolderButtons.map(fb =>
-				m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-					m(fb),
-					fb.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
-						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-					}) : null
-				]))
+			view: () => m(".folders", this._mailboxExpanders[mailGroupId]
+				.systemFolderButtons.map(fb =>
+					m(".folder-row.flex-space-between.plr-l"
+						+ (fb.isSelected() ? ".row-selected" : ""), [
+						m(fb),
+						fb.isSelected() && this.selectedFolder
+						&& isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
+							oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+							onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+						}) : null
+					]))
 				.concat(
 					logins.isInternalUserLoggedIn() ? [
 						m(".folder-row.flex-space-between.plr-l", [
 							m("small.b.pt-s.align-self-center.ml-negative-xs",
 								{style: {color: theme.navigation_button}},
 								lang.get("yourFolders_action")
-									.toLocaleUpperCase()),
+								    .toLocaleUpperCase()),
 							m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
 						])
 					] : []
@@ -401,7 +405,7 @@ export class MailView implements CurrentView {
 			let userGroupInfo = logins.getUserController().userGroupInfo
 			pushServiceApp.closePushNotification(
 				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
-					.concat(userGroupInfo.mailAddress || []))
+				             .concat(userGroupInfo.mailAddress || []))
 		}
 
 		if (this.isInitialized() && args.listId && this.mailList && args.listId !== this.mailList.listId) {
@@ -495,11 +499,11 @@ export class MailView implements CurrentView {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
-				.then((name) => {
-					return worker.createMailFolder(name,
-						getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
-						mailGroupId)
-				})
+			             .then((name) => {
+				             return worker.createMailFolder(name,
+					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
+					             mailGroupId)
+			             })
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -508,19 +512,19 @@ export class MailView implements CurrentView {
 			new Button('rename_action', () => {
 				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
 					getFolderName(this.selectedFolder), (name) => this._checkFolderName(name, mailGroupId))
-					.then((newName) => {
-						let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
-						return update(renamedFolder)
-					})
+				             .then((newName) => {
+					             let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
+					             return update(renamedFolder)
+				             })
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
 					{"{1}": getFolderName(this.selectedFolder)}))
-					.then(confirmed => {
-						if (confirmed) {
-							this._finallyDeleteCustomMailFolder()
-						}
-					})
+				      .then(confirmed => {
+					      if (confirmed) {
+						      this._finallyDeleteCustomMailFolder()
+					      }
+				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
 		]).setColors(ButtonColors.Nav)
 	}
@@ -528,7 +532,9 @@ export class MailView implements CurrentView {
 	_newMail() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				new MailEditor(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails)).show()
+				let editor = new MailEditor(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
+				editor.initWithTemplate(null, null, "", getEmailSignature())
+				editor.show()
 			}
 		})
 	}
