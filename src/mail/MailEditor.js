@@ -6,7 +6,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
-import type {ConversationTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
+import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
@@ -42,7 +42,7 @@ import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEnt
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {isSameId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
@@ -66,6 +66,7 @@ import type {PosRect} from "../gui/base/Dropdown"
 import {Dropdown} from "../gui/base/Dropdown"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import type {EntityEventsListener} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
@@ -265,7 +266,7 @@ export class MailEditor {
 
 		this._entityEventReceived = (updates) => {
 			for (let update of updates) {
-				this._handleEntityEvent(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+				this._handleEntityEvent(update)
 			}
 		}
 
@@ -858,10 +859,11 @@ export class MailEditor {
 		return buttons
 	}
 
-	_handleEntityEvent(typeRef: TypeRef<any>, listId: ? string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactTypeRef) && (operation === OperationType.UPDATE
-			|| operation === OperationType.DELETE)) {
-			let contactId: IdTuple = [neverNull(listId), elementId]
+	_handleEntityEvent(update: EntityUpdateData): void {
+		const {operation, instanceId, instanceListId} = update
+		if (isUpdateForTypeRef(ContactTypeRef, update)
+			&& (operation === OperationType.UPDATE || operation === OperationType.DELETE)) {
+			let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 			let allBubbleLists = [this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles]
 			allBubbleLists.forEach(bubbles => {
 				bubbles.forEach(bubble => {

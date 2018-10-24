@@ -1,16 +1,15 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, TypeRef, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull, compareGroupInfos} from "../api/common/utils/Utils"
+import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {logins} from "../api/main/LoginController"
@@ -18,18 +17,19 @@ import {GroupViewer} from "./GroupViewer"
 import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
 import {isAdministratedGroup} from "../search/SearchUtils"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
 const className = "group-list"
 
-export class GroupListView {
+export class GroupListView implements UpdatableComponent {
 	list: List<GroupInfo, GroupRow>;
 	view: Function;
 	_listId: LazyLoaded<Id>;
@@ -142,35 +142,42 @@ export class GroupListView {
 		AddGroupDialog.show()
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && this._listId.getSync() === listId) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			this.processUpdate(update)
+		}
+	}
+
+	processUpdate(update: EntityUpdateData): void {
+		const {instanceListId, instanceId, operation} = update
+		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
-				let listEntity = this.list.getEntity(elementId)
-				load(GroupInfoTypeRef, [neverNull(listId), elementId]).then(gi => {
+				let listEntity = this.list.getEntity(instanceId)
+				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController()
 					                               .getLocalAdminGroupMemberships()
 					                               .map(gm => gm.group)
 					if (listEntity) {
 						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
-							this.list.entityEventReceived(elementId, OperationType.DELETE)
+							this.list.entityEventReceived(instanceId, OperationType.DELETE)
 						} else {
-							this.list.entityEventReceived(elementId, operation)
+							this.list.entityEventReceived(instanceId, operation)
 						}
 					} else {
 						if (isAdministratedGroup(localAdminGroupIds, gi)) {
-							this.list.entityEventReceived(elementId, OperationType.CREATE)
+							this.list.entityEventReceived(instanceId, OperationType.CREATE)
 						}
 					}
 				})
 			} else {
-				this.list.entityEventReceived(elementId, operation)
+				this.list.entityEventReceived(instanceId, operation)
 			}
-		} else if (!logins.getUserController().isGlobalAdmin() && isSameTypeRef(typeRef, GroupMemberTypeRef)) {
+		} else if (!logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1]
-				=== elementId)
+				=== instanceId)
 			let newLocalAdminGroupMembership = logins.getUserController()
 			                                         .getLocalAdminGroupMemberships()
-			                                         .find(gm => gm.groupMember[1] === elementId)
+			                                         .find(gm => gm.groupMember[1] === instanceId)
 			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
 				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
 			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership

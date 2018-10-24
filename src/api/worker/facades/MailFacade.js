@@ -28,7 +28,7 @@ import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRef, stringToCustomId, TypeRef} from "../../common/EntityFunctions"
+import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {defer, downcast, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
@@ -427,7 +427,7 @@ export class MailFacade {
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		return Promise.each(data, (update) => {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
-				&& isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
+				&& isSameTypeRefByAttr(MailTypeRef, update.application, update.type)
 				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {
 				return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
 					let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)

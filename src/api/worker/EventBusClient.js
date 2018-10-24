@@ -17,7 +17,7 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
-import {CloseEventBusOption, OperationType} from "../common/TutanotaConstants"
+import {CloseEventBusOption} from "../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
@@ -196,12 +196,6 @@ export class EventBusClient {
 				}
 			})
 		})
-	}
-
-	_isCreateOperation(event: EntityUpdate, batch: EntityUpdate[]): boolean {
-		return event.operation === OperationType.CREATE
-			&& batch.find((u) =>
-				u.instanceId === event.instanceId && u.instanceListId === event.instanceListId && event.operation === OperationType.DELETE) == null
 	}
 
 	_close(event: CloseEvent) {

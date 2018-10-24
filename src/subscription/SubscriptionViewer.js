@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import type {AccountTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
+import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "../api/common/utils/Utils"
@@ -14,7 +14,7 @@ import {TextField} from "../gui/base/TextField"
 import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, HttpMethod, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {createNotAvailableForFreeButton, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -39,12 +39,14 @@ import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
 
-export class SubscriptionViewer {
+export class SubscriptionViewer implements UpdatableComponent {
 
 	view: Function;
 	_subscriptionField: TextField;
@@ -79,11 +81,12 @@ export class SubscriptionViewer {
 			}
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
-		this._subscriptionField._injectionsRight = () => (logins.getUserController()
-			.isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-			.isPremiumAccount()
+		this._subscriptionField._injectionsRight = () => (
+			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
+		                                                                            .isPremiumAccount()
 		&& !this._isCancelled ? [m(subscriptionAction)] : null)
-		this._usageTypeField = new TextField("businessOrPrivateUsage_label").setValue(lang.get("loading_msg"))
+		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
+			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		let usageTypeAction = new Button("businessUse_label", () => {
 			this._switchToBusinessUse()
@@ -91,7 +94,8 @@ export class SubscriptionViewer {
 		this._usageTypeField._injectionsRight = () => this._accountingInfo
 		&& !this._accountingInfo.business ? m(usageTypeAction) : null
 
-		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg")).setValue(lang.get("loading_msg"))
+		this._orderAgreementField = new TextField("orderProcessingAgreement_label", () => lang.get("orderProcessingAgreementInfo_msg"))
+			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		let signOrderAgreementAction = new Button("sign_action", () => {
 			SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo))
@@ -131,7 +135,10 @@ export class SubscriptionViewer {
 		})
 
 
-		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible ? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)}) : lang.get("price_label")).setValue(lang.get("loading_msg"))
+		this._currentPriceField = new TextField(() => this._nextPeriodPriceVisible
+			? lang.get("priceTill_label", {"{date}": formatDate(this._periodEndDate)})
+			: lang.get("price_label"))
+			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		this._nextPriceField = new TextField(() => lang.get("priceFrom_label", {
 			"{date}": formatDate(new Date(this._periodEndDate.getTime() + DAY))
@@ -148,7 +155,8 @@ export class SubscriptionViewer {
 		}, () => Icons.Edit, false)
 		this._storageField._injectionsRight = () => m(changeStorageCapacityButton)
 
-		this._emailAliasField = new TextField("mailAddressAliases_label").setValue(lang.get("loading_msg"))
+		this._emailAliasField = new TextField("mailAddressAliases_label")
+			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		const changeEmailAliasPackageButton = createNotAvailableForFreeButton("emailAlias_label", () => {
 			EmailAliasOptionsDialog.show()
@@ -404,18 +412,25 @@ export class SubscriptionViewer {
 		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) !== 0
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
-			load(AccountingInfoTypeRef, elementId).then(accountingInfo => this._updateAccountInfoData(accountingInfo))
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			this.processUpdate(update)
+		}
+	}
+
+	processUpdate(update: EntityUpdateData): void {
+		const {instanceId} = update
+		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+			load(AccountingInfoTypeRef, instanceId).then(accountingInfo => this._updateAccountInfoData(accountingInfo))
 			this._updatePriceInfo()
-		} else if (isSameTypeRef(typeRef, UserTypeRef)) {
+		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 			this._updateBookings()
 			this._updatePriceInfo()
-		} else if (isSameTypeRef(typeRef, BookingTypeRef)) {
+		} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 			this._updateBookings()
 			this._updatePriceInfo()
-		} else if (isSameTypeRef(typeRef, CustomerTypeRef)) {
-			load(CustomerTypeRef, elementId).then(customer => this._updateOrderProcessingAgreement(customer))
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
 		}
 	}
 }

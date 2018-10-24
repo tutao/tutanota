@@ -6,7 +6,7 @@ import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, TypeRef} from "../../common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
 import {defer, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
@@ -410,16 +410,15 @@ export class Indexer {
 			let indexUpdate = _createNewIndexUpdate(groupId)
 			indexUpdate.batchId = [groupId, batchId]
 			let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
-				let type = new TypeRef(update.application, update.type)
-				if (isSameTypeRef(type, MailTypeRef)) {
+				if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
 					neverNull(all.get(MailTypeRef)).push(update)
-				} else if (isSameTypeRef(type, ContactTypeRef)) {
+				} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
 					neverNull(all.get(ContactTypeRef)).push(update)
-				} else if (isSameTypeRef(type, GroupInfoTypeRef)) {
+				} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
 					neverNull(all.get(GroupInfoTypeRef)).push(update)
-				} else if (isSameTypeRef(type, UserTypeRef)) {
+				} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
 					neverNull(all.get(UserTypeRef)).push(update)
-				} else if (isSameTypeRef(type, WhitelabelChildTypeRef)) {
+				} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
 					neverNull(all.get(WhitelabelChildTypeRef)).push(update)
 				}
 				return all

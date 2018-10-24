@@ -25,7 +25,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {defer, neverNull} from "../../common/utils/Utils"
-import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRef, MediaType, TypeRef} from "../../common/EntityFunctions"
+import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -444,13 +444,13 @@ export class LoginFacade {
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		return Promise.each(data, (update) => {
 			if (this._user && update.operation === OperationType.UPDATE
-				&& isSameTypeRef(new TypeRef(update.application, update.type), UserTypeRef)
+				&& isSameTypeRefByAttr(UserTypeRef, update.application, update.type)
 				&& isSameId(this._user._id, update.instanceId)) {
 				return load(UserTypeRef, this._user._id).then(updatedUser => {
 					this._user = updatedUser
 				})
 			} else if (this._userGroupInfo && update.operation === OperationType.UPDATE
-				&& isSameTypeRef(new TypeRef(update.application, update.type), GroupInfoTypeRef)
+				&& isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)
 				&& isSameId(this._userGroupInfo._id, [neverNull(update.instanceListId), update.instanceId])) {
 				return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
 					this._userGroupInfo = updatedUserGroupInfo

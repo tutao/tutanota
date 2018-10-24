@@ -4,7 +4,6 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
@@ -38,6 +37,7 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
@@ -197,7 +197,7 @@ export class SearchView implements CurrentView {
 
 		locator.entityEvent.addListener((updates) => {
 			for (let update of updates) {
-				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+				this.entityEventReceived(update)
 			}
 		})
 	}
@@ -413,11 +413,13 @@ export class SearchView implements CurrentView {
 		return neverNull(SEARCH_CATEGORIES.find(c => isSameTypeRef(c.typeRef, restriction.type))).name
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, MailTypeRef) || isSameTypeRef(typeRef, ContactTypeRef)) {
-			let id = [neverNull(listId), elementId]
+	entityEventReceived<T>(update: EntityUpdateData): void {
+		if (isUpdateForTypeRef(MailTypeRef, update) || isUpdateForTypeRef(ContactTypeRef, update)) {
+			const {instanceListId, instanceId, operation} = update
+			let id = [neverNull(instanceListId), instanceId]
+			const typeRef = new TypeRef(update.application, update.type)
 			if (this._searchList.isInSearchResult(typeRef, id)) {
-				this._searchList.entityEventReceived(elementId, operation).then(() => {
+				this._searchList.entityEventReceived(instanceId, operation).then(() => {
 					// run the mail or contact update after the update on the list is finished to avoid parallel loading
 					if (operation === OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
 						load(typeRef, id).then(updatedEntity => {

@@ -64,10 +64,6 @@ export function filterMailMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(m => m.groupType === GroupType.Mail)
 }
 
-export function containsEventOfType(events: EntityUpdate[], type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
-}
-
 export function byteLength(str: ?string) {
 	if (str == null) return 0
 	// returns the byte length of an utf8 string

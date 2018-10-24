@@ -2,7 +2,7 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -12,23 +12,24 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {neverNull, getBrandingDomain} from "../api/common/utils/Utils"
+import {getBrandingDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {getDefaultContactFormLanguage, getAdministratedGroupIds} from "../contacts/ContactFormUtils"
+import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
 const className = "group-list"
 
-export class ContactFormListView {
+export class ContactFormListView implements UpdatableComponent {
 	list: List<ContactForm, ContactFormRow>;
 	view: Function;
 	_listId: LazyLoaded<Id>;
@@ -136,46 +137,53 @@ export class ContactFormListView {
 		ContactFormEditor.show(null, true, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, ContactFormTypeRef) && this._listId.isLoaded()
-			&& listId === this._listId.getLoaded()) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			this.processUpdate(update)
+		}
+	}
+
+	processUpdate(update: EntityUpdateData): void {
+		const {instanceListId, instanceId, operation} = update
+		if (isUpdateForTypeRef(ContactFormTypeRef, update) && this._listId.isLoaded()
+			&& instanceListId === this._listId.getLoaded()) {
 			if (!logins.getUserController().isGlobalAdmin()) {
-				let listEntity = this.list.getEntity(elementId)
-				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(cf => {
+				let listEntity = this.list.getEntity(instanceId)
+				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
 					return getAdministratedGroupIds().then(allAdministratedGroupIds => {
 						if (listEntity) {
 							if (allAdministratedGroupIds.indexOf(cf.targetGroup) === -1) {
-								this.list.entityEventReceived(elementId, OperationType.DELETE)
+								this.list.entityEventReceived(instanceId, OperationType.DELETE)
 							} else {
-								this.list.entityEventReceived(elementId, operation)
+								this.list.entityEventReceived(instanceId, operation)
 							}
 						} else {
 							if (allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1) {
-								this.list.entityEventReceived(elementId, OperationType.CREATE)
+								this.list.entityEventReceived(instanceId, OperationType.CREATE)
 							}
 						}
 					})
 				})
 			} else {
-				this.list.entityEventReceived(elementId, operation)
+				this.list.entityEventReceived(instanceId, operation)
 			}
 			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())
 				&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
 				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
-					neverNull(listId), elementId
+					neverNull(instanceListId), instanceId
 				])) {
-				load(ContactFormTypeRef, [neverNull(listId), elementId]).then(updatedContactForm => {
+				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
 					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm, neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 					m.redraw()
 				})
 			}
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && this._customerInfo.isLoaded()
-			&& isSameId(this._customerInfo.getLoaded()._id, [neverNull(listId), elementId])
+		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && this._customerInfo.isLoaded()
+			&& isSameId(this._customerInfo.getLoaded()._id, [neverNull(instanceListId), instanceId])
 			&& operation === OperationType.UPDATE) {
 			// a domain may have been added
 			this._customerInfo.reset()
 			this._customerInfo.getAsync()
-		} else if (isSameTypeRef(typeRef, CustomerTypeRef) && this._customerInfo.isLoaded()
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update) && this._customerInfo.isLoaded()
 			&& operation === OperationType.UPDATE) {
 			// the customer info may have been moved in case of premium upgrade/downgrade
 			this._customerInfo.reset()

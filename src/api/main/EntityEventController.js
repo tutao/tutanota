@@ -3,7 +3,7 @@ import {remove} from "../common/utils/ArrayUtils"
 import {assertMainOrNode} from "../Env"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
-import {equalsTypeRef} from "../common/EntityFunctions"
+import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -17,7 +17,7 @@ export type EntityUpdateData = {
 
 export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>) => mixed;
 
-export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => equalsTypeRef(typeRef, update.application, update.type)
+export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 
 export class EntityEventController {
 

@@ -1,7 +1,7 @@
 //@flow
 
 import {OperationType} from "../../common/TutanotaConstants"
-import {containsEventOfType} from "./IndexUtils"
+import {containsEventOfType} from "../../common/utils/Utils"
 
 export type QueuedBatch = {
 	events: EntityUpdate[], groupId: Id, batchId: Id

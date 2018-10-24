@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {neverNull} from "../api/common/utils/Utils"
+import {containsEventOfType, neverNull} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -190,13 +190,11 @@ export class MailModel {
 					})
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				if (this._getInboxIds().indexOf(update.instanceListId) !== -1) {
-					// If we don't find another operation on this email in the batch, then it should be a create operation
-					const isCreateBatch = updates.find(u =>
-						isUpdateForTypeRef(MailTypeRef, u) && u.instanceId === update.instanceId && u.operation !== OperationType.CREATE) == null
-					if (isCreateBatch) {
-						this._showNotification(update)
-					}
+				const folder = this.getMailFolder(update.instanceListId)
+				if (folder && folder.folderType === MailFolderType.INBOX
+					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
+					// If we don't find another delete operation on this email in the batch, then it should be a create operation
+					this._showNotification(update)
 				}
 			}
 		}
@@ -205,24 +203,11 @@ export class MailModel {
 	_showNotification(update: EntityUpdateData) {
 		this._notifications.showNotification(lang.get("newMails_msg"), {
 			onclick: () => {
-				m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+				// TODO: handle the case where the mail has been moved to a different folder
+				//m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
 				window.focus()
 			}
 		})
-	}
-
-	_getInboxIds(): Array<Id> {
-		return this
-			.mailboxDetails()
-			.map(m => {
-				const inbox = m.folders.find(f => f.folderType === MailFolderType.INBOX)
-				if (inbox) {
-					return inbox.mails
-				} else {
-					return null
-				}
-			})
-			.filter(Boolean) // this tells flow that result is non-null
 	}
 }
 

@@ -12,15 +12,10 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {InvoiceTypeRef} from "../api/entities/sys/Invoice"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {
-	createNotAvailableForFreeButton,
-	getInvoiceStatusText,
-	getPaymentMethodInfoText,
-	getPaymentMethodName
-} from "./PriceUtils"
+import {createNotAvailableForFreeButton, getInvoiceStatusText, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {HttpMethod, isSameId, isSameTypeRef, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {HttpMethod, isSameId, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
@@ -38,11 +33,12 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class PaymentViewer {
+export class PaymentViewer implements UpdatableComponent {
 	_invoiceAddressField: HtmlEditor;
 	_paymentMethodField: TextField;
 	_invoiceTable: Table;
@@ -181,12 +177,19 @@ export class PaymentViewer {
 		this._invoiceExpanderButton.setShowWarning(showExpanderWarning)
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, AccountingInfoTypeRef)) {
-			load(AccountingInfoTypeRef, elementId)
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			this.processUpdate(update)
+		}
+	}
+
+	processUpdate(update: EntityUpdateData): void {
+		const {instanceListId, instanceId, operation} = update
+		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+			load(AccountingInfoTypeRef, instanceId)
 				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
-		} else if (isSameTypeRef(typeRef, InvoiceTypeRef) && operation !== OperationType.DELETE) {
-			load(InvoiceTypeRef, [neverNull(listId), elementId]).then(invoice => {
+		} else if (isUpdateForTypeRef(InvoiceTypeRef, update) && operation !== OperationType.DELETE) {
+			load(InvoiceTypeRef, [neverNull(instanceListId), instanceId]).then(invoice => {
 				if (operation === OperationType.UPDATE) {
 					findAndRemove(this._invoices, (element) => isSameId(element._id, invoice._id))
 				}
@@ -265,6 +268,6 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
 
 		dialog.setCloseHandler(cancelAction)
-			.show()
+		      .show()
 	})
 }

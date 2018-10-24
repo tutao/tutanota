@@ -1,5 +1,5 @@
 // @flow
-import type {GroupTypeEnum} from "../TutanotaConstants"
+import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
 export function defer<T>(): {resolve: (T) => void, reject: (Error) => void, promise: Promise<T>} {
@@ -177,3 +177,7 @@ export function identity<T>(t: T): T {
  * Function which does nothing.
  */
 export function noOp() {}
+
+export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
+	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
+}

@@ -54,12 +54,12 @@ export class TypeRef<T> {
 	}
 }
 
-export function equalsTypeRef(typeRef: TypeRef<any>, app: string, type: string): boolean {
+export function isSameTypeRefByAttr(typeRef: TypeRef<any>, app: string, type: string): boolean {
 	return typeRef.app === app && typeRef.type === type
 }
 
 export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
-	return equalsTypeRef(typeRef1, typeRef2.app, typeRef2.type)
+	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.type)
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {

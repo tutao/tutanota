@@ -9,12 +9,12 @@ import {CreditCardInput} from "./CreditCardInput"
 import MessageBox from "../gui/base/MessageBox"
 import {PayPalLogo} from "../gui/base/icons/Icons"
 import {load} from "../api/main/Entity"
-import {equalsTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -43,7 +43,7 @@ export class PaymentMethodInput {
 
 		const accountingInfoListener = (updates) => {
 			for (let update of updates) {
-				if (equalsTypeRef(AccountingInfoTypeRef, update.application, update.type)) {
+				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 					load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
 						this._accountingInfo = accountingInfo
 						m.redraw()

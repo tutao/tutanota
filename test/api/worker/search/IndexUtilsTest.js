@@ -3,7 +3,6 @@ import o from "ospec/ospec.js"
 import {
 	_createNewIndexUpdate,
 	byteLength,
-	containsEventOfType,
 	decryptSearchIndexEntry,
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
@@ -26,6 +25,7 @@ import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembe
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
