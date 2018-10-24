@@ -11,7 +11,7 @@ class HtmlSanitizer {
 
 	_blockExternalContent: boolean
 	_externalContent: string[]
-	purifier: DOMPurify
+	purifier: IDOMPurify
 
 	constructor() {
 		this._blockExternalContent = false
@@ -56,19 +56,34 @@ class HtmlSanitizer {
 	 * @param  blockExternalContent True if external content should be blocked
 	 */
 	sanitize(html: string, blockExternalContent: boolean): SanitizeResult {
+		const config = this._prepareSanitize(html, blockExternalContent)
 
+		let cleanHtml = this.purifier.sanitize(html, config)
+		return {"text": cleanHtml, "externalContent": this._externalContent}
+	}
+
+	/**
+	 * Sanitizes given HTML. Returns DocumentFragment instead of string.
+	 * @param html {string} HTML to sanitize
+	 * @param blockExternalContent
+	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
+	 */
+	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>} {
+		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
+			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
+		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent}
+	}
+
+	_prepareSanitize(html: string, blockExternalContent: boolean): SanitizeConfigBase {
 		// must be set for use in dompurify hook
 		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
 
-		// clean html contains only local references to non existing resources now (images and links)
-		//var cleanHtml = html_sanitize(html, this._urlTransformer, this._nameIdClassTransformer);
-		let cleanHtml = this.purifier.sanitize(html, {
+		return {
 			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
 			ADD_URI_SAFE_ATTR: ['poster'], // for video element
 			FORBID_TAGS: ['style'] // prevent loading of external fonts
-		});
-		return {"text": cleanHtml, "externalContent": this._externalContent};
+		}
 	}
 
 	_preventExternalImageLoading(htmlNode) {

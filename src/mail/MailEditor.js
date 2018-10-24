@@ -82,7 +82,7 @@ export class MailEditor {
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
 	_confidentialButtonState: boolean;
-	editor: Editor;
+	_editor: Editor;
 	_tempBody: ?string; // only defined till the editor is initialized
 	view: Function;
 	_domElement: HTMLElement;
@@ -179,20 +179,20 @@ export class MailEditor {
 			.setMiddle(() => lang.get(this._conversationTypeToTitleTextId()))
 			.addRight(new Button('send_action', () => this.send()).setType(ButtonType.Primary))
 
-		this.editor = new Editor(200)
+		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)
-			this.editor.initialized.promise.then(() => {
-				this.editor.squire.setHTML(getEmailSignature())
+			this._editor.initialized.promise.then(() => {
+				this._editor.setHTML(getEmailSignature())
 				this._mailChanged = false
-				this.editor.addChangeListener(() => this._mailChanged = true)
+				this._editor.addChangeListener(() => this._mailChanged = true)
 			})
 		} else {
 			this.toRecipients.textField.setDisabled()
-			this.editor.initialized.promise.then(() => {
+			this._editor.initialized.promise.then(() => {
 				this._mailChanged = false
-				this.editor.addChangeListener(() => this._mailChanged = true)
+				this._editor.addChangeListener(() => this._mailChanged = true)
 			})
 		}
 
@@ -217,7 +217,7 @@ export class MailEditor {
 				oncreate: vnode => this._domElement = vnode.dom,
 				onclick: (e) => {
 					if (e.target === this._domElement) {
-						this.editor.squire.focus()
+						this._editor.focus()
 					}
 				},
 				ondragover: (ev) => {
@@ -258,7 +258,7 @@ export class MailEditor {
 						m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
 					]),
 				this._attachmentButtons.length > 0 ? m("hr.hr") : null,
-				m(".pt-l.text.scroll-x", {onclick: () => this.editor.squire.focus()}, m(this.editor)),
+				m(".pt-l.text.scroll-x", {onclick: () => this._editor.focus()}, m(this._editor)),
 				m(".pb")
 			])
 		}
@@ -316,8 +316,8 @@ export class MailEditor {
 	}
 
 	_focusBodyOnLoad() {
-		this.editor.initialized.promise.then(() => {
-			this.editor.squire.focus()
+		this._editor.initialized.promise.then(() => {
+			this._editor.focus()
 		})
 	}
 
@@ -470,9 +470,9 @@ export class MailEditor {
 		this._attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
-		this.editor.initialized.promise.then(() => {
-			if (this.editor.squire.getHTML() !== body) {
-				this.editor.squire.setHTML(this._tempBody)
+		this._editor.initialized.promise.then(() => {
+			if (this._editor.getHTML() !== body) {
+				this._editor.setHTML(this._tempBody)
 				this._mailChanged = false
 			}
 			this._tempBody = null
@@ -588,7 +588,7 @@ export class MailEditor {
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
 		let promise = null
-		const body = this._tempBody ? this._tempBody : this.editor.squire.getHTML()
+		const body = this._tempBody ? this._tempBody : this._editor.getHTML()
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)
