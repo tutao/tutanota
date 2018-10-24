@@ -188,7 +188,7 @@ export class ContactFormEditor {
 					}
 
 					Dialog.showActionDialog({
-						title: lang.get("addLanguage_label"),
+						title: lang.get("addLanguage_action"),
 						child: {view: () => m(tagName)},
 						okAction: addLanguageOkAction
 					})

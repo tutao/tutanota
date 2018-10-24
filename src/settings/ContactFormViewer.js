@@ -203,7 +203,7 @@ export function getContactFormUrl(domain: string, path: string): string {
 	let pathPrefix = ""
 	if (location.pathname.indexOf("client/build") !== -1) {
 		// local
-		pathPrefix = ":9000/client/build/index"
+		pathPrefix = ":9000/client/build"
 	}
 	return "https://" + domain + pathPrefix + "/contactform/" + path
 }
