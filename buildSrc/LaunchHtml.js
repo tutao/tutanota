@@ -29,15 +29,15 @@ module.exports.renderHtml = function (scripts, env) {
 				m("meta[name=apple-mobile-web-app-capable][content=yes]"),
 				m("meta[name=mobile-web-app-capable][content=yes]"),
 				m("meta[name=referrer][content=no-referrer]"),
+				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
 				scripts.map(script => m(`script[src=${script}][defer]`)),
 				m.trust("<!-- TutanotaTags -->"), // everything from here to </head> is replaced at runtime for custom domains with defined metaTags
 				m("title", "Tutanota"),
 				m("meta[name=description][content=Secure email for everyone: Get your encrypted mailbox for free. Now you can show the online spies that you won&#39;t make it easy for them.]"),
-				m("link [rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
+				m("link[rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
 				m("meta[name=application-name][content=Tutanota]"),
 				m("link[rel=apple-touch-icon][sizes=152x152][href=/images/logo-favicon-152.png]"),
 				m("link[rel=icon][sizes=192x192][href=/images/logo-favicon-192.png]"),
-				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
 
 				// twitter
 				m("meta[name=twitter:card][content=summary]"),
