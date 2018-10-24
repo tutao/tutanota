@@ -3,17 +3,16 @@ import m from "mithril"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../size"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
+import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
-
 export type NavButtonAttrs = {
 	label: string | lazy<string>,
-	icon: lazy<SVG>,
+	icon: lazyIcon,
 	href: string | lazy<string>,
 	isSelectedPrefix?: string,
 	click?: clickHandler,

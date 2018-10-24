@@ -5,6 +5,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../size"
 import {addFlash, removeFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
+import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
@@ -18,7 +19,7 @@ assertMainOrNodeBoot()
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
 export class NavButton {
-	icon: lazy<SVG>;
+	icon: lazyIcon;
 	href: string | lazy<string>;
 	clickHandler: ?clickHandler;
 
@@ -35,7 +36,7 @@ export class NavButton {
 	_hideLabel: boolean;
 
 
-	constructor(label: string | lazy<string>, icon: lazy<SVG>, href: string | Function, selectedPrefix: ?string) {
+	constructor(label: string | lazy<string>, icon: lazyIcon, href: string | Function, selectedPrefix: ?string) {
 		this._hideLabel = false
 		this.icon = icon
 		this.href = href
@@ -224,7 +225,7 @@ function getColors(buttonColors: NavButtonColorEnum) {
 	}
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): NavButton {
+export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: lazyIcon, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): NavButton {
 	let dropdown = new Dropdown(lazyButtons, width)
 	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
 		.setClickHandler((() => {

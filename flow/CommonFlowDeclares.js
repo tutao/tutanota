@@ -1,5 +1,6 @@
 import {TypeRef} from "../src/api/common/EntityFunctions"
 
+// FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
 declare function finder(any): boolean
 
 declare function stringValidator(string): ?string;

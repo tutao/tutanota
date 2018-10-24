@@ -25,6 +25,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import {windowFacade} from "../misc/WindowFacade"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -205,8 +206,10 @@ export class RegisterView {
 				}).setType(ButtonType.Secondary))
 				headerBar.setMiddle(() => "")
 				         .addRight(new Button('ok_action', () => dialog.close()).setType(ButtonType.Primary))
+
+				let sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
 				const dialog = Dialog.largeDialog(headerBar, {
-					view: () => m(".text-break", m.trust(terms[section + "_" + visibleLang]))
+					view: () => m(".text-break", m.trust(sanitizedTerms))
 				})
 				dialog.show()
 			})

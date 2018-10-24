@@ -12,6 +12,7 @@ import {Dialog} from "./Dialog"
 import {theme} from "../theme"
 import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
+import {Icon} from "./Icon"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -202,14 +203,14 @@ class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_calIcon(forward: boolean, attrs: VisualDatePickerAttrs) {
 		const size = px(this._elWidth(attrs))
-		return m(".icon.flex.justify-center.items-center", {
+		return m(".icon.flex.justify-center.items-center.click", {
 			onclick: forward ? this._onNextMonthSelected : this._onPrevMonthSelected,
 			style: {
 				fill: theme.content_fg,
 				width: size,
 				height: size,
 			},
-		}, m.trust(forward ? Icons.ArrowForward : BootIcons.Back))
+		}, m(Icon, {icon: forward ? Icons.ArrowForward : BootIcons.Back, style: {fill: theme.content_fg}}))
 	}
 
 	_onPrevMonthSelected = () => {
@@ -222,7 +223,7 @@ class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_dayVdom({date, day}: {date: ?Date, day: ?number}, attrs: VisualDatePickerAttrs): VirtualElement {
 		const size = px(this._elWidth(attrs))
-		return m(".center" +
+		return m(".center.click" +
 			(date && this._sameDate(date, attrs.selectedDate) ? ".date-selected" : ""), {
 			style: {
 				height: size,

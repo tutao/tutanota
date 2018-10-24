@@ -3,6 +3,7 @@ import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
@@ -60,7 +61,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 export type ButtonAttrs = {|
 	label: string | lazy<string>,
 	click: clickHandler,
-	icon?: lazy<SVG>,
+	icon?: lazyIcon,
 	type?: ButtonTypeEnum,
 	colors?: ButtonColorEnum,
 	isVisible?: lazy<boolean>,

@@ -8,9 +8,11 @@ import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import type {IconAttrs, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
+import type {AllIconsEnum} from "./Icon"
 
 assertMainOrNodeBoot()
 
@@ -75,7 +77,7 @@ export class Button {
 	_staticRightText: ?string;
 	_colors: ButtonColorEnum;
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, click: clickHandler, icon: ?lazy<SVG>) {
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
@@ -296,14 +298,14 @@ export class Button {
 	}
 }
 
-export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
+export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
                                      lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)
 }
 
-export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<SVG>,
+export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
                                           lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {

@@ -30,6 +30,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {openLinkNative} from "../native/SystemApp"
 import {copyToClipboard} from "../misc/ClipboardUtils"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -145,7 +146,7 @@ export class EditSecondFactorsForm {
 					() => Icons.Copy
 				)
 				totpSecret._injectionsRight = () => m(button)
-				let totpSvg
+				let totpQRCodeSvg
 				let authUrl
 				this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
 					if (!isApp()) {
@@ -154,7 +155,7 @@ export class EditSecondFactorsForm {
 							width: 150,
 							content: optAuthUrl
 						})
-						totpSvg = qrcodeGenerator.svg()
+						totpQRCodeSvg = htmlSanitizer.sanitize(qrcodeGenerator.svg(), false).text
 					}
 					authUrl = optAuthUrl
 				})
@@ -258,7 +259,7 @@ export class EditSecondFactorsForm {
 							m(name),
 							type.selectedValue() === SecondFactorType.totp ? m(".mb", [
 								m(totpSecret),
-								isApp() ? m(".pt", m(openTOTPApp)) : m(".flex-center", m.trust(totpSvg)),
+								isApp() ? m(".pt", m(openTOTPApp)) : m(".flex-center", m.trust(totpQRCodeSvg)), // sanitized above
 								m(totpCode)
 							]) : null,
 							m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),

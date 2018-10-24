@@ -8,6 +8,7 @@ import {ButtonN, createDropDown} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import type Stream from "mithril/stream/stream.js"
 import stream from "mithril/stream/stream.js"
+import type {AllIconsEnum} from "./Icon"
 
 assertMainOrNode()
 
@@ -22,7 +23,7 @@ export type DropDownSelectorAttrs<T> = {
 	selectionChangedHandler?: handler<T>,
 	helpLabel?: lazy<string>,
 	dropdownWidth?: number,
-	icon?: SVG,
+	icon?: AllIconsEnum,
 }
 
 class _DropDownSelector<T> {

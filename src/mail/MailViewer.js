@@ -4,14 +4,7 @@ import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {
-	formatDateTime,
-	formatDateWithWeekday,
-	formatStorageSize,
-	formatTime,
-	getDomainWithoutSubdomains,
-	urlEncodeHtmlTags
-} from "../misc/Formatter"
+import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -235,8 +228,8 @@ export class MailViewer {
 				}
 				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
 					() => Icons.Download).setType(ButtonType.Dropdown)
-					.setIsVisibleHandler(() => env.mode !== Mode.App
-						&& !logins.isEnabled(FeatureType.DisableMailExport)))
+				                         .setIsVisibleHandler(() => env.mode !== Mode.App
+					                         && !logins.isEnabled(FeatureType.DisableMailExport)))
 				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
@@ -289,14 +282,14 @@ export class MailViewer {
 		} else {
 			this._loadingAttachments = true
 			Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-				.then(files => {
-					this._attachments = files
-					this._attachmentButtons = this._createAttachmentsButtons(files)
-					this._loadingAttachments = false
-					m.redraw()
-				})
-				.catch(NotFoundError, e =>
-					console.log("could load attachments as they have been moved/deleted already", e))
+			       .then(files => {
+				       this._attachments = files
+				       this._attachmentButtons = this._createAttachmentsButtons(files)
+				       this._loadingAttachments = false
+				       m.redraw()
+			       })
+			       .catch(NotFoundError, e =>
+				       console.log("could load attachments as they have been moved/deleted already", e))
 		}
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
@@ -353,7 +346,7 @@ export class MailViewer {
 							progressIcon(),
 							m("small", lang.get("loading_msg"))
 						]) : ((this._errorOccurred || this.mail._errors
-							|| neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody)))
+							|| neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody))) // this._htmlBody is always sanitized
 					]
 				)
 			]
@@ -423,10 +416,10 @@ export class MailViewer {
 				}
 				if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount()
 					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim()
-						.toLowerCase(), defaultInboxRuleField)) {
+					                                                    .toLowerCase(), defaultInboxRuleField)) {
 					buttons.push(new Button("addInboxRule_action", () => {
 						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim()
-							.toLowerCase())
+						                                                                                                         .toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn()) {
@@ -498,9 +491,9 @@ export class MailViewer {
 				}
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 				return editor.initAsResponse(this.mail, ConversationType.REPLY, this._getSenderOfResponseMail(), toRecipients, ccRecipients, bccRecipients, [], subject, body, [], true)
-					.then(() => {
-						editor.show()
-					})
+				             .then(() => {
+					             editor.show()
+				             })
 			}
 		})
 	}
@@ -520,12 +513,12 @@ export class MailViewer {
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 		if (this.mail.toRecipients.length > 0) {
 			infoLine += lang.get("to_label") + ": " + this.mail.toRecipients.map(recipient => recipient.address)
-				.join(", ")
+			                                              .join(", ")
 			infoLine += "<br>";
 		}
 		if (this.mail.ccRecipients.length > 0) {
 			infoLine += lang.get("cc_label") + ": " + this.mail.ccRecipients.map(recipient => recipient.address)
-				.join(", ")
+			                                              .join(", ")
 			infoLine += "<br>";
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
@@ -599,9 +592,9 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-						.then(() => {
-							mailEditor.show()
-						})
+					          .then(() => {
+						          mailEditor.show()
+					          })
 				}
 			}
 		}

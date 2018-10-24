@@ -198,10 +198,3 @@ export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
 	attrs: Attrs,
 	dom: HTMLElement,
 }
-
-type IconAttrs = {
-	icon: SVG,
-	class?: string,
-	large?: boolean,
-	style?: Object,
-}

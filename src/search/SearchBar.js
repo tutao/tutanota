@@ -6,6 +6,7 @@ import {logins} from "../api/main/LoginController"
 import {inputLineHeight, px, size} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
+import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -131,7 +132,7 @@ export class SearchBar implements Component {
 							this.handleSearchClick(e)
 						}
 					}, m(Icon, {
-						icon: Icons.Search,
+						icon: BootIcons.Search,
 						class: "flex-center items-center icon-large",
 						style: {
 							fill: this.focused ? theme.header_button_selected : theme.header_button,
@@ -481,7 +482,7 @@ export class SearchBar implements Component {
 		}
 	}
 
-	_getMailFolderIcon(mail: Mail): string {
+	_getMailFolderIcon(mail: Mail): AllIconsEnum {
 		let folder = mailModel.getMailFolder(mail._id[0])
 		if (folder) {
 			return getFolderIcon(folder)()

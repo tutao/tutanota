@@ -50,8 +50,8 @@ class _LineChart {
 	_pos: [number, number];
 	_offset: [number, number];
 	_moving: boolean;
-	_viewBox: { x: number, y: number, width: number, height: number };
-	_bounds: { x: number, y: number, width: number, height: number };
+	_viewBox: {x: number, y: number, width: number, height: number};
+	_bounds: {x: number, y: number, width: number, height: number};
 	_circle: HTMLElement;
 	_attrs: LineChartAttrs;
 
@@ -217,7 +217,7 @@ class _LineChart {
 					'font-size': size.font_size_base * this._scale / this._zoom,
 					'alignment-baseline': 'middle',
 					'text-anchor': 'end'
-				}, [m.trust("&nbsp"), a.yLabel.formatLabel(a.minY + i * a.yLabel.interval), m.trust("&nbsp")]),
+				}, " " + a.yLabel.formatLabel(a.minY + i * a.yLabel.interval) + " "),
 			]
 		})
 	}
@@ -239,7 +239,7 @@ class _LineChart {
 					'font-size': size.font_size_base * this._scale / this._zoom,
 					'alignment-baseline': 'hanging',
 					'text-anchor': 'middle'
-				}, [m.trust("&nbsp"), a.xLabel.formatLabel(i * a.xLabel.interval), m.trust("&nbsp")]),
+				}, " " + a.xLabel.formatLabel(i * a.xLabel.interval) + " "),
 			] : null
 		})
 	}

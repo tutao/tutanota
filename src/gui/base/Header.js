@@ -15,7 +15,6 @@ import {assertMainOrNodeBoot, isIOSApp, Mode} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
-import {Icons} from "./icons/Icons"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 
 export const LogoutUrl = '/login?noAutoLogin=true'
@@ -48,7 +47,7 @@ class Header {
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
-		let searchViewButton = new NavButton("search_label", () => Icons.Search, "/search", "/search") // the href is just a dummy value here
+		let searchViewButton = new NavButton("search_label", () => BootIcons.Search, "/search", "/search") // the href is just a dummy value here
 			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
 			.setClickHandler(() => {
 				const route = m.route.get()
@@ -81,7 +80,7 @@ class Header {
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
 			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
-					.isPremiumAccount())
+				                                                                       .isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
@@ -202,7 +201,7 @@ class Header {
 		})
 	}
 
-	_createMailEditor():Promise<MailEditor> {
+	_createMailEditor(): Promise<MailEditor> {
 		return Promise.join(
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
@@ -263,7 +262,7 @@ class Header {
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {
-				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))]
+				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))] // the custom logo is already sanitized in theme.js
 			} else {
 				return []
 			}

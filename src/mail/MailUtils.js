@@ -5,13 +5,7 @@ import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameA
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {
-	ContactAddressType,
-	EmailSignatureType as TutanotaConstants,
-	GroupType,
-	MailFolderType,
-	MailState
-} from "../api/common/TutanotaConstants"
+import {ContactAddressType, EmailSignatureType as TutanotaConstants, GroupType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
@@ -31,6 +25,7 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
+import type {lazyIcon} from "../gui/base/Icon"
 
 assertMainOrNode()
 
@@ -91,9 +86,9 @@ export function createNewContact(mailAddress: string, name: string): Contact {
 	let contact = createContact()
 	contact._owner = logins.getUserController().user._id
 	contact._ownerGroup = neverNull(logins.getUserController()
-		.user
-		.memberships
-		.find(m => m.groupType === GroupType.Contact)).group
+	                                      .user
+	                                      .memberships
+	                                      .find(m => m.groupType === GroupType.Contact)).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 
@@ -163,7 +158,7 @@ export function getDefaultSignature() {
 }
 
 
-export function parseMailtoUrl(mailtoUrl: string): { to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string } {
+export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
 	let url = new URL(mailtoUrl)
 	let toRecipients = []
 	let ccRecipients = []
@@ -198,16 +193,16 @@ export function parseMailtoUrl(mailtoUrl: string): { to: MailAddress[], cc: Mail
 				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
 			} else if (paramName === "cc") {
 				paramValue.split(",")
-					.forEach((ccAddress) => ccAddress
-						&& ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
+				          .forEach((ccAddress) => ccAddress
+					          && ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
 			} else if (paramName === "bcc") {
 				paramValue.split(",")
-					.forEach((bccAddress) => bccAddress
-						&& bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+				          .forEach((bccAddress) => bccAddress
+					          && bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
 			} else if (paramName === "to") {
 				paramValue.split(",")
-					.forEach((toAddress) => toAddress
-						&& toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
+				          .forEach((toAddress) => toAddress
+					          && toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
 			}
 		}
 	}
@@ -244,7 +239,7 @@ export function getFolderName(folder: MailFolder) {
 	}
 }
 
-export function getFolderIconByType(folderType: MailFolderTypeEnum) {
+export function getFolderIconByType(folderType: MailFolderTypeEnum): lazyIcon {
 	switch (folderType) {
 		case '0':
 			return () => Icons.Folder
@@ -265,7 +260,7 @@ export function getFolderIconByType(folderType: MailFolderTypeEnum) {
 	}
 }
 
-export function getFolderIcon(folder: MailFolder): () => string {
+export function getFolderIcon(folder: MailFolder): lazyIcon {
 	return getFolderIconByType(folder.folderType)
 }
 

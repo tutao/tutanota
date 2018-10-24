@@ -23,7 +23,6 @@ type NumberString = string
 type Id = string
 type IdTuple = [string, string]
 type Params = {[key: string]: string}
-type SVG = string
 
 type RsaKeyPair = {
 	publicKey: PublicKey,

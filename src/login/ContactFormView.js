@@ -3,7 +3,7 @@ import m from "mithril"
 import {Button, ButtonType} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
-import {opacity, animations} from "../gui/animation/Animations"
+import {animations, opacity} from "../gui/animation/Animations"
 import {NotFoundError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
@@ -15,6 +15,7 @@ import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -29,7 +30,9 @@ export class ContactFormView {
 	_moreInformationDialog: Dialog;
 	_formId: string;
 	_loading: boolean;
-
+	_helpHtml: ?string;
+	_headerHtml: ?string;
+	_footerHtml: ?string;
 
 	constructor() {
 		this._createRequestButton = new Button('createContactRequest_action', () => {
@@ -37,16 +40,19 @@ export class ContactFormView {
 		}).setType(ButtonType.Login)
 
 		this._contactForm = null
+		this._helpHtml = null
+		this._headerHtml = null
+		this._footerHtml = null
 
 		let closeAction = () => this._moreInformationDialog.close()
 
 		let moreInfoHeaderBar = new DialogHeaderBar()
 			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
 			.setMiddle(() => lang.get("moreInformation_action"))
+
 		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBar, {
 			view: () => {
-				let language = getDefaultContactFormLanguage(neverNull(this._contactForm).languages)
-				return m(".pb", m.trust(language.helpHtml))
+				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
 			}
 		}).addShortcut({
 			key: Keys.ESC,
@@ -73,7 +79,7 @@ export class ContactFormView {
 				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
 			}, [
 				(language.pageTitle) ? m("h1.center", language.pageTitle) : null,
-				language.headerHtml ? m("", m.trust(language.headerHtml)) : null, // header
+				m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
 				m(".flex.justify-center", [
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(this._createRequestButton)),
@@ -81,7 +87,7 @@ export class ContactFormView {
 						m(".pt-l.flex-center", m(this._moreInformationButton)),
 					])
 				]),
-				m(".pt-l", m.trust(language.footerHtml)), // footer
+				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
 				m(".pb")
 			])
 		} else {
@@ -101,6 +107,11 @@ export class ContactFormView {
 				lang.setLanguage(lang.getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
+
+					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
+					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, false).text
+					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, false).text
+
 					this._loading = false
 					m.redraw()
 				})

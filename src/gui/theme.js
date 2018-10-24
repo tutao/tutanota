@@ -1,8 +1,9 @@
 // @flow
-import {Logo} from "./base/icons/Logo"
+import {Logo, LogoSvg} from "./base/icons/Logo"
 import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/Env"
+import DOMPurify from "dompurify"
 
 assertMainOrNodeBoot()
 
@@ -43,9 +44,12 @@ export type Theme = {
 	navigation_button_icon_selected: string,
 }
 
-let customTheme: ?Theme = typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations
-&& whitelabelCustomizations.theme ? whitelabelCustomizations.theme : null
 export const themeId: Stream<ThemeId> = stream(getThemeId())
+let customTheme: ?Theme = null
+if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
+	updateCustomTheme(whitelabelCustomizations.theme)
+}
+
 export var theme: Theme = getTheme()
 export var defaultTheme: Theme = getLightTheme()
 
@@ -54,14 +58,10 @@ themeId.map(() => {
 })
 
 function getThemeId(): ThemeId {
-	if (customTheme && Object.keys(customTheme).length > 0) {
-		return 'custom'
+	if (deviceConfig.getTheme()) {
+		return deviceConfig.getTheme()
 	} else {
-		if (deviceConfig.getTheme()) {
-			return deviceConfig.getTheme()
-		} else {
-			return 'light'
-		}
+		return 'light'
 	}
 }
 
@@ -76,7 +76,10 @@ function getTheme(): Theme {
 	}
 }
 
-export function updateCustomTheme(updatedTheme: ?Object) {
+export function updateCustomTheme(updatedTheme: Object) {
+	if (updatedTheme.logo) {
+		updatedTheme.logo = DOMPurify.sanitize(updatedTheme.logo)
+	}
 	customTheme = Object.assign({}, defaultTheme, updatedTheme)
 	themeId('custom')
 }
@@ -96,7 +99,7 @@ function getLightTheme() {
 	const red = '#840010'
 
 	return {
-		logo: Logo.Red,
+		logo: LogoSvg[Logo.Red],
 
 
 		button_bubble_bg: grey_lighter,
@@ -149,7 +152,7 @@ function getDarkTheme(): Theme {
 	const cyan = '#76cbda'
 
 	return {
-		logo: Logo.Cyan,
+		logo: LogoSvg[Logo.Cyan],
 
 
 		button_bubble_bg: dark_lightest,
