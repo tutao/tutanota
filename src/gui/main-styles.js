@@ -814,7 +814,7 @@ styles.registerStyle('main', () => {
 			background: theme.content_accent,
 			color: theme.content_button_icon,
 		},
-		
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},
@@ -831,7 +831,10 @@ styles.registerStyle('main', () => {
 			'.header-logo': {
 				height: px(size.header_logo_height_mobile),
 			},
-			'.header-logo > svg': {height: px(size.header_logo_height_mobile)},
+			'.header-logo > svg': {
+				height: px(size.header_logo_height_mobile),
+				width: 'auto'
+			},
 
 			'.header-left': {
 				width: `${px(size.navbar_edge_width_mobile)}`
