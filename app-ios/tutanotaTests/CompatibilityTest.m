@@ -14,12 +14,34 @@
 #import "Swiftier.h"
 #import <openssl/bn.h>
 #import <openssl/ossl_typ.h>
+#include <openssl/rand.h>
+
 
 @interface CompatibilityTest : XCTestCase
 
 @property NSDictionary *testData;
 
 @end
+
+
+static unsigned char *randValueMock;
+
+// These don't need to do anything.
+static void mock_rand_cleanup() {}
+static void mock_rand_add(const void *buf, int num, double add_entropy) {}
+static int mock_rand_status() { return 1; }
+static void mock_rand_seed(const void *buf, int num){}
+
+static int mock_rand_bytes(unsigned char *buf, int num)
+{
+        for( int index = 0; index < num; ++index )
+        {
+                buf[index] = randValueMock[index];
+        }
+        return 1;
+}
+
+
 
 @implementation CompatibilityTest
 
@@ -46,6 +68,19 @@
 }
 
 - (void)testRsaEncryption {
+
+	// replace random number generator for rsa encryption
+	RAND_METHOD stdlib_rand_meth = {
+			mock_rand_seed,
+			mock_rand_bytes,
+			mock_rand_cleanup,
+			mock_rand_add,
+			mock_rand_bytes,
+			mock_rand_status
+	};
+
+	RAND_set_rand_method(&stdlib_rand_meth);
+
 	NSArray *testsCases = self.testData[@"rsaEncryptionTests"];
 	let crypto = [TUTCrypto new];
 	NSMutableArray<XCTestExpectation *> *expectations = [NSMutableArray new];
@@ -55,10 +90,15 @@
 
 		let publicKey = [CompatibilityTest hexToPublicKey: testCase[@"publicKey"]];
 		let plainTextB64 = [self hexToB64:testCase[@"input"]];
-		let seed = [self hexToB64:testCase[@"seed"]];
-		[crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seed
+		let encResultB64 = [self hexToB64:testCase[@"result"]];
+		let seedB64 = [self hexToB64:testCase[@"seed"]];
+
+		NSData *seed = [[NSData alloc] initWithBase64EncodedString:seedB64 options:0];
+		randValueMock = (unsigned char *)seed.bytes;
+
+		[crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seedB64
 							 completion:^(NSString * _Nullable encryptedBase64, NSError * _Nullable error) {
-								 // Cannot compare encrypted data because random number generation differs, should be okay if decrypted is the same
+							 	 XCTAssertEqualObjects(encryptedBase64, encResultB64);
 								 let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
 								 [crypto rsaDecryptWithPrivateKey:privateKey base64Data:encryptedBase64
 													   completion:^(NSString * _Nullable decryptedBase64, NSError * _Nullable error) {

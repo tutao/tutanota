@@ -74,14 +74,15 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
 		int paddingLength = (int) [paddingBuffer length];
 
+		// seeds the PRNG (pseudorandom number generator)
+		NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
+		RAND_seed([seed bytes], (int) [seed length]);
+
 		// add padding
 		int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [decodedData bytes], (int) [decodedData length], NULL, 0);
 
 		NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
 		if (status >= 0) {
-			// seeds the PRNG (pseudorandom number generator)
-			NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
-			RAND_seed([seed bytes], (int) [seed length]);
 			// encrypt
 			status = RSA_public_encrypt(paddingLength, [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
 		}
