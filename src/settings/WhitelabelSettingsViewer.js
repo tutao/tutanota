@@ -22,7 +22,7 @@ import {fileController} from "../file/FileController"
 import {WhitelabelConfigTypeRef} from "../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../gui/theme"
 import {updateCustomTheme} from "../gui/theme"
-import {stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
@@ -156,13 +156,13 @@ export class WhitelabelSettingsViewer {
 		this._props.getAsync().then(props => {
 			this._customerInfo.getAsync().then(customerInfo => {
 				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode)
-					.setDisabled()
+				                                                                                   .setDisabled()
 				let editButton = new Button("edit_action", () => {
 					Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value())
-						.then(newCode => {
-							props.whitelabelCode = newCode
-							update(props)
-						})
+					      .then(newCode => {
+						      props.whitelabelCode = newCode
+						      update(props)
+					      })
 				}, () => Icons.Edit)
 				this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
 
@@ -203,7 +203,7 @@ export class WhitelabelSettingsViewer {
 								return lang.get("emptyString_msg")
 							}
 						}).setValue((brandingDomainInfo) ? brandingDomainInfo.domain : lang.get("deactivated_label"))
-							.setDisabled()
+						  .setDisabled()
 						let deactivateAction = null
 						if (brandingDomainInfo) {
 							deactivateAction = new Button("deactivate_action", () => {
@@ -256,13 +256,18 @@ export class WhitelabelSettingsViewer {
 							let chooseLogoButton = new Button("edit_action", () => {
 								fileController.showFileChooser(false).then(files => {
 									let extension = files[0].name.toLowerCase()
-										.substring(files[0].name.lastIndexOf(".") + 1)
+									                        .substring(files[0].name.lastIndexOf(".") + 1)
 									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_FILE_TYPES, extension)) {
 										Dialog.error("customLogoInfo_msg")
 									} else {
-										let imageData = "<img src=\"data:image/" +
-											((extension === "jpeg") ? "jpg" : extension)
-											+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
+										let imageData = null
+										if (extension === "svg") {
+											imageData = utf8Uint8ArrayToString(files[0].data)
+										} else {
+											imageData = "<img src=\"data:image/" +
+												((extension === "jpeg") ? "jpg" : extension)
+												+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
+										}
 										neverNull(customJsonTheme).logo = imageData
 										neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
 										update(whitelabelConfig)
@@ -280,7 +285,7 @@ export class WhitelabelSettingsViewer {
 
 						let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
 						this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label"))
-							.setDisabled()
+						                                                                   .setDisabled()
 						if (customJsonTheme) {
 							let deactivateColorTheme
 							if (customColorsDefined) {
@@ -309,7 +314,7 @@ export class WhitelabelSettingsViewer {
 
 						let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
-							.setDisabled()
+						                                                                       .setDisabled()
 						if (whitelabelConfig) {
 							let editCustomMetaTagsButton = new Button("edit_action", () => {
 								let metaTags = new TextField("customMetaTags_label")
