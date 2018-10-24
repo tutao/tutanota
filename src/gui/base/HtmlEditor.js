@@ -5,6 +5,7 @@ import {Editor} from "./Editor.js"
 import {DropDownSelector} from "./DropDownSelector"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
+import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
 export const Mode = {
 	HTML: "html",
@@ -29,7 +30,7 @@ export class HtmlEditor {
 	_htmlMonospace: boolean;
 
 	constructor(labelIdOrLabelFunction: string | lazy<string>) {
-		this._editor = new Editor(null)
+		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
 		this._disabled = false
@@ -74,7 +75,7 @@ export class HtmlEditor {
 		}
 
 		this._editor.initialized.promise.then(() => {
-			this._editor.squire.setHTML(this._value())
+			this._editor.setHTML(this._value())
 			this._editor._domElement.onfocus = (e) => focus()
 			this._editor._domElement.onblur = (e) => blur()
 		})
@@ -160,8 +161,8 @@ export class HtmlEditor {
 
 	getValue(): string {
 		if (this._mode() === Mode.WYSIWYG) {
-			if (this._editor.squire) {
-				return this._editor.squire.getHTML()
+			if (this._editor.isAttached()) {
+				return this._editor.getHTML()
 			} else {
 				return this._value()
 			}
@@ -176,7 +177,7 @@ export class HtmlEditor {
 
 	setValue(html: string): HtmlEditor {
 		if (this._mode() === Mode.WYSIWYG) {
-			this._editor.initialized.promise.then(() => this._editor.squire.setHTML(html))
+			this._editor.initialized.promise.then(() => this._editor.setHTML(html))
 		} else if (this._domTextArea) {
 			this._domTextArea.value = html
 		}

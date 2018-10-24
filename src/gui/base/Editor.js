@@ -4,8 +4,10 @@ import SquireEditor from "squire-rte"
 import {defer} from "../../api/common/utils/Utils"
 import {px} from "../size"
 
+type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
+
 export class Editor {
-	squire: Squire;
+	_squire: Squire;
 	view: Function;
 	onbeforeupdate: Function;
 	onremove: Function;
@@ -14,15 +16,17 @@ export class Editor {
 	_enabled: boolean;
 	_active: boolean;
 	_minHeight: ?number;
+	_sanitizer: SanitizerFn;
 
-	constructor(minHeight: ?number) {
+	constructor(minHeight: ?number, sanitizer: SanitizerFn) {
 		this._enabled = true
 		this._active = false
 		this._minHeight = minHeight
+		this._sanitizer = sanitizer
 		this.initialized = defer()
-		this.onbeforeupdate = () => !(this.squire != null)  // do not update the dom part managed by squire
+		this.onbeforeupdate = () => !(this._squire != null)  // do not update the dom part managed by squire
 		this.onremove = () => {
-			if (this.squire) this.squire.destroy()
+			if (this._squire) this._squire.destroy()
 		}
 
 		this.view = () => {
@@ -35,15 +39,15 @@ export class Editor {
 
 
 	isEmpty(): boolean {
-		return !this.squire || this.squire.getHTML() === "<div><br></div>"
+		return !this._squire || this._squire.getHTML() === "<div><br></div>"
 	}
 
 	getValue(): string {
-		return this.isEmpty() ? "" : this.squire.getHTML()
+		return this.isEmpty() ? "" : this._squire.getHTML()
 	}
 
 	addChangeListener(callback: Function) {
-		this.squire.addEventListener("input", callback)
+		this._squire.addEventListener("input", callback)
 	}
 
 	setMinHeight(minHeight: number): Editor {
@@ -52,7 +56,7 @@ export class Editor {
 	}
 
 	initSquire(domElement: HTMLElement) {
-		let squire = new (SquireEditor: any)(domElement, {}).addEventListener('keyup', (e) => {
+		let squire = new (SquireEditor: any)(domElement, {sanitizeToDOMFragment: this._sanitizer}).addEventListener('keyup', (e) => {
 			if (e.which === 32) {
 				let blocks = []
 				squire.forEachBlock((block) => {
@@ -61,11 +65,11 @@ export class Editor {
 				createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
 				createList(blocks, /^\*\s$/, false) // create an ordered list if a line is started with '1. '
 			}
-
 		})
-		this.squire = squire
+
+		this._squire = squire
 		this._domElement = domElement
-		// the editor might have been disabled before the dom element was there
+		// the _editor might have been disabled before the dom element was there
 		this.setEnabled(this._enabled)
 		this.initialized.resolve()
 
@@ -94,5 +98,21 @@ export class Editor {
 		if (this._domElement) {
 			this._domElement.setAttribute("contenteditable", String(enabled))
 		}
+	}
+
+	setHTML(html: ?string) {
+		this._squire.setHTML(html)
+	}
+
+	getHTML(): string {
+		return this._squire.getHTML()
+	}
+
+	focus() {
+		this._squire.focus()
+	}
+
+	isAttached() {
+		return this._squire != null
 	}
 }
