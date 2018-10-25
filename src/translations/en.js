@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-10-15T13:25:34Z",
+	"updated_at": "2018-10-25T10:56:53Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -175,7 +175,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Priority support",
 		"comparisonThemePro_msg": "Custom logo and colors",
 		"comparisonUsersFree_msg": "One user",
-		//prices are added in subscription selector
 		"comparisonUsersMonthlyPaymentPremium_msg": "Add user for {1}",
 		"comparisonUsersMonthlyPaymentPro_msg": "Add user for {1}",
 		"comparisonUsersPremium_msg": "Add user for {1}",
@@ -522,6 +521,7 @@ module.exports = {
 		"invoiceTotal_label": "Total",
 		"invoiceUpdateProgress": "Updating invoice state ...",
 		"invoiceVatIdNoInfoBusiness_msg": "Must start with the two digit country prefix.",
+		"invoiceVatIdNoMissing_msg": "If you do not have a VAT ID number, please select private use.",
 		"invoiceVatIdNo_label": "VAT identification number",
 		"IpAddress_label": "IP address",
 		"keyboardShortcuts_title": "Keyboard shortcuts",
@@ -720,6 +720,7 @@ module.exports = {
 		"oldPassword_label": "Old password",
 		"oneContactSelected_msg": "1 contact selected.",
 		"oneMailSelected_msg": "1 email selected.",
+		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now.",
 		"onlyAvailableForPremium_msg": "This feature is only available for Tutanota Premium. Please upgrade your account now.",
 		"onlyPrivateComputer_msg": "Only choose this option if you are using a private device.",
 		"openCamera_action": "Camera",
@@ -791,7 +792,7 @@ module.exports = {
 		"pleaseWait_msg": "Please wait ...",
 		"premiumAccountCanceled_msg": "The Premium account has already been canceled.",
 		"premiumCancelledMessage_msg": "This order cannot be processed because your Premium account is cancelled. Please contact the support to reactivate your Premium account.",
-		"premiumOffer_msg": "For {1} per month, Premium enables you to add 5 aliases, to use unlimited search, to create inbox rules, to use your own domain(s), to add users (with costs) and more. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Your support will speed up our development as you enable us to grow our team. Read more on what you get with Premium:",
+		"premiumOffer_msg": "For {1} per month, Premium enables you to add 5 aliases, to use unlimited search, to create inbox rules, to use your own domain(s), to add users (with costs) and more. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Your support will speed up our development as you enable us to grow our team. Read more on what you get with Premium:\n",
 		"presharedPasswordAndStrength_msg": "Password strength:",
 		"presharedPasswordHeading_label": "Agreed:",
 		"preSharedPasswordNeeded_label": "Please enter an agreed password for each external recipient.",
@@ -938,6 +939,7 @@ module.exports = {
 		"settingsView_action": "Switch to the settings view",
 		"settings_alt": "Settings",
 		"settings_label": "Settings",
+		"sharedMailbox_label": "Shared mailboxes:",
 		"showAddress_alt": "Show this address in Openstreetmap",
 		"showAttachment_label": "Display attachment",
 		"showBlockedContent_action": "Show",
@@ -949,6 +951,7 @@ module.exports = {
 		"showInAddressBook_alt": "Edit contact",
 		"showInboxRules_action": "Show inbox rules",
 		"showMail_action": "Show encrypted mailbox",
+		"showMoreUpgrade_action": "Show more",
 		"showMore_action": "SHOW MORE",
 		"showPasswordChannelColumn_title": "Enter passwords for external recipients.",
 		"showPassword_alt": "Keep button pressed to show the password.",
@@ -1104,10 +1107,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now.",
-		"sharedMailbox_label": "Shared mailboxes:",
-		"invoiceVatIdNoMissing_msg": "If you do not have a VAT ID number, please select private use.",
-		"showMoreUpgrade_action": "Show more"
+		"yourMessage_label": "Your message"
 	}
 }

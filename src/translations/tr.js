@@ -632,7 +632,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Lütfen geçerli bir yol girin. Geçerli karakterler: a-z, A-Z, '-' ve '_'/",
 		"pleaseWait_msg": "Lütfen bekleyin...",
 		"premiumAccountCanceled_msg": "Premium hesabı iptal edildi.",
-		"premiumOffer_msg": "Premium 5 adet takma ad tanımlamanıza, gelen kutusu kuralları oluşturmanıza, kendi alan adınızı kullanmanıza, kullanıcı hesapları oluşturmanıza(ücretli) ve daha fazlasına olanak sağlar. Ek olarak, işiniz için Tutanota'yı kullanabilirsiniz. Ayrıca bizim geliştirme hızımızı artırmamızı sağlayacaksınız zira ekibimizi genişletmemize imkan sağlamış olacaksınız. Teşekkürler!",
 		"presharedPasswordAndStrength_msg": "Parola zorluğu:",
 		"presharedPasswordHeading_label": "Kararlaştırılan:",
 		"preSharedPasswordNeeded_label": "Lütfen her bir dış alıcı için anlaştığınız parolayı giriniz.",

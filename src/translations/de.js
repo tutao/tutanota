@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2018-10-15T13:25:34Z",
+	"updated_at": "2018-10-25T10:57:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -525,6 +525,7 @@ module.exports = {
 		"invoiceTotal_label": "Betrag",
 		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ...",
 		"invoiceVatIdNoInfoBusiness_msg": "Muss mit dem zweistelligen Länder-Code beginnen.",
+		"invoiceVatIdNoMissing_msg": "Falls du keine Umsatzsteuer-Identifikationsnummer hast, wähle bitte private Nutzung.",
 		"invoiceVatIdNo_label": "USt-IdNr.",
 		"IpAddress_label": "IP-Adresse",
 		"keyboardShortcuts_title": "Tastatur-Shortcuts",
@@ -723,6 +724,7 @@ module.exports = {
 		"oldPassword_label": "Altes Passwort",
 		"oneContactSelected_msg": "1 Kontakt ausgewählt.",
 		"oneMailSelected_msg": "1 E-Mail ausgewählt.",
+		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechsel jetzt zu Premium!",
 		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium verfügbar. Bitte wechsel jetzt zu Premium!",
 		"onlyPrivateComputer_msg": "Wähle diese Option nur bei der Verwendung eines privaten Geräts.",
 		"openCamera_action": "Kamera",
@@ -941,6 +943,7 @@ module.exports = {
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
 		"settings_alt": "Einstellungen",
 		"settings_label": "Einstellungen",
+		"sharedMailbox_label": "Geteilte Mailboxen:",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
 		"showAttachment_label": "Anhang anzeigen",
 		"showBlockedContent_action": "Anzeigen",
@@ -952,6 +955,7 @@ module.exports = {
 		"showInAddressBook_alt": "Kontakt bearbeiten",
 		"showInboxRules_action": "Regeln anzeigen",
 		"showMail_action": "Mailbox entschlüsseln",
+		"showMoreUpgrade_action": "Mehr anzeigen",
 		"showMore_action": "MEHR ANZEIGEN",
 		"showPasswordChannelColumn_title": "Passwörter für externe Empfänger eingeben.",
 		"showPassword_alt": "Button gedrückt halten, um das Passwort anzuzeigen.",
@@ -1107,10 +1111,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechsel jetzt zu Premium!",
-		"sharedMailbox_label": "Geteilte Mailboxen:",
-		"invoiceVatIdNoMissing_msg": "Falls du keine Umsatzsteuer-Identifikationsnummer hast, wähle bitte private Nutzung.",
-		"showMoreUpgrade_action": "Mehr anzeigen"
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

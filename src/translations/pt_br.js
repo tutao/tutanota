@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2018-10-12T22:55:23Z",
+	"updated_at": "2018-10-22T19:26:49Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt_pt",
@@ -203,7 +203,7 @@ module.exports = {
 		"deactivateAlias_msg": "A alcunha de e-mail '{1}' irá ser desativada agora. O endereço poderá ser ativado novamente ou re-utilizado por qualquer usuário.",
 		"deactivated_label": "Desativado",
 		"deactivate_action": "Desativar",
-		"defaultEmailSignature_msg": "-- \n<br> \nEnviado de forma segura com Tutanota. Crie sua conta de e-mail encriptada, livre de anúncios:\n<br> \n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviado de forma segura com Tutanota. Crie sua conta de e-mail encriptada, livre de anúncios:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Configuração padrão para o envio de novos e-mails para destinatários externos: confidencial (criptografado fim-a-fim) ou não-confidencial (não criptografado fim-a-fim).",
 		"defaultExternalDelivery_label": "Entrega padrão",
 		"defaultSenderMailAddressInfo_msg": "Remetente padrão para novos e-mails.",
@@ -543,7 +543,6 @@ module.exports = {
 		"phone_label": "Telefone",
 		"pleaseWait_msg": "Por favor, aguarde...",
 		"premiumAccountCanceled_msg": "A conta Premium já foi cancelada. ",
-		"premiumOffer_msg": "Por €1 mensal, o Premium possibilita a você adicionar 5 alcunhas, usar busca extendida, criar regras na caixa de entrada, usar seu(s) próprio(s) domínio(s), adicionar contas (cobrança à parte) e mais. Usuários Business precisam migrar para a versão paga do Tutanota como definido em nosso Termo. Seu suporte irá acelerar nosso desenvolvimento e nos permitir crescer como um time. Leia mais sobre o que você terá como Premium:",
 		"presharedPasswordAndStrength_msg": "Força da senha:",
 		"presharedPasswordHeading_label": "Combinado:",
 		"preSharedPasswordNeeded_label": "Para cada destinatário externo, digite uma senha que vocês tenham concordado em usar. ",

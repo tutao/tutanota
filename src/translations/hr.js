@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2018-09-12T11:27:20Z",
+	"updated_at": "2018-10-22T19:25:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -157,7 +157,7 @@ module.exports = {
 		"deactivated_label": "Deaktivirana",
 		"deactivatePremiumWithCustomDomainError_msg": "Nije moguće prebaciti se na Tutanota besplatni račun kada ste prijavljeni kao korisnik s vlastitom domenom.",
 		"deactivate_action": "Deaktiviraj",
-		"defaultEmailSignature_msg": "--⏎ \n<br>⏎ \nSigurno poslano s Tutanotom. Uzmite i vi svoj šifrirani e-mail pretinac! ⏎ \n<br>⏎ \n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSigurno poslano s Tutanotom. Uzmite i vi svoj šifrirani e-mail pretinac!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Uobičajena postavka za slanje novog emaila za vanjske primatelje: povjerljivo (od izvora do odredišta šifrirano) ili nepovjerljivih (nisu šifrirani od izvora do odredišta).",
 		"defaultExternalDelivery_label": "Uobičajeno",
 		"defaultSenderMailAddressInfo_msg": "Uobičajeni email za slanje novih poruka.",

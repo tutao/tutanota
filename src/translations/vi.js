@@ -510,7 +510,6 @@ module.exports = {
 		"plaintext_action": "Chữ không định dạng",
 		"pleaseWait_msg": "Xin chờ...",
 		"premiumAccountCanceled_msg": "Tài khoản Đặc biệt đã được huỷ rồi.",
-		"premiumOffer_msg": "Gói Đặc biệt cho phép bạn thêm vào 5 tên email khác, tạo quy tắc cho hộp thư đến, sử dụng miền của chính bạn, thêm tài khoản người dùng (có trả phí) và nhiều hơn thế nữa. Ngoài ra, bạn có thể dùng Tutanota như một doanh nghiệp. Bạn cũng đồng thời hỗ trợ quá trình phát triển đội ngũ của chúng tôi. Xin cảm ơn!",
 		"presharedPasswordAndStrength_msg": "Độ mạnh mật khẩu:",
 		"presharedPasswordHeading_label": "Đã đồng ý:",
 		"preSharedPasswordNeeded_label": "Xin nhập mật mã đã thống nhất cho từng người nhận ngoài hệ thống.",

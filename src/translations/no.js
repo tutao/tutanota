@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Din Tutanota konto er dessverre deaktivert. Vennligst kontakt administrator.",
@@ -173,9 +173,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Prioritert support",
 		"comparisonThemePro_msg": "Tilpassede logo og farger",
 		"comparisonUsersFree_msg": "En bruker",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Legg til bruker for 1.20 Euro",
-		"comparisonUsersMonthlyPaymentPro_msg": "Legg til bruker for 2.40 Euro",
-		"comparisonUsersPremium_msg": "Legg til bruker for 12 Euro",
 		"comparisonUsersPro_msg": "Legg til brukere 12 Euro",
 		"confidentialDefault_label": "Konfidensiell standard",
 		"confidentialDefault_msg": "Send nye meldinger kryptert som standard.",
@@ -775,7 +772,6 @@ module.exports = {
 		"pleaseWait_msg": "Vennligst vent...",
 		"premiumAccountCanceled_msg": "Premium konto har allerede blitt kansellert.",
 		"premiumCancelledMessage_msg": "Denne ordre kan ikke behandles, fordi din Premium konto er avbestilt. Vennligst kontakt supporten for å reaktivere din Premium konto.",
-		"premiumOffer_msg": "I Premium kan du legge til 5 aliaser, bruke utvidet søk, lage innboksregler, bruke ditt eget domene, legge til brukerkontoer (koster noe) og mer. I tillegg kan du bruke Tutanota som en virksomhet. Du vil også fremskynde vår utvikling, fordi du gjør oss i stand til å utvide vårt team. Takk!",
 		"presharedPasswordAndStrength_msg": "Passordstyrke:",
 		"presharedPasswordHeading_label": "Enig:",
 		"preSharedPasswordNeeded_label": "Vennligst skriv inn et passord du og mottakere er enige om.",

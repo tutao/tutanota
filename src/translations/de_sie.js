@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2018-10-15T13:25:34Z",
+	"updated_at": "2018-10-25T10:57:01Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -165,7 +165,7 @@ module.exports = {
 		"company_placeholder": "Firma",
 		"comparisonAliasPremium_msg": "5 Alias-Adressen",
 		"comparisonAliasPro_msg": "20 Alias-Adressen",
-		"comparisonContactFormPro_msg": "Kontaktformulare",
+		"comparisonContactFormPro_msg": "Kontaktformulare (kostenpflichtig)",
 		"comparisonDomainFree_msg": "Nur Tutanota domains",
 		"comparisonDomainPremium_msg": "Eigene Domains",
 		"comparisonDomainPro_msg": "Eigene Domains",
@@ -528,6 +528,7 @@ module.exports = {
 		"invoiceTotal_label": "Betrag",
 		"invoiceUpdateProgress": "Rechnungsstatus wird aktualisiert ...",
 		"invoiceVatIdNoInfoBusiness_msg": "Muss mit dem zweistelligen Länder-Code beginnen.",
+		"invoiceVatIdNoMissing_msg": "Falls Sie keine Umsatzsteuer-Identifikationsnummer haben, wählen Sie bitte private Nutzung.",
 		"invoiceVatIdNo_label": "USt-IdNr.",
 		"IpAddress_label": "IP-Adresse",
 		"keyboardShortcuts_title": "Tastatur-Shortcuts",
@@ -726,6 +727,7 @@ module.exports = {
 		"oldPassword_label": "Altes Passwort",
 		"oneContactSelected_msg": "1 Kontakt ausgewählt.",
 		"oneMailSelected_msg": "1 E-Mail ausgewählt.",
+		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!",
 		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium verfügbar. Bitte wechseln Sie jetzt zu Premium!",
 		"onlyPrivateComputer_msg": "Wählen Sie diese Option nur bei der Verwendung eines privaten Geräts.",
 		"openCamera_action": "Kamera",
@@ -944,6 +946,7 @@ module.exports = {
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
 		"settings_alt": "Einstellungen",
 		"settings_label": "Einstellungen",
+		"sharedMailbox_label": "Geteilte Mailboxen:",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
 		"showAttachment_label": "Anhang anzeigen",
 		"showBlockedContent_action": "Anzeigen",
@@ -955,6 +958,7 @@ module.exports = {
 		"showInAddressBook_alt": "Kontakt bearbeiten",
 		"showInboxRules_action": "Regeln anzeigen",
 		"showMail_action": "Mailbox entschlüsseln",
+		"showMoreUpgrade_action": "Mehr anzeigen",
 		"showMore_action": "MEHR ANZEIGEN",
 		"showPasswordChannelColumn_title": "Passwörter für externe Empfänger eingeben.",
 		"showPassword_alt": "Button gedrückt halten, um das Passwort anzuzeigen.",
@@ -1110,10 +1114,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht",
-		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!",
-		"sharedMailbox_label": "Geteilte Mailboxen:",
-		"invoiceVatIdNoMissing_msg": "Im Falle, dass keine VAT-Identifikationsnummer vorhanden ist, Bitten wir Sie Tutanota als privater Nutzer zu nutzen",
-		"showMoreUpgrade_action": "Mehr anzeigen"
+		"yourMessage_label": "Ihre Nachricht"
 	}
 }

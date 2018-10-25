@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-19T12:00:23Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sayangnya, akun Tutanota Anda telah dinonaktifkan. Mohon hubungi administrator Anda.",
@@ -114,7 +114,6 @@ module.exports = {
 		"comparisonStorageFree_msg": "Penyimpanan 1 GB",
 		"comparisonStoragePremium_msg": "Penyimpanan 1 GB",
 		"comparisonStoragePro_msg": "Penyimpanan 10 GB",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Tambah pengguna dengan 1.20€",
 		"confidentialDefault_label": "Bawaan rahasia",
 		"confidentialDefault_msg": "Secara baku kirim pesan baru secara rahasia.",
 		"confidentialityDisabled_msg": "Pesan ini tidak akan dikirim secara rahasia. Klik untuk mengirim pesan rahasia.",
@@ -546,7 +545,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Silakan masukkan jalur yang valid. Karakter yang diizinkan adalah a-z, A-Z, '-' dan '_'.",
 		"pleaseWait_msg": "Silakan tunggu ...",
 		"premiumAccountCanceled_msg": "Akun Premium sudah dibatalkan.",
-		"premiumOffer_msg": "Premium memungkinkan Anda menambahkan 5 alias, menggunakan pencarian lanjutan, membuat aturan kotak masuk, menambahkan akun pengguna (dengan biaya) dan masih banyak lagi. Yang artinya, Anda bisa menggunakan Tutanota sebagai bisnis. Anda juga akan membantu kami berkembang dan mempercepat proses pengembangan. Terima kasih!",
 		"presharedPasswordAndStrength_msg": "Kekuatan sandi:",
 		"presharedPasswordHeading_label": "Sepakat:",
 		"preSharedPasswordNeeded_label": "Mohon masukkan sandi sepakat bersama untuk masing-masing penerima eksternal.",

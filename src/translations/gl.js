@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Lamentablemente a súa conta Tutanota foi desactivada. Por favor, contacte coa administración.",
@@ -177,9 +177,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Axuda con prioridade",
 		"comparisonThemePro_msg": "Logo e cores personalizados",
 		"comparisonUsersFree_msg": "Unha usuaria",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Engadir usuaria por 1.20€",
-		"comparisonUsersMonthlyPaymentPro_msg": "Engadir usuaria por 2.40€",
-		"comparisonUsersPremium_msg": "Engadir usuaria por 12€",
 		"comparisonUsersPro_msg": "Engadir usuarias 12€",
 		"confidentialDefault_label": "Confidencial por omisión",
 		"confidentialDefault_msg": "Enviar os novos correos de xeito confidencial por omisión.",
@@ -779,7 +776,6 @@ module.exports = {
 		"pleaseWait_msg": "Por favor, agarde ...",
 		"premiumAccountCanceled_msg": "A conta Premium xa foi cancelada",
 		"premiumCancelledMessage_msg": "Esta solicitude non pode ser procesada porque a súa conta Premium está cancelada. Por favor, contacte coa administración para reactivar a súa conta Premium.",
-		"premiumOffer_msg": "Premium permítelle engadir 5 alcumes, utilizar a busca extendida, crear regras para o correo entrante, usar o seu propio dominio, engadir contas de usuaria (con coste) e máis. A maiores, pode utilizar Tutanota como un negocio. Axudará a acelerar o noso desenvolvemento ao permitirnos facer medrar o noso equipo. Grazas!",
 		"presharedPasswordAndStrength_msg": "Forza do contrasinal:",
 		"presharedPasswordHeading_label": "Acordado:",
 		"preSharedPasswordNeeded_label": "Por favor introduza un contrasinal acordado para cada destinatario externo.",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2018-10-08T12:48:44Z",
+	"updated_at": "2018-10-19T12:03:09Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sajnáljuk, de a Tutanota fiókja inaktiválásra került. Kérjük, lépjen kapcsolatba a rendszergazdájával.",
@@ -164,9 +164,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Kiemelt támogatás biztosítása",
 		"comparisonThemePro_msg": "Egyedi logó és színek",
 		"comparisonUsersFree_msg": "Egy felhasználó",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Felhasználó hozzáadása 1,20 €-ért ",
-		"comparisonUsersMonthlyPaymentPro_msg": "Felhasználó hozzáadása 2,40€-ért",
-		"comparisonUsersPremium_msg": "Felhasználó hozzáadása 12 €-ért.",
 		"comparisonUsersPro_msg": "Felhasználók hozzáadása 12€",
 		"confidentialDefault_label": "Alapértelmezetten bizalmas",
 		"confidentialDefault_msg": "Új üzenetek küldése alapértelmezetten bizalmasként.",
@@ -753,7 +750,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Adjon meg egy érvényes elérési utat. Megengedett karakterek: a-z, A-Z, \"-\" és  \"_\".",
 		"pleaseWait_msg": "Kérjük várjon ...",
 		"premiumAccountCanceled_msg": "A Prémium-fiók már törölve lett.",
-		"premiumOffer_msg": "A Prémiummal 5 álnevet hozhat létre, kiterjesztett keresést használhat, szabályokat állíthat be a bejövő levelekre, saját domaint használhat, hozzáadhat felhasználói fiókokat (kiadásokkal) és még sok minden mást. Ráadásul használhatja a Tutanotát üzleti célokra. Támogatásával felgyorsítja a fejlesztést is, mivel lehetőséget biztosít csapatunk növekedéséhez. Köszönjük!",
 		"presharedPasswordAndStrength_msg": "A jelszó erőssége:",
 		"presharedPasswordHeading_label": "Elfogadás:",
 		"preSharedPasswordNeeded_label": "Adjon meg egy elfogadási jelszót minden külső címzetthez.",

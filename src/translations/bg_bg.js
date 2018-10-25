@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2018-08-30T14:56:47Z",
+	"updated_at": "2018-10-19T12:02:12Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "За съжаление, Вашият Тутанота профил бе деактивиран. Моля свържете се с Вашият администратор.",
@@ -103,8 +103,6 @@ module.exports = {
 		"comparisonStoragePro_msg": "10 ГБ място",
 		"comparisonSupportPremium_msg": "Поддръжка през имейл",
 		"comparisonUsersFree_msg": "Един потребител",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Добави потребител за €1.20",
-		"comparisonUsersPremium_msg": "Добави потребител за €12",
 		"confidentialDefault_label": "Поверително по подразбиране",
 		"confidentialDefault_msg": "Изпращайте нови съобщения конфиденциално по подразбиране.",
 		"confidentialityDisabled_msg": "Това съобщение няма да бъде изпратено конфиденциално. Натиснете за да изпратите конфиденциално съобщение.",
@@ -486,7 +484,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Въведи валиден адрес. Позволени символи са a-z, A-Z, '-' и '_'.",
 		"pleaseWait_msg": "Моля, изчакайте ...",
 		"premiumAccountCanceled_msg": "Премиум услугата вече е отказана.",
-		"premiumOffer_msg": "Премиум позволява добавяне на до 5 идентичности, разширено търсене, правила за входящата поща, собствен домейн, добавяне на акаунти (с такси) и още. Ще можеш да ползваш Тутанота като бизнес и ще ни позволиш да разширим екипа си, което ще ускори разработката. Благодарим!",
 		"presharedPasswordAndStrength_msg": "Ефективност на паролата:",
 		"presharedPasswordHeading_label": "Съгласие:",
 		"preSharedPasswordNeeded_label": "Моля въведете парола по съглашение за всеки външен получател.",

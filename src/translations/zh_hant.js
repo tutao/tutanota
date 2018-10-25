@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-28T10:48:06Z",
-	"updated_at": "2018-10-08T02:28:26Z",
+	"updated_at": "2018-10-19T12:02:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -130,7 +130,6 @@ module.exports = {
 		"comparisonStoragePremium_msg": "1 GB 容量",
 		"comparisonStoragePro_msg": "10 GB 容量",
 		"comparisonUsersFree_msg": "一位使用者",
-		"comparisonUsersPremium_msg": "以 €12 元新增使用者",
 		"confidentialDefault_label": "預設情況下加密",
 		"confidentialDefault_msg": "預設以加密的方式送出新郵件。",
 		"confidentialityDisabled_msg": "這封訊息將不會被加密送出。點擊送出一個加密訊息。",
@@ -583,7 +582,6 @@ module.exports = {
 		"plaintext_action": "純文本",
 		"pleaseWait_msg": "請稍候... ",
 		"premiumAccountCanceled_msg": "高級賬戶已被取消。",
-		"premiumOffer_msg": "加值帳號允許您新增5個別名、進階搜尋、自動化規則以及自訂的域名，或是付費新增更多帳戶。你可以把Tutanota用於生意上。還能加速我們的開發，澆灌我們的團隊，感恩。",
 		"presharedPasswordAndStrength_msg": "密碼強度:",
 		"presharedPasswordHeading_label": "已約定的：",
 		"preSharedPasswordNeeded_label": "請為外部收件人輸入一個約定的密碼",

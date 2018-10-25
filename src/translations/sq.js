@@ -536,7 +536,6 @@ module.exports = {
 		"photoLibraryUsageDescription_msg": "Shto një foto nga libraria juaj si shtojcë",
 		"pleaseWait_msg": "Prit, të lutem...",
 		"premiumAccountCanceled_msg": "Llogaria Premium tashmë është mbyllë.",
-		"premiumOffer_msg": "Paketa Premium ta mundëson me i shtu 5 nofka, me kriju rregulla për inboksin, me përdorë domenin tënd, dhe me shtu përdorësa (me pagesë), dhe shumçka tjetër. Plus, mund ta përdorësh Tutanotën për ndërmarrjen tënde. Edhe, ke me na e shpejtu punën, duke na mundësu me e zgjëru ekipin. T'u rrittë ndera!",
 		"presharedPasswordAndStrength_msg": "Fuqia e fjalëkalimit:",
 		"presharedPasswordHeading_label": "Bashkëcaktu:",
 		"preSharedPasswordNeeded_label": "Të lutem, jepe fjalëkalimin e bashkëcaktuar për secilin marrës të jashtëm.",
