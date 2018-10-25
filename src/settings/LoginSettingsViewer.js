@@ -51,7 +51,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
-					(logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount()) ?
+					(!logins.getUserController().isOutlookAccount()) ?
 						m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(this._activeSessionTable),
