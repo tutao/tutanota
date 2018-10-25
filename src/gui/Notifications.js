@@ -1,9 +1,10 @@
 //@flow
 
 import {noOp} from "../api/common/utils/Utils"
+import {isApp} from "../api/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 
-function _showNotificaiton(title: string, options: ?NotificationOptions): ?Notification {
+function _showNotification(title: string, options: ?NotificationOptions): ?Notification {
 	if (Notification.permission === "granted") {
 		try {
 			const actualOptions: NotificationOptions = Object.assign({}, {
@@ -22,12 +23,19 @@ function _showNotificaiton(title: string, options: ?NotificationOptions): ?Notif
 }
 
 export class Notifications {
+
+	showNotification: (title: string, options?: NotificationOptions) => ?Notification
+
+	constructor() {
+		this.showNotification = (isApp() || typeof Notification === "undefined") ? noOp : _showNotification
+	}
+
 	/**
 	 * Requests user permission if notifications are supported
 	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
 	 */
 	requestPermission(): Promise<boolean> {
-		if (typeof Notification === "undefined") {
+		if (isApp() || typeof Notification === "undefined") {
 			return Promise.resolve(false)
 		}
 		if (Notification.permission === "granted") {
@@ -38,9 +46,6 @@ export class Notifications {
 			return Promise.resolve(false)
 		}
 	}
-
-	showNotification: (title: string, options?: NotificationOptions) => ?Notification =
-		typeof Notification !== "undefined" ? _showNotificaiton : noOp
 }
 
 export const notifications = new Notifications()
