@@ -158,7 +158,7 @@ module.exports = {
 		"company_placeholder": "Company",
 		"comparisonAliasPremium_msg": "5 aliases",
 		"comparisonAliasPro_msg": "20 aliases",
-		"comparisonContactFormPro_msg": "Contact forms",
+		"comparisonContactFormPro_msg": "Contact forms (at cost)",
 		"comparisonDomainFree_msg": "Tutanota domains only",
 		"comparisonDomainPremium_msg": "Custom domains",
 		"comparisonDomainPro_msg": "Custom domains",
@@ -175,10 +175,11 @@ module.exports = {
 		"comparisonSupportPro_msg": "Priority support",
 		"comparisonThemePro_msg": "Custom logo and colors",
 		"comparisonUsersFree_msg": "One user",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Add user for €1.20",
-		"comparisonUsersMonthlyPaymentPro_msg": "Add user for €2.40",
-		"comparisonUsersPremium_msg": "Add user for €12",
-		"comparisonUsersPro_msg": "Add users €12",
+		//prices are added in subscription selector
+		"comparisonUsersMonthlyPaymentPremium_msg": "Add user for {1}",
+		"comparisonUsersMonthlyPaymentPro_msg": "Add user for {1}",
+		"comparisonUsersPremium_msg": "Add user for {1}",
+		"comparisonUsersPro_msg": "Add users {1}",
 		"confidentialDefault_label": "Confidential default",
 		"confidentialDefault_msg": "Send new messages confidentially by default.",
 		"confidentialityDisabled_msg": "This message will not be sent confidentially. Click to send a confidential message.",
@@ -790,7 +791,7 @@ module.exports = {
 		"pleaseWait_msg": "Please wait ...",
 		"premiumAccountCanceled_msg": "The Premium account has already been canceled.",
 		"premiumCancelledMessage_msg": "This order cannot be processed because your Premium account is cancelled. Please contact the support to reactivate your Premium account.",
-		"premiumOffer_msg": "For €1 per month, Premium enables you to add 5 aliases, to use unlimited search, to create inbox rules, to use your own domain(s), to add users (with costs) and more. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Your support will speed up our development as you enable us to grow our team. Read more on what you get with Premium:",
+		"premiumOffer_msg": "For {1} per month, Premium enables you to add 5 aliases, to use unlimited search, to create inbox rules, to use your own domain(s), to add users (with costs) and more. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Your support will speed up our development as you enable us to grow our team. Read more on what you get with Premium:",
 		"presharedPasswordAndStrength_msg": "Password strength:",
 		"presharedPasswordHeading_label": "Agreed:",
 		"preSharedPasswordNeeded_label": "Please enter an agreed password for each external recipient.",
@@ -1105,6 +1106,8 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"onlyAvailableForPremiumNotIncluded_msg": "This feature can only be ordered after upgrading to Premium. Please upgrade your account now.",
-		"sharedMailbox_label": "Shared mailboxes:"
+		"sharedMailbox_label": "Shared mailboxes:",
+		"invoiceVatIdNoMissing_msg": "If you do not have a VAT ID number, please select private use.",
+		"showMoreUpgrade_action": "Show more"
 	}
 }

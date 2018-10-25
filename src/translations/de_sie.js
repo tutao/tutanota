@@ -182,10 +182,10 @@ module.exports = {
 		"comparisonSupportPro_msg": "Pro-Support",
 		"comparisonThemePro_msg": "Eigenes Logo und Farben",
 		"comparisonUsersFree_msg": "Ein Benutzer",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Benutzer für 1,20 € hinzufügen",
-		"comparisonUsersMonthlyPaymentPro_msg": "Benutzer für 2,40€ hinzufügen",
-		"comparisonUsersPremium_msg": "Benutzer für 12 € hinzufügen",
-		"comparisonUsersPro_msg": "Benutzer für 12 € hinzufügen",
+		"comparisonUsersMonthlyPaymentPremium_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersMonthlyPaymentPro_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersPremium_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersPro_msg": "Benutzer für {1} hinzufügen",
 		"confidentialDefault_label": "Vertraulich als Standard",
 		"confidentialDefault_msg": "Neue E-Mails werden standardmäßig vertraulich versendet.",
 		"confidentialityDisabled_msg": "Diese Nachricht wird nicht vertraulich versendet. Bitte klicken Sie, um die Nachricht vertraulich zu senden.",
@@ -1112,6 +1112,8 @@ module.exports = {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!",
-		"sharedMailbox_label": "Geteilte Mailboxen:"
+		"sharedMailbox_label": "Geteilte Mailboxen:",
+		"invoiceVatIdNoMissing_msg": "Im Falle, dass keine VAT-Identifikationsnummer vorhanden ist, Bitten wir Sie Tutanota als privater Nutzer zu nutzen",
+		"showMoreUpgrade_action": "Mehr anzeigen"
 	}
 }

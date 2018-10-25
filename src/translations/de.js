@@ -162,7 +162,7 @@ module.exports = {
 		"company_placeholder": "Firma",
 		"comparisonAliasPremium_msg": "5 Alias-Adressen",
 		"comparisonAliasPro_msg": "20 Alias-Adressen",
-		"comparisonContactFormPro_msg": "Kontaktformulare",
+		"comparisonContactFormPro_msg": "Kontaktformulare (kostenpflichtig)",
 		"comparisonDomainFree_msg": "Nur Tutanota domains",
 		"comparisonDomainPremium_msg": "Eigene Domains",
 		"comparisonDomainPro_msg": "Eigene Domains",
@@ -179,10 +179,10 @@ module.exports = {
 		"comparisonSupportPro_msg": "Pro-Support",
 		"comparisonThemePro_msg": "Eigenes Logo und Farben",
 		"comparisonUsersFree_msg": "Ein Benutzer",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Benutzer für 1,20 € hinzufügen",
-		"comparisonUsersMonthlyPaymentPro_msg": "Benutzer für 2,40€ hinzufügen",
-		"comparisonUsersPremium_msg": "Benutzer für 12 € hinzufügen",
-		"comparisonUsersPro_msg": "Benutzer für 12 € hinzufügen",
+		"comparisonUsersMonthlyPaymentPremium_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersMonthlyPaymentPro_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersPremium_msg": "Benutzer für {1} hinzufügen",
+		"comparisonUsersPro_msg": "Benutzer für {1} hinzufügen",
 		"confidentialDefault_label": "Vertraulich als Standard",
 		"confidentialDefault_msg": "Neue E-Mails werden standardmäßig vertraulich versendet.",
 		"confidentialityDisabled_msg": "Diese Nachricht wird nicht vertraulich versendet. Bitte klicke, um die Nachricht vertraulich zu senden.",
@@ -794,7 +794,7 @@ module.exports = {
 		"pleaseWait_msg": "Bitte warten ...",
 		"premiumAccountCanceled_msg": "Der Premium-Account wurde bereits gekündigt.",
 		"premiumCancelledMessage_msg": "Diese Buchung kann nicht ausgeführt werden, da dein Premium-Account gekündigt ist. Bitte wende dich an den Support um deinen Premium-Account wieder zu aktivieren.",
-		"premiumOffer_msg": "Mit Premium bekommst du für 1€ im Monat 5 Aliasse, eine uneingeschränkte Suchfunktion, kannst Inbox-Regeln anlegen, deine eigene(n) Domain(s) verwenden, weitere Benutzer anlegen (kostenpflichtig) und mehr. Für die geschäftliche Nutzung bist du laut unseren AGB verpflichtet zu Premium zu wechseln. Deine Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Lies hier welche Vorteile du mit Premium bekommst:",
+		"premiumOffer_msg": "Mit Premium bekommst du für {1} im Monat 5 Aliasse, eine uneingeschränkte Suchfunktion, kannst Inbox-Regeln anlegen, deine eigene(n) Domain(s) verwenden, weitere Benutzer anlegen (kostenpflichtig) und mehr. Für die geschäftliche Nutzung bist du laut unseren AGB verpflichtet zu Premium zu wechseln. Deine Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Lies hier welche Vorteile du mit Premium bekommst:",
 		"presharedPasswordAndStrength_msg": "Passwortstärke:",
 		"presharedPasswordHeading_label": "Vereinbart:",
 		"preSharedPasswordNeeded_label": "Bitte gib für jeden externen Empfänger ein vereinbartes Passwort an.",
@@ -1109,6 +1109,8 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechsel jetzt zu Premium!",
-		"sharedMailbox_label": "Geteilte Mailboxen:"
+		"sharedMailbox_label": "Geteilte Mailboxen:",
+		"invoiceVatIdNoMissing_msg": "Falls du keine Umsatzsteuer-Identifikationsnummer hast, wähle bitte private Nutzung.",
+		"showMoreUpgrade_action": "Mehr anzeigen"
 	}
 }
