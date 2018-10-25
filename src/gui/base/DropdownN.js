@@ -6,53 +6,15 @@ import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import {Button} from "./Button"
-import {Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {assertMainOrNodeBoot} from "../../api/Env"
-import {mod} from "../../misc/MathUtils"
 
 assertMainOrNodeBoot()
-
-export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
-export const INPUT = "input, textarea, div[contenteditable='true']"
-
-export function focusNext(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
-	let selected = tabbable.find(e => document.activeElement === e)
-	if (selected) {
-		//work around for squire so tabulator actions are executed properly
-		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.nodeName == "LI") {
-			//dont change selection if selection is in list
-		}
-		else {
-			tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
-		}
-	} else if (tabbable.length > 0) {
-		tabbable[tabbable.length - 1].focus()
-	}
-}
-
-export function focusPrevious(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
-	let selected = tabbable.find(e => document.activeElement === e)
-	if (selected) {
-		//work around for squire so tabulator actions are executed properly
-		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.nodeName == "LI") {
-			//dont change selection
-		}
-		else {
-			tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
-		}
-	} else if (tabbable.length > 0) {
-		tabbable[0].focus()
-	}
-}
 
 export class DropdownN {
 	children: Array<string | NavButton | Button>;

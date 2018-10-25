@@ -45,7 +45,6 @@ export class HtmlEditor {
 			this.setValue(this._value())
 		})
 
-
 		let focus = () => {
 			if (!this._active) {
 				this._active = true
@@ -100,13 +99,8 @@ export class HtmlEditor {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
-					m(".wysiwyg.rel.overflow-hidden.selectable", {
-						style: {display: this._mode() === Mode.WYSIWYG ? '' : 'none'}
-					}, m(this._editor)),
-					//todo fragen ob das ok ist oder ob man irgendwo diesen html code braucht als display non
-					this._mode() === Mode.HTML ? m(".html", {
-						style: {}
-					}, m("textarea.input-area.selectable", {
+					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", m(this._editor)) : null,
+					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {
 						oncreate: vnode => {
 							this._domTextArea = vnode.dom
 							if (!this.isEmpty()) {
