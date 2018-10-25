@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2018-09-12T11:27:21Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kahjuks Teie Tutanota konto on deaktiveeritud. Palun võtke oma administraatoriga ühendust.",
@@ -119,8 +119,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Eelistugi",
 		"comparisonThemePro_msg": "Kohandatud logo ja värvid",
 		"comparisonUsersFree_msg": "Üks kasutaja",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Lisa kasutaja 1.20 € eest",
-		"comparisonUsersMonthlyPaymentPro_msg": "Lisa kasutaja 2.40 € eest",
 		"confidentialDefault_label": "Vaikimisi konfidentsiaalne",
 		"confidentialDefault_msg": "Saada uued e-kirjad vaikimisi konfidentsiaalselt.",
 		"confidentialityDisabled_msg": "Seda sõnumit ei saadeta konfidentsiaalselt. Kliki et saata konfidentsiaalne sõnum.",

@@ -604,7 +604,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Tafadhali ingiza kijia halali. Kuruhusiwa wahusika ni a-z, A-Z, '-' na '_'.",
 		"pleaseWait_msg": "Tafadhali subiri ...",
 		"premiumAccountCanceled_msg": "Akaunti ya Premium tayari umekatishwa.",
-		"premiumOffer_msg": "Premium inawezesha uongeze lakabu 5, kuunda sheria ya kikasha, kutumia kikoa yako mwenyewe, kuongeza akaunti za watumiaji (na gharama) na zaidi. Na, kisha unaweza tumia Tutanota kama biashara. Wewe pia kuongeza kasi ya maendeleo yetu kama kutuwezesha kukua timu yetu. Shukrani!",
 		"presharedPasswordAndStrength_msg": "Nguvu ya nywila:",
 		"presharedPasswordHeading_label": "Walikubaliana:",
 		"preSharedPasswordNeeded_label": "Tafadhali ingiza nenosiri walikubaliana kwa kila mpokeaji wa nje.",

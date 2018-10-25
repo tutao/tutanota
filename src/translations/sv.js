@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2018-10-15T13:17:47Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Tyvärr är ditt Tutanota konto avaktiverad. Vänligen kontakta administratören.",
@@ -175,9 +175,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Prioriterad support",
 		"comparisonThemePro_msg": "Egen logotyp och färger",
 		"comparisonUsersFree_msg": "En användare",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Lägg till användare för 1,20€",
-		"comparisonUsersMonthlyPaymentPro_msg": "Lägg till användare för €2,40",
-		"comparisonUsersPremium_msg": "Lägg till användare för 12€",
 		"comparisonUsersPro_msg": "Lägg till användare 12 €",
 		"confidentialDefault_label": "Konfidentiellt standard",
 		"confidentialDefault_msg": "Skicka nya meddelanden konfidentiellt som standard.",
@@ -783,7 +780,6 @@ module.exports = {
 		"pleaseWait_msg": "Var god vänta ...",
 		"premiumAccountCanceled_msg": "Ditt Premiumkonto är redan avslutat. ",
 		"premiumCancelledMessage_msg": "Denna beställning kan inte bearbetas eftersom ditt Premium-konto är avbrutet. Kontakta support för att återaktivera ditt Premium-konto.",
-		"premiumOffer_msg": "Premium gör det möjligt att lägga till 5 alias, använda utökad sökning , skapa inkorg-regler, använda din egen domän, lägga till användare (med kostnader) med mera. Du kan då även använda Tutanota som ett företag. Du kommer också att snabba upp vår utveckling genom att vi kan utöka vårt team. Tack!",
 		"presharedPasswordAndStrength_msg": "Lösenordsstyrka:",
 		"presharedPasswordHeading_label": "Överenskommet:",
 		"preSharedPasswordNeeded_label": "Ange ett överenskommet lösenord för varje extern mottagare.",

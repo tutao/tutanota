@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -165,9 +165,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Priorytetowe wsparcie",
 		"comparisonThemePro_msg": "Niestandardowe logo i kolory",
 		"comparisonUsersFree_msg": "Jeden użytkownik",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Użytkownik za €1.20",
-		"comparisonUsersMonthlyPaymentPro_msg": "Użytkownik za €2.40",
-		"comparisonUsersPremium_msg": "Użytkownik za €12",
 		"comparisonUsersPro_msg": "Użytkownicy za €12",
 		"confidentialDefault_label": "Domyślnie poufne",
 		"confidentialDefault_msg": "Domyślnie wysyłaj nowe wiadomości jako poufne.",
@@ -718,7 +715,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Proszę wprowadzić prawidłową ścieżkę. Dozwolone znaki: a-z, A-z, '-' oraz '_'.",
 		"pleaseWait_msg": "Proszę czekać...",
 		"premiumAccountCanceled_msg": "Konto Premium zostało anulowane.",
-		"premiumOffer_msg": "Premium pozwala na dodanie 5 aliasów, tworzenie reguł skrzynki odbiorczej, użycie własnej domeny, dołączanie kont użytkowników (z kosztami) i więcej. Dodatkowo możesz użyć Tutanota w celach komercyjnych. Dzięki temu będziemy mogli powiększyć nasz zespół, więc przyspieszysz również nasz rozwój . Dziękujemy!",
 		"presharedPasswordAndStrength_msg": "Siła hasła:",
 		"presharedPasswordHeading_label": "Uzgodnione hasło:",
 		"preSharedPasswordNeeded_label": "Wprowadź uzgodnione hasło dla każdego zewnętrznego odbiorcy wiadomości.",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2018-10-15T13:17:46Z",
+	"updated_at": "2018-10-24T07:36:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -179,9 +179,6 @@ module.exports = {
 		"comparisonSupportPro_msg": "Supporto prioritario",
 		"comparisonThemePro_msg": "Colori e logo personalizzato",
 		"comparisonUsersFree_msg": "Un utente",
-		"comparisonUsersMonthlyPaymentPremium_msg": "Aggiungi utente per 1.20€",
-		"comparisonUsersMonthlyPaymentPro_msg": "Aggiungi utente per € 2,40",
-		"comparisonUsersPremium_msg": "Aggiungi utente per 12€",
 		"comparisonUsersPro_msg": "Aggiungere utenti 12€",
 		"confidentialDefault_label": "Riservatezza predefinita",
 		"confidentialDefault_msg": "Invia di default i nuovi messaggi in forma riservata.",
@@ -786,7 +783,6 @@ module.exports = {
 		"pleaseWait_msg": "Attendere prego ...",
 		"premiumAccountCanceled_msg": "Il tuo account Premium è già stato cancellato.",
 		"premiumCancelledMessage_msg": "Quest'ordine non può essere elaborato perché l'account Premium è annullato. Si prega di contattare il supporto per riattivare l'account Premium.",
-		"premiumOffer_msg": "Con l'account Premium potrai ottenere 5 alias aggiuntivi, creare regole di filtro per i messaggi in entrata, usare domini personalizzati, aggiungere altri utenti (a pagamento) e molto altro. Inoltre potrai usare Tutanota anche per il tuo lavoro. Infine contribuirai a velocizzare lo sviluppo aiutandoci a far crescere il nostro team. Grazie!",
 		"presharedPasswordAndStrength_msg": "Sicurezza della password:",
 		"presharedPasswordHeading_label": "Concordata:",
 		"preSharedPasswordNeeded_label": "Inserire una password concordata per ciascuno dei destinatari esterni.",

@@ -13,6 +13,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getPriceFromPriceData} from "./PriceUtils"
+import {isApp} from "../api/Env"
 
 type UpgradePrices = {
 	premiumPrice: number,
@@ -110,14 +111,14 @@ export class SubscriptionSelector {
 		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
 			if (paymentIntervalItem.value === 12) {
 				this._yearlyPrice.getAsync()
-				    .then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice)
-					    + " €"))
-				    .then(() => m.redraw())
+					.then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice)
+						+ " €"))
+					.then(() => m.redraw())
 			} else {
 				this._monthlyPrice.getAsync()
-				    .then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false)
-					    + " €"))
-				    .then(() => m.redraw())
+					.then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false)
+						+ " €"))
+					.then(() => m.redraw())
 			}
 			upgradeBox.paymentInterval(paymentIntervalItem)
 		})
@@ -144,6 +145,28 @@ export class SubscriptionSelector {
 	}
 
 	_getOptions(featurePrefixes: Array<string>, type: string): Array<string> {
-		return featurePrefixes.map(f => lang.get(f + type + "_msg"))
+		let featureTexts = featurePrefixes.map((f) => {
+			let fullMessage = f + type + "_msg"
+			//workaround for removing prices from translations
+			switch (fullMessage) {
+				case "comparisonUsersMonthlyPaymentPremium_msg":
+					return lang.get(f + type + "_msg", {"{1}": formatPrice(1.2, true)})
+				case "comparisonUsersMonthlyPaymentPro_msg":
+					return lang.get(f + type + "_msg", {"{1}": formatPrice(2.4, true)})
+				case "comparisonUsersPremium_msg":
+					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
+				case "comparisonUsersPro_msg":
+					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
+				default:
+					return lang.get(f + type + "_msg")
+			}
+		})
+		let MAX_FEATURE_COUNT = 10
+		if (!isApp()) {
+			let len = featureTexts.length
+			featureTexts.length = MAX_FEATURE_COUNT
+			featureTexts.fill("--", len, MAX_FEATURE_COUNT)
+		}
+		return featureTexts
 	}
 }

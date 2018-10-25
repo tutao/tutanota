@@ -9,17 +9,18 @@ import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
-import {Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {px, size} from "../size"
-import {focusNext, focusPrevious, INPUT} from "./DropdownN"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
 
 assertMainOrNode()
+
+export const INPUT = "input, textarea, div[contenteditable='true']"
 
 export const DialogType = {
 	Progress: "Progress",
@@ -377,7 +378,7 @@ export class Dialog {
 				setTimeout(() => cb(null, false), DefaultAnimationTime)
 			}
 			buttons.push(new Button("upgradeReminderCancel_action", cancelAction).setType(ButtonType.Secondary))
-			buttons.push(new Button("upgradeToPremium_action", () => {
+			buttons.push(new Button("showMoreUpgrade_action", () => {
 				dialog.close()
 				setTimeout(() => cb(null, true), DefaultAnimationTime)
 			}).setType(ButtonType.Primary))
@@ -463,14 +464,17 @@ export class Dialog {
 			}
 		}
 
+
 		if (okAction) {
 			actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
-			dialog.addShortcut({
+			//todo check if you want to have this option or just have a text area where you can shift enter to add line breaks to a div
+			/*dialog.addShortcut({
 				key: Keys.RETURN,
-				shift: false,
+				shift: true,
 				exec: doAction,
 				help: okActionTextId
 			})
+		*/
 		}
 
 		if (allowCancel) {

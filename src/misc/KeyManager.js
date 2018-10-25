@@ -2,15 +2,62 @@
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/Env"
 import {Button, ButtonType} from "../gui/base/Button"
-import {neverNull, asyncImport} from "../api/common/utils/Utils"
+import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
+import {mod} from "./MathUtils"
 
 assertMainOrNodeBoot()
+
+
+export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
+
+
+export function focusNext(dom: HTMLElement) {
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+	let selected = tabbable.find(e => document.activeElement === e)
+	if (selected) {
+		console.log(window.getSelection().focusNode.parentNode.nodeName)
+		//work around for squire so tabulator actions are executed properly
+		//squiere makes a list which can be indented and manages this with tab and shift tab
+		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+			return true
+			//dont change selection if selection is in list
+		}
+		else {
+			tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
+			return false
+		}
+	} else if (tabbable.length > 0) {
+		tabbable[tabbable.length - 1].focus()
+		return false
+	}
+}
+
+export function focusPrevious(dom: HTMLElement) {
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+	let selected = tabbable.find(e => document.activeElement === e)
+	if (selected) {
+		console.log(window.getSelection().focusNode.parentNode.nodeName)
+		//work around for squire so tabulator actions are executed properly
+		//squiere makes a list which can be indented and manages this with tab and shift tab
+		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+			return true
+			//dont change selection
+		}
+		else {
+			tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
+			return false
+		}
+	} else if (tabbable.length > 0) {
+		tabbable[0].focus()
+		return false
+	}
+}
 
 export const Keys = {
 	NONE: {code: -1, name: ""},

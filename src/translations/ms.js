@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2018-09-12T11:27:21Z",
+	"updated_at": "2018-10-22T19:26:08Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Malangnya, akaun Tutanota anda dinyahaktifkan. Sila hubungi pentadbir anda.",
@@ -226,7 +226,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Tidak boleh bertukar ke akaun Tutanota Percuma semasa log masuk dengan pengguna domain khusus.",
 		"deactivate_action": "Nyahaktifkan",
 		"defaultColor_label": "Warna asal: {1}",
-		"defaultEmailSignature_msg": "--\n <br>\n Dihantar secara sulit dengan Tutanota. Tuntut peti mel anda yang sulit hari ini!\n <br>\n {1}",
+		"defaultEmailSignature_msg": "--\n<br>\nDihantar secara sulit dengan Tutanota. Tuntut peti mel anda yang sulit hari ini!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Tetapan asal untuk menghantar e-mel baru kepada penerima luar: sulit (disulitkan dari hujung ke hujung) atau tidak sulit (tidak disulitkan dari hujung ke hujung).",
 		"defaultExternalDelivery_label": "Penghantaran asal",
 		"defaultSenderMailAddressInfo_msg": "Alamat mel pengirim asal untuk e-mel baru.",
@@ -636,7 +636,6 @@ module.exports = {
 		"pleaseEnterValidPath_msg": "Sila masukkan laluan yang sah. Abjad yang dibenarkan ialah a-z, A-Z, '-' dan '_'.",
 		"pleaseWait_msg": "Sila tunggu ...",
 		"premiumAccountCanceled_msg": "Akaun Premium telah dibatalkan.",
-		"premiumOffer_msg": "Anda boleh menambah 5 alias dalam Premium, cipta peraturan inbox, guna domain anda sendiri, tambah akaun pengguna (dengan kos) dan banyak lagi. Tambahan pula, anda boleh guna Tutanota untuk perniagaan. Anda juga akan mempercepatkan pembangunan kami kerana anda memperbolehkan kami untuk mengembangkan pasukan kami. Terima kasih!",
 		"presharedPasswordAndStrength_msg": "Kekuatan Kata Laluan:",
 		"presharedPasswordHeading_label": "Setuju:",
 		"preSharedPasswordNeeded_label": "Sila masukkan kata laluan yang dipersetujui untuk setiap penerima luar.",

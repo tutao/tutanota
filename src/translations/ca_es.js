@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-22T19:20:49Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",
@@ -162,7 +162,6 @@ module.exports = {
 		"comparisonSupportPremium_msg": "Suport via correu electrònic",
 		"comparisonThemePro_msg": "Logotip i colors personalitzats",
 		"comparisonUsersFree_msg": "Un usuari",
-		"comparisonUsersPremium_msg": "Afegeix un usuari per 12€",
 		"confidentialDefault_label": "Per defecte Confidencial",
 		"confidentialDefault_msg": "Enviar els nous missatges per defecte de forma confidencial.",
 		"confidentialityDisabled_msg": "Aquest missatge no s'enviarà de forma confidencial. Feu clic aquí per enviar un missatge confidencial.",
@@ -275,7 +274,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "No es pot canviar a un compte gratuït Tutanota quan s'hagi identificat amb un usuari de domini personalitzat.",
 		"deactivate_action": "Desactiva",
 		"defaultColor_label": "El color per defecte: {1}",
-		"defaultEmailSignature_msg": "- -\n<br>\nEnviat de forma segura amb Tutanota. \nDemana la teva bústia de correu xifrat avui!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviat de forma segura amb Tutanota. \nDemana la teva bústia de correu xifrat avui!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "L'opció per defecte per a l'enviament d'un nou correu electrònic a un destinatari extern: confidencial (d'extrem a extrem xifrat)  o no confidencial (no d'extrem a extrem xifrat).",
 		"defaultExternalDelivery_label": "Entrega estàndard",
 		"defaultSenderMailAddressInfo_msg": "El remitent per defecte per als nous missatges de correu electrònic.",
@@ -735,7 +734,6 @@ module.exports = {
 		"pleaseWait_msg": "Si us plau, esperi ...",
 		"premiumAccountCanceled_msg": "El compte Premium ja ha estat cancel·lat.",
 		"premiumCancelledMessage_msg": "Aquesta ordre no es pot processar perquè el vostre compte Premium s'ha anul·lat. Contacteu amb suport per reactivar el vostre compte Premium.",
-		"premiumOffer_msg": "Amb Premium tens 5 àlies, pots fer servir la cerca ampliada, crear regles per a la safata d'entrada, utilitzar el teu propi domini, afegir comptes d'usuari (de pagament), i més. A més, pots utilitzar Tutanota professionalmet. Així ens ajudes a fer creixer el nostre equip i ens podem desenvolupar més ràpid. Moltes Gràcies!",
 		"presharedPasswordAndStrength_msg": "Fortalesa de la contrasenya:",
 		"presharedPasswordHeading_label": "Conforme:",
 		"preSharedPasswordNeeded_label": "Si us plau introduïu una contrasenya acordada per a cada destinatari extern.",

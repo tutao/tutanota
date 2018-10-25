@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2018-09-12T11:27:30Z",
+	"updated_at": "2018-10-22T19:25:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "दुर्भाग्य से, आपका टुटानोटा खाता निष्क्रिय हो गया है. कृपया अपने व्यवस्थापक से संपर्क करें.",
@@ -250,7 +250,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "एक कस्टम डोमेन उपयोगकर्ता के साथ लॉग इन करते समय टुटानोटा ईमेल पर मुफ़्त खाता नहीं बदल सकते",
 		"deactivate_action": "निष्क्रिय करें",
 		"defaultColor_label": "डिफ़ॉल्ट रंग: {1}",
-		"defaultEmailSignature_msg": "<br> \nटुटानोटा के साथ सुरक्षित रूप से भेजा गया आज अपने एन्क्रिप्टेड मेलबॉक्स पर दावा करें.\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nटुटानोटा के साथ सुरक्षित रूप से भेजा गया आज अपने एन्क्रिप्टेड मेलबॉक्स पर दावा करें.\n<br>\n{1}",
 		"defaultExternalDelivery_label": "डिफ़ॉल्ट वितरण",
 		"defaultSenderMailAddressInfo_msg": "नए ईमेल के लिए डिफ़ॉल्ट प्रेषक मेल पता",
 		"defaultSenderMailAddress_label": "डिफ़ॉल्ट प्रेषक",

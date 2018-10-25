@@ -30,6 +30,7 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
+import {formatPrice} from "./Formatter"
 
 assertMainOrNode()
 
@@ -248,13 +249,13 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 		Dialog.error("notAvailableInApp_msg")
 	} else {
 		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
-			+ lang.get("premiumOffer_msg")
+			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
-		      .then(confirmed => {
-			      if (confirmed) {
-				      UpgradeWizard.show()
-			      }
-		      })
+			.then(confirmed => {
+				if (confirmed) {
+					UpgradeWizard.show()
+				}
+			})
 	}
 }
 
