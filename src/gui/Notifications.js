@@ -34,16 +34,16 @@ export class Notifications {
 	 * Requests user permission if notifications are supported
 	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
 	 */
-	requestPermission(): Promise<boolean> {
+	requestPermission(): void {
 		if (isApp() || typeof Notification === "undefined") {
-			return Promise.resolve(false)
+			return
 		}
-		if (Notification.permission === "granted") {
-			return Promise.resolve(true)
-		} else if (Notification.permission !== "denied") {
-			return Notification.requestPermission().then((answer) => answer === "granted")
-		} else {
-			return Promise.resolve(false)
+		try {
+			if (Notification.permission !== "denied") {
+				Notification.requestPermission()
+			}
+		} catch (e) {
+			console.log("request notification permission error", e)
 		}
 	}
 }
