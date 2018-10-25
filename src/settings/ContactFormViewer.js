@@ -30,7 +30,7 @@ import {formatSortableDate} from "../misc/Formatter"
 
 assertMainOrNode()
 
-export class ContactFormViewer implements UpdatableComponent {
+export class ContactFormViewer implements UpdatableSettingsViewer {
 	view: Function;
 	contactForm: ContactForm;
 	_newContactFormIdReceiver: Function

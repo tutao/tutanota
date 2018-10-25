@@ -21,7 +21,7 @@ import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class LoginSettingsViewer implements UpdatableComponent {
+export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
 	_activeSessionTable: Table;
 	_closedSessionTable: Table;

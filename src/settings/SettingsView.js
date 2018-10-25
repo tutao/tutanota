@@ -45,8 +45,8 @@ export class SettingsView implements CurrentView {
 	_userFolders: SettingsFolder[];
 	_adminFolders: SettingsFolder[];
 	_selectedFolder: SettingsFolder;
-	_currentViewer: ?UpdatableComponent;
-	detailsViewer: ?UpdatableComponent; // the component for the details column. can be set by settings views
+	_currentViewer: ?UpdatableSettingsViewer;
+	detailsViewer: ?UpdatableSettingsViewer; // the component for the details column. can be set by settings views
 
 	constructor() {
 		this._userFolders = [

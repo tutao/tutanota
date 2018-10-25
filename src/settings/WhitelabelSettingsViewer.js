@@ -10,9 +10,8 @@ import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -42,13 +41,15 @@ import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/Unen
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {getCurrentCount} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
 const MAX_LOGO_SIZE = 1024 * 100
 const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
 
-export class WhitelabelSettingsViewer {
+export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
 
 	_brandingDomainField: TextField;
@@ -393,19 +394,22 @@ export class WhitelabelSettingsViewer {
 		}
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, CustomerTypeRef) && operation === OperationType.UPDATE) {
-			this._customer.reset()
-			this._customer.getAsync().then(() => m.redraw())
-			this._updateWhitelabelRegistrationFields()
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation === OperationType.UPDATE) {
-			this._customerInfo.reset()
-			this._updateFields()
-		} else if (isSameTypeRef(typeRef, WhitelabelConfigTypeRef) && operation === OperationType.UPDATE) {
-			this._updateFields()
-		} else if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation === OperationType.UPDATE) {
-			this._props.reset()
-			this._updateWhitelabelRegistrationFields()
+
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._customer.reset()
+				this._customer.getAsync().then(() => m.redraw())
+				this._updateWhitelabelRegistrationFields()
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._customerInfo.reset()
+				this._updateFields()
+			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._updateFields()
+			} else if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._props.reset()
+				this._updateWhitelabelRegistrationFields()
+			}
 		}
 	}
 }

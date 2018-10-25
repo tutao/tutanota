@@ -47,7 +47,7 @@ declare interface Shortcut {
 declare function keyHandler(key: KeyPress): boolean;
 
 
-declare interface UpdatableComponent {
+declare interface UpdatableSettingsViewer {
 	view(): VirtualElement | VirtualElement[];
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void;

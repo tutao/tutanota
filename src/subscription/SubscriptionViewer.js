@@ -46,7 +46,7 @@ assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
 
-export class SubscriptionViewer implements UpdatableComponent {
+export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	view: Function;
 	_subscriptionField: TextField;

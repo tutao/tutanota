@@ -10,10 +10,10 @@ export class SettingsFolder {
 	icon: lazyIcon;
 	path: string;
 	url: string; // can be changed from outside
-	viewerCreator: lazy<UpdatableComponent>;
+	viewerCreator: lazy<UpdatableSettingsViewer>;
 	_isVisibleHandler: lazy<boolean>;
 
-	constructor(nameTextId: string, icon: lazyIcon, path: string, viewerCreator: lazy<UpdatableComponent>) {
+	constructor(nameTextId: string, icon: lazyIcon, path: string, viewerCreator: lazy<UpdatableSettingsViewer>) {
 		this.nameTextId = nameTextId
 		this.icon = icon
 		this.path = path

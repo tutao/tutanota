@@ -8,12 +8,11 @@ import TableLine from "../gui/base/TableLine"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {GroupType, OperationType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, isSameTypeRef} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -32,10 +31,12 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {EntityUpdateData} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class GlobalSettingsViewer {
+export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
 	_spamRulesTable: Table;
 	_domainsTable: Table;
@@ -114,19 +115,19 @@ export class GlobalSettingsViewer {
 					m(".mt-l", [
 						m(".h4", lang.get('security_title')),
 						m(saveIpAddressDropdown),
-						logins.getUserController().isGlobalAdmin() && logins.getUserController()
-							.isPremiumAccount() ? m("", [
-							m(requirePasswordUpdateAfterResetDropdown),
-							this._customer() ?
-								m(".mt-l", [
-									m(".flex-space-between.items-center.mb-s", [
-										m(".h4", lang.get('auditLog_title')),
-										m(auditLogExpander)
-									]),
-									m(auditLogExpander.panel),
-									m("small", lang.get("auditLogInfo_msg")),
-								]) : null
-						]) : null,
+						logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
+							? m("", [
+								m(requirePasswordUpdateAfterResetDropdown),
+								this._customer() ?
+									m(".mt-l", [
+										m(".flex-space-between.items-center.mb-s", [
+											m(".h4", lang.get('auditLog_title')),
+											m(auditLogExpander)
+										]),
+										m(auditLogExpander.panel),
+										m("small", lang.get("auditLogInfo_msg")),
+									]) : null
+							]) : null,
 					]),
 
 				]),
@@ -290,16 +291,16 @@ export class GlobalSettingsViewer {
 								})).then(availableAndSelectedGroupDatas => {
 								const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 								return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
-									.then(selectedMailGroupId => {
-										return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
-									})
+								             .then(selectedMailGroupId => {
+									             return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+								             })
 							})
 						}).setType(ButtonType.Dropdown))
 						buttons.push(new Button("delete_action", () => {
 							worker.removeDomain(domainInfo.domain).catch(PreconditionFailedError, e => {
 								let registrationDomains = this._props() != null ? this._props()
-									.whitelabelRegistrationDomains
-									.map(domainWrapper => domainWrapper.value) : []
+								                                                      .whitelabelRegistrationDomains
+								                                                      .map(domainWrapper => domainWrapper.value) : []
 								if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
 									Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 								} else {
@@ -315,19 +316,21 @@ export class GlobalSettingsViewer {
 		})
 	}
 
-	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
-		if (isSameTypeRef(typeRef, CustomerServerPropertiesTypeRef) && operation === OperationType.UPDATE) {
-			this._updateCustomerServerProperties()
-		} else if (isSameTypeRef(typeRef, AuditLogEntryTypeRef)) {
-			this._updateAuditLog()
-		} else if (isSameTypeRef(typeRef, CustomerInfoTypeRef) && operation === OperationType.UPDATE) {
-			this._customerInfo.reset()
-			this._updateDomains()
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
+		for (let update of updates) {
+			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._updateCustomerServerProperties()
+			} else if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
+				this._updateAuditLog()
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._customerInfo.reset()
+				this._updateDomains()
+			}
 		}
 	}
 }
 
-export function getSpamRuleTypeNameMapping(): { value: string, name: string }[] {
+export function getSpamRuleTypeNameMapping(): {value: string, name: string}[] {
 	return [
 		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},

@@ -38,7 +38,7 @@ import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class PaymentViewer implements UpdatableComponent {
+export class PaymentViewer implements UpdatableSettingsViewer {
 	_invoiceAddressField: HtmlEditor;
 	_paymentMethodField: TextField;
 	_invoiceTable: Table;

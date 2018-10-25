@@ -30,7 +30,7 @@ assertMainOrNode()
 
 const className = "user-list"
 
-export class UserListView implements UpdatableComponent {
+export class UserListView implements UpdatableSettingsViewer {
 	list: List<GroupInfo, UserRow>;
 	view: Function;
 	_listId: LazyLoaded<Id>;

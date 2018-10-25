@@ -36,7 +36,7 @@ import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 
 assertMainOrNode()
 
-export class MailSettingsViewer implements UpdatableComponent {
+export class MailSettingsViewer implements UpdatableSettingsViewer {
 	view: Function
 
 	_senderName: TextField;

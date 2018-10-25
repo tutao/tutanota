@@ -29,7 +29,7 @@ assertMainOrNode()
 
 const className = "group-list"
 
-export class GroupListView implements UpdatableComponent {
+export class GroupListView implements UpdatableSettingsViewer {
 	list: List<GroupInfo, GroupRow>;
 	view: Function;
 	_listId: LazyLoaded<Id>;
