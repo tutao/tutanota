@@ -542,6 +542,10 @@ styles.registerStyle('main', () => {
 		'.list-loading': {bottom: 0},
 
 		// mail list
+		".teamLabel": {
+			color: theme.list_alternate_bg,
+			"background-color": theme.list_accent_fg,
+		},
 		".ion": {
 			"display": "inline-block",
 			"font-family": "'Ionicons'",

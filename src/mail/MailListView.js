@@ -11,16 +11,10 @@ import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {
-	getArchiveFolder,
-	getInboxFolder,
-	getSenderOrRecipientHeading,
-	getTrashFolder,
-	showDeleteConfirmationDialog
-} from "./MailUtils"
+import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
-import {size} from "../gui/size"
+import {px, size} from "../gui/size"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
@@ -162,6 +156,7 @@ export class MailRow {
 	_iconsDom: HTMLElement;
 	_showFolderIcon: boolean;
 	_domFolderIcons: {[key: MailFolderTypeEnum]: HTMLElement};
+	_domTeamLabel: HTMLElement;
 
 	constructor(showFolderIcon: boolean) {
 		this.top = 0
@@ -196,7 +191,14 @@ export class MailRow {
 		} else {
 			this._domSubject.classList.remove("b")
 		}
+
+		if (isTutanotaTeamMail(mail)) {
+			this._domTeamLabel.style.display = ''
+		} else {
+			this._domTeamLabel.style.display = 'none'
+		}
 	}
+
 
 	_iconsText(mail: Mail): string {
 		let iconText = "";
@@ -231,11 +233,17 @@ export class MailRow {
 	 */
 	render(): Children {
 		return [
-			m(".top.flex-space-between", [
+			m(".top.flex", {style: {lineHeight: px(18)}}, [
+				m("small.b.teamLabel.pl-s.pr-s.border-radius.mr-s", {oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota"),
 				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
+				m(".flex-grow"),
 				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
 			]),
-			m(".bottom.flex-space-between", [
+			m(".bottom.flex-space-between", {
+					style: {
+						marginTop: px(2)
+					}
+				}, [
 					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
 					m("span.ion.ml-s.list-font-icons", {
 						oncreate: (vnode) => this._iconsDom = vnode.dom
