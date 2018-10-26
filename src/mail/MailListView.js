@@ -20,6 +20,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
+import Badge from "../gui/base/Badge"
 
 assertMainOrNode()
 
@@ -234,7 +235,7 @@ export class MailRow {
 	render(): Children {
 		return [
 			m(".top.flex", {style: {lineHeight: px(18)}}, [
-				m("small.b.teamLabel.pl-s.pr-s.border-radius.mr-s", {oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota"),
+				m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota"),
 				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
 				m(".flex-grow"),
 				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})

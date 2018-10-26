@@ -151,7 +151,7 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 	}
 }
 
-function isExcludedMailAddress(mailAddress: string) {
+export function isExcludedMailAddress(mailAddress: string) {
 	return mailAddress === "no-reply@tutao.de"
 }
 

@@ -82,7 +82,7 @@ styles.registerStyle('main', () => {
 
 		},
 
-		' small, .small': {
+		'small, .small': {
 			'font-size': px(size.font_size_small),
 		},
 
