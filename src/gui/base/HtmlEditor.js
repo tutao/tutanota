@@ -161,7 +161,7 @@ export class HtmlEditor {
 			}
 		} else {
 			if (this._domTextArea) {
-				return this._domTextArea.value
+				return htmlSanitizer.sanitize(this._domTextArea.value, false).text
 			} else {
 				return this._value()
 			}
