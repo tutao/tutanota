@@ -328,11 +328,32 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout"
+						m("#mail-body.body.rel.scroll-x.selectable.touch-callout"
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
+								const width = this._domBody.getBoundingClientRect().width
+								const containerWidth = this._domMailViewer ? this._domMailViewer.getBoundingClientRect().width : -1
+								console.log(`body width: ${width}, container width: ${containerWidth}`)
+
+							},
+							onupdate: (vnode) => {
+								const child = vnode.children.reduce((acc, ch) => {
+									const scrollWidth = ch.scrollWidth
+									return acc == null || scrollWidth > acc ? scrollWidth : acc
+								}, null)
+								if (!child) return
+								const width = child.scrollWidth
+								const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
+								console.log(`body width onupdate: ${width}, container width: ${containerWidth}`)
+								const scale = containerWidth / width
+								const scrollHeight = child.scrollHeight
+								const scrollHeigthScale = child.scrollHeight * scale
+								const heightDiff = child.scrollHeight - child.scrollHeight * scale
+								const heightDiffHalf = heightDiff / 2
+								console.log(`scale ${scale}, height: ${scrollHeight}, height * scale: ${scrollHeigthScale} diff: ${heightDiff}, diffHalf: ${heightDiffHalf}`)
+								child.style.transform = `scale(${scale}) translate(-${(child.scrollWidth - child.scrollWidth * scale) / 2}px, -${heightDiffHalf}px)`
 							},
 							onclick: (event: Event) => this._handleMailto(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
