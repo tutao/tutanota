@@ -21,7 +21,6 @@ export function focusNext(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		console.log(window.getSelection().focusNode.parentNode.nodeName)
 		//work around for squire so tabulator actions are executed properly
 		//squiere makes a list which can be indented and manages this with tab and shift tab
 		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
