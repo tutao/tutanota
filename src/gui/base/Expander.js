@@ -77,14 +77,16 @@ export class ExpanderPanel {
 		this.child = child
 		this.expanded = false
 		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden", [
-			this.expanded ? m("div", {
-				oncreate: vnode => {
-					this._domPanel = vnode.dom
-					vnode.dom.style.height = 0
-					this._animate(true)
-				},
-				onbeforeremove: vnode => this._animate(false),
-			}, m(this.child)) : null
+			this.expanded
+				? m("div", {
+					oncreate: vnode => {
+						this._domPanel = vnode.dom
+						vnode.dom.style.height = 0
+						this._animate(true)
+					},
+					onbeforeremove: vnode => this._animate(false),
+				}, m(this.child))
+				: null
 		])
 	}
 

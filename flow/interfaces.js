@@ -92,11 +92,9 @@ interface IUserController {
 interface ILoginViewController {
 	formLogin(): void;
 
-	autologin(credentials: Credentials): Promise<IUserController>;
+	autologin(credentials: Credentials): void;
 
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void>;
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
-
-	migrateDeviceConfigFromApp(): Promise<void>;
 }

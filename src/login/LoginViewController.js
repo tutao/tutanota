@@ -34,10 +34,11 @@ import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {formatPrice} from "../misc/Formatter"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 
 assertMainOrNode()
 
-export class LoginViewController {
+export class LoginViewController implements ILoginViewController {
 	view: LoginView;
 	_loginPromise: Promise<void>;
 
@@ -68,17 +69,17 @@ export class LoginViewController {
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
 		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
-				.then(userPw => {
-					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
-						.then(newCredentials => {
-							deviceConfig.set(newCredentials)
-						})
-						.finally(() => worker.logout(false))
-				})
-				.catch(ignored => {
-					console.log(ignored)
-					// prevent reloading the page by ErrorHandler
-				})
+			             .then(userPw => {
+				             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+				                          .then(newCredentials => {
+					                          deviceConfig.set(newCredentials)
+				                          })
+				                          .finally(() => worker.logout(false))
+			             })
+			             .catch(ignored => {
+				             console.log(ignored)
+				             // prevent reloading the page by ErrorHandler
+			             })
 		})).return()
 	}
 
@@ -92,21 +93,21 @@ export class LoginViewController {
 			this.view.helpText = lang.get('login_msg')
 			let persistentSession = this.view.savePassword.checked()
 			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
-				.then(newCredentials => {
-					let storedCredentials = deviceConfig.get(mailAddress)
-					if (persistentSession) {
-						deviceConfig.set(newCredentials)
-					}
-					if (storedCredentials) {
-						return worker.deleteSession(storedCredentials.accessToken)
-							.then(() => {
-								if (!persistentSession) {
-									deviceConfig.delete(mailAddress)
-								}
-							})
-							.catch(NotFoundError, e => console.log("session already deleted"))
-					}
-				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			                           .then(newCredentials => {
+				                           let storedCredentials = deviceConfig.get(mailAddress)
+				                           if (persistentSession) {
+					                           deviceConfig.set(newCredentials)
+				                           }
+				                           if (storedCredentials) {
+					                           return worker.deleteSession(storedCredentials.accessToken)
+					                                        .then(() => {
+						                                        if (!persistentSession) {
+							                                        deviceConfig.delete(mailAddress)
+						                                        }
+					                                        })
+					                                        .catch(NotFoundError, e => console.log("session already deleted"))
+				                           }
+			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
@@ -114,49 +115,93 @@ export class LoginViewController {
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
-			.then(() => logins.loadCustomizations())
-			.then(() => this._postLoginActions())
-			.then(() => {
-				m.route.set(this.view._requestedPath)
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-			})
-			.catch(AccessBlockedError, e => {
-				this.view.helpText = lang.get('loginFailedOften_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(NotAuthenticatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(AccessDeactivatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(TooManyRequestsError, e => {
-				this.view.helpText = lang.get('tooManyAttempts_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(CancelledError, () => {
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(ConnectionError, e => {
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				throw e;
-			})
+		            .then(() => this._enforceRecoverySet())
+		            .then(() => logins.loadCustomizations())
+		            .then(() => this._postLoginActions())
+		            .then(() => {
+			            m.route.set(this.view._requestedPath)
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+		            })
+		            .catch(AccessBlockedError, e => {
+			            this.view.helpText = lang.get('loginFailedOften_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(NotAuthenticatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(AccessDeactivatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(TooManyRequestsError, e => {
+			            this.view.helpText = lang.get('tooManyAttempts_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(CancelledError, () => {
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(ConnectionError, e => {
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+			            throw e;
+		            })
 	}
 
 	_enforcePasswordChange() {
 		if (logins.getUserController().user.requirePasswordUpdate) {
 			return PasswordForm.showChangeOwnPasswordDialog(false)
 		}
+	}
+
+	_enforceRecoverySet() {
+		// TODO: check from the model
+		if (true) {
+			return this
+				._generateRecovery()
+				.then((recovery) => {
+					const expanderPanel = new ExpanderPanel({
+						view: () =>
+							m(".text-break.monospace.selectable",
+								neverNull(recovery.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
+					})
+					const expander = new ExpanderButton(() => "Show recovery code", expanderPanel, false)
+
+					return new Promise((resolve) => {
+						Dialog.showActionDialog({
+							title: "Account recovery",
+							child: {
+								view: () => {
+									return [
+										m(".pt.pb", "Please, take a minute to record your recovery code. This can be used to restore "
+											+ "access to your account in case you loose your password. You can change it later "
+											+ "in settings."),
+										m(expander),
+										m(expander.panel)
+									]
+								}
+							},
+							allowCancel: false,
+							okAction: (dialog) => {
+								dialog.close()
+								resolve()
+							}
+						})
+					})
+				})
+		}
+	}
+
+	_generateRecovery(): Promise<string> {
+		// TODO: actually implement
+		return Promise.resolve("hjasldkjöm,sadäölaskdhjsajkdöaskldöasdköalskdsalökd")
 	}
 
 	_postLoginActions() {
@@ -246,11 +291,11 @@ export class LoginViewController {
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
 		return worker.initialized.then(() => {
 			worker.deleteSession(credentials.accessToken)
-				.then(() => {
-					// not authenticated error is caught in worker
-					deviceConfig.delete(credentials.mailAddress)
-					this.view.setKnownCredentials(deviceConfig.getAllInternal());
-				})
+			      .then(() => {
+				      // not authenticated error is caught in worker
+				      deviceConfig.delete(credentials.mailAddress)
+				      this.view.setKnownCredentials(deviceConfig.getAllInternal());
+			      })
 		})
 	}
 }
