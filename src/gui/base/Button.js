@@ -8,11 +8,10 @@ import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
-import type {IconAttrs, lazyIcon} from "./Icon"
+import type {AllIconsEnum, IconAttrs, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
-import type {AllIconsEnum} from "./Icon"
 
 assertMainOrNodeBoot()
 
