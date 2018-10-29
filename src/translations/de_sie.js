@@ -946,7 +946,7 @@ module.exports = {
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
 		"settings_alt": "Einstellungen",
 		"settings_label": "Einstellungen",
-		"sharedMailbox_label": "Geteilte Mailboxen:",
+		"sharedMailbox_label": "Geteilte Mailboxen",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
 		"showAttachment_label": "Anhang anzeigen",
 		"showBlockedContent_action": "Anzeigen",

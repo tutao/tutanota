@@ -83,7 +83,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
 		this._subscriptionField._injectionsRight = () => (
 			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-		                                                                            .isPremiumAccount()
+			.isPremiumAccount()
 		&& !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
@@ -382,7 +382,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
 		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = lang.get("sharedMailbox_label") + " " + sharedMailCount
+		const sharedMailText = lang.get("sharedMailbox_label") + ": " + sharedMailCount
 		if (localAdminCount === 0 && sharedMailCount === 0) {
 			this._groupsField.setValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
