@@ -311,11 +311,11 @@ export class MailViewer {
 								m(".flex.flex-column-reverse", [
 									(detailsExpander.panel.expanded)
 										? m("small.flex.text-break", lang.get("from_label"))
-										: m("small.flex.text-break.selectable", [
+										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s", [
 											this._tutaoBadge(),
 											getSenderOrRecipientHeading(this.mail, false)
 										]),
-									(this._folderText) ? m("small.b.flex.pt.pb-s", {style: {color: theme.navigation_button}}, this._folderText) : null,
+									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								m(".flex.flex-column-reverse", this._isAnnouncement() ? null : m(detailsExpander)),
 							]),
@@ -371,7 +371,7 @@ export class MailViewer {
 	}
 
 	_tutaoBadge(): Vnode<*> | null {
-		return isTutanotaTeamMail(this.mail) ? m(Badge, {classes: ".mr-s"}, "Tutanota") : null
+		return isTutanotaTeamMail(this.mail) ? m(Badge, {classes: ".mr-s"}, "Tutanota Team") : null
 	}
 
 	_isAnnouncement(): boolean {

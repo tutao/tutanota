@@ -410,8 +410,8 @@ export class SearchBar implements Component {
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result: any): Mail)
 			return [
-				m(".top.flex-space-between", [
-					isTutanotaTeamMail(mail) ? m(Badge, {classes: ".small.mr-s"}, "Tutanota") : null,
+				m(".top.flex-space-between.badge-line-height", [
+					isTutanotaTeamMail(mail) ? m(Badge, {classes: ".small.mr-s"}, "Tutanota Team") : null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
 					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
 				]),

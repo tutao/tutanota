@@ -559,6 +559,9 @@ styles.registerStyle('main', () => {
 			"-webkit-font-smoothing": "antialiased",
 			"-moz-osx-font-smoothing": "grayscale",
 		},
+		".badge-line-height": {
+			"line-height": px(18)
+		},
 
 		".list-font-icons": {
 			"letter-spacing": "8px",

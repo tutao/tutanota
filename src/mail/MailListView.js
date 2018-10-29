@@ -234,8 +234,8 @@ export class MailRow {
 	 */
 	render(): Children {
 		return [
-			m(".top.flex", {style: {lineHeight: px(18)}}, [
-				m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota"),
+			m(".top.flex.badge-line-height", [
+				m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
 				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
 				m(".flex-grow"),
 				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
