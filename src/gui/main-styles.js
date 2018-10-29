@@ -82,7 +82,7 @@ styles.registerStyle('main', () => {
 
 		},
 
-		' small, .small': {
+		'small, .small': {
 			'font-size': px(size.font_size_small),
 		},
 
@@ -542,6 +542,10 @@ styles.registerStyle('main', () => {
 		'.list-loading': {bottom: 0},
 
 		// mail list
+		".teamLabel": {
+			color: theme.list_alternate_bg,
+			"background-color": theme.list_accent_fg,
+		},
 		".ion": {
 			"display": "inline-block",
 			"font-family": "'Ionicons'",
@@ -554,6 +558,9 @@ styles.registerStyle('main', () => {
 			"line-height": "1",
 			"-webkit-font-smoothing": "antialiased",
 			"-moz-osx-font-smoothing": "grayscale",
+		},
+		".badge-line-height": {
+			"line-height": px(18)
 		},
 
 		".list-font-icons": {

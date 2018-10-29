@@ -26,6 +26,7 @@ import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {lazyIcon} from "../gui/base/Icon"
+import {endsWith} from "../api/common/utils/StringUtils"
 
 assertMainOrNode()
 
@@ -134,7 +135,11 @@ export function getDisplayText(name: string, mailAddress: string, preferNameOnly
 
 export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
 	if (mail.state === MailState.RECEIVED) {
-		return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		if (isExcludedMailAddress(mail.sender.address)) {
+			return ""
+		} else {
+			return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		}
 	} else {
 		let allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 		if (allRecipients.length > 0) {
@@ -144,6 +149,10 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 			return ""
 		}
 	}
+}
+
+export function isExcludedMailAddress(mailAddress: string) {
+	return mailAddress === "no-reply@tutao.de"
 }
 
 export function getDefaultSenderFromUser(): string {
@@ -381,4 +390,8 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 	} else {
 		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
 	}
+}
+
+export function isTutanotaTeamMail(mail: Mail): boolean {
+	return mail.confidential && endsWith(mail.sender.address, "@tutao.de")
 }

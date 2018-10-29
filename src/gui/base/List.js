@@ -36,7 +36,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 	_domListContainer: HTMLElement;
 	_domList: HTMLElement;
-	_domInitialized: { resolve: () => void, promise: Promise<void> };
+	_domInitialized: {resolve: () => void, promise: Promise<void>};
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
@@ -46,7 +46,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	lastUpdateTime: number;
 	updateLater: boolean; // if set, paint operations are executed later, when the scroll speed becomes slower
 	repositionTimeout: ?TimeoutID; // the id of the timeout to reposition if updateLater == true and scrolling stops abruptly (e.g. end of list or user touch)
-	_domStatus: { bufferUp: ?HTMLElement, bufferDown: ?HTMLElement, speed: ?HTMLElement, scrollDiff: ?HTMLElement, timeDiff: ?HTMLElement };
+	_domStatus: {bufferUp: ?HTMLElement, bufferDown: ?HTMLElement, speed: ?HTMLElement, scrollDiff: ?HTMLElement, timeDiff: ?HTMLElement};
 
 	_visibleElementsHeight: number;
 	bufferHeight: number;
@@ -68,7 +68,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_idOfEntityToSelectWhenReceived: ?Id;
 
 	_emptyMessageBox: MessageBox;
-	_renderCallback: ?{ type: 'timeout', id: TimeoutID } | ?{ type: 'frame', id: AnimationFrameID }
+	_renderCallback: ?{type: 'timeout', id: TimeoutID} | ?{type: 'frame', id: AnimationFrameID}
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
 	_mobileMultiSelectionActive: boolean = false;
 
@@ -175,10 +175,14 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 					},
 					[
 						this._virtualList.map(virtualRow => {
-							return m("li.list-row.plr-l.pt.pb"
+							return m("li.list-row.plr-l"
 								+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 								oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
-								style: {transform: `translateY(-${this._config.rowHeight}px)`},
+								style: {
+									transform: `translateY(-${this._config.rowHeight}px)`,
+									paddingTop: px(15),
+									paddingBottom: px(15)
+								},
 								ondragstart: (event) => this._dragstart(event, virtualRow)
 							}, virtualRow.render())
 						}),
@@ -243,7 +247,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			}
 		}
 		let timeoutId: ?TimeoutID
-		let touchStartCoords: ?{ x: number, y: number }
+		let touchStartCoords: ?{x: number, y: number}
 		const dom: any = domElement
 		dom.ontouchstart = (e) => {
 			touchStartTime = Date.now()
@@ -484,13 +488,13 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		let count = PageSize
 		this.displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
-			.then((newItems: T[]) => {
-				if (newItems.length < count) this.setLoadedCompletely()
-				for (let i = 0; i < newItems.length; i++) {
-					this._loadedEntities[start + i] = newItems[i]
-				}
-				this._loadedEntities.sort(this._config.sortCompare)
-			}).finally(() => {
+		                    .then((newItems: T[]) => {
+			                    if (newItems.length < count) this.setLoadedCompletely()
+			                    for (let i = 0; i < newItems.length; i++) {
+				                    this._loadedEntities[start + i] = newItems[i]
+			                    }
+			                    this._loadedEntities.sort(this._config.sortCompare)
+		                    }).finally(() => {
 				// this._showSpinner = false
 				if (this.ready) {
 					this._domLoadingRow.style.display = 'none'
@@ -767,7 +771,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 	}
 
-	updateStatus(status: { bufferUp: number, bufferDown: number, speed: number, scrollDiff: number, timeDiff: number }) {
+	updateStatus(status: {bufferUp: number, bufferDown: number, speed: number, scrollDiff: number, timeDiff: number}) {
 		if (this._domStatus.bufferUp) this._domStatus.bufferUp.textContent = status.bufferUp + ''
 		if (this._domStatus.bufferDown) this._domStatus.bufferDown.textContent = status.bufferDown + ''
 		if (this._domStatus.speed) this._domStatus.speed.textContent = status.speed + ''
@@ -954,7 +958,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 const ActionDistance = 150
 
 class SwipeHandler {
-	startPos: { x: number, y: number };
+	startPos: {x: number, y: number};
 	virtualElement: ?VirtualRow<*>;
 	list: List<*, *>;
 	xoffset: number;
@@ -1049,7 +1053,7 @@ class SwipeHandler {
 					duration: DefaultAnimationTime * 2
 				}),
 			]).then(() => this.xoffset = listTargetPosition)
-				.then(() => swipeActionPromise).then((success) => {
+			              .then(() => swipeActionPromise).then((success) => {
 					if (success) {
 						return this.list._deleteLoadedEntity(id).then(() => {
 							// fade out element

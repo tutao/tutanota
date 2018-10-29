@@ -18,7 +18,7 @@ import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {formatDateTimeFromYesterdayOn, formatDateWithMonth, formatDateWithWeekday} from "../misc/Formatter"
-import {getFolderIcon, getSenderOrRecipientHeading} from "../mail/MailUtils"
+import {getFolderIcon, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import type {RouteChangeEvent} from "../misc/RouteChange"
@@ -42,6 +42,7 @@ import {downcast} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
+import Badge from "../gui/base/Badge"
 
 assertMainOrNode()
 
@@ -409,7 +410,8 @@ export class SearchBar implements Component {
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result: any): Mail)
 			return [
-				m(".top.flex-space-between", [
+				m(".top.flex-space-between.badge-line-height", [
+					isTutanotaTeamMail(mail) ? m(Badge, {classes: ".small.mr-s"}, "Tutanota Team") : null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
 					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
 				]),

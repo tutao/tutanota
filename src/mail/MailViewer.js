@@ -36,6 +36,8 @@ import {
 	getSenderOrRecipientHeading,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
+	isExcludedMailAddress,
+	isTutanotaTeamMail,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
@@ -65,6 +67,7 @@ import {exportAsEml} from "./Exporter"
 import {client} from "../misc/ClientDetector"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import Badge from "../gui/base/Badge"
 
 assertMainOrNode()
 
@@ -178,31 +181,33 @@ export class MailViewer {
 			let restrictedParticipants = mail.restrictions && mail.restrictions.participantGroupInfos.length > 0
 
 			actions.add(loadExternalContentButton)
-			actions.add(new Button('reply_action', () => this._reply(false), () => Icons.Reply))
-			let userController = logins.getUserController()
-			if (userController.isInternalUser()
-				&& (mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1)
-				&& !restrictedParticipants) {
-				actions.add(new Button('replyAll_action', () => this._reply(true), () => Icons.ReplyAll))
-			}
-			if (userController.isInternalUser() && !restrictedParticipants) {
-				actions.add(new Button('forward_action', () => this._forward(), () => Icons.Forward))
-			} else if (userController.isInternalUser()
-				&& restrictedParticipants
-				&& userController.getUserMailGroupMembership().group !== this.mail._ownerGroup) { // do not allow re-assigning from personal mailbox
-				// remove the current mailbox/owner from the recipients list.
-				const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
-					if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
-						return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
-							&& userOrMailGroupInfo.group !== mail._ownerGroup
-					} else {
-						return userOrMailGroupInfo.group !== mail._ownerGroup
-					}
-				}).map(userOrMailGroupInfo => {
-					return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
-						.setType(ButtonType.Dropdown)
-				})
-				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
+			if (!this._isAnnouncement()) {
+				actions.add(new Button('reply_action', () => this._reply(false), () => Icons.Reply))
+				let userController = logins.getUserController()
+				if (userController.isInternalUser()
+					&& (mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1)
+					&& !restrictedParticipants) {
+					actions.add(new Button('replyAll_action', () => this._reply(true), () => Icons.ReplyAll))
+				}
+				if (userController.isInternalUser() && !restrictedParticipants) {
+					actions.add(new Button('forward_action', () => this._forward(), () => Icons.Forward))
+				} else if (userController.isInternalUser()
+					&& restrictedParticipants
+					&& userController.getUserMailGroupMembership().group !== this.mail._ownerGroup) { // do not allow re-assigning from personal mailbox
+					// remove the current mailbox/owner from the recipients list.
+					const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
+						if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
+							return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
+								&& userOrMailGroupInfo.group !== mail._ownerGroup
+						} else {
+							return userOrMailGroupInfo.group !== mail._ownerGroup
+						}
+					}).map(userOrMailGroupInfo => {
+						return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
+							.setType(ButtonType.Dropdown)
+					})
+					actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
+				}
 			}
 			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
 				let targetFolders = mailModel.getMailboxFolders(this.mail).filter(f => f.mails !== this.mail._id[0])
@@ -226,10 +231,12 @@ export class MailViewer {
 				if (!this.mail.unread) {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
-				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
-					() => Icons.Download).setType(ButtonType.Dropdown)
-				                         .setIsVisibleHandler(() => env.mode !== Mode.App
-					                         && !logins.isEnabled(FeatureType.DisableMailExport)))
+				if (!this._isAnnouncement()) {
+					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
+						() => Icons.Download).setType(ButtonType.Dropdown)
+					                         .setIsVisibleHandler(() => env.mode !== Mode.App
+						                         && !logins.isEnabled(FeatureType.DisableMailExport)))
+				}
 				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
@@ -302,10 +309,15 @@ export class MailViewer {
 						m(".header.plr-l", [
 							m(".flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
-									(detailsExpander.panel.expanded) ? m("small.flex.text-break", lang.get("from_label")) : m("small.flex.text-break.selectable", getSenderOrRecipientHeading(this.mail, false)),
-									(this._folderText) ? m("small.b.flex.pt.pb-s", {style: {color: theme.navigation_button}}, this._folderText) : null,
+									(detailsExpander.panel.expanded)
+										? m("small.flex.text-break", lang.get("from_label"))
+										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s", [
+											this._tutaoBadge(),
+											getSenderOrRecipientHeading(this.mail, false)
+										]),
+									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
-								m(".flex.flex-column-reverse", [m(detailsExpander)]),
+								m(".flex.flex-column-reverse", this._isAnnouncement() ? null : m(detailsExpander)),
 							]),
 							m(detailsExpander.panel),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
@@ -356,6 +368,14 @@ export class MailViewer {
 
 
 		this._setupShortcuts()
+	}
+
+	_tutaoBadge(): Vnode<*> | null {
+		return isTutanotaTeamMail(this.mail) ? m(Badge, {classes: ".mr-s"}, "Tutanota Team") : null
+	}
+
+	_isAnnouncement(): boolean {
+		return isExcludedMailAddress(this.mail.sender.address)
 	}
 
 	_setupShortcuts() {
@@ -457,6 +477,9 @@ export class MailViewer {
 	}
 
 	_reply(replyAll: boolean) {
+		if (this._isAnnouncement()) {
+			return
+		}
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let prefix = "Re: "
