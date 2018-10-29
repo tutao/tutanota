@@ -53,9 +53,9 @@ export class BuyOptionBox {
 					}, m(this._button))
 				]), m(".flex.flex-column.pt", {
 					style: {lineHeight: px(inputLineHeight)}
-				}, this._features().map(f => m(".center.dialog-header.dialog-header-line-height.text-ellipsis",
+				}, this._features().map(f => m(".flex-center.center.dialog-header.text-prewrap",
 					// {style: {borderBottom: `1px solid ${theme.content_border}`}},
-					f)))
+					[m(".align-self-center", f)])))
 			])
 		}
 	}
