@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
-import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
+import {focusPrevious, focusNext, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
@@ -50,13 +50,13 @@ export class Dialog {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => focusNext(this._domDialog),
+				exec: () => focusPrevious(this._domDialog),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => focusPrevious(this._domDialog),
+				exec: () => focusNext(this._domDialog),
 				help: "selectNext_action"
 			},
 		]

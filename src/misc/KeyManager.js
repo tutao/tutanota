@@ -17,7 +17,7 @@ assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
 
-export function focusNext(dom: HTMLElement) {
+export function focusPrevious(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
@@ -37,7 +37,7 @@ export function focusNext(dom: HTMLElement) {
 	}
 }
 
-export function focusPrevious(dom: HTMLElement) {
+export function focusNext(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
