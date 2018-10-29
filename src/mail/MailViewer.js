@@ -228,8 +228,10 @@ export class MailViewer {
 		if (mail.state !== MailState.DRAFT) {
 			actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 				let moreButtons = []
-				if (!this.mail.unread) {
-					moreButtons.push(new Button("markUnread_action", () => this._markUnread(), () => Icons.NoEye).setType(ButtonType.Dropdown))
+				if (this.mail.unread) {
+					moreButtons.push(new Button("markRead_action", () => this._markUnread(false), () => Icons.Eye).setType(ButtonType.Dropdown))
+				} else {
+					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
 				if (!this._isAnnouncement()) {
 					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
@@ -460,8 +462,8 @@ export class MailViewer {
 			!== getDomainWithoutSubdomains(this.mail.sender.address))
 	}
 
-	_markUnread() {
-		this.mail.unread = true
+	_markUnread(unread: boolean) {
+		this.mail.unread = unread
 		update(this.mail)
 	}
 
