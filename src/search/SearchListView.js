@@ -17,6 +17,7 @@ import {compareContacts} from "../contacts/ContactUtils"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -114,8 +115,8 @@ export class SearchListView {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
-				           .then(results => results.map(instance => new SearchResultListEntry(instance)))
-				           .finally(m.redraw)
+					.then(results => results.map(instance => new SearchResultListEntry(instance)))
+					.finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
 				if (this._searchResult) {
@@ -160,7 +161,8 @@ export class SearchListView {
 			},
 			elementsDraggable: false,
 			multiSelectionAllowed: true,
-			emptyMessage: lang.get("searchNoResults_msg") + "\n" + lang.get("switchSearchInMenu_label")
+			//String() is called so that flow is not complaining
+			emptyMessage: lang.get("searchNoResults_msg") + "\n" + String(logins.getUserController().isFreeAccount() ?  lang.get("goPremium_msg") :  lang.get("switchSearchInMenu_label"))
 		})
 	}
 
@@ -195,10 +197,10 @@ export class SearchListView {
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
 					return this._loadAndFilterInstances(currentResult.restriction.type, moreResults.results, moreResults, 0)
-					           .finally(() => {
-						           this.list && this.list.setLoadedCompletely()
-						           m.redraw()
-					           })
+						.finally(() => {
+							this.list && this.list.setLoadedCompletely()
+							m.redraw()
+						})
 				} else {
 					// this type is not shown in the search view, e.g. group info
 					return Promise.resolve([])
@@ -222,7 +224,7 @@ export class SearchListView {
 	}
 
 	_loadAndFilterInstances<T>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
-	                           startIndex: number): Promise<T[]> {
+							   startIndex: number): Promise<T[]> {
 		return Promise
 			.map(toLoad,
 				(id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),

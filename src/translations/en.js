@@ -1107,6 +1107,8 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"goPremium_msg":"As a Premium user you can adjust your search criteria in the menu to the left.",
+		"changeTimeFrame_msg":"Go Premium and adjust your search time frame!"
 	}
 }

@@ -1111,6 +1111,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"goPremium_msg": "Als Premium nutzer kannst du links im Menü deine Suchkriterien anpassen.",
+		"changeTimeFrame_msg": "Mit Premium kannst du deinen Suchzeitraum erweitern!"
 	}
 }
