@@ -12,7 +12,7 @@ import {
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {base64ToKey, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
-import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {decryptKey, encryptBytes, encryptKey, encryptString, fixedIv} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
@@ -45,6 +45,13 @@ import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
+import {PasswordChannelReturnTypeRef} from "../../entities/tutanota/PasswordChannelReturn"
+import {TutanotaService} from "../../entities/tutanota/Services"
+import {createPasswordRetrievalData} from "../../entities/tutanota/PasswordRetrievalData"
+import {PasswordRetrievalReturnTypeRef} from "../../entities/tutanota/PasswordRetrievalReturn"
+import {PasswordMessagingReturnTypeRef} from "../../entities/tutanota/PasswordMessagingReturn"
+import {createPasswordMessagingData} from "../../entities/tutanota/PasswordMessagingData"
+import {concat} from "../../common/utils/ArrayUtils"
 
 assertWorkerOrNode()
 
@@ -158,6 +165,45 @@ export class LoginFacade {
 				}
 				if (secondFactorAuthGetReturn.secondFactorPending) {
 					return this._waitUntilSecondFactorApproved(accessToken, sessionId)
+				}
+			})
+	}
+
+	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
+		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
+		return serviceRequest(TutanotaService.PasswordChannelResource, HttpMethod.GET, null, PasswordChannelReturnTypeRef, null, null, headers)
+	}
+
+	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
+		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
+		// reuse the transmission password to allow receiving the key if the SMS was requested a second time, but the SMS link of the first SMS was clicked
+		if (!symKeyForPasswordTransmission) {
+			symKeyForPasswordTransmission = aes128RandomKey()
+		}
+
+		var data = createPasswordMessagingData()
+		data.language = languageCode
+		data.numberId = phoneNumberId
+		data.symKeyForPasswordTransmission = keyToUint8Array(symKeyForPasswordTransmission)
+
+		return serviceRequest(TutanotaService.PasswordMessagingService, HttpMethod.POST, data, PasswordMessagingReturnTypeRef, null, null, headers)
+			.then(result => {
+				return {symKeyForPasswordTransmission: neverNull(symKeyForPasswordTransmission), autoAuthenticationId: result.autoAuthenticationId}
+			})
+	}
+
+	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId: Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
+		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
+		let data = createPasswordRetrievalData()
+		data.autoAuthenticationId = autoAuthenticationId
+
+		return serviceRequest(TutanotaService.PasswordRetrievalService, HttpMethod.GET, data, PasswordRetrievalReturnTypeRef, null, null, headers)
+			.then(result => {
+				if (!result.transmissionKeyEncryptedPassword) {
+					return null
+				} else {
+					let password = utf8Uint8ArrayToString(aes128Decrypt(symKeyForPasswordTransmission, concat(fixedIv, base64ToUint8Array(result.transmissionKeyEncryptedPassword))))
+					return password
 				}
 			})
 	}

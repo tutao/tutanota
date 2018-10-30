@@ -1,8 +1,8 @@
 // @flow
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {random} from "./Randomizer"
-import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
-import {concat, arrayEquals} from "../../common/utils/ArrayUtils"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"

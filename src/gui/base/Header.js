@@ -17,7 +17,7 @@ import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 
-export const LogoutUrl = '/login?noAutoLogin=true'
+export const LogoutUrl = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash  :'/login?noAutoLogin=true'
 
 assertMainOrNodeBoot()
 

@@ -3,17 +3,20 @@ import {restClient} from "./RestClient"
 import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef, MediaType} from "../../common/EntityFunctions"
+import {MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
+import {neverNull} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
+export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, headers: ?Params): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {
 			let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
 			let queryParams = queryParameter != null ? queryParameter : {}
-			let headers = locator.login.createAuthHeaders()
+			if (!headers) {
+				headers = locator.login.createAuthHeaders()
+			}
 			headers['v'] = modelForAppAndVersion.version
 
 			let p: ?Promise<?Object> = null;
@@ -29,7 +32,7 @@ export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | Moni
 				p = Promise.resolve(null)
 			}
 			return p.then(encryptedEntity => {
-				return restClient.request(path, method, queryParams, headers, encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json)
+				return restClient.request(path, method, queryParams, neverNull(headers), encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json)
 				                 .then(data => {
 					                 if (responseTypeRef) {
 						                 return resolveTypeReference(responseTypeRef).then(responseTypeModel => {

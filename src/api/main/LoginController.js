@@ -1,6 +1,6 @@
 //@flow
-import {neverNull, defer} from "../common/utils/Utils"
-import {getHttpOrigin, assertMainOrNodeBoot} from "../Env"
+import {defer, neverNull} from "../common/utils/Utils"
+import {assertMainOrNodeBoot, getHttpOrigin} from "../Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 
 assertMainOrNodeBoot()
@@ -11,7 +11,7 @@ export class LoginController {
 	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
 
 
-	isUserLoggedIn() {
+	isUserLoggedIn(): boolean {
 		return this._userController != null
 	}
 
@@ -23,11 +23,11 @@ export class LoginController {
 		this.waitForLogin.resolve()
 	}
 
-	isInternalUserLoggedIn() {
+	isInternalUserLoggedIn(): boolean {
 		return this.isUserLoggedIn() && this.getUserController().isInternalUser()
 	}
 
-	isGlobalAdminUserLoggedIn() {
+	isGlobalAdminUserLoggedIn(): boolean {
 		return this.isUserLoggedIn() && this.getUserController().isGlobalAdmin()
 	}
 
