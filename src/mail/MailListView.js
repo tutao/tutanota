@@ -83,7 +83,7 @@ export class MailListView {
 					m(Icon, {icon: Icons.Folder}),
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
-				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO test finalDelete_action if the mail is deleted from trash
+				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
 					if (confirmed == true) {
 						mailModel.deleteMails([listElement])

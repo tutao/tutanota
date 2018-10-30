@@ -406,9 +406,9 @@ export class SearchBar implements Component {
 					+ formatDate(new Date(showMoreAction.indexTimestamp))
 			}
 
-			let withIndexInfo = [m(".top.flex-center", infoText), m(".bottom.flex-center.small.center", indexInfo)]
-			let withoutIndexInfo = [m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))]
-			return indexInfo ? withIndexInfo : withoutIndexInfo
+			return indexInfo ? [
+				m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)
+			] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
 
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result: any): Mail)

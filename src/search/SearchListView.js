@@ -161,8 +161,7 @@ export class SearchListView {
 			},
 			elementsDraggable: false,
 			multiSelectionAllowed: true,
-			//String() is called so that flow is not complaining
-			emptyMessage: lang.get("searchNoResults_msg") + "\n" + String(logins.getUserController().isFreeAccount() ?  lang.get("goPremium_msg") :  lang.get("switchSearchInMenu_label"))
+			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController().isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))
 		})
 	}
 
