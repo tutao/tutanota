@@ -175,6 +175,9 @@ export class RegisterView {
 		}).then(authToken => {
 			if (authToken) {
 				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true)
+					.then(recoverCode => {
+						return Dialog.showRecoverCodeDialog(recoverCode)
+					})
 					.then(() => {
 						m.route.set("/login?loginWith=" + mailAddress)
 					})

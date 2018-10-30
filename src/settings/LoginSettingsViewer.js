@@ -18,6 +18,12 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {Dialog} from "../gui/base/Dialog"
+import stream from "mithril/stream/stream.js"
+import {ButtonN, ButtonType, createDropDown} from "../gui/base/ButtonN"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -26,7 +32,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	_activeSessionTable: Table;
 	_closedSessionTable: Table;
 	_secondFactorsForm: EditSecondFactorsForm;
-	_props: Stream<CustomerProperties>;
 
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress)
@@ -34,6 +39,31 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		let password = new TextField("password_label").setValue("***").setDisabled()
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
+
+		let recoveryCodeField = new TextField("recoverCode_label").setValue("***").setDisabled()
+
+		const showRecoveryCodeAttrs = {
+			label: "showRecoveryCode_action",
+			click: () => this._showRecoveryCodeDialog((password) => worker.getRecoveryCode(password)),
+			type: ButtonType.Dropdown,
+			isVisible: () => {
+				const auth = logins.getUserController().user.auth
+				return auth && auth.recoverCode
+			}
+		}
+		const updateRecoveryCodeButton = {
+			label: "updateRecoveryCode_action",
+			click: () => this._showRecoveryCodeDialog((password) => worker.createRecoveryCode(password)),
+			type: ButtonType.Dropdown
+		}
+
+		const recoveryDropdown = createDropDown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton], 300)
+
+		recoveryCodeField._injectionsRight = () => m(ButtonN, {
+			label: "edit_action",
+			icon: () => Icons.Edit,
+			click: recoveryDropdown
+		})
 
 		this._activeSessionTable = new Table([
 			"client_label", "lastAccess_label", "IpAddress_label"
@@ -51,6 +81,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
+					m(recoveryCodeField),
 					(!logins.getUserController().isOutlookAccount()) ?
 						m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),
@@ -66,6 +97,25 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			]
 		}
 		this._updateSessions()
+	}
+
+	_showRecoveryCodeDialog(action: (string) => Promise<Hex>) {
+		const errorMessageStream = stream("")
+		const dialog = Dialog.showRequestPasswordDialog((passwordField) => {
+			showProgressDialog("loading_msg", action(passwordField.value()))
+				.then((recoverCode) => {
+					dialog.close()
+					return Dialog.showRecoverCodeDialog(recoverCode)
+				})
+				.catch(NotAuthenticatedError, () => {
+					errorMessageStream(lang.get("invalidPassword_msg"))
+					passwordField.focus()
+				})
+				.catch(AccessBlockedError, () => {
+					errorMessageStream(lang.get("tooManyAttempts_msg"))
+					passwordField.focus()
+				})
+		}, errorMessageStream, () => { dialog.close()})
 	}
 
 	_updateSessions() {

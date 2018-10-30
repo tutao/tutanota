@@ -82,41 +82,34 @@ export function handleUncaughtError(e: Error) {
 		if (!loginDialogActive) {
 			loginDialogActive = true
 			let errorMessage = stream("")
-			let pwInput = new TextField("password_label", errorMessage)
-				.setType(Type.Password)
-			let dialog = Dialog.showActionDialog({
-				title: lang.get("login_label"),
-				child: pwInput,
-				okAction: () => {
-					showProgressDialog("pleaseWait_msg",
-						worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
-							pwInput.value(), client.getIdentifier(), false, true)
-						      .then(() => {
-							      dialog.close()
-							      loginDialogActive = false
-						      })
-						      .catch(AccessBlockedError, e => {
-							      errorMessage(lang.get('loginFailedOften_msg'))
-							      m.redraw()
-						      })
-						      .catch(NotAuthenticatedError, e => {
-							      errorMessage(lang.get('loginFailed_msg'))
-							      m.redraw()
-						      })
-						      .catch(AccessDeactivatedError, e => {
-							      errorMessage(lang.get('loginFailed_msg'))
-							      m.redraw()
-						      })
-						      .catch(ConnectionError, e => {
-							      errorMessage(lang.get('emptyString_msg'))
-							      m.redraw()
-							      throw e;
-						      })
-					)
-						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-				},
-				allowCancel: false
-			})
+			const dialog = Dialog.showRequestPasswordDialog((pwInput) => {
+				showProgressDialog("pleaseWait_msg",
+					worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
+						pwInput.value(), client.getIdentifier(), false, true)
+					      .then(() => {
+						      dialog.close()
+						      loginDialogActive = false
+					      })
+					      .catch(AccessBlockedError, e => {
+						      errorMessage(lang.get('loginFailedOften_msg'))
+						      m.redraw()
+					      })
+					      .catch(NotAuthenticatedError, e => {
+						      errorMessage(lang.get('loginFailed_msg'))
+						      m.redraw()
+					      })
+					      .catch(AccessDeactivatedError, e => {
+						      errorMessage(lang.get('loginFailed_msg'))
+						      m.redraw()
+					      })
+					      .catch(ConnectionError, e => {
+						      errorMessage(lang.get('emptyString_msg'))
+						      m.redraw()
+						      throw e;
+					      })
+				)
+					.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			}, errorMessage)
 		}
 	} else if (e instanceof SecondFactorPendingError) {
 		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges)
@@ -251,11 +244,11 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
 			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
-			.then(confirmed => {
-				if (confirmed) {
-					UpgradeWizard.show()
-				}
-			})
+		      .then(confirmed => {
+			      if (confirmed) {
+				      UpgradeWizard.show()
+			      }
+		      })
 	}
 }
 

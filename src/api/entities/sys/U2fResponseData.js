@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "35"
+	"version": "36"
 }
 
 export function createU2fResponseData(): U2fResponseData {

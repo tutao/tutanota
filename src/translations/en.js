@@ -1107,6 +1107,10 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"showRecoveryCode_action": "Show recovery code",
+		"updateRecoveryCode_action": "Update recovery code",
+		"recoverCode_msg": "Please, take a minute to write down your recovery code. This can be used to restore access to your account in case you loose your password or second factor. You can view and change it later in settings.",
+		"recoverCode_label": "Recovery code"
 	}
 }

@@ -183,7 +183,7 @@ export class CustomerFacade {
 		})
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string) {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 			.then(keyData => {
 				let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -210,12 +210,14 @@ export class CustomerFacade {
 											                                 .then(customerGroupData => {
 												                                 return this._worker.sendProgress(95)
 												                                            .then(() => {
+													                                            const recoverData = this._login.generateRecoveryCode(userGroupKey)
+
 													                                            let data = createCustomerAccountCreateData()
 													                                            data.authToken = authToken
 													                                            data.date = Const.CURRENT_DATE
 													                                            data.lang = currentLanguage
 													                                            data.code = registrationCode
-													                                            data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
+													                                            data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "", recoverData)
 													                                            data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
 													                                            data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
 													                                            data.userGroupData = userGroupData
@@ -225,6 +227,7 @@ export class CustomerFacade {
 													                                            data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
 													                                            data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
 													                                            return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
+														                                            .return(recoverData.hexCode)
 												                                            })
 											                                 })
 										                      })

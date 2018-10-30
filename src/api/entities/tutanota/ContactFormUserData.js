@@ -57,7 +57,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "28"
+	"version": "29"
 }
 
 export function createContactFormUserData(): ContactFormUserData {

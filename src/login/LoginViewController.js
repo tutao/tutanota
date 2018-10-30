@@ -34,7 +34,6 @@ import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {formatPrice} from "../misc/Formatter"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 
 assertMainOrNode()
 
@@ -115,7 +114,6 @@ export class LoginViewController implements ILoginViewController {
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
-		            .then(() => this._enforceRecoverySet())
 		            .then(() => logins.loadCustomizations())
 		            .then(() => this._postLoginActions())
 		            .then(() => {
@@ -159,49 +157,6 @@ export class LoginViewController implements ILoginViewController {
 		if (logins.getUserController().user.requirePasswordUpdate) {
 			return PasswordForm.showChangeOwnPasswordDialog(false)
 		}
-	}
-
-	_enforceRecoverySet() {
-		// TODO: check from the model
-		if (true) {
-			return this
-				._generateRecovery()
-				.then((recovery) => {
-					const expanderPanel = new ExpanderPanel({
-						view: () =>
-							m(".text-break.monospace.selectable",
-								neverNull(recovery.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
-					})
-					const expander = new ExpanderButton(() => "Show recovery code", expanderPanel, false)
-
-					return new Promise((resolve) => {
-						Dialog.showActionDialog({
-							title: "Account recovery",
-							child: {
-								view: () => {
-									return [
-										m(".pt.pb", "Please, take a minute to record your recovery code. This can be used to restore "
-											+ "access to your account in case you loose your password. You can change it later "
-											+ "in settings."),
-										m(expander),
-										m(expander.panel)
-									]
-								}
-							},
-							allowCancel: false,
-							okAction: (dialog) => {
-								dialog.close()
-								resolve()
-							}
-						})
-					})
-				})
-		}
-	}
-
-	_generateRecovery(): Promise<string> {
-		// TODO: actually implement
-		return Promise.resolve("hjasldkjöm,sadäölaskdhjsajkdöaskldöasdköalskdsalökd")
 	}
 
 	_postLoginActions() {

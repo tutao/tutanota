@@ -22,6 +22,7 @@ import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
+import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 
 const ValueType = EC.ValueType
 
@@ -88,7 +89,7 @@ export class EntityRestCache implements EntityRestInterface {
 		this._listEntities = {}
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			StatisticLogEntryTypeRef, SecondFactorTypeRef
+			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef
 		]
 	}
 

@@ -7,15 +7,16 @@ import {
 	base64ToUint8Array,
 	base64UrlToBase64,
 	uint8ArrayToBase64,
+	uint8ArrayToHex,
 	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {base64ToKey, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
-import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {base64ToKey, bitArrayToUint8Array, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
+import {aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
-import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
+import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
 import {createSaltData} from "../../entities/sys/SaltData"
@@ -24,7 +25,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
-import {defer, neverNull} from "../../common/utils/Utils"
+import {defer, downcast, neverNull} from "../../common/utils/Utils"
 import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
@@ -45,6 +46,7 @@ import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
+import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 
 assertWorkerOrNode()
 
@@ -57,6 +59,7 @@ export class LoginFacade {
 	_eventBusClient: EventBusClient;
 	_worker: WorkerImpl;
 	_indexer: Indexer;
+	_restClient: EntityRestInterface;
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -66,8 +69,9 @@ export class LoginFacade {
 	 */
 	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 
-	constructor(worker: WorkerImpl) {
+	constructor(worker: WorkerImpl, restClient: EntityRestInterface) {
 		this._worker = worker
+		this._restClient = restClient
 		this.reset()
 	}
 
@@ -501,6 +505,53 @@ export class LoginFacade {
 				return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
 			})
 	}
+
+	getRecoveryCode(password: string): Promise<string> {
+		const key = generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128)
+		let authVerifier = createAuthVerifierAsBase64Url(key)
+		if (this._user == null || this._user.auth == null) {
+			return Promise.reject(new Error("Auth is missing"))
+		}
+		return this._restClient.entityRequest(RecoverCodeTypeRef, HttpMethod.GET, null, this._user.auth.recoverCode, null, null, authVerifier)
+		           .then((result) => {
+			           const recoverPassword: RecoverCode = downcast(result)
+			           return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), recoverPassword.userEncRecoverCode)))
+		           })
+	}
+
+	createRecoveryCode(password: string): Promise<string> {
+		const user = this._user
+		if (user == null || user.auth == null) {
+			throw new Error("Invalid state: no user or no user.auth")
+		}
+		const {userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode} = this.generateRecoveryCode(this.getUserGroupKey())
+		const recoverPasswordEntity = createRecoverCode()
+		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
+		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
+		recoverPasswordEntity._ownerGroup = this.getUserGroupId()
+
+		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
+		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
+		return this._restClient.entityRequest(RecoverCodeTypeRef, HttpMethod.POST, null, null, recoverPasswordEntity, null, authVerifier)
+		           .return(hexCode)
+	}
+
+	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
+		const recoveryCode = aes256RandomKey()
+		const userEncRecoverCode = encrypt256Key(userGroupKey, recoveryCode)
+		const recoverCodeEncUserGroupKey = aes256EncryptKey(recoveryCode, userGroupKey)
+		return {
+			userEncRecoverCode,
+			recoverCodeEncUserGroupKey,
+			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode))
+		}
+	}
+}
+
+export type RecoverData = {
+	userEncRecoverCode: Uint8Array,
+	recoverCodeEncUserGroupKey: Uint8Array,
+	hexCode: Hex
 }
 
 

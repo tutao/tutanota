@@ -803,6 +803,7 @@ type CustomerProperties = {
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: ?Date;
+
 	bigLogo: ?SysFile;
 	smallLogo: ?SysFile;
 }
@@ -1318,6 +1319,7 @@ type UserAuthentication = {
 	_type: TypeRef<UserAuthentication>;
 	_id: Id;
 
+	recoverCode: ?Id;
 	secondFactors: Id;
 	sessions: Id;
 }
@@ -1501,4 +1503,15 @@ type SseConnectData = {
 	identifier: string;
 
 	userIds: GeneratedIdWrapper[];
+}
+
+type RecoverCode = {
+	_type: TypeRef<RecoverCode>;
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	userEncRecoverCode: Uint8Array;
+
 }

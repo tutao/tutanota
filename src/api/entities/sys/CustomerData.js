@@ -105,7 +105,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "36"
 }
 
 export function createCustomerData(): CustomerData {
