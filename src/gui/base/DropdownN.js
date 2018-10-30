@@ -6,7 +6,7 @@ import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import {Button} from "./Button"
-import {focusPrevious, focusNext, Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
@@ -87,23 +87,23 @@ export class DropdownN {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => focusNext(this._domDropdown),
+				exec: () => focusPrevious(this._domDropdown),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => focusPrevious(this._domDropdown),
+				exec: () => focusNext(this._domDropdown),
 				help: "selectNext_action"
 			},
 			{
 				key: Keys.UP,
-				exec: () => focusNext(this._domDropdown),
+				exec: () => focusPrevious(this._domDropdown),
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => focusPrevious(this._domDropdown),
+				exec: () => focusNext(this._domDropdown),
 				help: "selectNext_action"
 			},
 		]
