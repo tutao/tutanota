@@ -332,15 +332,13 @@ export class Indexer {
 		return Promise
 			.each(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
-					let lastBatchId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
-					// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
-					let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let startId = this._getStartIdForLoadingMissedEventBatches(groupIdToEventBatch.eventBatchIds)
 					return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
 					           .then(eventBatchesOnServer => {
 						           const batchesToQueue: QueuedBatch[] = []
 						           for (let batch of eventBatchesOnServer) {
 							           const batchId = getElementId(batch)
-							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, lastBatchId)) {
+							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, startId)) {
 								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
 							           }
 						           }
@@ -371,6 +369,20 @@ export class Indexer {
 				}
 			})
 			.then(() => this.startProcessing())
+	}
+
+	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds:Id[]):Id {
+		let newestBatchId = lastEventBatchIds[0]
+		let oldestBatchId = lastEventBatchIds[lastEventBatchIds.length - 1]
+		// load all EntityEventBatches which are not older than 1 minute before the newest batch
+		// to be able to get batches that were overtaken by the newest batch and therefore missed before
+		let startId = timestampToGeneratedId(generatedIdToTimestamp(newestBatchId) - 1000 * 60)
+		// do not load events that are older than the stored events
+		if (!firstBiggerThanSecond(startId, oldestBatchId)) {
+			// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
+			startId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
+		}
+		return startId
 	}
 
 	/**

@@ -455,19 +455,20 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities", async function () {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		const groupId = "group-mail"
 		let groupIdToEventBatches = [
 			{
 				groupId,
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
 		let batches = [createEntityEventBatch(), createEntityEventBatch()]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
-		batches[1]._id = ["group-mail", lastBatchId]
+		batches[1]._id = ["group-mail", oldestBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer = new Indexer(restClientMock, (null: any), true, browserDataStub)
@@ -475,7 +476,7 @@ o.spec("Indexer test", () => {
 			loadAll: (type, groupIdA, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
 				o(groupIdA).equals(groupId)
-				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 				o(startId).equals(expectedStartId)
 				return Promise.resolve(batches)
 			}
@@ -494,16 +495,17 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities batch already processed", function (done) {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
 			{
 				groupId: "group-mail",
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
 		let batches = [createEntityEventBatch()]
-		batches[0]._id = ["group-mail", lastBatchId]
+		batches[0]._id = ["group-mail", oldestBatchId]
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
@@ -511,7 +513,7 @@ o.spec("Indexer test", () => {
 				loadAll: (type, groupId, startId) => {
 					o(type).deepEquals(EntityEventBatchTypeRef)
 					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 					o(startId).equals(expectedStartId)
 					return Promise.resolve(batches)
 				}
@@ -526,11 +528,12 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities out of sync", function (done) {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
 			{
 				groupId: "group-mail",
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
@@ -543,7 +546,7 @@ o.spec("Indexer test", () => {
 				loadAll: (type, groupId, startId) => {
 					o(type).deepEquals(EntityEventBatchTypeRef)
 					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 					o(startId).equals(expectedStartId)
 					return Promise.resolve(batches)
 				}
@@ -745,5 +748,28 @@ o.spec("Indexer test", () => {
 		o(indexer._mail.processEntityEvents.callCount).equals(2)
 		o(indexer._contact.processEntityEvents.callCount).equals(2)
 		o(indexer._groupInfo.processEntityEvents.callCount).equals(2)
+	})
+
+	o("_getStartIdForLoadingMissedEventBatches", function () {
+		let indexer = new Indexer(restClientMock, (null: any), true, browserDataStub)
+
+		// one batch that is very young, so its id is returned minus 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1-----"])).equals("L0JcCm0-----") // - 1 ms
+		// two batches that are very young, so the oldest id is returned minus 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm2-----", "L0JcCm1-----"])).equals("L0JcCm0-----") // - 1 ms
+
+		// two batches of which the oldest is exactly one minute old, so the oldest id is returned minus 1 ms. this tests the inner limit
+		let oneMinuteOld = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
+		let oneMinuteOldMinusOneMS = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1) // - 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", oneMinuteOld])).equals(oneMinuteOldMinusOneMS)
+
+		// two batches of which the oldest is exactly one minute and one ms old, so the newest id is returned minus 1 ms. this tests the outer limit
+		let olderThanOneMinute= timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1)
+		let newestMinusOneMinute= timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", olderThanOneMinute])).equals(newestMinusOneMinute)
+
+		// two batches of which the oldest is very old, so the newest id is returned minus 1 ms.
+		let veryOld = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 * 10)
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", veryOld])).equals(newestMinusOneMinute)
 	})
 })
