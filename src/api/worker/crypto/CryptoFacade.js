@@ -9,7 +9,7 @@ import {
 	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
@@ -82,6 +82,10 @@ export function encrypt256Key(encryptionKey: Aes128Key, key: Aes256Key): Uint8Ar
 
 export function aes256EncryptKey(encryptionKey: Aes256Key, key: Aes128Key): Uint8Array {
 	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+}
+
+export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Uint8Array {
+	return aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false)
 }
 
 export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {

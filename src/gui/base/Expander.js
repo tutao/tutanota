@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
+import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
@@ -103,11 +103,12 @@ export class ExpanderPanel {
 		                 })
 	}
 
-	setExpanded(expanded: boolean) {
+	setExpanded(expanded: boolean): ExpanderPanel {
 		this.expanded = expanded
 		let c = (this.child: any)
 		if (c['setExpanded']) {
 			c['setExpanded'](expanded)
 		}
+		return this
 	}
 }

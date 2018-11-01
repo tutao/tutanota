@@ -6,14 +6,23 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
+	hexToUint8Array,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {base64ToKey, bitArrayToUint8Array, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
-import {aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {
+	base64ToKey,
+	bitArrayToUint8Array,
+	createAuthVerifier,
+	createAuthVerifierAsBase64Url,
+	keyToUint8Array,
+	uint8ArrayToBitArray,
+	uint8ArrayToKey
+} from "../crypto/CryptoUtils"
+import {aes256DecryptKey, aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
@@ -47,6 +56,9 @@ import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
+import {createRecoverLoginGetData} from "../../entities/sys/RecoverLoginGetData"
+import {RecoverLoginGetReturnTypeRef} from "../../entities/sys/RecoverLoginGetReturn"
+import {createRecoverLoginPostData} from "../../entities/sys/RecoverLoginPostData"
 
 assertWorkerOrNode()
 
@@ -524,11 +536,12 @@ export class LoginFacade {
 		if (user == null || user.auth == null) {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
-		const {userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode} = this.generateRecoveryCode(this.getUserGroupKey())
+		const {userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier} = this.generateRecoveryCode(this.getUserGroupKey())
 		const recoverPasswordEntity = createRecoverCode()
 		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
 		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
 		recoverPasswordEntity._ownerGroup = this.getUserGroupId()
+		recoverPasswordEntity.verifier = recoveryCodeVerifier
 
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
@@ -540,18 +553,47 @@ export class LoginFacade {
 		const recoveryCode = aes256RandomKey()
 		const userEncRecoverCode = encrypt256Key(userGroupKey, recoveryCode)
 		const recoverCodeEncUserGroupKey = aes256EncryptKey(recoveryCode, userGroupKey)
+		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
 		return {
 			userEncRecoverCode,
 			recoverCodeEncUserGroupKey,
-			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode))
+			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode)),
+			recoveryCodeVerifier
 		}
+	}
+
+	recoverLogin(email: string, recoverCode: string, newPassword: string) {
+		const requestParams = createRecoverLoginGetData()
+		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
+		requestParams.recoverCodeVerifier = recoverCodeVerifier
+		requestParams.userEmailAddress = email
+
+		return serviceRequest(SysService.RecoverLoginService, HttpMethod.GET, requestParams, RecoverLoginGetReturnTypeRef, null, null)
+			.then((loginReturn) => {
+				const groupKey = aes256DecryptKey(recoverCodeKey, loginReturn.recoverCodeEncUserGroupKey)
+				const postRequestData = createRecoverLoginPostData()
+				let salt = generateRandomSalt();
+				let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+				let pwEncUserGroupKey = encryptKey(userPassphraseKey, uint8ArrayToBitArray(groupKey))
+				let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
+
+				postRequestData.userEmailAddress = email
+				postRequestData.salt = salt
+				postRequestData.pwEncUserGroupKey = pwEncUserGroupKey
+				postRequestData.recoverCodeVerifier = recoverCodeVerifier
+				postRequestData.newPasswordVerifier = newPasswordVerifier
+
+				return serviceRequestVoid(SysService.RecoverLoginService, HttpMethod.POST, postRequestData, null, null)
+			})
 	}
 }
 
 export type RecoverData = {
 	userEncRecoverCode: Uint8Array,
 	recoverCodeEncUserGroupKey: Uint8Array,
-	hexCode: Hex
+	hexCode: Hex,
+	recoveryCodeVerifier: Uint8Array
 }
 
 

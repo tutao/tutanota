@@ -250,6 +250,9 @@ export class WorkerImpl {
 			},
 			createRecoveryCode: (message: Request) => {
 				return locator.login.createRecoveryCode(message.args[0])
+			},
+			recoverLogin: (message: Request) => {
+				return locator.login.recoverLogin.apply(locator.login, message.args)
 			}
 		})
 

@@ -22,10 +22,11 @@ export const _TypeModel: TypeModel = {
 			"since": 36,
 			"type": "Bytes",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
-		"userEncRecoverCode": {"name": "userEncRecoverCode", "id": 1413, "since": 36, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
+		"userEncRecoverCode": {"name": "userEncRecoverCode", "id": 1413, "since": 36, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"verifier": {"name": "verifier", "id": 1415, "since": 36, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",

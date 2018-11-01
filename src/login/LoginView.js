@@ -17,6 +17,8 @@ import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
+import {ButtonN} from "../gui/base/ButtonN"
+import * as RecoverLoginDialog from "./RecoverLoginDialog"
 
 assertMainOrNode()
 
@@ -168,10 +170,18 @@ export class LoginView {
 				.setType(ButtonType.Secondary))
 		}
 
+		const recoverLogin = () => {
+			return m(ButtonN, {
+				label: "recoverAccountAccess_label",
+				click: () => this._showRecoverLoginDialog(),
+				type: ButtonType.Secondary,
+			})
+		}
+
 		const panel = {
 			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
-				? [loginOther(), deleteCredentials(), themeSwitch()]
-				: [knownCredentials(), signUp(), themeSwitch()]
+				? [loginOther(), deleteCredentials(), themeSwitch(), recoverLogin()]
+				: [knownCredentials(), signUp(), themeSwitch(), recoverLogin()]
 			)
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
@@ -190,9 +200,9 @@ export class LoginView {
 			m(this.mailAddress),
 			m(this.password),
 			(!whitelabelCustomizations ||
-				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword)
-				== -1) ?
-				m(this.savePassword) : null,
+				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) == -1)
+				? m(this.savePassword)
+				: null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			isApp() ? null : m(".flex-center.pt-l", this.appButtons.map(button => m(button)))
@@ -261,6 +271,7 @@ export class LoginView {
 				}
 				this.password.focus()
 				this._knownCredentials = []
+				this._showingKnownCredentials = false
 				m.redraw()
 			} else {
 				this._knownCredentials = deviceConfig.getAllInternal()
@@ -320,6 +331,9 @@ export class LoginView {
 		m.redraw();
 	}
 
+	_showRecoverLoginDialog(): void {
+		RecoverLoginDialog.show(this._viewController)
+	}
 }
 
 export function getWhitelabelRegistrationDomains(): string[] {

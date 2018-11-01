@@ -556,11 +556,11 @@ export class Dialog {
 	static showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
 		return new Promise((resolve) => {
 			Dialog.showActionDialog({
-				title: "recoverCode_label",
+				title: lang.get("recoverCode_label"),
 				child: {
 					view: () => {
 						return [
-							m(".pt.pb", "recoverCode_msg"),
+							m(".pt.pb", lang.get("recoverCode_msg")),
 							m(".text-break.monospace.selectable",
 								neverNull(recoverCode.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
 						]

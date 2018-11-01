@@ -432,6 +432,10 @@ export class WorkerClient {
 	createRecoveryCode(password: string): Promise<string> {
 		return this._queue.postMessage(new Request("createRecoveryCode", [password]))
 	}
+
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void> {
+		return this._queue.postMessage(new Request("recoverLogin", [emailAddress, recoverCode, newPassword]))
+	}
 }
 
 export const worker = new WorkerClient()

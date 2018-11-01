@@ -1111,6 +1111,8 @@ module.exports = {
 		"showRecoveryCode_action": "Show recovery code",
 		"updateRecoveryCode_action": "Update recovery code",
 		"recoverCode_msg": "Please, take a minute to write down your recovery code. This can be used to restore access to your account in case you loose your password or second factor. You can view and change it later in settings.",
-		"recoverCode_label": "Recovery code"
+		"recoverCode_label": "Recovery code",
+		"recoverAccountAccess_label": "Recover account access",
+		"recoverCodeEmpty_msg": "Please enter a recover code"
 	}
 }

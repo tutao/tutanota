@@ -15,7 +15,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"recoverCode": {
 			"name": "recoverCode",
-			"id": 1415,
+			"id": 1416,
 			"since": 36,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

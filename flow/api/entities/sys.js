@@ -1513,5 +1513,32 @@ type RecoverCode = {
 	_permissions: Id;
 	recoverCodeEncUserGroupKey: Uint8Array;
 	userEncRecoverCode: Uint8Array;
+	verifier: Uint8Array;
+
+}
+
+type RecoverLoginGetData = {
+	_type: TypeRef<RecoverLoginGetData>;
+	_format: NumberString;
+	recoverCodeVerifier: Uint8Array;
+	userEmailAddress: string;
+
+}
+
+type RecoverLoginGetReturn = {
+	_type: TypeRef<RecoverLoginGetReturn>;
+	_format: NumberString;
+	recoverCodeEncUserGroupKey: Uint8Array;
+
+}
+
+type RecoverLoginPostData = {
+	_type: TypeRef<RecoverLoginPostData>;
+	_format: NumberString;
+	newPasswordVerifier: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: Uint8Array;
+	salt: Uint8Array;
+	userEmailAddress: string;
 
 }
