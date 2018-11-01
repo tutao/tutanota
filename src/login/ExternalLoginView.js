@@ -15,12 +15,8 @@ import {
 	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {createCustomerProperties} from "../api/entities/sys/CustomerProperties"
-import {GENERATED_MIN_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
-import {ExternalPropertiesReturnTypeRef} from "../api/entities/sys/ExternalPropertiesReturn"
-import {SysService} from "../api/entities/sys/Services"
-import {serviceRequest} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
@@ -37,6 +33,9 @@ import {CryptoError} from "../api/common/error/CryptoError"
 import {neverNull} from "../api/common/utils/Utils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {Dialog} from "../gui/base/Dialog"
+import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
+
+assertMainOrNode()
 
 export class ExternalLoginView {
 
@@ -223,6 +222,11 @@ export class ExternalLoginView {
 	}
 
 	_postLoginActions() {
+		// only show "Tutanota" after login if there is no custom title set
+		if (document.title === LOGIN_TITLE) {
+			document.title = "Tutanota"
+		}
+
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend")
 			worker.tryReconnectEventBus(true, true)
@@ -235,12 +239,7 @@ export class ExternalLoginView {
 			console.log("offline")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		return serviceRequest(SysService.ExternalPropertiesService, HttpMethod.GET, null, ExternalPropertiesReturnTypeRef)
-			.then(data => {
-				let props = createCustomerProperties()
-				//TODO: set welcome message
-			})
-
+		logins.loginComplete()
 	}
 
 	_loadAndSetPhoneNumbers(): Promise<void> {

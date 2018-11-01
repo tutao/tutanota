@@ -11,7 +11,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {assertMainOrNode, isAdminClient, isApp, Mode} from "../api/Env"
+import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -161,7 +161,9 @@ export class LoginViewController {
 
 	_postLoginActions() {
 		notifications.requestPermission()
-		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
+		// only show "Tutanota" after login if there is no custom title set
+		let postLoginTitle = (document.title === LOGIN_TITLE) ? "Tutanota" : document.title
+		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend - try reconnect\"")

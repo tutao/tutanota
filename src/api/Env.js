@@ -1,5 +1,8 @@
 // @flow
 
+// keep in sync with LaunchHtml.js meta tag title
+export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up"
+
 export const Mode = {
 	Browser: "Browser",
 	App: "App",
