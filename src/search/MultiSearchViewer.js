@@ -15,13 +15,7 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {
-	getFolderIcon,
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	showDeleteConfirmationDialog
-} from "../mail/MailUtils"
+import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
@@ -188,11 +182,12 @@ export class MultiSearchViewer {
 				this.getSelectedMails((mails) => this._markAll(mails, false).then(this._searchListView.selectNone())),
 				() => Icons.Eye)
 				.setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("export_action",
-				this.getSelectedMails((mails) => this._exportAll(mails).then(this._searchListView.selectNone())),
-				() => Icons.Download)
-				.setType(ButtonType.Dropdown)
-				.setIsVisibleHandler(() => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
+			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
+				moreButtons.push(new Button("export_action",
+					this.getSelectedMails((mails) => this._exportAll(mails).then(this._searchListView.selectNone())),
+					() => Icons.Download)
+					.setType(ButtonType.Dropdown))
+			}
 			return moreButtons
 		}))
 		return actionBar

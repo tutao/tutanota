@@ -233,13 +233,12 @@ export class MailViewer {
 				} else {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
-				if (!this._isAnnouncement()) {
-					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody),
-						() => Icons.Download).setType(ButtonType.Dropdown)
-					                         .setIsVisibleHandler(() => env.mode !== Mode.App
-						                         && !logins.isEnabled(FeatureType.DisableMailExport)))
+				if (!this._isAnnouncement() && env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
+					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
-				moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
+				if (!logins.isEnabled(FeatureType.DisableMailExport)) {
+					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
+				}
 				if (this.mail.listUnsubscribe) {
 					moreButtons.push(new Button("unsubscribe_action", () => {
 						if (this.mail.headers) {
@@ -422,29 +421,33 @@ export class MailViewer {
 
 	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?string): Promise<(Button | string)[]> {
 		if (logins.getUserController().isInternalUser()) {
-			return searchForContactByMailAddress(address.address).then(contact => {
-				let buttons = [address.address]
-				if (contact) {
-					buttons.push(new Button("showContact_action", () => {
-						header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-						m.route.set(header.contactsUrl + location.hash)
-					}, null).setType(ButtonType.Secondary))
-				} else {
-					buttons.push(new Button("createContact_action", () => {
-						LazyContactListId.getAsync().then(contactListId => {
-							new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
-						})
-					}, null).setType(ButtonType.Secondary))
-				}
-				if (defaultInboxRuleField && !logins.getUserController().isOutlookAccount()
-					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim()
-					                                                    .toLowerCase(), defaultInboxRuleField)) {
+			let buttons = [address.address]
+			let contactsPromise = Promise.resolve()
+			if (!logins.isEnabled(FeatureType.DisableContacts)) {
+				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
+					if (contact) {
+						buttons.push(new Button("showContact_action", () => {
+							header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
+							m.route.set(header.contactsUrl + location.hash)
+						}, null).setType(ButtonType.Secondary))
+					} else {
+						buttons.push(new Button("createContact_action", () => {
+							LazyContactListId.getAsync().then(contactListId => {
+								new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
+							})
+						}, null).setType(ButtonType.Secondary))
+					}
+				})
+			}
+			return contactsPromise.then(() => {
+				if (defaultInboxRuleField && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+					&& !logins.getUserController().isOutlookAccount()
+					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addInboxRule_action", () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim()
-						                                                                                                         .toLowerCase())
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
-				if (logins.isGlobalAdminUserLoggedIn()) {
+				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addSpamRule_action", () => {
 						AddSpamRuleDialog.show(address.address.trim().toLowerCase())
 					}, null).setType(ButtonType.Secondary))

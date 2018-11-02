@@ -11,13 +11,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import MessageBox from "../gui/base/MessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {
-	getFolderIcon,
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	showDeleteConfirmationDialog
-} from "./MailUtils"
+import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
@@ -122,19 +116,11 @@ export class MultiMailViewer {
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
-			moreButtons.push(new Button("markUnread_action",
-				this._actionBarAction((mails) => this._markAll(mails, true)),
-				() => Icons.NoEye)
-				.setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("markRead_action",
-				this._actionBarAction((mails) => this._markAll(mails, false)),
-				() => Icons.Eye)
-				.setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("export_action",
-				this._actionBarAction((mails) => this._exportAll(mails)),
-				() => Icons.Download)
-				.setType(ButtonType.Dropdown)
-				.setIsVisibleHandler(() => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
+			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => this._markAll(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
+			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => this._markAll(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
+			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
+				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => this._exportAll(mails)), () => Icons.Download).setType(ButtonType.Dropdown))
+			}
 			return moreButtons
 		}))
 		return actions
