@@ -326,7 +326,9 @@ export class UserViewer {
 				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
 				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 				let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => {
-					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
+					if (!globalAdmin // global admins may add all groups
+						&& localAdminGroupIds.indexOf(g.localAdmin) === -1 // local admins may only add groups they either are the admin of
+						&& localAdminGroupIds.indexOf(g.group) === -1) {  // or it is their own local admin group
 						return false
 					} else {
 						return !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null
