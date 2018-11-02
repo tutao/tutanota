@@ -17,6 +17,7 @@ import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -102,12 +103,14 @@ export class LoginView {
 					}
 				}, [
 					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					m(".flex-center.pt-l", [
-						m(optionsExpander),
-					]),
-					m(".pb-l", [
-						m(optionsExpander.panel),
-					]),
+					(this._moreButtonVisible()) ? [
+						m(".flex-center.pt-l", [
+							m(optionsExpander),
+						]),
+						m(".pb-l", [
+							m(optionsExpander.panel),
+						])
+					] : null,
 				])
 			])
 		}
@@ -129,50 +132,70 @@ export class LoginView {
 		}
 	}
 
+	_signupLinkVisible(): boolean {
+		return !this._showingKnownCredentials && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+	}
+
+	_loginAnotherLinkVisible(): boolean {
+		return this._showingKnownCredentials
+	}
+
+	_deleteCredentialsLinkVisible(): boolean {
+		return this._showingKnownCredentials
+	}
+
+	_knownCredentialsLinkVisible(): boolean {
+		return !this._showingKnownCredentials && (this._knownCredentials.length > 0)
+	}
+
+	_switchThemeLinkVisible(): boolean {
+		return (themeId() !== 'custom')
+	}
+
+	_moreButtonVisible(): boolean {
+		return this._signupLinkVisible()
+			|| this._loginAnotherLinkVisible()
+			|| this._deleteCredentialsLinkVisible()
+			|| this._knownCredentialsLinkVisible()
+			|| this._switchThemeLinkVisible()
+	}
+
 	_expanderButton(): ExpanderButton {
-		const themeSwitch = () => {
-			return (themeId() !== 'custom')
-				? m(new Button("switchColorTheme_action", () => {
-					switch (themeId()) {
-						case 'light':
-							return deviceConfig.setTheme('dark')
-						case 'dark':
-							return deviceConfig.setTheme('light')
-					}
-				}).setType(ButtonType.Secondary))
-				: null
-		}
-
-		const signUp = () => {
-			return (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
-				? m(new Button('register_label', () => m.route.set('/signup')).setType(ButtonType.Secondary))
-				: null
-		}
-
-		const knownCredentials = () => {
-			return (this._knownCredentials.length > 0)
-				? m(new Button('knownCredentials_label', () => this._showCredentials())
-					.setType(ButtonType.Secondary))
-				: null
-		}
-
-		const loginOther = () => {
-			return m(new Button("loginOtherAccount_action", () => this._showLoginForm(""))
-				.setType(ButtonType.Secondary))
-		}
-
-		const deleteCredentials = () => {
-			return m(new Button(this._isDeleteCredentials
-				? "cancel_action"
-				: "deleteCredentials_action", () => this._switchDeleteCredentialsState())
-				.setType(ButtonType.Secondary))
-		}
-
 		const panel = {
-			view: () => m(".flex-center.flex-column", this._showingKnownCredentials
-				? [loginOther(), deleteCredentials(), themeSwitch()]
-				: [knownCredentials(), signUp(), themeSwitch()]
-			)
+			view: () => m(".flex-center.flex-column", [
+				this._loginAnotherLinkVisible() ? m(ButtonN, {
+					label: "loginOtherAccount_action",
+					type: ButtonType.Secondary,
+					click: () => this._showLoginForm("")
+				}) : null,
+				this._deleteCredentialsLinkVisible() ? m(ButtonN, {
+					label: this._isDeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+					type: ButtonType.Secondary,
+					click: () => this._switchDeleteCredentialsState()
+				}) : null,
+				this._knownCredentialsLinkVisible() ? m(ButtonN, {
+					label: "knownCredentials_label",
+					type: ButtonType.Secondary,
+					click: () => this._showCredentials()
+				}) : null,
+				this._signupLinkVisible() ? m(ButtonN, {
+					label: "register_label",
+					type: ButtonType.Secondary,
+					click: () => m.route.set('/signup')
+				}) : null,
+				this._switchThemeLinkVisible() ? m(ButtonN, {
+					label: "switchColorTheme_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						switch (themeId()) {
+							case 'light':
+								return deviceConfig.setTheme('dark')
+							case 'dark':
+								return deviceConfig.setTheme('light')
+						}
+					}
+				}) : null
+			])
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
 	}
@@ -190,8 +213,7 @@ export class LoginView {
 			m(this.mailAddress),
 			m(this.password),
 			(!whitelabelCustomizations ||
-				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword)
-				== -1) ?
+				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1) ?
 				m(this.savePassword) : null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
