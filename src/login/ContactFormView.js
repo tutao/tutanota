@@ -10,7 +10,6 @@ import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {NavBar} from "../gui/base/NavBar"
 import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
@@ -22,7 +21,6 @@ assertMainOrNode()
 export class ContactFormView {
 
 	view: Function;
-	buttonBar: NavBar;
 	_contactForm: ?ContactForm;
 	_createRequestButton: Button;
 	_moreInformationButton: Button;
@@ -84,7 +82,7 @@ export class ContactFormView {
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(this._createRequestButton)),
 						m(".pt-l", m(this._readResponseButton)),
-						m(".pt-l.flex-center", m(this._moreInformationButton)),
+						(this._helpHtml) ? m(".pt-l.flex-center", m(this._moreInformationButton)) : null,
 					])
 				]),
 				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
@@ -108,9 +106,13 @@ export class ContactFormView {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
 
-					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
 					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, false).text
 					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, false).text
+					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
+					// the help html might contain <div> and <br> although no content was added, so remove it to avoid displaying the help link at all
+					if (this._helpHtml.replace("<div>", "").replace("</div>", "").replace("<br>", "").trim() === "") {
+						this._helpHtml = null
+					}
 
 					this._loading = false
 					m.redraw()
