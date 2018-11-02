@@ -1113,6 +1113,7 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"goPremium_msg": "Als Premium-Nutzer kannst du links im Menü deine Suchfilter anpassen.",
-		"changeTimeFrame_msg": "Mit Premium kannst du deinen Suchzeitraum erweitern!"
+		"changeTimeFrame_msg": "Mit Premium kannst du deinen Suchzeitraum erweitern!",
+		"stillReferencedFromContactForm_msg": "Diese Instanz kann nicht deaktiviert werden, da sie noch von einem Kontaktformular referenziert wird."
 	}
 }

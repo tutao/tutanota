@@ -1111,6 +1111,7 @@ module.exports = {
 		"goPremium_msg": "As a Premium user you can adjust your search filters in the menu to the left.",
 		"changeTimeFrame_msg": "Go Premium and adjust your search period!",
 		"importUsers_action": "Add multiple users",
-		"enterAsCSV_msg": "Please enter your users details as CSV"
+		"enterAsCSV_msg": "Please enter your users details as CSV",
+		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form."
 	}
 }

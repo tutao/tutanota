@@ -131,7 +131,11 @@ export class GroupViewer {
 								         return this._group.getAsync()
 								                    .then(group => worker.deactivateGroup(group, !deactivate)
 								                                         .catch(PreconditionFailedError, e => {
-									                                         Dialog.error("localAdminGroupAssignedError_msg")
+									                                         if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+										                                         Dialog.error("localAdminGroupAssignedError_msg")
+									                                         } else {
+										                                         Dialog.error("stillReferencedFromContactForm_msg")
+									                                         }
 								                                         }))
 							         }
 						         }))
