@@ -691,8 +691,9 @@ type ChangePasswordData = {
 	_type: TypeRef<ChangePasswordData>;
 	_format: NumberString;
 	code: ?string;
-	oldVerifier: Uint8Array;
+	oldVerifier: ?Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: ?Uint8Array;
 	salt: Uint8Array;
 	verifier: Uint8Array;
 
@@ -1329,9 +1330,10 @@ type CreateSessionData = {
 	_format: NumberString;
 	accessKey: ?Uint8Array;
 	authToken: ?string;
-	authVerifier: string;
+	authVerifier: ?string;
 	clientIdentifier: string;
 	mailAddress: ?string;
+	recoverCodeVerifier: ?string;
 
 	user: ?Id;
 }
@@ -1514,31 +1516,5 @@ type RecoverCode = {
 	recoverCodeEncUserGroupKey: Uint8Array;
 	userEncRecoverCode: Uint8Array;
 	verifier: Uint8Array;
-
-}
-
-type RecoverLoginGetData = {
-	_type: TypeRef<RecoverLoginGetData>;
-	_format: NumberString;
-	recoverCodeVerifier: Uint8Array;
-	userEmailAddress: string;
-
-}
-
-type RecoverLoginGetReturn = {
-	_type: TypeRef<RecoverLoginGetReturn>;
-	_format: NumberString;
-	recoverCodeEncUserGroupKey: Uint8Array;
-
-}
-
-type RecoverLoginPostData = {
-	_type: TypeRef<RecoverLoginPostData>;
-	_format: NumberString;
-	newPasswordVerifier: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	recoverCodeVerifier: Uint8Array;
-	salt: Uint8Array;
-	userEmailAddress: string;
 
 }

@@ -114,7 +114,7 @@ export class LoginViewController implements ILoginViewController {
 
 
 	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void> {
-		return worker.recoverLogin(emailAddress, recoverCode, newPassword)
+		return worker.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
 	}
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {

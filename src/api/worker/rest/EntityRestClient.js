@@ -31,7 +31,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, authVerifier: ?Base64Url): Promise<any> {
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
 		return resolveTypeReference(typeRef).then(model => {
 			let path = typeRefToPath(typeRef)
 			if (listId) {
@@ -41,11 +41,9 @@ export class EntityRestClient implements EntityRestInterface {
 				path += '/' + id
 			}
 			let queryParams = queryParameter == null ? {} : queryParameter
-			let headers = this._authHeadersProvider()
+			const authHeaders = this._authHeadersProvider()
+			const headers = Object.assign(authHeaders, extraHeaders)
 			headers['v'] = model.version
-			if (authVerifier) {
-				headers['authVerifier'] = authVerifier
-			}
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity: any))
 				return encryptAndMapToLiteral(model, entity, sk).then(encryptedEntity => {

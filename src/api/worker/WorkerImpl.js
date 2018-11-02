@@ -246,7 +246,7 @@ export class WorkerImpl {
 				return locator.search.getMoreSearchResults.apply(locator.search, message.args).return(message.args[0])
 			},
 			getRecoveryCode: (message: Request) => {
-				return locator.login.getRecoveryCode(message.args[0])
+				return locator.login.getRecoverCode(message.args[0])
 			},
 			createRecoveryCode: (message: Request) => {
 				return locator.login.createRecoveryCode(message.args[0])

@@ -45,7 +45,7 @@ o.spec("crypto facade", function () {
 
 
 	o.before(function () {
-		locator.login = new LoginFacade((null: any), (null: any))
+		locator.login = new LoginFacade((null: any))
 	})
 
 	o.afterEach(function () {

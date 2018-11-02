@@ -3,19 +3,18 @@ import {restClient} from "./RestClient"
 import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef, MediaType} from "../../common/EntityFunctions"
+import {MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
+export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {
 			let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
 			let queryParams = queryParameter != null ? queryParameter : {}
-			let headers = locator.login.createAuthHeaders()
+			const headers = Object.assign(locator.login.createAuthHeaders(), extraHeaders)
 			headers['v'] = modelForAppAndVersion.version
-
 			let p: ?Promise<?Object> = null;
 			if (requestEntity != null) {
 				p = resolveTypeReference(requestEntity._type).then(requestTypeModel => {

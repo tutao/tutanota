@@ -1,5 +1,5 @@
 // @flow
-import {load, loadRoot, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
+import {load, loadRoot, serviceRequest, serviceRequestVoid, setup, update} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
 import {
 	base64ToBase64Ext,
@@ -34,8 +34,8 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
-import {defer, downcast, neverNull} from "../../common/utils/Utils"
-import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
+import {defer, neverNull} from "../../common/utils/Utils"
+import {_loadEntity, GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -43,7 +43,7 @@ import {EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys/Session"
-import {typeRefToPath} from "../rest/EntityRestClient"
+import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
@@ -56,9 +56,6 @@ import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
-import {createRecoverLoginGetData} from "../../entities/sys/RecoverLoginGetData"
-import {RecoverLoginGetReturnTypeRef} from "../../entities/sys/RecoverLoginGetReturn"
-import {createRecoverLoginPostData} from "../../entities/sys/RecoverLoginPostData"
 
 assertWorkerOrNode()
 
@@ -71,7 +68,6 @@ export class LoginFacade {
 	_eventBusClient: EventBusClient;
 	_worker: WorkerImpl;
 	_indexer: Indexer;
-	_restClient: EntityRestInterface;
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -81,9 +77,8 @@ export class LoginFacade {
 	 */
 	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 
-	constructor(worker: WorkerImpl, restClient: EntityRestInterface) {
+	constructor(worker: WorkerImpl) {
 		this._worker = worker
-		this._restClient = restClient
 		this.reset()
 	}
 
@@ -130,37 +125,47 @@ export class LoginFacade {
 				sessionData.accessKey = keyToUint8Array(accessKey)
 			}
 			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
-				.then(createSessionReturn => {
-					let p = Promise.resolve()
-					let sessionId = [
-						this._getSessionListId(createSessionReturn.accessToken),
-						this._getSessionElementId(createSessionReturn.accessToken)
-					]
-					this._loginRequestSessionId = sessionId
-					if (createSessionReturn.challenges.length > 0) {
-						this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
-						p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId)
-					}
-					this._loggingInPromiseWrapper = defer()
-					// Wait for either login or cancel
-					return Promise.race([this._loggingInPromiseWrapper.promise, p]).then(() => {
-						return this._initSession(createSessionReturn.user, createSessionReturn.accessToken,
-							userPassphraseKey, permanentLogin)
-						           .then(() => {
-							           return {
-								           user: neverNull(this._user),
-								           userGroupInfo: neverNull(this._userGroupInfo),
-								           sessionId,
-								           credentials: {
-									           mailAddress,
-									           accessToken: neverNull(this._accessToken),
-									           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-									           userId: neverNull(this._user)._id
-								           }
+				.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn))
+				.then((sessionData) => {
+					return this._initSession(sessionData.userId, sessionData.accessToken,
+						userPassphraseKey, permanentLogin)
+					           .then(() => {
+						           return {
+							           user: neverNull(this._user),
+							           userGroupInfo: neverNull(this._userGroupInfo),
+							           sessionId: sessionData.sessionId,
+							           credentials: {
+								           mailAddress,
+								           accessToken: neverNull(this._accessToken),
+								           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+								           userId: sessionData.userId
 							           }
-						           })
-					})
+						           }
+					           })
 				})
+		})
+	}
+
+	/**
+	 * If the second factor login has been cancelled a CancelledError is thrown.
+	 */
+	_waitUntilSecondFactorApprovedOrCancelled(createSessionReturn: CreateSessionReturn): Promise<{sessionId: IdTuple, userId: Id, accessToken: Base64Url}> {
+		let p = Promise.resolve()
+		let sessionId = [
+			this._getSessionListId(createSessionReturn.accessToken),
+			this._getSessionElementId(createSessionReturn.accessToken)
+		]
+		this._loginRequestSessionId = sessionId
+		if (createSessionReturn.challenges.length > 0) {
+			this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
+			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId)
+		}
+		this._loggingInPromiseWrapper = defer()
+		// Wait for either login or cancel
+		return Promise.race([this._loggingInPromiseWrapper.promise, p]).return({
+			sessionId,
+			accessToken: createSessionReturn.accessToken,
+			userId: createSessionReturn.user
 		})
 	}
 
@@ -518,17 +523,23 @@ export class LoginFacade {
 			})
 	}
 
-	getRecoveryCode(password: string): Promise<string> {
-		const key = generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128)
-		let authVerifier = createAuthVerifierAsBase64Url(key)
-		if (this._user == null || this._user.auth == null) {
+	getRecoverCode(password: string): Promise<string> {
+		if (this._user == null || this._user.auth == null || this._user.auth.recoverCode == null) {
 			return Promise.reject(new Error("Auth is missing"))
 		}
-		return this._restClient.entityRequest(RecoverCodeTypeRef, HttpMethod.GET, null, this._user.auth.recoverCode, null, null, authVerifier)
-		           .then((result) => {
-			           const recoverPassword: RecoverCode = downcast(result)
-			           return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), recoverPassword.userEncRecoverCode)))
-		           })
+		const recoverCodeId = this._user.auth.recoverCode
+		const accessToken = this._accessToken
+		if (accessToken == null) {
+			return Promise.reject(new Error("Missing access token"))
+		}
+		const key = generateKeyFromPassphrase(password, neverNull(this._user.salt), KeyLength.b128)
+		const extraHeaders = {
+			authVerifier: createAuthVerifierAsBase64Url(key),
+			accessToken: accessToken
+		}
+		return load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
+			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), result.userEncRecoverCode)))
+		})
 	}
 
 	createRecoveryCode(password: string): Promise<string> {
@@ -545,8 +556,8 @@ export class LoginFacade {
 
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
-		return this._restClient.entityRequest(RecoverCodeTypeRef, HttpMethod.POST, null, null, recoverPasswordEntity, null, authVerifier)
-		           .return(hexCode)
+		return setup(null, recoverPasswordEntity, {authVerifier})
+			.return(hexCode)
 	}
 
 	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
@@ -562,29 +573,43 @@ export class LoginFacade {
 		}
 	}
 
-	recoverLogin(email: string, recoverCode: string, newPassword: string) {
-		const requestParams = createRecoverLoginGetData()
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string) {
+		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
-		requestParams.recoverCodeVerifier = recoverCodeVerifier
-		requestParams.userEmailAddress = email
+		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
+		sessionData.mailAddress = mailAddress.toLowerCase().trim()
+		sessionData.clientIdentifier = clientIdentifier
+		sessionData.recoverCodeVerifier = recoverCodeVerifierBase64
+		const eventRestClient = new EntityRestClient(() => ({}))
 
-		return serviceRequest(SysService.RecoverLoginService, HttpMethod.GET, requestParams, RecoverLoginGetReturnTypeRef, null, null)
-			.then((loginReturn) => {
-				const groupKey = aes256DecryptKey(recoverCodeKey, loginReturn.recoverCodeEncUserGroupKey)
-				const postRequestData = createRecoverLoginPostData()
-				let salt = generateRandomSalt();
-				let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-				let pwEncUserGroupKey = encryptKey(userPassphraseKey, uint8ArrayToBitArray(groupKey))
-				let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
+		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
+			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn))
+			.then(sessionData => {
+				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken}).then(user => {
+					if (user.auth == null || user.auth.recoverCode == null) {
+						return Promise.reject(new Error("missing recover code"))
+					}
+					const extraHeaders = {
+						accessToken: sessionData.accessToken,
+						recoverCodeVerifier: recoverCodeVerifierBase64
+					}
+					return _loadEntity(RecoverCodeTypeRef, user.auth.recoverCode, null, eventRestClient, extraHeaders)
+				}).then((recoverCode) => {
+					const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
+					let salt = generateRandomSalt();
+					let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+					let pwEncUserGroupKey = encryptKey(userPassphraseKey, uint8ArrayToBitArray(groupKey))
+					let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 
-				postRequestData.userEmailAddress = email
-				postRequestData.salt = salt
-				postRequestData.pwEncUserGroupKey = pwEncUserGroupKey
-				postRequestData.recoverCodeVerifier = recoverCodeVerifier
-				postRequestData.newPasswordVerifier = newPasswordVerifier
-
-				return serviceRequestVoid(SysService.RecoverLoginService, HttpMethod.POST, postRequestData, null, null)
+					const postData = createChangePasswordData()
+					postData.salt = salt
+					postData.pwEncUserGroupKey = pwEncUserGroupKey
+					postData.verifier = newPasswordVerifier
+					postData.recoverCodeVerifier = recoverCodeVerifier
+					const extraHeaders = {accessToken: sessionData.accessToken}
+					return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
+				}).finally(() => this.deleteSession(sessionData.accessToken))
 			})
 	}
 }

@@ -126,7 +126,7 @@ function _getDefaultValue(value: ModelValue): any {
 	throw new Error(`no default value for ${JSON.stringify(value)}`)
 }
 
-export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface): Promise<Id> {
+export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (typeModel.type === Type.ListElement) {
@@ -134,7 +134,7 @@ export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInte
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		return target.entityRequest((instance: any)._type, HttpMethod.POST, listId, null, instance).then(val => {
+		return target.entityRequest((instance: any)._type, HttpMethod.POST, listId, null, instance, null, extraHeaders).then(val => {
 			return ((val: any): Id)
 		})
 	})
@@ -157,7 +157,7 @@ export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promi
 	})
 }
 
-export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface): Promise<T> {
+export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface, extraHeaders?: Params): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
 		let listId = null
@@ -173,7 +173,7 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 		} else {
 			throw new Error("Illegal Id for ET: " + (id: any))
 		}
-		return target.entityRequest(typeRef, HttpMethod.GET, listId, elementId, null, queryParams).then((val) => {
+		return target.entityRequest(typeRef, HttpMethod.GET, listId, elementId, null, queryParams, extraHeaders).then((val) => {
 			return ((val: any): T)
 		})
 	})

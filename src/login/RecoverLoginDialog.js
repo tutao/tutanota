@@ -15,6 +15,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode} from "../api/Env"
+import {secondFactorHandler} from "./SecondFactorHandler"
 
 assertMainOrNode()
 
@@ -115,6 +116,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 						.catch(AccessBlockedError, () => {
 							Dialog.error("loginFailedOften_msg")
 						})
+						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				}
 			} else if (selectedAction() === "secondFactor") {
 				// send it

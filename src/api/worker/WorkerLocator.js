@@ -48,7 +48,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 	locator._indexedDbSupported = indexedDbSupported
 	locator.indexer = new Indexer(restClient, worker, indexedDbSupported, browserData)
 	locator.cache = isAdminClient() ? downcast(restClient) : new EntityRestCache(restClient) // we don't wont to cache within the admin area
-	locator.login = new LoginFacade(worker, restClient)
+	locator.login = new LoginFacade(worker)
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, [
 		locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade

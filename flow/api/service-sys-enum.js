@@ -36,4 +36,3 @@ type SysServiceEnum =
 	| "paypalpaymentwebhook"
 	| "locationservice"
 	| "signorderprocessingagreementservice"
-	| "recoverloginservice"
