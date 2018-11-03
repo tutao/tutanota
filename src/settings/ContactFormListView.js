@@ -60,14 +60,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 							this._setLoadedCompletely();
 
 							// we return all contact forms because we have already loaded all contact forms and the scroll bar shall have the complete size.
-							if (logins.getUserController().isGlobalAdmin()) {
-								return contactForms
-							} else {
-								return getAdministratedGroupIds().then(allAdministratedGroupIds => {
-									return contactForms.filter((cf: ContactForm) =>
-										allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1)
-								})
-							}
+							return filterContactFormsForLocalAdmin(contactForms)
 						})
 					})
 				} else {
@@ -245,5 +238,16 @@ export class ContactFormRow {
 			])
 		]
 		return elements
+	}
+}
+
+export function filterContactFormsForLocalAdmin(contactForms: ContactForm[]): Promise<ContactForm[]> {
+	if (logins.getUserController().isGlobalAdmin()) {
+		return Promise.resolve(contactForms)
+	} else {
+		return getAdministratedGroupIds().then(allAdministratedGroupIds => {
+			return contactForms.filter((cf: ContactForm) =>
+				allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1)
+		})
 	}
 }

@@ -38,6 +38,7 @@ import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 
 assertMainOrNode()
 
@@ -360,24 +361,26 @@ export class UserViewer {
 		this._user.getAsync().then(user => {
 			this._customer.getAsync().then(customer => {
 				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
-					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
-						let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
-							return {name: cf.path, value: cf}
-						}), stream(contactForms[0]), 250)
+					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(allContactForms => {
+						filterContactFormsForLocalAdmin(allContactForms).then(contactForms => {
+							let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
+								return {name: cf.path, value: cf}
+							}), stream(contactForms[0]), 250)
 
-						let addUserToContactFormOkAction = (dialog) => {
-							let cf = (dropdown.selectedValue(): ContactForm)
-							if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
-								cf.participantGroupInfos.push(user.userGroup.groupInfo)
+							let addUserToContactFormOkAction = (dialog) => {
+								let cf = (dropdown.selectedValue(): ContactForm)
+								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
+									cf.participantGroupInfos.push(user.userGroup.groupInfo)
+								}
+								showProgressDialog("pleaseWait_msg", update(cf))
+								dialog.close()
 							}
-							showProgressDialog("pleaseWait_msg", update(cf))
-							dialog.close()
-						}
 
-						Dialog.showActionDialog({
-							title: lang.get("responsiblePersons_label"),
-							child: {view: () => m(dropdown)},
-							okAction: addUserToContactFormOkAction
+							Dialog.showActionDialog({
+								title: lang.get("responsiblePersons_label"),
+								child: {view: () => m(dropdown)},
+								okAction: addUserToContactFormOkAction
+							})
 						})
 					})
 				})
