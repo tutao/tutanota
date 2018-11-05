@@ -9,6 +9,52 @@ import {progressIcon} from "./Icon"
 
 assertMainOrNode()
 
+
+/**
+ * The BubbleInputField delegates certain tasks like retrieving suggestions and creating bubbles
+ * to the BubbleHandler.
+ */
+export interface BubbleHandler<T, S:Suggestion> {
+	/**
+	 * @param text The text to filter for.
+	 * @return A list of suggestions.
+	 */
+	getSuggestions(text: string): Promise<S[]>;
+
+	/**
+	 * Creates a new bubble for a suggestion.
+	 * @param suggestion The suggestion.
+	 * @return Returns the new bubble or null if none could be created.
+	 */
+	createBubbleFromSuggestion(suggestion: S): Bubble<T>;
+
+	/**
+	 * Creates a new bubble from the provided text.
+	 * @param text
+	 * @return Returns the new bubble or null if none could be created.
+	 */
+	createBubblesFromText(text: string): Bubble<T>[];
+
+	/**
+	 * Notifies the BubbleHandler that the given bubble was deleted.
+	 * @param bubble The bubble that was deleted.
+	 */
+	bubbleDeleted(bubble: Bubble<T>): void;
+
+	/**
+	 * Height of a suggestion in pixels
+	 */
+	suggestionHeight: number;
+}
+
+/**
+ * Suggestions are provided to the user whenever he writes text to the input field.
+ */
+export interface Suggestion {
+	view: Function;
+	selected: boolean;
+}
+
 export class BubbleTextField<T> {
 	loading: ?Promise<void>;
 	textField: TextField;

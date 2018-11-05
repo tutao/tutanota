@@ -952,6 +952,9 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
+		if (isMailAddress(query, false)) {
+			return Promise.resolve([])
+		}
 		let contactsPromise = (locator.search.indexState().indexingSupported) ?
 			searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync()
 			                                                             .then(listId => loadAll(ContactTypeRef, listId))
