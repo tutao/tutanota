@@ -578,7 +578,6 @@ export class MailViewer {
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name
 
-		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		let newReplyTos;
 		if (this.mail.replyTos.length > 0) {
 			newReplyTos = this.mail.replyTos
