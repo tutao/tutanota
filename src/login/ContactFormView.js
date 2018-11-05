@@ -109,10 +109,6 @@ export class ContactFormView {
 					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, false).text
 					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, false).text
 					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
-					// the help html might contain <div> and <br> although no content was added, so remove it to avoid displaying the help link at all
-					if (this._helpHtml.replace("<div>", "").replace("</div>", "").replace("<br>", "").trim() === "") {
-						this._helpHtml = null
-					}
 
 					this._loading = false
 					m.redraw()

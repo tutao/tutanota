@@ -275,7 +275,12 @@ export class ContactFormEditor {
 		language.pageTitle = this._pageTitleField.value()
 		language.headerHtml = this._headerField.getValue()
 		language.footerHtml = this._footerField.getValue()
-		language.helpHtml = this._helpField.getValue()
+		// the help html might contain <div> and <br> although no content was added, so remove it to avoid displaying the help link in the contact form
+		if (this._helpField.getValue().replace("<div>", "").replace("</div>", "").replace("<br>", "").trim() === "") {
+			language.helpHtml = ""
+		} else {
+			language.helpHtml = this._helpField.getValue()
+		}
 		language.statisticsFields = this._statisticsFields
 	}
 
