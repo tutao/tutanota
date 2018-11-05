@@ -56,6 +56,7 @@ import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
 import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
+import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDeleteData"
 
 assertWorkerOrNode()
 
@@ -611,6 +612,20 @@ export class LoginFacade {
 					return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
 				}).finally(() => this.deleteSession(sessionData.accessToken))
 			})
+	}
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
+		return this._loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
+			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
+			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
+
+			const deleteData = createResetFactorsDeleteData()
+			deleteData.mailAddress = mailAddress
+			deleteData.authVerifier = authVerifier
+			deleteData.recoverCodeVerifier = recoverCodeVerifier
+			return serviceRequestVoid(SysService.ResetFactorsService, HttpMethod.DELETE, deleteData, null, null)
+		})
 	}
 }
 

@@ -117,6 +117,10 @@ export class LoginViewController implements ILoginViewController {
 		return worker.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
 	}
 
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void> {
+		return worker.resetSecondFactors(mailAddress, password, recoverCode)
+	}
+
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
 		            .then(() => logins.loadCustomizations())

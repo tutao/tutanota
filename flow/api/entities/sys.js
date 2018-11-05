@@ -1518,3 +1518,12 @@ type RecoverCode = {
 	verifier: Uint8Array;
 
 }
+
+type ResetFactorsDeleteData = {
+	_type: TypeRef<ResetFactorsDeleteData>;
+	_format: NumberString;
+	authVerifier: string;
+	mailAddress: string;
+	recoverCodeVerifier: string;
+
+}

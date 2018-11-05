@@ -1,5 +1,6 @@
 //@flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, createDropDown} from "../gui/base/ButtonN"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
@@ -9,7 +10,6 @@ import {ButtonType} from "../gui/base/Button"
 import {Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "../settings/PasswordForm"
-import stream from "mithril/stream/stream.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -23,9 +23,9 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 	type ResetAction = "password" | "secondFactor"
 	const selectedAction: Stream<?ResetAction> = stream(null)
 	let passwordForm = new PasswordForm(false, true, true);
-	let passwordValueStream: Stream<string> = stream("")
-	const emailAddress = stream("")
-	const recoverCode = stream("")
+	const passwordValueStream = stream("")
+	const emailAddressStream = stream("")
+	const recoverCodeStream = stream("")
 
 	const resetPasswordAction: ButtonAttrs = {
 		label: () => "Set a new password",
@@ -66,8 +66,8 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		child: {
 			view: () => {
 				return [
-					m(TextFieldN, {label: "mailAddresses_label", value: emailAddress}),
-					m(TextFieldN, {label: "recoverCode_label", value: recoverCode}),
+					m(TextFieldN, {label: "mailAddresses_label", value: emailAddressStream}),
+					m(TextFieldN, {label: "recoverCode_label", value: recoverCodeStream}),
 					m(TextFieldN, {
 							label: "action_label",
 							value: selectedValueLabelStream,
@@ -89,10 +89,11 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 			}
 		},
 		okAction: () => {
-			const mailAddress = emailAddress()
-			if (mailAddress === null || !isMailAddress(mailAddress, true)) {
+			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
+			const cleanRecoverCodeValue = recoverCodeStream().trim().toLowerCase()
+			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.error("mailAddressInvalid_msg")
-			} else if (recoverCode().trim().toLowerCase() === "") {
+			} else if (cleanRecoverCodeValue === "") {
 				Dialog.error("recoverCodeEmpty_msg")
 			} else if (selectedAction() === "password") {
 				if (passwordForm.getErrorMessageId()) {
@@ -101,14 +102,14 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 					showProgressDialog("pleaseWait_msg",
 						loginViewControllerPromise.then((controller) => {
 							return controller.recoverLogin(
-								mailAddress.toLowerCase().trim(),
-								recoverCode().trim().toLowerCase(),
+								cleanMailAddress,
+								cleanRecoverCodeValue,
 								passwordForm.getNewPassword())
 						}))
 						.then(() => {
 							recoverDialog.close()
-							deviceConfig.delete(mailAddress)
-							m.route.set("/login", {loginWith: mailAddress, noAutoLogin: true})
+							deviceConfig.delete(cleanMailAddress)
+							m.route.set("/login", {loginWith: cleanMailAddress, noAutoLogin: true})
 						})
 						.catch(NotAuthenticatedError, () => {
 							Dialog.error("invalidPassword_msg")
@@ -119,8 +120,17 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				}
 			} else if (selectedAction() === "secondFactor") {
-				// send it
-				passwordValueStream()
+				const passwordValue = passwordValueStream()
+				showProgressDialog("pleaseWait_msg",
+					loginViewControllerPromise
+						.then((controller) => controller.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
+					.then(() => recoverDialog.close())
+					.catch(NotAuthenticatedError, () => {
+						Dialog.error("invalidPassword_msg")
+					})
+					.catch(AccessBlockedError, () => {
+						Dialog.error("loginFailedOften_msg")
+					})
 			}
 		},
 		allowCancel: true
