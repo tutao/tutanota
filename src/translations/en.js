@@ -1108,11 +1108,16 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"showRecoveryCode_action": "Show recovery code",
-		"updateRecoveryCode_action": "Update recovery code",
 		"recoverCode_msg": "Please, take a minute to write down your recovery code. This can be used to restore access to your account in case you loose your password or second factor. You can view and change it later in settings.",
 		"recoverCode_label": "Recovery code",
-		"recoverAccountAccess_label": "Recover account access",
-		"recoverCodeEmpty_msg": "Please enter a recover code"
+		"recover_label": "Recover",
+		"recoverAccountAccess_action": "Lost account access",
+		"recoverCodeEmpty_msg": "Please enter a recover code",
+		"recoverCodeReminder_msg": "You can set up a recovery code now which can help you to restore access to your account.",
+		"newFeature_msg": "New feature",
+		"recoverSetNewPassword_action": "Set a new password",
+		"recoverResetFactors_action": "Reset second factor"
+
+
 	}
 }

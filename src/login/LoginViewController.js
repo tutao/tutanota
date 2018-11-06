@@ -34,6 +34,9 @@ import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {formatPrice} from "../misc/Formatter"
+import * as NotificationOverlay from "../gui/base/NotificationOverlay"
+import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -187,6 +190,8 @@ export class LoginViewController implements ILoginViewController {
 		if (env.mode === Mode.App) {
 			pushServiceApp.register()
 		}
+		this._showRecoverCodeNotification(logins.getUserController().user)
+
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
 			return this._showUpgradeReminder()
@@ -199,6 +204,25 @@ export class LoginViewController implements ILoginViewController {
 				return mailModel.init()
 			}
 		}).then(() => logins.loginComplete())
+	}
+
+	_showRecoverCodeNotification(user: User) {
+		const auth = user.auth
+		if (auth && !auth.recoverCode) {
+			NotificationOverlay.show({
+				view: () => {
+					return m("", [m("b", lang.get("newFeature_msg")), m("", lang.get("recoverCodeReminder_msg"))])
+				}
+			}, [
+				{
+					label: "update_action",
+					click: () => {
+						RecoverCodeDialog.show('create')
+					},
+					type: ButtonType.Primary
+				}
+			])
+		}
 	}
 
 	_showUpgradeReminder(): Promise<void> {

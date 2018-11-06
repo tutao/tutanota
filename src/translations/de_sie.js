@@ -1114,6 +1114,15 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"recoverCode_msg": "Bitte nehmen Sie sich etwas Zeit den Wiederherstellungs-Code aufzuschreiben. Dieser kann dazu verwendet werden den Zugang zu Ihrem Account wiederherzustellen falls Sie das Passwort oder den zweiten Faktor verloren haben. Sie können sich den Code auch später in den Einstellungen noch einmal ansehen.",
+		"recoverCode_label": "Wiederherstellungs-Code",
+		"recover_label": "Wiederherstellung",
+		"recoverAccountAccess_action": "Zugansdaten verloren",
+		"recoverCodeEmpty_msg": "Bitte geben Sie Ihren Weiderherstellungs-Code ein.",
+		"recoverCodeReminder_msg": "Richten Sie sich jetzt einen Wiederherstellungs-Code ein um den Zugang zu Ihrem Account wiederherstellen zu können.",
+		"newFeature_msg": "Neues Feature",
+		"recoverSetNewPassword_action": "Neues Passwort festlegen",
+		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen"
 	}
 }

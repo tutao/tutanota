@@ -18,12 +18,8 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
-import {Dialog} from "../gui/base/Dialog"
-import stream from "mithril/stream/stream.js"
 import {ButtonN, ButtonType, createDropDown} from "../gui/base/ButtonN"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
+import * as RecoverCodeDialog from "./RecoverCodeDialog"
 
 assertMainOrNode()
 
@@ -43,8 +39,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		let recoveryCodeField = new TextField("recoverCode_label").setValue("***").setDisabled()
 
 		const showRecoveryCodeAttrs = {
-			label: "showRecoveryCode_action",
-			click: () => this._showRecoveryCodeDialog((password) => worker.getRecoveryCode(password)),
+			label: "show_action",
+			click: () => RecoverCodeDialog.show('get'),
 			type: ButtonType.Dropdown,
 			isVisible: () => {
 				const auth = logins.getUserController().user.auth
@@ -52,8 +48,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 		const updateRecoveryCodeButton = {
-			label: "updateRecoveryCode_action",
-			click: () => this._showRecoveryCodeDialog((password) => worker.createRecoveryCode(password)),
+			label: "update_action",
+			click: () => RecoverCodeDialog.show('create'),
 			type: ButtonType.Dropdown
 		}
 
@@ -97,25 +93,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			]
 		}
 		this._updateSessions()
-	}
-
-	_showRecoveryCodeDialog(action: (string) => Promise<Hex>) {
-		const errorMessageStream = stream("")
-		const dialog = Dialog.showRequestPasswordDialog((passwordField) => {
-			showProgressDialog("loading_msg", action(passwordField.value()))
-				.then((recoverCode) => {
-					dialog.close()
-					return Dialog.showRecoverCodeDialog(recoverCode)
-				})
-				.catch(NotAuthenticatedError, () => {
-					errorMessageStream(lang.get("invalidPassword_msg"))
-					passwordField.focus()
-				})
-				.catch(AccessBlockedError, () => {
-					errorMessageStream(lang.get("tooManyAttempts_msg"))
-					passwordField.focus()
-				})
-		}, errorMessageStream, () => { dialog.close()})
 	}
 
 	_updateSessions() {

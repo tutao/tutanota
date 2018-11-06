@@ -26,6 +26,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import {windowFacade} from "../misc/WindowFacade"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
 
 assertMainOrNode()
 
@@ -176,7 +177,7 @@ export class RegisterView {
 			if (authToken) {
 				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true)
 					.then(recoverCode => {
-						return Dialog.showRecoverCodeDialog(recoverCode)
+						return RecoverCodeDialog.showRecoverCodeDialog(recoverCode)
 					})
 					.then(() => {
 						m.route.set("/login?loginWith=" + mailAddress)

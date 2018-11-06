@@ -53,6 +53,7 @@ import {ActionBar} from "../gui/base/ActionBar";
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -359,27 +360,27 @@ export class MailView implements CurrentView {
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
 				]))
-				.concat(
-					logins.isInternalUserLoggedIn() ? [
-						m(".folder-row.flex-space-between.plr-l", [
-							m("small.b.pt-s.align-self-center.ml-negative-xs",
-								{style: {color: theme.navigation_button}},
-								lang.get("yourFolders_action")
-									.toLocaleUpperCase()),
-							m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
-						])
-					] : []
-				)
-				.concat(
-					this._mailboxExpanders[mailGroupId].customFolderButtons.map(fb =>
-						m(".folder-row.flex-space-between.plr-l"
-							+ (fb.isSelected() ? ".row-selected" : ""), [
-							m(fb),
-							fb.isSelected() ? m(folderMoreButton, {
-								oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-								onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-							}) : null
-						]))))
+			                                                             .concat(
+				                                                             logins.isInternalUserLoggedIn() ? [
+					                                                             m(".folder-row.flex-space-between.plr-l", [
+						                                                             m("small.b.pt-s.align-self-center.ml-negative-xs",
+							                                                             {style: {color: theme.navigation_button}},
+							                                                             lang.get("yourFolders_action")
+							                                                                 .toLocaleUpperCase()),
+						                                                             m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
+					                                                             ])
+				                                                             ] : []
+			                                                             )
+			                                                             .concat(
+				                                                             this._mailboxExpanders[mailGroupId].customFolderButtons.map(fb =>
+					                                                             m(".folder-row.flex-space-between.plr-l"
+						                                                             + (fb.isSelected() ? ".row-selected" : ""), [
+						                                                             m(fb),
+						                                                             fb.isSelected() ? m(folderMoreButton, {
+							                                                             oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+							                                                             onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+						                                                             }) : null
+					                                                             ]))))
 		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
 		return mailboxExpander

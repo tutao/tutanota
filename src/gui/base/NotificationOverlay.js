@@ -2,7 +2,7 @@
 
 import m from "mithril"
 import {px, size} from "../size"
-import {transform} from "../animation/Animations"
+import {DefaultAnimationTime, transform} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {ButtonAttrs} from "./ButtonN"
@@ -15,6 +15,9 @@ type NotificationOverlayAttrs = {|
 	buttons: Array<ButtonAttrs>,
 	closeFunction: () => void
 |}
+
+
+const notificationQueue = []
 
 class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 
@@ -34,6 +37,17 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 }
 
 export function show(message: Component, buttons: Array<ButtonAttrs>) {
+	notificationQueue.push({message, buttons})
+	if (notificationQueue.length > 1) {
+		// another notification is already visible. Next notification will be shown when closing current notification
+		return
+	}
+	showNextNotification()
+}
+
+function showNextNotification() {
+	const {message, buttons} = notificationQueue[0]
+
 	const width = window.innerWidth
 	const margin = (width - Math.min(400, width)) / 2
 	const buttonsWithDismiss = buttons.slice()
@@ -43,9 +57,27 @@ export function show(message: Component, buttons: Array<ButtonAttrs>) {
 		(dom) => transform(transform.type.translateY, -dom.offsetHeight, 0),
 		(dom) => transform(transform.type.translateY, 0, -dom.offsetHeight)
 	)
+
+
+	const closeAndOpenNext = () => {
+		closeFunction()
+		notificationQueue.shift()
+		if (notificationQueue.length > 0) {
+			setTimeout(showNextNotification, 2 * DefaultAnimationTime)
+		}
+	}
+
+	buttonsWithDismiss.forEach(b => {
+		const originClickHandler = b.click
+		b.click = () => {
+			originClickHandler()
+			closeAndOpenNext()
+		}
+	})
+
 	buttonsWithDismiss.unshift({
 		label: "dismissNotification_action",
-		click: closeFunction,
+		click: closeAndOpenNext,
 		type: ButtonType.Secondary
 	})
 	m.redraw();

@@ -552,30 +552,6 @@ export class Dialog {
 		})
 	}
 
-
-	static showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
-		return new Promise((resolve) => {
-			Dialog.showActionDialog({
-				title: lang.get("recoverCode_label"),
-				child: {
-					view: () => {
-						return [
-							m(".pt.pb", lang.get("recoverCode_msg")),
-							m(".text-break.monospace.selectable",
-								neverNull(recoverCode.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
-						]
-					}
-				},
-				allowCancel: false,
-				okAction: (dialog) => {
-					dialog.close()
-					resolve()
-				}
-			})
-		})
-	}
-
-
 	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
@@ -619,7 +595,8 @@ export class Dialog {
 		}
 		return Dialog.showActionDialog({
 			title: lang.get("password_label"),
-			child: pwInput,
+			// invisible input field to prevent that autocomplete focuses another input field on the page, e.g. search bar
+			child: {view: () => [m("input", {style: {display: 'none'}}), m(pwInput)]},
 			okAction: () => okAction(pwInput),
 			allowCancel: cancelAction !== null,
 			cancelAction: cancelAction

@@ -28,7 +28,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 	const recoverCodeStream = stream("")
 
 	const resetPasswordAction: ButtonAttrs = {
-		label: () => "Set a new password",
+		label: () => "recoverSetNewPassword_action",
 		click: () => {
 			selectedAction("password")
 		},
@@ -36,7 +36,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 	}
 
 	const resetSecondFactorAction: ButtonAttrs = {
-		label: () => "Reset second factor",
+		label: "recoverSetNewPassword_action",
 		click: () => {
 			selectedAction("secondFactor")
 		},
@@ -53,16 +53,16 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 
 	const selectedValueLabelStream = selectedAction.map(v => {
 		if (v === "password") {
-			return "Set a new password"
+			return lang.get("recoverSetNewPassword_action")
 		} else if (v === "secondFactor") {
-			return "Reset second factor"
+			return lang.get("recoverSetNewPassword_action")
 		} else {
-			return lang.get("choose_label")
+			return lang.get("recoverResetFactors_action")
 		}
 	})
 
 	const recoverDialog = Dialog.showActionDialog({
-		title: lang.get("recoverAccountAccess_label"),
+		title: lang.get("recover_label"),
 		child: {
 			view: () => {
 				return [

@@ -172,7 +172,7 @@ export class LoginView {
 
 		const recoverLogin = () => {
 			return m(ButtonN, {
-				label: "recoverAccountAccess_label",
+				label: "recoverAccountAccess_action",
 				click: () => this._showRecoverLoginDialog(),
 				type: ButtonType.Secondary,
 			})
