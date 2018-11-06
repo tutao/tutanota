@@ -201,12 +201,10 @@ export class MailModel {
 	}
 
 	_showNotification(update: EntityUpdateData) {
-		this._notifications.showNotification(lang.get("newMails_msg"), {
-			onclick: () => {
-				// TODO: handle the case where the mail has been moved to a different folder
-				//m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
-				window.focus()
-			}
+		this._notifications.showNotification(lang.get("newMails_msg"), {}, (e) => {
+			// TODO: handle the case where the mail has been moved to a different folder
+			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+			window.focus()
 		})
 	}
 }
