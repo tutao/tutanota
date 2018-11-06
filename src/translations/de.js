@@ -1126,6 +1126,8 @@ module.exports = {
 		"recoverSetNewPassword_action": "Neues Passwort festlegen",
 		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen",
 		"postpone_action": "Später",
-		"setUp_action": "Einrichten"
+		"setUp_action": "Einrichten",
+		"stillReferencedFromContactForm_msg": "Diese Instanz kann nicht deaktiviert werden, da sie noch von einem Kontaktformular referenziert wird.",
+		"upgradeProNoReduction_msg": "Bereits gebuchte größere Speicher- und Alias-Pakete werden nicht reduziert."
 	}
 }

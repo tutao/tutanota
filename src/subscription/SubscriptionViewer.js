@@ -66,6 +66,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_periodEndDate: Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
+	_customerInfo: ?CustomerInfo;
 	_accountingInfo: ?AccountingInfo;
 	_lastBooking: ?Booking;
 	_orderAgreement: ?OrderProcessingAgreement;
@@ -76,14 +77,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo) {
-				showSwitchDialog(this._accountingInfo, this._isPro)
+			if (this._accountingInfo && this._customer && neverNull(this._customerInfo)) {
+				showSwitchDialog(this._accountingInfo,
+					this._isPro,
+					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
+					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
+					this._isWhitelabelActive())
 			}
 		}, () => Icons.Edit)
 		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
 		this._subscriptionField._injectionsRight = () => (
 			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-			.isPremiumAccount()
+		                                                                            .isPremiumAccount()
 		&& !this._isCancelled ? [m(subscriptionAction)] : null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
@@ -221,7 +226,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this._updateOrderProcessingAgreement(customer)
 				return load(CustomerInfoTypeRef, customer.customerInfo)
 			})
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+			.then(customerInfo => {
+				this._customerInfo = customerInfo
+				return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+			})
 			.then(accountingInfo => {
 				this._updateAccountInfoData(accountingInfo)
 			})
@@ -322,6 +330,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					if (!customerInfo) {
 						return
 					}
+					this._customerInfo = customerInfo
 					loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null

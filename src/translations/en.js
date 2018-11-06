@@ -1114,16 +1114,19 @@ module.exports = {
 		"enterAsCSV_msg": "Please enter your users details as CSV",
 		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
 		"secondFactorConfirmLoginNoIp_msg": "Would you like to allow the login from the client \"{clientIdentifier}\"?",
-		"recoveryCode_msg": "Please take a minute to write down your recovery code. This can be used to restore access to your account in case you lose your password or second factor.",
-		"recoveryCode_label": "Recovery code",
+		"yourMessage_label": "Your message",
+		"recoverCode_msg": "Please take a minute to write down your recovery code. This can be used to restore access to your account in case you lose your password or second factor.",
+		"recoverCode_label": "Recovery code",
 		"recover_label": "Recover",
 		"recoverAccountAccess_action": "Lost account access",
-		"recoveryCodeEmpty_msg": "Please enter a recovery code",
-		"recoveryCodeReminder_msg": "You can set up a recovery code now which can help you to restore access to your account.",
+		"recoverCodeEmpty_msg": "Please enter a recovery code",
+		"recoverCodeReminder_msg": "You can set up a recovery code now which can help you to restore access to your account.",
 		"newFeature_msg": "New feature",
 		"recoverSetNewPassword_action": "Set a new password",
 		"recoverResetFactors_action": "Reset second factor",
 		"postpone_action": "Postpone",
-		"setUp_action": "Set up"
+		"setUp_action": "Set up",
+		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
+		"upgradeProNoReduction_msg": "Previously ordered larger storage or alias packages will not be reduced."
 	}
 }
