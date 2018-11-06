@@ -13,9 +13,10 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {Icons} from "../gui/base/icons/Icons"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {assertMainOrNode} from "../api/Env"
 import {secondFactorHandler} from "./SecondFactorHandler"
+import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 
 assertMainOrNode()
 
@@ -25,10 +26,9 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 	let passwordForm = new PasswordForm(false, true, true);
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream("")
-	const recoverCodeStream = stream("")
 
 	const resetPasswordAction: ButtonAttrs = {
-		label: () => "recoverSetNewPassword_action",
+		label: "recoverSetNewPassword_action",
 		click: () => {
 			selectedAction("password")
 		},
@@ -36,7 +36,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 	}
 
 	const resetSecondFactorAction: ButtonAttrs = {
-		label: "recoverSetNewPassword_action",
+		label: "recoverResetFactors_action",
 		click: () => {
 			selectedAction("secondFactor")
 		},
@@ -55,19 +55,26 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		if (v === "password") {
 			return lang.get("recoverSetNewPassword_action")
 		} else if (v === "secondFactor") {
-			return lang.get("recoverSetNewPassword_action")
-		} else {
 			return lang.get("recoverResetFactors_action")
+		} else {
+			return lang.get("choose_label")
 		}
 	})
 
+	const editor = new HtmlEditor("recoverCode_label")
+	editor.setMode(Mode.HTML)
+	editor.setHtmlMonospace(true)
+	editor.setMinHeight(80)
+	editor.showBorders()
+
 	const recoverDialog = Dialog.showActionDialog({
 		title: lang.get("recover_label"),
+		type: DialogType.EditSmall,
 		child: {
 			view: () => {
 				return [
 					m(TextFieldN, {label: "mailAddresses_label", value: emailAddressStream}),
-					m(TextFieldN, {label: "recoverCode_label", value: recoverCodeStream}),
+					m(editor),
 					m(TextFieldN, {
 							label: "action_label",
 							value: selectedValueLabelStream,
@@ -90,7 +97,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		},
 		okAction: () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
-			const cleanRecoverCodeValue = recoverCodeStream().trim().toLowerCase()
+			const cleanRecoverCodeValue = editor.getValue().trim().toLowerCase()
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.error("mailAddressInvalid_msg")
 			} else if (cleanRecoverCodeValue === "") {

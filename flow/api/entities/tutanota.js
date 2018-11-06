@@ -676,6 +676,7 @@ type UserAccountUserData = {
 	mailEncMailBoxSessionKey: Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
 	recoverCodeEncUserGroupKey: ?Uint8Array;
+	recoverCodeVerifier: ?Uint8Array;
 	salt: Uint8Array;
 	userEncClientKey: Uint8Array;
 	userEncContactGroupKey: Uint8Array;

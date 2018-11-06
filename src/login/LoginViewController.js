@@ -215,7 +215,7 @@ export class LoginViewController implements ILoginViewController {
 				}
 			}, [
 				{
-					label: "update_action",
+					label: "setUp_action",
 					click: () => {
 						RecoverCodeDialog.show('create')
 					},

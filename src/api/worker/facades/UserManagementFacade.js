@@ -231,7 +231,7 @@ export class UserManagementFacade {
 		userData.customerEncFileGroupInfoSessionKey = encryptKey(customerGroupKey, fileGroupInfoSessionKey)
 		userData.userEncRecoverCode = recoverData.userEncRecoverCode
 		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
-
+		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
 	}
 

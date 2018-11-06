@@ -76,7 +76,7 @@ function showNextNotification() {
 	})
 
 	buttonsWithDismiss.unshift({
-		label: "dismissNotification_action",
+		label: "postpone_action",
 		click: closeAndOpenNext,
 		type: ButtonType.Secondary
 	})

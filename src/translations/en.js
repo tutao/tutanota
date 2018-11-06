@@ -1116,7 +1116,9 @@ module.exports = {
 		"recoverCodeReminder_msg": "You can set up a recovery code now which can help you to restore access to your account.",
 		"newFeature_msg": "New feature",
 		"recoverSetNewPassword_action": "Set a new password",
-		"recoverResetFactors_action": "Reset second factor"
+		"recoverResetFactors_action": "Reset second factor",
+		"postpone_action": "Postpone",
+		"setUp_action": "Set up",
 
 
 	}

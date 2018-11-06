@@ -1123,6 +1123,8 @@ module.exports = {
 		"recoverCodeReminder_msg": "Richten Sie sich jetzt einen Wiederherstellungs-Code ein um den Zugang zu Ihrem Account wiederherstellen zu können.",
 		"newFeature_msg": "Neues Feature",
 		"recoverSetNewPassword_action": "Neues Passwort festlegen",
-		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen"
+		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen",
+		"postpone_action": "Verschieben",
+		"setUp_action": "Einrichten"
 	}
 }

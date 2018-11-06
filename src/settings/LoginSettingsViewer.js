@@ -48,12 +48,12 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 		const updateRecoveryCodeButton = {
-			label: "update_action",
+			label: () => neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action"),
 			click: () => RecoverCodeDialog.show('create'),
 			type: ButtonType.Dropdown
 		}
 
-		const recoveryDropdown = createDropDown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton], 300)
+		const recoveryDropdown = createDropDown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton])
 
 		recoveryCodeField._injectionsRight = () => m(ButtonN, {
 			label: "edit_action",
