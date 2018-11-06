@@ -145,6 +145,59 @@ export function base64UrlToBase64(base64url: Base64Url): Base64 {
 	throw new Error("Illegal base64 string.")
 }
 
+// just for edge, as it does not support TextEncoder yet
+export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
+	let fixedString
+	try {
+		fixedString = encodeURIComponent(string)
+	}catch(e) {
+		fixedString = encodeURIComponent(_replaceLoneSurrogates(string)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
+	}
+	let utf8 = unescape(fixedString)
+	let uint8Array = new Uint8Array(utf8.length)
+	for (let i = 0; i < utf8.length; i++) {
+		uint8Array[i] = utf8.charCodeAt(i)
+	}
+	return uint8Array
+}
+
+const REPLACEMENT_CHAR = '\uFFFD'
+
+export function _replaceLoneSurrogates(s: ?string): string {
+	if (s == null) {
+		return ""
+	}
+	let result = []
+	for (let i = 0; i < s.length; i++) {
+		let code = s.charCodeAt(i)
+		let char = s.charAt(i)
+		if (0xD800 <= code && code <= 0xDBFF) {
+			if (s.length == i) {
+				// replace high surrogate without following low surrogate
+				result.push(REPLACEMENT_CHAR)
+			} else {
+				let next = s.charCodeAt(i + 1)
+				if (0xDC00 <= next && next <= 0xDFFF) {
+					result.push(char)
+					result.push(s.charAt(i + 1))
+					i++ // valid high and low surrogate, skip next low surrogate check
+				} else {
+					result.push(REPLACEMENT_CHAR)
+				}
+			}
+		} else if (0xDC00 <= code && code <= 0xDFFF) {
+			// replace low surrogate without preceding high surrogate
+			result.push(REPLACEMENT_CHAR)
+		} else {
+			result.push(char)
+		}
+	}
+	return result.join("")
+}
+
+const encoder = (typeof TextEncoder == "function" ? new TextEncoder() : {encode: _stringToUtf8Uint8ArrayLegacy})
+const decoder = (typeof TextDecoder == "function" ? new TextDecoder() : {decode: _utf8Uint8ArrayToStringLegacy})
+
 /**
  * Converts a string to a Uint8Array containing a UTF-8 string data.
  *
@@ -152,12 +205,17 @@ export function base64UrlToBase64(base64url: Base64Url): Base64 {
  * @return The array.
  */
 export function stringToUtf8Uint8Array(string: string): Uint8Array {
-	let utf8 = unescape(encodeURIComponent(string))
-	let uint8Array = new Uint8Array(utf8.length)
-	for (let i = 0; i < utf8.length; i++) {
-		uint8Array[i] = utf8.charCodeAt(i)
+	return encoder.encode(string)
+}
+
+// just for edge, as it does not support TextDecoder yet
+export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
+	let stringArray = []
+	stringArray.length = uint8Array.length
+	for (let i = 0; i < uint8Array.length; i++) {
+		stringArray[i] = String.fromCharCode(uint8Array[i])
 	}
-	return uint8Array
+	return decodeURIComponent(escape(stringArray.join("")))
 }
 
 /**
@@ -167,15 +225,8 @@ export function stringToUtf8Uint8Array(string: string): Uint8Array {
  * @return The string.
  */
 export function utf8Uint8ArrayToString(uint8Array: Uint8Array): string {
-	let stringArray = []
-	stringArray.length = uint8Array.length
-	for (let i = 0; i < uint8Array.length; i++) {
-		stringArray[i] = String.fromCharCode(uint8Array[i])
-	}
-	return decodeURIComponent(escape(stringArray.join("")))
-	//return decodeURIComponent(escape(String.fromCharCode(uint8Array))) // Uint8array cast to any because flow handles 'apply' wrong currently (see https://github.com/facebook/flow/issues/1866)
+	return decoder.decode(uint8Array)
 }
-
 
 export function hexToUint8Array(hex: Hex): Uint8Array {
 	let bufView = new Uint8Array(hex.length / 2)

@@ -1,22 +1,24 @@
 // @flow
 import o from "ospec/ospec.js"
 import {
-	stringToUtf8Uint8Array,
-	utf8Uint8ArrayToString,
-	hexToUint8Array,
-	uint8ArrayToHex,
-	base64UrlToBase64,
-	base64ToBase64Url,
-	base64ToUint8Array,
-	uint8ArrayToBase64,
+	_replaceLoneSurrogates,
+	_stringToUtf8Uint8ArrayLegacy,
+	_utf8Uint8ArrayToStringLegacy,
+	base64ExtToBase64,
 	base64ToBase64Ext,
+	base64ToBase64Url,
+	base64ToHex,
+	base64ToUint8Array,
+	base64UrlToBase64,
+	generatedIdToTimestamp,
 	hexToBase64,
+	hexToUint8Array,
+	stringToUtf8Uint8Array,
+	timestampToGeneratedId,
 	timestampToHexGeneratedId,
 	uint8ArrayToArrayBuffer,
-	base64ToHex,
-	base64ExtToBase64,
-	generatedIdToTimestamp,
-	timestampToGeneratedId
+	uint8ArrayToBase64,
+	uint8ArrayToHex
 } from "../../../src/api/common/utils/Encoding"
 import {GENERATED_MIN_ID} from "../../../src/api/common/EntityFunctions"
 
@@ -24,16 +26,31 @@ o.spec("Encoding", function () {
 
 	//TODO test missing encoder functions (only tested partially)
 
-	o("StringToUint8ArrayAndBack", function () {
-		o(utf8Uint8ArrayToString(stringToUtf8Uint8Array("halloTest € à 草"))).equals("halloTest € à 草")
-		o(utf8Uint8ArrayToString(stringToUtf8Uint8Array(""))).equals("")
-		o(utf8Uint8ArrayToString(stringToUtf8Uint8Array("1"))).equals("1")
-
-		o(utf8Uint8ArrayToString(stringToUtf8Uint8Array("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf"))).equals("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")
-
-		o(Array.from(stringToUtf8Uint8Array("€"))).deepEquals([226, 130, 172])
+	o("_replaceLoneSurrogates", function () {
+		o(_replaceLoneSurrogates("a\uD800\uDFFFb")).equals("a\uD800\uDFFFb") // high and low
+		o(_replaceLoneSurrogates("a\uD800b")).equals("a\uFFFDb") // lone high surrogate
+		o(_replaceLoneSurrogates("a\uDBFFb")).equals("a\uFFFDb") // lone high surrogate
+		o(_replaceLoneSurrogates("a\uDC00b")).equals("a\uFFFDb") // lone low surrogate
+		o(_replaceLoneSurrogates("a\uDFFFb")).equals("a\uFFFDb") // lone low surrogate
 	})
 
+	o("StringToUint8ArrayAndBackLegacy", () => stringToUint8ArrayAndBack(_stringToUtf8Uint8ArrayLegacy, _utf8Uint8ArrayToStringLegacy))
+	o("StringToUint8ArrayAndBack", browser(() => stringToUint8ArrayAndBack((s) => new TextEncoder().encode(s), (s) => new TextDecoder().decode(s))))
+
+	function stringToUint8ArrayAndBack(encoder, decoder) {
+		o(decoder(encoder("halloTest € à 草"))).equals("halloTest € à 草")
+		o(decoder(encoder(""))).equals("")
+		o(decoder(encoder("1"))).equals("1")
+
+		o(decoder(encoder("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")))
+			.equals("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")
+
+		o(Array.from(encoder("€"))).deepEquals([226, 130, 172])
+
+		o(decoder(encoder("b\uDFFFa"))).equals("b\uFFFDa") // lone low surrogate is replaced with REPLACEMENT CHARACTER
+		o(decoder(encoder("b\uD800a"))).equals("b\uFFFDa") // lone high surrogate is replace with REPLACEMENT CHARACTER
+		o(decoder(encoder("b\uD800\uDFFFa"))).equals("b\uD800\uDFFFa") // high and low surrogate
+	}
 
 	/*
 	 o("StringToUint8 performance comparison with sjcl", function () {
