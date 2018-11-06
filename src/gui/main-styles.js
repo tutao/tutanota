@@ -909,5 +909,12 @@ styles.registerStyle('main', () => {
 		// use the animations as hooks for JS to capture 'animationstart' events
 		"input:-webkit-autofill": {"animation-name": "onAutoFillStart",},
 		"input:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
+
+		// for compatibility with Outlook 2010/2013 emails. have a negative indentation (18.0pt) on each list element and additionally this class
+		// we strip all global style definitions, so the list elements are only indented to the left if we do not allow the MsoListParagraph classes
+		// they are whitelisted in HtmlSanitizer.js
+		".MsoListParagraph, .MsoListParagraphCxSpFirst, .MsoListParagraphCxSpMiddle, .MsoListParagraphCxSpLast": {
+			"margin-left": "36.0pt"
+		}
 	}
 })
