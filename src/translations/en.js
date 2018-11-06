@@ -1112,6 +1112,7 @@ module.exports = {
 		"changeTimeFrame_msg": "Go Premium and adjust your search period!",
 		"importUsers_action": "Add multiple users",
 		"enterAsCSV_msg": "Please enter your users details as CSV",
-		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form."
+		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
+		"secondFactorConfirmLoginNoIp_msg": "Would you like to allow the login from the client \"{clientIdentifier}\"?"
 	}
 }

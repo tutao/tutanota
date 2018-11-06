@@ -55,10 +55,17 @@ export class SecondFactorHandler {
 									this._otherLoginDialog.close()
 								}
 								this._otherLoginSessionId = session._id
-								let text = lang.get("secondFactorConfirmLogin_msg", {
-									"{clientIdentifier}": session.clientIdentifier,
-									"{ipAddress}": session.loginIpAddress
-								})
+								let text
+								if (session.loginIpAddress) {
+									text = lang.get("secondFactorConfirmLogin_msg", {
+										"{clientIdentifier}": session.clientIdentifier,
+										"{ipAddress}": session.loginIpAddress
+									})
+								} else {
+									text = lang.get("secondFactorConfirmLoginNoIp_msg", {
+										"{clientIdentifier}": session.clientIdentifier
+									})
+								}
 								this._otherLoginDialog = Dialog.showActionDialog({
 									title: lang.get("secondFactorConfirmLogin_label"),
 									child: {view: () => m(".text-break.pt", text)},
