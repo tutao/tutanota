@@ -236,7 +236,7 @@ export class MailViewer {
 				if (!this._isAnnouncement() && env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
-				if (!logins.isEnabled(FeatureType.DisableMailExport)) {
+				if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				}
 				if (this.mail.listUnsubscribe) {
