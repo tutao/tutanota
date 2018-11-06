@@ -1108,7 +1108,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"recoverCode_msg": "Please, take a minute to write down your recovery code. This can be used to restore access to your account in case you loose your password or second factor. You can view and change it later in settings.",
+		"recoverCode_msg": "Please, take a minute to write down your recovery code. This can be used to restore access to your account in case you loose your password or second factor.",
 		"recoverCode_label": "Recovery code",
 		"recover_label": "Recover",
 		"recoverAccountAccess_action": "Lost account access",

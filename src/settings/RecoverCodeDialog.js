@@ -42,8 +42,8 @@ export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): P
 				view: () => {
 					return [
 						showMessage ? m(".pt.pb", lang.get("recoverCode_msg")) : m("", lang.get("emptyString_msg")),
-						m(".text-break.monospace.selectable",
-							neverNull(recoverCode.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el)))
+						m(".text-break.monospace.selectable.flex.flex-wrap",
+							neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el)))
 					]
 				}
 			},
