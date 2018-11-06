@@ -51,7 +51,7 @@ export function flashOutElement(target: HTMLElement, computedOpacity: ?number) {
 	if (computedOpacity) {
 		flashedIn.delete(target)
 		// don't keep the opacity value after the animation. hover on elements won't work otherwise.
-		animations.add(target, opacity(0.4, computedOpacity, false), {delay: 300})
+		animations.add(target, opacity(0.4, computedOpacity, false), {delay: 300}).then(() => target.style.opacity = '')
 	}
 }
 
