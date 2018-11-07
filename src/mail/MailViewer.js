@@ -506,8 +506,8 @@ export class MailViewer {
 					}
 					if (replyAll) {
 						let myMailAddresses = getEnabledMailAddresses(mailModel.getMailboxDetails(this.mail))
-						addAll(ccRecipients, this.mail.toRecipients.filter(recipient => !contains(myMailAddresses, recipient.address)))
-						addAll(ccRecipients, this.mail.ccRecipients.filter(recipient => !contains(myMailAddresses, recipient.address)))
+						addAll(ccRecipients, this.mail.toRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())))
+						addAll(ccRecipients, this.mail.ccRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())))
 					}
 				} else {
 					// this is a sent email, so use the to recipients as new recipients
@@ -602,9 +602,9 @@ export class MailViewer {
 		addAll(addressesInMail, this.mail.ccRecipients)
 		addAll(addressesInMail, this.mail.bccRecipients)
 		addressesInMail.push(this.mail.sender)
-		let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address))
+		let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
 		if (foundAddress) {
-			return foundAddress.address
+			return foundAddress.address.toLowerCase()
 		} else {
 			return getDefaultSender(mailboxDetails)
 		}
