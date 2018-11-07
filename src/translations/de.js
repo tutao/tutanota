@@ -1128,6 +1128,7 @@ module.exports = {
 		"postpone_action": "Später",
 		"setUp_action": "Einrichten",
 		"stillReferencedFromContactForm_msg": "Diese Instanz kann nicht deaktiviert werden, da sie noch von einem Kontaktformular referenziert wird.",
-		"upgradeProNoReduction_msg": "Bereits gebuchte größere Speicher- und Alias-Pakete werden nicht reduziert."
+		"upgradeProNoReduction_msg": "Bereits gebuchte größere Speicher- und Alias-Pakete werden nicht reduziert.",
+		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tutanota entwickelt und bereitstellt."
 	}
 }

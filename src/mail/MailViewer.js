@@ -33,7 +33,7 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
-	getSenderOrRecipientHeading,
+	getSenderOrRecipientHeading, getSenderOrRecipientHeadingTooltip,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
@@ -312,7 +312,8 @@ export class MailViewer {
 								m(".flex.flex-column-reverse", [
 									(detailsExpander.panel.expanded)
 										? m("small.flex.text-break", lang.get("from_label"))
-										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s", [
+										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
+										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
 											this._tutaoBadge(),
 											getSenderOrRecipientHeading(this.mail, false)
 										]),

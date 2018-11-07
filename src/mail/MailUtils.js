@@ -151,6 +151,18 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 	}
 }
 
+export function getSenderOrRecipientHeadingTooltip(mail: Mail): string {
+	if (isTutanotaTeamMail(mail) && !isExcludedMailAddress(mail.sender.address)) {
+		return lang.get("tutaoInfo_msg")
+	} else {
+		return ""
+	}
+}
+
+export function isTutanotaTeamMail(mail: Mail): boolean {
+	return mail.confidential && (mail.state === MailState.RECEIVED) && endsWith(mail.sender.address, "@tutao.de")
+}
+
 export function isExcludedMailAddress(mailAddress: string) {
 	return mailAddress === "no-reply@tutao.de"
 }
@@ -390,8 +402,4 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 	} else {
 		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
 	}
-}
-
-export function isTutanotaTeamMail(mail: Mail): boolean {
-	return mail.confidential && (mail.state === MailState.RECEIVED) && endsWith(mail.sender.address, "@tutao.de")
 }

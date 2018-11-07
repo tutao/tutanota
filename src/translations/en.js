@@ -1127,6 +1127,7 @@ module.exports = {
 		"postpone_action": "Postpone",
 		"setUp_action": "Set up",
 		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
-		"upgradeProNoReduction_msg": "Previously ordered larger storage or alias packages will not be reduced."
+		"upgradeProNoReduction_msg": "Previously ordered larger storage or alias packages will not be reduced.",
+		"tutaoInfo_msg": "Tutao GmbH is the company providing Tutanota to you."
 	}
 }
