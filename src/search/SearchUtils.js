@@ -61,7 +61,7 @@ export function getSearchUrl(query: ?string, restriction: SearchRestriction, sel
 	return url
 }
 
-export function getFreeSearchEndDate(): Date {
+export function getFreeSearchStartDate(): Date {
 	return getStartOfDay(getDayShifted(new Date(), -FIXED_FREE_SEARCH_DAYS))
 }
 
@@ -71,7 +71,7 @@ export function getFreeSearchEndDate(): Date {
 export function createRestriction(searchCategory: string, start: ?number, end: ?number, field: ?string, listId: ?string): SearchRestriction {
 	if (logins.getUserController().isFreeAccount() && searchCategory === "mail") {
 		start = null
-		end = getFreeSearchEndDate().getTime()
+		end = getFreeSearchStartDate().getTime()
 		field = null
 		listId = null
 	}

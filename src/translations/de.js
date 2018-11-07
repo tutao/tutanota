@@ -366,7 +366,6 @@ module.exports = {
 		"email_label": "E-Mail",
 		"enableForThisDevice_action": "Für dieses Gerät aktivieren",
 		"enableSearchMailbox_msg": "Die Suche in deiner Mailbox benötigt Speicher auf deinem Gerät und kann zusätzlichen Datenverkehr verursachen.",
-		"endAfterStart_label": "Das End-Datum darf nicht nach dem Start-Datum liegen.",
 		"endOfSubscriptionPeriod_label": "Ende des aktuellen Abrechnungszeitraums ist {1}.",
 		"endsWith_label": "endet auf",
 		"enforcePasswordUpdate_msg": "Zwinge die Benutzer zur Passwort-Änderung, nachdem ein Passwort vom Administrator zurückgesetzt wurde.",

@@ -362,7 +362,6 @@ module.exports = {
 		"email_label": "Email",
 		"enableForThisDevice_action": "Enable for this device",
 		"enableSearchMailbox_msg": "Enabling the search for your mailbox consumes memory on your device and might consume additional traffic.",
-		"endAfterStart_label": "The end date must not be after the start date.",
 		"endOfSubscriptionPeriod_label": "End of current subscription period is {1}.",
 		"endsWith_label": "ends with",
 		"enforcePasswordUpdate_msg": "Force users to update their password after it has been reset by an administrator.",

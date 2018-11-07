@@ -15,7 +15,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {px, size} from "../gui/size"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
-import {createRestriction, getFreeSearchEndDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
+import {createRestriction, getFreeSearchStartDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -55,8 +55,8 @@ export class SearchView implements CurrentView {
 	_mailFolder: NavButton;
 	_contactFolder: NavButton;
 	_time: TextField;
-	_startDate: ?Date; // null = today
-	_endDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
+	_endDate: ?Date; // null = today
+	_startDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
 	_mailFolderSelection: DropDownSelector<?string>;
 	_mailFieldSelection: DropDownSelector<?string>;
 
@@ -68,26 +68,26 @@ export class SearchView implements CurrentView {
 		this._contactFolder = new NavButton('contacts_label', () => BootIcons.Contacts, () => "/search/contact", "/search/contact")
 			.setColors(NavButtonColors.Nav)
 
-		this._startDate = null
 		this._endDate = null
+		this._startDate = null
 		this._time = new TextField("periodOfTime_label").setValue().setDisabled()
 		let changeTimeButton = new Button("selectPeriodOfTime_label", () => {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(true)
 			} else {
-				showDatePickerDialog((this._startDate) ? this._startDate : new Date(),
-					(this._endDate) ? this._endDate : this._getCurrentMailIndexDate(), false)
+				showDatePickerDialog((this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+					(this._endDate) ? this._endDate : new Date())
 					.then(dates => {
-						if (dates.start && isToday(dates.start)) {
-							this._startDate = null
-						} else {
-							this._startDate = dates.start
-						}
-						let current = this._getCurrentMailIndexDate()
-						if (dates.end && current && isSameDay(current, neverNull(dates.end))) {
+						if (dates.end && isToday(dates.end)) {
 							this._endDate = null
 						} else {
 							this._endDate = dates.end
+						}
+						let current = this._getCurrentMailIndexDate()
+						if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
+							this._startDate = null
+						} else {
+							this._startDate = dates.start
 						}
 
 						this._searchAgain()
@@ -221,29 +221,29 @@ export class SearchView implements CurrentView {
 	}
 
 	_getUpdatedTimeField(): TextField {
-		let start: string
 		let end: string
+		let start: string
 		if (logins.getUserController().isFreeAccount()) {
-			start = lang.get("today_label")
-			end = formatDateWithMonth(getFreeSearchEndDate())
+			end = lang.get("today_label")
+			start = formatDateWithMonth(getFreeSearchStartDate())
 		} else {
-			if (this._startDate) {
-				start = formatDateWithMonth(this._startDate)
-			} else {
-				start = lang.get("today_label")
-			}
 			if (this._endDate) {
 				end = formatDateWithMonth(this._endDate)
+			} else {
+				end = lang.get("today_label")
+			}
+			if (this._startDate) {
+				start = formatDateWithMonth(this._startDate)
 			} else {
 				let currentIndexDate = this._getCurrentMailIndexDate()
 				if (currentIndexDate) {
 					if (isSameDay(currentIndexDate, new Date())) {
-						end = lang.get("today_label")
+						start = lang.get("today_label")
 					} else {
-						end = formatDateWithMonth(currentIndexDate)
+						start = formatDateWithMonth(currentIndexDate)
 					}
 				} else {
-					end = lang.get("unlimited_label")
+					start = lang.get("unlimited_label")
 				}
 			}
 		}
@@ -257,7 +257,7 @@ export class SearchView implements CurrentView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			if (this._endDate && this._endDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
+			if (this._startDate && this._startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
 						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
@@ -272,8 +272,8 @@ export class SearchView implements CurrentView {
 	_getCurrentSearchUrl(searchCategory: string, selectedId: ?Id): string {
 		let restriction = createRestriction(
 			searchCategory,
-			(this._startDate) ? getEndOfDay(this._startDate).getTime() : null,
-			(this._endDate) ? getStartOfDay(this._endDate).getTime() : null,
+			(this._endDate) ? getEndOfDay(this._endDate).getTime() : null,
+			(this._startDate) ? getStartOfDay(this._startDate).getTime() : null,
 			this._mailFieldSelection.selectedValue(),
 			this._mailFolderSelection.selectedValue()
 		)
@@ -361,8 +361,8 @@ export class SearchView implements CurrentView {
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
 			this._doNotUpdateQuery = true
-			this._startDate = restriction.start ? new Date(restriction.start) : null
-			this._endDate = restriction.end ? new Date(restriction.end) : null
+			this._endDate = restriction.start ? new Date(restriction.start) : null
+			this._startDate = restriction.end ? new Date(restriction.end) : null
 			this._mailFolderSelection.selectedValue(restriction.listId)
 			this._mailFieldSelection.selectedValue(restriction.field)
 			this._doNotUpdateQuery = false
