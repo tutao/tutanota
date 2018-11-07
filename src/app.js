@@ -12,7 +12,7 @@ import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button, ButtonType} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
@@ -211,6 +211,9 @@ let initialized = lang.init(en).then(() => {
 function forceLogin(args: {[string]: string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
+	} else if (requestedPath.startsWith("/#")) {
+		// we do not allow any other hashes except "#mail". this prevents login loops.
+		m.route.set("/login")
 	} else {
 		let pathWithoutParameter = requestedPath.indexOf("?")
 		> 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
