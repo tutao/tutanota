@@ -97,7 +97,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		},
 		okAction: () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
-			const cleanRecoverCodeValue = editor.getValue().trim().toLowerCase()
+			const cleanRecoverCodeValue = editor.getValue().replace(/ /g, '').toLowerCase()
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.error("mailAddressInvalid_msg")
 			} else if (cleanRecoverCodeValue === "") {
