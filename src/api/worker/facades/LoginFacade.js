@@ -582,6 +582,11 @@ export class LoginFacade {
 		sessionData.mailAddress = mailAddress.toLowerCase().trim()
 		sessionData.clientIdentifier = clientIdentifier
 		sessionData.recoverCodeVerifier = recoverCodeVerifierBase64
+		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
+		// don't do a normal login and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled
+		// and therefore we would not be able to read the updated user
+		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
+		// when logging in normally after resetting the password
 		const eventRestClient = new EntityRestClient(() => ({}))
 
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
@@ -600,7 +605,7 @@ export class LoginFacade {
 					const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
 					let salt = generateRandomSalt();
 					let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-					let pwEncUserGroupKey = encryptKey(userPassphraseKey, uint8ArrayToBitArray(groupKey))
+					let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 					let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 
 					const postData = createChangePasswordData()

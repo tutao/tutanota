@@ -31,8 +31,6 @@ function showUpdateOverlay(onUpdate: () => void) {
 	])
 }
 
-window.showUpdateDialog = showUpdateOverlay
-
 function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 	const pending = registration.waiting || registration.installing
 	if (pending && registration.active) {

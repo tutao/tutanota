@@ -84,8 +84,8 @@ export function aes256EncryptKey(encryptionKey: Aes256Key, key: Aes128Key): Uint
 	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
 }
 
-export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Uint8Array {
-	return aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false)
+export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Aes128Key {
+	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false))
 }
 
 export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {

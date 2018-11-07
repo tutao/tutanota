@@ -32,8 +32,8 @@ export function erase<T>(instance: T): Promise<void> {
 	return _eraseEntity(instance, locator.cache)
 }
 
-export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, headers?: Params): Promise<T> {
-	return _loadEntity(typeRef, id, queryParams, locator.cache, headers)
+export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params): Promise<T> {
+	return _loadEntity(typeRef, id, queryParams, locator.cache, extraHeaders)
 }
 
 export function loadMultiple<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {

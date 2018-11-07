@@ -246,10 +246,10 @@ export class WorkerImpl {
 				return locator.search.getMoreSearchResults.apply(locator.search, message.args).return(message.args[0])
 			},
 			getRecoveryCode: (message: Request) => {
-				return locator.login.getRecoverCode(message.args[0])
+				return locator.login.getRecoverCode.apply(locator.login, message.args)
 			},
 			createRecoveryCode: (message: Request) => {
-				return locator.login.createRecoveryCode(message.args[0])
+				return locator.login.createRecoveryCode.apply(locator.login, message.args)
 			},
 			recoverLogin: (message: Request) => {
 				return locator.login.recoverLogin.apply(locator.login, message.args)

@@ -36,6 +36,9 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 	}
 }
 
+/**
+ * @param buttons The postpone button is automatically added and does not have to be passed from outside
+ */
 export function show(message: Component, buttons: Array<ButtonAttrs>) {
 	notificationQueue.push({message, buttons})
 	if (notificationQueue.length > 1) {
@@ -50,9 +53,9 @@ function showNextNotification() {
 
 	const width = window.innerWidth
 	const margin = (width - Math.min(400, width)) / 2
-	const buttonsWithDismiss = buttons.slice()
+	const allButtons = buttons.slice()
 	const closeFunction = displayOverlay({top: px(0), left: px(margin), right: px(margin)}, {
-			view: () => m(NotificationOverlay, {message, closeFunction, buttons: buttonsWithDismiss})
+			view: () => m(NotificationOverlay, {message, closeFunction, buttons: allButtons})
 		},
 		(dom) => transform(transform.type.translateY, -dom.offsetHeight, 0),
 		(dom) => transform(transform.type.translateY, 0, -dom.offsetHeight)
@@ -67,7 +70,8 @@ function showNextNotification() {
 		}
 	}
 
-	buttonsWithDismiss.forEach(b => {
+	// close the notification by default when pressing any button
+	allButtons.forEach(b => {
 		const originClickHandler = b.click
 		b.click = () => {
 			originClickHandler()
@@ -75,7 +79,8 @@ function showNextNotification() {
 		}
 	})
 
-	buttonsWithDismiss.unshift({
+	// add the postpone button
+	allButtons.unshift({
 		label: "postpone_action",
 		click: closeAndOpenNext,
 		type: ButtonType.Secondary
