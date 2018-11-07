@@ -393,5 +393,5 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 }
 
 export function isTutanotaTeamMail(mail: Mail): boolean {
-	return mail.confidential && endsWith(mail.sender.address, "@tutao.de")
+	return mail.confidential && (mail.state === MailState.RECEIVED) && endsWith(mail.sender.address, "@tutao.de")
 }
