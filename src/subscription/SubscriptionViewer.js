@@ -389,15 +389,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateGroupsField(): Promise<void> {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
+		const localAdminText = localAdminCount + " " + lang.get((localAdminCount == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = lang.get("sharedMailbox_label") + ": " + sharedMailCount
-		if (localAdminCount === 0 && sharedMailCount === 0) {
+		const sharedMailText = sharedMailCount + " " + lang.get((sharedMailCount == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
+		if (localAdminCount === 0) { // also show the shared mailboxes text if no groups exists at all
 			this._groupsField.setValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
 			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
 		} else {
-			this._groupsField.setValue(sharedMailText + localAdminText)
+			this._groupsField.setValue(localAdminText)
 		}
 		return Promise.resolve()
 	}

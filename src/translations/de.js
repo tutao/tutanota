@@ -943,7 +943,7 @@ module.exports = {
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
 		"settings_alt": "Einstellungen",
 		"settings_label": "Einstellungen",
-		"sharedMailbox_label": "Geteilte Mailboxen",
+		"sharedMailbox_label": "Geteilte Mailbox",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
 		"showAttachment_label": "Anhang anzeigen",
 		"showBlockedContent_action": "Anzeigen",
@@ -1129,6 +1129,8 @@ module.exports = {
 		"setUp_action": "Einrichten",
 		"stillReferencedFromContactForm_msg": "Diese Instanz kann nicht deaktiviert werden, da sie noch von einem Kontaktformular referenziert wird.",
 		"upgradeProNoReduction_msg": "Bereits gebuchte größere Speicher- und Alias-Pakete werden nicht reduziert.",
-		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tutanota entwickelt und bereitstellt."
+		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tutanota entwickelt und bereitstellt.",
+		"sharedMailboxes_label": "Geteilte Mailboxen",
+		"localAdminGroups_label": "Lokale Admin-Gruppen",
 	}
 }

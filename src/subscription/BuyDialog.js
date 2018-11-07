@@ -5,10 +5,10 @@ import {worker} from "../api/main/WorkerClient"
 import {TextField} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
-import {DialogType, Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {formatDate, formatPrice} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
@@ -129,13 +129,13 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			}
 		} else if (featureType === BookingItemFeatureType.SharedMailGroup) {
 			if (count > 0) {
-				return count + " " + lang.get("sharedMailbox_label")
+				return count + " " + lang.get((count == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
 			} else {
 				return lang.get("cancelSharedMailbox_label")
 			}
 		} else if (featureType === BookingItemFeatureType.LocalAdminGroup) {
 			if (count > 0) {
-				return count + " " + lang.get("localAdminGroup_label")
+				return count + " " + lang.get((count == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
 			} else {
 				return lang.get("cancelLocalAdminGroup_label")
 			}

@@ -939,7 +939,7 @@ module.exports = {
 		"settingsView_action": "Switch to the settings view",
 		"settings_alt": "Settings",
 		"settings_label": "Settings",
-		"sharedMailbox_label": "Shared mailboxes",
+		"sharedMailbox_label": "Shared mailbox",
 		"showAddress_alt": "Show this address in Openstreetmap",
 		"showAttachment_label": "Display attachment",
 		"showBlockedContent_action": "Show",
@@ -1128,6 +1128,8 @@ module.exports = {
 		"setUp_action": "Set up",
 		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
 		"upgradeProNoReduction_msg": "Previously ordered larger storage or alias packages will not be reduced.",
-		"tutaoInfo_msg": "Tutao GmbH is the company providing Tutanota to you."
+		"tutaoInfo_msg": "Tutao GmbH is the company providing Tutanota to you.",
+		"sharedMailboxes_label": "Shared mailboxes",
+		"localAdminGroups_label": "Local admin groups",
 	}
 }
