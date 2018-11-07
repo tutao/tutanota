@@ -199,8 +199,7 @@ export class UserViewer {
 						],
 						m(this._deactivated)
 					]),
-					(logins.getUserController().isPremiumAccount() || logins.getUserController()
-					                                                        .isFreeAccount()) ? m(this._secondFactorsForm) : null,
+					(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 					(this._groupsTable) ? m(this._groupsTable) : null,
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
