@@ -529,14 +529,9 @@ export class LoginFacade {
 			return Promise.reject(new Error("Auth is missing"))
 		}
 		const recoverCodeId = this._user.auth.recoverCode
-		const accessToken = this._accessToken
-		if (accessToken == null) {
-			return Promise.reject(new Error("Missing access token"))
-		}
 		const key = generateKeyFromPassphrase(password, neverNull(this._user.salt), KeyLength.b128)
 		const extraHeaders = {
 			authVerifier: createAuthVerifierAsBase64Url(key),
-			accessToken: accessToken
 		}
 		return load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
 			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), result.userEncRecoverCode)))

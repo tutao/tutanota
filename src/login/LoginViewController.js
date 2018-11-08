@@ -208,7 +208,8 @@ export class LoginViewController implements ILoginViewController {
 
 	_showRecoverCodeNotification(user: User) {
 		const auth = user.auth
-		if (auth && !auth.recoverCode) {
+		// only show to admins and not to contact form users or external users
+		if (auth && !auth.recoverCode && logins.isGlobalAdminUserLoggedIn() && logins.isInternalUserLoggedIn()) {
 			NotificationOverlay.show({
 				view: () => {
 					return m("", [m("b", lang.get("newFeature_msg")), m("", lang.get("recoverCodeReminder_msg"))])
