@@ -1113,7 +1113,7 @@ module.exports = {
 		"importUsers_action": "Add multiple users",
 		"enterAsCSV_msg": "Please enter your users details as CSV",
 		"stillReferencedFromContactForm_msg": "This item can not be deactivated because it is still referenced from a contact form.",
-		"secondFactorConfirmLoginNoIp_msg": "Would you like to allow the login from the client \"{clientIdentifier}\"?"
+		"secondFactorConfirmLoginNoIp_msg": "Would you like to allow the login from the client \"{clientIdentifier}\"?",
 		"yourMessage_label": "Your message",
 		"recoverCode_msg": "Please take a minute to write down your recovery code. This can be used to restore access to your account in case you lose your password or second factor.",
 		"recoverCode_label": "Recovery code",
