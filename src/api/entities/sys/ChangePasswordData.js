@@ -14,14 +14,23 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 535, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"code": {"name": "code", "id": 539, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"oldVerifier": {"name": "oldVerifier", "id": 1240, "since": 23, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"oldVerifier": {"name": "oldVerifier", "id": 1240, "since": 23, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 538, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"recoverCodeVerifier": {
+			"name": "recoverCodeVerifier",
+			"id": 1418,
+			"since": 36,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"salt": {"name": "salt", "id": 537, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"verifier": {"name": "verifier", "id": 536, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "35"
+	"version": "36"
 }
 
 export function createChangePasswordData(): ChangePasswordData {

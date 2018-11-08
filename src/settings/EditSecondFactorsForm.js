@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
 import {ColumnWidth, Table} from "../gui/base/Table"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
@@ -30,6 +30,8 @@ import {openLinkNative} from "../native/SystemApp"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {ButtonType} from "../gui/base/ButtonN"
+import * as RecoverCodeDialog from "./RecoverCodeDialog"
 
 assertMainOrNode()
 
@@ -125,8 +127,7 @@ export class EditSecondFactorsForm {
 			.spread((totpKeys, u2fSupport, user) => {
 				let type = new DropDownSelector("type_label", null,
 					Object.keys(SecondFactorTypeToNameTextId)
-					      .filter(k => (k === SecondFactorType.u2f
-						      && !u2fSupport) ? false : true)
+					      .filter(k => (k === SecondFactorType.u2f && !u2fSupport) ? false : true)
 					      .map(key => {
 						      return {
 							      name: lang.get(SecondFactorTypeToNameTextId[key]),
@@ -233,6 +234,7 @@ export class EditSecondFactorsForm {
 					}
 					showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf))
 						.then(() => dialog.close())
+						.then(() => this._showRecoveryInfoDialog(user))
 				}
 
 				function statusMessage() {
@@ -297,6 +299,20 @@ export class EditSecondFactorsForm {
 		}
 	}
 
+	_showRecoveryInfoDialog(user: User) {
+		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
+		Dialog.showActionDialog({
+			title: "Recovery code",
+			child: {
+				view: () => m(".pt", lang.get("recoverCode_msg"))
+			},
+			okAction: (dialog) => {
+				dialog.close()
+				RecoverCodeDialog.show(isRecoverCodeAvailable ? "get" : "create", false)
+			},
+			okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action"
+		})
+	}
 }
 
 const SecondFactorTypeToNameTextId = {

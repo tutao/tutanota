@@ -47,11 +47,13 @@ interface IUserController {
 interface ILoginViewController {
 	formLogin(): void;
 
-	autologin(credentials: Credentials): Promise<IUserController>;
+	autologin(credentials: Credentials): void;
 
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void>;
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
 
-	migrateDeviceConfigFromApp(): Promise<void>;
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void>;
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void>;
 }

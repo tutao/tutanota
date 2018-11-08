@@ -1117,5 +1117,17 @@ module.exports = {
 		"yourMessage_label": "Ihre Nachricht",
 		"goPremium_msg": "Als Premium-Nutzer können Sie links im Menü Ihre Suchfilter anpassen.",
 		"changeTimeFrame_msg": "Mit Premium können Sie Ihren Suchzeitraum erweitern!"
+		"yourMessage_label": "Ihre Nachricht",
+		"recoverCode_msg": "Bitte nehmen Sie sich etwas Zeit den Wiederherstellungs-Code aufzuschreiben. Dieser kann dazu verwendet werden den Zugang zu Ihrem Account wiederherzustellen, falls Sie das Passwort oder den zweiten Faktor verloren haben.",
+		"recoverCode_label": "Wiederherstellungs-Code",
+		"recover_label": "Wiederherstellen",
+		"recoverAccountAccess_action": "Zugansdaten verloren",
+		"recoverCodeEmpty_msg": "Bitte geben Sie Ihren Wiederherstellungs-Code ein.",
+		"recoverCodeReminder_msg": "Richten Sie sich jetzt einen Wiederherstellungs-Code ein um den Zugang zu Ihrem Account wiederherstellen zu können.",
+		"newFeature_msg": "Neues Feature",
+		"recoverSetNewPassword_action": "Neues Passwort festlegen",
+		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen",
+		"postpone_action": "Später",
+		"setUp_action": "Einrichten"
 	}
 }

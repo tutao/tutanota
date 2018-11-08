@@ -427,7 +427,7 @@ export class Dialog {
 		okAction: null | (dialog: Dialog) => mixed,
 		allowCancel?: boolean,
 		okActionTextId?: string,
-		cancelAction?: (dialog: Dialog) => mixed,
+		cancelAction?: ?(dialog: Dialog) => mixed,
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
@@ -469,11 +469,11 @@ export class Dialog {
 			actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
 			//todo check if you want to have this option or just have a text area where you can shift enter to add line breaks to a div
 			/*dialog.addShortcut({
-				key: Keys.RETURN,
-				shift: true,
-				exec: doAction,
-				help: okActionTextId
-			})
+					key: Keys.RETURN,
+					shift: true,
+					exec: doAction,
+					help: okActionTextId
+				})
 		*/
 		}
 
@@ -552,7 +552,6 @@ export class Dialog {
 		})
 	}
 
-
 	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
@@ -579,6 +578,28 @@ export class Dialog {
 						m(".fill-absolute.plr-l", m(child)))
 				])
 			}
+		})
+	}
+
+	static showRequestPasswordDialog(okAction: (input: TextField) => mixed, errorMessage: Stream<string>, cancelAction: ?() => mixed): Dialog {
+		let pwInput = new TextField("password_label", errorMessage)
+			.setType(Type.Password)
+		pwInput._keyHandler = (key: KeyPress) => {
+			switch (key.keyCode) {
+				case 13: // return
+					okAction(pwInput)
+					return false
+				default:
+					return true
+			}
+		}
+		return Dialog.showActionDialog({
+			title: lang.get("password_label"),
+			// invisible input field to prevent that autocomplete focuses another input field on the page, e.g. search bar
+			child: {view: () => [m("input", {style: {display: 'none'}}), m(pwInput)]},
+			okAction: () => okAction(pwInput),
+			allowCancel: cancelAction !== null,
+			cancelAction: cancelAction
 		})
 	}
 

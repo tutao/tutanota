@@ -21,7 +21,7 @@ import {TutanotaService} from "../../entities/tutanota/Services"
 import {random} from "../crypto/Randomizer"
 import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacade, RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
@@ -180,7 +180,8 @@ export class UserManagementFacade {
 				                      let data = createUserAccountCreateData()
 				                      data.date = Const.CURRENT_DATE
 				                      data.userGroupData = userGroupData
-				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, name)
+				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
+					                      password, name, this._login.generateRecoveryCode(userGroupKey))
 				                      return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
 					                      .then(() => {
 						                      return this._worker.sendProgress((userIndex + 1)
@@ -190,7 +191,8 @@ export class UserManagementFacade {
 		           })
 	}
 
-	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string, userName: string): UserAccountUserData {
+	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string,
+	                        userName: string, recoverData: RecoverData): UserAccountUserData {
 		let salt = generateRandomSalt()
 		let userPassphraseKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
 
@@ -227,7 +229,9 @@ export class UserManagementFacade {
 		userData.customerEncMailGroupInfoSessionKey = encryptKey(customerGroupKey, mailGroupInfoSessionKey)
 		userData.customerEncContactGroupInfoSessionKey = encryptKey(customerGroupKey, contactGroupInfoSessionKey)
 		userData.customerEncFileGroupInfoSessionKey = encryptKey(customerGroupKey, fileGroupInfoSessionKey)
-
+		userData.userEncRecoverCode = recoverData.userEncRecoverCode
+		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
+		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
 	}
 

@@ -97,7 +97,7 @@ declare class Promise<+R> {
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 	static delay<T>(millis: number, value: ?T | Promise<T>): Promise<T>;
 	static any<T>(array: Array<Promise<T>>): Promise<T>;
-	static config(configuration:Object):void;
+	static config(configuration: Object): void;
 
 	static onPossiblyUnhandledRejection(errorHandler: Function): void;
 }

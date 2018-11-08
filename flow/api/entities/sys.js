@@ -691,8 +691,9 @@ type ChangePasswordData = {
 	_type: TypeRef<ChangePasswordData>;
 	_format: NumberString;
 	code: ?string;
-	oldVerifier: Uint8Array;
+	oldVerifier: ?Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: ?Uint8Array;
 	salt: Uint8Array;
 	verifier: Uint8Array;
 
@@ -803,6 +804,7 @@ type CustomerProperties = {
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: ?Date;
+
 	bigLogo: ?SysFile;
 	smallLogo: ?SysFile;
 }
@@ -1318,6 +1320,7 @@ type UserAuthentication = {
 	_type: TypeRef<UserAuthentication>;
 	_id: Id;
 
+	recoverCode: ?Id;
 	secondFactors: Id;
 	sessions: Id;
 }
@@ -1327,9 +1330,10 @@ type CreateSessionData = {
 	_format: NumberString;
 	accessKey: ?Uint8Array;
 	authToken: ?string;
-	authVerifier: string;
+	authVerifier: ?string;
 	clientIdentifier: string;
 	mailAddress: ?string;
+	recoverCodeVerifier: ?string;
 
 	user: ?Id;
 }
@@ -1501,4 +1505,25 @@ type SseConnectData = {
 	identifier: string;
 
 	userIds: GeneratedIdWrapper[];
+}
+
+type RecoverCode = {
+	_type: TypeRef<RecoverCode>;
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	userEncRecoverCode: Uint8Array;
+	verifier: Uint8Array;
+
+}
+
+type ResetFactorsDeleteData = {
+	_type: TypeRef<ResetFactorsDeleteData>;
+	_format: NumberString;
+	authVerifier: string;
+	mailAddress: string;
+	recoverCodeVerifier: string;
+
 }

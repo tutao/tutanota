@@ -7,6 +7,7 @@ import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
 import {hash} from "./Sha256"
+import * as Sha512 from "./Sha512"
 
 assertWorkerOrNode()
 
@@ -35,9 +36,6 @@ export function aes256RandomKey(): Aes256Key {
  * @return The encrypted text as words (sjcl internal structure)..
  */
 export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
-	if (useMac) {
-		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
-	}
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
@@ -66,9 +64,6 @@ export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array,
  * @return The decrypted bytes.
  */
 export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
-	if (useMac) {
-		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
-	}
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 
 	let subKeys = getAes256SubKeys(key, useMac)
@@ -193,12 +188,11 @@ function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey: ?Aes128Key, cKey
 
 function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey: ?Aes256Key, cKey: Aes256Key} {
 	if (mac) {
-		throw new CryptoError("Mac with aes 256 not implemented yet, sha512 missing")
-		// let hashedKey = hash512(bitArrayToUint8Array(key));
-		// return {
-		// 	cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_256)),
-		// 	mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_256, KEY_LENGTH_BYTES_AES_256 * 2))
-		// }
+		let hashedKey = Sha512.hash(bitArrayToUint8Array(key));
+		return {
+			cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_256)),
+			mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_256, KEY_LENGTH_BYTES_AES_256 * 2))
+		}
 	} else {
 		return {
 			cKey: key,

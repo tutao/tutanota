@@ -18,6 +18,8 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {ButtonN, ButtonType, createDropDown} from "../gui/base/ButtonN"
+import * as RecoverCodeDialog from "./RecoverCodeDialog"
 
 assertMainOrNode()
 
@@ -26,7 +28,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	_activeSessionTable: Table;
 	_closedSessionTable: Table;
 	_secondFactorsForm: EditSecondFactorsForm;
-	_props: Stream<CustomerProperties>;
 
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress)
@@ -34,6 +35,31 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		let password = new TextField("password_label").setValue("***").setDisabled()
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
+
+		let recoveryCodeField = new TextField("recoverCode_label").setValue("***").setDisabled()
+
+		const showRecoveryCodeAttrs = {
+			label: "show_action",
+			click: () => RecoverCodeDialog.show('get'),
+			type: ButtonType.Dropdown,
+			isVisible: () => {
+				const auth = logins.getUserController().user.auth
+				return auth && auth.recoverCode
+			}
+		}
+		const updateRecoveryCodeButton = {
+			label: () => neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action"),
+			click: () => RecoverCodeDialog.show('create'),
+			type: ButtonType.Dropdown
+		}
+
+		const recoveryDropdown = createDropDown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton])
+
+		recoveryCodeField._injectionsRight = () => m(ButtonN, {
+			label: "edit_action",
+			icon: () => Icons.Edit,
+			click: recoveryDropdown
+		})
 
 		this._activeSessionTable = new Table([
 			"client_label", "lastAccess_label", "IpAddress_label"
@@ -51,6 +77,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(mailAddress),
 					m(password),
+					m(recoveryCodeField),
 					(!logins.getUserController().isOutlookAccount()) ?
 						m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),

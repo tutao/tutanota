@@ -253,6 +253,18 @@ export class WorkerImpl {
 			},
 			getMoreSearchResults: (message: Request) => {
 				return locator.search.getMoreSearchResults.apply(locator.search, message.args).return(message.args[0])
+			},
+			getRecoveryCode: (message: Request) => {
+				return locator.login.getRecoverCode.apply(locator.login, message.args)
+			},
+			createRecoveryCode: (message: Request) => {
+				return locator.login.createRecoveryCode.apply(locator.login, message.args)
+			},
+			recoverLogin: (message: Request) => {
+				return locator.login.recoverLogin.apply(locator.login, message.args)
+			},
+			resetSecondFactors: (message: Request) => {
+				return locator.login.resetSecondFactors.apply(locator.login, message.args)
 			}
 		})
 

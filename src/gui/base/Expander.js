@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
+import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
@@ -77,14 +77,16 @@ export class ExpanderPanel {
 		this.child = child
 		this.expanded = false
 		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden", [
-			this.expanded ? m("div", {
-				oncreate: vnode => {
-					this._domPanel = vnode.dom
-					vnode.dom.style.height = 0
-					this._animate(true)
-				},
-				onbeforeremove: vnode => this._animate(false),
-			}, m(this.child)) : null
+			this.expanded
+				? m("div", {
+					oncreate: vnode => {
+						this._domPanel = vnode.dom
+						vnode.dom.style.height = 0
+						this._animate(true)
+					},
+					onbeforeremove: vnode => this._animate(false),
+				}, m(this.child))
+				: null
 		])
 	}
 
@@ -101,11 +103,12 @@ export class ExpanderPanel {
 		                 })
 	}
 
-	setExpanded(expanded: boolean) {
+	setExpanded(expanded: boolean): ExpanderPanel {
 		this.expanded = expanded
 		let c = (this.child: any)
 		if (c['setExpanded']) {
 			c['setExpanded'](expanded)
 		}
+		return this
 	}
 }

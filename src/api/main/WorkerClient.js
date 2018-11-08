@@ -115,7 +115,7 @@ export class WorkerClient {
 		nativeApp.init()
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<void> {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
@@ -435,6 +435,22 @@ export class WorkerClient {
 
 	getMoreSearchResults(existingResult: SearchResult, moreResultCount: number): Promise<SearchResult> {
 		return this._queue.postMessage(new Request("getMoreSearchResults", [existingResult, moreResultCount]))
+	}
+
+	getRecoveryCode(password: string): Promise<string> {
+		return this._queue.postMessage(new Request("getRecoveryCode", [password]))
+	}
+
+	createRecoveryCode(password: string): Promise<string> {
+		return this._queue.postMessage(new Request("createRecoveryCode", [password]))
+	}
+
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
+		return this._queue.postMessage(new Request("recoverLogin", [emailAddress, recoverCode, newPassword, clientIdentifier]))
+	}
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
+		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
 	}
 }
 

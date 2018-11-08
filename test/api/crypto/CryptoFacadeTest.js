@@ -45,7 +45,7 @@ o.spec("crypto facade", function () {
 
 
 	o.before(function () {
-		locator.login = new LoginFacade((null:any))
+		locator.login = new LoginFacade((null: any))
 	})
 
 	o.afterEach(function () {
@@ -65,7 +65,8 @@ o.spec("crypto facade", function () {
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv);
-		o(uint8ArrayToBase64(encryptedPrivateKey)).equals("OhpFcbl6oPjsn3WwhYFnOiJRZKG9ZSsOzL4ZSzPikn2pc3eSH8rY1aex0iyN2qTl2lsPco8DEmlS7+KXN2gmJz6Lpnw4IFvmVUMF/O7xZFRYIe89qoyuKm2B6noORAXUSKxVYM0B0alT8fxcEbzAW9pv75hmNURkBd1GfYpN35i6bCxgp7l9HKSWpJAFyIYQSiO4aJw+tD87ifu4KBDL6vntBr0uG6yVgXVw+SKcPsaA+RZPXCFSs2QS/l3wZw0w6MIYD0ED+1Sf3/wWr+GZTw1wNowq0c9o5vWQdSG5gc0SYQLJl1G2JpBEIwYg2qu2jc4vJlt6vVOBpQ2D9b5w74EM8lbBfAbCPJmpCaIa1eKRNU+JVEzrAeg/X0/jdUfdxaBbujrhaY/tYJ4Y1l66+lyNgKpznNhFSMUrsLCSJTzXTMoFDPYKztnRYNZ2xxRs2EBbZpK8TSjgfHbfCKn14q81j84lz88yrMo6TkFgWTHV9ndQfg7sDNteYsNx6pa1SyOQQ6TD250oqRltDrCOGbMUVvNBTFWM9w6/ztFaFtMEQf0dptz5PCYFf2DnN7tiWgj4xEYjGnaRd0Y0nT0bfB7gQS2nenppx+nvUGcjND/BCWrVmQhdUQCFygV8QEb9mnEJ4ZoLXzsdlFtWixIhBQfM+RsTRLqn4Crx5kjfRW4pc7Wleo4FtfGkQmWfV4WjetoeWQlPudhL3JpFbSFRu5IKldRHwxqqZKsOaRiI+jh8lfHOfMDo1DwHLxMkI2SF81H6N4DYau0xO6TSa2yz6U0HCslM48kTkFuYTWhES5Hp9YzCohzapL1ekshna+ITNE/vDsEeB/E8AZGSihcbZffnzElrdpIR8adj+f4ZbPsEAb2DqfbYoEXnOExcXVbySDLK8jhaqy7EpkurGhc+tfYBLZ2wpXPUP3JKXfWQ/UcieJ7BPOescTXC4ll2tzdLF1qGXuqOsR7kDUyY7t3SOIojSThn2W9AAb8o/mOLGD1pCa1hIfwP9ee9EGdt56r26LV3s1dCbzHHBUswadbvik5eSvrbjTqLaYW0N7pRRzNaK4KyrLXJEuykuCShvsNefGo+RE93DTeblX+MbOktvONeYQonmOYrUvQQL8o6MGhuFiPu5+QQ8yAybxSMt0zja5KsgdMOn/qFHMwCTdNtwpFc7uULzsRcYgx/qWe4zK7wx+8xBjpLer1Hcylnf1K8pkloPRiADhzOfokN0rOhbD5nyRbklpnKNPO2t3mUBCKAIIETYAFhM9PxAajiBdM1gol9JKH0nCPhNx/uF42+yLGE+iSVodpqlg+jV9uXXYgFfcCGVmA3pVE5zkn2Qoso0Fc16MpQHIAxVenHFSKY7wsCuTUyiYZ9ZdFrp1Bltz23mCUwbRURMuntBHHQ2n9c28X1v1aMTnWSz6zH6IfxI8WVwff8YQQ2v0Wn/T/Xqc5lttQdTEfNZIH4RFZcHWqtHbeFRJXxRlrZpf9PU7SjJ86nbY58dBs2GD62hb/MV/hxw77iYAFuzvfTQoIUd9w8jY8L5UpZlhtDS2ERc0j+asEAVXKV+aSC+UbCApetaUA=")
+		o(uint8ArrayToBase64(encryptedPrivateKey))
+			.equals("OhpFcbl6oPjsn3WwhYFnOiJRZKG9ZSsOzL4ZSzPikn2pc3eSH8rY1aex0iyN2qTl2lsPco8DEmlS7+KXN2gmJz6Lpnw4IFvmVUMF/O7xZFRYIe89qoyuKm2B6noORAXUSKxVYM0B0alT8fxcEbzAW9pv75hmNURkBd1GfYpN35i6bCxgp7l9HKSWpJAFyIYQSiO4aJw+tD87ifu4KBDL6vntBr0uG6yVgXVw+SKcPsaA+RZPXCFSs2QS/l3wZw0w6MIYD0ED+1Sf3/wWr+GZTw1wNowq0c9o5vWQdSG5gc0SYQLJl1G2JpBEIwYg2qu2jc4vJlt6vVOBpQ2D9b5w74EM8lbBfAbCPJmpCaIa1eKRNU+JVEzrAeg/X0/jdUfdxaBbujrhaY/tYJ4Y1l66+lyNgKpznNhFSMUrsLCSJTzXTMoFDPYKztnRYNZ2xxRs2EBbZpK8TSjgfHbfCKn14q81j84lz88yrMo6TkFgWTHV9ndQfg7sDNteYsNx6pa1SyOQQ6TD250oqRltDrCOGbMUVvNBTFWM9w6/ztFaFtMEQf0dptz5PCYFf2DnN7tiWgj4xEYjGnaRd0Y0nT0bfB7gQS2nenppx+nvUGcjND/BCWrVmQhdUQCFygV8QEb9mnEJ4ZoLXzsdlFtWixIhBQfM+RsTRLqn4Crx5kjfRW4pc7Wleo4FtfGkQmWfV4WjetoeWQlPudhL3JpFbSFRu5IKldRHwxqqZKsOaRiI+jh8lfHOfMDo1DwHLxMkI2SF81H6N4DYau0xO6TSa2yz6U0HCslM48kTkFuYTWhES5Hp9YzCohzapL1ekshna+ITNE/vDsEeB/E8AZGSihcbZffnzElrdpIR8adj+f4ZbPsEAb2DqfbYoEXnOExcXVbySDLK8jhaqy7EpkurGhc+tfYBLZ2wpXPUP3JKXfWQ/UcieJ7BPOescTXC4ll2tzdLF1qGXuqOsR7kDUyY7t3SOIojSThn2W9AAb8o/mOLGD1pCa1hIfwP9ee9EGdt56r26LV3s1dCbzHHBUswadbvik5eSvrbjTqLaYW0N7pRRzNaK4KyrLXJEuykuCShvsNefGo+RE93DTeblX+MbOktvONeYQonmOYrUvQQL8o6MGhuFiPu5+QQ8yAybxSMt0zja5KsgdMOn/qFHMwCTdNtwpFc7uULzsRcYgx/qWe4zK7wx+8xBjpLer1Hcylnf1K8pkloPRiADhzOfokN0rOhbD5nyRbklpnKNPO2t3mUBCKAIIETYAFhM9PxAajiBdM1gol9JKH0nCPhNx/uF42+yLGE+iSVodpqlg+jV9uXXYgFfcCGVmA3pVE5zkn2Qoso0Fc16MpQHIAxVenHFSKY7wsCuTUyiYZ9ZdFrp1Bltz23mCUwbRURMuntBHHQ2n9c28X1v1aMTnWSz6zH6IfxI8WVwff8YQQ2v0Wn/T/Xqc5lttQdTEfNZIH4RFZcHWqtHbeFRJXxRlrZpf9PU7SjJ86nbY58dBs2GD62hb/MV/hxw77iYAFuzvfTQoIUd9w8jY8L5UpZlhtDS2ERc0j+asEAVXKV+aSC+UbCApetaUA=")
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
@@ -188,6 +189,7 @@ o.spec("crypto facade", function () {
 		o("throw error on ONE null values (Bytes)", testErrorOnNull(ValueType.Bytes))
 		o("throw error on ONE null values (Boolean)", testErrorOnNull(ValueType.Boolean))
 		o("throw error on ONE null values (Number)", testErrorOnNull(ValueType.Number))
+
 		function testErrorOnNull(type) {
 			return (done) => {
 				let sk = aes128RandomKey()
@@ -238,7 +240,8 @@ o.spec("crypto facade", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = encryptValue(valueType, value, sk)
-			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
+			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), base64ToUint8Array(encryptedValue)
+				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).deepEquals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(value)
 		})
@@ -249,14 +252,16 @@ o.spec("crypto facade", function () {
 
 			let value = false
 			let encryptedValue = encryptValue(valueType, value, sk)
-			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
+			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue)
+				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(false)
 
 
 			value = true
 			encryptedValue = encryptValue(valueType, value, sk)
-			expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
+			expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue)
+				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
@@ -267,7 +272,8 @@ o.spec("crypto facade", function () {
 			let value = new Date()
 
 			let encryptedValue = encryptValue(valueType, value, sk)
-			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value.getTime().toString()), base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
+			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value.getTime().toString()), base64ToUint8Array(encryptedValue)
+				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(value)
 		})
 
@@ -277,7 +283,8 @@ o.spec("crypto facade", function () {
 			let value = random.generateRandomData(5)
 
 			let encryptedValue = encryptValue(valueType, value, sk)
-			let expected = uint8ArrayToBase64(aes128Encrypt(sk, value, base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
+			let expected = uint8ArrayToBase64(aes128Encrypt(sk, value, base64ToUint8Array(encryptedValue)
+				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
 			o(Array.from(decryptValue(valueType, encryptedValue, sk))).deepEquals(Array.from(value))
 		})
@@ -312,6 +319,7 @@ o.spec("crypto facade", function () {
 		o("throw error on ONE null values (enc Bytes)", testErrorOnNull(ValueType.Bytes))
 		o("throw error on ONE null values (enc Boolean)", testErrorOnNull(ValueType.Boolean))
 		o("throw error on ONE null values (enc Number)", testErrorOnNull(ValueType.Number))
+
 		function testErrorOnNull(type) {
 			return (done) => {
 				let sk = aes128RandomKey()
@@ -376,11 +384,13 @@ o.spec("crypto facade", function () {
 			},
 			bccRecipients: [],
 			ccRecipients: [],
-			toRecipients: [{
-				_id: "recipientId",
-				address: "support@yahoo.com",
-				name: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
-			}],
+			toRecipients: [
+				{
+					_id: "recipientId",
+					address: "support@yahoo.com",
+					name: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
+				}
+			],
 			replyTos: []
 		}
 		return mail;
@@ -475,7 +485,7 @@ o.spec("crypto facade", function () {
 
 	o("resolve session key: unencrypted instance", function (done) {
 		let userIdLiteral = {"_format": "0", "userId": "KOBqO7a----0"}
-		resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral, ({}:any)).then(sessionKey => {
+		resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral, ({}: any)).then(sessionKey => {
 			o(sessionKey).equals(null)
 			done()
 		})
@@ -492,7 +502,7 @@ o.spec("crypto facade", function () {
 		let sk = aes128RandomKey()
 		locator.login.groupKeys = {ownerGroupId: gk}
 		locator.login._user = createUser()
-		locator.login._user.userGroup = ({group: 'ownerGroupId'}:any)
+		locator.login._user.userGroup = ({group: 'ownerGroupId'}: any)
 
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 
@@ -570,7 +580,7 @@ o.spec("crypto facade", function () {
 
 			resolveSessionKey(Mail._TypeModel, mail, loaders).then(sessionKey => {
 				o(sessionKey).deepEquals(sk)
-				o((restClient.request:any).callCount).equals(1)
+				o((restClient.request: any).callCount).equals(1)
 				done()
 			}).finally(() => unmockAttribute(updateMock))
 		})

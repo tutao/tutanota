@@ -70,6 +70,24 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 629, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"recoverCodeEncUserGroupKey": {
+			"name": "recoverCodeEncUserGroupKey",
+			"id": 893,
+			"since": 29,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"recoverCodeVerifier": {
+			"name": "recoverCodeVerifier",
+			"id": 894,
+			"since": 29,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"salt": {"name": "salt", "id": 626, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncClientKey": {"name": "userEncClientKey", "id": 628, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncContactGroupKey": {
@@ -109,6 +127,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"userEncRecoverCode": {
+			"name": "userEncRecoverCode",
+			"id": 892,
+			"since": 29,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"userEncTutanotaPropertiesSessionKey": {
 			"name": "userEncTutanotaPropertiesSessionKey",
 			"id": 635,
@@ -122,7 +149,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "28"
+	"version": "29"
 }
 
 export function createUserAccountUserData(): UserAccountUserData {

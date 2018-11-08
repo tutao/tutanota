@@ -1116,5 +1116,17 @@ module.exports = {
 		"changeTimeFrame_msg": "Mit Premium kannst du deinen Suchzeitraum erweitern!",
 		"stillReferencedFromContactForm_msg": "Diese Instanz kann nicht deaktiviert werden, da sie noch von einem Kontaktformular referenziert wird.",
 		"secondFactorConfirmLoginNoIp_msg": "Möchtest du die Anmeldung von dem Client \"{clientIdentifier}\" erlauben?",
+		"yourMessage_label": "Deine Nachricht",
+		"recoverCode_msg": "Bitte nimm dir etwas Zeit um den Wiederherstellungs-Code aufzuschreiben. Dieser kann dazu verwendet werden den Zugang zu deinen Account wiederherzustellen, falls du das Passwort oder den zweiten Faktor verloren hast.",
+		"recoverCode_label": "Wiederherstellungs-Code",
+		"recover_label": "Wiederherstellen",
+		"recoverAccountAccess_action": "Zugansdaten verloren",
+		"recoverCodeEmpty_msg": "Bitte gib deinen Wiederherstellungs-Code ein.",
+		"recoverCodeReminder_msg": "Richte jetzt deinen Wiederherstellungs-Code ein um den Zugang zu deinem Account wiederherstellen zu können.",
+		"newFeature_msg": "Neues Feature",
+		"recoverSetNewPassword_action": "Neues Passwort festlegen",
+		"recoverResetFactors_action": "Zweiten Faktor zurücksetzen",
+		"postpone_action": "Später",
+		"setUp_action": "Einrichten"
 	}
 }

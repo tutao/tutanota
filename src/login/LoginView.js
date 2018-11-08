@@ -18,6 +18,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN} from "../gui/base/ButtonN"
+import * as RecoverLoginDialog from "./RecoverLoginDialog"
 
 assertMainOrNode()
 
@@ -152,12 +153,17 @@ export class LoginView {
 		return (themeId() !== 'custom')
 	}
 
+	_recoverLoginVisible(): boolean {
+		return true
+	}
+
 	_moreButtonVisible(): boolean {
 		return this._signupLinkVisible()
 			|| this._loginAnotherLinkVisible()
 			|| this._deleteCredentialsLinkVisible()
 			|| this._knownCredentialsLinkVisible()
 			|| this._switchThemeLinkVisible()
+			|| this._recoverLoginVisible()
 	}
 
 	_expanderButton(): ExpanderButton {
@@ -194,6 +200,11 @@ export class LoginView {
 								return deviceConfig.setTheme('light')
 						}
 					}
+				}) : null,
+				this._recoverLoginVisible() ? m(ButtonN, {
+					label: "recoverAccountAccess_action",
+					click: () => this._showRecoverLoginDialog(),
+					type: ButtonType.Secondary,
 				}) : null
 			])
 		}
@@ -213,8 +224,9 @@ export class LoginView {
 			m(this.mailAddress),
 			m(this.password),
 			(!whitelabelCustomizations ||
-				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1) ?
-				m(this.savePassword) : null,
+				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1)
+				? m(this.savePassword)
+				: null,
 			m(".pt", m(this.loginButton)),
 			m("p.center.statusTextColor", m("small", this.helpText)),
 			isApp() ? null : m(".flex-center.pt-l", this.appButtons.map(button => m(button)))
@@ -283,6 +295,7 @@ export class LoginView {
 				}
 				this.password.focus()
 				this._knownCredentials = []
+				this._showingKnownCredentials = false
 				m.redraw()
 			} else {
 				this._knownCredentials = deviceConfig.getAllInternal()
@@ -342,6 +355,9 @@ export class LoginView {
 		m.redraw();
 	}
 
+	_showRecoverLoginDialog(): void {
+		RecoverLoginDialog.show(this._viewController)
+	}
 }
 
 export function getWhitelabelRegistrationDomains(): string[] {

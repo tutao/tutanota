@@ -9,16 +9,13 @@ import {neverNull} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, headers: ?Params): Promise<any> {
+export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {
 			let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
 			let queryParams = queryParameter != null ? queryParameter : {}
-			if (!headers) {
-				headers = locator.login.createAuthHeaders()
-			}
+			const headers = Object.assign(locator.login.createAuthHeaders(), extraHeaders)
 			headers['v'] = modelForAppAndVersion.version
-
 			let p: ?Promise<?Object> = null;
 			if (requestEntity != null) {
 				p = resolveTypeReference(requestEntity._type).then(requestTypeModel => {

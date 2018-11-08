@@ -34,10 +34,13 @@ import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {formatPrice} from "../misc/Formatter"
+import * as NotificationOverlay from "../gui/base/NotificationOverlay"
+import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
-export class LoginViewController {
+export class LoginViewController implements ILoginViewController {
 	view: LoginView;
 	_loginPromise: Promise<void>;
 
@@ -112,6 +115,15 @@ export class LoginViewController {
 		}
 	}
 
+
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void> {
+		return worker.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
+	}
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void> {
+		return worker.resetSecondFactors(mailAddress, password, recoverCode)
+	}
+
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
 		            .then(() => logins.loadCustomizations())
@@ -180,6 +192,8 @@ export class LoginViewController {
 		if (env.mode === Mode.App) {
 			pushServiceApp.register()
 		}
+		this._showRecoverCodeNotification(logins.getUserController().user)
+
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
 			return this._showUpgradeReminder()
@@ -192,6 +206,26 @@ export class LoginViewController {
 				return mailModel.init()
 			}
 		}).then(() => logins.loginComplete())
+	}
+
+	_showRecoverCodeNotification(user: User) {
+		const auth = user.auth
+		// only show to admins and not to contact form users or external users
+		if (auth && !auth.recoverCode && logins.isGlobalAdminUserLoggedIn() && logins.isInternalUserLoggedIn()) {
+			NotificationOverlay.show({
+				view: () => {
+					return m("", [m("b", lang.get("newFeature_msg")), m("", lang.get("recoverCodeReminder_msg"))])
+				}
+			}, [
+				{
+					label: "setUp_action",
+					click: () => {
+						RecoverCodeDialog.show('create')
+					},
+					type: ButtonType.Primary
+				}
+			])
+		}
 	}
 
 	_showUpgradeReminder(): Promise<void> {
