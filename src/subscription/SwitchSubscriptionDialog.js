@@ -21,7 +21,6 @@ import {changeSubscriptionInterval} from "./SubscriptionViewer"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean, currentNbrOfOrderedStorage: number, currentNbrOfOrderedAliases: number, currentlyWhitelabelOrdered: boolean) {
-	console.log("storage: ", currentNbrOfOrderedStorage, ", aliases:", currentNbrOfOrderedAliases, ", whitelabel:", currentlyWhitelabelOrdered)
 	let businessStream = stream(accountingInfo.business)
 	let selector = new SubscriptionSelector(AccountType.PREMIUM,
 		() => cancelSubscription(dialog),
