@@ -883,7 +883,7 @@ module.exports = {
 		"saveDownloadNotPossibleSafariMobile_msg": "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwende andernfalls einen Desktop-Browser.",
 		"saveDraft_action": "Entwurf speichern",
 		"saved_msg": "Die Daten wurden erfolgreich gespeichert.",
-		"saveEncryptedIpAddress_label": "Speichern der verschlüsselten IP-Adresse in Sessions",
+		"saveEncryptedIpAddress_label": "Speichern der verschlüsselten IP-Adresse in Sessions und Audit-Log",
 		"savePassword_label": "Speichern",
 		"savePassword_msg": "Das Passwort dauerhaft speichern und nicht erneut danach fragen.",
 		"save_action": "Speichern",

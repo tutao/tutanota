@@ -200,7 +200,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 											]),
 											m("tr", [
 												m("td", lang.get("IpAddress_label")),
-												m("td.pl", line.actorIpAddress)
+												m("td.pl", line.actorIpAddress ? line.actorIpAddress : "")
 											]),
 											m("tr", [
 												m("td", lang.get("modified_label")),

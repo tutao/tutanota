@@ -879,7 +879,7 @@ module.exports = {
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please use a desktop browser otherwise.",
 		"saveDraft_action": "Save draft",
 		"saved_msg": "Saved successfully!",
-		"saveEncryptedIpAddress_label": "Save encrypted IP address in sessions",
+		"saveEncryptedIpAddress_label": "Save encrypted IP address in sessions and audit log",
 		"savePassword_label": "Remember",
 		"savePassword_msg": "Store the password and do not ask me again for it.",
 		"save_action": "Save",
