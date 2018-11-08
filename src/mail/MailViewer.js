@@ -16,7 +16,7 @@ import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, isAndroidApp, isIOSApp, Mode} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isIOSApp} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
@@ -233,10 +233,10 @@ export class MailViewer {
 				} else {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
-				if (!this._isAnnouncement() && env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
+				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
-				if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
+				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				}
 				if (this.mail.listUnsubscribe) {
