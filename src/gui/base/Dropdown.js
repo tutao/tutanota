@@ -12,6 +12,7 @@ import {client} from "../../misc/ClientDetector"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNodeBoot()
 
@@ -69,7 +70,10 @@ export class Dropdown {
 	shortcuts: Function;
 	_filterString: Stream<string>;
 	_alignRight: boolean;
-	_isFilterable: boolean
+	_isFilterable: boolean;
+	resizeListener: windowSizeListener;
+	oncreate: Function;
+	onremove: Function;
 
 	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number) {
 		this.children = []
@@ -82,6 +86,18 @@ export class Dropdown {
 		this.oninit = () => {
 			this.children = lazyChildren()
 			this._isFilterable = (this.children.length > 10)
+		}
+
+		this.resizeListener = (width, height) => {
+			if (this._domContents) {
+				this.show(this._domContents)
+			}
+		}
+		this.oncreate = (vnode) => {
+			windowFacade.addResizeListener(this.resizeListener)
+		}
+		this.onremove = () => {
+			windowFacade.removeResizeListener(this.resizeListener)
 		}
 
 		let _shortcuts = this._createShortcuts()
