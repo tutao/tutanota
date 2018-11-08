@@ -378,11 +378,7 @@ public class MainActivity extends Activity {
         if (clipData != null) {
             for (int i = 0; i < clipData.getItemCount(); i++) {
                 ClipData.Item item = clipData.getItemAt(0);
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, item.getUri()));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + item.getUri());
-                }
+                filesArray.put(item.getUri().toString());
             }
         } else {
             // Intent documentation claims that data is copied to ClipData if it's not there
@@ -393,27 +389,15 @@ public class MainActivity extends Activity {
                 ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
                 if (uris != null) {
                     for (Uri uri : uris) {
-                        try {
-                            filesArray.put(FileUtil.uriToFile(this, uri));
-                        } catch (FileNotFoundException e) {
-                            Log.w(TAG, "Could not find file " + uri);
-                        }
+                       filesArray.put(uri.toString());
                     }
                 }
             } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
                 Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, uri));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + uri);
-                }
+                filesArray.put(uri.toString());
             } else if (intent.getData() != null) {
                 Uri uri = intent.getData();
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, uri));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + uri);
-                }
+                filesArray.put(uri.toString());
             } else {
                 Log.w(TAG, "Did not find files in the intent");
             }

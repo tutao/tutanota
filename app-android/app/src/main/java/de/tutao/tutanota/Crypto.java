@@ -1,9 +1,12 @@
 package de.tutao.tutanota;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.support.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
@@ -188,12 +191,13 @@ public final class Crypto {
     }
 
     String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
-        File inputFile = Utils.uriToFile(context, fileUrl);
+        Uri fileUri = Uri.parse(fileUrl);
+        FileInfo file = Utils.getFileInfo(context, fileUri);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
-        File outputFile = new File(encryptedDir, inputFile.getName());
+        File outputFile = new File(encryptedDir, file.name);
 
-        InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
+        InputStream in = context.getContentResolver().openInputStream(fileUri);
         OutputStream out = new FileOutputStream(outputFile);
         aesEncrypt(key, in, out, iv, true);
 
@@ -230,13 +234,14 @@ public final class Crypto {
     }
 
     String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, CryptoError {
-        File inputFile = Utils.uriToFile(context, fileUrl);
+        Uri fileUri = Uri.parse(fileUrl);
+        FileInfo file = Utils.getFileInfo(context, fileUri);
         File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
         decryptedDir.mkdirs();
-        File outputFile = new File(decryptedDir, inputFile.getName());
+        File outputFile = new File(decryptedDir, file.name);
         InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
         OutputStream out = new FileOutputStream(outputFile);
-        aesDecrypt(key, in, out, inputFile.length());
+        aesDecrypt(key, in, out, file.size);
         return Uri.fromFile(outputFile).toString();
     }
 

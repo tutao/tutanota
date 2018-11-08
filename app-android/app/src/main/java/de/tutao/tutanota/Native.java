@@ -194,7 +194,7 @@ public final class Native {
                     promise.resolve(files.getName(args.getString(0)));
                     break;
                 case "getMimeType":
-                    promise.resolve(files.getMimeType(args.getString(0)));
+                    promise.resolve(files.getMimeType(Uri.parse(args.getString(0))));
                     break;
                 case "getSize":
                     promise.resolve(files.getSize(args.getString(0)) + "");
