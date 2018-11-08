@@ -14,6 +14,7 @@ import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
 import compatibilityTestData from "./CompatibilityTestData"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
+import {aes256DecryptKey, aes256EncryptKey, decryptKey, encryptKey} from "../../../src/api/worker/crypto/CryptoFacade"
 
 
 const originalRandom = random.generateRandomData
@@ -59,11 +60,29 @@ o.spec("crypto compatibility", function () {
 	o("aes 256", function () {
 		compatibilityTestData.aes256Tests.forEach(td => {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
+
+			// encrypt data
 			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).deepEquals(td.cipherTextBase64)
 
 			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true, false))
 			o(decryptedBytes).deepEquals(td.plainTextBase64)
+
+			// encrypt 128 key
+			const keyToEncrypt128 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt128))
+			const encryptedKey128 = aes256EncryptKey(key, keyToEncrypt128)
+			o(uint8ArrayToBase64(encryptedKey128)).deepEquals(td.encryptedKey128)
+
+			const decryptedKey128 = aes256DecryptKey(key, encryptedKey128)
+			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey128))).deepEquals(td.keyToEncrypt128)
+
+			// encrypt 256 key
+			const keyToEncrypt256 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt256))
+			const encryptedKey256 = aes256EncryptKey(key, keyToEncrypt256)
+			o(uint8ArrayToBase64(encryptedKey256)).deepEquals(td.encryptedKey256)
+
+			const decryptedKey256 = aes256DecryptKey(key, encryptedKey256)
+			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey256))).deepEquals(td.keyToEncrypt256)
 		})
 	})
 
@@ -95,6 +114,22 @@ o.spec("crypto compatibility", function () {
 
 			let decryptedBytes = uint8ArrayToBase64(aes128Decrypt(key, encryptedBytes))
 			o(decryptedBytes).deepEquals(td.plainTextBase64)
+
+			// encrypt 128 key
+			const keyToEncrypt128 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt128))
+			const encryptedKey128 = encryptKey(key, keyToEncrypt128)
+			o(uint8ArrayToBase64(encryptedKey128)).deepEquals(td.encryptedKey128)
+
+			const decryptedKey128 = decryptKey(key, encryptedKey128)
+			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey128))).deepEquals(td.keyToEncrypt128)
+
+			// encrypt 256 key
+			const keyToEncrypt256 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt256))
+			const encryptedKey256 = encryptKey(key, keyToEncrypt256)
+			o(uint8ArrayToBase64(encryptedKey256)).deepEquals(td.encryptedKey256)
+
+			const decryptedKey256 = decryptKey(key, encryptedKey256)
+			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey256))).deepEquals(td.keyToEncrypt256)
 		})
 	})
 
