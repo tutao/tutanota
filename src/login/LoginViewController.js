@@ -214,7 +214,7 @@ export class LoginViewController implements ILoginViewController {
 		if (auth && !auth.recoverCode && logins.isGlobalAdminUserLoggedIn() && logins.isInternalUserLoggedIn()) {
 			NotificationOverlay.show({
 				view: () => {
-					return m("", [m("b", lang.get("newFeature_msg")), m("", lang.get("recoverCodeReminder_msg"))])
+					return m("", [m("b", lang.get("newFeature_msg")), m("", lang.get("recoveryCodeReminder_msg"))])
 				}
 			}, [
 				{

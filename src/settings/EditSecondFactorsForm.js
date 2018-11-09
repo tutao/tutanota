@@ -302,9 +302,9 @@ export class EditSecondFactorsForm {
 	_showRecoveryInfoDialog(user: User) {
 		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
 		Dialog.showActionDialog({
-			title: "Recovery code",
+			title: lang.get("recoveryCode_label"),
 			child: {
-				view: () => m(".pt", lang.get("recoverCode_msg"))
+				view: () => m(".pt", lang.get("recoveryCode_msg"))
 			},
 			okAction: (dialog) => {
 				dialog.close()

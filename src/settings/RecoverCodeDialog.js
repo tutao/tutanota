@@ -37,11 +37,11 @@ export function show(action: Action, showMessage: boolean = true) {
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
 	return new Promise((resolve) => {
 		Dialog.showActionDialog({
-			title: lang.get("recoverCode_label"),
+			title: lang.get("recoveryCode_label"),
 			child: {
 				view: () => {
 					return [
-						showMessage ? m(".pt.pb", lang.get("recoverCode_msg")) : m("", lang.get("emptyString_msg")),
+						showMessage ? m(".pt.pb", lang.get("recoveryCode_msg")) : m("", lang.get("emptyString_msg")),
 						m(".text-break.monospace.selectable.flex.flex-wrap",
 							neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el)))
 					]

@@ -61,7 +61,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		}
 	})
 
-	const editor = new HtmlEditor("recoverCode_label")
+	const editor = new HtmlEditor("recoveryCode_label")
 	editor.setMode(Mode.HTML)
 	editor.setHtmlMonospace(true)
 	editor.setMinHeight(80)
@@ -101,7 +101,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.error("mailAddressInvalid_msg")
 			} else if (cleanRecoverCodeValue === "") {
-				Dialog.error("recoverCodeEmpty_msg")
+				Dialog.error("recoveryCodeEmpty_msg")
 			} else if (selectedAction() === "password") {
 				if (passwordForm.getErrorMessageId()) {
 					Dialog.error(passwordForm.getErrorMessageId())
