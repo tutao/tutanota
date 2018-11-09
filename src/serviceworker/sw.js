@@ -9,8 +9,6 @@ const isTutanotaDomain = () =>
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
 	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
 
-type RequestHandler = (Request | string) => Promise<?Response>
-
 const urlWithoutQuery = (urlString) => {
 	const queryIndex = urlString.indexOf("?")
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
@@ -86,6 +84,9 @@ class ServiceWorker {
 		return this._caches
 		           .open(this._cacheName)
 		           .then(cache => cache.match(requestUrl))
+		           // Cache magically disappears on iOS 12.1 after the browser restart.
+		           // See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
+		           .then(r => r || fetch(requestUrl))
 	}
 
 	// needed because FF fails to cache.addAll()
@@ -118,8 +119,6 @@ class ServiceWorker {
 		const pathElements = url.substring(this._selfLocation.length).split("/")
 		return pathElements.length > 0 ? pathElements[0] : ""
 	}
-
-
 }
 
 const init = (sw: ServiceWorker) => {
@@ -133,7 +132,6 @@ const init = (sw: ServiceWorker) => {
 	self.addEventListener('fetch', (evt) => {
 		sw.respond(evt)
 	})
-
 	self.addEventListener("message", (event) => {
 		console.log("sw message", event)
 		if (event.data === "update") {
