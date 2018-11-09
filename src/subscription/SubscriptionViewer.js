@@ -77,7 +77,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo && this._customer && neverNull(this._customerInfo)) {
+			if (this._accountingInfo && this._customer && this._customerInfo) {
 				showSwitchDialog(this._accountingInfo,
 					this._isPro,
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
