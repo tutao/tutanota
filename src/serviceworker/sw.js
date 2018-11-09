@@ -100,7 +100,8 @@ class ServiceWorker {
 	}
 
 	_redirectToDefaultPage(url: string): Response {
-		const withoutBasePath = url.substring(this._selfLocation.length)
+		let hash = url.indexOf('#')
+		const withoutBasePath = url.substring(this._selfLocation.length, hash != -1 ? hash : url.length)
 		const params = new URLSearchParams({r: withoutBasePath})
 		return Response.redirect(`${this._selfLocation}?${params.toString()}`)
 	}

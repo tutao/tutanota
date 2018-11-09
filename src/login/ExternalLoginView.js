@@ -76,7 +76,7 @@ export class ExternalLoginView {
 	}
 
 	_getView() {
-		if (!this._loading || !this._loading.isFulfilled() || this._autologinInProgress) {
+		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {
 			return m("p.center", m(MessageBoxN, {label: this._errorMessageId}))
@@ -129,20 +129,22 @@ export class ExternalLoginView {
 			let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
 			this._userId = id.substring(0, userIdLength)
 			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
+
+			this._loading = this._loadAndSetPhoneNumbers()
+			this._loading.then(() => {
+				let credentials = deviceConfig.get(this._userId)
+				if (credentials && args.noAutoLogin !== true) {
+					this._autologin(credentials)
+				} else {
+					m.redraw()
+				}
+			})
 		} catch (e) {
 			this._errorMessageId = "invalidLink_msg"
+			this._loading = Promise.reject()
 			m.redraw()
 		}
 
-		this._loading = this._loadAndSetPhoneNumbers()
-		this._loading.then(() => {
-			let credentials = deviceConfig.get(this._userId)
-			if (credentials && args.noAutoLogin !== true) {
-				this._autologin(credentials)
-			} else {
-				m.redraw()
-			}
-		})
 	}
 
 	_autologin(credentials: Credentials): void {
