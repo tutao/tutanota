@@ -759,6 +759,17 @@ module.exports = {
 		"xing_label": "XING",
 		"yearly_label": "Годовой",
 		"yesterday_label": "вчера",
-		"yes_label": "Да"
+		"yes_label": "Да",
+		"recoveryCode_msg": "Пожалуйста, уделите время и запишите код восстановления. Это поможет восстановить доступ к аккаунту в случае утери пароля или утери подтверждения входа.",
+		"recoveryCode_label": "Код восстановления",
+		"recover_label": "Восстановление",
+		"recoverAccountAccess_action": "Утерян доступ",
+		"recoveryCodeEmpty_msg": "Пожалуйста введите код восстановления.",
+		"recoveryCodeReminder_msg": "Вы можете настроить код восстановления, который поможет вам получить доступ к вашей учетной записи.",
+		"newFeature_msg": "Новая функция",
+		"recoverSetNewPassword_action": "Задать новый пароль",
+		"recoverResetFactors_action": "Обнулить подтверждение входа",
+		"postpone_action": "Отложить",
+		"setUp_action": "Настроить"
 	}
 }

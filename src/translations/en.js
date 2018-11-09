@@ -1124,8 +1124,6 @@ module.exports = {
 		"recoverSetNewPassword_action": "Set a new password",
 		"recoverResetFactors_action": "Reset second factor",
 		"postpone_action": "Postpone",
-		"setUp_action": "Set up",
-
-
+		"setUp_action": "Set up"
 	}
 }
