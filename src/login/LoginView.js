@@ -28,6 +28,7 @@ export class LoginView {
 	mailAddress: TextField;
 	password: TextField;
 	helpText: string;
+	invalidCredentials: boolean;
 	savePassword: Checkbox;
 	loginButton: Button;
 	appButtons: Button[];
@@ -203,7 +204,7 @@ export class LoginView {
 				}) : null,
 				this._recoverLoginVisible() ? m(ButtonN, {
 					label: "recoverAccountAccess_action",
-					click: () => this._showRecoverLoginDialog(),
+					click: () => RecoverLoginDialog.show(),
 					type: ButtonType.Secondary,
 				}) : null
 			])
@@ -228,7 +229,17 @@ export class LoginView {
 				? m(this.savePassword)
 				: null,
 			m(".pt", m(this.loginButton)),
-			m("p.center.statusTextColor", m("small", this.helpText)),
+			m("p.center.statusTextColor", m("small", [
+				this.helpText + " ",
+				this.invalidCredentials && this._recoverLoginVisible()
+					? m(`a[href=#}]`, {
+						onclick: (e) => {
+							RecoverLoginDialog.show(this.mailAddress.value(), "password")
+							e.preventDefault()
+						}
+					}, lang.get("recoverAccountAccess_action"))
+					: null
+			])),
 			isApp() ? null : m(".flex-center.pt-l", this.appButtons.map(button => m(button)))
 		])
 	}
@@ -353,10 +364,6 @@ export class LoginView {
 	_switchDeleteCredentialsState(): void {
 		this._isDeleteCredentials = !this._isDeleteCredentials;
 		m.redraw();
-	}
-
-	_showRecoverLoginDialog(): void {
-		RecoverLoginDialog.show(this._viewController)
 	}
 }
 

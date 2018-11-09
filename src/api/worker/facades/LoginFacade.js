@@ -22,7 +22,17 @@ import {
 	uint8ArrayToBitArray,
 	uint8ArrayToKey
 } from "../crypto/CryptoUtils"
-import {aes256DecryptKey, aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString, fixedIv} from "../crypto/CryptoFacade"
+import {
+	aes256DecryptKey,
+	aes256EncryptKey,
+	decrypt256Key,
+	decryptKey,
+	encrypt256Key,
+	encryptBytes,
+	encryptKey,
+	encryptString,
+	fixedIv
+} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
@@ -133,7 +143,7 @@ export class LoginFacade {
 				sessionData.accessKey = keyToUint8Array(accessKey)
 			}
 			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
-				.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn))
+				.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress))
 				.then((sessionData) => {
 					return this._initSession(sessionData.userId, sessionData.accessToken,
 						userPassphraseKey, permanentLogin)
@@ -157,7 +167,7 @@ export class LoginFacade {
 	/**
 	 * If the second factor login has been cancelled a CancelledError is thrown.
 	 */
-	_waitUntilSecondFactorApprovedOrCancelled(createSessionReturn: CreateSessionReturn): Promise<{sessionId: IdTuple, userId: Id, accessToken: Base64Url}> {
+	_waitUntilSecondFactorApprovedOrCancelled(createSessionReturn: CreateSessionReturn, mailAddress: ?string): Promise<{sessionId: IdTuple, userId: Id, accessToken: Base64Url}> {
 		let p = Promise.resolve()
 		let sessionId = [
 			this._getSessionListId(createSessionReturn.accessToken),
@@ -165,7 +175,7 @@ export class LoginFacade {
 		]
 		this._loginRequestSessionId = sessionId
 		if (createSessionReturn.challenges.length > 0) {
-			this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges)) // show a notification to the user
+			this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges, mailAddress)) // show a notification to the user
 			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId)
 		}
 		this._loggingInPromiseWrapper = defer()
@@ -631,7 +641,8 @@ export class LoginFacade {
 		const eventRestClient = new EntityRestClient(() => ({}))
 
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
-			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn))
+		// Don't pass email address to avoid proposing to reset second factor when we're resetting password
+			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 			.then(sessionData => {
 				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken}).then(user => {
 					if (user.auth == null || user.auth.recoverCode == null) {

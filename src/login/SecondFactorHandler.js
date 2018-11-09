@@ -17,6 +17,7 @@ import {TextField} from "../gui/base/TextField"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import * as RecoverLoginDialog from "./RecoverLoginDialog"
 
 assertMainOrNode()
 
@@ -117,7 +118,7 @@ export class SecondFactorHandler {
 		}
 	}
 
-	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
+	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[], mailAddress: ?string) {
 		if (!this._waitingForSecondFactorDialog) {
 			let u2fChallenge = challenges.find(challenge => challenge.type === SecondFactorType.u2f)
 			let otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
@@ -161,6 +162,18 @@ export class SecondFactorHandler {
 								? m("a", {
 									href: "https://" + otherLoginDomain
 								}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain}))
+								: null,
+							(mailAddress)
+								? m(".small.right", [
+									m(`a[href=#]`, {
+										onclick: (e) => {
+											cancelAction()
+											this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
+											RecoverLoginDialog.show(mailAddress, "secondFactor")
+											e.preventDefault()
+										}
+									}, lang.get("recoverAccountAccess_action"))
+								])
 								: null
 						])
 					},

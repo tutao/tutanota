@@ -93,6 +93,7 @@ export class LoginViewController implements ILoginViewController {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
+			this.view.invalidCredentials = false
 			let persistentSession = this.view.savePassword.checked()
 			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 			                           .then(newCredentials => {
@@ -140,6 +141,7 @@ export class LoginViewController implements ILoginViewController {
 		            })
 		            .catch(NotAuthenticatedError, e => {
 			            this.view.helpText = lang.get('loginFailed_msg')
+			            this.view.invalidCredentials = true
 			            m.redraw()
 			            return errorAction()
 		            })

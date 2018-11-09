@@ -7,7 +7,7 @@ import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/Secon
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
 import {erase, load, loadAll, setup} from "../api/main/Entity"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import TableLine from "../gui/base/TableLine"
 import {lang} from "../misc/LanguageViewModel"
 import {U2fClient, U2fError} from "../misc/U2fClient"
@@ -303,6 +303,7 @@ export class EditSecondFactorsForm {
 		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
 		Dialog.showActionDialog({
 			title: lang.get("recoveryCode_label"),
+			type: DialogType.EditMedium,
 			child: {
 				view: () => m(".pt", lang.get("recoveryCode_msg"))
 			},

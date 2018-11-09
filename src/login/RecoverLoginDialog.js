@@ -3,7 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, createDropDown} from "../gui/base/ButtonN"
-import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
+import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isMailAddress} from "../misc/Formatter"
 import {ButtonType} from "../gui/base/Button"
@@ -17,15 +17,19 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {assertMainOrNode} from "../api/Env"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
+import {worker} from "../api/main/WorkerClient"
+import {client} from "../misc/ClientDetector"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 assertMainOrNode()
 
-export function show(loginViewControllerPromise: Promise<ILoginViewController>): Dialog {
-	type ResetAction = "password" | "secondFactor"
-	const selectedAction: Stream<?ResetAction> = stream(null)
+export type ResetAction = "password" | "secondFactor"
+
+export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
+	const selectedAction: Stream<?ResetAction> = stream(resetAction)
 	let passwordForm = new PasswordForm(false, true, true);
 	const passwordValueStream = stream("")
-	const emailAddressStream = stream("")
+	const emailAddressStream = stream(mailAddress || "")
 
 	const resetPasswordAction: ButtonAttrs = {
 		label: "recoverSetNewPassword_action",
@@ -73,7 +77,7 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 		child: {
 			view: () => {
 				return [
-					m(TextFieldN, {label: "mailAddresses_label", value: emailAddressStream}),
+					m(TextFieldN, {label: "mailAddress_label", value: emailAddressStream}),
 					m(editor),
 					m(TextFieldN, {
 							label: "action_label",
@@ -107,40 +111,52 @@ export function show(loginViewControllerPromise: Promise<ILoginViewController>):
 					Dialog.error(passwordForm.getErrorMessageId())
 				} else {
 					showProgressDialog("pleaseWait_msg",
-						loginViewControllerPromise.then((controller) => {
-							return controller.recoverLogin(
+						worker.initialized.then(() => {
+							return worker.recoverLogin(
 								cleanMailAddress,
 								cleanRecoverCodeValue,
-								passwordForm.getNewPassword())
+								passwordForm.getNewPassword(),
+								client.getIdentifier())
 						}))
 						.then(() => {
 							recoverDialog.close()
 							deviceConfig.delete(cleanMailAddress)
 							m.route.set("/login", {loginWith: cleanMailAddress, noAutoLogin: true})
 						})
-						.catch(NotAuthenticatedError, () => {
-							Dialog.error("invalidPassword_msg")
-						})
-						.catch(AccessBlockedError, () => {
-							Dialog.error("loginFailedOften_msg")
-						})
+						.catch(e => handleError(e))
 						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				}
 			} else if (selectedAction() === "secondFactor") {
 				const passwordValue = passwordValueStream()
 				showProgressDialog("pleaseWait_msg",
-					loginViewControllerPromise
-						.then((controller) => controller.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
+					worker.initialized
+					      .then(() => worker.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
 					.then(() => recoverDialog.close())
-					.catch(NotAuthenticatedError, () => {
-						Dialog.error("invalidPassword_msg")
-					})
-					.catch(AccessBlockedError, () => {
-						Dialog.error("loginFailedOften_msg")
-					})
+					.catch(e => handleError(e))
 			}
 		},
 		allowCancel: true
 	})
 	return recoverDialog
+}
+
+function handleError(e: Error) {
+	return Promise
+		.reject(e)
+		.catch(NotAuthenticatedError, () => {
+			Dialog.error("loginFailed_msg")
+		})
+		.catch(AccessBlockedError, () => {
+			Dialog.error("loginFailedOften_msg")
+		})
+		.catch(CancelledError, () => {
+			// Thrown when second factor dialog is cancelled
+			m.redraw()
+		})
+		.catch(AccessDeactivatedError, e => {
+			Dialog.error('loginFailed_msg')
+		})
+		.catch(TooManyRequestsError, e => {
+			Dialog.error('tooManyAttempts_msg')
+		})
 }

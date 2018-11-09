@@ -112,7 +112,7 @@ export function handleUncaughtError(e: Error) {
 			}, errorMessage)
 		}
 	} else if (e instanceof SecondFactorPendingError) {
-		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges)
+		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges, e.data.mailAddress)
 	} else if (e instanceof OutOfSyncError) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {

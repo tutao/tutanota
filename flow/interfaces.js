@@ -52,8 +52,4 @@ interface ILoginViewController {
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void>;
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
-
-	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void>;
-
-	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void>;
 }
