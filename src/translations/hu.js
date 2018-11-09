@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2018-10-19T12:03:09Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sajnáljuk, de a Tutanota fiókja inaktiválásra került. Kérjük, lépjen kapcsolatba a rendszergazdájával.",
@@ -340,7 +340,6 @@ module.exports = {
 		"email_label": "E-mail",
 		"enableForThisDevice_action": "Engedélyezve ezen az eszközön",
 		"enableSearchMailbox_msg": "A keresés engedélyezése megnövekedett memóriahasználattal és további adatforgalommal járhat.",
-		"endAfterStart_label": "A végdátum nem lehet a kezdő dátum után.",
 		"endOfSubscriptionPeriod_label": "A jelenlegi előfizetési időtartam vége: {1}",
 		"enforcePasswordUpdate_msg": "Kényszeríti a felhasználókat a jelszavuk frissítésére miután egy rendszergazda alaphelyzetbe állította.",
 		"enforcePasswordUpdate_title": "Jelszófrissítés kényszerítése",

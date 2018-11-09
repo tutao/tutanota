@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2018-10-22T19:25:35Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "दुर्भाग्य से, आपका टुटानोटा खाता निष्क्रिय हो गया है. कृपया अपने व्यवस्थापक से संपर्क करें.",
@@ -311,7 +311,6 @@ module.exports = {
 		"emails_label": "ईमेल ",
 		"email_label": "ईमेल",
 		"enableSearchMailbox_msg": "अपने मेलबॉक्स की खोज को सक्षम करने से आपके डिवाइस पर मेमोरी खपत होती है और यह अतिरिक्त ट्रैफ़िक का उपभोग कर सकता है.",
-		"endAfterStart_label": "समाप्ति तिथि प्रारंभ तिथि के बाद नहीं होनी चाहिए.",
 		"endOfSubscriptionPeriod_label": "वर्तमान सदस्यता अवधि का अंत {1} है",
 		"enforcePasswordUpdate_msg": "किसी व्यवस्थापक द्वारा रीसेट कर दिए जाने के बाद उपयोगकर्ताओं को अपना पासवर्ड अपडेट करने के लिए बाध्य करें",
 		"enforcePasswordUpdate_title": "पासवर्ड अपडेट लागू करें",

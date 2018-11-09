@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-28T10:48:06Z",
-	"updated_at": "2018-10-19T12:02:12Z",
+	"updated_at": "2018-10-30T17:13:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

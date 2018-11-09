@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2018-10-25T03:20:32Z",
+	"updated_at": "2018-11-05T13:23:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -365,7 +365,6 @@ module.exports = {
 		"email_label": "电子邮件",
 		"enableForThisDevice_action": "启用此服务",
 		"enableSearchMailbox_msg": "启用搜索可能会占用更多您设备上的内存和流量。",
-		"endAfterStart_label": "结束日期不能早于开始日期。",
 		"endOfSubscriptionPeriod_label": "本次订阅期至{1}结束。",
 		"endsWith_label": "结束于",
 		"enforcePasswordUpdate_msg": "当管理员重置密码后，强制用户更新密码。",
@@ -523,6 +522,7 @@ module.exports = {
 		"invoiceTotal_label": "总额",
 		"invoiceUpdateProgress": "正在更新发票状态...",
 		"invoiceVatIdNoInfoBusiness_msg": "必须以两个字母的国家代码前缀开始。",
+		"invoiceVatIdNoMissing_msg": "如果您没有增值税号（Value Added Tax Identification Number，欧盟地区适用），请选择“个人使用”。",
 		"invoiceVatIdNo_label": "增值税号",
 		"IpAddress_label": "IP地址",
 		"keyboardShortcuts_title": "快捷键",
@@ -952,6 +952,7 @@ module.exports = {
 		"showInAddressBook_alt": "编辑通讯录",
 		"showInboxRules_action": "显示收件规则",
 		"showMail_action": "显示加密信箱",
+		"showMoreUpgrade_action": "显示更多",
 		"showMore_action": "显示更多",
 		"showPasswordChannelColumn_title": "为外部收件人填写密码。",
 		"showPassword_alt": "长按按钮显示密码。",

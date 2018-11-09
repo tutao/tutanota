@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2018-10-24T07:36:28Z",
+	"updated_at": "2018-11-05T13:23:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -363,7 +363,6 @@ module.exports = {
 		"email_label": "E-mail",
 		"enableForThisDevice_action": "Inschakelen voor dit apparaat",
 		"enableSearchMailbox_msg": "Het aanzetten van de zoek funcite voor jouw mailbox kost extra geheugen en kan meer data verkeer veroorzaken",
-		"endAfterStart_label": "De eind datum moet na de start datum liggen.",
 		"endOfSubscriptionPeriod_label": "Einde huidige inschrijving is {1}.",
 		"endsWith_label": "Eindigt met",
 		"enforcePasswordUpdate_msg": "Dwing gebruikers om hun wachtwoord bij te werken nadat het door een beheerder is gereset.",

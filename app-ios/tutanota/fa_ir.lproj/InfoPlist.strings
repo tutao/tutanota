@@ -1,4 +1,5 @@
 NSCameraUsageDescription = "یک عکس یا ویدیو برای اضافه کردن به عنوان پیوست بگیرید.";
+NSMicrophoneUsageDescription = "هنگام ضبط ویدیو به عنوان پیوست، استفاده می‌شود.";
 NSContactsUsageDescription = "نشانی ایمیل گیرنده را در مخاطبان پیدا کنید.";
 TutaoChoosePhotosAction = "عکس ها";
 TutaoChangePermissionMsg = "برای دادن دسترسی شما باید مجوزها را برای این دستگاه ویرایش کنید.";

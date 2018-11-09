@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2018-10-22T19:20:49Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",
@@ -338,7 +338,6 @@ module.exports = {
 		"emails_label": "Correus electrònics",
 		"email_label": "Correu-e",
 		"enableSearchMailbox_msg": "Habilitar la cerca de la vostra bústia us consumeix memòria al vostre dispositiu i podria consumir dades addicionals.",
-		"endAfterStart_label": "La data de finalització no pot ser posterior a la data d'inici.",
 		"endOfSubscriptionPeriod_label": "El final del període de subscripció actual és {1}.",
 		"enforcePasswordUpdate_msg": "Obligar els usuaris a actualitzar la contrasenya després que s'hagi restablert per un administrador.",
 		"enforcePasswordUpdate_title": "Obligar a actualitzar la contrasenya",

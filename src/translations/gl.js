@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2018-10-24T07:36:28Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Lamentablemente a súa conta Tutanota foi desactivada. Por favor, contacte coa administración.",
@@ -358,7 +358,6 @@ module.exports = {
 		"emails_label": "Correos",
 		"email_label": "Correo",
 		"enableSearchMailbox_msg": "Habilitar a busca no correo consume memoria no seu dispositivo e podería consumir tráfico adicional.",
-		"endAfterStart_label": "A data final non pode estar despois da data inicial.",
 		"endOfSubscriptionPeriod_label": "A actual suscrición remata o {1}.",
 		"endsWith_label": "remata en",
 		"enforcePasswordUpdate_msg": "Forzar a usuaria a actualizar o contrasinal despois de ser restablecido pola administración.",

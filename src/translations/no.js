@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2018-10-24T07:36:28Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Din Tutanota konto er dessverre deaktivert. Vennligst kontakt administrator.",
@@ -354,7 +354,6 @@ module.exports = {
 		"emails_label": "E-post",
 		"email_label": "E-post",
 		"enableSearchMailbox_msg": "Aktivering av søk for din mailboks bruker minne på din enhet og kan gi ekstra trafikk.",
-		"endAfterStart_label": "Sluttdatoen må ikke være etter startdatoen.",
 		"endOfSubscriptionPeriod_label": "Slutt på nåværende abonnementperiode er {1}.",
 		"endsWith_label": "slutter med",
 		"enforcePasswordUpdate_msg": "Tving brukere til å oppdatere passordene sine etter de har blitt nullstilt av en administrator.",

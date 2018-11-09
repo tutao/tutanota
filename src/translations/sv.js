@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2018-10-24T07:36:28Z",
+	"updated_at": "2018-10-30T17:15:27Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Tyvärr är ditt Tutanota konto avaktiverad. Vänligen kontakta administratören.",
@@ -358,7 +358,6 @@ module.exports = {
 		"email_label": "Meddelande",
 		"enableForThisDevice_action": "Aktivera för den här enheten",
 		"enableSearchMailbox_msg": "Att aktivera sökningen för postlådan förbrukar minne på enheten och kan förbruka ytterligare trafik.",
-		"endAfterStart_label": "Slutdatum får inte vara efter startdatumet.",
 		"endOfSubscriptionPeriod_label": "Slutet av nuvarande prenumerationsperiod är {1}.",
 		"endsWith_label": "slutar med",
 		"enforcePasswordUpdate_msg": "Tvinga användare att uppdatera sitt lösenord när det har återställts av en administratör.",
