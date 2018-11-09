@@ -75,7 +75,7 @@ export const _TypeModel: TypeModel = {
 			"id": 893,
 			"since": 29,
 			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
+			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
@@ -84,7 +84,7 @@ export const _TypeModel: TypeModel = {
 			"id": 894,
 			"since": 29,
 			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
+			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
@@ -127,15 +127,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncRecoverCode": {
-			"name": "userEncRecoverCode",
-			"id": 892,
-			"since": 29,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
+		"userEncRecoverCode": {"name": "userEncRecoverCode", "id": 892, "since": 29, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"userEncTutanotaPropertiesSessionKey": {
 			"name": "userEncTutanotaPropertiesSessionKey",
 			"id": 635,

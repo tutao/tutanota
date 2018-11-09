@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 			"since": 36,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"salt": {"name": "salt", "id": 537, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},

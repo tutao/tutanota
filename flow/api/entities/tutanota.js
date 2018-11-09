@@ -675,8 +675,8 @@ type UserAccountUserData = {
 	mailAddress: string;
 	mailEncMailBoxSessionKey: Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
-	recoverCodeEncUserGroupKey: ?Uint8Array;
-	recoverCodeVerifier: ?Uint8Array;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: Uint8Array;
 	salt: Uint8Array;
 	userEncClientKey: Uint8Array;
 	userEncContactGroupKey: Uint8Array;
@@ -684,7 +684,7 @@ type UserAccountUserData = {
 	userEncEntropy: Uint8Array;
 	userEncFileGroupKey: Uint8Array;
 	userEncMailGroupKey: Uint8Array;
-	userEncRecoverCode: ?Uint8Array;
+	userEncRecoverCode: Uint8Array;
 	userEncTutanotaPropertiesSessionKey: Uint8Array;
 	verifier: Uint8Array;
 

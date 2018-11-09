@@ -1201,7 +1201,7 @@ type AuditLogEntry = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	action: string;
-	actorIpAddress: string;
+	actorIpAddress: ?string;
 	actorMailAddress: string;
 	date: Date;
 	modifiedEntity: string;
