@@ -9,7 +9,7 @@ import "core-js/es6/map.js"
 const noOp = () => {}
 
 if (typeof performance === 'undefined') {
-	performance = {
+	self.performance = {
 		offset: Date.now(),
 		now: function now() {
 			return Date.now() - this.offset;

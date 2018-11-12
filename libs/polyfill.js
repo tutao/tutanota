@@ -3201,7 +3201,7 @@ $__System.register("a", ["b", "43", "74", "98", "aa"], function($__export) {
     execute: function() {
       noOp = function() {};
       if (typeof performance === 'undefined') {
-        performance = {
+        self.performance = {
           offset: Date.now(),
           now: function now() {
             return Date.now() - this.offset;
