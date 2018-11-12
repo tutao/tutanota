@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -36,14 +35,12 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -372,12 +369,11 @@ public class MainActivity extends Activity {
 
     @NonNull
     private JSONArray getFilesFromIntent(@NonNull Intent intent) {
-        Debug.waitForDebugger();
         ClipData clipData = intent.getClipData();
         final JSONArray filesArray = new JSONArray();
         if (clipData != null) {
             for (int i = 0; i < clipData.getItemCount(); i++) {
-                ClipData.Item item = clipData.getItemAt(0);
+                ClipData.Item item = clipData.getItemAt(i);
                 filesArray.put(item.getUri().toString());
             }
         } else {
