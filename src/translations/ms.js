@@ -706,7 +706,7 @@ module.exports = {
 		"richText_label": "Teks kaya",
 		"saveAll_action": "Simpan semua",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer mobile tidak boleh menyimpan atau memaparkan lampiran. Sila guna browser desktop untuk ciri-ciri ini.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari tidak menyokong menyimpan lampiran ke cakera. Sesetengah jenis fail boleh dipaparkan dalam browser dengan mengklik pautan di atas. Sila gunakan Mozilla Firefox atau Google Chrome sebaliknya.",
+		"saveDownloadNotPossibleIos_msg": "Safari tidak menyokong menyimpan lampiran ke cakera. Sesetengah jenis fail boleh dipaparkan dalam browser dengan mengklik pautan di atas. Sila gunakan Mozilla Firefox atau Google Chrome sebaliknya.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari tidak menyokong menyimpan lampiran ke cakera. Tetapi beberapa jenis fail masih boleh dipaparkan dalam browser melalui pautan di atas. Sila gunakan browser desktop sebaliknya.",
 		"saveDraft_action": "Simpan draf",
 		"saved_msg": "Berjaya disimpan!",

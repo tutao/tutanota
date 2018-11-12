@@ -635,7 +635,7 @@ module.exports = {
 		"responsiblePersons_label": "責任者",
 		"richText_label": "リッチテキスト",
 		"saveDownloadNotPossibleIe_msg": "スマートフォン用Internet Explorerは添付物の保存及び表示をサポートしていません。これらの機能はデスクトップ用ブラウザからご使用ください。",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari では、ディスクへの添付ファイルの保存をサポートしていません。上記のリンクをクリックすると、一部のファイルタイプがブラウザに表示されます。それ以外の場合は Mozilla Firefox または Google Chrome をご利用ください。",
+		"saveDownloadNotPossibleIos_msg": "Safari では、ディスクへの添付ファイルの保存をサポートしていません。上記のリンクをクリックすると、一部のファイルタイプがブラウザに表示されます。それ以外の場合は Mozilla Firefox または Google Chrome をご利用ください。",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safariは、ディスクへの添付ファイルの保存をサポートしていません。またいくつかのファイルの種類は、上記のリンクをクリックしてブラウザーに表示することができます。それ以外の場合、デスクトップ ブラウザーを使用してください。",
 		"saveDraft_action": "下書きを保存する",
 		"saved_msg": "保存が完了しました！",

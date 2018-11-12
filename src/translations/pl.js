@@ -795,7 +795,7 @@ module.exports = {
 		"responsiblePersons_label": "Uczestnicy",
 		"saveAll_action": "Zapisz wszystkie",
 		"saveDownloadNotPossibleIe_msg": "Mobilna wersja Internet Explorer nie obsługuje zapisu załaczników na dysk. Prosimy użyć desktopowej wersji przeglądarki.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nie daje możliwości zapisywania załączników na dysku. Niektóre pliki mogą być wyświetlne po kliknięciu na link powyżej. Sugerujemy użycie Mozilla Firefox albo Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari nie daje możliwości zapisywania załączników na dysku. Niektóre pliki mogą być wyświetlne po kliknięciu na link powyżej. Sugerujemy użycie Mozilla Firefox albo Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Przeglądarka Safari nie obsługuje zapisu załączników na dysk. Niektóre rodzaje plików można jednak wyświetlić bezpośrednio w przeglądarce, klikając w powyższy link. W innym przypadku użyj desktopowej wersji przeglądarki.",
 		"saveDraft_action": "Zapisz wersję roboczą",
 		"saved_msg": "Zapisano!",

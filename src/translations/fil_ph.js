@@ -334,7 +334,7 @@ module.exports = {
 		"replyConfidential_action": "Sumagot ng kompidensyal",
 		"reply_action": "Sumagot",
 		"saveDownloadNotPossibleIe_msg": "Ang mobile Internet Explorer ay walang kakayahang mag-save o magpakita ng mga attachments. Gumamit ng desktop browser para sa mga kakayahang ito.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Ang Safari ay walang kakayahang mag-save ng attachments sa disk. Gayon pa man, may ibang mga file types na maaaring maipakita sa browser sa pamamagitan ng pagpindot ng link sa itaas. Pakigamit ang Mozilla Firefox o Google chrome kung sakali.",
+		"saveDownloadNotPossibleIos_msg": "Ang Safari ay walang kakayahang mag-save ng attachments sa disk. Gayon pa man, may ibang mga file types na maaaring maipakita sa browser sa pamamagitan ng pagpindot ng link sa itaas. Pakigamit ang Mozilla Firefox o Google chrome kung sakali.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Ang Safari ay walang kakayahang mag save ng attachments sa disk. Gayon pa man, may mga ibang mga file types na maaaring maipakita sa browser sa pamamagitan ng pag pindot ng link sa itaas. Gumamit ng desktop browser kung sakali.",
 		"saved_msg": "Tagumpay sa pag-save!",
 		"savePassword_label": "Tandaan",

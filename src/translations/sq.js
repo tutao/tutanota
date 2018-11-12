@@ -591,7 +591,7 @@ module.exports = {
 		"reply_action": "Përgjigju",
 		"saveAll_action": "Ruaj të gjitha",
 		"saveDownloadNotPossibleIe_msg": "Internet Exploreri mobil nuk mundëson me i rujtë ose shfaqë bashkangjitjet. Të lutem, përdore një kompjuter për këto veprime.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nuk mundëson me i rujtë bashkangjitet në disk. Megjithatë, disa lloje fajllash mund të shfaqen në shfletues duke kliku mbi vegëzën më sipër. Përndryshe, të lutem përdore Mozilla Firefoxin ose Google Chromein.",
+		"saveDownloadNotPossibleIos_msg": "Safari nuk mundëson me i rujtë bashkangjitet në disk. Megjithatë, disa lloje fajllash mund të shfaqen në shfletues duke kliku mbi vegëzën më sipër. Përndryshe, të lutem përdore Mozilla Firefoxin ose Google Chromein.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari nuk mundëson me i rujtë bashkëngjitjet në disk. Megjithatë, disa lloj fajllash mund të hapen në shfletues, duke kliku mbi vegëzën e mësipërme. Përndryshe, të lutem përdore një kompjuter.",
 		"saveDraft_action": "Ruaj draftin",
 		"saved_msg": "U rujt!",

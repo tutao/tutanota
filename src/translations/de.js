@@ -898,7 +898,7 @@ module.exports = {
 		"role_placeholder": "Rolle",
 		"saveAll_action": "Alle speichern",
 		"saveDownloadNotPossibleIe_msg": "Leider unterstützt der mobile Internet Explorer nicht das Abspeichern oder Anzeigen von Anhängen. Bitte verwende dafür einen Desktop-Browser.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwende andernfalls Mozilla Firefox oder Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Leider unterstützt dieser Browser nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwende andernfalls einen Desktop-Browser.",
 		"saveDraft_action": "Entwurf speichern",
 		"saved_msg": "Die Daten wurden erfolgreich gespeichert.",

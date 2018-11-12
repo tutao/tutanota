@@ -725,7 +725,7 @@ module.exports = {
 		"role_placeholder": "Rooli",
 		"saveAll_action": "Tallenna kaikki",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorerin mobiiliversio ei tue liitteiden tallentamista tai näyttämistä. Käytä työpöytäversion selainta.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari ei tue liitetiedostojen tallentamista kovalevylle. Joitakin tiedostotyyppejä voidaan kuitenkin näyttää klikkaamalla yllä olevaa linkkiä. Käytä Mozilla Firefoxia tai Google Chromea tarvittaessa.",
+		"saveDownloadNotPossibleIos_msg": "Safari ei tue liitetiedostojen tallentamista kovalevylle. Joitakin tiedostotyyppejä voidaan kuitenkin näyttää klikkaamalla yllä olevaa linkkiä. Käytä Mozilla Firefoxia tai Google Chromea tarvittaessa.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari ei tue liitteiden tallentamista. Joitain tiedostotyyppejä voidaan näyttää selaimessa klikkaamalla yllä olevaa linkkiä. Käytä työpöytäversion selainta tarvittaessa.",
 		"saveDraft_action": "Tallenna luonnoksena",
 		"saved_msg": "Tallennettu!",

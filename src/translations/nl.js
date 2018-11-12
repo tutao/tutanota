@@ -864,7 +864,7 @@ module.exports = {
 		"role_placeholder": "Functie",
 		"saveAll_action": "Alles opslaan",
 		"saveDownloadNotPossibleIe_msg": "De mobiele Internet Explorer versie ondersteunt het opslaan of weergeven van bijlagen niet. Gebruik een andere browser voor deze functies.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te klikken op de link. Gebruik anders Mozilla Firefox of Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te klikken op de link. Gebruik anders Mozilla Firefox of Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari ondersteunt het opslaan van bijlagen op de schijf niet. Toch kunnen sommige bestandstypen worden getoond door de bovenstaande link aan te klikken. Lukt dit niet, dan kunt u een desktop browser proberen. ",
 		"saveDraft_action": "Veranderingen opslaan",
 		"saved_msg": "Succesvol bewaard!",

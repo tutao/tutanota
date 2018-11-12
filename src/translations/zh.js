@@ -877,7 +877,7 @@ module.exports = {
 		"role_placeholder": "功能",
 		"saveAll_action": "全部保存",
 		"saveDownloadNotPossibleIe_msg": "移动版IE浏览器不支持保存或显示附件，为此可使用桌面版浏览器。",
-		"saveDownloadNotPossibleSafariDesktop_msg": "桌面版 Safari 不支持保存附件到磁盘中，一些文件类型可在浏览器中显示，仅需点击上面的链接。请使用 Mozilla Firefox 或者 Google Chrome。",
+		"saveDownloadNotPossibleIos_msg": "桌面版 Safari 不支持保存附件到磁盘中，一些文件类型可在浏览器中显示，仅需点击上面的链接。请使用 Mozilla Firefox 或者 Google Chrome。",
 		"saveDownloadNotPossibleSafariMobile_msg": "移动版 Safari 不支持保存附件到磁盘中，一些文件类型可在浏览器中显示，仅需点击上面的链接。或者请使用桌面版浏览器。",
 		"saveDraft_action": "保存草稿",
 		"saved_msg": "保存成功！",

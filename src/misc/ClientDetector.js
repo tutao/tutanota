@@ -166,6 +166,7 @@ class ClientDetector {
 		var firefoxIndex = this.userAgent.indexOf("Firefox/")
 		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
+		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
 		var ieIndex = this.userAgent.indexOf("MSIE")
 		var edgeIndex = this.userAgent.indexOf("Edge")
@@ -211,6 +212,9 @@ class ClientDetector {
 				this.browser = BrowserType.ANDROID
 				versionIndex = androidIndex + 8
 			}
+		} else if (chromeIosIndex !== -1) {
+			this.browser = BrowserType.CHROME
+			versionIndex = chromeIosIndex + 6
 		} else if (safariIndex !== -1 && chromeIndex === -1 && blackBerryIndex === -1) {
 			// Chrome and black berry pretends to be Safari, so it is skipped
 			this.browser = BrowserType.SAFARI
@@ -289,6 +293,10 @@ class ClientDetector {
 
 	isTouchSupported() {
 		return 'ontouchstart' in window
+	}
+
+	isIos() {
+		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
 	}
 
 

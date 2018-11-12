@@ -387,7 +387,7 @@ module.exports = {
 		"replyConfidential_action": "Εμπιστευτική απάντηση",
 		"reply_action": "Απάντηση",
 		"saveDownloadNotPossibleIe_msg": "Η εφαρμογή mobile Internet Explorer δεν υποστηρίζει την αποθήκευση και εμφάνιση attachments. Παρακαλούμε χρησιμοποιήστε ένα browser σε υπολογιστή για αυτές τις ενέργειες.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Το Safari δεν υποστηρίζει την αποθήκευση attachments, ωστόσο κάποια αρχεία μπορούν να εμφανιστούν επιλέγοντας τον παραπάνω σύνδεσμο. Εναλλακτικά, χρησιμοποιήστε Mozilla Firefox ή Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Το Safari δεν υποστηρίζει την αποθήκευση attachments, ωστόσο κάποια αρχεία μπορούν να εμφανιστούν επιλέγοντας τον παραπάνω σύνδεσμο. Εναλλακτικά, χρησιμοποιήστε Mozilla Firefox ή Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Η εφαρμογή Safari δεν υποστηρίζει την αποθήκευση των attachments. Ίσως να μπορείτε να δείτε κάποια από αυτά κάνοντας κλικ επάνω τους, διαφορετικά χρησιμοποιήστε κάποιον desktop browser.",
 		"saved_msg": "Επιτυχής αποθήκευση!",
 		"savePassword_label": "Να θυμηθώ",

@@ -285,7 +285,7 @@ module.exports = {
 		"repeatedPassword_label": "Ponovite geslo",
 		"replyAll_action": "Odgovori vsem",
 		"reply_action": "Odgovori",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Brskalnik Safari ne omogoča shranjevanja priponk na disk. Nekatere vrste datotek si je možno ogledati v brskalniku s klikom na zgornjo povezavo. Za ogled ostalih uporabite brskalnik Mozilla Firefox ali Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Brskalnik Safari ne omogoča shranjevanja priponk na disk. Nekatere vrste datotek si je možno ogledati v brskalniku s klikom na zgornjo povezavo. Za ogled ostalih uporabite brskalnik Mozilla Firefox ali Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Brskalnik Safari ne omogoča shranjevanja priponk na disk. Nekatere vrste datotek si je možno ogledati v brskalniku s klikom na zgornjo povezavo. Za ogled ostalih uporabite alternativni brskalnik.",
 		"saved_msg": "Uspešno shranjeno!",
 		"savePassword_label": "Ne pozabi",

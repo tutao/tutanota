@@ -647,7 +647,7 @@ module.exports = {
 		"replyConfidential_action": "Atsakyti konfidencialiai",
 		"reply_action": "Atsakyti",
 		"saveDownloadNotPossibleIe_msg": "Mobili Internet Explorer versija nepalaiko prisegtų failų išsaugojimo ar jų atvaizdavimo. Jei yra galimybė, naudokite nemobilią versiją.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari naršyklė nepalaiko prisegtų failų saugojimo į diską. Vis dėlto kai kurie failų tipai gali būti atvaizduojami naršyklėje paspaudus nuorodą viršuje. Kitu atveju naudokite Mozilla Firefox ar Google Chrome interneto naršykles.",
+		"saveDownloadNotPossibleIos_msg": "Safari naršyklė nepalaiko prisegtų failų saugojimo į diską. Vis dėlto kai kurie failų tipai gali būti atvaizduojami naršyklėje paspaudus nuorodą viršuje. Kitu atveju naudokite Mozilla Firefox ar Google Chrome interneto naršykles.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari naršyklė nepalaiko prisegtų failų saugojimo į diską. Vis dėlto kai kurie failų tipai gali būti atvaizduojami naršyklėje paspaudus nuorodą viršuje. Kitu atveju prašome naudoti kompiuteriui skirtos naršyklės versiją.",
 		"saved_msg": "Išsaugota sėkmingai!",
 		"savePassword_label": "Atsiminti",

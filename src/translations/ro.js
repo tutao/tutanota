@@ -407,7 +407,7 @@ module.exports = {
 		"replyConfidential_action": "Răspunde confidențial",
 		"reply_action": "Răspunde",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer mobil nu suporta salvarea sau afisarea atasamentelor. Va rugam sa folositi un browser desktop pentru aceste optiuni.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nu suporta salvarea atasamentelor pe disc. Totusi, unele tipuri de fisiere pot fi afisate in browser, prin click-ul pe link-ul de deasupra. Va rugam sa folositi, in schimb, Mozilla Firefox sau Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari nu suporta salvarea atasamentelor pe disc. Totusi, unele tipuri de fisiere pot fi afisate in browser, prin click-ul pe link-ul de deasupra. Va rugam sa folositi, in schimb, Mozilla Firefox sau Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari nu suporta salvarea fisierelor pe disc. Totusi, unele tipuri de fisiere pot fi afisate in browser, facand click pe link-ul de deasupra. Va rugam ca, in schimb, sa folositi un browser pentru desktop.",
 		"saved_msg": "Salvat cu succes!",
 		"savePassword_label": "Memoreaza",

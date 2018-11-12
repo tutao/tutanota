@@ -811,7 +811,7 @@ module.exports = {
 		"role_placeholder": "Rol",
 		"saveAll_action": "Guardar-ho tot",
 		"saveDownloadNotPossibleIe_msg": "El mòbil d'Internet Explorer no admet guardar o mostrar els arxius adjunts. Si us plau, utilitzeu un navegador d'escriptori amb aquestes característiques.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari no admet guardar arxius adjunts al disc. Alguns tipus de fitxers es poden mostrar al navegador fent clic a l'enllaç de dalt. Si us plau, utilitza Mozilla Firefox o Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari no admet guardar arxius adjunts al disc. Alguns tipus de fitxers es poden mostrar al navegador fent clic a l'enllaç de dalt. Si us plau, utilitza Mozilla Firefox o Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari no admet guardar arxius adjunts al disc. No obstant això alguns tipus d'arxius es poden mostrar al navegador fent clic a l'enllaç de dalt. Alternativament utilitzeu un navegador d'escriptori.",
 		"saveDraft_action": "Guardar l'esborrany",
 		"saved_msg": "S'ha desat correctament!",

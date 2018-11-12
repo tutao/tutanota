@@ -665,7 +665,7 @@ module.exports = {
 		"reply_action": "Jibu",
 		"saveAll_action": "Hifadhi zote",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer ya simu haitegemezi kuhifadhi au kuonyesha viambatisho. Tafadhali tumia kivinjari cha eneokazi kwa vipengele hivi.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari haitegemezi kuokoa viambatisho kwenye diski. Baadhi ya aina za faili inaweza kuonyeshwa katika kivinjari kwa kubofya kiungo hapo juu. Tafadhali tumia Mozilla Firefox au Google Chrome vinginevyo.",
+		"saveDownloadNotPossibleIos_msg": "Safari haitegemezi kuokoa viambatisho kwenye diski. Baadhi ya aina za faili inaweza kuonyeshwa katika kivinjari kwa kubofya kiungo hapo juu. Tafadhali tumia Mozilla Firefox au Google Chrome vinginevyo.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari haitegemezi kuokoa viambatisho kwenye diski. Bado baadhi aina faili inaweza kuonyeshwa katika kivinjari kwa kubofya kiungo hapo juu. Tafadhali tumia kivinjari cha eneokazi vinginevyo.",
 		"saveDraft_action": "Hifadhi rasimu",
 		"saved_msg": "Imehifadhiwa kwa mafanikio!",

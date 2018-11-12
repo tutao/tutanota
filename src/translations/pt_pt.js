@@ -877,7 +877,7 @@ module.exports = {
 		"role_placeholder": "Deslocar",
 		"saveAll_action": "Guardar tudo",
 		"saveDownloadNotPossibleIe_msg": "O navegador móvel do Internet Explorer não suporta a gravação ou exibição de anexos. Por favor, utilize um navegador de computador para esta funcionalidade.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "O Safari não suporta guardar anexos no disco. Porém, alguns tipos de ficheiros podem ser visualizados no mesmo ao clicar na ligação acima. Caso contrário, por favor utilize o Mozilla Firefox ou Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "O Safari não suporta guardar anexos no disco. Porém, alguns tipos de ficheiros podem ser visualizados no mesmo ao clicar na ligação acima. Caso contrário, por favor utilize o Mozilla Firefox ou Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "O Safari não suporta guardar anexos no disco. Porém, alguns tipos de ficheiros podem ser visualizados no mesmo ao clicar na ligação acima. Caso contrário, por favor utilize um navegador de computador.",
 		"saveDraft_action": "Guardar rascunho",
 		"saved_msg": "Guardado com sucesso!",

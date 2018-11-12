@@ -472,7 +472,7 @@ module.exports = {
 		"replyConfidential_action": "Odgovoriti povjerljivo",
 		"reply_action": "Odgovori",
 		"saveDownloadNotPossibleIe_msg": "Mobilni internet Explorer preglednik ne podržava spremanje ili prikaz privitaka. Molimo da za ove značajke koristite desktop preglednik.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari internet preglednik ne podržava spremanje privitaka na disk. Pa ipak neki tipovi datoteka se mogu prikazati u pregledniku, ako kliknete na gornji link. Inače preporučamo da koristite Mozilla Firefox ili Google Chrome preglednike.",
+		"saveDownloadNotPossibleIos_msg": "Safari internet preglednik ne podržava spremanje privitaka na disk. Pa ipak neki tipovi datoteka se mogu prikazati u pregledniku, ako kliknete na gornji link. Inače preporučamo da koristite Mozilla Firefox ili Google Chrome preglednike.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Internet preglednik Safari ne podržava spremanje privitaka na disk. Pa ipak neki tipovi datoteka se mogu prikazati u pregledniku ako kliknete na gornji link. Ako to ipak trebate molimo vas da koristite preglednik na stolnom računalu.",
 		"saved_msg": "Uspješno pohranjeno!",
 		"savePassword_label": "Zapamtiti",

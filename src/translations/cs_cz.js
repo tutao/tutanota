@@ -430,7 +430,7 @@ module.exports = {
 		"replyConfidential_action": "Poslat důvěrnou odpověď",
 		"reply_action": "Odpovědět",
 		"saveDownloadNotPossibleIe_msg": "Mobilní aplikace Internet Explorer nepodporuje ukládání nebo zobrazování příloh. Pro tyto funkce prosím použijte prohlížeč souborů.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nepodporuje ukládání příloh na disk. Některé typy souborů ale lze zobrazit v prohlížeči klepnutím na odkaz nahoře. Používejte prosím prohlížeč Mozilla Firefox, Google Chrome aj.",
+		"saveDownloadNotPossibleIos_msg": "Safari nepodporuje ukládání příloh na disk. Některé typy souborů ale lze zobrazit v prohlížeči klepnutím na odkaz nahoře. Používejte prosím prohlížeč Mozilla Firefox, Google Chrome aj.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Mobilní prohlížeč Safari nepodporuje ukládání příloh na disk. Některé typy souborů však lze v prohlížeči zobrazit klepnutím na výše uvedený odkaz. Jinak prosím používejte desktop prohlížeč.",
 		"saved_msg": "Úspěšně uloženo!",
 		"savePassword_label": "Zapamatovat",

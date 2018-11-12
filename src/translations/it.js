@@ -880,7 +880,7 @@ module.exports = {
 		"role_placeholder": "Ruolo",
 		"saveAll_action": "Salva tutto",
 		"saveDownloadNotPossibleIe_msg": "La versione mobile di Internet Explorer non supporta il salvataggio o la visualizzazione degli allegati. Ti chiediamo di utilizzare un browser desktop per queste funzionalità.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari non supporta il salvataggio degli allegati su disco. In ogni caso, alcune tipologie di documenti possono essere visualizzati nel browser facendo clic sul collegamento riportato sopra. In alternativa installare Firefox o Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari non supporta il salvataggio degli allegati su disco. In ogni caso, alcune tipologie di documenti possono essere visualizzati nel browser facendo clic sul collegamento riportato sopra. In alternativa installare Firefox o Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari non supporta il salvataggio degli allegati su disco. Tuttavia alcuni tipi di file possono essere mostrati all'interno del browser facendo clic sul collegamento riportato sopra. In alternativa si consiglia di usare un browser per il desktop.",
 		"saveDraft_action": "Salva Bozza",
 		"saved_msg": "Salvataggio riuscito!",

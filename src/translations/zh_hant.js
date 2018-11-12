@@ -637,7 +637,7 @@ module.exports = {
 		"responsiblePersons_label": "主管人員",
 		"richText_label": "富文字格式",
 		"saveDownloadNotPossibleIe_msg": "行動版Internet Explorer並不支援顯示或儲存附件。使用桌面瀏覽器來使用這些功能。",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari 瀏覽器不支援儲存附件到裝置上，但仍然有一些文件類型可以透過點擊上面的連結顯示在瀏覽器中，或者請使用 Mozilla Firefox 或 Google Chrome",
+		"saveDownloadNotPossibleIos_msg": "Safari 瀏覽器不支援儲存附件到裝置上，但仍然有一些文件類型可以透過點擊上面的連結顯示在瀏覽器中，或者請使用 Mozilla Firefox 或 Google Chrome",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari 瀏覽器不支援儲存附件到硬盤上。但仍然有一些文件類型可以透過點擊上面的連結顯示在瀏覽器中，或者請使用電腦瀏覽器。",
 		"saveDraft_action": "儲存草稿",
 		"saved_msg": "儲存成功！",

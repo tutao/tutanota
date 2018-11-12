@@ -333,7 +333,7 @@ module.exports = {
 		"replyConfidential_action": "Одговори доверливо",
 		"reply_action": "Одговори",
 		"saveDownloadNotPossibleIe_msg": "Мобилниот Internet Explorer не подржува зачувување или прикажување додатоци. Ве молиме користете десктоп пребарувач за овии опции .",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari не подржува чување додатоци во меморија . Сепак некои типови на фајлови можат да бидат прикажани во пребарувачот со кликање на линкот подолу.Во спротивно , користете Mozilla Firefox или Google Chrome .",
+		"saveDownloadNotPossibleIos_msg": "Safari не подржува чување додатоци во меморија . Сепак некои типови на фајлови можат да бидат прикажани во пребарувачот со кликање на линкот подолу.Во спротивно , користете Mozilla Firefox или Google Chrome .",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari не подржува зачувување на додатоци во меморија.Сепак некои фајлови можат да бидат прикажани во пребарувачот со кликање на следниот линк . Во друг случај Ве молиме користете десктоп пребарувач .",
 		"saved_msg": "Успешно зачувано!",
 		"savePassword_label": "Запомни",

@@ -851,7 +851,7 @@ module.exports = {
 		"role_placeholder": "Rolle",
 		"saveAll_action": "Lagre alle",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer Mobile støtter ikke lagring eller visning av vedlegg. Vennligst bruk en stasjonær nettleser for disse funksjonene.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari støtter ikke lagring av vedlegg til disk. Noen filtyper kan fortsatt vises i nettleseren ved å klikke på lenken over. Alternativt bruk Mozilla Firefox eller Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari støtter ikke lagring av vedlegg til disk. Noen filtyper kan fortsatt vises i nettleseren ved å klikke på lenken over. Alternativt bruk Mozilla Firefox eller Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari støtter ikke lagring av vedlegg til disken. Noen filtyper kan vises i nettleseren ved å klikke på lenken over. Vennligst bruk en stasjonær nettleser ellers.",
 		"saveDraft_action": "Large kladd",
 		"saved_msg": "Lagret korrekt!",

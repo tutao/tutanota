@@ -64,7 +64,7 @@ module.exports = {
 		"receivedMails_alt": "Bwlch derbyn",
 		"removeAttachment_alt": "Dileu atodiad",
 		"reply_action": "Ateb",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Nid yw Safari'n cefnogi arbed atodiadau i ddisg. Gellir arddangos rhai mathau o ffeiliau yn y porwr drwy glicio ar y ddolen uchod. Fel arall, defnyddiwch Mozilla Firefox neu Google Chrome os gwelwch yn dda.",
+		"saveDownloadNotPossibleIos_msg": "Nid yw Safari'n cefnogi arbed atodiadau i ddisg. Gellir arddangos rhai mathau o ffeiliau yn y porwr drwy glicio ar y ddolen uchod. Fel arall, defnyddiwch Mozilla Firefox neu Google Chrome os gwelwch yn dda.",
 		"savePassword_label": "Cofio",
 		"save_msg": "Yn arbed data...",
 		"select_action": "Dewis",

@@ -8,6 +8,8 @@ import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
+import {BrowserType} from "../misc/ClientConstants"
+import {client} from "../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -171,42 +173,23 @@ export class FileController {
 						body.removeChild(a)
 						window.URL.revokeObjectURL(url)
 					} else {
-						// if the download attribute is not supported try to open the link in a new tab.
-						return Dialog.legacyDownload(dataFile.name, url)
+						if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === 'function') {
+							var reader = new FileReader()
+							reader.onloadend = function () {
+								let url = (reader.result: any)
+								return Dialog.legacyDownload(dataFile.name, url)
+							}
+							reader.readAsDataURL(blob)
+						} else {
+							// if the download attribute is not supported try to open the link in a new tab.
+							return Dialog.legacyDownload(dataFile.name, url)
+						}
 					}
 					return Promise.resolve()
 				} catch (e) {
 					console.log(e)
 					return Dialog.error("canNotOpenFileOnDevice_msg")
 				}
-				// let url
-				// FIXME: test in Safari mobile and android
-				// android browser and safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
-				// if ((tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7)) {
-				// 	let base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()))
-				// 	url = "data:" + mimeType + ";base64," + base64
-				// } else {
-				// let blob = new Blob([fileContent], {"type": mimeType})
-				// url = URL.createObjectURL(blob)
-				// }
-				// firefox on android, safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text
-				// FIXME test attachments
-				// if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI) {
-				// 	let textId = 'saveDownloadNotPossibleSafariDesktop_msg'
-				// 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-				// 		textId = 'saveDownloadNotPossibleSafariMobile_msg'
-				// 	}
-				// 	return tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId).then(function () {
-				// 		// the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
-				// 		setTimeout(function () {
-				// 			URL.revokeObjectURL(url)
-				// 		}, 1)
-				// 	})
-				// } else {
-				// 	fileSaverSaveAs(new Blob([dataFile.getData()], {type: mimeType}), dataFile.getName())
-
-				// return Promise.resolve()
-				// }
 			}
 		}
 	}

@@ -700,7 +700,7 @@ module.exports = {
 		"richText_label": "Zengin metin",
 		"saveAll_action": "Tümünü kaydet",
 		"saveDownloadNotPossibleIe_msg": "Mobil İnternet Explorer, ekleri kaydetmeyi veya göstermeyi desteklemiyor. Lütfen bu özellikler için bir masaüstü tarayıcısı kullanın.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari ekleri diske kaydetmeyi desteklemiyor. Bazı dosya türleri yukarıdaki linke basılarak tarayıcı içerisinde görüntülenebilir. Lütfen Mozilla Firefox yada Google Chrome kullanınız.",
+		"saveDownloadNotPossibleIos_msg": "Safari ekleri diske kaydetmeyi desteklemiyor. Bazı dosya türleri yukarıdaki linke basılarak tarayıcı içerisinde görüntülenebilir. Lütfen Mozilla Firefox yada Google Chrome kullanınız.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari ekleri diske kaydetme özelliğini desteklemiyor. Yine de bazı dosya türlerini yukarıdaki bağlantıya tıklayarak tarayıcınızla görebilirsiniz. Aksi halde lütfen masaüstü tarayıcı kullanınız.",
 		"saveDraft_action": "Taslağı kaydet",
 		"saved_msg": "Başarıyla kaydedildi!",

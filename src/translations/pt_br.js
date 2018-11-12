@@ -653,7 +653,7 @@ module.exports = {
 		"replyTo_label": "ResponderPara",
 		"reply_action": "Responder",
 		"saveDownloadNotPossibleIe_msg": "O Internet Explorer Mobile não suporta salvar ou exibir anexos. Para estes recursos, por favor, use um navegador de internet para desktop.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari não suporta salvar anexos no disco. Alguns tipos de arquivos podem ser exibidos no navegador, clicando no link acima. Caso contrário, considere usar Mozilla Firefox ou Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari não suporta salvar anexos no disco. Alguns tipos de arquivos podem ser exibidos no navegador, clicando no link acima. Caso contrário, considere usar Mozilla Firefox ou Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari não suporta salvar anexos no disco. Mas alguns tipos de arquivos podem ser exibidos no navegador, clicando no link acima. Caso contrário, considere usar um navegador de internet para desktop.",
 		"saveDraft_action": "Salvar rascunho",
 		"saved_msg": "Salvo com sucesso!",

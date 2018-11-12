@@ -599,7 +599,7 @@ module.exports = {
 		"reply_action": "Balas",
 		"requiredFeatures_msg": "Fitur berikut harus diaktifkan:",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer versi mobile tidak mendukung penyimpanan atau menampilkan lampiran. Mohon gunakan peramban destop untuk fitur ini.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari tidak mendukung penyimpanan lampiran ke diska. Tapi, beberapa jenis berkas masih dapat ditampilkan di peramban dengan mengklik tautan di atas. Kalau tidak, mohon gunakan Mozilla Firefox atau Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari tidak mendukung penyimpanan lampiran ke diska. Tapi, beberapa jenis berkas masih dapat ditampilkan di peramban dengan mengklik tautan di atas. Kalau tidak, mohon gunakan Mozilla Firefox atau Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari tidak mendukung penyimpanan lampiran ke disk. Tapi, beberapa jenis berkas masih bisa ditampilkan di peramban dengan mengklik tautan di atas. Kalau tidak, mohon gunakan peramban destop.",
 		"saveDraft_action": "Simpan draf",
 		"saved_msg": "Disimpan dengan sukses!",

@@ -892,7 +892,7 @@ module.exports = {
 		"role_placeholder": "Papel",
 		"saveAll_action": "Guardar todo",
 		"saveDownloadNotPossibleIe_msg": "El IE móvil no permite guardar o mostrar los archivos adjuntos. Por favor, use un navegador de escritorio para estas características.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari no admite guardar archivos adjuntos en el disco. Algunos tipos de archivos se pueden mostrar en el navegador haciendo clic en el enlace de arriba. De lo contrario por favor, use Mozilla Firefox o Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari no admite guardar archivos adjuntos en el disco. Algunos tipos de archivos se pueden mostrar en el navegador haciendo clic en el enlace de arriba. De lo contrario por favor, use Mozilla Firefox o Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari no permite guardar los adjuntos en el disco. Aún así, algunos tipos de archivo se pueden mostrar en el navegador siguiendo el enlace anterior. Por favor usa otro navegador.",
 		"saveDraft_action": "Guardar borrador",
 		"saved_msg": "¡Guardado con éxito!",

@@ -336,7 +336,7 @@ module.exports = {
 		"replyConfidential_action": "Përgjigju nbesë",
 		"reply_action": "Përgjigju",
 		"saveDownloadNotPossibleIe_msg": "Internet Exploreri mobil nuk mundëson me i rujtë ose shfaqë bashkangjitjet. Të lutem, përdore një kompjuter për këto veprime.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nuk mundëson ruajtjen e bashkangjitetjeve në disk. Megjithatë, disa lloje dokumentash mund të shfaqen në shfletues duke klikuar mbi linkun më sipër. Përndryshe, të lutem përdor Mozilla Firefox ose Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari nuk mundëson ruajtjen e bashkangjitetjeve në disk. Megjithatë, disa lloje dokumentash mund të shfaqen në shfletues duke klikuar mbi linkun më sipër. Përndryshe, të lutem përdor Mozilla Firefox ose Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari nuk mundëson me i rujtë bashkëngjitjet në disk. Megjithatë, disa lloj fajllash mund të hapen në shfletues, duke kliku mbi vegëzën e mësipërme. Përndryshe, të lutem përdore një kompjuter.",
 		"saved_msg": "U ruajt!",
 		"savePassword_label": "Mbaj mend",

@@ -894,7 +894,7 @@ module.exports = {
 		"role_placeholder": "Role",
 		"saveAll_action": "Save all",
 		"saveDownloadNotPossibleIe_msg": "The mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above. Please use Mozilla Firefox or Google Chrome otherwise.",
+		"saveDownloadNotPossibleIos_msg": "This browser does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please use a desktop browser otherwise.",
 		"saveDraft_action": "Save draft",
 		"saved_msg": "Saved successfully!",

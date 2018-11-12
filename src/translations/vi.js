@@ -565,7 +565,7 @@ module.exports = {
 		"richText_label": "Chữ với định dạng",
 		"saveAll_action": "Lưu hết",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer cho di động không hỗ trợ lưu hoặc hiển thị các tập tin đính kèm. Xin sử dụng trình duyệt trên máy tính bàn cho những tính năng này.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari không hỗ trợ lưu tập tin đính kèm vào ồ đĩa. Một vài loại tập tin có thể hiển thị trên trình duyệt bằng cách nhấp vào liên kết phía trên. Nếu không, xin sử dụng Mozilla Firefox hoặc Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari không hỗ trợ lưu tập tin đính kèm vào ồ đĩa. Một vài loại tập tin có thể hiển thị trên trình duyệt bằng cách nhấp vào liên kết phía trên. Nếu không, xin sử dụng Mozilla Firefox hoặc Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari không hỗ trợ lưu tập tin đính kèm vào ổ đĩa. Một vài loại tập tin có thể hiển thị trên trình duyệt bằng cách nhấp vào liên kết trên đây. Nếu không, xin sử dụng trình duyệt trên máy tính bàn.",
 		"saveDraft_action": "Lưu nháp",
 		"saved_msg": "Lưu thành công!",

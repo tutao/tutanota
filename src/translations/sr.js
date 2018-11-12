@@ -454,7 +454,7 @@ module.exports = {
 		"replyConfidential_action": "Odgovoriti poverljivo",
 		"reply_action": "Odgovori",
 		"saveDownloadNotPossibleIe_msg": "Mobilni internet Explorer brauzer ne podržava snimanje ili prikaz dodatka. Molimo da koristite desktop brauzer.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari internet brauzer ne podržava snimanje priloga na disk. Pa ipak neki tipovi datoteka se mogu prikazati u brauzeru, ako kliknete na gornji link. Preporučujemo da koristite brauzere Mozilla Firefox ili Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari internet brauzer ne podržava snimanje priloga na disk. Pa ipak neki tipovi datoteka se mogu prikazati u brauzeru, ako kliknete na gornji link. Preporučujemo da koristite brauzere Mozilla Firefox ili Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Internet brauzer Safari ne podržava snimanje priloga na disk. Pa ipak neki tipovi datoteka se mogu prikazati u brauzeru ako kliknete na gornji link. Molimo vas da koristite brauzer na desktop računaru.",
 		"saved_msg": "Uspešno sačuvano!",
 		"savePassword_label": "Zapamtiti",

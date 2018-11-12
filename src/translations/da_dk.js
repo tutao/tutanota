@@ -849,7 +849,7 @@ module.exports = {
 		"role_placeholder": "Rolle",
 		"saveAll_action": "Gem alle",
 		"saveDownloadNotPossibleIe_msg": "Den mobile Internet Explorer understøtter ikke arkivering eller visning af vedhæftede filer. Brug venligst en computer browser for disse features.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari understøtter ikke arkivering af vedhæftede filer til harddisk. Visse filtyper kan blive vist i browseren ved at klikke på ovenstående link. Ellers brug venligst Mozilla Firefox eller Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari understøtter ikke arkivering af vedhæftede filer til harddisk. Visse filtyper kan blive vist i browseren ved at klikke på ovenstående link. Ellers brug venligst Mozilla Firefox eller Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari undersøtter ikke arkivering af vedhæftede filer til harddisk. Nogle filetyper kan stadig blive vist i din browser ved at klikke på linket ovenover. Ellers brug venligst en computer browser.",
 		"saveDraft_action": "Gem kladde",
 		"saved_msg": "Gemt ",

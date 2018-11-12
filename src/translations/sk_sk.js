@@ -596,7 +596,7 @@ module.exports = {
 		"responsiblePersonsInfo_msg": "Obmedz používateľov, ktorým možno poslať ďalej správu z prijímacej poštovej schránky. Ak je zoznam prázdny, neexistujú žiadne obmedzenia.",
 		"richText_label": "Text vo formáte RTF",
 		"saveDownloadNotPossibleIe_msg": "Mobilný Internet Explorer nepodporuje zobrazenie príloh. Prosím použi desktopovú verziu prehliadača.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari nepodporuje uloženie prílohy na disk. Niektoré prílohy môžu byť zobrazené v prehliadači kiliknutím na linku vyššie. Prosím použi Mozilla Firefox alebo Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari nepodporuje uloženie prílohy na disk. Niektoré prílohy môžu byť zobrazené v prehliadači kiliknutím na linku vyššie. Prosím použi Mozilla Firefox alebo Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari nepodporuje ukladanie príloh na disk. Avšak, niektoré typy súborov môžu byť zobrazené v prehliadači kliknutím na linku vyššie. Alebo, prosím použi desktop prehliadač.",
 		"saved_msg": "Úspešne uložené!",
 		"savePassword_label": "Pamätaj",

@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
-import {focusPrevious, focusNext, Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
@@ -266,7 +266,7 @@ export class Dialog {
 	}
 
 
-	static legacyDownload(filename: string, href: string): Promise<void> {
+	static legacyDownload(filename: string, url: string): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 			let closeAction = () => {
@@ -280,14 +280,16 @@ export class Dialog {
 				view: () => m("", [
 					m(".dialog-contentButtonsBottom.text-break", [
 						m("a.pt.b.block.text-ellipsis", {
-							href: href,
+							href: url,
 							target: "_blank",
 							onclick: () => {
+								let popup = open('', '_blank')
+								popup.location = url
 								dialog.close()
 								cb(null)
 							}
 						}, filename),
-						m(".pt", lang.get("saveDownloadNotPossibleSafariDesktop_msg"))
+						m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))
 					]),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])

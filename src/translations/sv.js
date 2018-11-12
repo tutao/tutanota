@@ -859,7 +859,7 @@ module.exports = {
 		"role_placeholder": "Roll",
 		"saveAll_action": "Spara alla",
 		"saveDownloadNotPossibleIe_msg": "Den mobila Internet Explorer stöder inte spara eller visa bilagor. Vänligen använd en webbläsare för dessa funktioner.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari stöder inte att spara bilagor till disk. Vissa filtyper kan visas i webbläsaren genom att klicka på länken ovan. Vänligen använd Mozilla Firefox eller Google Chrome annars.",
+		"saveDownloadNotPossibleIos_msg": "Safari stöder inte att spara bilagor till disk. Vissa filtyper kan visas i webbläsaren genom att klicka på länken ovan. Vänligen använd Mozilla Firefox eller Google Chrome annars.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari stöder inte att spara bilagor till disk. Vissa filtyper kan fortfarande   visas i webbläsaren genom att klicka på länken ovan. Vänligen använd en annan webbläsare annars.",
 		"saveDraft_action": "Spara utkast",
 		"saved_msg": "Sparats!",

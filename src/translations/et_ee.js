@@ -532,7 +532,7 @@ module.exports = {
 		"role_placeholder": "Roll",
 		"saveAll_action": "Salvesta kõik",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer'i mobiiliversioon ei toeta manuste salvestamist või kuvamist. Palun kasutage lauaarvutit nende funktsioonide jaoks.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari ei toeta manuste salvestamist kettale. Siiski mõningaid faile saab vaadata brauseris klikkides üleval olevale linkile.\nMuul juhul, palun kasutage Mozilla Firefox'i või Google Chrome'i.",
+		"saveDownloadNotPossibleIos_msg": "Safari ei toeta manuste salvestamist kettale. Siiski mõningaid faile saab vaadata brauseris klikkides üleval olevale linkile.\nMuul juhul, palun kasutage Mozilla Firefox'i või Google Chrome'i.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari ei toeta manuste salvestamist kettale. Siiski on võimalik mõningaid faile näha brauseris klikkides üleval oleval linkil. Muul juhul kasutage lauaarvuti brauserit.",
 		"saveDraft_action": "Salvesta mustand",
 		"saved_msg": "Edukalt salvestatud!",

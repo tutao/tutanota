@@ -882,7 +882,7 @@ module.exports = {
 		"role_placeholder": "Rôle",
 		"saveAll_action": "Sauvegarder tout",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer Mobile ne permet pas l'enregistrement ou l'affichage des pièces jointes. Veuillez utiliser un navigateur de bureau pour ces fonctionnalités.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari ne permet pas de sauvegarder les pièces jointes. Certains types de fichiers peuvent cependant être affichés dans le navigateur en cliquant sur le lien ci-dessus. Autrement, vous pouvez utiliser Mozilla Firefox ou Google Chrome.",
+		"saveDownloadNotPossibleIos_msg": "Safari ne permet pas de sauvegarder les pièces jointes. Certains types de fichiers peuvent cependant être affichés dans le navigateur en cliquant sur le lien ci-dessus. Autrement, vous pouvez utiliser Mozilla Firefox ou Google Chrome.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari ne supporte pas la sauvegarde des pièces jointes sur le disque dur. Toutefois, certains types de fichiers peuvent être affichés dans le navigateur en cliquant sur le lien ci-dessus. Veuillez utiliser un navigateur de bureau dans les autres cas.",
 		"saveDraft_action": "Sauvegarder le brouillon",
 		"saved_msg": "Enregistré avec succès !",

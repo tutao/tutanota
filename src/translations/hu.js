@@ -825,7 +825,7 @@ module.exports = {
 		"role_placeholder": "Szerep",
 		"saveAll_action": "Az összes mentése",
 		"saveDownloadNotPossibleIe_msg": "Az Internet Explorer mobil verziója nem támogatja a csatolmányok megjelenítését vagy mentését. Kérjük használjon asztali böngészőt.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "A Safari nem támogatja a mellékletek lementését. Némely fájltípus megjeleníthető a böngészőben a fenti hivatkozásra kattintva. Javasoljuk a Google Chrome vagy a Mozilla Firefox böngészők használatát!",
+		"saveDownloadNotPossibleIos_msg": "A Safari nem támogatja a mellékletek lementését. Némely fájltípus megjeleníthető a böngészőben a fenti hivatkozásra kattintva. Javasoljuk a Google Chrome vagy a Mozilla Firefox böngészők használatát!",
 		"saveDownloadNotPossibleSafariMobile_msg": "A Safari nem támogatja a mellékletek lementését. Némely fájltípus megjeleníthető a böngészőben a fenti hivatkozásra kattintva. Javasoljuk egy asztali böngésző használatát!",
 		"saveDraft_action": "Piszkozat mentése",
 		"saved_msg": "Sikeresen mentve!",

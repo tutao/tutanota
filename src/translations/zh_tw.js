@@ -874,7 +874,7 @@ module.exports = {
 		"role_placeholder": "擔任",
 		"saveAll_action": "全部保存",
 		"saveDownloadNotPossibleIe_msg": "行動裝置版 I.E 並不支援或顯示附件檔案。請改使用桌面瀏覽器來操作此功能。",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari 並不支援儲存附件至本端。部分文件類型可從瀏覽器中點擊上方連結來進行查看。或可改使用 Firefox 或Chrome 瀏覽器操作。",
+		"saveDownloadNotPossibleIos_msg": "Safari 並不支援儲存附件至本端。部分文件類型可從瀏覽器中點擊上方連結來進行查看。或可改使用 Firefox 或Chrome 瀏覽器操作。",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari 並不支援儲存附件至本端。但部分文件類型可從瀏覽器中點擊上方連結來進行查看。或可改使用桌面瀏覽器操作。",
 		"saveDraft_action": "保存草稿",
 		"saved_msg": "保存成功！",

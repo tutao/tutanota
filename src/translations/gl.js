@@ -855,7 +855,7 @@ module.exports = {
 		"role_placeholder": "Rol",
 		"saveAll_action": "Gardar todo",
 		"saveDownloadNotPossibleIe_msg": "O Internet Explorer móbil non soporta gardar e mostrar anexos. Por favor, utilice un navegador de escritorio para estas características.",
-		"saveDownloadNotPossibleSafariDesktop_msg": "Safari non permite gardar anexos no disco. Algúns tipos de ficheiros pódense mostrar no navegador pulsando na ligazón superior. Por favor utilice Firefox ou Chrome como alternativa.",
+		"saveDownloadNotPossibleIos_msg": "Safari non permite gardar anexos no disco. Algúns tipos de ficheiros pódense mostrar no navegador pulsando na ligazón superior. Por favor utilice Firefox ou Chrome como alternativa.",
 		"saveDownloadNotPossibleSafariMobile_msg": "Safari non permite gardar anexos ao disco. Mais algún tipo de ficheiros pode ser mostrado no navegador pulsando na ligazón superior. Por favor, utilice un navegador de escritorio no seu lugar.",
 		"saveDraft_action": "Gardar borrador",
 		"saved_msg": "Gardado con éxito!",
