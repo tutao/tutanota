@@ -50,7 +50,7 @@ export class FileFacade {
 								location: decryptedFileUrl,
 								size: file.size
 							}
-						})
+						}).finally(() => fileApp.deleteFile(fileLocation).catch((e) => console.log("Failed to delete file ", fileLocation)))
 					})
 				} else {
 					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)

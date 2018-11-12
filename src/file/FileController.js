@@ -21,6 +21,7 @@ export class FileController {
 				if (isAndroidApp() && !open && file._type === 'FileReference') {
 					// move the file to download folder on android app.
 					return putFileIntoDownloadsFolder(file.location)
+						.finally(() => fileApp.deleteFile(file.location).catch(() => console.log("Failed to delete file ", file.location)))
 				} else {
 					return this.open(file)
 				}
@@ -49,6 +50,7 @@ export class FileController {
 			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
 				if (isAndroidApp()) {
 					return putFileIntoDownloadsFolder(file.location)
+						.finally(() => fileApp.deleteFile(file.location).catch(() => console.log("Failed to delete file ", file.location)))
 				} else {
 					return fileController.open(file)
 				}
@@ -129,10 +131,11 @@ export class FileController {
 	}
 
 	open(file: DataFile | FileReference): Promise<void> {
-		if (file._type === 'FileReference') {
-			return fileApp.open(file)
+		const _file = file
+		if (_file._type === 'FileReference') {
+			return fileApp.open(_file).finally(() => fileApp.deleteFile(_file.location).catch((e) => console.log("Failed to delete file ", _file.location)))
 		} else {
-			let dataFile: DataFile = file
+			let dataFile: DataFile = _file
 			if (isApp()) {
 				return fileApp.saveBlob(dataFile)
 				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
