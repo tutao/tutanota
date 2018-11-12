@@ -76,12 +76,12 @@ public final class PushNotificationService extends JobService {
     private volatile SseInfo connectedSseInfo;
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
+    private volatile JobParameters jobParameters;
 
     private final Map<String, LocalNotificationInfo> aliasNotification =
             new ConcurrentHashMap<>();
 
     private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
-
     private final ThreadPoolExecutor confirmationThreadPool = new ThreadPoolExecutor(
             2, // initial pool size
             2, // max pool size
@@ -250,6 +250,7 @@ public final class PushNotificationService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
+        jobParameters = params;
         return true;
     }
 
@@ -303,6 +304,7 @@ public final class PushNotificationService extends JobService {
                     timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
                     PreferenceManager.getDefaultSharedPreferences(this).edit()
                             .putInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, timeoutInSeconds).apply();
+                    scheduleJobFinish();
                     continue;
                 }
 
@@ -367,6 +369,9 @@ public final class PushNotificationService extends JobService {
                     confirmationThreadPool.execute(
                             () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 }
+
+                Log.d(TAG, "Executing jobFinished after receiving notifications");
+                finishJobIfNeeded();
             }
         } catch (Exception ignored) {
             HttpURLConnection httpURLConnection = httpsURLConnectionRef.get();
@@ -398,6 +403,27 @@ public final class PushNotificationService extends JobService {
                 }
             }
             httpsURLConnectionRef.set(null);
+        }
+    }
+
+    private void scheduleJobFinish() {
+        if (jobParameters != null) {
+            new Thread(() -> {
+                Log.d(TAG, "Scheduling jobFinished");
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException ignored) {
+                }
+                Log.d(TAG, "Executing scheduled jobFinished");
+                finishJobIfNeeded();
+            }, "FinishJobThread");
+        }
+    }
+
+    private void finishJobIfNeeded() {
+        if (jobParameters != null) {
+            jobFinished(jobParameters, true);
+            jobParameters = null;
         }
     }
 
