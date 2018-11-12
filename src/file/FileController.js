@@ -21,7 +21,6 @@ export class FileController {
 				if (isAndroidApp() && !open && file._type === 'FileReference') {
 					// move the file to download folder on android app.
 					return putFileIntoDownloadsFolder(file.location)
-						.finally(() => fileApp.deleteFile(file.location).catch(() => console.log("Failed to delete file ", file.location)))
 				} else {
 					return this.open(file)
 				}
@@ -32,7 +31,7 @@ export class FileController {
 					return Dialog.error("couldNotAttachFile_msg")
 				}
 			})
-		)
+		).finally(() => this._cleanup())
 	}
 
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
@@ -50,13 +49,13 @@ export class FileController {
 			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
 				if (isAndroidApp()) {
 					return putFileIntoDownloadsFolder(file.location)
-						.finally(() => fileApp.deleteFile(file.location).catch(() => console.log("Failed to delete file ", file.location)))
 				} else {
 					return fileController.open(file)
 				}
 			})
 		).return()
 		 .catch(() => Dialog.error("couldNotAttachFile_msg"))
+		 .finally(() => this._cleanup())
 	}
 
 	/**
@@ -133,7 +132,7 @@ export class FileController {
 	open(file: DataFile | FileReference): Promise<void> {
 		const _file = file
 		if (_file._type === 'FileReference') {
-			return fileApp.open(_file).finally(() => fileApp.deleteFile(_file.location).catch((e) => console.log("Failed to delete file ", _file.location)))
+			return fileApp.open(_file)
 		} else {
 			let dataFile: DataFile = _file
 			if (isApp()) {
@@ -194,6 +193,13 @@ export class FileController {
 					return Dialog.error("canNotOpenFileOnDevice_msg")
 				}
 			}
+		}
+	}
+
+	_cleanup() {
+		if (isApp()) {
+			fileApp.clearFileData()
+			       .catch((e) => console.warn("Failed to clear file data", e))
 		}
 	}
 }

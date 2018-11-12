@@ -280,8 +280,17 @@ public class FileUtil {
     }
 
     void clearFileData() {
-        // FIXME delete cached files (currently only implemented for ios)
+        cleanupDir(Crypto.TEMP_DIR_DECRYPTED);
+        cleanupDir(Crypto.TEMP_DIR_ENCRYPTED);
     }
 
+    private void cleanupDir(String dirname) {
+        File[] files = new File(Utils.getDir(activity), dirname).listFiles();
+        if (files != null) {
+            for (File file : files) {
+                file.delete();
+            }
+        }
+    }
 
 }

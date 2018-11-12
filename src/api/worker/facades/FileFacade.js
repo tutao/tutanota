@@ -50,7 +50,7 @@ export class FileFacade {
 								location: decryptedFileUrl,
 								size: file.size
 							}
-						}).finally(() => fileApp.deleteFile(fileLocation).catch((e) => console.log("Failed to delete file ", fileLocation)))
+						})
 					})
 				} else {
 					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)
@@ -99,13 +99,10 @@ export class FileFacade {
 							}
 						})
 					})
-					.finally(() =>
-						fileApp.deleteFile(encryptedFileLocation)
-						       .catch((e) => console.warn("Failed to delete file at " + encryptedFileLocation)))
 			})
 			.finally(() => {
-				return fileApp.deleteFile(fileReference.location)
-				              .catch((e) => console.warn("Failed to delete file at " + fileReference.location))
+				return fileApp.clearFileData()
+				              .catch((e) => console.warn("Failed to clear files", e))
 			})
 
 	}
