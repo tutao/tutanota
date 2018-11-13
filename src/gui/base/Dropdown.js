@@ -2,7 +2,7 @@
 import m from "mithril"
 import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
-import {animations, height, width} from "./../animation/Animations"
+import {animations, DefaultAnimationTime, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import {Button} from "./Button"
@@ -90,7 +90,7 @@ export class Dropdown {
 
 		this.resizeListener = (width, height) => {
 			if (this._domContents) {
-				this.show(this._domContents)
+				this.show(this._domContents, false)
 			}
 		}
 		this.oncreate = (vnode) => {
@@ -252,7 +252,7 @@ export class Dropdown {
 		this.close()
 	}
 
-	show(domElement: HTMLElement) {
+	show(domElement: HTMLElement, animate: boolean = true) {
 		this._domContents = domElement
 		if (this.origin) {
 			let left = this.origin.left
@@ -284,19 +284,22 @@ export class Dropdown {
 				contentsHeight + this._getFilterHeight(),
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
-			return animations.add(this._domDropdown, [
+
+			// We would prefer to cancel current animation but we don't have infrastructure for this yet
+			animations.add(this._domDropdown, [
 				width(0, this._width),
 				height(0, this.maxHeight)
-			], {easing: ease.out}).then(() => {
-				if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
-					// do not show the scrollbar during the animation.
-					this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
-					this._domContents.style.overflowY = client.overflowAuto
-				}
-				if (this._domInput) {
-					this._domInput.focus()
-				}
-			})
+			], {easing: ease.out, duration: animate ? DefaultAnimationTime : 0})
+			          .then(() => {
+				          if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
+					          // do not show the scrollbar during the animation.
+					          this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
+					          this._domContents.style.overflowY = client.overflowAuto
+				          }
+				          if (this._domInput) {
+					          this._domInput.focus()
+				          }
+			          })
 		}
 	}
 
