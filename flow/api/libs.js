@@ -79,6 +79,8 @@ declare class Promise<+R> {
 
 	delay<T>(millis: number): Promise<T>;
 
+	tap(handler: (R => $Promisable<mixed>)): Promise<R>;
+
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;

@@ -9,7 +9,6 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 @interface TUTFileUtil ()
 @property (readonly) TUTFileChooser *attachmentChooser;
 @property (readonly) TUTFileViewer *viewer;
-@property (readonly) NSMutableSet<NSString*> *attachmentsForUpload;
 @end
 
 @implementation TUTFileUtil
@@ -20,7 +19,6 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
     if (self) {
         _attachmentChooser = [[TUTFileChooser alloc] init];
 		_viewer = [[TUTFileViewer alloc] initWithViewController:viewController];
-		_attachmentsForUpload = [[NSMutableSet alloc] init];
     }
     return self;
 }
@@ -36,10 +34,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 - (void)deleteFileAtPath:(NSString *)filePath
 			  completion:(void (^)(void))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		// do not delete files if they haven't been uploaded yet.
-		if (![self->_attachmentsForUpload containsObject:filePath]) {
-			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-		}
+		[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
 		completion();
 	 });
 }
@@ -201,7 +196,27 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 };
 
 
+- (void)clearFileData{
+	NSError* error;
+	[self clearDirectory:[TUTFileUtil getEncryptedFolder: &error]];
+	[self clearDirectory:[TUTFileUtil getDecryptedFolder: &error]];
+}
 
+
+-(void) clearDirectory:(NSString*) dirToDelete {
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSError* error;
+	NSArray *files = [fileManager contentsOfDirectoryAtPath:dirToDelete
+													  error:&error];
+	if (error) {
+		return;
+	}
+
+	for (NSString *file in files) {
+		[fileManager removeItemAtPath:[dirToDelete stringByAppendingPathComponent:file]
+								error:&error];
+	}
+}
 
 @end
 

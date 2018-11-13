@@ -154,6 +154,9 @@ typedef void(^VoidCallback)(void);
 		[_fileUtil deleteFileAtPath:arguments[0] completion:^{
 			sendResponseBlock(NSNull.null, nil);
 		}];
+	} else if ([@"clearFileData" isEqualToString:type]) {
+		[_fileUtil clearFileData];
+		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"download" isEqualToString:type]) {
 		[_fileUtil downloadFileFromUrl:arguments[0]
 							   forName:arguments[1]

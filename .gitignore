@@ -2,11 +2,10 @@ build
 node_modules
 .idea
 .gradle
-app/platforms
-app/plugins
 **/.DS_STORE
 **/*.xcbkptlist
 **/*.xcuserstate
 **/xcuserdata
 fastlane
 android-app/app/release
+app-ios/releases
