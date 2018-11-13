@@ -15,6 +15,9 @@ assertMainOrNode()
 
 export class FileController {
 
+	/**
+	 * Temporary files are deleted afterwards in apps.
+	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
@@ -37,6 +40,9 @@ export class FileController {
 		)
 	}
 
+	/**
+	 * Temporary files are deleted afterwards in apps.
+	 */
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			Promise
@@ -137,6 +143,9 @@ export class FileController {
 		})
 	}
 
+	/**
+	 * Does not delete temporary file in app.
+	 */
 	open(file: DataFile | FileReference): Promise<void> {
 		const _file = file
 		if (_file._type === 'FileReference') {

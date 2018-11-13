@@ -36,7 +36,8 @@
 					forName:(NSString * _Nonnull)fileName
 				withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
 				 completion:(void (^ _Nonnull)(NSString * _Nullable filePath, NSError * _Nullableerror))completion;
-//- (void)clearFileData:(CDVInvokedUrlCommand*)command;
+
+- (void)clearFileData;
 
 
 /** Helper functions for file access. */

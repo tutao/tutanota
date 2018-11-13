@@ -81,6 +81,9 @@ export class FileFacade {
 			})
 	}
 
+	/**
+	 * Does not cleanup uploaded files. This is a responsibility of the caller
+	 */
 	uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
 		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
 			.then(encryptedFileLocation => {
@@ -101,10 +104,6 @@ export class FileFacade {
 							}
 						})
 					})
-			})
-			.finally(() => {
-				return fileApp.clearFileData()
-				              .catch((e) => console.warn("Failed to clear files", e))
 			})
 
 	}

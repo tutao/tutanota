@@ -41,7 +41,6 @@
 			[self->_sourceController presentViewController:self->_previewController
 												  animated:YES
 												completion:nil];
-			self->_completionHandler(nil);
 		});
 	} else {
 		completion([TUTErrorFactory createError:@"cannot display files"]);
@@ -71,7 +70,7 @@
  * @abstract Invoked after the preview controller is closed.
  */
 - (void)previewControllerDidDismiss:(QLPreviewController *)controller{
-//	_completionHandler(nil);
+	_completionHandler(nil);
 }
 
 /*!
