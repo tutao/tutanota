@@ -37,6 +37,7 @@ import {formatPrice} from "../misc/Formatter"
 import * as NotificationOverlay from "../gui/base/NotificationOverlay"
 import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
 import {ButtonType} from "../gui/base/ButtonN"
+import {fileApp} from "../native/FileApp"
 
 assertMainOrNode()
 
@@ -207,7 +208,11 @@ export class LoginViewController implements ILoginViewController {
 			if (!isAdminClient()) {
 				return mailModel.init()
 			}
-		}).then(() => logins.loginComplete())
+		}).then(() => logins.loginComplete()).then(() => {
+			// don't wait for it, just invoke
+			fileApp.clearFileData()
+			       .catch((e) => console.log("Failed to clean file data", e))
+		})
 	}
 
 	_showRecoverCodeNotification(user: User) {

@@ -18,10 +18,13 @@ export class FileController {
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (isAndroidApp() && !open && file._type === 'FileReference') {
-					// move the file to download folder on android app.
-					return putFileIntoDownloadsFolder(file.location)
+				if (file._type === "FileReference") {
+					return (isAndroidApp() && !open
+						? putFileIntoDownloadsFolder(file.location)
+						: this.open(file))
+						.finally(() => this._deleteFile(file.location))
 				} else {
+					// Data file. No cleanup needed.
 					return this.open(file)
 				}
 			}).catch(err => {
@@ -31,31 +34,36 @@ export class FileController {
 					return Dialog.error("couldNotAttachFile_msg")
 				}
 			})
-		).finally(() => this._cleanup())
+		)
 	}
 
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
-			Promise.map(tutanotaFiles, (tutanotaFile) => {
-				return worker.downloadFileContent(tutanotaFile)
-				             .catch(err => {
-					             if (err instanceof CryptoError) {
-						             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-					             } else {
-						             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " "
-							             + tutanotaFile.name)
-					             }
-				             })
-			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
-				if (isAndroidApp()) {
-					return putFileIntoDownloadsFolder(file.location)
-				} else {
-					return fileController.open(file)
-				}
-			})
-		).return()
-		 .catch(() => Dialog.error("couldNotAttachFile_msg"))
-		 .finally(() => this._cleanup())
+			Promise
+				.map(tutanotaFiles, (tutanotaFile) => {
+					return worker.downloadFileContent(tutanotaFile)
+					             .catch(err => {
+						             // We're returning dialogs here so they don't overlap each other
+						             // We're returning null to say that this file is not present.
+						             // (it's void by default)
+						             if (err instanceof CryptoError) {
+							             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+							                          .return(null)
+						             } else {
+							             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " "
+								             + tutanotaFile.name)
+							                          .return(null)
+						             }
+					             })
+				}, {concurrency: (isAndroidApp() ? 1 : 5)})
+				.then((files) => files.filter(Boolean)) // filter out failed files
+				.then((files) => {
+					return Promise.each(files, (file) =>
+						(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
+							.finally(() => this._deleteFile(file.location)))
+				}))
+			.return()
+			.catch(() => Dialog.error("couldNotAttachFile_msg"))
 	}
 
 	/**
@@ -196,11 +204,9 @@ export class FileController {
 		}
 	}
 
-	_cleanup() {
-		if (isApp()) {
-			fileApp.clearFileData()
-			       .catch((e) => console.warn("Failed to clear file data", e))
-		}
+	_deleteFile(filePath: string) {
+		fileApp.deleteFile(filePath)
+		       .catch((e) => console.log("failed to delete file", filePath, e))
 	}
 }
 
