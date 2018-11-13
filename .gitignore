@@ -9,3 +9,4 @@ app/plugins
 **/*.xcuserstate
 **/xcuserdata
 fastlane
+android-app/app/release
