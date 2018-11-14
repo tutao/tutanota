@@ -1,3 +1,25 @@
-- Remember language choice for external recipients
-- Fixed bugs with opening attachments
-- Fixed bug when writing a recipient address
+- Reset of password and second factors 
+- Indexing improvements - app should synchronize quicker
+  - We had to delete existing search indexes for this update. We hope that this is a one-time case.
+- Make storing IP-addresses opt-in
+- Friendlier image placeholder
+- Suggest saving draft only if it was changed
+- Confirmation for deleting emails from trash if it was a swipe
+- Switch start and end date in search period
+- Fixed app logo showing up when opening keyboard
+- Added progress indicator in multiple places 
+- Security hardening 
+- Add search field to long dropdowns 
+- Show upgrade button in the menu 
+- Multiselect in search
+- Improve session names for apps
+- More efficient synchronization 
+- Fix errors when deleting temporary files
+- Show error dialog when trying to add deactivated user to group 
+- Anti-phishing measures: Marking of official Tutanota support mails
+- Multiple files could be sent incorrectly 
+- Other fixes for sharing files 
+- Fix temporary file cleanup 
+- Reply would not use correct address sometimes 
+- Add "mark as read" button 
+- Fix multiple notification sounds on some devices 
