@@ -76,7 +76,7 @@ export class Indexer {
 			initialized: deferred.promise
 		} // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db, new EventQueue((batch, futureActions) => this._processEntityEvents(batch, futureActions)),
+		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
 		this._entity = new EntityWorker()
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
@@ -371,7 +371,7 @@ export class Indexer {
 			.then(() => this.startProcessing())
 	}
 
-	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds:Id[]):Id {
+	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds: Id[]): Id {
 		let newestBatchId = lastEventBatchIds[0]
 		let oldestBatchId = lastEventBatchIds[lastEventBatchIds.length - 1]
 		// load all EntityEventBatches which are not older than 1 minute before the newest batch

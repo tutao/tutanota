@@ -58,7 +58,7 @@ import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
-import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
@@ -516,6 +516,8 @@ export class LoginFacade {
 		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
+		}).catch(ConnectionError, e => {
+			console.log("could not store entropy", e)
 		})
 	}
 

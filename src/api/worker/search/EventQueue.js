@@ -2,6 +2,8 @@
 
 import {OperationType} from "../../common/TutanotaConstants"
 import {containsEventOfType} from "../../common/utils/Utils"
+import {ConnectionError} from "../../common/error/RestError"
+import {WorkerImpl} from "../WorkerImpl"
 
 export type QueuedBatch = {
 	events: EntityUpdate[], groupId: Id, batchId: Id
@@ -16,8 +18,10 @@ export class EventQueue {
 	_processNextQueueElement: (nextElement: QueuedBatch, futureActions: FutureBatchActions) => Promise<void>
 	_futureActions: FutureBatchActions
 	_paused: boolean
+	_worker: WorkerImpl
 
-	constructor(processNextQueueElement: (nextElement: QueuedBatch, futureActions: FutureBatchActions) => Promise<void>) {
+	constructor(worker: WorkerImpl, processNextQueueElement: (nextElement: QueuedBatch, futureActions: FutureBatchActions) => Promise<void>) {
+		this._worker = worker
 		this._processingActive = false
 		this._eventQueue = []
 		this._processNextQueueElement = processNextQueueElement
@@ -36,12 +40,23 @@ export class EventQueue {
 		if (this._paused) {
 			return
 		}
-		this._processingActive = true
-		let next = this._eventQueue.shift()
-		if (next) {
-			this._processNextQueueElement(next, this._futureActions).then(() => this._processNext())
-		} else {
-			this._processingActive = false
+		if (this._eventQueue.length > 0) {
+			this._processingActive = true
+			this._processNextQueueElement(this._eventQueue[0], this._futureActions)
+			    .then(() => {
+				    this._eventQueue.shift()
+				    this._processingActive = false
+				    this._processNext()
+			    })
+			    .catch(ConnectionError, e => {
+				    // processing continues if the event bus receives a new event
+				    this._processingActive = false
+			    })
+			    .catch(e => {
+				    // processing continues if the event bus receives a new event
+				    this._processingActive = false
+				    this._worker.sendError(e)
+			    })
 		}
 	}
 
@@ -76,6 +91,6 @@ export class EventQueue {
 
 	resume() {
 		this._paused = false
-		this._processNext()
+		this.start()
 	}
 }

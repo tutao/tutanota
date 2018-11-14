@@ -6,7 +6,8 @@ import {replaceAllMaps, spy} from "../../TestUtils"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {OperationType} from "../../../../src/api/common/TutanotaConstants"
-import {defer} from "../../../../src/api/common/utils/Utils"
+import {defer, downcast} from "../../../../src/api/common/utils/Utils"
+import {ConnectionError} from "../../../../src/api/common/error/RestError"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
@@ -23,12 +24,13 @@ o.spec("EventQueueTest", function () {
 	o.beforeEach(function () {
 		lastProcess = defer()
 		processElement = spy(() => {
-			if (queue._eventQueue.length == 0) {
+			if (queue._eventQueue.length == 1) {
+				// the last element is removed right after processing it
 				lastProcess.resolve()
 			}
 			return Promise.resolve()
 		})
-		queue = new EventQueue(processElement)
+		queue = new EventQueue(downcast({sendError: () => null}), processElement)
 	})
 
 	o("addBatches & start", async function () {
@@ -82,6 +84,8 @@ o.spec("EventQueueTest", function () {
 		await lastProcess.promise
 
 		o(replaceAllMaps(processElement.invocations)).deepEquals(batches.map((b) => [b, expectedFutureActions]))
+		o(queue._processingActive).equals(false)
+		o(queue._eventQueue.length).equals(0)
 	})
 
 
@@ -117,4 +121,82 @@ o.spec("EventQueueTest", function () {
 		queue.start()
 		o(queue._eventQueue.length).equals(1)
 	})
+
+	o("handle ConnectionError", async function () {
+		const groupId = "groupId"
+		const batchWithThrow: QueuedBatch = {
+			events: [newUpdate(OperationType.CREATE, "2"), newUpdate(OperationType.DELETE, "2")],
+			groupId,
+			batchId: "2"
+		}
+		const batchWithOnlyCreate: QueuedBatch = {
+			events: [newUpdate(OperationType.CREATE, "3")],
+			groupId,
+			batchId: "3"
+		}
+
+		lastProcess = defer()
+		processElement = spy(() => {
+			if (queue._eventQueue.length == 1) {
+				// the last element is removed right after processing it
+				lastProcess.resolve()
+			}
+			return Promise.resolve()
+		})
+		let queue = new EventQueue(downcast({sendError: () => null}), (nextElement: QueuedBatch, futureActions: FutureBatchActions) => {
+			if (nextElement.batchId == "2") {
+				return Promise.reject(new ConnectionError("no connection"))
+			} else {
+				o("should not be called").equals(true)
+				return Promise.resolve()
+			}
+		})
+		queue.addBatches([batchWithThrow, batchWithOnlyCreate])
+
+		queue.start()
+		await Promise.delay(5, Promise.resolve())
+		o(queue._eventQueue.length).equals(2)
+		o(queue._processingActive).equals(false)
+	})
+
+	o("handle other Error", async function () {
+		const groupId = "groupId"
+		const batchWithThrow: QueuedBatch = {
+			events: [newUpdate(OperationType.CREATE, "2"), newUpdate(OperationType.DELETE, "2")],
+			groupId,
+			batchId: "2"
+		}
+		const batchWithOnlyCreate: QueuedBatch = {
+			events: [newUpdate(OperationType.CREATE, "3")],
+			groupId,
+			batchId: "3"
+		}
+
+		lastProcess = defer()
+		processElement = spy(() => {
+			if (queue._eventQueue.length == 1) {
+				// the last element is removed right after processing it
+				lastProcess.resolve()
+			}
+			return Promise.resolve()
+		})
+		const sentErrors = []
+		let error = new Error("other error handling")
+		let queue = new EventQueue(downcast({sendError: (e) => sentErrors.push(e)}), (nextElement: QueuedBatch, futureActions: FutureBatchActions) => {
+			if (nextElement.batchId == "2") {
+				return Promise.reject(error)
+			} else {
+				o("should not be called").equals(true)
+				return Promise.resolve()
+			}
+		})
+		queue.addBatches([batchWithThrow, batchWithOnlyCreate])
+
+		queue.start()
+		await Promise.delay(5, Promise.resolve())
+		o(queue._eventQueue.length).equals(2)
+		o(queue._processingActive).equals(false)
+		o(sentErrors).deepEquals([error])
+	})
+
 })

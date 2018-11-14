@@ -82,6 +82,7 @@ export class EventBusClient {
 		}
 
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
+		this._websocketWrapperQueue = []
 		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
 
@@ -116,11 +117,14 @@ export class EventBusClient {
 					}
 				}
 				sendInitialMsg()
-				if (reconnect) {
-					this._loadMissedEntityEvents()
-				} else {
-					this._setLatestEntityEventIds()
-				}
+				let p = ((reconnect) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+				p.catch(ConnectionError, e => {
+					console.log("not connected in connect(), close websocket", e)
+					this.close(CloseEventBusOption.Reconnect)
+				})
+				 .catch(e => {
+					 this._worker.sendError(e)
+				 })
 			})
 			this._worker.updateWebSocketState("connected")
 		};
@@ -188,6 +192,13 @@ export class EventBusClient {
 							           if (this._websocketWrapperQueue.length > 0) {
 								           return this._processQueuedEvents()
 							           }
+						           })
+						           .catch(ConnectionError, e => {
+							           console.log("not connected in _message(), close websocket", e)
+							           this.close(CloseEventBusOption.Reconnect)
+						           })
+						           .catch(e => {
+							           this._worker.sendError(e)
 						           })
 						           .finally(() => {
 							           this._queueWebsocketEvents = false
@@ -263,9 +274,6 @@ export class EventBusClient {
 			})
 		}).then(() => {
 			return this._processQueuedEvents()
-		}).catch(ConnectionError, e => {
-			console.log("not connected in _setLatestEntityEventIds, close websocket", e)
-			this.close(CloseEventBusOption.Reconnect)
 		}).finally(() => {
 			this._queueWebsocketEvents = false
 		})
@@ -287,9 +295,6 @@ export class EventBusClient {
 						return this._processQueuedEvents()
 					})
 				}
-			}).catch(ConnectionError, e => {
-				console.log("not connected in _loadMissedEntityEvents, close websocket", e)
-				this.close(CloseEventBusOption.Reconnect)
 			}).finally(() => {
 				this._queueWebsocketEvents = false
 			})
@@ -321,30 +326,22 @@ export class EventBusClient {
 			.map(events, event => {
 				return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
 				           .then(() => event)
-				           .catch(e => {
-					           if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-						           // skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
-						           return null
-					           } else {
-						           this._worker.sendError(e)
-						           throw e // do not continue processing the other events
-					           }
+				           .catch(NotFoundError, e => {
+					           // skip this event. NotFoundError may occur if an entity is removed in parallel
+					           return null
+				           })
+				           .catch(NotAuthorizedError, e => {
+					           // skip this event. NotAuthorizedError may occur if the user was removed from the owner group
+					           return null
 				           })
 			})
 			.filter(event => event != null)
 			.then(filteredEvents => {
-				this._executeIfNotTerminated(() => {
-					if (!isTest() && !isAdminClient()) {
-						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-						this._indexer.startProcessing()
-					}
-				})
-				return filteredEvents
-			}).then(events => {
-				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(events))
-				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(events)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(events)))
-			}).then(() => {
+				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
+				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
+				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
+				           .return(filteredEvents)
+			}).then(filteredEvents => {
 				if (!this._lastEntityEventIds[groupId]) {
 					this._lastEntityEventIds[groupId] = []
 				}
@@ -360,6 +357,16 @@ export class EventBusClient {
 				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
 					this._lastEntityEventIds[groupId].shift()
 				}
+				return filteredEvents
+			}).then(filteredEvents => {
+				// call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that shall not receive the event twice
+				this._executeIfNotTerminated(() => {
+					if (!isTest() && !isAdminClient()) {
+						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+						this._indexer.startProcessing()
+					}
+				})
+				return filteredEvents
 			})
 	}
 
