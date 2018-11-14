@@ -177,6 +177,10 @@ function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Prom
 	message += "\n Tutanota version: " + env.versionNumber
 	message += "\n Timestamp (UTC): " + timestamp.toUTCString()
 	message += "\n User agent: \n" + navigator.userAgent
+	if (error && error.message) {
+		message += "\n\n Error message: \n" + error.message
+	}
+
 	if (error && error.stack) {
 		// the error id is included in the stacktrace
 		message += "\n\n Stacktrace: \n" + error.stack

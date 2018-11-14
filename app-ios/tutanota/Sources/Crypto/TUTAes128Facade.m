@@ -62,7 +62,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 - (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
 	if ([iv length] != TUTAO_IV_BYTE_SIZE){
-		*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:@"invalid iv length"];
+		*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"invalid iv length"];
 		return NO;
 	}
 	//NSLog(@"iv: %@", [TutaoEncodingConverter bytesToHex:iv]);
@@ -83,8 +83,8 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 		let providedMacBytes = [encryptedData subdataWithRange:NSMakeRange(encryptedData.length - 32, 32)];
 		let computedMacBytes = [self hmac256WithKey:subKeys.mKey data:cipherTextWithoutMac];
-		if (![providedMacBytes isEqual:computedMacBytes]) {
-			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:@"HMAC validation failed"];
+		if ([providedMacBytes isEqual:computedMacBytes]) {
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"HMAC validation failed"];
 			return nil;
 		}
 	} else {
@@ -138,7 +138,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
                            &cryptor);             // OUT cryptorRef
 
 	if (cryptorStatus != kCCSuccess) {
-		*error =  [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
+		*error =  [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:[NSString stringWithFormat:@"CCCryptorCreate failed: %d", cryptorStatus]];
 		return NO;
 	}
 
@@ -158,7 +158,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 			&writeBufferLength);
 		
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
 			break;
 		}
 		// write to output stream
@@ -174,7 +174,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 					TUTAO_CRYPT_BUFFER_SIZE,
 					&writeBufferLength);
 		if (cryptorStatus != kCCSuccess) {
-			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR msg:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
+			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:[NSString stringWithFormat:@"CCCryptorFinal failed: %d", cryptorStatus]];
 		} else {
 			[self writeBytes:&writeBuffer dataInLength:writeBufferLength to:outputStream error:error];
 		}

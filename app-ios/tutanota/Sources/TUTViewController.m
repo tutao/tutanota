@@ -217,20 +217,15 @@ typedef void(^VoidCallback)(void);
 }
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
-	id message = value.userInfo[@"message"];
-	if (!message) {
-		message = value.userInfo[@"NSLocalizedFailureReason"];
-		if (!message) {
-			message = value.userInfo[@"NSLocalizedDescription"];
-			if (!message) {
-				message = NSNull.null;
-			}
-		}
+	var *message = @"";
+	if (value.userInfo) {
+		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value.userInfo options:0 error:nil]
+										encoding:NSUTF8StringEncoding];
 	}
 
 	let errorDict = @{
 					  @"name":[value domain],
-					  @"message":message
+					  @"message":[NSString stringWithFormat:@"code: %ld message: %@", (long)value.code, message]
 					  };
 	[self postMessage:@{
 					 @"id":responseId,

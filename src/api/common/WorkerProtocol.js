@@ -211,6 +211,7 @@ const ErrorNameToType = {
 	"java.io.EOFException": ConnectionError,
 	"java.net.UnknownHostException": ConnectionError,
 	"java.lang.SecurityException": PermissionError,
-	"de.tutao.tutanota.CryptoError": CryptoError,
-	"java.io.FileNotFoundException": FileNotFoundError
+	"java.io.FileNotFoundException": FileNotFoundError,
+	"de.tutao.tutanota.CryptoError": CryptoError, // Android app exception class name
+	"de.tutao.tutanota.TutCrypto": CryptoError // iOS app crypto error domain
 }

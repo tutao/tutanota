@@ -25,14 +25,27 @@
 
 #import "Swiftier.h"
 
-static NSString * const CRYPTO_ERROR_DOMAIN = @"tutanota_crypto";
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
+
+@interface TUTCrypto ()
+@property (readwrite) dispatch_queue_t serialQueue;
+@end
 
 @implementation TUTCrypto
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+		dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
+		self.serialQueue = dispatch_queue_create("de.tutao.serialqueue", queueAttributes);
+    }
+    return self;
+}
+
 - (void)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed
 					completion:(void (^)(NSDictionary *keyPair, NSError *error))completion {
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+	dispatch_async(self.serialQueue, ^{
 		// seeds the PRNG (pseudorandom number generator)
 		NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
 		RAND_seed([seed bytes], (int) [seed length]);
@@ -51,8 +64,8 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 															version:[NSNumber numberWithInt:0]];
 			completion(keyPair, nil);
 		} else {
-			[TUTCrypto logError:@"Error while generating rsa key"];
-			completion(nil, [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil]);
+			let error = [TUTCrypto logOpenSslError:@"Error while generating rsa key" statusCode:status];
+			completion(nil, error);
 		}
 		BN_free(e);
 		RSA_free(rsaKey);
@@ -69,7 +82,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	// convert base64 data to bytes.
 	NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
 
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+	dispatch_async(self.serialQueue, ^{
 		int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
 		NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
 		int paddingLength = (int) [paddingBuffer length];
@@ -92,8 +105,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			completion(encryptedBase64, nil);
 		} else {
 			// Error handling
-			[TUTCrypto logError:@"encryption failed"];
-			NSError *error = [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil];
+			let error = [TUTCrypto logOpenSslError:@"rsa encryption failed" statusCode:status];
 			completion(nil, error);
 		}
 		RSA_free(publicRsaKey);
@@ -110,7 +122,10 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 	int rsaCheckResult = RSA_check_key(privateRsaKey);
 	if (rsaCheckResult != 1){
-		[TUTCrypto logError:@"Invald private key"];
+		let error = [TUTCrypto logOpenSslError:@"Invald private rsa key" statusCode:rsaCheckResult];
+		completion(nil, error);
+		RSA_free(privateRsaKey);
+		return;
 	}
 
 	// convert encrypted base64 data to bytes.
@@ -119,7 +134,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
 	NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
 
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+	dispatch_async(self.serialQueue, ^{
 		// Decrypt
 		int status = RSA_private_decrypt((int) [decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
 
@@ -140,8 +155,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			completion(decryptedBase64, nil);
 		} else {
 			// Error handling
-			[TUTCrypto logError:@"decryption failed"];
-			NSError *error = [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:status userInfo:nil];
+			let error = [TUTCrypto logOpenSslError:@"rsa decryption failed" statusCode:status];
 			completion(nil, error);
 		}
 		RSA_free(privateRsaKey);
@@ -210,17 +224,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 }
 
 
-+ (void) logError:(NSString *)msg {
-	ERR_load_crypto_strings();
-	int errorCode = (int) ERR_get_error();
-	size_t messageBufferSize = 256;
-	char *messageBuffer = (char *)calloc(messageBufferSize, sizeof(char));
-	while (errorCode != 0){
-		ERR_error_string( errorCode, messageBuffer);
-		NSLog(@"Error: %@ <%i|%s>", msg, errorCode, messageBuffer);
-	}
-	ERR_free_strings();
-}
+
 
 
 + (NSMutableDictionary *)createRSAKeyPair:(RSA*)key keyLength:(NSNumber*)keyLength version:(NSNumber*)version {
@@ -255,13 +259,16 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		NSData *keyData = [TUTEncodingConverter base64ToBytes:keyBase64];
 
 		if (![TUTFileUtil fileExistsAtPath:filePath]) {
-			completion(nil, [self fileDoesNotExistsErrorForPath:filePath]);
+			let message = [NSString stringWithFormat:@"file to encrypt does not exists: %@", filePath];
+			let wrappedError = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:message];
+			completion(nil, wrappedError);
 			return;
 		};
 
 		NSString *encryptedFolder = [TUTFileUtil getEncryptedFolder:&error];
 		if (error) {
-			completion(nil, error);
+			let wrappedError = [TUTErrorFactory wrapCryptoErrorWithMessage:@"Could not set up encrypted folder" error:error];
+			completion(nil,  wrappedError);
 			return;
 		}
 
@@ -271,11 +278,11 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		let plainTextData = [NSData dataWithContentsOfFile:filePath];
 		let outputData = [aesFacade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
 		if (error) {
-			completion(nil, error);
+			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES encrypt file" error:error]);
 			return;
 		}
 		if (![outputData writeToFile:encryptedFilePath atomically:YES]) {
-			completion(nil, [TUTErrorFactory createError:@"Failed to write decrypted file"]);
+			completion(nil, [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"Failed to write decrypted file"]);
 			return;
 		}
 		completion(encryptedFilePath, nil);
@@ -290,13 +297,15 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		NSData *key = [TUTEncodingConverter base64ToBytes:base64key];
 
 		if (![TUTFileUtil fileExistsAtPath:filePath]) {
-			completion(nil, [self fileDoesNotExistsErrorForPath:filePath]);
+			let message = [NSString stringWithFormat:@"File to decrypt does not exists: %@", filePath];
+			let fileError = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:message];
+			completion(nil, fileError);
 			return;
 		};
 
 		NSString *decryptedFolder = [TUTFileUtil getDecryptedFolder:&error];
 		if (error) {
-			completion(nil, error);
+			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Could not set up decrypted folder" error:error]);
 			return;
 		}
 
@@ -306,11 +315,11 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		TUTAes128Facade *aesFacade = [TUTAes128Facade new];
 		let plainTextData = [aesFacade decrypt:fileData withKey:key error:&error];
 		if (error) {
-			completion(nil, error);
+			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES decrypt file" error:error]);
 			return;
 		}
 		if (![plainTextData writeToFile:plainTextFilePath atomically:YES]) {
-			completion(nil, [TUTErrorFactory createError:@"Failed to write decrypted file"]);
+			completion(nil, [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"Failed to write decrypted file"]);
 			return;
 		}
 		completion(plainTextFilePath, nil);
@@ -335,10 +344,28 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	return nil;
 }
 
-- (NSError *)fileDoesNotExistsErrorForPath:(NSString *)filePath {
-	NSString *message = [NSString stringWithFormat:@"file to encrypt does not exists: %@", filePath];
-	return [NSError errorWithDomain:CRYPTO_ERROR_DOMAIN code:11 userInfo:@{@"message":message}];
+
++ (NSError *) logOpenSslError:(NSString *)msg statusCode:(int) statusCode{
+	ERR_load_crypto_strings();
+
+	size_t messageBufferSize = 256;
+	char *messageBuffer = (char *)calloc(messageBufferSize, sizeof(char));
+
+	int errorCode = (int) ERR_get_error();
+	// loop until there is no more error code in the queue
+	NSMutableArray<NSString*> *errors = [NSMutableArray new] ;
+	while (errorCode != 0) {
+		ERR_error_string( errorCode, messageBuffer);
+		let errorString = [NSString stringWithFormat:@"Error: %@ <%i|%s>", msg, errorCode, messageBuffer ];
+		NSLog(@"%@", errorString);
+		[errors addObject:errorString];
+		errorCode = (int) ERR_get_error();
+	}
+	ERR_free_strings();
+	return  [NSError errorWithDomain:TUT_CRYPTO_ERROR code:statusCode userInfo:@{ @"OpenSSLErrors": errors}];
 }
+
+
 @end
 
 

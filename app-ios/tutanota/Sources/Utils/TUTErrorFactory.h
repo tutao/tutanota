@@ -12,5 +12,7 @@ extern NSString *const TUT_CRYPTO_ERROR;
 @interface TUTErrorFactory : NSObject
 
 + (NSError *)createError:(NSString*) description;
-+ (NSError *)createErrorWithDomain:(NSString*) domain msg:(NSString*) description;
++ (NSError *)createErrorWithDomain:(NSString*) domain message:(NSString*) description;
++ (NSError *)wrapNativeErrorWithDomain:(NSString *)domain message:(NSString *)description error:(NSError *)error;
++ (NSError *)wrapCryptoErrorWithMessage:(NSString *)descrption error:(NSError *)error;
 @end
