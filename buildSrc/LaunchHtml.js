@@ -73,7 +73,7 @@ const cors = (m, env) => {
 	if (env.dist && env.mode === "App") {
 		// differences in comparison to web csp:
 		// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
-		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; font-src 'self'; img-src http: data: *; " +
+		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: data: *; " +
 			`style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)};]`)
 	} else {
 		return null
