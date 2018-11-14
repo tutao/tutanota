@@ -210,8 +210,10 @@ export class LoginViewController implements ILoginViewController {
 			}
 		}).then(() => logins.loginComplete()).then(() => {
 			// don't wait for it, just invoke
-			fileApp.clearFileData()
-			       .catch((e) => console.log("Failed to clean file data", e))
+			if (isApp()) {
+				fileApp.clearFileData()
+				       .catch((e) => console.log("Failed to clean file data", e))
+			}
 		})
 	}
 

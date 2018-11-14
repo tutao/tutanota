@@ -752,7 +752,7 @@ function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number, full
 	let core: IndexerCore = downcast({
 		printStatus: () => {
 		},
-		queue: mock(new EventQueue(() => Promise.resolve()), (mock) => {
+		queue: mock(new EventQueue(downcast({sendError: () => null}), () => Promise.resolve()), (mock) => {
 			mock.pause = spy(mock.pause.bind(mock))
 			mock.resume = spy(mock.resume.bind(mock))
 		})
