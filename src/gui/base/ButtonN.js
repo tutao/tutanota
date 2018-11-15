@@ -78,15 +78,20 @@ class _Button {
 
 	view(vnode: Vnode<ButtonAttrs>) {
 		const a = vnode.attrs
+		const type = this.getType(a.type)
 		return m("button.limit-width.noselect", {
 				class: this.getButtonClasses(a).join(' '),
 				style: vnode.attrs.type === ButtonType.Login ? {
 					'background-color': theme.content_accent,
 				} : {},
 				onclick: (event: MouseEvent) => this.click(event, a),
-				title: (vnode.attrs.type === ButtonType.Action || vnode.attrs.type === ButtonType.Bubble
-					|| vnode.attrs.type === ButtonType.Dropdown)
-				|| vnode.attrs.type === ButtonType.Login ? this.getLabel() : "",
+				title: (type === ButtonType.Action
+					|| type === ButtonType.Bubble
+					|| type === ButtonType.Dropdown
+					|| type === ButtonType.Login
+					|| type === ButtonType.Floating)
+					? this.getLabel(a.label)
+					: "",
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
 					addFlash(vnode.dom)

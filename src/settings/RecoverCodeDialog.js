@@ -9,6 +9,9 @@ import {neverNull} from "../api/common/utils/Utils"
 import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
 import {assertMainOrNode} from "../api/Env"
+import {Icons} from "../gui/base/icons/Icons"
+import {copyToClipboard} from "../misc/ClipboardUtils"
+import {ButtonN} from "../gui/base/ButtonN"
 
 type Action = 'get' | 'create'
 
@@ -36,6 +39,18 @@ export function show(action: Action, showMessage: boolean = true) {
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
 	return new Promise((resolve) => {
+		const printButton = () => m(ButtonN, {
+			label: "print_action",
+			icon: () => Icons.Print,
+			click: () => window.print()
+		})
+
+		const copyButton = () => m(ButtonN, {
+			label: "copy_action",
+			icon: () => Icons.Copy,
+			click: () => copyToClipboard(recoverCode)
+		})
+
 		Dialog.showActionDialog({
 			title: lang.get("recoveryCode_label"),
 			child: {
@@ -43,7 +58,8 @@ export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): P
 					return [
 						showMessage ? m(".pt.pb", lang.get("recoveryCode_msg")) : m("", lang.get("emptyString_msg")),
 						m(".text-break.monospace.selectable.flex.flex-wrap",
-							neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el)))
+							neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el))),
+						m(".flex.flex-end.mt-m", [copyButton(), printButton()]),
 					]
 				}
 			},

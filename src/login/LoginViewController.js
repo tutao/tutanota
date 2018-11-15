@@ -229,6 +229,7 @@ export class LoginViewController implements ILoginViewController {
 				{
 					label: "setUp_action",
 					click: () => {
+						m.route.set("/settings/login")
 						RecoverCodeDialog.show('create')
 					},
 					type: ButtonType.Primary
