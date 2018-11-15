@@ -67,7 +67,8 @@ export class Dialog {
 						paddingTop: requiresStatusBarHack() ? '20px' : 'env(safe-area-inset-top)'
 					}
 				},  // controls vertical alignment
-				m(".flex.justify-center.align-self-stretch.rel"
+				// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile
+				m(".flex.justify-center.align-self-stretch.rel.overflow-hidden"
 					+ (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"), {  // controls horizontal alignment
 						style: {
 							'margin-top': mobileMargin,
