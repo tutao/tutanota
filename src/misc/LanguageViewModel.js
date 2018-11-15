@@ -51,6 +51,17 @@ export const languages: Language[] = [
 	{code: 'zh_tw', textId: 'languageChineseSimplified_label'}
 ]
 
+const infoLinks = {
+	"recoverCode_link": {
+		"de": "https://tutanota.uservoice.com/knowledgebase/articles/470716",
+		"en": "https://tutanota.uservoice.com/knowledgebase/articles/470717"
+	},
+	"2FA_link": {
+		"de": "https://tutanota.uservoice.com/knowledgebase/articles/1201945",
+		"en": "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+	}
+}
+
 /**
  * Provides all localizations of strings on our gui.
  *
@@ -236,6 +247,13 @@ class LanguageViewModel {
 		} else {
 			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
 		}
+	}
+
+	getInfoLink(id: string) {
+		const code = ["de", "de_sie"].includes(this.code)
+			? "de"
+			: "en"
+		return infoLinks[id][code]
 	}
 
 }
