@@ -220,6 +220,7 @@ type WhitelabelCustomizations = {
 	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
 	germanLanguageCode: string,
 	registrationDomains: ?string[],
+	imprintUrl: ?string,
 }
 
 declare var whitelabelCustomizations: ?WhitelabelCustomizations

@@ -17,7 +17,7 @@ type Action = 'get' | 'create'
 
 assertMainOrNode()
 
-export function show(action: Action, showMessage: boolean = true) {
+export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
 	const errorMessageStream = stream("")
 	const dialog = Dialog.showRequestPasswordDialog((passwordField) => {
 		showProgressDialog("loading_msg",

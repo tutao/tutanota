@@ -56,6 +56,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_customLogoField: TextField;
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
+	_whitelabelImprintUrl: TextField;
 	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
@@ -109,6 +110,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					m(this._customLogoField),
 					m(this._customColorsField),
 					m(this._customMetaTagsField),
+					m(this._whitelabelImprintUrl),
 					this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
 					(this._isWhitelabelRegistrationVisible()) ? m("", [
 						m(this._whitelabelRegistrationDomains),
@@ -145,7 +147,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			"http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
-	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
+	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
 		if (domainInfo && domainInfo.whitelabelConfig) {
 			return load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig)
 		} else {
@@ -190,7 +192,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
-			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
+			return this._tryLoadWhitelabelConfig(brandingDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
 						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding,
@@ -314,6 +316,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						}
 
 						let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
+						this._whitelabelImprintUrl = new TextField("imprintUrl_label", null).setValue((whitelabelConfig
+							&& whitelabelConfig.imprintUrl) ? whitelabelConfig.imprintUrl : "").setDisabled()
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                       .setDisabled()
 						if (whitelabelConfig) {
@@ -334,6 +338,23 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								})
 							}, () => Icons.Edit)
 							this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+
+							let editImprintUrlButton = new Button("edit_action", () => {
+								let imprintUrl = new TextField("imprintUrl_label")
+									.setValue(neverNull(whitelabelConfig).imprintUrl)
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("imprintUrl_label"),
+									child: {view: () => m(imprintUrl)},
+									okAction: (ok) => {
+										if (ok) {
+											neverNull(whitelabelConfig).imprintUrl = imprintUrl.value() ? imprintUrl.value() : null
+											update(whitelabelConfig)
+											dialog.close()
+										}
+									}
+								})
+							}, () => Icons.Edit)
+							this._whitelabelImprintUrl._injectionsRight = () => m(editImprintUrlButton)
 						}
 
 						let customGermanLanguageFileDefined = whitelabelConfig

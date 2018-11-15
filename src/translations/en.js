@@ -1131,6 +1131,8 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"imprintUrl_label": "Link to imprint",
+		"imprint_label": "Imprint"
 	}
 }

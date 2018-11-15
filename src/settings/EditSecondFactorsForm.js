@@ -304,7 +304,7 @@ export class EditSecondFactorsForm {
 			},
 			okAction: (dialog) => {
 				dialog.close()
-				RecoverCodeDialog.show(isRecoverCodeAvailable ? "get" : "create", false)
+				RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)
 			},
 			okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action"
 		})

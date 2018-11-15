@@ -50,7 +50,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 		const showRecoveryCodeAttrs = {
 			label: "show_action",
-			click: () => RecoverCodeDialog.show('get'),
+			click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification('get'),
 			type: ButtonType.Dropdown,
 			isVisible: () => {
 				const auth = logins.getUserController().user.auth
@@ -59,7 +59,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const updateRecoveryCodeButton = {
 			label: () => neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action"),
-			click: () => RecoverCodeDialog.show('create'),
+			click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification('create'),
 			type: ButtonType.Dropdown
 		}
 

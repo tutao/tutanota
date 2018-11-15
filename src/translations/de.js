@@ -1135,6 +1135,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"imprintUrl_label": "Link zum Impressum",
+		"imprint_label": "Impressum"
 	}
 }

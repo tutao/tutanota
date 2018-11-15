@@ -18,7 +18,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN} from "../gui/base/ButtonN"
-import * as RecoverLoginDialog from "./RecoverLoginDialog"
+import {show} from "./RecoverLoginDialog"
 
 assertMainOrNode()
 
@@ -98,22 +98,20 @@ export class LoginView {
 					marginBottom: bottomMargin + "px"
 				}
 			}, [
-				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
+				m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", {
 					style: {
 						// width: workaround for IE11 which does not center the area, otherwise
 						width: client.isDesktopDevice() ? "360px" : null,
 					}
 				}, [
 					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					(this._moreButtonVisible()) ? [
-						m(".flex-center.pt-l", [
-							m(optionsExpander),
-						]),
-						m(".pb-l", [
-							m(optionsExpander.panel),
-						])
-					] : null,
-				])
+					m(".flex-center.pt-l", [
+						m(optionsExpander),
+					]),
+					m(".pb-l", [
+						m(optionsExpander.panel),
+					])
+				]),
 			])
 		}
 	}
@@ -155,16 +153,7 @@ export class LoginView {
 	}
 
 	_recoverLoginVisible(): boolean {
-		return true
-	}
-
-	_moreButtonVisible(): boolean {
-		return this._signupLinkVisible()
-			|| this._loginAnotherLinkVisible()
-			|| this._deleteCredentialsLinkVisible()
-			|| this._knownCredentialsLinkVisible()
-			|| this._switchThemeLinkVisible()
-			|| this._recoverLoginVisible()
+		return isTutanotaDomain()
 	}
 
 	_expanderButton(): ExpanderButton {
@@ -204,9 +193,14 @@ export class LoginView {
 				}) : null,
 				this._recoverLoginVisible() ? m(ButtonN, {
 					label: "recoverAccountAccess_action",
-					click: () => RecoverLoginDialog.show(),
+					click: () => show(),
 					type: ButtonType.Secondary,
-				}) : null
+				}) : null,
+				m(ButtonN, {
+					label: "imprint_label",
+					click: () => windowFacade.openLink(getImprintLink()),
+					type: ButtonType.Secondary,
+				})
 			])
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
@@ -234,7 +228,7 @@ export class LoginView {
 				this.invalidCredentials && this._recoverLoginVisible()
 					? m(`a[href=#}]`, {
 						onclick: (e) => {
-							RecoverLoginDialog.show(this.mailAddress.value(), "password")
+							show(this.mailAddress.value(), "password")
 							e.preventDefault()
 						}
 					}, lang.get("recoverAccountAccess_action"))
@@ -371,5 +365,11 @@ export function getWhitelabelRegistrationDomains(): string[] {
 	return (whitelabelCustomizations && whitelabelCustomizations.registrationDomains) ?
 		whitelabelCustomizations.registrationDomains : []
 }
+
+export function getImprintLink() {
+	return (whitelabelCustomizations && whitelabelCustomizations.imprintUrl) ?
+		whitelabelCustomizations.imprintUrl : "https://tutanota.com/contact"
+}
+
 
 export const login: LoginView = new LoginView()

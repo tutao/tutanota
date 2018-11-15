@@ -23,10 +23,11 @@ import {themeId} from "../gui/theme"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {getWhitelabelRegistrationDomains} from "../login/LoginView"
+import {getImprintLink, getWhitelabelRegistrationDomains} from "../login/LoginView"
 import {windowFacade} from "../misc/WindowFacade"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
+import {showRecoverCodeDialog} from "../settings/RecoverCodeDialog"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -96,21 +97,30 @@ export class RegisterView {
 
 		let signupButton = new Button('createAccount_action', () => _createAccount()).setType(ButtonType.Login)
 
-		let themeSwitch = new Button("switchColorTheme_action", () => {
-			switch (themeId()) {
-				case 'light':
-					return deviceConfig.setTheme('dark')
-				case 'dark':
-					return deviceConfig.setTheme('light')
-			}
-		}).setType(ButtonType.Secondary)
-
-		let login = new Button('login_label', () => m.route.set('/login?noAutoLogin=true')).setType(ButtonType.Secondary)
-
 		let panel = {
 			view: () => m(".flex-center.flex-column", [
-				m(login),
-				m(themeSwitch)
+				m(ButtonN, {
+					label: "login_label",
+					click: () => m.route.set('/login?noAutoLogin=true'),
+					type: ButtonType.Secondary,
+				}),
+				m(ButtonN, {
+					label: "switchColorTheme_action",
+					click: () => {
+						switch (themeId()) {
+							case 'light':
+								return deviceConfig.setTheme('dark')
+							case 'dark':
+								return deviceConfig.setTheme('light')
+						}
+					},
+					type: ButtonType.Secondary,
+				}),
+				m(ButtonN, {
+					label: "imprint_label",
+					click: () => windowFacade.openLink(getImprintLink()),
+					type: ButtonType.Secondary,
+				})
 			])
 		}
 
@@ -129,7 +139,7 @@ export class RegisterView {
 					style: {
 						marginBottom: bottomMargin + "px"
 					}
-				}, m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+				}, m("flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 					m("div", [
 						m(mailAddressForm),
 						m(passwordForm),
@@ -177,7 +187,7 @@ export class RegisterView {
 			if (authToken) {
 				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true)
 					.then(recoverCode => {
-						return RecoverCodeDialog.showRecoverCodeDialog(recoverCode, true)
+						return showRecoverCodeDialog(recoverCode, true)
 					})
 					.then(() => {
 						m.route.set("/login?loginWith=" + mailAddress)

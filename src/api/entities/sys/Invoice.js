@@ -67,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "36"
+	"version": "37"
 }
 
 export function createInvoice(): Invoice {

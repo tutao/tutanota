@@ -1224,6 +1224,7 @@ type WhitelabelConfig = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	germanLanguageCode: ?string;
+	imprintUrl: ?string;
 	jsonTheme: string;
 	metaTags: string;
 
