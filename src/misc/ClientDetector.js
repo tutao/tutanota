@@ -1,4 +1,4 @@
-import {assertMainOrNodeBoot, Mode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {BrowserType, DeviceType} from "./ClientConstants"
 
 assertMainOrNodeBoot()
@@ -222,24 +222,17 @@ class ClientDetector {
 			versionIndex = this.userAgent.indexOf("Version/")
 			if (versionIndex !== -1) {
 				versionIndex += 8
+			} else {
+				// Other browsers on iOS do not usually send Version/ and we can assume that they're Safari
+				this.extractIosVersion()
+				return
 			}
 		} else if (this.userAgent.match(/iPad.*AppleWebKit/) || this.userAgent.match(/iPhone.*AppleWebKit/)) {
-			// homescreen detection is only available when in app mode otherwise it is deactivated because of problems in iOS
-			if (env.mode === Mode.App) {
-				// ipad and iphone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
-				// after "OS" the iOS version is sent, so use that one
-				versionIndex = this.userAgent.indexOf(" OS ")
-				if (versionIndex !== -1) {
-					this.browser = BrowserType.SAFARI
-					try {
-						// Support two digit numbers for iOS iPhone6 Simulator
-						var numberString = this.userAgent.substring(versionIndex + 4, versionIndex + 6)
-						this.browserVersion = Number(numberString.replace("_", ""))
-					} catch (e) {
-					}
-					return
-				}
-			}
+			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
+			// after "OS" the iOS version is sent, so use that one
+			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
+			this.extractIosVersion()
+			return
 		} else if (ieIndex !== -1) {
 			this.browser = BrowserType.IE
 			versionIndex = ieIndex + 5
@@ -265,6 +258,31 @@ class ClientDetector {
 		// if the version is not valid, the browser type is not valid, so set it to other
 		if (this.browserVersion === 0) {
 			this.browser = BrowserType.OTHER
+		}
+	}
+
+	extractIosVersion() {
+		const versionIndex = this.userAgent.indexOf(" OS ")
+		if (versionIndex !== -1) {
+			this.browser = BrowserType.SAFARI
+			try {
+				// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
+				let pos = versionIndex + 4
+				let hadNan = false
+				while (pos < this.userAgent.length) {
+					pos++
+					if (isNaN(Number(this.userAgent.charAt(pos)))) {
+						if (hadNan) {
+							break
+						} else {
+							hadNan = true
+						}
+					}
+				}
+				const numberString = this.userAgent.substring(versionIndex + 4, pos)
+				this.browserVersion = Number(numberString.replace(/_/g, "."))
+			} catch (e) {
+			}
 		}
 	}
 
