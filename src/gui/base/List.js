@@ -234,7 +234,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._loadedCompletely = false
 		if (this._domList) {
 			this._domList.style.height = this._calculateListHeight()
-			this._reposition()
+			for (let row of this._virtualList) {
+				if (row.domElement) {
+					row.domElement.style.display = 'none'
+				}
+			}
 		}
 	}
 
