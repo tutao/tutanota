@@ -18,15 +18,9 @@ function fallbackCopyToClipboard(text: string): Promise<void> {
 }
 
 export function copyToClipboard(text: string): Promise<void> {
-	return new Promise((resolve) => {
-		navigator.clipboard.writeText(text)
-		         .then(() => {
-			         console.log('copy successful')
-			         resolve()
+	return Promise.try(()=> navigator.clipboard.writeText(text))
+		         .catch(() => {
+			         console.log('copy failed, trying fallback')
+			         return fallbackCopyToClipboard(text)
 		         })
-	})
-		.catch(() => {
-			console.log('copy failed, trying fallback')
-			return fallbackCopyToClipboard(text)
-		})
 }
