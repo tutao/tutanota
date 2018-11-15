@@ -495,7 +495,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			                    }
 			                    this._loadedEntities.sort(this._config.sortCompare)
 		                    }).finally(() => {
-				// this._showSpinner = false
 				if (this.ready) {
 					this._domLoadingRow.style.display = 'none'
 					this._reposition()
@@ -927,11 +926,12 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			})
 			if (entity) {
 				let nextElementSelected = false
-				if (this._selectedEntities.length === 1 && this._selectedEntities[0] === entity
+				if (this._selectedEntities.length === 1
+					&& this._selectedEntities[0] === entity
 					&& this._loadedEntities.length > 1) {
-					let nextSelection = (entity
-						=== last(this._loadedEntities)) ? this._loadedEntities[this._loadedEntities.length
-					- 2] : this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
+					let nextSelection = (entity === last(this._loadedEntities))
+						? this._loadedEntities[this._loadedEntities.length - 2]
+						: this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
 					this._selectedEntities.push(nextSelection)
 					nextElementSelected = true
 				}
