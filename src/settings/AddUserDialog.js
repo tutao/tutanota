@@ -62,7 +62,8 @@ export function getAvailableDomains(): Promise<string[]> {
 		return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 			let availableDomains = customerInfo.domainInfos.filter(info => info.certificate == null)
 			                                   .map(info => info.domain)
-			if (logins.getUserController().user.accountType !== AccountType.STARTER) {
+			if (logins.getUserController().user.accountType !== AccountType.STARTER &&
+				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())) {
 				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
 			}
 			return availableDomains

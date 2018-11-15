@@ -27,6 +27,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {getAvailableDomains} from "./AddUserDialog"
 
 assertMainOrNode()
 
@@ -35,16 +36,10 @@ export class EditAliasesForm {
 
 	_userGroupInfo: GroupInfo;
 	_aliasesTable: Table;
-	_customerInfo: LazyLoaded<CustomerInfo>;
 	_nbrOfAliases: number;
 
 	constructor(userGroupInfo: GroupInfo) {
 		this._nbrOfAliases = 0
-		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return load(CustomerInfoTypeRef, customer.customerInfo)
-			})
-		})
 		let addAliasButton = new Button("addEmailAlias_label", () => this._showAddAliasDialog(), () => Icons.Add)
 		this._aliasesTable = new Table(["emailAlias_label", "state_label"], [
 			ColumnWidth.Largest, ColumnWidth.Small
@@ -68,12 +63,10 @@ export class EditAliasesForm {
 	}
 
 	_updateNbrOfAliasesMessage() {
-		this._customerInfo.getAsync().then(() => {
-			return worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
-				this._nbrOfAliases = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
-					- Number(mailAddressAliasServiceReturn.usedAliases))
-				m.redraw()
-			})
+		return worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
+			this._nbrOfAliases = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
+				- Number(mailAddressAliasServiceReturn.usedAliases))
+			m.redraw()
 		})
 	}
 
@@ -92,7 +85,7 @@ export class EditAliasesForm {
 				})
 			}
 		} else {
-			this._getAvailableDomains().then(domains => {
+			getAvailableDomains().then(domains => {
 				let form = new SelectMailAddressForm(domains)
 				let addEmailAliasOkAction = (dialog) => {
 					let p = worker.addMailAlias(this._userGroupInfo.group, form.getCleanMailAddress())
@@ -114,23 +107,6 @@ export class EditAliasesForm {
 				})
 			})
 		}
-	}
-
-	_getAvailableDomains(): Promise<string[]> {
-		let p: Promise<?CustomerInfo> = Promise.resolve(null)
-		if (logins.getUserController().user.accountType === AccountType.PREMIUM) {
-			p = this._customerInfo.getAsync()
-		}
-		return p.then(customerInfo => {
-			let availableDomains = []
-			if (customerInfo) {
-				availableDomains = customerInfo.domainInfos.map(info => info.domain)
-			}
-			if (logins.getUserController().user.accountType !== AccountType.STARTER) {
-				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
-			}
-			return availableDomains
-		})
 	}
 
 	_updateAliases(userGroupInfo: GroupInfo) {
@@ -189,7 +165,6 @@ export class EditAliasesForm {
 			}
 		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && operation === OperationType.UPDATE) {
 			// the number of free aliases may have been changed
-			this._customerInfo.reset()
 			this._updateAliases(this._userGroupInfo)
 		} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 			// the booked alias package may have changed
