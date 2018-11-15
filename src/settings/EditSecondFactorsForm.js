@@ -53,20 +53,15 @@ export class EditSecondFactorsForm {
 			ColumnWidth.Largest, ColumnWidth.Largest
 		], true, add2FAButton)
 		this.view = () => {
+			const lnk = lang.getInfoLink('2FA_link')
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 				m(this._2FATable),
 				m("span.small", lang.get("moreInfo_msg") + " "),
-				m("span.small.text-break", [m(`a[href=${this._get2FAInfoLink()}][target=_blank]`, this._get2FAInfoLink())]),
+				m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)]),
 			]
 		}
 		this._updateSecondFactors()
-	}
-
-	_get2FAInfoLink(): string {
-		return (lang.code === "de" || lang.code === "de_sie")
-			? "https://tutanota.uservoice.com/knowledgebase/articles/1201945"
-			: "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
 	}
 
 	_updateSecondFactors(): void {

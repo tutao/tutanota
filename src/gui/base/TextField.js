@@ -52,7 +52,7 @@ export class TextField {
 
 	isEmpty: Function;
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string> | ?lazy<Vnode<any>>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
 		this.webkitAutofill = false
@@ -109,11 +109,13 @@ export class TextField {
 						])
 					]),
 				]),
-				this.helpLabel ? m("div.small.noselect.click", {
-					onclick: () => {
-						if (this._domInput) this._domInput.focus()
-					}
-				}, this.helpLabel()) : []
+				this.helpLabel
+					? m("div.small.noselect.click", {
+						onclick: () => {
+							if (this._domInput) this._domInput.focus()
+						}
+					}, this.helpLabel())
+					: []
 			])
 		}
 

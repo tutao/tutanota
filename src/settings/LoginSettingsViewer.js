@@ -36,7 +36,17 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
 
-		let recoveryCodeField = new TextField("recoveryCode_label").setValue("***").setDisabled()
+		let recoveryCodeField = new TextField(
+			"recoveryCode_label",
+			() => {
+				const lnk = lang.getInfoLink("recoverCode_link")
+				return [
+					m("span", lang.get("moreInfo_msg") + " "),
+					m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
+				]
+			})
+			.setValue("***")
+			.setDisabled()
 
 		const showRecoveryCodeAttrs = {
 			label: "show_action",
