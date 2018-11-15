@@ -8,7 +8,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import m from "mithril"
 import {worker} from "../api/main/WorkerClient"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
@@ -39,11 +39,13 @@ export function show(action: Action, showMessage: boolean = true) {
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
 	return new Promise((resolve) => {
-		const printButton = () => m(ButtonN, {
-			label: "print_action",
-			icon: () => Icons.Print,
-			click: () => window.print()
-		})
+		const printButton = isApp()
+			? () => null
+			: () => m(ButtonN, {
+				label: "print_action",
+				icon: () => Icons.Print,
+				click: () => window.print()
+			})
 
 		const copyButton = () => m(ButtonN, {
 			label: "copy_action",

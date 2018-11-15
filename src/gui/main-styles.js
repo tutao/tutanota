@@ -30,6 +30,7 @@ styles.registerStyle('main', () => {
 			"-ms-user-select": "text !important",
 			"-webkit-user-select": "text !important",
 			"-moz-user-select": "text !important",
+			"-webkit-touch-callout" : "default !important"
 		},
 
 		".selectable *": {
@@ -37,6 +38,7 @@ styles.registerStyle('main', () => {
 			"-ms-user-select": "text !important",
 			"-webkit-user-select": "text !important",
 			"-moz-user-select": "text !important",
+			"-webkit-touch-callout" : "default !important"
 		},
 
 		"@font-face": {
