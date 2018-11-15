@@ -424,6 +424,13 @@ styles.registerStyle('main', () => {
 		},
 
 
+		'.notification-overlay-content': {
+			'margin-left': px(size.vpad),
+			'margin-right': px(size.vpad),
+			'padding-top': px(size.vpad),
+			'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X)
+		},
+
 		'.logo-circle': {
 			width: px(size.button_icon_bg_size),
 			height: px(size.button_icon_bg_size),
@@ -858,7 +865,11 @@ styles.registerStyle('main', () => {
 				width: `${px(size.navbar_edge_width_mobile)}`
 			},
 
-			'.custom-logo': {width: px(40)}
+			'.custom-logo': {width: px(40)},
+
+			'.notification-overlay-content': {
+				'padding-top': px(size.vpad_small)
+			}
 		},
 
 		"@media print": {

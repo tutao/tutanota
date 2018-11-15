@@ -22,13 +22,7 @@ const notificationQueue = []
 class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 
 	view(vnode: Vnode<NotificationOverlayAttrs>) {
-		return m(".flex.flex-column.flex-space-between", {
-			style: {
-				marginLeft: px(size.vpad),
-				marginRight: px(size.vpad),
-				marginTop: px(size.vpad_ml - 5), // take line-height into account
-			},
-		}, [
+		return m(".notification-overlay-content.flex.flex-column.flex-space-between", [
 			m(vnode.attrs.message),
 			m(".flex.justify-end.flex-wrap",
 				vnode.attrs.buttons.map((b) => m(ButtonN, b)))
