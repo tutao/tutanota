@@ -200,21 +200,22 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 	NSError* error;
 	[self clearDirectory:[TUTFileUtil getEncryptedFolder: &error]];
 	[self clearDirectory:[TUTFileUtil getDecryptedFolder: &error]];
+	[self clearDirectory:NSTemporaryDirectory()];
 }
 
 
 -(void) clearDirectory:(NSString*) dirToDelete {
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	NSError* error;
-	NSArray *files = [fileManager contentsOfDirectoryAtPath:dirToDelete
-													  error:&error];
+	NSURL* folderUrl = [NSURL fileURLWithPath:dirToDelete];
+	NSArray<NSURL *> *files = [fileManager contentsOfDirectoryAtURL:folderUrl includingPropertiesForKeys:nil options: 0 error:&error];
 	if (error) {
 		return;
 	}
-
-	for (NSString *file in files) {
-		[fileManager removeItemAtPath:[dirToDelete stringByAppendingPathComponent:file]
-								error:&error];
+	for (NSURL *file in files) {
+		if (!file.hasDirectoryPath){
+			[fileManager removeItemAtURL:file error:&error];
+		}
 	}
 }
 
