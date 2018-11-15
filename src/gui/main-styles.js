@@ -509,7 +509,6 @@ styles.registerStyle('main', () => {
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},
 
-		'.pr-expander': {'padding-right': px(3)},
 		'.expander': {height: px(size.button_height), 'min-width': px(size.button_height)},
 
 		// mail view editor

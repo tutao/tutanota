@@ -308,7 +308,7 @@ export class MailViewer {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header.plr-l", [
-							m(".flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
+							m(".flex-space-between.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
 									(detailsExpander.panel.expanded)
 										? m("small.flex.text-break", lang.get("from_label"))
@@ -322,7 +322,7 @@ export class MailViewer {
 								m(".flex.flex-column-reverse", this._isAnnouncement() ? null : m(detailsExpander)),
 							]),
 							m(detailsExpander.panel),
-							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
+							m(".subject-actions.flex-space-between.mr-negative-s.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
 									m(".subject.text-break.selectable", this.mail.subject),
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg"

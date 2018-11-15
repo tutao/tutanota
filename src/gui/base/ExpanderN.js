@@ -9,6 +9,7 @@ import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
+import {px} from "../size"
 
 export type ExpanderAttrs = {
 	label: string | lazy<string>,
@@ -28,7 +29,7 @@ class _ExpanderButton {
 
 	view(vnode: Vnode<ExpanderAttrs>) {
 		const a = vnode.attrs
-		return m(".pr-expander.flex.limit-width", [ // .limit-width does not work without .flex in IE11
+		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
@@ -46,7 +47,10 @@ class _ExpanderButton {
 				m(Icon, {
 					icon: BootIcons.Expand,
 					class: "flex-center items-center",
-					style: {fill: a.color ? a.color : theme.content_button},
+					style: {
+						fill: a.color ? a.color : theme.content_button,
+						'margin-right': px(-4) // icon is has 4px whitespace to the right
+					},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
 						if (!a.expanded()) vnode.dom.style.transform = 'rotateZ(180deg)'

@@ -7,6 +7,7 @@ import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {addFlash, removeFlash} from "./Flash"
+import {px} from "../size"
 
 export class ExpanderButton {
 	panel: ExpanderPanel;
@@ -24,7 +25,7 @@ export class ExpanderButton {
 		}
 		this._showWarning = showWarning
 
-		this.view = (): VirtualElement => m(".pr-expander.flex.limit-width", [ // .limit-width does not work without .flex in IE11
+		this.view = (): VirtualElement => m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style,
 				onclick: (event: MouseEvent) => {
@@ -42,7 +43,10 @@ export class ExpanderButton {
 				m(Icon, {
 					icon: BootIcons.Expand,
 					class: "flex-center items-center",
-					style: {fill: color},
+					style: {
+						fill: color,
+						'margin-right': px(-4) // icon is has 4px whitespace to the right
+					},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
 						if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
