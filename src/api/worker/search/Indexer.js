@@ -398,7 +398,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw Error("no group data for group " + membership.group)
+						throw new Error("no group data for group " + membership.group)
 					}
 				})
 			}))
