@@ -1,4 +1,6 @@
 //@flow
+import {client} from  "./ClientDetector"
+
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const textArea = document.createElement("textarea")
@@ -17,10 +19,34 @@ function fallbackCopyToClipboard(text: string): Promise<void> {
 	})
 }
 
+function iosCopyToClipboard(text:string) {
+	const el = document.createElement("textarea")
+	el.value = text
+	el.contentEditable = "true";
+	el.readOnly = true
+	window.document.body.appendChild(el)
+
+	const range = document.createRange()
+	range.selectNodeContents(el);
+
+	const s = window.getSelection();
+	s.removeAllRanges();
+	s.addRange(range);
+
+	el.setSelectionRange(0, 999999); // A big number, to cover anything that could be inside the element.
+
+	window.document.execCommand('copy');
+	window.document.body.removeChild(el)
+}
+
 export function copyToClipboard(text: string): Promise<void> {
 	return Promise.try(()=> navigator.clipboard.writeText(text))
 		         .catch(() => {
 			         console.log('copy failed, trying fallback')
-			         return fallbackCopyToClipboard(text)
+			         if (client.isIos()) {
+			         	return iosCopyToClipboard(text)
+			         } else {
+				         return fallbackCopyToClipboard(text)
+			         }
 		         })
 }
