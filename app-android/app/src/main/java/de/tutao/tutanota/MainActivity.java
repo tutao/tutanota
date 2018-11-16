@@ -29,6 +29,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -88,6 +89,9 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
+        // Reject cookies by external content
+        CookieManager.getInstance().setAcceptCookie(false);
+        CookieManager.getInstance().removeAllCookies(null);
 
         this.nativeImpl.getWebAppInitialized().then(result -> {
             if (!firstLoaded) {
