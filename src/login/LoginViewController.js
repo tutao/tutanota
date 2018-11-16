@@ -33,7 +33,7 @@ import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
-import {formatPrice} from "../misc/Formatter"
+import {formatPrice, isMailAddress} from "../misc/Formatter"
 import * as NotificationOverlay from "../gui/base/NotificationOverlay"
 import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -73,11 +73,13 @@ export class LoginViewController implements ILoginViewController {
 		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
 			             .then(userPw => {
-				             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
-				                          .then(newCredentials => {
-					                          deviceConfig.set(newCredentials)
-				                          })
-				                          .finally(() => worker.logout(false))
+				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users
+					             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+					                          .then(newCredentials => {
+						                          deviceConfig.set(newCredentials)
+					                          })
+					                          .finally(() => worker.logout(false))
+				             }
 			             })
 			             .catch(ignored => {
 				             console.log(ignored)

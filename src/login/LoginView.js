@@ -266,7 +266,7 @@ export class LoginView {
 		}
 
 		let promise = Promise.resolve()
-		if (args.migrateCredentials) {
+		if (args.migrateCredentials && client.localStorage() && !localStorage.getItem("tutanotaConfig")) {
 			try {
 				const oldCredentials = JSON.parse(
 					utf8Uint8ArrayToString(
@@ -277,8 +277,7 @@ export class LoginView {
 			} catch (e) {
 				console.log("Failed to parse old credentials", e)
 			}
-		}
-		else if (client.localStorage() && localStorage.getItem("config")) {
+		} else if (client.localStorage() && localStorage.getItem("config")) { // migrate ios credentials
 			if (localStorage.getItem("tutanotaConfig")) {
 				localStorage.removeItem("config")
 			} else {

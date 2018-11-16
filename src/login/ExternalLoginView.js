@@ -67,6 +67,7 @@ export class ExternalLoginView {
 		this._symKeyForPasswordTransmission = null
 		this._sendSmsAllowed = false
 
+
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
@@ -146,7 +147,6 @@ export class ExternalLoginView {
 			this._loading = Promise.reject()
 			m.redraw()
 		}
-
 	}
 
 	_autologin(credentials: Credentials): void {
@@ -173,7 +173,7 @@ export class ExternalLoginView {
 				                                 if (persistentSession) {
 					                                 deviceConfig.set(newCredentials)
 				                                 }
-				                                 if (storedCredentials) {
+				                                 if (storedCredentials) { // delete persistent session (saved in deviceConfig) if a new session is created
 					                                 return worker.deleteSession(storedCredentials.accessToken)
 					                                              .then(() => {
 						                                              if (!persistentSession) {
@@ -315,6 +315,7 @@ export class ExternalLoginView {
 			             console.log("could not send sms", error)
 		             }).finally(() => m.redraw())
 	}
+
 }
 
 export function renderImprintLink() {
