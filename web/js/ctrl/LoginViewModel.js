@@ -85,26 +85,44 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function (allowAutoLogin) {
 		lastLoggedInMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(lastLoggedInMailAddress);
 	}
 	return tutao.locator.configFacade.read(lastLoggedInMailAddress).then(function (config) {
-		if (lastLoggedInMailAddress) {
-			// clean up and store new config
-			tutao.tutanota.util.LocalStore.remove('userMailAddress');
-			tutao.locator.configFacade.write(config);
-		}
+			if (location.hash.indexOf('force') == -1) {
+				var target = "https://mail.tutanota.com"
+				if (location.host === "test.tutanota.de") {
+					target = "https://test.tutanota.com"
+				} else if (location.host === 'localhost:9000') {
+					target = "http://localhost:9000/client/build"
+				}
+				if (config.getAll().length == 0) {
+					location.replace(target);
+				} else {
+					var localCredentials = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(JSON.stringify(config))));
+					// delete old config data
+					localStorage.clear();
+					location.replace(target + "/login/#migrateCredentials=" + localCredentials);
+				}
+			} else {
+				if (lastLoggedInMailAddress) {
+					// clean up and store new config
+					tutao.tutanota.util.LocalStore.remove('userMailAddress');
+					tutao.locator.configFacade.write(config);
+				}
 
-		self.config = config;
-		var autoLoginPromise = null;
-		if (allowAutoLogin && self.config.getAll().length == 1) {
-			autoLoginPromise = self._tryAutoLogin(self.config.getAll()[0]);
-		} else {
-			autoLoginPromise = Promise.resolve(false);
-		}
-		return autoLoginPromise.then(function (autoLoginSuccessful) {
-			if (!autoLoginSuccessful) {
-				self.storedCredentials(self.config.getAll());
-				tutao.locator.viewManager.select(tutao.locator.loginView);
+				self.config = config;
+				var autoLoginPromise = null;
+				if (allowAutoLogin && self.config.getAll().length == 1) {
+					autoLoginPromise = self._tryAutoLogin(self.config.getAll()[0]);
+				} else {
+					autoLoginPromise = Promise.resolve(false);
+				}
+				return autoLoginPromise.then(function (autoLoginSuccessful) {
+					if (!autoLoginSuccessful) {
+						self.storedCredentials(self.config.getAll());
+						tutao.locator.viewManager.select(tutao.locator.loginView);
+					}
+				});
 			}
-		});
-	});
+		}
+	);
 };
 
 

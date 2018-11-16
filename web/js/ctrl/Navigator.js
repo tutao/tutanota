@@ -6,7 +6,8 @@ tutao.provide('tutao.tutanota.ctrl.Navigator');
 tutao.tutanota.ctrl.Navigator = function () {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.clientSupported = (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED);
-	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI);
+	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType()
+		== tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI);
 	this.mailRef = ko.observable(null); // the mail reference for an external user
 	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked
 	this.hash = ko.observable();
@@ -179,7 +180,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function () {
 		tutao.locator.viewManager.select(tutao.locator.notSupportedView);
 	});
 
-	Path.map("#mail/:mailRef").to(function () {
+	Path.map("#mail/:mailRef(/:param)").to(function () {
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
 		}

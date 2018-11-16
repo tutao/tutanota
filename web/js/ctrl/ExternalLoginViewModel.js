@@ -92,6 +92,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function (allowAuto
 	try {
 		var userIdLength = tutao.rest.EntityRestInterface.GENERATED_MIN_ID.length;
 		self.userId = authInfo.substring(0, userIdLength);
+		var salt = authInfo.substring(userIdLength)
+		if (salt.indexOf("/force") != -1) {
+			salt = authInfo.substring(userIdLength, salt.indexOf("/force"))
+		}
 		self._salt = tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.base64UrlToBase64(authInfo.substring(userIdLength)));
 		self._saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(self._salt)));
 	} catch (e) {
@@ -104,10 +108,32 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function (allowAuto
 	// call PassworChannelService to get the user id and password channels
 	return tutao.locator.configFacade.read().then(function (config) {
 		self.config = config;
-		return tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders()).then(function (passwordChannelReturn) {
-			if (allowAutoLogin) {
-				self.autoLoginActive = true;
-				return self._tryAutoLogin().caught(function (e) {
+
+		if (location.hash.indexOf('force') == -1) {
+			// if (false) {
+			var target = "https://mail.tutanota.com"
+			if (location.host === "test.tutanota.de") {
+				target = "https://test.tutanota.com"
+			} else if (location.host === 'localhost:9000') {
+				target = "http://localhost:9000/client/build"
+			}
+			location.replace(target + location.hash);
+		} else {
+			return tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders()).then(function (passwordChannelReturn) {
+				if (allowAutoLogin) {
+					self.autoLoginActive = true;
+					return self._tryAutoLogin().caught(function (e) {
+						self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+						if (self.phoneNumbers().length == 1) {
+							self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
+						} else {
+							self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
+						}
+						tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+					}).lastly(function () {
+						self.autoLoginActive = false;
+					});
+				} else {
 					self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
 					if (self.phoneNumbers().length == 1) {
 						self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
@@ -115,32 +141,22 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function (allowAuto
 						self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
 					}
 					tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-				}).lastly(function () {
-					self.autoLoginActive = false;
-				});
-			} else {
-				self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-				if (self.phoneNumbers().length == 1) {
-					self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
-				} else {
-					self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
+					return Promise.resolve();
 				}
+			}).caught(tutao.AccessExpiredError, function (e) {
+				self.errorMessageId("expiredLink_msg");
 				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-				return Promise.resolve();
-			}
-		}).caught(tutao.AccessExpiredError, function (e) {
-			self.errorMessageId("expiredLink_msg");
-			tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-		}).caught(tutao.NotAuthenticatedError, function (e) {
-			self.errorMessageId("invalidLink_msg");
-			tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-		}).caught(tutao.BadRequestError, function (e) {
-			self.errorMessageId("invalidLink_msg");
-			tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-		}).caught(function (e) {
-			tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-			throw e;
-		});
+			}).caught(tutao.NotAuthenticatedError, function (e) {
+				self.errorMessageId("invalidLink_msg");
+				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+			}).caught(tutao.BadRequestError, function (e) {
+				self.errorMessageId("invalidLink_msg");
+				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+			}).caught(function (e) {
+				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+				throw e;
+			});
+		}
 	});
 };
 
