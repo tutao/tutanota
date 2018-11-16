@@ -82,7 +82,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} مُستعمل، {active} مفعّل",
 		"amountUsedOf_label": "{amount} مستخدم من {totalAmount}",
 		"amountUsed_label": "{amount} المستعمل",
-		"appInfoAmazonImageAlt_alt": "تطبيق اندرويد على امازون",
 		"appInfoAndroidImageAlt_alt": "تطبيق أندرويد على متجر GooglePlay",
 		"appInfoIosImageAlt_alt": "تطبيق iOS على متجر أبل",
 		"applicationUpdate_label": "يتم تحميل توتانوتا...",

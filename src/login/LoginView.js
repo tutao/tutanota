@@ -54,19 +54,21 @@ export class LoginView {
 		}
 
 		this.appButtons = [
-			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl(
-				"https://play.google.com/store/apps/details?id=de.tutao.tutanota"), () => BootIcons.Android)
+			new Button('appInfoAndroidImageAlt_alt',
+				() => this.openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota"),
+				() => BootIcons.Android)
 				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge),
 
-			new Button('appInfoIosImageAlt_alt', () => this.openUrl(
-				"https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb"), () => BootIcons.Apple)
+			new Button('appInfoIosImageAlt_alt',
+				() => this.openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb"),
+				() => BootIcons.Apple)
 				.setIsVisibleHandler(() => client.isDesktopDevice() ||
 					(client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE))
 				.setType(ButtonType.ActionLarge),
 
-			new Button('appInfoAmazonImageAlt_alt', () => this.openUrl(
-				"http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE"), () => BootIcons.Amazon)
+			new Button('appInfoFDroidImageAlt_alt', () => this.openUrl("https://f-droid.org/packages/de.tutao.tutanota/"),
+				() => BootIcons.FDroid)
 				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge)
 		]

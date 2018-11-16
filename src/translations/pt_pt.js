@@ -79,7 +79,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} utilizado, {active} ativado",
 		"amountUsedOf_label": "{amount} usado de {totalAmount}",
 		"amountUsed_label": "{amount} utilizado",
-		"appInfoAmazonImageAlt_alt": "App Android na Amazon",
 		"appInfoAndroidImageAlt_alt": "Aplicação Android no Google Play",
 		"appInfoIosImageAlt_alt": "App iOS na Apple Store",
 		"applicationUpdate_label": "A iniciar sessão no Tutanota...",

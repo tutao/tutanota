@@ -78,7 +78,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} 已使用，{active} 已激活",
 		"amountUsedOf_label": "已用 {amount}，共计 {totalAmount}",
 		"amountUsed_label": "{amount} 已使用",
-		"appInfoAmazonImageAlt_alt": "亚马逊 Android 应用",
 		"appInfoAndroidImageAlt_alt": "Google Play 上的 Android 应用",
 		"appInfoIosImageAlt_alt": "苹果商店的 iOS 应用",
 		"applicationUpdate_label": "正加载Tutanota…",
