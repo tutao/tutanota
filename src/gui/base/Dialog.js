@@ -17,6 +17,7 @@ import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
+import {ButtonN} from "./ButtonN"
 
 assertMainOrNode()
 
@@ -280,16 +281,16 @@ export class Dialog {
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
 					m(".dialog-contentButtonsBottom.text-break", [
-						m("a.pt.b.block.text-ellipsis", {
-							href: url,
-							target: "_blank",
-							onclick: () => {
+						m(ButtonN, {
+							label: "download_action",
+							click: () => {
 								let popup = open('', '_blank')
 								popup.location = url
 								dialog.close()
 								cb(null)
-							}
-						}, filename),
+							},
+							type: ButtonType.Primary
+						}),
 						m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))
 					]),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
