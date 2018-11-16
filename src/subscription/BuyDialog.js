@@ -42,13 +42,7 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 								if (accountingInfo && !accountingInfo.invoiceCountry) {
 									return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
 										if (confirm) {
-											return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.")
-											             .then(ok => {
-												             if (ok) {
-													             window.open("https://app.tutanota.com/", null, null, false)
-												             }
-												             return false
-											             })
+											m.route.set("/settings/invoice")
 										}
 										return false
 									})

@@ -169,7 +169,7 @@ class Header {
 		this._createMailEditor().then(editor => {
 			let username = logins.getUserController().userGroupInfo.name;
 			let body = lang.get("invitationMailBody_msg", {
-				'{registrationLink}': "https://app.tutanota.com/#register",
+				'{registrationLink}': "https://mail.tutanota.com/signup",
 				'{username}': username,
 				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
