@@ -433,7 +433,8 @@ export class IndexerCore {
 
 	_needsMicrotaskHack(browserData: BrowserData): boolean {
 		return browserData.browserType === BrowserType.SAFARI && browserData.browserVersion < 12.1
-			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60;
+			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
+			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
 	}
 
 	printStatus() {
