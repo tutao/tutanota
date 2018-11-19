@@ -57,7 +57,7 @@ export class MailIndexer {
 	}
 
 
-	createMailIndexEntries(mail: Mail, mailBody: MailBody, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
+	createMailIndexEntries(mail: Mail, mailBody: ?MailBody, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(MailModel, mail, [
 			{
@@ -77,7 +77,8 @@ export class MailIndexer {
 				value: () => mail.sender ? (mail.sender.name + " <" + mail.sender.address + ">") : "",
 			}, {
 				attribute: MailModel.associations["body"],
-				value: () => htmlToText(mailBody.text)
+				// Sometimes we encounter inconsistencies such as when deleted emails appear again
+				value: () => mailBody != null ? htmlToText(mailBody.text) : ""
 			}, {
 				attribute: MailModel.associations["attachments"],
 				value: () => files.map(file => file.name).join(" ")
