@@ -88,6 +88,8 @@ export class MailViewer {
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
+	lastDistance: number;
+	lastScale: number;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		this.mail = mail
@@ -170,7 +172,6 @@ export class MailViewer {
 							m.redraw()
 						}
 					})
-
 				}
 			}, () => Icons.Picture)
 			loadExternalContentButton.setIsVisibleHandler(() => this._contentBlocked)
@@ -293,6 +294,7 @@ export class MailViewer {
 		}
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
+		let updateRequested = false
 		this.view = () => {
 			return [
 				m("#mail-viewer.fill-absolute"
@@ -328,46 +330,53 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.scroll-x.selectable.touch-callout"
-							+ (client.isMobileDevice() ? "" : ".scroll"), {
-							oncreate: vnode => {
-								this._domBody = vnode.dom
-								this._updateLineHeight()
-								const width = this._domBody.getBoundingClientRect().width
-								const containerWidth = this._domMailViewer ? this._domMailViewer.getBoundingClientRect().width : -1
-								console.log(`body width: ${width}, container width: ${containerWidth}`)
-
-							},
-							onupdate: (vnode) => {
-								const child = vnode.children.reduce((acc, ch) => {
-									const scrollWidth = ch.scrollWidth
-									return acc == null || scrollWidth > acc ? scrollWidth : acc
-								}, null)
-								if (!child) return
-								const width = child.scrollWidth
-								const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
-								console.log(`body width onupdate: ${width}, container width: ${containerWidth}`)
-								const scale = containerWidth / width
-								const scrollHeight = child.scrollHeight
-								const scrollHeigthScale = child.scrollHeight * scale
-								const heightDiff = child.scrollHeight - child.scrollHeight * scale
-								const heightDiffHalf = heightDiff / 2
-								console.log(`scale ${scale}, height: ${scrollHeight}, height * scale: ${scrollHeigthScale} diff: ${heightDiff}, diffHalf: ${heightDiffHalf}`)
-								child.style.transform = `scale(${scale}) translate(-${(child.scrollWidth - child.scrollWidth * scale) / 2}px, -${heightDiffHalf}px)`
-							},
-							onclick: (event: Event) => this._handleMailto(event),
-							onsubmit: (event: Event) => this._confirmSubmit(event),
-							style: {'line-height': this._bodyLineHeight}
-						}, (this._mailBody == null
-							&& !this._errorOccurred) ? m(".progress-panel.flex-v-center.items-center", {
-							style: {
-								height: '200px'
-							}
-						}, [
-							progressIcon(),
-							m("small", lang.get("loading_msg"))
-						]) : ((this._errorOccurred || this.mail._errors
-							|| neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+						m(".rel.scroll-x" + (client.isMobileDevice() ? "" : ".scroll"),
+							m("#mail-body.selectable.touch-callout" + (client.isMobileDevice() ? "" : ".scroll"), {
+								oncreate: vnode => {
+									this._domBody = vnode.dom
+									this._updateLineHeight()
+									const width = this._domBody.getBoundingClientRect().width
+									const containerWidth = this._domMailViewer ? this._domMailViewer.getBoundingClientRect().width : -1
+									console.log(`body width: ${width}, container width: ${containerWidth}`)
+									this._rescale(vnode)
+								},
+								onupdate: (vnode) => this._rescale(vnode),
+								onclick: (event: Event) => this._handleMailto(event),
+								onsubmit: (event: Event) => this._confirmSubmit(event),
+								style: {'line-height': this._bodyLineHeight, 'transform-origin': 'top left'},
+								ontouchmove: (e) => {
+									if (e.touches.length === 2) {
+										const dist = Math.hypot(
+											e.touches[0].pageX - e.touches[1].pageX,
+											e.touches[0].pageY - e.touches[1].pageY);
+										const factor = dist / this.lastDistance
+										if (this.lastDistance != null) {
+											this.lastScale = this.lastScale * factor
+											// if (!updateRequested) {
+											// 	requestAnimationFrame(() => {
+											this._domBody.style.transform = `scale(${this.lastScale})`
+											// 		updateRequested = false
+											// 	})
+											// 	updateRequested = true
+											// }
+										}
+										this.lastDistance = dist
+										e.redraw = false
+									}
+								},
+							}, (this._mailBody == null && !this._errorOccurred)
+								? m(".progress-panel.flex-v-center.items-center", {
+									style: {
+										height: '200px'
+									}
+								}, [
+									progressIcon(),
+									m("small", lang.get("loading_msg"))
+								])
+								: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
+									? m(errorMessageBox)
+									: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+						)
 					]
 				)
 			]
@@ -377,6 +386,28 @@ export class MailViewer {
 
 
 		this._setupShortcuts()
+	}
+
+
+	_rescale(vnode: Vnode<any>) {
+		// const child = Array.from(vnode.dom.children).reduce((acc, ch) => {
+		// 	const scrollWidth = ch.scrollWidth
+		// 	return acc == null || scrollWidth > acc ? ch : acc
+		// }, null)
+		// if (!child) return
+		const child = vnode.dom
+		const width = child.scrollWidth
+		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
+		console.log(`body width onupdate: ${width}, container width: ${containerWidth}`)
+		const scale = containerWidth / width
+		const scrollHeight = child.scrollHeight
+		const scrollHeigthScale = child.scrollHeight * scale
+		const heightDiff = child.scrollHeight - child.scrollHeight * scale
+		const heightDiffHalf = heightDiff / 2
+		console.log(`scale ${scale}, height: ${scrollHeight}, height * scale: ${scrollHeigthScale} diff: ${heightDiff}, diffHalf: ${heightDiffHalf}`)
+		// child.style.transform = `scale(${scale}) translate(-${(child.scrollWidth - child.scrollWidth * scale) / 2}px, -${heightDiffHalf}px)`
+		child.style.transform = `scale(${scale})`
+		this.lastScale = scale
 	}
 
 	_setupShortcuts() {
