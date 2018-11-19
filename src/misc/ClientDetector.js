@@ -23,7 +23,6 @@ class ClientDetector {
 		this._setDeviceInfo()
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
-
 	}
 
 	/**
@@ -38,6 +37,7 @@ class ClientDetector {
 			this.blob() &&
 			this.history() &&
 			this.randomNumbers() &&
+			this.supportsFocus() &&
 			this.notIE()
 	}
 
@@ -77,6 +77,11 @@ class ClientDetector {
 		} else {
 			return false
 		}
+	}
+
+	supportsFocus(): boolean {
+		return typeof HTMLInputElement !== "undefined"
+			&& typeof HTMLInputElement.prototype.focus === "funciton"
 	}
 
 	dateFormat(): boolean {
