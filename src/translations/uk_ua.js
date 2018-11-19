@@ -77,7 +77,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} використано, {active} активовано",
 		"amountUsedOf_label": "{amount} використано з {totalAmount}\n\nPlaceholders:{amount}{totalAmount}\n",
 		"amountUsed_label": "{amount} використано",
-		"appInfoAmazonImageAlt_alt": "Програма Android на Amazon",
 		"appInfoAndroidImageAlt_alt": "Програма Android на Google Play",
 		"appInfoIosImageAlt_alt": "Застосунки iOS  в магазині Apple",
 		"applicationUpdate_label": "Tutanota завантажується…",

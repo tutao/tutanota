@@ -73,7 +73,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} felhasznált, {active} aktivált",
 		"amountUsedOf_label": "{amount} felhasználva {totalAmount} -ból",
 		"amountUsed_label": "{amount} felhasznált",
-		"appInfoAmazonImageAlt_alt": "Az Android alkalmazás az Amazon-on.",
 		"appInfoAndroidImageAlt_alt": "Android alkalmazás a Google Play-en",
 		"appInfoIosImageAlt_alt": "iOS alkalmazás az Apple Store-ban",
 		"applicationUpdate_label": "Tutanota betöltése ...",

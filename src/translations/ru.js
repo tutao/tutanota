@@ -61,7 +61,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} используется, {active} активирован",
 		"amountUsedOf_label": "{amount} использовано из {totalAmount}",
 		"amountUsed_label": "{amount} занято",
-		"appInfoAndroidImageAlt_alt": "Android app на Google Play",
+		"appInfoAndroidImageAlt_alt": "Android приложение на Google Play",
 		"appInfoIosImageAlt_alt": "Приложение iOS в Apple Store",
 		"applicationUpdate_label": "Загружаю Tutanota...",
 		"archivedMails_alt": "Архивированные письма",
@@ -504,7 +504,6 @@ module.exports = {
 		"nbrOfContactsSelected_msg": "{1} контактов выбрано",
 		"nbrOfMailsSelected_msg": "Выбрано писем: {1}",
 		"newContact_action": "Новый контакт",
-		"newFeature_msg": "Новая функция",
 		"newMailsReceivedSubject_msg": "Пришла почта.",
 		"newMails_msg": "Получено новое письмо от Tutanota.",
 		"newMail_action": "Новое письмо",
@@ -591,7 +590,6 @@ module.exports = {
 		"phone_label": "Телефон",
 		"photoLibraryUsageDescription_msg": "Разместите изображение из библиотеки как вложение. ",
 		"pleaseWait_msg": "Пожалуйста, подождите ...",
-		"postpone_action": "Отложить",
 		"premiumAccountCanceled_msg": "Премиум-аккаунт уже был отменён.",
 		"presharedPasswordAndStrength_msg": "Надёжность пароля:",
 		"presharedPasswordHeading_label": "Согласованный:",
@@ -629,14 +627,6 @@ module.exports = {
 		"receivedMail_alt": "Полученное письмо",
 		"received_action": "Входящие",
 		"receiveMsg_label": "Получить сообщение",
-		"recoverAccountAccess_action": "Утерян доступ",
-		"recoverResetFactors_action": "Обнулить подтверждение входа",
-		"recoverSetNewPassword_action": "Задать новый пароль",
-		"recoveryCodeEmpty_msg": "Пожалуйста введите код восстановления.",
-		"recoveryCodeReminder_msg": "Вы можете настроить код восстановления, который поможет вам получить доступ к вашей учетной записи.",
-		"recoveryCode_label": "Код восстановления",
-		"recoveryCode_msg": "Пожалуйста, уделите время и запишите код восстановления. Это поможет восстановить доступ к аккаунту в случае утери пароля или утери подтверждения входа.",
-		"recover_label": "Восстановление",
 		"refresh_action": "Обновить",
 		"regDisabledFree_msg": "Количество бесплатных пользователей Tutanota ограничено и регистрация в настоящее время отключена. Пожалуйста, поддерживайте с нами связь здесь, чтобы получить уведомление, как только регистрация будет возможно снова:",
 		"register_alt": "Регистрация",
@@ -816,6 +806,6 @@ module.exports = {
 		"recoverSetNewPassword_action": "Задать новый пароль",
 		"recoverResetFactors_action": "Обнулить подтверждение входа",
 		"postpone_action": "Отложить",
-		"setUp_action": "Настроить"
+		"appInfoFDroidImageAlt_alt": "Android приложение на F-Droid"
 	}
 }

@@ -75,7 +75,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} used, {active} activated",
 		"amountUsedOf_label": "{amount} used of {totalAmount}",
 		"amountUsed_label": "{amount} used",
-		"appInfoAmazonImageAlt_alt": "Android app on Amazon",
 		"appInfoAndroidImageAlt_alt": "Android app on Google Play",
 		"appInfoIosImageAlt_alt": "iOS app on Apple store",
 		"applicationUpdate_label": "Loading Tutanota ...",
@@ -1133,6 +1132,7 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"imprintUrl_label": "Link to imprint",
-		"imprint_label": "Imprint"
+		"imprint_label": "Imprint",
+		"appInfoFDroidImageAlt_alt": "Android app on F-Droid"
 	}
 }

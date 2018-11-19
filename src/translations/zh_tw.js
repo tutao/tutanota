@@ -74,7 +74,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} 個已使用，{active} 個已啟動",
 		"amountUsedOf_label": "{totalAmount}名內有{amount}名使用中。",
 		"amountUsed_label": " {amount} 個已使用",
-		"appInfoAmazonImageAlt_alt": "Amazon上的 Android APP",
 		"appInfoAndroidImageAlt_alt": "Play Store上的Android APP ",
 		"appInfoIosImageAlt_alt": "App Store 上的 iOS APP",
 		"applicationUpdate_label": "正在載入 Tutanota．．．",

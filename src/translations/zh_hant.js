@@ -61,7 +61,6 @@ module.exports = {
 		"all_contacts_label": "所有聯絡人",
 		"amountUsedAndActivated_label": "{used} 已使用，{active} 已啟用",
 		"amountUsed_label": "已使用{amount}",
-		"appInfoAmazonImageAlt_alt": "Amazon上的 Android App",
 		"appInfoAndroidImageAlt_alt": "在 Google Play 的 Android 應用程式",
 		"appInfoIosImageAlt_alt": "App Store 上的 iOS 應用程式",
 		"applicationUpdate_label": "正在載入Tutanota...",

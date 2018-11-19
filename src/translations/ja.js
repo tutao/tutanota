@@ -72,7 +72,6 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used}使用済み, {active}認証済み",
 		"amountUsedOf_label": "{totalAmount}のうち{amount}を使用中",
 		"amountUsed_label": "{amount}支払い済み",
-		"appInfoAmazonImageAlt_alt": "AmazonストアのAndroidアプリ",
 		"appInfoAndroidImageAlt_alt": "Google PlayのAndroidアプリ",
 		"appInfoIosImageAlt_alt": "iOSアプリをApple Storeで",
 		"applicationUpdate_label": "Tutanotaを読み込み中…",
