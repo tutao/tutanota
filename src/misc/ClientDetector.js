@@ -81,7 +81,7 @@ class ClientDetector {
 
 	supportsFocus(): boolean {
 		return typeof HTMLInputElement !== "undefined"
-			&& typeof HTMLInputElement.prototype.focus === "funciton"
+			&& typeof HTMLInputElement.prototype.focus === "function"
 	}
 
 	dateFormat(): boolean {
