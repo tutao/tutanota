@@ -168,8 +168,10 @@ public class MainActivity extends Activity {
     private void handleIntent(Intent intent) {
         if (intent.getAction() != null) {
             switch (intent.getAction()) {
+                // See descriptions of actions in AndroidManifest.xml
                 case Intent.ACTION_SEND:
                 case Intent.ACTION_SEND_MULTIPLE:
+                case Intent.ACTION_SENDTO:
                 case Intent.ACTION_VIEW:
                     share(intent);
                     break;
@@ -389,7 +391,7 @@ public class MainActivity extends Activity {
                 ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
                 if (uris != null) {
                     for (Uri uri : uris) {
-                       filesArray.put(uri.toString());
+                        filesArray.put(uri.toString());
                     }
                 }
             } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
