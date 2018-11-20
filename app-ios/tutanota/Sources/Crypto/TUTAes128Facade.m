@@ -83,7 +83,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 		let providedMacBytes = [encryptedData subdataWithRange:NSMakeRange(encryptedData.length - 32, 32)];
 		let computedMacBytes = [self hmac256WithKey:subKeys.mKey data:cipherTextWithoutMac];
-		if ([providedMacBytes isEqual:computedMacBytes]) {
+		if (![providedMacBytes isEqual:computedMacBytes]) {
 			*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"HMAC validation failed"];
 			return nil;
 		}
