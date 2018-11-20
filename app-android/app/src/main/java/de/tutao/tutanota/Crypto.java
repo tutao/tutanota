@@ -86,8 +86,6 @@ public final class Crypto {
     }
 
 
-
-
     protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchProviderException, NoSuchAlgorithmException {
         this.randomizer.setSeed(seed);
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", PROVIDER);
@@ -145,12 +143,20 @@ public final class Crypto {
     /**
      * Encrypts an aes key with RSA to a byte array.
      */
-    String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws JSONException, NoSuchAlgorithmException,
-            NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        PublicKey publicKey = jsonToPublicKey(publicKeyJson);
-        this.randomizer.setSeed(random);
-        byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
-        return Utils.bytesToBase64(encrypted);
+    String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws CryptoError {
+        try {
+            PublicKey publicKey = jsonToPublicKey(publicKeyJson);
+            this.randomizer.setSeed(random);
+            byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
+            return Utils.bytesToBase64(encrypted);
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            // These types of errors are normal crypto errors and will be handled by the web part.
+            throw new CryptoError(e);
+        } catch (JSONException | NoSuchAlgorithmException |
+                NoSuchProviderException | NoSuchPaddingException e) {
+            // These types of errors are unexpected and fatal.
+            throw new RuntimeException(e);
+        }
     }
 
     private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -162,11 +168,20 @@ public final class Crypto {
     /**
      * Decrypts a byte array with RSA to an AES key.
      */
-    String rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, JSONException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException,
-            BadPaddingException {
-        byte[] decrypted = rsaDecrypt(jsonPrivateKey, encryptedKey, this.randomizer);
-        return Utils.bytesToBase64(decrypted);
+    String rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey) throws CryptoError {
+        try {
+            byte[] decrypted = rsaDecrypt(jsonPrivateKey, encryptedKey, this.randomizer);
+            return Utils.bytesToBase64(decrypted);
+        } catch (InvalidKeySpecException | BadPaddingException | InvalidKeyException
+                | IllegalBlockSizeException e) {
+            // These types of errors can happen and that's okay, they should be handled gracefully.
+            throw new CryptoError(e);
+        } catch (JSONException | NoSuchAlgorithmException | NoSuchProviderException |
+                NoSuchPaddingException e) {
+            // These errors are not expected, fatal for the whole application and should be 
+            // reported.
+            throw new RuntimeException("rsaDecrypt error", e);
+        }
     }
 
     private byte[] rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey, SecureRandom randomizer) throws JSONException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -224,8 +239,10 @@ public final class Crypto {
             } else {
                 out.write(tempOut.toByteArray());
             }
-        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
-           throw new CryptoError(e);
+        } catch (InvalidKeyException e) {
+            throw new CryptoError(e);
+        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(encrypted);
@@ -276,7 +293,10 @@ public final class Crypto {
             cipher.init(Cipher.DECRYPT_MODE, bytesToKey(cKey), params);
             decrypted = getCipherInputStream(in, cipher);
             IOUtils.copyLarge(decrypted, out, new byte[1024 * 1000]);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException
+                | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
             throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
