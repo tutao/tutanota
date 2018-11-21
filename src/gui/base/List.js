@@ -494,9 +494,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._loading = this._config.fetch(startId, count)
 		                    .then((newItems: T[]) => {
 			                    if (newItems.length < count) this.setLoadedCompletely()
-			                    for (let i = 0; i < newItems.length; i++) {
-				                    this._loadedEntities[start + i] = newItems[i]
-			                    }
+			                    this._loadedEntities.push(...newItems)
 			                    this._loadedEntities.sort(this._config.sortCompare)
 		                    }).finally(() => {
 				if (this.ready) {
@@ -541,17 +539,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	//         }
 	//     }
 	// }
-
-	/**
-	 * retrieves a new page from the server, if the element is currently not initialized
-	 */
-	_getListElement(index: number): T {
-		let e = this._loadedEntities[index]
-		if (e === undefined) {
-			//this._loadMore(index)
-		}
-		return e
-	}
 
 	_doRender() {
 		this._createVirtualElements()
@@ -670,7 +657,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							+ "px)"
 					}
 					let pos = topElement.top / rowHeight
-					let entity = this._getListElement(pos)
+					let entity = this._loadedEntities[pos]
 					this._updateVirtualRow(topElement, entity, (pos % 2: any))
 					this._virtualList.push(this._virtualList.shift())
 					topElement = this._virtualList[0]
@@ -690,7 +677,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							+ bottomElement.top + "px)"
 					}
 					let pos = bottomElement.top / rowHeight
-					let entity = this._getListElement(pos)
+					let entity = this._loadedEntities[pos]
 					this._updateVirtualRow(bottomElement, entity, (pos % 2: any))
 					this._virtualList.unshift(this._virtualList.pop())
 					topElement = bottomElement
@@ -741,7 +728,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			row.domElement.style.transform = "translateY(" + row.top + "px)"
 
 			let pos = row.top / rowHeight
-			let entity = this._getListElement(pos)
+			let entity = this._loadedEntities[pos]
 			this._updateVirtualRow(row, entity, (pos % 2: any))
 
 		}
@@ -759,7 +746,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._reposition()
 	}
 
-	_updateVirtualRow(row: VirtualRow<T>, entity: T, odd: boolean) {
+	_updateVirtualRow(row: VirtualRow<T>, entity: ?T, odd: boolean) {
 		row.entity = entity
 		if (odd) {
 			row.domElement.classList.remove('odd-row')
