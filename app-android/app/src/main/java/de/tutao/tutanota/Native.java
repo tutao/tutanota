@@ -203,7 +203,8 @@ public final class Native {
                     promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
                     break;
                 case "download":
-                    return files.download(args.getString(0), args.getString(1), args.getJSONObject(2));
+                    promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
+                    break;
                 case "clearFileData":
                     files.clearFileData();
                     promise.resolve(null);

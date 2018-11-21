@@ -10,6 +10,7 @@ import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
+import {ConnectionError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -30,12 +31,12 @@ export class FileController {
 					// Data file. No cleanup needed.
 					return this.open(file)
 				}
-			}).catch(err => {
-				if (err instanceof CryptoError) {
-					return Dialog.error("corrupted_msg")
-				} else {
-					return Dialog.error("couldNotAttachFile_msg")
-				}
+			}).catch(CryptoError, e => {
+				console.log(e)
+				return Dialog.error("corrupted_msg")
+			}).catch(ConnectionError, e => {
+				console.log(e)
+				return Dialog.error("couldNotAttachFile_msg")
 			})
 		)
 	}
@@ -48,18 +49,16 @@ export class FileController {
 			Promise
 				.map(tutanotaFiles, (tutanotaFile) => {
 					return worker.downloadFileContent(tutanotaFile)
-					             .catch(err => {
-						             // We're returning dialogs here so they don't overlap each other
-						             // We're returning null to say that this file is not present.
-						             // (it's void by default)
-						             if (err instanceof CryptoError) {
-							             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-							                          .return(null)
-						             } else {
-							             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " "
-								             + tutanotaFile.name)
-							                          .return(null)
-						             }
+					             // We're returning dialogs here so they don't overlap each other
+					             // We're returning null to say that this file is not present.
+					             // (it's void by default and doesn't satisfy type checker)
+					             .catch(CryptoError, e => {
+						             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+						                          .return(null)
+					             })
+					             .catch(ConnectionError, e => {
+						             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+						                          .return(null)
 					             })
 				}, {concurrency: (isAndroidApp() ? 1 : 5)})
 				.then((files) => files.filter(Boolean)) // filter out failed files
@@ -76,11 +75,6 @@ export class FileController {
 	 * @param allowedExtensions Array of extensions strings without "."
 	 */
 	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
-		// if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE) {
-		// 	return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
-		// 		return []
-		// 	})
-		// }
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 

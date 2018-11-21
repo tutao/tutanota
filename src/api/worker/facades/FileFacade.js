@@ -41,18 +41,21 @@ export class FileFacade {
 				if (env.mode === Mode.App) {
 					let queryParams = {'_body': encodeURIComponent(body)}
 					let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", queryParams)
-					return fileApp.download(url, file.name, headers).then(fileLocation => {
-						return aesDecryptFile(neverNull(sessionKey), fileLocation).then(decryptedFileUrl => {
-							return {
-								_type: 'FileReference',
-								name: file.name,
-								mimeType: file.mimeType,
-								location: decryptedFileUrl,
-								size: file.size
-							}
-						}).finally(() =>
-							fileApp.deleteFile(fileLocation)
-							       .catch(() => console.log("Failed to delete encrypted file", fileLocation)))
+
+					return fileApp.download(url, file.name, headers).then(({statusCode, statusMessage, encryptedFileUri}) => {
+						return ((statusCode === 200 && encryptedFileUri != null)
+							? aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
+								return {
+									_type: 'FileReference',
+									name: file.name,
+									mimeType: file.mimeType,
+									location: decryptedFileUrl,
+									size: file.size
+								}
+							})
+							: Promise.reject(handleRestError(statusCode, `${statusMessage} | GET ${url} failed to natively download attachment`)))
+							.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
+							                                                  .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
 					})
 				} else {
 					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)
@@ -96,11 +99,12 @@ export class FileFacade {
 						let headers = this._login.createAuthHeaders()
 						headers['v'] = FileDataDataReturnTypeModel.version
 						let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
-						return fileApp.upload(encryptedFileLocation, url, headers).then(responseCode => {
-							if (responseCode === 200) {
+						return fileApp.upload(encryptedFileLocation, url, headers).then(({statusCode, statusMessage}) => {
+							if (statusCode === 200) {
 								return fileDataId;
 							} else {
-								throw handleRestError(responseCode, "failed to natively upload attachment");
+								throw handleRestError(statusCode,
+									`${statusMessage} | PUT ${url} failed to natively upload attachment`)
 							}
 						})
 					})
