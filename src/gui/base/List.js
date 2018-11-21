@@ -259,7 +259,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				// Activate multi selection after pause
 				timeoutId = setTimeout(() => {
 					this._mobileMultiSelectionActive = true;
-					if (!this.isEntitySelected(virtualRow.entity._id[1])) {
+					// check that virtualRow.entity exists because we had error feedbacks about it
+					if (virtualRow.entity && !this.isEntitySelected(virtualRow.entity._id[1])) {
 						this._elementClicked(virtualRow.entity, e)
 					} else {
 						m.redraw() // only header changes we don't need reposition here
