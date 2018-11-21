@@ -23,7 +23,10 @@ export function focusPrevious(dom: HTMLElement) {
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
 		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+		const selection = window.getSelection()
+		if (selection && selection.focusNode
+			&& (selection.focusNode.nodeName === "LI"
+				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection if selection is in list
 		}
@@ -41,10 +44,12 @@ export function focusNext(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		console.log(window.getSelection().focusNode.parentNode.nodeName)
 		//work around for squire so tabulator actions are executed properly
 		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+		const selection = window.getSelection()
+		if (selection && selection.focusNode
+			&& (selection.focusNode.nodeName === "LI"
+				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection
 		}
