@@ -327,8 +327,9 @@ export class CustomerFacade {
 				})
 			})
 			.catch(e => {
+				e.message = e.message + " error switching free to premium group"
 				console.log(e)
-				throw new Error("error switching free to premium group")
+				throw e
 			})
 	}
 
@@ -348,8 +349,9 @@ export class CustomerFacade {
 				})
 			})
 			.catch(e => {
+				e.message = e.message + " error switching premium to free group"
 				console.log(e)
-				throw new Error("error switching free to premium group")
+				throw e
 			})
 	}
 
