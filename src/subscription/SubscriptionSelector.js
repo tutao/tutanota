@@ -9,14 +9,15 @@ import {SegmentControl} from "../gui/base/SegmentControl"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
-import {neverNull} from "../api/common/utils/Utils"
 import {formatPrice} from "../misc/Formatter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getPriceFromPriceData} from "./PriceUtils"
 import {isApp} from "../api/Env"
 
 type UpgradePrices = {
+	originalPremiumPrice: number,
 	premiumPrice: number,
+	originalProPrice: number,
 	proPrice: number
 }
 
@@ -62,7 +63,13 @@ export class SubscriptionSelector {
 
 		// initial help label and price
 		this._yearlyPrice.getAsync().then(yearlyPrice => {
+			if (yearlyPrice.premiumPrice != yearlyPrice.originalPremiumPrice) {
+				this._premiumUpgradeBox.buyOptionBox.setPreviousValue(yearlyPrice.originalPremiumPrice + " €")
+			}
 			this._premiumUpgradeBox.buyOptionBox.setValue(yearlyPrice.premiumPrice + " €")
+			if (yearlyPrice.proPrice != yearlyPrice.originalProPrice) {
+				this._proUpgradeBox.buyOptionBox.setPreviousValue(yearlyPrice.originalProPrice + " €")
+			}
 			this._proUpgradeBox.buyOptionBox.setValue(yearlyPrice.proPrice + " €")
 
 			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
@@ -111,14 +118,18 @@ export class SubscriptionSelector {
 		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
 			if (paymentIntervalItem.value === 12) {
 				this._yearlyPrice.getAsync()
-					.then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice)
-						+ " €"))
-					.then(() => m.redraw())
+				    .then(upgradePrice => {
+					    buyOptionBox.setPreviousValue((proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice) + " €")
+					    buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice) + " €")
+				    })
+				    .then(() => m.redraw())
 			} else {
 				this._monthlyPrice.getAsync()
-					.then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false)
-						+ " €"))
-					.then(() => m.redraw())
+				    .then(upgradePrice => {
+					    buyOptionBox.setPreviousValue(null)
+					    buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
+				    })
+				    .then(() => m.redraw())
 			}
 			upgradeBox.paymentInterval(paymentIntervalItem)
 		})
@@ -134,12 +145,19 @@ export class SubscriptionSelector {
 			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
 			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),
 			(userReturn, aliasReturn, storageReturn, brandingReturn) => {
+				let originalUserPrice = getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)
+				let userPrice = originalUserPrice + getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Discount)
+				let originalProPrice = originalUserPrice
+					+ getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias)
+					+ getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage)
+					+ getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)
+				let proPrice = originalProPrice + [userReturn, aliasReturn, storageReturn, brandingReturn]
+					.reduce((sum, current) => getPriceFromPriceData(current.futurePriceNextPeriod, BookingItemFeatureType.Discount) + sum, 0)
 				return {
-					premiumPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)),
-					proPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users))
-					+ Number(getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias))
-					+ Number(getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage))
-					+ Number(neverNull(getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)))
+					originalPremiumPrice: originalUserPrice,
+					premiumPrice: userPrice,
+					originalProPrice,
+					proPrice
 				}
 			})
 	}

@@ -20,6 +20,7 @@ import {asyncImport, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
+import {Const} from "./api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -43,6 +44,7 @@ window.tutao = {
 	logins,
 	currentView,
 	themeId,
+	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
 

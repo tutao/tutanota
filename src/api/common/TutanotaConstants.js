@@ -103,7 +103,8 @@ export const BookingItemFeatureType = {
 	Branding: '4',
 	ContactForm: '5',
 	WhitelabelChild: '6',
-	LocalAdminGroup: '7'
+	LocalAdminGroup: '7',
+	Discount: '8'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 

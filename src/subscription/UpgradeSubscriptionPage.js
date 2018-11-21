@@ -5,7 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import type {WizardPageActionHandler, WizardPage} from "../gui/base/WizardDialog"
+import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {AccountType} from "../api/common/TutanotaConstants"
 
@@ -30,7 +30,8 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 					paymentInterval: upgradeBox.paymentInterval().value
 				}
 				this._upgradeData.proUpgrade = proUpgrade
-				this._upgradeData.price = upgradeBox.buyOptionBox.value()
+				this._upgradeData.price = upgradeBox.buyOptionBox.price()
+				this._upgradeData.originalPrice = upgradeBox.buyOptionBox.originalPrice()
 				this._pageActionHandler.showNext(this._upgradeData)
 			}
 		}

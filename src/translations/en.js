@@ -1133,6 +1133,8 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"imprintUrl_label": "Link to imprint",
 		"imprint_label": "Imprint",
-		"appInfoFDroidImageAlt_alt": "Android app on F-Droid"
+		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
+		"priceFirstYear_label": "Price for first year",
+		"priceForNextYear_label": "Price for next year",
 	}
 }

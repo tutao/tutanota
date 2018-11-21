@@ -22,6 +22,7 @@ export type UpgradeSubscriptionData = {
 	paymentData: PaymentData,
 	proUpgrade: boolean,
 	price: string,
+	originalPrice: ?string,
 	accountingInfo: AccountingInfo
 }
 
@@ -45,6 +46,7 @@ export function show(): void {
 					creditCardData: null,
 				},
 				price: "",
+				originalPrice: null,
 				proUpgrade: false,
 				accountingInfo: accountingInfo
 			}

@@ -30,7 +30,7 @@ styles.registerStyle('main', () => {
 			"-ms-user-select": "text !important",
 			"-webkit-user-select": "text !important",
 			"-moz-user-select": "text !important",
-			"-webkit-touch-callout" : "default !important"
+			"-webkit-touch-callout": "default !important"
 		},
 
 		".selectable *": {
@@ -38,7 +38,7 @@ styles.registerStyle('main', () => {
 			"-ms-user-select": "text !important",
 			"-webkit-user-select": "text !important",
 			"-moz-user-select": "text !important",
-			"-webkit-touch-callout" : "default !important"
+			"-webkit-touch-callout": "default !important"
 		},
 
 		"@font-face": {
@@ -287,6 +287,7 @@ styles.registerStyle('main', () => {
 		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},
 		'.no-text-decoration': {'text-decoration': 'none'},
+		'.strike': {'text-decoration': 'line-through'},
 
 		// flex box
 		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
@@ -784,6 +785,37 @@ styles.registerStyle('main', () => {
 		},
 		'.buyOptionBox.selected': {
 			border: `1px solid ${theme.content_accent}`,
+		},
+
+		'.ribbon-vertical': {
+			position: "absolute",
+			"margin-bottom": "80px",
+			width: "40px",
+			height: "60px",
+			background: theme.content_accent,
+			top: "-6px",
+			right: "10px",
+			color: theme.content_bg,
+		},
+		'.ribbon-vertical:before': {
+			content: '""',
+			position: "absolute",
+			height: 0,
+			width: 0,
+			'border-bottom': `6px solid ${theme.content_accent}`,
+			"border-right": "6px solid transparent",
+			right: "-6px"
+		},
+		'.ribbon-vertical:after': {
+			content: '""',
+			position: "absolute",
+			height: 0,
+			width: 0,
+			left: 0,
+			"border-left": `20px solid ${theme.content_accent}`,
+			"border-right": `20px solid ${theme.content_accent}`,
+			"border-bottom": "20px solid transparent",
+			"bottom": "-20px"
 		},
 
 		// media query for small devices where elements should be arranged in one column

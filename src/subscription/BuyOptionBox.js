@@ -12,7 +12,8 @@ export class BuyOptionBox {
 	_actionId: string;
 	_button: Button;
 	view: Function;
-	value: Stream<string>;
+	originalPrice: stream<?string>;
+	price: stream<string>;
 	_helpLabel: string;
 	_features: lazy<string[]>;
 	_injection: ?Component;
@@ -22,7 +23,8 @@ export class BuyOptionBox {
 		this._headingIdOrFunction = headingIdOrFunction
 		this._actionId = actionTextId
 		this._button = new Button(actionTextId, actionClickHandler).setType(ButtonType.Login)
-		this.value = stream(lang.get("emptyString_msg"))
+		this.originalPrice = stream(null)
+		this.price = stream(lang.get("emptyString_msg"))
 		this._helpLabel = lang.get("emptyString_msg")
 		this._features = features
 		this.selected = false
@@ -38,9 +40,12 @@ export class BuyOptionBox {
 				m(".buyOptionBox" + (this.selected ? ".selected" : ""), {
 					style: {height: px(height)}
 				}, [
+					this.originalPrice() ? m(".ribbon-vertical", m(".center.b.h4", {style: {'padding-top': px(22)}}, "%")) : null,
 					m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction
 					instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
-					m(".h1.center.pt", this.value()),
+					m(".center.pt.flex.items-center.justify-center", [
+						m("span.h1", this.price()), this.originalPrice() ? m("span.strike.pl", "(" + this.originalPrice() + ")") : null
+					]),
 					m(".small.center", this._helpLabel),
 					this._injection ? m(this._injection) : null,
 					m(".button-min-height", {
@@ -60,8 +65,13 @@ export class BuyOptionBox {
 		}
 	}
 
+	setPreviousValue(value: ?string): BuyOptionBox {
+		this.originalPrice(value)
+		return this
+	}
+
 	setValue(value: string): BuyOptionBox {
-		this.value(value)
+		this.price(value)
 		return this
 	}
 
