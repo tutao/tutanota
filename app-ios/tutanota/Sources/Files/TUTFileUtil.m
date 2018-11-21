@@ -1,4 +1,6 @@
 
+#import "Swiftier.h"
+
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "TUTFileViewer.h"
 #import "TUTFileUtil.h"
@@ -84,10 +86,10 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 }
 
 
-- (void)uploadFileAtPath:(NSString *)filePath
-				   toUrl:(NSString *)urlString
-			 withHeaders:(NSDictionary<NSString *, NSString *> *)headers
-			  completion:(void (^)(NSNumber *, NSError *))completion {
+- (void)uploadFileAtPath:(NSString * _Nonnull)filePath
+				   toUrl:(NSString * _Nonnull)urlString
+			 withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
+			  completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSURL *url = [NSURL URLWithString:urlString];
 		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
@@ -106,17 +108,28 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 															completion(nil, error);
 															return;
 														}
-														NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-														completion([NSNumber numberWithInteger:httpResponse.statusCode], nil);
+
+														const NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+														NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
+														[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
+
+														const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
+														if (errorId == nil) {
+															[responseDict setValue:NSNull.null forKey:@"statusMessage"];
+														} else {
+															[responseDict setValue:errorId forKey:@"statusMessage"];
+														}
+
+														completion(responseDict, nil);
 													}];
 		[task resume];
 	});
 }
 
-- (void)downloadFileFromUrl:(NSString *)urlString
-					forName:(NSString *)fileName
-				withHeaders:(NSDictionary<NSString *, NSString *> *)headers
-				 completion:(void (^)(NSString * filePath, NSError * error))completion {
+- (void)downloadFileFromUrl:(NSString * _Nonnull)urlString
+					forName:(NSString * _Nonnull)fileName
+				withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
+				 completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 			NSURL * url = [NSURL URLWithString:urlString];
 			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -129,28 +142,41 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
 			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-                if (error){
+                if (error) {
 					completion(nil, error);
                     return;
                 }
+				NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
+				[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
+				const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
+				if (errorId == nil) {
+					[responseDict setValue:NSNull.null forKey:@"statusMessage"];
+				} else {
+					[responseDict setValue:errorId forKey:@"statusMessage"];
+				}
+
 				if ([httpResponse statusCode] == 200) {
                     NSError *error = nil;
 					NSString *encryptedPath = [TUTFileUtil getEncryptedFolder: &error];
                     if (error) {
 						completion(nil, error);
-                        return;
-                    }
-                    NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
+						return;
+					}
+					NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
 					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
 					if (!error) {
-						completion(filePath, nil);
+						if (filePath == nil) {
+							[responseDict setValue:NSNull.null forKey:@"encryptedFileUri"];
+						} else {
+							[responseDict setValue:filePath forKey:@"encryptedFileUri"];
+						}
+
+						completion(responseDict, nil);
 					} else {
 						completion(nil, error);
 					}
 				} else {
-					NSString *message = [NSString stringWithFormat:@"Response code: %ld", (long) httpResponse.statusCode];
-					NSError *error = [NSError errorWithDomain:FILES_ERROR_DOMAIN code:15 userInfo:@{@"message":message}];
-					completion(nil, error);
+					completion(responseDict, nil);
 				}
 			}] resume];
 		});

@@ -30,12 +30,12 @@
 - (void)uploadFileAtPath:(NSString * _Nonnull)filePath
 				   toUrl:(NSString * _Nonnull)urlString
 			 withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
-			  completion:(void (^ _Nonnull)(NSNumber * _Nullable responseCode, NSError * _Nullable error))completion;
+			  completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion;
 
 - (void)downloadFileFromUrl:(NSString * _Nonnull)urlString
 					forName:(NSString * _Nonnull)fileName
 				withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
-				 completion:(void (^ _Nonnull)(NSString * _Nullable filePath, NSError * _Nullableerror))completion;
+				 completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion;
 
 - (void)clearFileData;
 
