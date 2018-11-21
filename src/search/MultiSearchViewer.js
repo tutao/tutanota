@@ -25,7 +25,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
-import {lazyMemoized} from "../api/common/utils/Utils"
+import {lazyMemoized, noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -204,6 +204,7 @@ export class MultiSearchViewer {
 			if (mail.unread !== unread) {
 				mail.unread = unread
 				return update(mail)
+					.catch(NotFoundError, noOp)
 			} else {
 				return Promise.resolve()
 			}
