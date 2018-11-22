@@ -47,7 +47,7 @@ export class WizardDialog<T> {
 	constructor(wizardPages: Array<WizardPage<T>>, closeAction: () => Promise<void>) {
 		this._closeAction = closeAction
 		this._pages = wizardPages
-		this._currentPage = wizardPages[0]
+		this._currentPage = this._getEnabledPages()[0]
 		this._pages.forEach(page => page.setPageActionHandler({
 			cancel: () => this._close(),
 			showNext: (wizardData: T) => this._handlePageConfirm(wizardData)
@@ -102,7 +102,9 @@ export class WizardDialog<T> {
 	}
 
 	_getEnabledPages(): WizardPage<T>[] {
-		return this._pages.filter(p => p.isEnabled(this._currentPage.getUncheckedWizardData()))
+		// use initial data if current page is not set yet
+		const data = this._currentPage ? this._currentPage.getUncheckedWizardData() : this._pages[0].getUncheckedWizardData()
+		return this._pages.filter(p => p.isEnabled(data))
 	}
 
 	_backAction(targetIndex: number): void {
