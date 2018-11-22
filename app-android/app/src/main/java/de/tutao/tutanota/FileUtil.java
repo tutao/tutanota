@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -178,12 +179,12 @@ public class FileUtil {
         return Uri.fromFile(newFile).toString();
     }
 
-    long getSize(String fileUri) {
+    long getSize(String fileUri) throws FileNotFoundException {
         return Utils.getFileInfo(activity, Uri.parse(fileUri)).size;
     }
 
 
-    public String getName(String fileUri) throws Exception {
+    public String getName(String fileUri) throws FileNotFoundException {
         return Utils.getFileInfo(activity, Uri.parse(fileUri)).name;
     }
 
@@ -246,19 +247,21 @@ public class FileUtil {
             backgroundTasksExecutor.execute(() -> {
                 final File file = new File(Environment.getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_DOWNLOADS), name);
-                FileInfo fileInfo = Utils.getFileInfo(activity, Uri.fromFile(file));
+
 
                 try (FileOutputStream fout = new FileOutputStream(file)) {
-                    fout.write(Utils.base64ToBytes(base64blob));
+                    byte[] fileBytes = Utils.base64ToBytes(base64blob);
+                    fout.write(fileBytes);
+                    result.resolve(Uri.fromFile(file).toString());
+                    DownloadManager downloadManager =
+                            (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+                    //noinspection ConstantConditions
+                    downloadManager.addCompletedDownload(name, "Tutanota invoice", false,
+                            getMimeType(Uri.fromFile(file)), file.getAbsolutePath(),
+                            fileBytes.length, true);
                 } catch (IOException e) {
                     result.reject(e);
                 }
-                result.resolve(Uri.fromFile(file).toString());
-                DownloadManager downloadManager =
-                        (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                //noinspection ConstantConditions
-                downloadManager.addCompletedDownload(name, "Tutanota invoice", false,
-                        getMimeType(Uri.fromFile(file)), file.getAbsolutePath(), fileInfo.size, true);
             });
             return result;
         });

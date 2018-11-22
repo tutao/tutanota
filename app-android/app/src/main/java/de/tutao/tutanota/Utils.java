@@ -62,7 +62,7 @@ public class Utils {
         return Uri.fromFile(file).toString();
     }
 
-    public static FileInfo getFileInfo(Context context, Uri fileUri) {
+    public static FileInfo getFileInfo(Context context, Uri fileUri) throws FileNotFoundException {
         String scheme = fileUri.getScheme();
         if (scheme == null || scheme.equals("file")) {
             return new FileInfo(fileUri.getLastPathSegment(), new File(fileUri.getPath()).length());
@@ -71,6 +71,9 @@ public class Utils {
                 if (cursor != null && cursor.moveToFirst()) {
                     return new FileInfo(cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)), cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE)));
                 }
+            } catch (SecurityException e) {
+                // When file is deleted SecurityException may be thrown instead.
+                throw new FileNotFoundException(fileUri.toString());
             }
         }
         throw new RuntimeException("could not resolve file name / size for uri " + fileUri);

@@ -164,7 +164,9 @@ export class MailEditor {
 				let dropdown = new Dropdown(() => [
 					new Button('discardChanges_action', () => this._close()).setType(ButtonType.Secondary),
 					new Button('saveDraft_action', () => this.saveDraft(true, true)
-					                                         .then(() => this._close())).setType(ButtonType.Secondary)
+					                                         .then(() => this._close())
+					                                         .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg")))
+						.setType(ButtonType.Secondary)
 				], 250)
 				let buttonRect: PosRect = closeButton._domButton.getBoundingClientRect()
 				dropdown.setOrigin(buttonRect)
@@ -305,6 +307,7 @@ export class MailEditor {
 			                    ctrl: true,
 			                    exec: () => {
 				                    this.saveDraft(true, true)
+				                        .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
 			                    },
 			                    help: "save_action"
 		                    })
@@ -580,6 +583,7 @@ export class MailEditor {
 	 * Saves the draft.
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
+	 * @throws FileNotFoundError when one of the attachments could not be opened
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
