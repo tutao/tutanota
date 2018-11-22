@@ -201,7 +201,13 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 	}
 
 	addresses.forEach((address) => {
-		address ? toRecipients.push(neverNull(createMailAddressFromString(decodeURIComponent(address)))) : null
+		if (address) {
+			const decodedAddress = decodeURIComponent(address)
+			if (decodedAddress) {
+				const mailAddressObject = createMailAddressFromString(decodedAddress)
+				mailAddressObject && toRecipients.push(mailAddressObject)
+			}
+		}
 	})
 
 	if (url.searchParams) { // not supported in Edge
@@ -214,16 +220,28 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
 			} else if (paramName === "cc") {
 				paramValue.split(",")
-				          .forEach((ccAddress) => ccAddress
-					          && ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
+				          .forEach((ccAddress) => {
+					          if (ccAddress) {
+						          const addressObject = createMailAddressFromString(ccAddress)
+						          addressObject && ccRecipients.push(addressObject)
+					          }
+				          })
 			} else if (paramName === "bcc") {
 				paramValue.split(",")
-				          .forEach((bccAddress) => bccAddress
-					          && bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+				          .forEach((bccAddress) => {
+					          if (bccAddress) {
+						          const addressObject = createMailAddressFromString(bccAddress)
+						          addressObject && bccRecipients.push(addressObject)
+					          }
+				          })
 			} else if (paramName === "to") {
 				paramValue.split(",")
-				          .forEach((toAddress) => toAddress
-					          && toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
+				          .forEach((toAddress) => {
+					          if (toAddress) {
+						          const addressObject = createMailAddressFromString(toAddress)
+						          addressObject && toRecipients.push(addressObject)
+					          }
+				          })
 			}
 		}
 	}
