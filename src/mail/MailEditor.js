@@ -46,7 +46,7 @@ import {isSameId} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
-import {contactApp} from "../native/ContactApp"
+import {findRecipients} from "../native/ContactApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {logins} from "../api/main/LoginController"
@@ -972,7 +972,7 @@ class MailBubbleHandler {
 		}).reduce((a, b) => a.concat(b), [])
 		                      .then(suggestions => {
 			                      if (env.mode === Mode.App) {
-				                      return contactApp.findRecipients(query, 10, suggestions).then(() => suggestions)
+				                      return findRecipients(query, 10, suggestions).then(() => suggestions)
 			                      } else {
 				                      return suggestions
 			                      }
