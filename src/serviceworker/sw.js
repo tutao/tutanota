@@ -37,7 +37,7 @@ class ServiceWorker {
 
 	respond(evt: FetchEvent): void {
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
-		if (this._urlsToCache.includes(urlWithoutParams) || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
+		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
 			evt.respondWith(this._fromCache(urlWithoutParams))
 		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
 			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
@@ -137,6 +137,17 @@ const init = (sw: ServiceWorker) => {
 		if (event.data === "update") {
 			self.skipWaiting()
 		}
+	})
+
+	self.addEventListener("error", ({error}) => {
+		const serializedError = {
+			name: error.name,
+			message: error.message,
+			stack: error.stack,
+			data: error.data
+		}
+		return self.clients.matchAll()
+		           .then((allClients) => allClients.forEach((c) => c.postMessage({type: "error", value: serializedError})))
 	})
 }
 

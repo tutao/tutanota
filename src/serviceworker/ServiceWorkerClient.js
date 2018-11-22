@@ -5,6 +5,8 @@ import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
 import {ButtonType} from "../gui/base/ButtonN"
 import m from "mithril"
+import {handleUncaughtError} from "../misc/ErrorHandler"
+import {objToError} from "../api/common/WorkerProtocol"
 
 assertMainOrNodeBoot()
 
@@ -78,6 +80,14 @@ export function init() {
 						             windowFacade.reload({})
 					             }
 				             })
+
+				             serviceWorker.addEventListener("message", (event) => {
+						             if (event.data.type === "error") {
+							             const unserializedError = objToError(event.data.value)
+							             handleUncaughtError(unserializedError)
+						             }
+					             }
+				             )
 			             })
 		}
 	} else {
