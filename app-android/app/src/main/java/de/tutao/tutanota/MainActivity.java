@@ -3,6 +3,7 @@ package de.tutao.tutanota;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ClipData;
@@ -28,8 +29,11 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -47,6 +51,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
@@ -55,6 +61,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
     public static final String THEME_PREF = "theme";
+    private static final int SUPPORTED_WEBVIEW_VERSION = 63;
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
     private static int requestId = 0;
     private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
@@ -85,6 +92,8 @@ public class MainActivity extends Activity {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         WebSettings settings = webView.getSettings();
+        checkOutdatedWebView(settings.getUserAgentString());
+
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
@@ -111,6 +120,7 @@ public class MainActivity extends Activity {
                 startActivity(intent);
                 return true;
             }
+
         });
 
         // Handle long click on links in the WebView
@@ -152,6 +162,54 @@ public class MainActivity extends Activity {
         } else {
             startWebApp(queryParameters);
         }
+    }
+
+    private void checkOutdatedWebView(String userAgent) {
+        if (this.isWebViewOutdated(userAgent)) {
+            this.showOutdatedWebViewDialog();
+        }
+    }
+
+    private boolean isWebViewOutdated(String userAgent) {
+        Matcher matcher = Pattern.compile(".*Chrome/([0-9]*).*").matcher(userAgent);
+        if (matcher.find()) {
+            String versionString = matcher.group(1);
+            if (versionString != null) {
+                try {
+                    int versionNumber = Integer.parseInt(versionString);
+                    if (versionNumber < SUPPORTED_WEBVIEW_VERSION) {
+                        return true;
+                    }
+                } catch (NumberFormatException e) {
+                    Log.w(TAG, "Failed to parse version string", e);
+                }
+            }
+        }
+        return false;
+    }
+
+    private void showOutdatedWebViewDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Outdated WebView version")
+                .setMessage("We've detected that your device is running an outdated WebView version. Please update it or alternatively update your system.")
+                .setPositiveButton("Update", (d, w) -> {
+                    final String appPackageName = "com.google.android.webview";
+                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName));
+                    if (marketIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(marketIntent);
+                    } else {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                    }
+                    finish();
+                })
+                .setCancelable(false)
+                .setOnKeyListener((dialog, keyCode, event) -> {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        finish();
+                    }
+                    return false;
+                })
+                .show();
     }
 
     private void startWebApp(List<String> queryParams) {
