@@ -219,7 +219,7 @@ export class LoginViewController implements ILoginViewController {
 				       .catch((e) => console.log("Failed to clean file data", e))
 			}
 		}).then(() => {
-			if (logins.getUserController().isInternalUser()) {
+			if (logins.isGlobalAdminUserLoggedIn()) {
 				let receiveInfoData = createReceiveInfoServiceData()
 				return serviceRequestVoid("receiveinfoservice", HttpMethod.POST, receiveInfoData)
 			}
