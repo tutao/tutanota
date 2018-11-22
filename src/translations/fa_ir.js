@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2018-11-01T18:54:46Z",
+	"updated_at": "2018-11-22T13:43:22Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",
@@ -75,6 +75,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} استفاده شده، {active} فعال شده",
 		"amountUsedOf_label": "{amount} استفاده شده از {totalAmount}",
 		"amountUsed_label": "{amount} استفاده شده",
+		"appInfoAmazonImageAlt_alt": "برنامهٔ اندرویدی در آمازون",
 		"appInfoAndroidImageAlt_alt": "برنامه های آندروید در Google Play",
 		"appInfoIosImageAlt_alt": "اپلیکیشن iOS در اپ‌استور",
 		"applicationUpdate_label": "در حال بارگذاری Tutanota…",

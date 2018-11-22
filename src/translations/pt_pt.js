@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2018-11-05T13:23:34Z",
+	"updated_at": "2018-11-22T13:43:22Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -79,6 +79,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} utilizado, {active} ativado",
 		"amountUsedOf_label": "{amount} usado de {totalAmount}",
 		"amountUsed_label": "{amount} utilizado",
+		"appInfoAmazonImageAlt_alt": "App Android na Amazon",
 		"appInfoAndroidImageAlt_alt": "Aplicação Android no Google Play",
 		"appInfoIosImageAlt_alt": "App iOS na Apple Store",
 		"applicationUpdate_label": "A iniciar sessão no Tutanota...",

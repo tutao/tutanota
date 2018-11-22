@@ -1,2 +1,12 @@
+NSCameraUsageDescription = "Vytvoriť fotografiu alebo video do prílohy.";
+NSPhotoLibraryUsageDescription = "Pridaj obrázok zo svojej knižnice ako prílohu.";
+NSPhotoLibraryAddUsageDescription = "Pridaj obrázok zo svojej knižnice ako prílohu.";
+NSMicrophoneUsageDescription = "Používa sa pri nahrávaní videa ako prílohy.";
+NSContactsUsageDescription = "Nájdi e-mailovú adresu príjemcu v kontaktoch.";
+NSRemindersUsageDescription = "Zobrazuje upozornenie, keď príde nový email.";
+TutaoShowCameraAction = "Fotoaparát";
+TutaoChoosePhotosAction = "Fotky";
+TutaoNoPermissionTitle = "Bez povolenia";
+TutaoChangePermissionMsg = "Pre poskytnutie prístupu musíš upraviť povolenia pre toto zariadenie.";
 TutaoCancelAction = "Zruš";
 TutaoSettingsAction = "Nastavenia";

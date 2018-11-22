@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-18T10:48:25Z",
-	"updated_at": "2018-09-12T11:27:21Z",
+	"updated_at": "2018-11-09T15:18:20Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "துரதிருஷ்டவசமாக, உங்கள் Tutanota கணக்கு செயலிழக்கச் செய்யப்பட்டுள்ளது. தயவுசெய்து உங்கள் நிர்வாகியை தொடர்பு கொள்ளவும்.",

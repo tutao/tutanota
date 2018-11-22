@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2018-11-05T13:23:34Z",
+	"updated_at": "2018-11-22T13:43:22Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -78,6 +78,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} 已使用，{active} 已激活",
 		"amountUsedOf_label": "已用 {amount}，共计 {totalAmount}",
 		"amountUsed_label": "{amount} 已使用",
+		"appInfoAmazonImageAlt_alt": "亚马逊 Android 应用",
 		"appInfoAndroidImageAlt_alt": "Google Play 上的 Android 应用",
 		"appInfoIosImageAlt_alt": "苹果商店的 iOS 应用",
 		"applicationUpdate_label": "正加载Tutanota…",

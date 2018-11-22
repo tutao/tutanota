@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2018-10-30T17:15:27Z",
+	"updated_at": "2018-11-22T13:43:22Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Tyvärr är ditt Tutanota konto avaktiverad. Vänligen kontakta administratören.",
@@ -75,6 +75,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{används} används, {aktiv} aktiveras",
 		"amountUsedOf_label": "{amount} används av {totalAmount}",
 		"amountUsed_label": "{amount} använt",
+		"appInfoAmazonImageAlt_alt": "Android-app på Amazon",
 		"appInfoAndroidImageAlt_alt": "Android app på Google Play",
 		"appInfoIosImageAlt_alt": "iOS app på Apple Store",
 		"applicationUpdate_label": "Laddar Tutanota ...",
