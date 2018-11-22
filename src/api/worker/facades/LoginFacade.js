@@ -34,7 +34,7 @@ import {
 	fixedIv
 } from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
+import {CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -43,7 +43,6 @@ import {SaltReturnTypeRef} from "../../entities/sys/SaltReturn"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
-import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {defer, neverNull} from "../../common/utils/Utils"
 import {_loadEntity, GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
@@ -337,7 +336,6 @@ export class LoginFacade {
 				}
 			})
 			.then(() => this.loadEntropy())
-			.then(() => this._getInfoMails())
 			.then(() => {
 				if (permanentLogin) {
 					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
@@ -366,14 +364,6 @@ export class LoginFacade {
 				return generateKeyFromPassphrase(passphrase, saltReturn.salt, KeyLength.b128)
 			})
 	}
-
-	_getInfoMails() {
-		if (!this.isExternalUserLoggedIn()) {
-			let receiveInfoData = createReceiveInfoServiceData()
-			return serviceRequestVoid("receiveinfoservice", HttpMethod.POST, receiveInfoData)
-		}
-	}
-
 
 	/**
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
@@ -480,9 +470,6 @@ export class LoginFacade {
 		return this.getLoggedInUser().memberships.filter(m => m.groupType === groupType).map(gm => gm.group)
 	}
 
-	isExternalUserLoggedIn() {
-		return this._user && this._user.accountType === AccountType.EXTERNAL
-	}
 
 	isLoggedIn() {
 		return this._user != null

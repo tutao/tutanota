@@ -10,7 +10,7 @@ import {
 	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {load, update} from "../api/main/Entity"
+import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
@@ -38,6 +38,8 @@ import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import {fileApp} from "../native/FileApp"
 import {showSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
+import {HttpMethod} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -215,6 +217,11 @@ export class LoginViewController implements ILoginViewController {
 			if (isApp()) {
 				fileApp.clearFileData()
 				       .catch((e) => console.log("Failed to clean file data", e))
+			}
+		}).then(() => {
+			if (logins.getUserController().isInternalUser()) {
+				let receiveInfoData = createReceiveInfoServiceData()
+				return serviceRequestVoid("receiveinfoservice", HttpMethod.POST, receiveInfoData)
 			}
 		})
 	}
