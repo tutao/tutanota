@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2018-09-12T11:27:21Z",
+	"updated_at": "2018-11-16T14:19:34Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "למרבה הצער, חשבון הטוטנוטה שלך נחסם. אנא פנה למנהל המערכת שלך.",

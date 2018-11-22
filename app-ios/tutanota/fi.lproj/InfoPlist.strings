@@ -4,6 +4,7 @@ NSPhotoLibraryAddUsageDescription = "Lisää kuva liitteenä.";
 NSMicrophoneUsageDescription = "Käytetään, kun videota tallennetaan liitteenä.";
 NSContactsUsageDescription = "Etsi vastaanottajan sähköpostiosoite yhteystiedoista.";
 NSRemindersUsageDescription = "Viestin saapumisilmoitus.";
+TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Valokuvat";
 TutaoNoPermissionTitle = "Käyttöoikeutta ei ole";
 TutaoCancelAction = "Peruuta";

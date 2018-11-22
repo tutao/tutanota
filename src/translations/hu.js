@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2018-10-30T17:15:27Z",
+	"updated_at": "2018-11-22T13:43:22Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sajnáljuk, de a Tutanota fiókja inaktiválásra került. Kérjük, lépjen kapcsolatba a rendszergazdájával.",
@@ -73,6 +73,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} felhasznált, {active} aktivált",
 		"amountUsedOf_label": "{amount} felhasználva {totalAmount} -ból",
 		"amountUsed_label": "{amount} felhasznált",
+		"appInfoAmazonImageAlt_alt": "Az Android alkalmazás az Amazon-on.",
 		"appInfoAndroidImageAlt_alt": "Android alkalmazás a Google Play-en",
 		"appInfoIosImageAlt_alt": "iOS alkalmazás az Apple Store-ban",
 		"applicationUpdate_label": "Tutanota betöltése ...",
