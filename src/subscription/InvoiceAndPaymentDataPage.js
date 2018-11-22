@@ -101,7 +101,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 		this._upgradeData = data
 		let login = Promise.resolve()
 		if (!logins.isUserLoggedIn()) {
-			login = worker.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, false)
+			login = worker.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
 		}
 		login.then(() => {
 			if (!data.accountingInfo) {
