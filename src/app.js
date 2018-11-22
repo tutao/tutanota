@@ -77,14 +77,14 @@ if (navigator.registerProtocolHandler) {
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
-		m.render(document.body, m(root, m(new InfoView(() => "Tutanota", () => [
+		m.render(document.body, m(new InfoView(() => "Tutanota", () => [
 			m("p", lang.get("unsupportedBrowser_msg")),
 			m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
 			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
 			m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
-		]))))
+		])))
 		return;
 	}
 
