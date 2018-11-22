@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-11-22T14:10:04Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -77,6 +77,7 @@ module.exports = {
 		"amountUsed_label": "{amount} used",
 		"appInfoAmazonImageAlt_alt": "Android app on Amazon",
 		"appInfoAndroidImageAlt_alt": "Android app on Google Play",
+		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app on Apple store",
 		"applicationUpdate_label": "Loading Tutanota ...",
 		"archivedMails_alt": "Archived emails",

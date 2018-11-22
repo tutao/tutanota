@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-11-22T14:12:58Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Diemžēl, jūsu Tutanota konts tika deaktivizēts. Lūdzu sazinieties ar savu administratoru.",
@@ -43,6 +43,7 @@ module.exports = {
 		"amountUsedAndActivated_label": "{used} izmantoti, {active} aktivizēti",
 		"amountUsed_label": "{amount} izmantota",
 		"appInfoAmazonImageAlt_alt": "Android Amazon aplikācija ",
+		"appInfoFDroidImageAlt_alt": "Android aplikācija F-Droid portālā",
 		"applicationUpdate_label": "Notiek Tutanota ielāde...",
 		"archive_action": "Arhīvs",
 		"attachFiles_action": "Pievienot failus",
@@ -423,6 +424,8 @@ module.exports = {
 		"presharedPassword_label": "Vienotā parole",
 		"priceChangeValidFrom_label": "Cenu izmaiņas stāsies spēkā {1}.",
 		"priceExcludesTaxes_msg": "Neto cena.",
+		"priceFirstYear_label": "Cena par pirmo gadu",
+		"priceForNextYear_label": "Cena par nākošo gadu",
 		"price_label": "Cena",
 		"privateUse_label": "Privāts",
 		"private_label": "Privāts",
@@ -502,6 +505,7 @@ module.exports = {
 		"subject_label": "Temats",
 		"subscriptionCancelledMessage_msg": "Jūsu abonements ir atcelts. Lūdzu, sazinieties ar atbalstu, lai atjaunotu jūsu abonementu. ",
 		"subscription_label": "Abonēšanas plāns",
+		"summary_label": "Apkopojums",
 		"supportMenu_label": "Atbalsts",
 		"termsAcceptedNeutral_msg": "Lūdzu piekrītiet noteikumiem un nosacījumiem.",
 		"termsAndConditions_label": "Esmu izlasījis un piekrītu sekojošiem dokumentiem:",
