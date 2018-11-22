@@ -28,7 +28,6 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
-import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
@@ -38,6 +37,7 @@ import * as NotificationOverlay from "../gui/base/NotificationOverlay"
 import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import {fileApp} from "../native/FileApp"
+import {showSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -259,7 +259,7 @@ export class LoginViewController implements ILoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
 								if (confirm) {
-									UpgradeWizard.show()
+									showUpgradeWizard()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
@@ -308,5 +308,9 @@ export class LoginViewController implements ILoginViewController {
 				      this.view.setKnownCredentials(deviceConfig.getAllInternal());
 			      })
 		})
+	}
+
+	showSignupWizard() {
+		worker.initialized.then(() => showSignupWizard())
 	}
 }

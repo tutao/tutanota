@@ -28,7 +28,7 @@ import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
 import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
-import * as UpgradeWizard from "./UpgradeSubscriptionWizard"
+import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -85,7 +85,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					this._isWhitelabelActive())
 			}
 		}, () => Icons.Edit)
-		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
+		let upgradeAction = new Button("upgrade_action", () => showUpgradeWizard(), () => Icons.Edit)
 		this._subscriptionField._injectionsRight = () => (
 			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
 		                                                                            .isPremiumAccount()

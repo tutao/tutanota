@@ -29,11 +29,11 @@ export class PaymentMethodInput {
 	_selectedPaymentMethod: PaymentMethodTypeEnum;
 	_subscriptionOptions: SubscriptionOptions;
 	_payPalRequestUrl: LazyLoaded<string>;
-	_accountingInfo: AccountingInfo;
+	_accountingInfo: ?AccountingInfo;
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
+	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: ?AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()

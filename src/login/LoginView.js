@@ -93,7 +93,7 @@ export class LoginView {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll.pt-responsive", {
+			return m("#login-view.main-view.flex-center.scroll.pt-responsive", {
 				oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
 				style: {
@@ -179,7 +179,7 @@ export class LoginView {
 				this._signupLinkVisible() ? m(ButtonN, {
 					label: "register_label",
 					type: ButtonType.Secondary,
-					click: () => m.route.set('/signup')
+					click: () => m.route.set("/signup")
 				}) : null,
 				this._switchThemeLinkVisible() ? m(ButtonN, {
 					label: "switchColorTheme_action",
@@ -260,7 +260,12 @@ export class LoginView {
 		m.redraw()
 	}
 
-	updateUrl(args: Object) {
+	updateUrl(args: Object, requestedPath: string) {
+		if (requestedPath.startsWith("/signup")) {
+			this._viewController.then((c) => c.showSignupWizard())
+			return
+		}
+
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
 		} else {

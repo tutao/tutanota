@@ -69,7 +69,7 @@ export class WorkerImpl {
 			sendExternalPasswordSms: (message: Request) => {
 				return locator.login.sendExternalPasswordSms.apply(locator.login, message.args)
 			},
-			retrieveExternalSmsPassword: (message:Request) => {
+			retrieveExternalSmsPassword: (message: Request) => {
 				return locator.login.retrieveExternalSmsPassword.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {

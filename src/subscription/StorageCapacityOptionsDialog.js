@@ -85,7 +85,7 @@ function createStorageCapacityBox(amount: number, freeAmount: number, buyAction:
 		() => buyAction(amount),
 		() => [], 230, 240)
 
-	buyOptionBox.setValue(lang.get("emptyString_msg"))
+	buyOptionBox.setPrice(lang.get("emptyString_msg"))
 	buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
 
 	worker.getPrice(BookingItemFeatureType.Storage, amount, false).then(newPrice => {
@@ -94,7 +94,7 @@ function createStorageCapacityBox(amount: number, freeAmount: number, buyAction:
 			buyOptionBox.selected = true
 		}
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage)
-		buyOptionBox.setValue(formatPrice(price, true))
+		buyOptionBox.setPrice(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
 		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("perYear_label") : lang.get("perMonth_label"))
 		m.redraw()

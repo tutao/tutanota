@@ -229,7 +229,7 @@ module.exports = {
 		"countryMismatch_msg": "Error while verifying your country.",
 		"createAccountAccessDeactivated_msg": "Registration is temporarily blocked for your IP address to avoid abuse. Please try again later or use a different internet connection.",
 		"createAccountInvalidCaptcha_msg": "Unfortunately, the answer is wrong. Please try again.",
-		"createAccountRunning_msg": "Account is being created ...",
+		"createAccountRunning_msg": "Preparing account ...",
 		"createAccountTooManyAccountsError_msg": "Sorry, but the maximum number of accounts has been reached.",
 		"createAccount_action": "Create account",
 		"createActionFailed_msg": "Failed to create an account. Please try again later.",
@@ -1136,5 +1136,6 @@ module.exports = {
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
 		"priceFirstYear_label": "Price for first year",
 		"priceForNextYear_label": "Price for next year",
+		"summary_label": "Summary",
 	}
 }

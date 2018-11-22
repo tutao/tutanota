@@ -65,12 +65,12 @@ export class BuyOptionBox {
 		}
 	}
 
-	setPreviousValue(value: ?string): BuyOptionBox {
+	setOriginalPrice(value: ?string): BuyOptionBox {
 		this.originalPrice(value)
 		return this
 	}
 
-	setValue(value: string): BuyOptionBox {
+	setPrice(value: string): BuyOptionBox {
 		this.price(value)
 		return this
 	}

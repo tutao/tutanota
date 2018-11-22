@@ -15,7 +15,10 @@ import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
+import {SubscriptionType} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
+import {RecoverCodeField} from "../settings/RecoverCodeDialog"
+import {logins} from "../api/main/LoginController"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
@@ -38,43 +41,81 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 		this.updateWizardData(data)
 
-
-		let confirmButton = new Button("buy_action", () => {
+		let confirmButton = new Button("ok_action", () => {
+			this.close()
+		}).setType(ButtonType.Login)
+		let upgradeButton = new Button("buy_action", () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			serviceData.proUpgrade = data.proUpgrade
+			serviceData.proUpgrade = (data.type == SubscriptionType.Pro)
 			serviceData.date = Const.CURRENT_DATE
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
 				.then(() => {
 					return worker.switchFreeToPremiumGroup()
-				})).then(() => {
-				this._pageActionHandler.showNext(this._upgradeData)
-			}).catch(PreconditionFailedError, e => {
-				Dialog.error("paymentProviderTransactionFailedError_msg")
-			}).catch(BadGatewayError, e => {
-				Dialog.error("paymentProviderNotAvailableError_msg")
-			})
+				}))
+				.then(() => {
+					return this.close()
+				})
+				.catch(PreconditionFailedError, e => {
+					Dialog.error("paymentProviderTransactionFailedError_msg")
+				})
+				.catch(BadGatewayError, e => {
+					Dialog.error("paymentProviderNotAvailableError_msg")
+				})
 		}).setType(ButtonType.Login)
 
-		this.view = () => [
-			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
-			m(".flex-space-around.flex-wrap", [
-				m(".flex-grow-shrink-half.plr-l", [
-					m(this._orderField),
-					m(this._subscriptionField),
-					m(this._priceField),
-					this._upgradeData.originalPrice ? m(this._originalPriceField) : null,
-					m(this._paymentMethodField),
-				]),
-				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-					m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}}))
-			]),
-			m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))
-		]
+		this.view = () => {
+			const newAccountData = this._upgradeData.newAccountData
+			return [
+				newAccountData
+					? m(".plr-l", [
+						m(".center.h4.pt", lang.get("recoveryCode_label")),
+						m(RecoverCodeField, {showMessage: true, recoverCode: newAccountData.recoverCode})
+					])
+					: null,
+				this._upgradeData.type === SubscriptionType.Free
+					? [
+						m(".flex-space-around.flex-wrap", [
+							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+								m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}})),
+						]),
+						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))
+					]
+					: [
+						m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+						m(".flex-space-around.flex-wrap", [
+							m(".flex-grow-shrink-half.plr-l", [
+								m(this._orderField),
+								m(this._subscriptionField),
+								m(this._priceField),
+								this._upgradeData.originalPrice ? m(this._originalPriceField) : null,
+								m(this._paymentMethodField),
+							]),
+							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+								m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}}))
+						]),
+						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(upgradeButton)))
+					]
+			]
+		}
 	}
 
+	close() {
+		let promise = Promise.resolve()
+		if (this._upgradeData.newAccountData && logins.isUserLoggedIn()) {
+			promise = worker.logout(false)
+		}
+		promise.then(() => {
+			this._pageActionHandler.showNext(this._upgradeData)
+			// if (this._upgradeData.newAccountData) {
+			// 	m.route.set("/login?loginWith=" + this._upgradeData.newAccountData.mailAddress)
+			// }
+		})
+	}
+
+
 	headerTitle(): string {
-		return lang.get("bookingSummary_label")
+		return lang.get("summary_label")
 	}
 
 	nextAction(): Promise<?UpgradeSubscriptionData> {
@@ -92,7 +133,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 	updateWizardData(wizardData: UpgradeSubscriptionData) {
 		this._upgradeData = wizardData
-		this._orderField.setValue((this._upgradeData.proUpgrade ? "Pro" : "Premium"))
+		this._orderField.setValue(this._upgradeData.type)
 		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval === 12
 			? lang.get("yearly_label")
 			: lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
@@ -113,6 +154,10 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 	getUncheckedWizardData(): UpgradeSubscriptionData {
 		return this._upgradeData
+	}
+
+	isEnabled(data: UpgradeSubscriptionData) {
+		return true
 	}
 }
 

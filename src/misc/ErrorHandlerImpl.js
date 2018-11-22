@@ -27,7 +27,7 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 import {secondFactorHandler} from "../login/SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "./Formatter"
@@ -250,7 +250,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
 		      .then(confirmed => {
 			      if (confirmed) {
-				      UpgradeWizard.show()
+				      showUpgradeWizard()
 			      }
 		      })
 	}

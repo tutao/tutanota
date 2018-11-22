@@ -29,19 +29,23 @@ type UpgradeBox = {
 export class SubscriptionSelector {
 	_premiumUpgradeBox: UpgradeBox;
 	_proUpgradeBox: UpgradeBox;
+	_freeTypeBox: UpgradeBox;
 	_monthlyPrice: LazyLoaded<UpgradePrices>;
 	_yearlyPrice: LazyLoaded<UpgradePrices>;
 	view: Function;
 
-	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>) {
+	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>, includeFree: boolean) {
 
-		let freeTypeBox = new BuyOptionBox(() => "Free", "select_action",
-			freeAction,
-			() => this._getOptions([
-				"comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"
-			], "Free"), 230, 240)
-		freeTypeBox.setValue("0 €")
-		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
+		this._freeTypeBox = {
+			buyOptionBox: new BuyOptionBox(() => "Free", "select_action",
+				freeAction,
+				() => this._getOptions([
+					"comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"
+				], "Free"), 230, 240),
+			paymentInterval: stream({name: "yearly", value: 12})
+		}
+		this._freeTypeBox.buyOptionBox.setPrice("0 €")
+		this._freeTypeBox.buyOptionBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
 		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [
@@ -64,13 +68,13 @@ export class SubscriptionSelector {
 		// initial help label and price
 		this._yearlyPrice.getAsync().then(yearlyPrice => {
 			if (yearlyPrice.premiumPrice != yearlyPrice.originalPremiumPrice) {
-				this._premiumUpgradeBox.buyOptionBox.setPreviousValue(yearlyPrice.originalPremiumPrice + " €")
+				this._premiumUpgradeBox.buyOptionBox.setOriginalPrice(yearlyPrice.originalPremiumPrice + " €")
 			}
-			this._premiumUpgradeBox.buyOptionBox.setValue(yearlyPrice.premiumPrice + " €")
+			this._premiumUpgradeBox.buyOptionBox.setPrice(yearlyPrice.premiumPrice + " €")
 			if (yearlyPrice.proPrice != yearlyPrice.originalProPrice) {
-				this._proUpgradeBox.buyOptionBox.setPreviousValue(yearlyPrice.originalProPrice + " €")
+				this._proUpgradeBox.buyOptionBox.setOriginalPrice(yearlyPrice.originalProPrice + " €")
 			}
-			this._proUpgradeBox.buyOptionBox.setValue(yearlyPrice.proPrice + " €")
+			this._proUpgradeBox.buyOptionBox.setPrice(yearlyPrice.proPrice + " €")
 
 			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
@@ -84,7 +88,7 @@ export class SubscriptionSelector {
 		})
 
 		this.view = () => m(".flex-center.flex-wrap", [
-			!business() ? m(freeTypeBox) : null,
+			!business() && includeFree ? m(this._freeTypeBox.buyOptionBox) : null,
 			m(this._premiumUpgradeBox.buyOptionBox),
 			m(this._proUpgradeBox.buyOptionBox)
 		])
@@ -103,7 +107,7 @@ export class SubscriptionSelector {
 			buyOptionBox.selected = true
 		}
 
-		buyOptionBox.setValue(lang.get("emptyString_msg"))
+		buyOptionBox.setPrice(lang.get("emptyString_msg"))
 		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
 
 		let paymentIntervalItems = [
@@ -119,15 +123,17 @@ export class SubscriptionSelector {
 			if (paymentIntervalItem.value === 12) {
 				this._yearlyPrice.getAsync()
 				    .then(upgradePrice => {
-					    buyOptionBox.setPreviousValue((proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice) + " €")
-					    buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice) + " €")
+					    let originalPrice = proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice
+					    let price = proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice
+					    buyOptionBox.setOriginalPrice((originalPrice != price) ? (originalPrice + " €") : null)
+					    buyOptionBox.setPrice(price + " €")
 				    })
 				    .then(() => m.redraw())
 			} else {
 				this._monthlyPrice.getAsync()
 				    .then(upgradePrice => {
-					    buyOptionBox.setPreviousValue(null)
-					    buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
+					    buyOptionBox.setOriginalPrice(null)
+					    buyOptionBox.setPrice(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
 				    })
 				    .then(() => m.redraw())
 			}

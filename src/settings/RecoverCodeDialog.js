@@ -39,30 +39,11 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
 	return new Promise((resolve) => {
-		const printButton = isApp()
-			? () => null
-			: () => m(ButtonN, {
-				label: "print_action",
-				icon: () => Icons.Print,
-				click: () => window.print()
-			})
-
-		const copyButton = () => m(ButtonN, {
-			label: "copy_action",
-			icon: () => Icons.Copy,
-			click: () => copyToClipboard(recoverCode)
-		})
-
 		Dialog.showActionDialog({
 			title: lang.get("recoveryCode_label"),
 			child: {
 				view: () => {
-					return [
-						showMessage ? m(".pt.pb", lang.get("recoveryCode_msg")) : m("", lang.get("emptyString_msg")),
-						m(".text-break.monospace.selectable.flex.flex-wrap",
-							neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el))),
-						m(".flex.flex-end.mt-m", [copyButton(), printButton()]),
-					]
+					return m(RecoverCodeField, {showMessage, recoverCode})
 				}
 			},
 			allowCancel: false,
@@ -73,4 +54,31 @@ export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): P
 			type: DialogType.EditMedium
 		})
 	})
+}
+
+export type RecoverCodeFieldAttrs = {
+	showMessage: boolean,
+	recoverCode: Hex
+}
+
+export class RecoverCodeField {
+	view(vnode: Vnode<RecoverCodeFieldAttrs>) {
+		return [
+			vnode.attrs.showMessage ? m(".pt.pb", lang.get("recoveryCode_msg")) : m("", lang.get("emptyString_msg")),
+			m(".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",
+				neverNull(vnode.attrs.recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el))),
+			m(".flex.flex-end.mt-m", [
+				m(ButtonN, {
+					label: "copy_action",
+					icon: () => Icons.Copy,
+					click: () => copyToClipboard(vnode.attrs.recoverCode)
+				}),
+				isApp() ? null : m(ButtonN, {
+					label: "print_action",
+					icon: () => Icons.Print,
+					click: () => window.print()
+				}),
+			])
+		]
+	}
 }

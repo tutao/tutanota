@@ -26,7 +26,8 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean,
 		() => cancelSubscription(dialog),
 		() => switchSubscription(false, isPro, accountingInfo, selector._premiumUpgradeBox.paymentInterval().value, dialog, currentNbrOfOrderedAliases, currentNbrOfOrderedStorage, currentlyWhitelabelOrdered),
 		() => switchSubscription(true, isPro, accountingInfo, selector._proUpgradeBox.paymentInterval().value, dialog, currentNbrOfOrderedAliases, currentNbrOfOrderedStorage, currentlyWhitelabelOrdered),
-		businessStream)
+		businessStream,
+		true)
 
 	const cancelAction = () => {
 		dialog.close()

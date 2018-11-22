@@ -52,4 +52,6 @@ interface ILoginViewController {
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void>;
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
+
+	showSignupWizard():void;
 }

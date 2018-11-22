@@ -187,7 +187,7 @@ let initialized = lang.init(en).then(() => {
 		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
-		"/signup": registerViewResolver,
+		"/signup": loginViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
