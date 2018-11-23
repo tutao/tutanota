@@ -208,7 +208,7 @@ export class NavBar {
 				remainingSpace -= visible[0].width
 				let move = visible.splice(0, 1)[0]
 				buttons.visible.push(move)
-			} while (remainingSpace - visible[0].width >= 0)
+			} while (visible.length > 0 && (remainingSpace - visible[0].width >= 0))
 
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
