@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-30T10:38:11Z",
-	"updated_at": "2018-09-12T11:27:21Z",
+	"updated_at": "2018-11-23T12:38:53Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sa kasamaang-palad, ang iyong Tutanota account ay nawalang bisa. Pakipaalam sa iyong administrator.",

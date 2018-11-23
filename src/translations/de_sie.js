@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-11-23T12:39:48Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1079,7 +1079,7 @@ module.exports = {
 		"unsubscribePremium_label": "Premium abbestellen",
 		"unsubscribeSuccessful_msg": "Der Newsletter bzw. die Mailing-Liste wurde erfolgreich abbestellt!",
 		"unsubscribe_action": "Abbestellen",
-		"unsupportedBrowser_msg": "Oh! Das tut uns leid. Dieser Browser wird von Tutanota nicht unterstützt. Bitte nutzen Sie einen der folgenden Browser:",
+		"unsupportedBrowser_msg": "Oh! Das tut uns leid. Dieser Browser wird von Tutanota nicht unterstützt oder ist veraltet. Bitte nutzen Sie einen der folgenden Browser in der aktuellen Version:",
 		"unsupportedMailFeature_msg": "Eine Abstimmungsschaltfläche oder eine verzögerte Übermittlung der E-Mail wurde ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Soll die E-Mail trotzdem gesendet werden?",
 		"updateAdminshipGlobalAdmin_msg": "Sie können nicht den Admin eines globalen Admins ändern.",
 		"updateAdminshipLocalAdminGroupError_msg": "Sie können den Admin einer lokalen Admin-Gruppe nicht ändern.",

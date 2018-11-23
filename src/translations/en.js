@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-11-22T14:10:04Z",
+	"updated_at": "2018-11-23T12:40:01Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -1073,7 +1073,7 @@ module.exports = {
 		"unsubscribePremium_label": "Unsubscribe from Premium",
 		"unsubscribeSuccessful_msg": "The newsletter or mailing list has been cancelled successfully!",
 		"unsubscribe_action": "Unsubscribe",
-		"unsupportedBrowser_msg": "Oh! We are sorry. Unfortunately, your browser is not supported. Please use one of the following browsers:",
+		"unsupportedBrowser_msg": "Oh! We are sorry. Unfortunately, your browser is not supported or outdated. Please use  the latest version of one of the following browsers:",
 		"unsupportedMailFeature_msg": "You have selected voting options or a deferred delivery time. Unfortunately these functions are not yet supported by Tutanota. Would you like to send the email anyway?",
 		"updateAdminshipGlobalAdmin_msg": "You can't change the adminship of a global administrator.",
 		"updateAdminshipLocalAdminGroupError_msg": "You can't change the adminship of a local admin group.",

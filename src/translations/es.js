@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-11-23T12:38:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -81,6 +81,7 @@ module.exports = {
 		"amountUsed_label": "{amount} usado",
 		"appInfoAmazonImageAlt_alt": "App de Amazon para Android",
 		"appInfoAndroidImageAlt_alt": "Android app en Google Play",
+		"appInfoFDroidImageAlt_alt": "App de Android en F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app en Apple store",
 		"applicationUpdate_label": "Cargando Tutanota...",
 		"archivedMails_alt": "Correos archivados",
@@ -1010,6 +1011,7 @@ module.exports = {
 		"subscriptionPeriod_label": "Periodo de suscripción",
 		"subscription_label": "Suscripción",
 		"successfullyCreatedUsers_msg": "Los siguientes usuarios se han creado con éxito. Por favor escribe las contraseñas cuidadosamente y pásalas a los usuarios.",
+		"summary_label": "Resumen",
 		"supportMenu_alt": "Envíe un correo al equipo de ayuda de Tutanota",
 		"supportMenu_label": "Soporte",
 		"switchArchive_action": "Cambiar a la bandeja de archivo",

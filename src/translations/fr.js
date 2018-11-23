@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-11-23T12:38:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -81,6 +81,7 @@ module.exports = {
 		"amountUsed_label": "{amount} utilisé",
 		"appInfoAmazonImageAlt_alt": "Application Android sur Amazon",
 		"appInfoAndroidImageAlt_alt": "Application Android sur Google Play",
+		"appInfoFDroidImageAlt_alt": "Application Android sur F-Droid",
 		"appInfoIosImageAlt_alt": "Application iOS sur l'Apple store",
 		"applicationUpdate_label": "Chargement de Tutanota...",
 		"archivedMails_alt": "Messages archivés",
@@ -234,7 +235,7 @@ module.exports = {
 		"countryMismatch_msg": "Erreur à la vérification de votre pays",
 		"createAccountAccessDeactivated_msg": "L'enregistrement est temporairement bloqué pour votre adresse IP pour éviter les abus. Veuillez essayer plus tard ou utiliser une autre connexion internet.",
 		"createAccountInvalidCaptcha_msg": "Malheureusement la réponse n'est pas correcte. Veuillez recommencer.",
-		"createAccountRunning_msg": "Compte en cours de création…",
+		"createAccountRunning_msg": "Compte en cours de préparation…",
 		"createAccountTooManyAccountsError_msg": "Désolé, mais le nombre maximum de comptes a été atteint.",
 		"createAccount_action": "Créer un compte",
 		"createActionFailed_msg": "Impossible de créer un compte. Veuillez réessayer ultérieurement.",
@@ -1010,6 +1011,7 @@ module.exports = {
 		"subscriptionPeriod_label": "Durée d'abonnement",
 		"subscription_label": "Abonnement",
 		"successfullyCreatedUsers_msg": "Les utilisateurs suivants ont été créés avec succès. Gardez ces mots de passe précieusement et donnez-les aux utilisateurs.",
+		"summary_label": "Sommaire",
 		"supportMenu_alt": "Envoyer un email à l'équipe de support Tutanota",
 		"supportMenu_label": "Support",
 		"switchArchive_action": "Aller au dossier d'archives",
