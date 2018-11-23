@@ -38,7 +38,8 @@ class ClientDetector {
 			this.history() &&
 			this.randomNumbers() &&
 			this.supportsFocus() &&
-			this.notIE()
+			this.notIE() &&
+			this.arrayIncludes()
 	}
 
 	isMobileDevice(): boolean {
@@ -82,6 +83,10 @@ class ClientDetector {
 	supportsFocus(): boolean {
 		return typeof HTMLInputElement !== "undefined"
 			&& typeof HTMLInputElement.prototype.focus === "function"
+	}
+
+	arrayIncludes(): boolean {
+		return typeof [].includes === "function"
 	}
 
 	dateFormat(): boolean {
