@@ -39,7 +39,8 @@ class ClientDetector {
 			this.randomNumbers() &&
 			this.supportsFocus() &&
 			this.notIE() &&
-			this.arrayIncludes()
+			this.arrayIncludes() &&
+			this.notOldFirefox()
 	}
 
 	isMobileDevice(): boolean {
@@ -341,6 +342,12 @@ class ClientDetector {
 
 	notIE() {
 		return this.browser !== BrowserType.IE
+	}
+
+	notOldFirefox() {
+		// issue only occurs for old Firefox browsers
+		// https://github.com/tutao/tutanota/issues/835
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
 	}
 
 	browserData(): BrowserData {
