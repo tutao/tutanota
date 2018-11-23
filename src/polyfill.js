@@ -16,8 +16,15 @@ if (typeof performance === 'undefined') {
 		}
 	}
 }
-performance.mark = performance.mark || noOp
-performance.measure = performance.measure || noOp
+
+
+if (typeof performance.mark !== "function") {
+	performance.mark = noOp
+}
+
+if (typeof performance.measure !== "function") {
+	performance.measure = noOp
+}
 
 if (typeof Uint8Array.prototype.slice === 'undefined') {
 	Uint8Array.prototype.slice = function (from, to) {
