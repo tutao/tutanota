@@ -20,6 +20,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import {ButtonN, ButtonType, createDropDown} from "../gui/base/ButtonN"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -115,7 +116,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					let thisSession = logins.getUserController().sessionId[1] === session._id[1]
 					if (!thisSession) {
 						closeSessionButton = new Button("closeSession_action", () => {
-							erase(session)
+							erase(session).catch(NotFoundError, () => {
+								console.log(`session ${session._id} already deleted`)
+							})
 						}, () => Icons.Cancel)
 					}
 					let identifier = (thisSession) ? lang.get("thisClient_label") : session.clientIdentifier
