@@ -205,8 +205,6 @@ public class FileUtil {
             response.put("statusCode", con.getResponseCode());
             response.put("statusMessage", con.getResponseMessage());
             return response;
-        } catch (Exception e) {
-            throw e;
         } finally {
             con.disconnect();
         }
