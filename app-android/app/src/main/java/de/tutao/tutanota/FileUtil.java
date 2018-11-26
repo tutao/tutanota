@@ -188,8 +188,8 @@ public class FileUtil {
         return Utils.getFileInfo(activity, Uri.parse(fileUri)).name;
     }
 
-    int upload(final String fileUri, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
-        InputStream inputStream = activity.getContentResolver().openInputStream(Uri.parse(fileUri));
+    JSONObject upload(final String absolutePath, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
+        File file = Utils.uriToFile(activity, absolutePath);
         HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
         try {
             con.setConnectTimeout(HTTP_TIMEOUT);
@@ -201,44 +201,49 @@ public class FileUtil {
             con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
             addHeadersToRequest(con, headers);
             con.connect();
-            IOUtils.copy(inputStream, con.getOutputStream());
-            return con.getResponseCode();
+            IOUtils.copy(new FileInputStream(file), con.getOutputStream());
+            JSONObject response = new JSONObject();
+            response.put("statusCode", con.getResponseCode());
+            response.put("statusMessage", con.getResponseMessage());
+            return response;
         } finally {
             con.disconnect();
         }
     }
 
-    Promise<String, Exception, Void> download(final String sourceUrl, final String filename, final JSONObject headers) {
-        DeferredObject<String, Exception, Void> result = new DeferredObject<>();
-        backgroundTasksExecutor.execute(() -> {
-            HttpURLConnection con = null;
-            try {
-                con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
-                con.setConnectTimeout(HTTP_TIMEOUT);
-                con.setReadTimeout(HTTP_TIMEOUT);
-                con.setRequestMethod("GET");
-                con.setDoInput(true);
-                con.setUseCaches(false);
-                addHeadersToRequest(con, headers);
-                con.connect();
+    JSONObject download(final String sourceUrl, final String filename, final JSONObject headers) throws IOException, JSONException {
+        HttpURLConnection con = null;
+        try {
+            con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
+            con.setConnectTimeout(HTTP_TIMEOUT);
+            con.setReadTimeout(HTTP_TIMEOUT);
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setUseCaches(false);
+            addHeadersToRequest(con, headers);
+            con.connect();
+
+            File encryptedFile = null;
+            if (con.getResponseCode() == 200) {
 
                 File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
                 encryptedDir.mkdirs();
-                File encryptedFile = new File(encryptedDir, filename);
+                encryptedFile = new File(encryptedDir, filename);
 
                 IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
                         new byte[1024 * 1000]);
-
-                result.resolve(Utils.fileToUri(encryptedFile));
-            } catch (IOException | JSONException e) {
-                result.reject(e);
-            } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
             }
-        });
-        return result;
+
+            JSONObject result = new JSONObject();
+            result.put("statusCode", con.getResponseCode());
+            result.put("statusMessage", con.getResponseMessage());
+            result.put("encryptedFileUri", encryptedFile != null ? Utils.fileToUri(encryptedFile) : JSONObject.NULL);
+            return result;
+        } finally {
+            if (con != null) {
+                con.disconnect();
+            }
+        }
     }
 
     Promise<String, Exception, Void> saveBlob(final String name, final String base64blob) {
