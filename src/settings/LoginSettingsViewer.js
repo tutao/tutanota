@@ -117,7 +117,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					if (!thisSession) {
 						closeSessionButton = new Button("closeSession_action", () => {
 							erase(session).catch(NotFoundError, () => {
-								console.log(`session ${session._id} already deleted`)
+								console.log(`session ${JSON.stringify(session._id)} already deleted`)
 							})
 						}, () => Icons.Cancel)
 					}
