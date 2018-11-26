@@ -188,8 +188,8 @@ public class FileUtil {
         return Utils.getFileInfo(activity, Uri.parse(fileUri)).name;
     }
 
-    JSONObject upload(final String absolutePath, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
-        File file = Utils.uriToFile(activity, absolutePath);
+    JSONObject upload(final String fileUri, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
+        InputStream inputStream = activity.getContentResolver().openInputStream(Uri.parse(fileUri));
         HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
         try {
             con.setConnectTimeout(HTTP_TIMEOUT);
@@ -201,7 +201,7 @@ public class FileUtil {
             con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
             addHeadersToRequest(con, headers);
             con.connect();
-            IOUtils.copy(new FileInputStream(file), con.getOutputStream());
+            IOUtils.copy(inputStream, con.getOutputStream());
             JSONObject response = new JSONObject();
             response.put("statusCode", con.getResponseCode());
             response.put("statusMessage", con.getResponseMessage());
