@@ -9,7 +9,8 @@ import {SubscriptionType} from "./UpgradeSubscriptionWizard"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {AccountType} from "../api/common/TutanotaConstants"
-import {isTutanotaDomain} from "../api/Env"
+import {isApp, isTutanotaDomain} from "../api/Env"
+import {client} from "../misc/ClientDetector"
 
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
@@ -95,7 +96,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 	}
 
 	isEnabled(data: UpgradeSubscriptionData) {
-		return isTutanotaDomain()
+		return isTutanotaDomain() && !(isApp() && client.isIos())
 	}
 
 }
