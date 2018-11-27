@@ -1,6 +1,5 @@
 //@flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {addFlash} from "./Flash"
 import {px} from "../size"
@@ -30,12 +29,15 @@ export class SegmentControl<T> {
 						style: {
 							flex: "0 1 " + px(itemMaxWidth)
 						},
+						title: item.name,
 						onclick: (event: MouseEvent) => {
-							if (this._changeHandler) {
-								this._changeHandler(item)
-							} else {
-								this.selectedValue(item)
-								m.redraw()
+							if (item !== this.selectedValue()) {
+								if (this._changeHandler) {
+									this._changeHandler(item)
+								} else {
+									this.selectedValue(item)
+									m.redraw()
+								}
 							}
 						},
 						oncreate: (vnode) => {

@@ -1,7 +1,6 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {BuyOptionBox} from "./BuyOptionBox"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -34,7 +33,7 @@ export class SubscriptionSelector {
 	_yearlyPrice: LazyLoaded<UpgradePrices>;
 	view: Function;
 
-	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>, includeFree: boolean) {
+	constructor(current: AccountTypeEnum, currentPaymentInterval: string, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>, includeFree: boolean) {
 
 		this._freeTypeBox = {
 			buyOptionBox: new BuyOptionBox(() => "Free", "select_action",
@@ -48,22 +47,19 @@ export class SubscriptionSelector {
 		this._freeTypeBox.buyOptionBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [
+		this._premiumUpgradeBox = this._createUpgradeBox(AccountType.STARTER, current, Number(currentPaymentInterval), premiumAction, () => [
 			this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
 			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
 			"comparisonSupport"
 		])
-		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [
+		this._proUpgradeBox = this._createUpgradeBox(AccountType.PREMIUM, current, Number(currentPaymentInterval), proAction, () => [
 			this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
 			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
 			"comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"
 		])
 
 		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
-		this._monthlyPrice = new LazyLoaded(() => {
-			Dialog.error("twoMonthsForFreeYearly_msg")
-			return this._getPrices(current, 1)
-		}, null)
+		this._monthlyPrice = new LazyLoaded(() => this._getPrices(current, 1), null)
 
 		// initial help label and price
 		this._yearlyPrice.getAsync().then(yearlyPrice => {
@@ -95,7 +91,8 @@ export class SubscriptionSelector {
 	}
 
 
-	_createUpgradeBox(proUpgrade: boolean, action: clickHandler, featurePrefixes: lazy<string[]>, fixedPaymentInterval: ?number): UpgradeBox {
+	_createUpgradeBox(upgrade: AccountTypeEnum, current: AccountTypeEnum, paymentInterval: number, action: clickHandler, featurePrefixes: lazy<string[]>, fixedPaymentInterval: ?number): UpgradeBox {
+		const proUpgrade = upgrade === AccountType.PREMIUM
 		let title = proUpgrade ? "Pro" : "Premium"
 		let buyOptionBox = new BuyOptionBox(() => title, "select_action",
 			action,
@@ -103,7 +100,7 @@ export class SubscriptionSelector {
 				return this._getOptions(featurePrefixes(), title)
 			}, 230, 240)
 
-		if (!proUpgrade) {
+		if (current === upgrade) {
 			buyOptionBox.selected = true
 		}
 
@@ -114,31 +111,34 @@ export class SubscriptionSelector {
 			{name: lang.get("yearly_label"), value: 12},
 			{name: lang.get("monthly_label"), value: 1}
 		]
+		const startingInterval = paymentIntervalItems.find((i) => i.value === paymentInterval)
 		let upgradeBox: UpgradeBox = {
 			buyOptionBox: buyOptionBox,
-			paymentInterval: stream(paymentIntervalItems[0])
+			paymentInterval: stream(startingInterval ? startingInterval : paymentIntervalItems[0])
 		}
 
-		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
-			if (paymentIntervalItem.value === 12) {
-				this._yearlyPrice.getAsync()
-				    .then(upgradePrice => {
-					    let originalPrice = proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice
-					    let price = proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice
-					    buyOptionBox.setOriginalPrice((originalPrice != price) ? (originalPrice + " €") : null)
-					    buyOptionBox.setPrice(price + " €")
-				    })
-				    .then(() => m.redraw())
-			} else {
-				this._monthlyPrice.getAsync()
-				    .then(upgradePrice => {
-					    buyOptionBox.setOriginalPrice(null)
-					    buyOptionBox.setPrice(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
-				    })
-				    .then(() => m.redraw())
-			}
-			upgradeBox.paymentInterval(paymentIntervalItem)
-		})
+		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval)
+			.setSelectionChangedHandler(paymentIntervalItem => {
+				buyOptionBox.selected = upgrade === current && paymentIntervalItem.value === paymentInterval
+				if (paymentIntervalItem.value === 12) {
+					this._yearlyPrice.getAsync()
+					    .then(upgradePrice => {
+						    let originalPrice = proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice
+						    let price = proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice
+						    buyOptionBox.setOriginalPrice((originalPrice != price) ? (originalPrice + " €") : null)
+						    buyOptionBox.setPrice(price + " €")
+					    })
+					    .then(() => m.redraw())
+				} else {
+					this._monthlyPrice.getAsync()
+					    .then(upgradePrice => {
+						    buyOptionBox.setOriginalPrice(null)
+						    buyOptionBox.setPrice(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
+					    })
+					    .then(() => m.redraw())
+				}
+				upgradeBox.paymentInterval(paymentIntervalItem)
+			})
 		buyOptionBox.setInjection(subscriptionControl)
 		return upgradeBox
 	}

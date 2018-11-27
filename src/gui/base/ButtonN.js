@@ -34,10 +34,6 @@ export const ButtonColors = {
 }
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
-
-const FALSE_CLOSURE = (): lazy<boolean> => false
-
 function getColors(buttonColors: ?ButtonColorEnum) {
 	switch (buttonColors) {
 		case ButtonColors.Nav:

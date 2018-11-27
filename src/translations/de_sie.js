@@ -1061,7 +1061,6 @@ module.exports = {
 		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tutanota entwickelt und bereitstellt.",
 		"twitter_label": "Twitter",
 		"twoMonthsForFreeIncluded_msg": "Gegenüber monatlicher Zahlung sind zwei Monate Rabatt enthalten.",
-		"twoMonthsForFreeYearly_msg": "Bei jährlicher Zahlung gibt es zwei Monate kostenlos.",
 		"typeToFilter_label": "Filtern ...",
 		"type_label": "Typ",
 		"u2fAuthUnregisteredDevice_msg": "Dieser Sicherheitsschlüssel ist nicht für Ihren Account gültig. Bitte verwenden Sie einen gültigen.",
@@ -1139,6 +1138,11 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"imprintUrl_label": "Link zum Impressum",
+		"imprint_label": "Impressum",
+		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
+		"twoMonthsForFreeYearly_msg": "Sind Sie sicher, dass Sie eine monatliche Zahlung möchten?",
+		"yearlyConfirm_msg": "Sind Sie sicher, dass Sie eine jährliche Zahlung möchten?",
 	}
 }

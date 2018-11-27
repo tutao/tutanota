@@ -63,8 +63,17 @@ export type RecoverCodeFieldAttrs = {
 
 export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>) {
+		const lnk = lang.getInfoLink("recoverCode_link")
 		return [
-			vnode.attrs.showMessage ? m(".pt.pb", lang.get("recoveryCode_msg")) : m("", lang.get("emptyString_msg")),
+			vnode.attrs.showMessage
+				? m(".pt.pb", [
+					lang.get("recoveryCode_msg"),
+					m("", [
+						m("small", lang.get("moreInfo_msg") + " "),
+						m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)]),
+					])
+				])
+				: m("", lang.get("emptyString_msg")),
 			m(".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",
 				neverNull(vnode.attrs.recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el))),
 			m(".flex.flex-end.mt-m", [
