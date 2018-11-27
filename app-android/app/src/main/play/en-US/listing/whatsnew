@@ -1,5 +1,10 @@
-- Replaced Amazon store link with F-Droid link on login screen #789
-- Fix errors when session could not be found #783
-- Indexing fixes #803 #802
-- Fixed issue when Tutanota was not available as e-mail app #614 
-- Rejecting all cookies (e.g. for external images) to prevent tracking #791
+- improve error handling for network requests
+- fix error when erasing deleted sessions,
+- Fix error reporting for service worker
+- Fix rendering of the unsupported browser view
+- allow upgrade to premium on signup
+- Fix FileNotFoundException when encrypting deleted file
+- Check contact suggestions coming from native
+- Detect old WebView versions and propose to update
+- Fix native upload/download error handling
+- fix mobile multiselect error
