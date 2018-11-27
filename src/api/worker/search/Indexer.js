@@ -36,6 +36,7 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
+import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -89,7 +90,7 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	init(user: User, userGroupKey: Aes128Key) {
+	init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true) {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,
@@ -128,20 +129,26 @@ export class Indexer {
 					           console.log("out of sync - delete database and disable mail indexing")
 					           return this.disableMailIndexing()
 				           })
-			}).catch(MembershipRemovedError, e => {
-				// mail or contact group has been removed from user, disable mail indexing and init index again
-				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
-				// initialized promise will be resolved in this.init later.
-				console.log("cancelled init, disable mail indexing and init again")
-				let mailIndexingEnabled = this._mail.mailIndexingEnabled;
-				return this._mail.disableMailIndexing().then(() => {
-					return this.init(this._initParams.user, this._initParams.groupKey).then(() => {
-						if (mailIndexingEnabled) {
-							return this.enableMailIndexing()
-						}
+			}).catch(e => {
+				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
+					// in case of MembershipRemovedError mail or contact group has been removed from user.
+					// in case of InvalidDatabaseError no group id has been stored to the database.
+					// disable mail indexing and init index again in both cases.
+					// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
+					// initialized promise will be resolved in this.init later.
+					console.log("disable mail indexing and init again", e)
+					let mailIndexingEnabled = this._mail.mailIndexingEnabled;
+					return this._mail.disableMailIndexing().then(() => {
+						// do not try to init again on error
+						return this.init(this._initParams.user, this._initParams.groupKey, false).then(() => {
+							if (mailIndexingEnabled) {
+								return this.enableMailIndexing()
+							}
+						})
 					})
-
-				})
+				} else {
+					throw e
+				}
 			})
 		}).catch(DbError, e => {
 			console.log("Indexing not supported", e)
@@ -247,6 +254,9 @@ export class Indexer {
 		           .then(t => t.getAll(GroupDataOS)
 		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
 		           .then(indexedGroupIds => {
+			           if (indexedGroupIds.length === 0) {
+				           throw new InvalidDatabaseStateError("no group ids in database")
+			           }
 			           this._indexedGroupIds = indexedGroupIds
 		           })
 	}
