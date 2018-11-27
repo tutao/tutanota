@@ -176,6 +176,7 @@ interface Lifecycle<Attrs> {
 	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
 }
 
+type LifecycleAttrs<T> = T & Lifecycle<T>
 
 type $Attrs<T> = $ReadOnly<$Exact<T>>
 

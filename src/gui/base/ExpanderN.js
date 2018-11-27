@@ -1,8 +1,7 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
+import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {addFlash, removeFlash} from "./Flash"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
@@ -30,7 +29,7 @@ class _ExpanderButton {
 	view(vnode: Vnode<ExpanderAttrs>) {
 		const a = vnode.attrs
 		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.mr-s", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
 					this.toggle(a.expanded)

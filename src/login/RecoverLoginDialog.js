@@ -2,7 +2,8 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, createDropDown} from "../gui/base/ButtonN"
+import {ButtonN} from "../gui/base/ButtonN"
+import {createDropdown} from "../gui/base/DropdownN.js"
 import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isMailAddress} from "../misc/Formatter"
@@ -48,7 +49,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 	}
 
 
-	const resetActionClickHandler = createDropDown(() => [resetPasswordAction, resetSecondFactorAction], 300)
+	const resetActionClickHandler = createDropdown(() => [resetPasswordAction, resetSecondFactorAction], 300)
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",
 		click: resetActionClickHandler,

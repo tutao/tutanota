@@ -51,6 +51,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 		this._businessUse = stream(businessUseItems[0])
 		this._selector = new SubscriptionSelector(
 			AccountType.FREE,
+			"12",
 			actionHandler(SubscriptionType.Free),
 			actionHandler(SubscriptionType.Premium),
 			actionHandler(SubscriptionType.Pro),

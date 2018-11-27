@@ -101,9 +101,9 @@ export const Keys = {
 
 class KeyManager {
 	_shortcuts: Shortcut[];
-	_keyToShortcut: { [id: string]: Shortcut };
+	_keyToShortcut: {[id: string]: Shortcut};
 	_modalShortcuts: Shortcut[]; // override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
-	_keyToModalShortcut: { [id: string]: Shortcut };
+	_keyToModalShortcut: {[id: string]: Shortcut};
 	_helpDialog: ?any;
 
 	constructor() {
@@ -119,11 +119,11 @@ class KeyManager {
 						let shortcuts = ((this._modalShortcuts.length
 							> 1) ? this._modalShortcuts : this._shortcuts).slice() // we do not want to show a dialog with the shortcuts of the help dialog
 						let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-							.map(shortcut => {
-								return new TextField(() => this._getShortcutName(shortcut))
-									.setValue(lang.get(shortcut.help))
-									.setDisabled()
-							})
+						                          .map(shortcut => {
+							                          return new TextField(() => this._getShortcutName(shortcut))
+								                          .setValue(lang.get(shortcut.help))
+								                          .setDisabled()
+						                          })
 						this._helpDialog = module.Dialog.largeDialog(new DialogHeaderBar()
 							.addRight(new Button('close_alt', () => neverNull(this._helpDialog)
 								.close()).setType(ButtonType.Secondary))

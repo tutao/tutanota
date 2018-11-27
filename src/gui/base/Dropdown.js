@@ -209,6 +209,24 @@ export class Dropdown {
 			}
 		}
 
+		const chooseMatch = () => {
+			let visibleElements: Array<Button | NavButton> = (this._visibleItems().filter(b => (typeof b !== "string")): any)
+			let matchingButton = visibleElements.find(b => b.getLabel().toLowerCase() === this._filterString().toLowerCase())
+			if (document.activeElement === this._domInput
+				&& matchingButton
+				&& matchingButton.clickHandler
+			) {
+				matchingButton.clickHandler()
+				this.close()
+			} else {
+				let selected = visibleElements.find(b => document.activeElement === b._domButton)
+				if (selected && selected.clickHandler) {
+					selected.clickHandler()
+					this.close()
+				}
+			}
+		}
+
 		return [
 			{
 				key: Keys.ESC,
@@ -237,6 +255,11 @@ export class Dropdown {
 				exec: () => next(),
 				help: "selectNext_action"
 			},
+			{
+				key: Keys.RETURN,
+				exec: () => chooseMatch(),
+				help: "ok_action"
+			}
 		]
 	}
 

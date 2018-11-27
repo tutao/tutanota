@@ -36,8 +36,7 @@ declare interface Shortcut {
 	shift?: boolean; // undefined == false
 	meta?: boolean; // undefined == false
 	enabled?: lazy<boolean>;
-
-	exec(key: KeyPress): ?boolean; // must return true, if preventDefault should not be invoked
+	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
 	help: string;
 }
 
@@ -151,7 +150,7 @@ declare interface View {
 declare interface ModalComponent {
 	hideAnimation(): Promise<void>;
 
-	onClose(): void;
+	onClose(e: Event): void;
 
 	shortcuts(): Shortcut[];
 

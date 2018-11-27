@@ -18,7 +18,8 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
-import {ButtonN, ButtonType, createDropDown} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {createDropdown} from "../gui/base/DropdownN.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
 import {NotFoundError} from "../api/common/error/RestError"
 
@@ -64,7 +65,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			type: ButtonType.Dropdown
 		}
 
-		const recoveryDropdown = createDropDown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton])
+		const recoveryDropdown = createDropdown(() => [showRecoveryCodeAttrs, updateRecoveryCodeButton])
 
 		recoveryCodeField._injectionsRight = () => m(ButtonN, {
 			label: "edit_action",

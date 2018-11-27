@@ -22,7 +22,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean, currentNbrOfOrderedStorage: number, currentNbrOfOrderedAliases: number, currentlyWhitelabelOrdered: boolean) {
 	let businessStream = stream(accountingInfo.business)
-	let selector = new SubscriptionSelector(AccountType.PREMIUM,
+	let selector = new SubscriptionSelector(isPro ? AccountType.PREMIUM : AccountType.STARTER, accountingInfo.paymentInterval,
 		() => cancelSubscription(dialog),
 		() => switchSubscription(false, isPro, accountingInfo, selector._premiumUpgradeBox.paymentInterval().value, dialog, currentNbrOfOrderedAliases, currentNbrOfOrderedStorage, currentlyWhitelabelOrdered),
 		() => switchSubscription(true, isPro, accountingInfo, selector._proUpgradeBox.paymentInterval().value, dialog, currentNbrOfOrderedAliases, currentNbrOfOrderedStorage, currentlyWhitelabelOrdered),
@@ -64,16 +64,27 @@ function cancelSubscription(dialog: Dialog) {
 	})
 }
 
-function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: AccountingInfo, paymentInterval: number, dialog: Dialog, currentNbrOfOrderedAliases: number, currentNbrOfOrderedStorage: number, currentlyWhitelabelOrdered: boolean) {
+function switchSubscription(
+	bookPro: boolean,
+	isPro: boolean,
+	accountingInfo: AccountingInfo,
+	paymentInterval: number,
+	dialog: Dialog,
+	currentNbrOfOrderedAliases: number,
+	currentNbrOfOrderedStorage: number,
+	currentlyWhitelabelOrdered: boolean) {
 	let promise = Promise.resolve()
 	if (bookPro && !isPro) {
 		const proStorage = 10
 		const proAliases = 20
-		let msg = "upgradePro_msg"
-		if (currentNbrOfOrderedAliases > proAliases || currentNbrOfOrderedStorage > proStorage) {
-			msg = () => lang.get("upgradePro_msg") + " " + lang.get("upgradeProNoReduction_msg")
+		let msg = lang.get("upgradePro_msg")
+		if (paymentInterval === 1) {
+			msg = lang.get("twoMonthsForFreeYearly_msg") + "\n\n" + msg
 		}
-		Dialog.confirm(msg).then(ok => {
+		if (currentNbrOfOrderedAliases > proAliases || currentNbrOfOrderedStorage > proStorage) {
+			msg = msg + "\n\n" + lang.get("upgradeProNoReduction_msg")
+		}
+		Dialog.confirm(() => msg).then(ok => {
 			if (ok) {
 				promise = showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 					if (currentNbrOfOrderedAliases < proAliases) {
@@ -92,7 +103,11 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 			}
 		})
 	} else if (!bookPro && isPro) {
-		Dialog.confirm("downgradeToPremium_msg").then(ok => {
+		let msg = "downgradeToPremium_msg"
+		if (paymentInterval === 1) {
+			msg = () => lang.get("twoMonthsForFreeYearly_msg") + "\n\n" + lang.get("downgradeToPremium_msg")
+		}
+		Dialog.confirm(msg).then(ok => {
 			if (ok) {
 				promise = showProgressDialog("pleaseWait_msg", buyAliases(0)
 					.then(() => buyStorage(0))
@@ -101,6 +116,16 @@ function switchSubscription(bookPro: boolean, isPro: boolean, accountingInfo: Ac
 					.then(() => dialog.close())
 			}
 		})
+	} else if (paymentInterval !== Number(accountingInfo.paymentInterval)) {
+		Dialog.confirm(paymentInterval === 1 ? "twoMonthsForFreeYearly_msg" : "yearlyConfirm_msg")
+		      .then(ok => {
+			      if (ok) {
+				      promise = showProgressDialog(
+					      "pleaseWait_msg",
+					      Promise.resolve().then(() => changeSubscriptionInterval(accountingInfo, paymentInterval)))
+					      .then(() => dialog.close())
+			      }
+		      })
 	}
 }
 

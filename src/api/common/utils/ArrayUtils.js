@@ -11,6 +11,10 @@ export function concat(...arrays: Uint8Array[]): Uint8Array {
 	return result
 }
 
+export function numberRange(min: number, max: number): Array<number> {
+	return [...Array(max + 1).keys()].slice(min)
+}
+
 /**
  * Compares two arrays for equality.
  * @param {Array} a1 The first array.
