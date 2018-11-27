@@ -18,6 +18,7 @@ import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
 import {ButtonN} from "./ButtonN"
+import {DialogHeaderBarN} from "./DialogHeaderBarN"
 
 assertMainOrNode()
 
@@ -41,7 +42,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?() => void;
+	_closeHandler: ?(e: Event) => void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
@@ -172,7 +173,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notifed wehn onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: ?() => void): Dialog {
+	setCloseHandler(closeHandler: ?(e: Event) => void): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -199,9 +200,9 @@ export class Dialog {
 	/**
 	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
 	 */
-	onClose(): void {
+	onClose(e: Event): void {
 		if (this._closeHandler) {
-			this._closeHandler()
+			this._closeHandler(e)
 		} else {
 			this.close()
 		}
@@ -573,7 +574,7 @@ export class Dialog {
 		})
 	}
 
-	static largeDialog(headerBar: DialogHeaderBar, child: Component): Dialog {
+	static largeDialog(headerBar: DialogHeaderBar | DialogHeaderBarN, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [

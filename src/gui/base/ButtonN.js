@@ -7,10 +7,7 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
-import {modal} from "./Modal"
 import type {NavButtonAttrs} from "./NavButtonN"
-import {DropdownN} from "./DropdownN"
-import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -23,7 +20,8 @@ export const ButtonType = {
 	Login: 'login',
 	Floating: 'floating',
 	Bubble: 'bubble',
-	TextBubble: 'textBubble'
+	TextBubble: 'textBubble',
+	Toggle: 'toggle'
 }
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
@@ -54,8 +52,9 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 	}
 }
 
-export type ButtonAttrs = {|
+export type ButtonAttrs = {
 	label: string | lazy<string>,
+	title?: string | lazy<string>,
 	click: clickHandler,
 	icon?: lazyIcon,
 	type?: ButtonTypeEnum,
@@ -64,7 +63,7 @@ export type ButtonAttrs = {|
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string
-|}
+}
 
 /**
  * A button.
@@ -72,25 +71,30 @@ export type ButtonAttrs = {|
 class _Button {
 	_domButton: HTMLElement;
 
-	view(vnode: Vnode<ButtonAttrs>) {
+	view(vnode: Vnode<LifecycleAttrs<ButtonAttrs>>) {
 		const a = vnode.attrs
 		const type = this.getType(a.type)
-		return m("button.limit-width.noselect", {
+		const title = a.title !== undefined ? this.getTitle(a.title) : getLabel(a.label)
+
+		return m("button.limit-width.noselect",
+			{
 				class: this.getButtonClasses(a).join(' '),
 				style: vnode.attrs.type === ButtonType.Login ? {
 					'background-color': theme.content_accent,
 				} : {},
-				onclick: (event: MouseEvent) => this.click(event, a),
+				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
 				title: (type === ButtonType.Action
-					|| type === ButtonType.Bubble
 					|| type === ButtonType.Dropdown
 					|| type === ButtonType.Login
 					|| type === ButtonType.Floating)
-					? this.getLabel(a.label)
-					: "",
+					? getLabel(a.label)
+					: title,
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
-					addFlash(vnode.dom)
+					if (type !== ButtonType.Toggle) {
+						addFlash(vnode.dom)
+					}
+					a.oncreate && a.oncreate(vnode)
 				},
 				onbeforeremove: (vnode) => removeFlash(vnode.dom)
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
@@ -103,8 +107,8 @@ class _Button {
 		)
 	}
 
-	getLabel(label: string | lazy<string>): string {
-		return label instanceof Function ? label() : lang.get(label)
+	getTitle(title: string | lazy<string>): string {
+		return title instanceof Function ? title() : lang.get(title)
 	}
 
 	getType(type: ?ButtonTypeEnum) {
@@ -125,7 +129,7 @@ class _Button {
 	getIconColor(a: ButtonAttrs) {
 		if (this.getType(a.type) === ButtonType.Bubble) {
 			return theme.button_bubble_fg
-		} else if (this.isSelected(a) || this.getType(a.type) === ButtonType.Floating) {
+		} else if (isSelected(a) || this.getType(a.type) === ButtonType.Floating) {
 			return getColors(a.colors).icon_selected
 		} else {
 			return getColors(a.colors).icon
@@ -134,9 +138,9 @@ class _Button {
 
 	getIconBackgroundColor(a: ButtonAttrs) {
 		const type = this.getType(a.type)
-		if (type === ButtonType.Bubble) {
+		if ([ButtonType.Toggle, ButtonType.Bubble].includes(type)) {
 			return 'initial'
-		} else if (this.isSelected(a) || type === ButtonType.Floating) {
+		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
 		} else {
 			return getColors(a.colors).button
@@ -149,10 +153,10 @@ class _Button {
 			return "flex-center items-center button-icon icon-large"
 		} else if (type === ButtonType.Floating) {
 			return "flex-center items-center button-icon floating icon-large"
-		} else if (type === ButtonType.Bubble) {
-			return "pr-s"
 		} else if (a.colors === ButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center button-icon icon-xl"
+		} else if (type === ButtonType.Bubble) {
+			return "pr-s"
 		} else {
 			return "flex-center items-center button-icon"
 		}
@@ -165,7 +169,7 @@ class _Button {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
-		} else if (type === ButtonType.Action || type === ButtonType.ActionLarge) {
+		} else if ([ButtonType.Action, ButtonType.ActionLarge].includes(type)) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		} else {
@@ -180,7 +184,7 @@ class _Button {
 	getWrapperClasses(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let wrapperClasses = ["button-content", "flex", "items-center", type]
-		if (type !== ButtonType.Floating && type !== ButtonType.TextBubble) {
+		if (![ButtonType.Floating, ButtonType.TextBubble, ButtonType.Toggle].includes(type)) {
 			wrapperClasses.push("plr-button")
 		}
 		if (type === ButtonType.Dropdown) {
@@ -188,24 +192,30 @@ class _Button {
 		} else {
 			wrapperClasses.push("justify-center")
 		}
+		if (type === ButtonType.Toggle) {
+			wrapperClasses.push(isSelected(a) ? "on" : "off")
+		}
 		return wrapperClasses
 	}
 
 	_getLabelElement(a: ButtonAttrs) {
 		const type = this.getType(a.type)
+		const label = getLabel(a.label)
+		if (label.trim() === '' || [ButtonType.Action, ButtonType.Floating].includes(type)) {
+			return null
+		}
 		let classes = ["text-ellipsis"]
 		if (type === ButtonType.Dropdown) {
 			classes.push("pl-m")
 		}
-		if ([ButtonType.Action, ButtonType.Floating].indexOf(type) === -1) {
-
-			return m("", {
-				class: classes.join(' '),
-				style: this._getLabelStyle(a)
-			}, this.getLabel(a.label))
-		} else {
-			return null
+		if (type === ButtonType.Toggle) {
+			classes.push("pr-s pb-2")
 		}
+
+		return m("", {
+			class: classes.join(' '),
+			style: this._getLabelStyle(a)
+		}, label)
 	}
 
 	_getLabelStyle(a: ButtonAttrs) {
@@ -213,12 +223,14 @@ class _Button {
 		let color
 		if (type === ButtonType.Primary || type === ButtonType.Secondary) {
 			color = theme.content_accent
-		} else if (type === ButtonType.Login) {
+		} else if ([ButtonType.Login, ButtonType.Toggle].includes(type)) {
 			color = theme.content_button_icon
 		} else if (type === ButtonType.Bubble || type === ButtonType.TextBubble) {
 			color = theme.content_fg
 		} else {
-			color = this.isSelected(a) ? getColors(a.colors).button_selected : getColors(a.colors).button
+			color = isSelected(a)
+				? getColors(a.colors).button_selected
+				: getColors(a.colors).button
 		}
 		return {
 			color,
@@ -226,49 +238,27 @@ class _Button {
 		}
 	}
 
-	click(event: MouseEvent, a: ButtonAttrs) {
-		a.click(event)
+	click(event: MouseEvent, a: ButtonAttrs, dom: HTMLElement) {
+		a.click(event, dom)
 		// in IE the activeElement might not be defined and blur might not exist
-		if (document.activeElement && typeof document.activeElement.blur === "function") {
+		if (!a.noBubble && document.activeElement && typeof document.activeElement.blur === "function") {
 			document.activeElement.blur()
-		}
-		if (a.noBubble) {
+		} else if (a.noBubble) {
 			event.stopPropagation()
 		}
-	}
-
-	isSelected(a: ButtonAttrs) {
-		return typeof a.isSelected === "function" ? a.isSelected() : false
 	}
 }
 
 export const ButtonN: Class<MComponent<ButtonAttrs>> = _Button
 
-export function createDropDown(lazyButtons: lazy<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number = 200): clickHandler {
-	return createAsyncDropDown(() => Promise.resolve(lazyButtons()), width)
-}
-
-export function createAsyncDropDown(lazyButtons: lazyAsync<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number = 200): clickHandler {
-	return ((e) => {
-		let buttonPromise = lazyButtons()
-		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
-				.then(module => {
-					return module.showProgressDialog("loading_msg", buttonPromise)
-				})
-		}
-		buttonPromise.then(buttons => {
-			let dropdown = new DropdownN(() => buttons, width)
-			if (e.currentTarget) {
-				let buttonRect: ClientRect = e.currentTarget.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
-			}
-		})
-	}: clickHandler)
-}
-
 export function isVisible(a: NavButtonAttrs | ButtonAttrs) {
-	return a.isVisible ? a.isVisible() : true
+	return (typeof a.isVisible !== "function") || a.isVisible()
+}
+
+export function isSelected(a: NavButtonAttrs | ButtonAttrs) {
+	return typeof a.isSelected === "function" ? a.isSelected() : false
+}
+
+export function getLabel(label: string | lazy<string>): string {
+	return label instanceof Function ? label() : lang.get(label)
 }

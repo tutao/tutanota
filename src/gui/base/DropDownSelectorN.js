@@ -1,13 +1,14 @@
 // @flow
 import m from "mithril"
+import type Stream from "mithril/stream/stream.js"
+import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonType} from "./Button"
 import {TextFieldN} from "./TextFieldN"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, createDropDown} from "./ButtonN"
+import {ButtonN} from "./ButtonN"
+import {createDropdown} from "./DropdownN.js"
 import {Icons} from "./icons/Icons"
-import type Stream from "mithril/stream/stream.js"
-import stream from "mithril/stream/stream.js"
 import type {AllIconsEnum} from "./Icon"
 
 assertMainOrNode()
@@ -27,6 +28,7 @@ export type DropDownSelectorAttrs<T> = {
 }
 
 class _DropDownSelector<T> {
+
 	view(vnode: Vnode<DropDownSelectorAttrs<T>>) {
 		const a = vnode.attrs
 		return m(TextFieldN, {
@@ -43,7 +45,7 @@ class _DropDownSelector<T> {
 	}
 
 	createDropdown(a: DropDownSelectorAttrs<T>): ButtonAttrs {
-		return createDropDown(() => {
+		return createDropdown(() => {
 			return a.items.map(item => {
 				return {
 					label: () => item.name,

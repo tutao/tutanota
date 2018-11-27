@@ -1,7 +1,8 @@
 // @flow
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonColors, createDropDown, isVisible} from "./ButtonN"
+import {ButtonColors, isVisible} from "./ButtonN"
+import {createDropdown} from "./DropdownN.js"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {size} from "../size"
 import type {NavButtonAttrs} from "./NavButtonN"
@@ -67,7 +68,7 @@ class _NavBar {
 			label: "more_label",
 			href: () => m.route.get(),
 			icon: () => BootIcons.MoreVertical,
-			click: createDropDown(() => this.getVisibleButtons().hidden.map(wrapper => wrapper.buttonAttrs)),
+			click: createDropdown(() => this.getVisibleButtons().hidden.map(wrapper => wrapper.buttonAttrs)),
 			colors: ButtonColors.Header,
 			hideLabel: true,
 		}

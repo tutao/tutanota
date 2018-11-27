@@ -14,13 +14,14 @@ import {Icons} from "./icons/Icons"
 export type TextFieldAttrs = {
 	label: string | lazy<string>,
 	value: Stream<string>,
-	type?: TextFieldTypeEnum;
+	type?: TextFieldTypeEnum,
 	helpLabel?: lazy<string>,
 	style?: Object,
-	injectionsLeft?: Function; // only used by the BubbleTextField to display bubbles
-	injectionsRight?: Function;
-	keyHandler?: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
-	onblur?: Function;
+	injectionsLeft?: Function, // only used by the BubbleTextField to display bubbles
+	injectionsRight?: Function,
+	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
+	onblur?: Function,
+	maxWidth?: number,
 	class?: string,
 	disabled?: boolean,
 }
@@ -88,7 +89,7 @@ export class _TextField {
 					style: {
 						'min-height': px(size.button_height + 2), // 2 px border
 						'padding-bottom': this.active ? px(0) : px(1),
-						'border-bottom': a.disabled ? '1px solid transparent' : this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
+						'border-bottom': this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
 					},
 				}, [
 					a.injectionsLeft ? a.injectionsLeft() : null,
@@ -275,7 +276,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 				let dateValue = stream(value ? formatDate(value) : "")
 				dateValue.map(newDate => {
 					try {
-						if (newDate.trim().length>0) {
+						if (newDate.trim().length > 0) {
 							let timestamp = parseDate(newDate)
 							isNaN(timestamp) ? null : new Date(timestamp)
 						}

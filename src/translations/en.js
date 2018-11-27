@@ -1141,5 +1141,14 @@ module.exports = {
 		"twoMonthsForFreeYearly_msg": "Are you sure that you want a monthly subscription period?",
 		"yearlyConfirm_msg": "Are you sure that you want a yearly subscription period?",
 		"currentPlan_label": "Current Subscription",
+		"formatTextMonospace_msg": "Monospace",
+		"formatTextFontSize_msg": "Font size",
+		"formatTextAlignment_msg": "Alignment",
+		"formatTextLeft_msg": "Left",
+		"formatTextCenter_msg": "Center",
+		"formatTextRight_msg": "Right",
+		"formatTextJustify_msg": "Justify",
+		"formatTextUl_msg": "Unordered list",
+		"formatTextOl_msg": "Ordered list",
 	}
 }

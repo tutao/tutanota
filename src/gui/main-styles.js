@@ -160,6 +160,7 @@ styles.registerStyle('main', () => {
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
+		'.pb-2': {'padding-bottom': '2px'}, // for dropdown toggles
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
@@ -671,13 +672,19 @@ styles.registerStyle('main', () => {
 		'.primary': {color: theme.content_accent, 'font-weight': 'bold'},
 		'.secondary': {color: theme.content_accent},
 		'.textBubble': {color: theme.content_accent, 'padding-top': px(size.text_bubble_tpad)},
-		'.bubble': {
+		'.bubble, .toggle': {
 			'max-width': "300px",
 			// make the visible button smaller by 7px without changing the actual click area
 			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
 			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
 			'background-color': theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
+		},
+		'.on': {
+			'background-color': theme.content_button_selected
+		},
+		'.off': {
+			'background-color': theme.content_button
 		},
 
 		'.segmentControl': {

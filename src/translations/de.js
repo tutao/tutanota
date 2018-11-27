@@ -1142,5 +1142,14 @@ module.exports = {
 		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
 		"twoMonthsForFreeYearly_msg": "Bist du sicher, dass du eine monatliche Zahlung möchtest?",
 		"yearlyConfirm_msg": "Bist du sicher, dass du eine jährliche Zahlung möchtest?",
+		"formatTextMonospace_msg": "Monospace",
+		"formatTextFontSize_msg": "Schriftgröße",
+		"formatTextAlignment_msg": "Ausrichtung",
+		"formatTextLeft_msg": "Links",
+		"formatTextCenter_msg": "Zentriert",
+		"formatTextRight_msg": "Rechts",
+		"formatTextJustify_msg": "Blocksatz",
+		"formatTextUl_msg": "Liste",
+		"formatTextOl_msg": "Nummerierte Liste",
 	}
 }

@@ -1,23 +1,27 @@
 // @flow
 import m from "mithril"
-import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
 import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
-import {Button} from "./Button"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN} from "./ButtonN"
+import {ButtonN, getLabel, isVisible} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import {lang} from "../../misc/LanguageViewModel"
+import stream from "mithril/stream/stream.js"
+import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
+
+export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
+
 export class DropdownN {
-	children: Array<string | NavButton | Button>;
+	children: Array<DropDownChildAttrs>;
 	_domDropdown: HTMLElement;
 	origin: ?ClientRect;
 	maxHeight: number;
@@ -26,16 +30,33 @@ export class DropdownN {
 	_width: number;
 	shortcuts: Function;
 	_buttonsHeight: number;
+	_filterString: Stream<string>;
+	_domInput: HTMLInputElement;
+	_domContents: HTMLElement;
+	_isFilterable: boolean;
 
 
-	constructor(lazyChildren: lazy<Array<string | NavButtonAttrs | ButtonAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<Array<DropDownChildAttrs>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
 		this._buttonsHeight = 0
+		this._filterString = stream("")
 
 		this.oninit = () => {
 			this.children = lazyChildren()
+			this._isFilterable = this.children.length > 10
+			this.children.map(child => {
+				if (typeof child === 'string') {
+					return child
+				}
+				child = ((child: any): ButtonAttrs)
+				return Object.assign(child, {
+					click: this.wrapClick(child.click),
+					isVisible: this._isFilterable ? this.wrapVisible(child.isVisible, getLabel(child.label)) : child.isVisible,
+					noBubble: false
+				})
+			})
 		}
 
 		let _shortcuts = this._createShortcuts()
@@ -43,35 +64,87 @@ export class DropdownN {
 			return _shortcuts
 		}
 
-		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix.scroll", {
-					oncreate: (vnode) => this.show(vnode.dom),
-				}, m(".dropdown-content.plr-l", {
+		const _inputField = () => {
+			return this._isFilterable
+				? m("input.dropdown-bar.doNotClose.pl-l.button-height.abs", {
+						placeholder: lang.get("typeToFilter_label"),
+						oncreate: (vnode) => {
+							this._domInput = vnode.dom
+							this._domInput.value = this._filterString()
+						},
+						oninput: e => {
+							this._filterString(this._domInput.value)
+						},
+						style: {
+							width: px(this._width - size.hpad_large),
+							top: 0,
+							height: px(size.button_height),
+							left: 0,
+						}
+					},
+					this._filterString()
+				)
+				: null
+		}
+
+		const _contents = () => {
+			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
+						this.show(vnode.dom)
 						window.requestAnimationFrame(() => {
 							if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
 							}
 						})
 					},
-					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
+					style: {
+						width: px(this._width),
+						top: px(this._getFilterHeight()),
+						bottom: 0
+					} // a fixed with for the content of this dropdown is needed to avoid that
+					// the elements in the dropdown move during animation
 				},
-				(this.children.filter(b => isVisible((b: any))).map(child => {
+				(this._visibleChildren().map(child => {
 					if (typeof child === "string") {
 						return m(".flex-v-center.center.button-height.b.text-break.doNotClose", child)
-					} else if (typeof child.href !== 'undefined') {
-						return m(NavButtonN, ((child: any): NavButtonAttrs))
-					} else {
+					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
+					} else {
+						return m(NavButtonN, ((child: any): NavButtonAttrs))
 					}
 				}): any))
+		}
+
+		this.view = (): VirtualElement => {
+			return m(".dropdown-panel.border-radius.backface_fix", {
+					oncreate: vnode => this._domDropdown = vnode.dom,
+					onkeypress: e => {
+						if (this._domInput) {
+							this._domInput.focus()
+						}
+					},
+				}, [_inputField(), _contents()]
 			)
 		}
 	}
 
+	wrapClick(fn: (MouseEvent, HTMLElement) => any): (MouseEvent, HTMLElement) => any {
+		return (e: MouseEvent, dom) => {
+			const r = fn(e, dom)
+			this.close()
+			return r
+		}
+	}
+
+	wrapVisible(fn: ?() => boolean, label: string): () => boolean {
+		return () => {
+			return (fn instanceof Function ? fn() : true) && label.toLowerCase().includes(this._filterString().toLowerCase())
+		}
+	}
+
 	backgroundClick(e: MouseEvent) {
-		if (!(e.target: any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target: any))
+		if (this._domDropdown && !(e.target: any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target: any))
 			|| this._domDropdown.parentNode === e.target)) {
 			modal.remove(this)
 		}
@@ -106,6 +179,11 @@ export class DropdownN {
 				exec: () => focusNext(this._domDropdown),
 				help: "selectNext_action"
 			},
+			{
+				key: Keys.RETURN,
+				exec: () => this.chooseMatch(),
+				help: "ok_action"
+			}
 		]
 	}
 
@@ -121,8 +199,20 @@ export class DropdownN {
 		this.close()
 	}
 
+	chooseMatch = () => {
+		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
+		let matchingButton = visibleElements.find(b => getLabel(b.label).toLowerCase() === this._filterString().toLowerCase())
+		if (document.activeElement === this._domInput
+			&& matchingButton
+			&& matchingButton.click) {
+			matchingButton.click()
+			return false
+		}
+		return true
+	}
+
 	show(domElement: HTMLElement) {
-		this._domDropdown = domElement
+		this._domContents = domElement
 		if (this.origin) {
 			let left = this.origin.left
 			let right = window.innerWidth - this.origin.right
@@ -143,19 +233,25 @@ export class DropdownN {
 				this._domDropdown.style.bottom = bottom + "px"
 			}
 
-			this._buttonsHeight = this.children.filter(b => isVisible((b: any)))
-				.reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
-			this.maxHeight = Math.min(this._buttonsHeight, (top < bottom ? window.innerHeight - top :
-				window.innerHeight - bottom) - 10)
-			return animations.add(domElement, [
+			this._buttonsHeight = this._visibleChildren()
+			                          .reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
+
+			this.maxHeight = Math.min(
+				this._buttonsHeight + this._getFilterHeight(),
+				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
+			)
+
+			return animations.add(this._domDropdown, [
 				width(0, this._width),
 				height(0, this.maxHeight)
 			], {easing: ease.out}).then(() => {
-				if (this.maxHeight < this._buttonsHeight) {
-					if (this._domDropdown) {
-						// do not show the scrollbar during the animation.
-						this._domDropdown.style.overflowY = client.overflowAuto
-					}
+				if (this.maxHeight - this._getFilterHeight() < this._buttonsHeight) {
+					// do not show the scrollbar during the animation.
+					this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
+					this._domContents.style.overflowY = client.overflowAuto
+				}
+				if (this._domInput) {
+					this._domInput.focus()
 				}
 			})
 		}
@@ -180,9 +276,70 @@ export class DropdownN {
 		], {easing: ease.out})
 	}
 
+	_visibleChildren(): Array<DropDownChildAttrs> {
+		return this.children.filter(b => {
+			return (typeof b === "string")
+				? b.includes(this._filterString().toLowerCase())
+				: isVisible(b)
+		})
+	}
 
+	_getFilterHeight(): number {
+		return this._isFilterable ? size.button_height + size.vpad_xs : 0
+	}
 }
 
-function isVisible(dropDownElement: string | NavButtonAttrs | ButtonAttrs) {
-	return (typeof dropDownElement.isVisible !== "function") || dropDownElement.isVisible()
+export function createDropdown(lazyButtons: lazy<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
+	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
+}
+
+export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
+	return ((e) => {
+		let buttonPromise = lazyButtons()
+		if (!buttonPromise.isFulfilled()) {
+			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+				.then(module => {
+					return module.showProgressDialog("loading_msg", buttonPromise)
+				})
+		}
+		buttonPromise.then(buttons => {
+			let dropdown = new DropdownN(() => buttons, width)
+			if (e.currentTarget) {
+				let buttonRect: ClientRect = e.currentTarget.getBoundingClientRect()
+				dropdown.setOrigin(buttonRect)
+				modal.display(dropdown)
+			}
+		})
+	}: clickHandler)
+}
+
+/**
+ *
+ * @param mainButtonAttrs the attributes of the main button
+ * @param childAttrs the attributes of the children shown in the dropdown
+ * @param showDropdown this will be checked before showing the dropdown
+ * @param width width of the dropdown
+ * @returns {ButtonAttrs} modified mainButtonAttrs that shows a dropdown on click or
+ * executes the original onclick if showDropdown returns false
+ */
+export function attachDropdown(
+	mainButtonAttrs: ButtonAttrs,
+	childAttrs: lazy<Array<DropDownChildAttrs>>,
+	showDropdown?: lazy<boolean> = () => true,
+	width?: number): ButtonAttrs {
+
+	const oldClick = mainButtonAttrs.click
+	mainButtonAttrs = Object.assign({}, mainButtonAttrs, {
+		click: (e, dom) => {
+			if (showDropdown()) {
+				const dropDownFn = createDropdown(childAttrs, width)
+				dropDownFn({currentTarget: dom})
+			} else {
+				oldClick(e)
+			}
+		}
+	})
+
+	return mainButtonAttrs
 }
