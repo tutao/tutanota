@@ -43,6 +43,8 @@ export class LoginView {
 
 	constructor() {
 		this.targetPath = '/mail'
+		this._requestedPath = this.targetPath
+
 		this.mailAddress = new TextField('mailAddress_label')
 			.setType(Type.Email)
 		this.helpText = lang.get('emptyString_msg')
