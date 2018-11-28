@@ -99,7 +99,7 @@ export class InvoiceDataInput {
 		return {
 			invoiceAddress: address,
 			country: selectedCountry,
-			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU) ? this._vatNumberField.value() : ""
+			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU && this._subscriptionOptions.businessUse) ? this._vatNumberField.value() : ""
 		}
 	}
 
