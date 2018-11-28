@@ -210,7 +210,7 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 		}
 	})
 
-	if (url.searchParams) { // not supported in Edge
+	if (url.searchParams && typeof url.searchParams.entries === "function") { // not supported in Edge
 		for (let pair of url.searchParams.entries()) {
 			let paramName = pair[0].toLowerCase()
 			let paramValue = pair[1]
