@@ -118,6 +118,10 @@ export class MailModel {
 		return neverNull(this.mailboxDetails().find(md => md.mailGroup._id === userMailGroupMembership.group))
 	}
 
+	getUserMailboxDetailsAsync(): Promise<MailboxDetail> {
+		return this.init().then(() => this.getUserMailboxDetails())
+	}
+
 	getMailboxFolders(mail: Mail): MailFolder[] {
 		return this.getMailboxDetails(mail).folders
 	}

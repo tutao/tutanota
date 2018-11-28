@@ -211,9 +211,13 @@ class Header {
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
-			(mailEditorModule, mailModelModule) => {
-				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-			}
+			(mailEditorModule, mailModelModule) =>
+				mailModelModule.mailModel
+				               .getUserMailboxDetailsAsync()
+				               // modal is closed when URL is changed. MailView changed URL after loading mailbox details and closes editor
+				               // We prevent that by opening mail editor after changing the URL
+				               .delay(16)
+				               .then((mailboxDetails) => new mailEditorModule.MailEditor(mailboxDetails))
 		)
 	}
 
