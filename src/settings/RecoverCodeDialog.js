@@ -82,7 +82,7 @@ export class RecoverCodeField {
 					icon: () => Icons.Copy,
 					click: () => copyToClipboard(vnode.attrs.recoverCode)
 				}),
-				isApp() ? null : m(ButtonN, {
+				isApp() || typeof window.print !== 'function' ? null : m(ButtonN, {
 					label: "print_action",
 					icon: () => Icons.Print,
 					click: () => window.print()

@@ -680,10 +680,10 @@ export class MailView implements CurrentView {
 		if (this.mailViewer != null && !this.mailHeaderDialog.visible) {
 			if (this.mailViewer.mail.headers) {
 				load(MailHeadersTypeRef, this.mailViewer.mail.headers).then(mailHeaders => {
-						this.mailHeaderInfo = mailHeaders.headers
-						this.mailHeaderDialog.show()
+					this.mailHeaderInfo = mailHeaders.headers
+					this.mailHeaderDialog.show()
 					}
-				)
+				).catch(NotFoundError, noOp)
 			} else {
 				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
 				this.mailHeaderDialog.show()

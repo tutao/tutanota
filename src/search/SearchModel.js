@@ -33,7 +33,7 @@ export class SearchModel {
 	}
 
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
-	       maxResults: ?number): Promise<SearchResult> {
+	       maxResults: ?number): Promise<?SearchResult> {
 		this.lastQuery(query)
 		let result = this.result()
 		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {

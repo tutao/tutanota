@@ -33,7 +33,8 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
-	getSenderOrRecipientHeading, getSenderOrRecipientHeadingTooltip,
+	getSenderOrRecipientHeading,
+	getSenderOrRecipientHeadingTooltip,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
@@ -236,7 +237,7 @@ export class MailViewer {
 				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
-				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
+				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
 				}
 				if (this.mail.listUnsubscribe) {

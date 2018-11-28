@@ -4,7 +4,7 @@ import {isApp} from "../api/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll} from "../api/main/Entity"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {Button} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
@@ -18,6 +18,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {TextField} from "../gui/base/TextField"
+import {NotFoundError} from "../api/common/error/RestError"
 
 type NotificationRowAttrs = {|
 	name: string,
@@ -90,7 +91,7 @@ export class MailSettingNotificationViewer {
 					name: this._identifierTypeName(current, identifier.pushServiceType),
 					identifier: identifier.identifier,
 					current: current,
-					removeClicked: () => {erase(identifier)},
+					removeClicked: () => {erase(identifier).catch(NotFoundError, noOp)},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL
 					//enableClicked: this._enableNotifications
 				})

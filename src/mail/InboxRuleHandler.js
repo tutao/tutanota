@@ -1,17 +1,18 @@
 //@flow
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
-import {serviceRequestVoid, load} from "../api/main/Entity"
+import {load, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/Formatter"
-import {isSameId, HttpMethod} from "../api/common/EntityFunctions"
-import {neverNull} from "../api/common/utils/Utils"
+import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {logins} from "../api/main/LoginController"
 import {getInboxFolder} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -85,9 +86,11 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 			return _checkContainsRule(mail.subject, inboxRule)
 		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
 			if (mail.headers) {
-				return load(MailHeadersTypeRef, mail.headers).then(mailHeaders => {
-					return _checkContainsRule(mailHeaders.headers, inboxRule)
-				})
+				return load(MailHeadersTypeRef, mail.headers)
+					.then(mailHeaders => {
+						return _checkContainsRule(mailHeaders.headers, inboxRule)
+					})
+					.catch(NotFoundError, noOp)
 			} else {
 				return null
 			}

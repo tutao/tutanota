@@ -5,8 +5,8 @@ import {Button, ButtonType} from "../gui/base/Button"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
-import {formatNameAndAddress, formatDate} from "../misc/Formatter"
-import {Mode, HtmlEditor} from "../gui/base/HtmlEditor"
+import {formatDate, formatNameAndAddress} from "../misc/Formatter"
+import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSignOrderProcessingAgreementData} from "../api/entities/sys/SignOrderProcessingAgreementData"
@@ -98,7 +98,9 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 	let headerBar = new DialogHeaderBar()
 		.addLeft(closeButton)
 		.setMiddle(() => lang.get("orderProcessingAgreement_label"))
-		.addRight(printButton)
+	if (typeof window.print === 'function') {
+		headerBar.addRight(printButton)
+	}
 
 
 	const dialog = Dialog.largeDialog(headerBar, {
