@@ -5,7 +5,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {getHttpOrigin, isAndroidApp, isApp, isIOSApp} from "../api/Env"
+import {getHttpOrigin, isAndroidApp, isIOSApp} from "../api/Env"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
@@ -112,29 +112,6 @@ class PushServiceApp {
 	getPushIdentifier(): ?string {
 		return this._currentIdentifier
 	}
-
-	/*
-	 enableNotifications(enable: boolean): Promise<void> {
-	 let done
-	 if (enable) {
-	 done = this.getPushIdentifier()
-	 .then(localIdentifier => localIdentifier || worker.generateSsePushIdentifer())
-	 .then(localIdentifier => this._createPushIdentiferInstance(localIdentifier, PushServiceType.SSE))
-	 .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
-	 } else {
-	 done = this.getPushIdentifier()
-	 .then(identifier => identifier && this._loadPushIdentifier(identifier))
-	 .then(pushIdentifier => pushIdentifier && erase(pushIdentifier))
-	 }
-	 return done
-	 .then(this._initPushNotifications)
-	 .then(() => {
-	 const credentials = neverNull(deviceConfig.getByUserId(logins.getUserController().user._id))
-	 credentials.pushNotificationsEnabled = enable
-	 deviceConfig.set(credentials)
-	 })
-	 }
-	 */
 
 	_initPushNotifications(): Promise<void> {
 		return nativeApp.invokeNative(new Request("initPushNotifications", []))

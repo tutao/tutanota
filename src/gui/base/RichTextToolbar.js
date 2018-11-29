@@ -90,7 +90,6 @@ export class RichTextToolbar {
 		const alignDropdownAttrs = attachDropdown({
 			label: () => "▼",
 			title: "formatTextAlignment_msg",
-			click: noOp,
 			icon: () => {
 				switch (editor.styles.alignment) {
 					case 'left':
