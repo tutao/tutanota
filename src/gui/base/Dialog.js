@@ -215,14 +215,17 @@ export class Dialog {
 	 */
 	hideAnimation(): Promise<void> {
 		let bgcolor = theme.content_bg
-		return Promise.all([
-			animations.add(this._domDialog.children, opacity(1, 0, true)),
-			animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0), {
-				delay: DefaultAnimationTime / 2,
-				easing: ease.linear
-			})
-		]).then(() => {
-		})
+		if (this._domDialog) {
+			return Promise.all([
+				animations.add(this._domDialog.children, opacity(1, 0, true)),
+				animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0), {
+					delay: DefaultAnimationTime / 2,
+					easing: ease.linear
+				})
+			]).return()
+		} else {
+			return Promise.resolve()
+		}
 	}
 
 	backgroundClick(e: MouseEvent) {
