@@ -7,7 +7,7 @@ import {px, size} from "../size"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, getLabel, isVisible} from "./ButtonN"
+import {ButtonN, isVisible} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {assertMainOrNodeBoot} from "../../api/Env"
@@ -54,7 +54,7 @@ export class DropdownN {
 				child = ((child: any): ButtonAttrs)
 				return Object.assign(child, {
 					click: this.wrapClick(child.click),
-					isVisible: this._isFilterable ? this.wrapVisible(child.isVisible, getLabel(child.label)) : child.isVisible,
+					isVisible: this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible,
 					noBubble: false
 				})
 			})
@@ -207,7 +207,7 @@ export class DropdownN {
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
 		let matchingButton = visibleElements.length === 1
 			? visibleElements[0]
-			: visibleElements.find(b => getLabel(b.label).toLowerCase() === filterString)
+			: visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 		if (document.activeElement === this._domInput
 			&& matchingButton
 			&& matchingButton.click) {
@@ -298,7 +298,7 @@ export class DropdownN {
 	}
 }
 
-export function createDropdown(lazyButtons: lazy<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
+export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 
@@ -334,7 +334,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAt
  */
 export function attachDropdown(
 	mainButtonAttrs: ButtonAttrs,
-	childAttrs: lazy<Array<DropDownChildAttrs>>,
+	childAttrs: lazy<$Promisable<$ReadOnlyArray<DropDownChildAttrs>>>,
 	showDropdown?: lazy<boolean> = () => true,
 	width?: number): ButtonAttrs {
 
@@ -342,7 +342,7 @@ export function attachDropdown(
 	mainButtonAttrs = Object.assign({}, mainButtonAttrs, {
 		click: (e, dom) => {
 			if (showDropdown()) {
-				const dropDownFn = createDropdown(childAttrs, width)
+				const dropDownFn = createAsyncDropdown(Promise.resolve(childAttrs), width)
 				dropDownFn({currentTarget: dom})
 			} else {
 				oldClick(e)

@@ -108,8 +108,9 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 			} else if (cleanRecoverCodeValue === "") {
 				Dialog.error("recoveryCodeEmpty_msg")
 			} else if (selectedAction() === "password") {
-				if (passwordForm.getErrorMessageId()) {
-					Dialog.error(passwordForm.getErrorMessageId())
+				const errorMessageId = passwordForm.getErrorMessageId()
+				if (errorMessageId) {
+					Dialog.error(errorMessageId)
 				} else {
 					showProgressDialog("pleaseWait_msg",
 						worker.initialized.then(() => {

@@ -16,8 +16,7 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: string | lazy<
 	let progressDialog = new Dialog(DialogType.Progress, {
 		view: () => m("", [
 			m(".flex-center", !showProgress ? progressIcon() : (progressIndicator ? m(progressIndicator) : null)),
-			m("p", messageIdOrMessageFunction instanceof Function ?
-				messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
+			m("p", lang.getMaybeLazy(messageIdOrMessageFunction))
 		])
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event

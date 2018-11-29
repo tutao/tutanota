@@ -83,7 +83,7 @@ export class _TextField {
 						this._domLabel.style.transform = 'translateY(' + 0 + "px)"
 					}
 				},
-			}, a.label instanceof Function ? a.label() : lang.get(a.label)),
+			}, lang.getMaybeLazy(a.label)),
 			m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
 				m(".flex.items-end.flex-wrap", {
 					style: {
@@ -107,7 +107,7 @@ export class _TextField {
 		])
 	}
 
-	_getInputField(a: TextFieldAttrs): VirtualElement {
+	_getInputField(a: TextFieldAttrs): Vnode<any> {
 		if (a.disabled) {
 			return m(".text-break.selectable", {
 				style: {
@@ -285,7 +285,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 						invalidDate = true
 					}
 				})
-				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : null
+				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : ""
 				let dialog = Dialog.showActionDialog({
 					title: lang.get("edit_action"),
 					child: {

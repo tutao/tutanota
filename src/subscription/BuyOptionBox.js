@@ -8,7 +8,6 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
 
 export class BuyOptionBox {
 
-	_headingIdOrFunction: string;
 	_actionId: string;
 	_buttonAttrs: ButtonAttrs;
 	view: Function;
@@ -20,8 +19,7 @@ export class BuyOptionBox {
 	_injection: ?Component;
 	selected: boolean;
 
-	constructor(headingIdOrFunction: string | lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: lazy<string[]>, width: number, height: number, currentlySelected: lazy<boolean>) {
-		this._headingIdOrFunction = headingIdOrFunction
+	constructor(headingIdOrFunction: string | lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: lazy<string[]>, width: number, height: number) {
 		this._actionId = actionTextId
 		this._buttonAttrs = {
 			label: actionTextId,
@@ -47,8 +45,7 @@ export class BuyOptionBox {
 					style: {height: px(height)}
 				}, [
 					this.referencePrice() ? m(".ribbon-vertical", m(".center.b.h4", {style: {'padding-top': px(22)}}, "%")) : null,
-					m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction
-					instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
+					m(".h4.center.dialog-header.dialog-header-line-height", lang.getMaybeLazy(headingIdOrFunction)),
 					m(".center.pt.flex.items-center.justify-center", [
 						m("span.h1", this.price()),
 						this.referencePrice() ? m("span.strike.pl", "(" + this.referencePrice() + ")") : null

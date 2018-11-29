@@ -161,9 +161,12 @@ export class ContactFormEditor {
 		this._language = stream(language)
 		this._languageField = new TextField("language_label").setDisabled()
 		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
-			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code),
-				e => this._language(l)).setType(ButtonType.Dropdown))
-			                  .sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
+			let buttons: Array<Button> = this._languages.map(l => {
+				return new Button(
+					() => getLanguageName(l.code),
+					e => this._language(l)
+				).setType(ButtonType.Dropdown)
+			}).sort((a: Button, b: Button) => a.getLabel().localeCompare(b.getLabel()))
 			buttons.push(new Button("addLanguage_action", e => {
 				let additionalLanguages = languages.filter(t => {
 					if (t.code.endsWith('_sie')) {

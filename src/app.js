@@ -26,6 +26,9 @@ import {styles} from "./gui/styles.js"
 assertMainOrNodeBoot()
 bootFinished()
 
+// TODO: define type definition for top-level views. Maybe it's CurrentView?
+type View = Object
+
 Promise.config({
 	longStackTraces: false,
 	warnings: false
@@ -107,9 +110,9 @@ let initialized = lang.init(en).then(() => {
 		return;
 	}
 
-	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true,
+	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
-		let cache = {view: null}
+		let cache: {view: ?View} = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
 				if (requireLogin && !logins.isUserLoggedIn()) {

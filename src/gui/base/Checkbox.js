@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
@@ -14,8 +14,8 @@ const FALSE_CLOSURE = () => {
 }
 
 export class Checkbox {
-	getLabel: lazy<string>;
-	helpLabel: ?lazy<String>;
+	getLabel: lazy<Children>;
+	helpLabel: ?lazy<string>;
 	checked: Stream<boolean>;
 	focused: Stream<boolean>;
 	enabled: boolean;
@@ -24,9 +24,8 @@ export class Checkbox {
 	_disabledTextId: string;
 
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, helpLabel: lazy<String>) {
-		this.getLabel = labelTextIdOrTextFunction instanceof Function ?
-			labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+	constructor(labelTextIdOrTextFunction: string | lazy<Children>, helpLabel?: lazy<string>) {
+		this.getLabel = typeof labelTextIdOrTextFunction === "function" ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 		this.helpLabel = helpLabel
 		this.checked = stream(false)
 		this.focused = stream(false)

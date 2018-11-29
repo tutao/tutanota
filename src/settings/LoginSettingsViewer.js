@@ -56,7 +56,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			type: ButtonType.Dropdown,
 			isVisible: () => {
 				const auth = logins.getUserController().user.auth
-				return auth && auth.recoverCode
+				return Boolean(auth && auth.recoverCode)
 			}
 		}
 		const updateRecoveryCodeButton = {

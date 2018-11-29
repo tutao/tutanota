@@ -9,7 +9,7 @@ import {Button} from "./Button"
 export class DialogHeaderBar {
 	buttonId: number;
 	right: Button[];
-	middle: lazy<string>;
+	middle: ?lazy<string>;
 	left: Button[];
 	view: Function;
 	domButtonBar: ?HTMLElement;

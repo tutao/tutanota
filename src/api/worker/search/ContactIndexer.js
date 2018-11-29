@@ -36,13 +36,13 @@ export class ContactIndexer {
 				value: () => contact.lastName,
 			}, {
 				attribute: ContactModel.values["nickname"],
-				value: () => contact.nickname,
+				value: () => contact.nickname || "",
 			}, {
 				attribute: ContactModel.values["role"],
 				value: () => contact.role,
 			}, {
 				attribute: ContactModel.values["title"],
-				value: () => contact.title,
+				value: () => contact.title || "",
 			}, {
 				attribute: ContactModel.values["comment"],
 				value: () => contact.comment,

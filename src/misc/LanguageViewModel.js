@@ -211,6 +211,9 @@ class LanguageViewModel {
 		return text
 	}
 
+	getMaybeLazy(value: string | lazy<string>): string {
+		return typeof value === "function" ? value() : lang.get(value)
+	}
 
 	/**
 	 * Gets the default language derived from the browser language.

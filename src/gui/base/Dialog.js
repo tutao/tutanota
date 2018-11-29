@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {Button, ButtonType} from "./Button"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
@@ -241,8 +240,7 @@ export class Dialog {
 			}
 			buttons.push(new Button("ok_action", closeAction).setType(ButtonType.Primary))
 
-			let message = messageIdOrMessageFunction instanceof Function ?
-				messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)
+			let message = lang.getMaybeLazy(messageIdOrMessageFunction)
 			let lines = message.split("\n")
 
 			let dialog = new Dialog(DialogType.Alert, {
@@ -306,7 +304,7 @@ export class Dialog {
 	}
 
 
-	static confirm(messageIdOrMessageFunction: string | lazy<string>, confirmId: ?string = "ok_action"): Promise<boolean> {
+	static confirm(messageIdOrMessageFunction: string | lazy<string>, confirmId: string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 			let cancelAction = () => {
@@ -325,8 +323,7 @@ export class Dialog {
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () => [
 					m(".dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
-						messageIdOrMessageFunction instanceof Function ?
-							messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction)),
+						lang.getMaybeLazy(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				]
 			})
@@ -429,7 +426,7 @@ export class Dialog {
 	 * @returns the Dialog
 	 */
 	static showActionDialog(props: {|
-		title: Stream<string> | string,
+		title: lazy<string> | string,
 		child: Component,
 		validator?: validator,
 		okAction: null | (dialog: Dialog) => mixed,
@@ -496,10 +493,10 @@ export class Dialog {
 		}
 
 		if (title) {
-			if (title instanceof Function) {
+			if (typeof title === "function") {
 				actionBar.setMiddle(title)
 			} else {
-				actionBar.setMiddle(stream(title))
+				actionBar.setMiddle(() => title)
 			}
 		}
 
