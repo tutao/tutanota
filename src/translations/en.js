@@ -1150,5 +1150,6 @@ module.exports = {
 		"formatTextJustify_msg": "Justify",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextOl_msg": "Ordered list",
+		"showRichTextToolbar_action": "Show formatting Tools"
 	}
 }

@@ -7,12 +7,10 @@ import {numberRange} from "../../api/common/utils/ArrayUtils"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {size} from '../size.js'
 import type {DropDownSelectorAttrs} from "./DropDownSelectorN"
-import {DropDownSelectorN} from "./DropDownSelectorN"
-import {TextFieldN} from "./TextFieldN"
 import {noOp} from "../../api/common/utils/Utils"
 import {attachDropdown} from "./DropdownN"
-import {px} from "../size"
 import {lang} from '../../misc/LanguageViewModel.js'
+import {animations, height, opacity} from "../animation/Animations"
 
 export class RichTextToolbar {
 	view: Function;
@@ -120,12 +118,25 @@ export class RichTextToolbar {
 			dropdownWidth: 150
 		}
 
-		const buttonPanelAttrs = {
-			label: "emptyString_msg",
-			value: stream(""),
-			injectionsRight: () => styleToggleAttrs.concat(alignDropdownAttrs).map(t => m(ButtonN, t)),
-			disabled: true,
-		}
+		const sizeButtonAttrs = attachDropdown({
+			label: () => '▼',
+			title: "formatTextFontSize_msg",
+			icon: () => Icons.FontSize,
+			type: ButtonType.Toggle,
+			click: noOp,
+			noBubble: true,
+		}, () => numberRange(8, 144).map(n => {
+			return {
+				label: () => n.toString(),
+				type: ButtonType.Dropdown,
+				click: () => {
+					editor._squire.setFontSize(n)
+					this.selectedSize(n)
+					setTimeout(() => editor._squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+					m.redraw()
+				}
+			}
+		}))
 
 		this.view = (): ?VirtualElement => {
 			try {
@@ -134,15 +145,37 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".wrapping-row.pt-m.sticky.content-bg.pb-2", {style: {"top": '0px'}},
-				[
-					m('',
-						{style: {"max-width": px(150), "min-width": 'unset'}},
-						m(DropDownSelectorN, sizeSelectorAttrs)
-					),
-					m(TextFieldN, buttonPanelAttrs)
-				]
+			return m(".sticky.content-bg.overflow-hidden.flex-end", {
+					style: {"top": '0px'}
+				},
+				// m(TextFieldN, buttonPanelAttrs)
+				styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs).map(t => m(ButtonN, t))
 			)
 		}
+	}
+
+	oncreate(vnode: Vnode<any>) {
+		vnode.dom.style.height = 0
+		this._animate(vnode, true)
+	}
+
+	onbeforeremove(vnode: Vnode<any>) {
+		return this._animate(vnode, false)
+	}
+
+	_animate(vnode: Vnode<any>, appear: boolean): Promise<*> {
+		let childHeight = Array.from(vnode.dom.children)
+		                       .map((domElement: HTMLElement) => domElement.offsetHeight)
+		                       .reduce((current: number, previous: number) => Math.max(current, previous), 0)
+		return animations
+			.add(vnode.dom, [
+				height(appear ? 0 : childHeight, appear ? childHeight : 0),
+				appear ? opacity(0, 1, false) : opacity(1, 0, false)
+			])
+			.then(() => {
+				if (appear) {
+					vnode.dom.style.height = ''
+				}
+			})
 	}
 }

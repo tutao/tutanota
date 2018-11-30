@@ -4,7 +4,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
-import {styles} from '../gui/styles.js'
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
@@ -71,6 +70,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
+import {styles} from "../gui/styles"
 
 assertMainOrNode()
 
@@ -95,6 +95,7 @@ export class MailEditor {
 	_loadingAttachments: boolean;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_mailChanged: boolean;
+	_showToolbar: boolean;
 	_previousMail: ?Mail;
 	_entityEventReceived: EntityEventsListener;
 	_mailboxDetails: MailboxDetail;
@@ -119,6 +120,7 @@ export class MailEditor {
 		this._previousMail = null
 		this.draft = null
 		this._mailboxDetails = mailboxDetails
+		this._showToolbar = false
 
 		let props = logins.getUserController().props
 
@@ -155,12 +157,21 @@ export class MailEditor {
 			label: "attachFiles_action",
 			click: (ev, attrs) => this._showFileChooserForAttachments(ev.target.getBoundingClientRect()),
 			icon: () => Icons.Attachment,
+			noBubble: true
+		}
+
+		let toolbarButtonAttrs = {
+			label: 'showRichTextToolbar_action',
+			icon: () => Icons.FontSize,
+			click: () => this._showToolbar = !this._showToolbar,
+			isVisible: () => styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly,
+			noBubble: true
 		}
 
 		this.subject._injectionsRight = () => {
 			return this._allRecipients().find(r => r.type === recipientInfoType.external)
-				? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs)]
-				: [m(ButtonN, attachFilesButtonAttrs)]
+				? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), m(ButtonN, toolbarButtonAttrs)]
+				: [m(ButtonN, attachFilesButtonAttrs), m(ButtonN, toolbarButtonAttrs)]
 		}
 		this.subject.onUpdate(v => this._mailChanged = true)
 
@@ -276,7 +287,7 @@ export class MailEditor {
 					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
 				),
 				this._attachments.length > 0 ? m("hr.hr") : null,
-				styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly ? m(this._richTextToolbar) : null,
+				this._showToolbar ? m(this._richTextToolbar) : null,
 				m(".pt-s.text.scroll-x", {onclick: () => this._editor.focus()}, m(this._editor)),
 				m(".pb")
 			])
