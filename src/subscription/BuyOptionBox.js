@@ -12,7 +12,8 @@ export class BuyOptionBox {
 	_actionId: string;
 	_buttonAttrs: ButtonAttrs;
 	view: Function;
-	originalPrice: stream<?string>;
+	nextYearPrice: stream<string>;
+	referencePrice: stream<?string>;
 	price: stream<string>;
 	_helpLabel: string;
 	_features: lazy<string[]>;
@@ -27,7 +28,8 @@ export class BuyOptionBox {
 			click: actionClickHandler,
 			type: ButtonType.Login,
 		}
-		this.originalPrice = stream(null)
+		this.nextYearPrice = stream(null)
+		this.referencePrice = stream(null)
 		this.price = stream(lang.get("emptyString_msg"))
 		this._helpLabel = lang.get("emptyString_msg")
 		this._features = features
@@ -44,11 +46,12 @@ export class BuyOptionBox {
 				m(".buyOptionBox" + (!this.selected ? ".selected" : ""), {
 					style: {height: px(height)}
 				}, [
-					this.originalPrice() ? m(".ribbon-vertical", m(".center.b.h4", {style: {'padding-top': px(22)}}, "%")) : null,
+					this.referencePrice() ? m(".ribbon-vertical", m(".center.b.h4", {style: {'padding-top': px(22)}}, "%")) : null,
 					m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction
 					instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
 					m(".center.pt.flex.items-center.justify-center", [
-						m("span.h1", this.price()), this.originalPrice() ? m("span.strike.pl", "(" + this.originalPrice() + ")") : null
+						m("span.h1", this.price()),
+						this.referencePrice() ? m("span.strike.pl", "(" + this.referencePrice() + ")") : null
 					]),
 					m(".small.center", this._helpLabel),
 					this._injection ? m(this._injection) : null,
@@ -71,8 +74,13 @@ export class BuyOptionBox {
 		}
 	}
 
-	setOriginalPrice(value: ?string): BuyOptionBox {
-		this.originalPrice(value)
+	setReferencePrice(value: ?string): BuyOptionBox {
+		this.referencePrice(value)
+		return this
+	}
+
+	setNextYearPrice(value: ?string): BuyOptionBox {
+		this.nextYearPrice(value)
 		return this
 	}
 

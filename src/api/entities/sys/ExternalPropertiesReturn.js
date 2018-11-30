@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}, "smallLogo": {"name": "smallLogo", "id": 924, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "37"
+	"version": "38"
 }
 
 export function createExternalPropertiesReturn(): ExternalPropertiesReturn {

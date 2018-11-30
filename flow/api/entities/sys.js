@@ -376,16 +376,8 @@ type MailAddressAvailabilityReturn = {
 type RegistrationServiceData = {
 	_type: TypeRef<RegistrationServiceData>;
 	_format: NumberString;
-	accountType: NumberString;
-	company: ?string;
-	domain: string;
-	groupName: string;
-	language: string;
-	mailAddress: string;
-	mobilePhoneNumber: string;
+	starterDomain: string;
 	source: ?NumberString;
-	specialPriceUserSingle: ?NumberString;
-	specialPriceUserTotal: ?NumberString;
 	state: NumberString;
 
 }
@@ -976,6 +968,7 @@ type SwitchAccountTypeData = {
 	_type: TypeRef<SwitchAccountTypeData>;
 	_format: NumberString;
 	accountType: NumberString;
+	campaign: ?string;
 	date: ?Date;
 	proUpgrade: boolean;
 
@@ -1052,6 +1045,7 @@ type PriceRequestData = {
 type PriceServiceData = {
 	_type: TypeRef<PriceServiceData>;
 	_format: NumberString;
+	campaign: ?string;
 	date: ?Date;
 
 	priceRequest: ?PriceRequestData;

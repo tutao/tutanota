@@ -14,10 +14,12 @@ import {getPriceFromPriceData} from "./PriceUtils"
 import {isApp} from "../api/Env"
 
 type UpgradePrices = {
-	originalPremiumPrice: number,
+	nextYearPremiumPrice: number,
 	premiumPrice: number,
-	originalProPrice: number,
-	proPrice: number
+	nextYearProPrice: number,
+	proPrice: number,
+	premiumReferencePrice: number,
+	proReferencePrice: number,
 }
 
 type UpgradeBox = {
@@ -31,9 +33,13 @@ export class SubscriptionSelector {
 	_freeTypeBox: UpgradeBox;
 	_monthlyPrice: LazyLoaded<UpgradePrices>;
 	_yearlyPrice: LazyLoaded<UpgradePrices>;
+	_business: Stream<boolean>;
+	_campaign: ?string;
 	view: Function;
 
-	constructor(current: AccountTypeEnum, currentPaymentInterval: string, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>, includeFree: boolean) {
+	constructor(current: AccountTypeEnum, currentPaymentInterval: string, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>, includeFree: boolean, campaign: ?string) {
+		this._business = business
+		this._campaign = campaign
 
 		this._freeTypeBox = {
 			buyOptionBox: new BuyOptionBox(() => "Free", "select_action",
@@ -43,7 +49,7 @@ export class SubscriptionSelector {
 				], "Free"), 230, 240),
 			paymentInterval: stream({name: "yearly", value: 12})
 		}
-		this._freeTypeBox.buyOptionBox.setPrice("0 €")
+		this._freeTypeBox.buyOptionBox.setPrice(formatPrice(0, true))
 		this._freeTypeBox.buyOptionBox.setHelpLabel(lang.get("upgradeLater_msg"))
 
 		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
@@ -63,14 +69,8 @@ export class SubscriptionSelector {
 
 		// initial help label and price
 		this._yearlyPrice.getAsync().then(yearlyPrice => {
-			if (yearlyPrice.premiumPrice != yearlyPrice.originalPremiumPrice) {
-				this._premiumUpgradeBox.buyOptionBox.setOriginalPrice(yearlyPrice.originalPremiumPrice + " €")
-			}
-			this._premiumUpgradeBox.buyOptionBox.setPrice(yearlyPrice.premiumPrice + " €")
-			if (yearlyPrice.proPrice != yearlyPrice.originalProPrice) {
-				this._proUpgradeBox.buyOptionBox.setOriginalPrice(yearlyPrice.originalProPrice + " €")
-			}
-			this._proUpgradeBox.buyOptionBox.setPrice(yearlyPrice.proPrice + " €")
+			this.setOptionBoxPrices(false, yearlyPrice, this._premiumUpgradeBox.buyOptionBox)
+			this.setOptionBoxPrices(true, yearlyPrice, this._proUpgradeBox.buyOptionBox)
 
 			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
@@ -123,17 +123,13 @@ export class SubscriptionSelector {
 				if (paymentIntervalItem.value === 12) {
 					this._yearlyPrice.getAsync()
 					    .then(upgradePrice => {
-						    let originalPrice = proUpgrade ? upgradePrice.originalProPrice : upgradePrice.originalPremiumPrice
-						    let price = proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice
-						    buyOptionBox.setOriginalPrice((originalPrice != price) ? (originalPrice + " €") : null)
-						    buyOptionBox.setPrice(price + " €")
+						    this.setOptionBoxPrices(proUpgrade, upgradePrice, buyOptionBox)
 					    })
 					    .then(() => m.redraw())
 				} else {
 					this._monthlyPrice.getAsync()
 					    .then(upgradePrice => {
-						    buyOptionBox.setOriginalPrice(null)
-						    buyOptionBox.setPrice(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false) + " €")
+						    this.setOptionBoxPrices(proUpgrade, upgradePrice, buyOptionBox)
 					    })
 					    .then(() => m.redraw())
 				}
@@ -143,13 +139,22 @@ export class SubscriptionSelector {
 		return upgradeBox
 	}
 
+	setOptionBoxPrices(proUpgrade: boolean, upgradePrice: UpgradePrices, buyOptionBox: BuyOptionBox) {
+		let referencePrice = proUpgrade ? upgradePrice.proReferencePrice : upgradePrice.premiumReferencePrice
+		let nextYearPrice = proUpgrade ? upgradePrice.nextYearProPrice : upgradePrice.nextYearPremiumPrice
+		let price = proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice
+		buyOptionBox.setReferencePrice((referencePrice != price) ? formatPrice(referencePrice, true) : null)
+		buyOptionBox.setNextYearPrice((nextYearPrice != price) ? formatPrice(nextYearPrice, true) : null)
+		buyOptionBox.setPrice(formatPrice(price, true))
+	}
+
 	_getPrices(current: AccountTypeEnum, paymentInterval: number): Promise<UpgradePrices> {
 		return Promise.join(
-			worker.getPrice(BookingItemFeatureType.Users, current
-			=== AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),
+			worker.getPrice(BookingItemFeatureType.Users, ((current
+				=== AccountType.FREE) ? 1 : 0), false, paymentInterval, AccountType.PREMIUM, this._business(), this._campaign),
+			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM, this._business(), this._campaign),
+			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM, this._business(), this._campaign),
+			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM, this._business(), this._campaign),
 			(userReturn, aliasReturn, storageReturn, brandingReturn) => {
 				let originalUserPrice = getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)
 				let userPrice = originalUserPrice + getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Discount)
@@ -157,13 +162,16 @@ export class SubscriptionSelector {
 					+ getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias)
 					+ getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage)
 					+ getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)
+				// TODO: use price from server?
 				let proPrice = originalProPrice + [userReturn, aliasReturn, storageReturn, brandingReturn]
 					.reduce((sum, current) => getPriceFromPriceData(current.futurePriceNextPeriod, BookingItemFeatureType.Discount) + sum, 0)
 				return {
-					originalPremiumPrice: originalUserPrice,
+					nextYearPremiumPrice: originalUserPrice,
 					premiumPrice: userPrice,
-					originalProPrice,
-					proPrice
+					nextYearProPrice: originalProPrice,
+					proPrice,
+					premiumReferencePrice: paymentInterval * 1.2,
+					proReferencePrice: paymentInterval * 6,
 				}
 			})
 	}
@@ -180,7 +188,7 @@ export class SubscriptionSelector {
 				case "comparisonUsersPremium_msg":
 					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
 				case "comparisonUsersPro_msg":
-					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
+					return lang.get(f + type + "_msg", {"{1}": formatPrice(24, true)})
 				default:
 					return lang.get(f + type + "_msg")
 			}

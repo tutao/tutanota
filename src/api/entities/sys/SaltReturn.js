@@ -17,7 +17,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "37"
+	"version": "38"
 }
 
 export function createSaltReturn(): SaltReturn {

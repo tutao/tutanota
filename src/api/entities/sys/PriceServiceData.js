@@ -13,6 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {"name": "_format", "id": 844, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"campaign": {"name": "campaign", "id": 1455, "since": 38, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"date": {"name": "date", "id": 846, "since": 9, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {
@@ -27,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "37"
+	"version": "38"
 }
 
 export function createPriceServiceData(): PriceServiceData {

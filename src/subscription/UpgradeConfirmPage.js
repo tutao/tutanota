@@ -15,7 +15,7 @@ import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionType} from "./UpgradeSubscriptionWizard"
+import {deleteCampaign, SubscriptionType} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
@@ -29,14 +29,14 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 	_orderField: TextField;
 	_subscriptionField: TextField;
 	_priceField: TextField;
-	_originalPriceField: TextField;
+	_priceNextYearField: TextField;
 	_paymentMethodField: TextField;
 
 	constructor(data: UpgradeSubscriptionData) {
 		this._orderField = new TextField("subscription_label").setDisabled()
 		this._subscriptionField = new TextField("subscriptionPeriod_label").setDisabled()
-		this._priceField = new TextField(() => this._upgradeData.originalPrice ? lang.get("priceFirstYear_label") : lang.get("price_label")).setDisabled()
-		this._originalPriceField = new TextField("priceForNextYear_label").setDisabled()
+		this._priceField = new TextField(() => this._upgradeData.priceNextYear ? lang.get("priceFirstYear_label") : lang.get("price_label")).setDisabled()
+		this._priceNextYearField = new TextField("priceForNextYear_label").setDisabled()
 		this._paymentMethodField = new TextField("paymentMethod_label").setDisabled()
 
 		this.updateWizardData(data)
@@ -49,11 +49,13 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 			serviceData.accountType = AccountType.PREMIUM
 			serviceData.proUpgrade = (data.type == SubscriptionType.Pro)
 			serviceData.date = Const.CURRENT_DATE
+			serviceData.campaign = this._upgradeData.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
 				.then(() => {
 					return worker.switchFreeToPremiumGroup()
 				}))
 				.then(() => {
+					deleteCampaign()
 					return this.close()
 				})
 				.catch(PreconditionFailedError, e => {
@@ -88,7 +90,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 								m(this._orderField),
 								m(this._subscriptionField),
 								m(this._priceField),
-								this._upgradeData.originalPrice ? m(this._originalPriceField) : null,
+								this._upgradeData.priceNextYear ? m(this._priceNextYearField) : null,
 								m(this._paymentMethodField),
 							]),
 							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
@@ -143,8 +145,8 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
 			? lang.get("perYear_label")
 			: lang.get("perMonth_label")) + " (" + netOrGross + ")")
-		if (this._upgradeData.originalPrice) {
-			this._originalPriceField.setValue(this._upgradeData.originalPrice + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
+		if (this._upgradeData.priceNextYear) {
+			this._priceNextYearField.setValue(this._upgradeData.priceNextYear + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
 				? lang.get("perYear_label")
 				: lang.get("perMonth_label")) + " (" + netOrGross + ")")
 		}

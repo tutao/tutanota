@@ -1151,5 +1151,6 @@ module.exports = {
 		"formatTextJustify_msg": "Blocksatz",
 		"formatTextUl_msg": "Liste",
 		"formatTextOl_msg": "Nummerierte Liste",
+		"tresoritDiscount_msg": "Exklusives Angebot von Tutanota + Tresorit: 5 Monate Rabatt im ersten Jahr!"
 	}
 }
