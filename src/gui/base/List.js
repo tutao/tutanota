@@ -103,7 +103,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 
 		let reset = () => {
-			this._cancelRenderCallback()
 			if (this._domListContainer) {
 				this._domListContainer.removeEventListener('scroll', this._scrollListener)
 			}
@@ -146,59 +145,72 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this.view = (vnode): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
-				oncreate: (vnode) => this._init(vnode.dom)
-			}, [
-				m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
-					oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
-					style: {
-						height: px(this._config.rowHeight),
-						transform: `translateY(-${this._config.rowHeight}px)`,
-						position: 'absolute',
-						'z-index': 1,
-						width: px(this._width),
-					}
-				}, this._config.swipe.renderLeftSpacer()),
-				m(".swipe-spacer.flex.items-center.pl-l.red", {
-					oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
-					style: {
-						height: px(this._config.rowHeight),
-						transform: `translateY(-${this._config.rowHeight}px)`,
-						position: 'absolute',
-						'z-index': 1,
-						width: px(this._width),
-					}
-				}, this._config.swipe.renderRightSpacer()),
-				m("ul.list.list-alternate-background.fill-absolute.click", {
-						oncreate: (vnode) => this._setDomList(vnode.dom),
-						style: {height: this._calculateListHeight()},
-						className: this._config.className
-					},
-					[
-						this._virtualList.map(virtualRow => {
-							return m("li.list-row.plr-l"
-								+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
-								oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
+				oncreate: (vnode) => {
+					this._init(vnode.dom)
+					this._createVirtualElements()
+					const render = () => {
+						m.render(vnode.dom, [
+							m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
+								oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
 								style: {
+									height: px(this._config.rowHeight),
 									transform: `translateY(-${this._config.rowHeight}px)`,
-									paddingTop: px(15),
-									paddingBottom: px(15)
+									position: 'absolute',
+									'z-index': 1,
+									width: px(this._width),
+								}
+							}, this._config.swipe.renderLeftSpacer()),
+							m(".swipe-spacer.flex.items-center.pl-l.red", {
+								oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
+								style: {
+									height: px(this._config.rowHeight),
+									transform: `translateY(-${this._config.rowHeight}px)`,
+									position: 'absolute',
+									'z-index': 1,
+									width: px(this._width),
+								}
+							}, this._config.swipe.renderRightSpacer()),
+							m("ul.list.list-alternate-background.fill-absolute.click", {
+									oncreate: (vnode) => this._setDomList(vnode.dom),
+									style: {height: this._calculateListHeight()},
+									className: this._config.className
 								},
-								ondragstart: (event) => this._dragstart(event, virtualRow)
-							}, virtualRow.render())
-						}),
-						// odd-row is switched directly on the dom element when the number of elements changes
-						m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
-							oncreate: (vnode) => {
-								this._domLoadingRow = vnode.dom
-								this._domLoadingRow.style.display = 'none'
-							}
-						}, progressIcon())
-					]
-				),
-				m(this._emptyMessageBox)
-			])
+								[
+									this._virtualList.map(virtualRow => {
+										return m("li.list-row.plr-l"
+											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
+											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
+											style: {
+												transform: `translateY(-${this._config.rowHeight}px)`,
+												paddingTop: px(15),
+												paddingBottom: px(15)
+											},
+											ondragstart: (event) => this._dragstart(event, virtualRow)
+										}, virtualRow.render())
+									}),
+									// odd-row is switched directly on the dom element when the number of elements changes
+									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
+										oncreate: (vnode) => {
+											this._domLoadingRow = vnode.dom
+											this._domLoadingRow.style.display = 'none'
+										}
+									}, progressIcon())
+								]
+							),
+							m(this._emptyMessageBox)
+						])
+						this._domInitialized.resolve()
+					}
+					if (client.isMobileDevice()) {
+						const id = window.setTimeout(() => render(), 200)
+						this._renderCallback = {type: 'timeout', id}
+					} else {
+						const id = window.requestAnimationFrame(() => render())
+						this._renderCallback = {type: 'frame', id}
+					}
+				}
+			})
 			if (this._config.showStatus) {
-
 				return m(".status-wrapper", [
 					m(".status.flex.justify-between.fill-absolute", {
 						style: {
@@ -542,16 +554,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	// }
 
 	_doRender() {
-		this._createVirtualElements()
-		m.redraw()
-		window.requestAnimationFrame(() => {
-			this._domInitialized.resolve()
-			this._domList.style.height = this._calculateListHeight()
-			this._reposition()
-			this.ready = true
-			if (client.isTouchSupported() && this._config.swipe.enabled) {
-				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
-			}
+		this._domInitialized.promise.then(() => {
+			window.requestAnimationFrame(() => {
+				this._domList.style.height = this._calculateListHeight()
+				this._reposition()
+				this.ready = true
+				if (client.isTouchSupported() && this._config.swipe.enabled) {
+					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
+				}
+			})
+
 		})
 	}
 
@@ -561,13 +573,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
-		if (client.isMobileDevice()) {
-			const id = window.setTimeout(() => this._doRender(), 200)
-			this._renderCallback = {type: 'timeout', id}
-		} else {
-			const id = window.requestAnimationFrame(() => this._doRender())
-			this._renderCallback = {type: 'frame', id}
-		}
+		this._doRender()
 	}
 
 	_cancelRenderCallback() {
