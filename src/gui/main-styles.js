@@ -256,7 +256,7 @@ styles.registerStyle('main', () => {
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
-		'.sticky': {position: 'sticky', position: "-webkit-sticky"},
+		'.sticky': {"-webkit-position": "-webkit-sticky", position: 'sticky'},
 		'.fixed': {position: 'fixed'},
 		'.rel': {position: 'relative'},
 		'.max-width-s': {'max-width': px(360)},
