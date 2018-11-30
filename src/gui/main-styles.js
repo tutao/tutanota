@@ -256,7 +256,7 @@ styles.registerStyle('main', () => {
 		// positioning
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
-		'.sticky': {position: 'sticky'},
+		'.sticky': {position: 'sticky', position: "-webkit-sticky"},
 		'.fixed': {position: 'fixed'},
 		'.rel': {position: 'relative'},
 		'.max-width-s': {'max-width': px(360)},
@@ -284,7 +284,7 @@ styles.registerStyle('main', () => {
 		'.button-width-fixed': {width: px(size.button_height)},
 		'.large-button-height': {height: px(size.button_floating_size)},
 		'.large-button-width': {width: px(size.button_floating_size)},
-		'.full-height': {height: '100%'},
+		'.full-height': {"min-height": client.isIos() ? '101%' : '100%'},
 		'.full-width': {width: '100%'},
 		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},

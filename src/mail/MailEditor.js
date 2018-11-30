@@ -165,6 +165,7 @@ export class MailEditor {
 			icon: () => Icons.FontSize,
 			click: () => this._showToolbar = !this._showToolbar,
 			isVisible: () => styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly,
+			isSelected: () => this._showToolbar,
 			noBubble: true
 		}
 
