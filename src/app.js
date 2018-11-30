@@ -141,8 +141,6 @@ let initialized = lang.init(en).then(() => {
 		.then(module => new module.SettingsView()))
 	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js")
 		.then(module => new module.SearchView()))
-	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js")
-		.then(module => new module.RegisterView()), false, true)
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
 		.then(module => new module.ContactFormView()), false)
 
