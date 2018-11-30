@@ -15,9 +15,12 @@ import {UpgradeSubscriptionPage} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {SignupPage} from "./SignupPage"
 import {worker} from "../api/main/WorkerClient"
+import {client} from "../misc/ClientDetector"
 import m from "mithril"
 
 assertMainOrNode()
+
+const CAMPAIGN_KEY = "campaign"
 
 export const SubscriptionType = {
 	Free: 'Free',
@@ -39,10 +42,33 @@ export type UpgradeSubscriptionData = {
 	paymentData: PaymentData,
 	type: SubscriptionTypeEnum,
 	price: string,
-	originalPrice: ?string,
+	priceNextYear: ?string,
 	accountingInfo: ?AccountingInfo,
-	newAccountData: ?NewAccountData
+	newAccountData: ?NewAccountData,
+	campaign: ?string
 }
+
+
+function getCampaign(): ?string {
+	const tokenFromUrl = m.route.param()['token']
+	if (tokenFromUrl) {
+		if (client.localStorage()) {
+			localStorage.setItem(CAMPAIGN_KEY, tokenFromUrl)
+		}
+		return tokenFromUrl
+	} else if (client.localStorage()) {
+		return localStorage.getItem(CAMPAIGN_KEY)
+	} else {
+		return null
+	}
+}
+
+export function deleteCampaign(): void {
+	if (client.localStorage()) {
+		localStorage.removeItem(CAMPAIGN_KEY)
+	}
+}
+
 
 export function showUpgradeWizard(): void {
 	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -65,9 +91,11 @@ export function showUpgradeWizard(): void {
 					},
 					price: "",
 					type: SubscriptionType.Premium,
-					originalPrice: null,
+					priceNextYear: null,
 					accountingInfo: accountingInfo,
-					newAccountData: null
+					newAccountData: null,
+					campaign: getCampaign()
+
 				}
 				return upgradeData
 			})
@@ -100,10 +128,11 @@ export function showSignupWizard(): void {
 			creditCardData: null,
 		},
 		price: "",
-		originalPrice: null,
+		priceNextYear: null,
 		type: SubscriptionType.Free,
 		accountingInfo: null,
-		newAccountData: null
+		newAccountData: null,
+		campaign: getCampaign()
 	}
 	const wizardPages = [
 		new UpgradeSubscriptionPage(signupData, true),

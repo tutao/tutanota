@@ -153,7 +153,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
 	}
 
-	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId:Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
+	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId: Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
 		return this._postRequest(new Request('retrieveExternalSmsPassword', arguments))
 	}
 
@@ -258,7 +258,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean, campaign: ?string): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 

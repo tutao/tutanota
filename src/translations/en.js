@@ -1150,6 +1150,7 @@ module.exports = {
 		"formatTextJustify_msg": "Justify",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextOl_msg": "Ordered list",
-		"showRichTextToolbar_action": "Show formatting Tools"
+		"showRichTextToolbar_action": "Show formatting Tools",
+		"tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!"
 	}
 }

@@ -20,6 +20,9 @@ import {buyWhitelabel} from "./WhitelabelBuyDialog"
 import {changeSubscriptionInterval} from "./SubscriptionViewer"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 
+/**
+ * Only shown if the user is already a Premium user. Allows cancelling the subscription and switching between Premium and Pro.
+ */
 export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean, currentNbrOfOrderedStorage: number, currentNbrOfOrderedAliases: number, currentlyWhitelabelOrdered: boolean) {
 	let businessStream = stream(accountingInfo.business)
 	let selector = new SubscriptionSelector(isPro ? AccountType.PREMIUM : AccountType.STARTER, accountingInfo.paymentInterval,

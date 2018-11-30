@@ -39,7 +39,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 				}
 				this._upgradeData.type = type
 				this._upgradeData.price = upgradeBox.buyOptionBox.price()
-				this._upgradeData.originalPrice = upgradeBox.buyOptionBox.originalPrice()
+				this._upgradeData.priceNextYear = upgradeBox.buyOptionBox.nextYearPrice()
 				this._pageActionHandler.showNext(this._upgradeData)
 			}
 		}
@@ -56,7 +56,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 			actionHandler(SubscriptionType.Premium),
 			actionHandler(SubscriptionType.Pro),
 			this._businessUse.map(business => business.value ? true : false),
-			includeFree
+			includeFree, this._upgradeData.campaign
 		)
 
 		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse).setSelectionChangedHandler(businessUseItem => {
@@ -65,6 +65,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 
 		this.view = () => m("#upgrade-account-dialog.pt", [
 				m(privateBusinesUseControl),
+				this._upgradeData.campaign ? m(".b.center.mt", lang.get("tresoritDiscount_msg")) : null,
 				m(this._selector)
 			]
 		)

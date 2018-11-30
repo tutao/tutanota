@@ -3,6 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
+import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SelectMailAddressForm} from "../settings/SelectMailAddressForm"
 import {Checkbox} from "../gui/base/Checkbox"
@@ -88,12 +89,7 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 
 			p.then(confirmed => {
 				if (confirmed) {
-					let authToken = m.route.param()['authToken']
-					if (!authToken) {
-						return this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value())
-					} else {
-						// FIXME
-					}
+					return this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value(), this._upgradeData.campaign)
 				}
 			})
 		}
@@ -170,20 +166,21 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	/**
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
-	_signup(mailAddress: string, pw: string, registrationCode: string): Promise<void> {
-		return this._requestCaptcha().then(captchaReturn => {
-			let authToken = captchaReturn.token
+	_signup(mailAddress: string, pw: string, registrationCode: string, campaign: ?string): Promise<void> {
+		return this._requestCaptcha(campaign).then(captchaReturn => {
+			let regDataId = captchaReturn.token
 			if (captchaReturn.challenge) {
-				return new CaptchaDialog(this, captchaReturn).solveCaptcha().then(captchaReturn => {
+				return new CaptchaDialog(this, captchaReturn, campaign).solveCaptcha().then(captchaReturn => {
 					if (captchaReturn) return captchaReturn.token
 				})
 			} else {
-				return authToken
+				return regDataId
 			}
-		}).then(authToken => {
-			if (authToken) {
-				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, registrationCode, lang.code), true)
+		}).then(regDataId => {
+			if (regDataId) {
+				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code), true)
 					.then((recoverCode) => {
+						deleteCampaign()
 						this._upgradeData.newAccountData = {
 							mailAddress,
 							password: pw,
@@ -196,8 +193,9 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 		           .catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
 	}
 
-	_requestCaptcha(): Promise<RegistrationCaptchaServiceReturn> {
-		return showProgressDialog("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef))
+	_requestCaptcha(campaignToken: ?string): Promise<RegistrationCaptchaServiceReturn> {
+		let queryParams = (campaignToken) ? {token: campaignToken} : null
+		return showProgressDialog("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef, queryParams))
 	}
 
 	/**
@@ -239,7 +237,7 @@ class CaptchaDialog {
 	captchaReturn: RegistrationCaptchaServiceReturn;
 	callback: Callback<RegistrationCaptchaServiceReturn>;
 
-	constructor(signupPage: SignupPage, captchaReturn: RegistrationCaptchaServiceReturn) {
+	constructor(signupPage: SignupPage, captchaReturn: RegistrationCaptchaServiceReturn, campaign: ?string) {
 		this.captchaReturn = captchaReturn
 		let captchaInput = new TextField(() => lang.get("captchaInput_label")
 			+ ' (hh:mm)', () => lang.get("captchaInfo_msg"))
@@ -275,7 +273,7 @@ class CaptchaDialog {
 						this.callback(null, this.captchaReturn)
 					})
 					.catch(InvalidDataError, e => {
-						signupPage._requestCaptcha().then(captchaReturn => {
+						signupPage._requestCaptcha(campaign).then(captchaReturn => {
 							this.captchaReturn = captchaReturn
 							Dialog.error("createAccountInvalidCaptcha_msg")
 						}).catch(e => {

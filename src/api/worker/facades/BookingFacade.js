@@ -7,16 +7,7 @@ import {serviceRequest} from "../EntityWorker"
 import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "../../common/utils/Utils"
 import {assertWorkerOrNode} from "../../Env"
-import {HttpMethod, MediaType} from "../../common/EntityFunctions"
-import {restClient} from "../rest/RestClient"
-import {
-	_TypeModel as PdfInvoiceServiceDataTypeModel,
-	createPdfInvoiceServiceData
-} from "../../entities/sys/PdfInvoiceServiceData"
-import {_TypeModel as PdfInvoiceServiceReturnTypeModel} from "../../entities/sys/PdfInvoiceServiceReturn"
-import {_TypeModel as InvoiceTypeModel} from "../../entities/sys/Invoice"
-import {resolveSessionKey, decryptValue, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
-import {locator} from "../WorkerLocator"
+import {HttpMethod} from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -36,17 +27,18 @@ export class BookingFacade {
 	 * @param  business Business or private.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean, campaign: ?string): Promise<PriceServiceReturn> {
 		let serviceData = createPriceServiceData()
-		serviceData.date = Const.CURRENT_DATE;
+		serviceData.date = Const.CURRENT_DATE
 		let priceRequestData = createPriceRequestData()
 		priceRequestData.featureType = type
 		priceRequestData.count = String(count)
 		priceRequestData.reactivate = reactivate
 		priceRequestData.paymentInterval = paymentInterval ? String(paymentInterval) : null
 		priceRequestData.accountType = accountType ? accountType : null
-		priceRequestData.business = business == undefined ? null : business;
-		serviceData.priceRequest = priceRequestData;
+		priceRequestData.business = business == undefined ? null : business
+		serviceData.priceRequest = priceRequestData
+		serviceData.campaign = campaign
 		return serviceRequest("priceservice", HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
 	}
 
