@@ -1133,10 +1133,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"goPremium_msg": "As a Premium user you can adjust your search filters in the menu to the left.",
-		"changeTimeFrame_msg": "Go Premium and adjust your search period!",
-		"importUsers_action": "Add multiple users",
-		"enterAsCSV_msg": "Please enter your users details as CSV",
 		"imprintUrl_label": "Link to imprint",
 		"imprint_label": "Imprint",
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
@@ -1154,6 +1150,7 @@ module.exports = {
 		"formatTextJustify_msg": "Justify",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextOl_msg": "Ordered list",
+		"showRichTextToolbar_action": "Show formatting Tools"
 		"tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!",
 		"createdUsersCount_msg": "{1} user(s) created.",
 		"errorAtLine_msg": "Error at line {index}: {error}",
