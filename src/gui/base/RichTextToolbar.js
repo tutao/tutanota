@@ -146,7 +146,7 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".content-bg.overflow-hidden.pb-2" + client.isIos() ? '' : '.sticky', {
+			return m(".content-bg.overflow-hidden.pb-2" + (client.isIos() ? '' : '.sticky'), {
 				style: {"top": '0px'}
 			}, [
 				m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs).map(t => m(ButtonN, t))),
