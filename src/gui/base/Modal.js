@@ -5,12 +5,11 @@ import {theme} from "../theme"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
-import {last} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNodeBoot()
 
 class Modal {
-	components: {key: number, component: ModalComponent, route: string}[];
+	components: {key: number, component: ModalComponent}[];
 	_domModal: HTMLElement;
 	view: Function;
 	visible: boolean;
@@ -25,13 +24,6 @@ class Modal {
 			return m("#modal.fill-absolute", {
 				oncreate: (vnode) => this._domModal = vnode.dom,
 				onclick: (e: MouseEvent) => this.components.forEach(c => c.component.backgroundClick(e)),
-				onupdate: (vnode) => {
-					// remove modals if the user uses back/forward buttons
-					const lastComponent = last(this.components)
-					if (lastComponent && lastComponent.route !== m.route.get()) {
-						lastComponent.component.onClose()
-					}
-				},
 				style: {
 					'z-index': 99,
 					display: this.visible ? "" : 'none' // display: null not working for IE11
@@ -67,7 +59,7 @@ class Modal {
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
-		this.components.push({key: this.currentKey++, component: component, route: m.route.get()})
+		this.components.push({key: this.currentKey++, component: component})
 		m.redraw()
 		keyManager.registerModalShortcuts(component.shortcuts())
 	}
