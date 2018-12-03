@@ -68,17 +68,9 @@ export function init() {
 						             return
 					             }
 
-					             // Prevent losing user data, ask instead
-					             // Even if it is a new ServiceWorker already, all code should be loaded at this point.
-					             if (windowFacade.windowCloseConfirmation) {
-						             if (window.confirm(lang.get("closeWindowConfirmation_msg"))) {
-							             refreshing = true
-							             windowFacade.reload({})
-						             }
-					             } else {
-						             refreshing = true
-						             windowFacade.reload({})
-					             }
+					             windowFacade.windowCloseConfirmation = false
+					             refreshing = true
+					             windowFacade.reload({})
 				             })
 
 				             serviceWorker.addEventListener("message", (event) => {
