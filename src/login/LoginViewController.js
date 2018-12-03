@@ -33,9 +33,6 @@ import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {formatPrice, isMailAddress} from "../misc/Formatter"
-import * as NotificationOverlay from "../gui/base/NotificationOverlay"
-import * as RecoverCodeDialog from "../settings/RecoverCodeDialog"
-import {ButtonType} from "../gui/base/ButtonN"
 import {fileApp} from "../native/FileApp"
 import {showSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
@@ -199,7 +196,6 @@ export class LoginViewController implements ILoginViewController {
 		if (env.mode === Mode.App) {
 			pushServiceApp.register()
 		}
-		this._showRecoverCodeNotification(logins.getUserController().user)
 
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
@@ -224,35 +220,6 @@ export class LoginViewController implements ILoginViewController {
 				return serviceRequestVoid("receiveinfoservice", HttpMethod.POST, receiveInfoData)
 			}
 		})
-	}
-
-	_showRecoverCodeNotification(user: User) {
-		const auth = user.auth
-		// only show to admins and not to contact form users or external users
-		if (auth && !auth.recoverCode && logins.isGlobalAdminUserLoggedIn() && logins.isInternalUserLoggedIn()) {
-			NotificationOverlay.show({
-				view: () => {
-					return m("", [
-						m("b", lang.get("newFeature_msg")),
-						m("", lang.get("recoveryCodeReminder_msg")),
-					])
-				}
-			}, [
-				{
-					label: "moreInformation_action",
-					click: () => window.open(lang.getInfoLink('recoverCode_link'), '_blank'),
-					type: ButtonType.Secondary
-				},
-				{
-					label: "setUp_action",
-					click: () => {
-						m.route.set("/settings/login")
-						RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification('create')
-					},
-					type: ButtonType.Primary
-				}
-			])
-		}
 	}
 
 	_showUpgradeReminder(): Promise<void> {
