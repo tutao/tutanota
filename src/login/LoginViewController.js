@@ -284,7 +284,7 @@ export class LoginViewController implements ILoginViewController {
 		})
 	}
 
-	showSignupWizard() {
-		worker.initialized.then(() => showSignupWizard())
+	showSignupWizard(): Promise<void> {
+		return worker.initialized.then(() => showSignupWizard())
 	}
 }

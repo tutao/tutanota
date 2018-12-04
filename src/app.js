@@ -60,7 +60,7 @@ _asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swMo
 
 
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
-  ? deletedModule.module.state : {prefix: null}
+	? deletedModule.module.state : {prefix: null}
 
 let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
@@ -82,17 +82,17 @@ let initialized = lang.init(en).then(() => {
 
 			const androidVersion = Number(/Android (0-9)*\./.exec(client.userAgent))
 			m.render(document.body, m(new InfoView(
-			  () => "Tutanota",
-			  () => [
-				  m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
-				  m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
-				  m("p", m("a", {href: "https://tutanota.uservoice.com/knowledgebase/articles/1890001-outdated-webview-version-on-android"}, "Learn more"))
-			  ].concat(androidVersion >= 7
-				? [
-					m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),
-					m("p", m("a", {href: "market://details?id=com.android.chrome"}, "Update Chrome"))
-				]
-				: []))))
+				() => "Tutanota",
+				() => [
+					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
+					m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
+					m("p", m("a", {href: "https://tutanota.uservoice.com/knowledgebase/articles/1890001-outdated-webview-version-on-android"}, "Learn more"))
+				].concat(androidVersion >= 7
+					? [
+						m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),
+						m("p", m("a", {href: "market://details?id=com.android.chrome"}, "Update Chrome"))
+					]
+					: []))))
 		} else {
 			m.render(document.body, m(new InfoView(() => "Tutanota", () => [
 				m("p", lang.get("unsupportedBrowser_msg")),
@@ -149,24 +149,24 @@ let initialized = lang.init(en).then(() => {
 	}
 
 	let mailViewResolver = createViewResolver(() => _asyncImport("src/mail/MailView.js")
-	  .then(module => new module.MailView()))
+		.then(module => new module.MailView()))
 	let contactViewResolver = createViewResolver(() => _asyncImport("src/contacts/ContactView.js")
-	  .then(module => new module.ContactView()))
+		.then(module => new module.ContactView()))
 	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js")
-	  .then(module => new module.ExternalLoginView()), false)
+		.then(module => new module.ExternalLoginView()), false)
 	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js")
-	  .then(module => new module.LoginView()), false)
+		.then(module => module.login), false)
 	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js")
-	  .then(module => new module.SettingsView()))
+		.then(module => new module.SettingsView()))
 	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js")
-	  .then(module => new module.SearchView()))
+		.then(module => new module.SearchView()))
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
-	  .then(module => new module.ContactFormView()), false)
+		.then(module => module.contactFormView), false)
 
 	let start = "/"
 	if (!state.prefix) {
 		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
-		  ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
@@ -214,14 +214,14 @@ let initialized = lang.init(en).then(() => {
 				return m(root, m(new InfoView(() => "404", () => [
 					m("p", lang.get("notFound404_msg")),
 					m(new Button('back_action', () => window.history.back())
-					  .setType(ButtonType.Primary))
+						.setType(ButtonType.Primary))
 				])))
 			}
 		}
 	})
 
 	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
-	  .then(module => module.worker)
+		.then(module => module.worker)
 
 	setupExceptionHandling()
 })

@@ -19,7 +19,7 @@ import {renderImprintLink} from "./ExternalLoginView"
 
 assertMainOrNode()
 
-export class ContactFormView {
+class ContactFormView {
 
 	view: Function;
 	_contactForm: ?ContactForm;

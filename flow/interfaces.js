@@ -53,5 +53,5 @@ interface ILoginViewController {
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
 
-	showSignupWizard():void;
+	showSignupWizard(): Promise<void>;
 }
