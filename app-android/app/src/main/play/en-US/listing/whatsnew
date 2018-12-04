@@ -1,10 +1,4 @@
-- improve error handling for network requests
-- fix error when erasing deleted sessions,
-- Fix error reporting for service worker
-- Fix rendering of the unsupported browser view
-- allow upgrade to premium on signup
-- Fix FileNotFoundException when encrypting deleted file
-- Check contact suggestions coming from native
-- Detect old WebView versions and propose to update
-- Fix native upload/download error handling
-- fix mobile multiselect error
+- WebView detection is more strict and points to more info
+- No longer notify about recovery code
+- Dialogs don't close immedeately on logging in
+- Other small fixes

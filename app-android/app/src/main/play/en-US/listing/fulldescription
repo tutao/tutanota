@@ -1,17 +1,38 @@
-The open source app Tutanota enables you to send end-to-end encrypted emails to anybody with a tip of your finger. Even emails that are being sent without end-to-end encryption and all your contacts are stored encrypted on the Tutanota servers.
+Tutanota enables you to use the benefits of the cloud - availability, flexibility, automatic back-up - without compromising on security. With Tutanota's built-in encryption you own your data, no one else can access it. Tutanota comes with a light & beautiful GUI, dark theme included, with instant push notifications, auto-sync, full-text search, swipe gestures and more.
 
-Only you with your password have access to your encrypted data, profiling is impossible. Tutanota combines security with ease-of-use so that everybody can use end-to-end encryption. Now you can take back your privacy easily!
+The open source email app Tutanota enables you to send end-to-end encrypted emails to anybody. Even emails that are being sent without end-to-end encryption and all your contacts are stored securely encrypted on the Tutanota servers.
+
+Our passion for privacy.
+
+Tutanota is being built by a team passionate about everybody's right to privacy. We are supported by an amazing community, which enables us to grow our team continuously making Tutanota a success without depending on venture capital interests.
+
+Tutanota respects you & your data:
+
+- Only you can access your encrypted emails & contacts.
+
+- Tutanota does not track or profile you.
+
+- Open source client & apps.
+
+- Innovative full-text search feature lets you easily search your mailbox.
+
+- TLS with support of PFS, DMARC, DKIM, DNSSEC and DANE.
+
+- Secure password reset that gives us absolutely no access.
+
+- 100% developed and located in Germany under strict Data Protection Laws (GDPR).
+
 Official website: https://tutanota.com
 Source code: https://github.com/tutao/tutanota
+With the Tutanota app, you can:
 
-- Register your free Tutanota account with 1 GB of free storage.
-- Choose your email address from the supported domains @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io and @keemail.me.
-- Send and receive end-to-end encrypted emails to anybody, to other Tutanota users automatically and to external users secured with a password.
-- Send and receive old-fashioned emails (not end-to-end encrypted). Even these emails are stored encrypted on the Tutanota servers.
-- Subject, content and attachments are automatically encrypted.
-- Supports push notifications when receiving new emails.
-- Auto-complete contact names as you type from your Tutanota or your phone contacts.
-- Tutanota is open source so that anyone can verify its security by auditing the code.
+- create your own Tutanota email address (ending in @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io or @keemail.me) with 1 GB of free storage.
+- create your custom domain email address for €1 per month.
+- send and receive end-to-end encrypted emails to anybody.
+- send and receive old-fashioned emails (not end-to-end encrypted). Even these emails are stored encrypted on the Tutanota servers.
+- automatically encrypt subject, content and attachments.
+- get push notifications instantly.
+- auto-complete email addresses as you type from your Tutanota or your phone contacts.
 
 The Tutanota app asks for very few permissions to keep your level of privacy to a maximum:
 
