@@ -177,14 +177,14 @@ export class MailEditor {
 			{
 				label: "discardChanges_action",
 				click: () => this._close(),
-				type: ButtonType.Secondary
+				type: ButtonType.Dropdown
 			},
 			{
 				label: "saveDraft_action",
 				click: () => this.saveDraft(true, true).then(() => this._close()),
-				type: ButtonType.Secondary
+				type: ButtonType.Dropdown
 			}
-		], () => this._mailChanged)
+		], () => this._mailChanged, 250)
 
 		const sendButtonAttrs = {
 			label: "send_action",
