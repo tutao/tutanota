@@ -131,7 +131,7 @@ export class ContactEditor {
 		this.socialEditors = this.contact.socialIds.map(p => new ContactAggregateEditor(p, e => remove(this.socialEditors, e)))
 		this.createNewSocialEditor()
 
-		let presharedPassword = this.contact.presharedPassword ? new TextField('password_label')
+		let presharedPassword = this.contact.presharedPassword || !c ? new TextField('password_label')
 			.setValue((this.contact.presharedPassword: any))
 			.onUpdate(value => this.contact.presharedPassword = value) : null
 
@@ -187,7 +187,7 @@ export class ContactEditor {
 
 			presharedPassword ? m(".wrapping-row", [
 				m(".passwords.mt-xl", [
-					m(".h4", lang.get('passwords_label')),
+					m(".h4", lang.get('presharedPassword_label')),
 					m(presharedPassword)
 				]),
 				m(".spacer")
@@ -196,18 +196,18 @@ export class ContactEditor {
 		])
 
 		this.dialog = Dialog.largeDialog(headerBar, this)
-		                    .addShortcut({
-			                    key: Keys.ESC,
-			                    exec: () => this._close(),
-			                    help: "close_alt"
-		                    })
-		                    .addShortcut({
-			                    key: Keys.S,
-			                    ctrl: true,
-			                    exec: () => this.save(),
-			                    help: "save_action"
-		                    })
-		                    .setCloseHandler(() => this._close())
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => this._close(),
+				help: "close_alt"
+			})
+			.addShortcut({
+				key: Keys.S,
+				ctrl: true,
+				exec: () => this.save(),
+				help: "save_action"
+			})
+			.setCloseHandler(() => this._close())
 	}
 
 	show() {
@@ -226,13 +226,13 @@ export class ContactEditor {
 			return
 		}
 		this.contact.mailAddresses = this.mailAddressEditors.filter(e => e.isInitialized)
-		                                 .map(e => ((e.aggregate: any): ContactMailAddress))
+			.map(e => ((e.aggregate: any): ContactMailAddress))
 		this.contact.phoneNumbers = this.phoneEditors.filter(e => e.isInitialized)
-		                                .map(e => ((e.aggregate: any): ContactPhoneNumber))
+			.map(e => ((e.aggregate: any): ContactPhoneNumber))
 		this.contact.addresses = this.addressEditors.filter(e => e.isInitialized)
-		                             .map(e => ((e.aggregate: any): ContactAddress))
+			.map(e => ((e.aggregate: any): ContactAddress))
 		this.contact.socialIds = this.socialEditors.filter(e => e.isInitialized)
-		                             .map(e => ((e.aggregate: any): ContactSocialId))
+			.map(e => ((e.aggregate: any): ContactSocialId))
 
 		let promise
 		if (this.contact._id) {
@@ -242,9 +242,9 @@ export class ContactEditor {
 			this.contact.autoTransmitPassword = "" // legacy
 			this.contact._owner = logins.getUserController().user._id
 			this.contact._ownerGroup = neverNull(logins.getUserController()
-			                                           .user
-			                                           .memberships
-			                                           .find(m => m.groupType === GroupType.Contact)).group
+				.user
+				.memberships
+				.find(m => m.groupType === GroupType.Contact)).group
 			promise = setup(this.listId, this.contact).then(contactId => {
 				if (this._newContactIdReceiver) {
 					this._newContactIdReceiver(contactId)
@@ -337,8 +337,8 @@ class ContactAggregateEditor {
 	view: Function;
 
 	constructor(aggregate: ContactMailAddress | ContactPhoneNumber | ContactAddress | ContactSocialId,
-	            cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false,
-	            allowCancel: boolean = true) {
+				cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false,
+				allowCancel: boolean = true) {
 		this.aggregate = aggregate
 		this.isInitialized = allowCancel
 		this.animateCreate = animateCreate
@@ -386,30 +386,30 @@ class ContactAggregateEditor {
 		let typeButton = createDropDownButton("more_label",
 			() => Icons.More,
 			() => Object.keys(TypeToLabelMap)
-			            .map(key => {
-				            return new Button((TypeToLabelMap: any)[key], e => {
-					            if (isCustom(key)) {
-						            let tagDialogActionBar = new DialogHeaderBar()
-						            /* Unused Variable*/
-						            let tagName = new TextField("customLabel_label")
-							            .setValue(this.aggregate.customTypeName)
+				.map(key => {
+					return new Button((TypeToLabelMap: any)[key], e => {
+						if (isCustom(key)) {
+							let tagDialogActionBar = new DialogHeaderBar()
+							/* Unused Variable*/
+							let tagName = new TextField("customLabel_label")
+								.setValue(this.aggregate.customTypeName)
 
-						            setTimeout(() => {
-							            Dialog.showTextInputDialog("customLabel_label",
-								            "customLabel_label",
-								            null,
-								            this.aggregate.customTypeName,
-								            null//validator needed?
-							            ).then((name) => {
-								            this.aggregate.customTypeName = name
-								            this.aggregate.type = key
-							            })
-						            }, DefaultAnimationTime)// wait till the dropdown is hidden
-					            } else {
-						            this.aggregate.type = key
-					            }
-				            }).setType(ButtonType.Dropdown)
-			            }))
+							setTimeout(() => {
+								Dialog.showTextInputDialog("customLabel_label",
+									"customLabel_label",
+									null,
+									this.aggregate.customTypeName,
+									null//validator needed?
+								).then((name) => {
+									this.aggregate.customTypeName = name
+									this.aggregate.type = key
+								})
+							}, DefaultAnimationTime)// wait till the dropdown is hidden
+						} else {
+							this.aggregate.type = key
+						}
+					}).setType(ButtonType.Dropdown)
+				}))
 
 
 		let cancelButton = new Button('cancel_action', () => cancelAction(this), () => Icons.Cancel)
@@ -436,9 +436,9 @@ class ContactAggregateEditor {
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
 			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-			          .then(() => {
-				          domElement.style.height = ''
-			          })
+				.then(() => {
+					domElement.style.height = ''
+				})
 		])
 	}
 }
