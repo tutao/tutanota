@@ -38,9 +38,13 @@ import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
+import {checkAndImportUserData} from "./ImportUsersViewer"
 
 assertMainOrNode()
+export const CSV_USER_FORMAT = "username;user@domain.com;password"
 
 export class UserViewer {
 	view: Function;
@@ -69,20 +73,20 @@ export class UserViewer {
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
-		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
+			.then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
 		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
-			      .then(newName => {
-				      this.userGroupInfo.name = newName
-				      update(this.userGroupInfo)
-			      })
+				.then(newName => {
+					this.userGroupInfo.name = newName
+					update(this.userGroupInfo)
+				})
 		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
 		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created))
-		                                            .setDisabled()
+			.setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._admin = new DropDownSelector("globalAdmin_label", null, [
@@ -97,7 +101,7 @@ export class UserViewer {
 				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync()
-				                                         .then(user => worker.changeAdminFlag(user, makeAdmin)))
+					.then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -128,7 +132,7 @@ export class UserViewer {
 				], true, addGroupButton)
 				this._updateGroups()
 
-				let adminGroupIdToName: {name: string, value: ?Id}[] = [
+				let adminGroupIdToName: { name: string, value: ?Id }[] = [
 					{
 						name: lang.get("globalAdmin_label"),
 						value: null
@@ -150,10 +154,10 @@ export class UserViewer {
 						} else {
 							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController()
-								                                                                    .user
-								                                                                    .memberships
-								                                                                    .find(gm => gm.groupType
-									                                                                    === GroupType.Admin)).group
+									.user
+									.memberships
+									.find(gm => gm.groupType
+										=== GroupType.Admin)).group
 								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
@@ -199,7 +203,8 @@ export class UserViewer {
 						],
 						m(this._deactivated)
 					]),
-					(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
+					(logins.getUserController().isPremiumAccount() || logins.getUserController()
+						.isFreeAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 					(this._groupsTable) ? m(this._groupsTable) : null,
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
@@ -315,7 +320,6 @@ export class UserViewer {
 			})
 		}
 	}
-
 
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
@@ -458,4 +462,38 @@ export class UserViewer {
 			this._aliases.entityEventReceived(update)
 		}
 	}
+}
+
+/**
+ * Show editor for adding the csv values of the users.
+ */
+export function showUserImportDialog(customDomains: string[]) {
+	let editor = new Editor("enterAsCSV_msg")
+		.showBorders()
+		.setMode(Mode.HTML)
+		.setValue(CSV_USER_FORMAT)
+		.setMinHeight(200)
+
+	let form = {
+		view: () => {
+			return [
+				m(editor)
+			]
+		}
+	}
+
+	Dialog.showActionDialog({
+		title: lang.get("importUsers_action"),
+		child: form,
+		okAction: (csvDialog) => {
+			if (logins.getUserController().isFreeAccount()) {
+				showNotAvailableForFreeDialog(false)
+			} else {
+				let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)
+				if (closeCsvDialog) {
+					csvDialog.close()
+				}
+			}
+		}
+	})
 }

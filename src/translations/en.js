@@ -1133,6 +1133,10 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
+		"goPremium_msg": "As a Premium user you can adjust your search filters in the menu to the left.",
+		"changeTimeFrame_msg": "Go Premium and adjust your search period!",
+		"importUsers_action": "Add multiple users",
+		"enterAsCSV_msg": "Please enter your users details as CSV",
 		"imprintUrl_label": "Link to imprint",
 		"imprint_label": "Imprint",
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
@@ -1150,6 +1154,14 @@ module.exports = {
 		"formatTextJustify_msg": "Justify",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextOl_msg": "Ordered list",
-		"tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!"
+		"tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!",
+		"createdUsersCount_msg": "{1} user(s) created.",
+		"errorAtLine_msg": "Error at line {index}: {error}",
+		"enterMissingPassword_msg": "No password detected. Please enter a password.",
+		"duplicatedMailAddressInUserList_msg": "The email address is included more then once in your input data.",
+		"noInputWasMade_msg": "Input field is empty!",
+		"userCreationWait_msg": "Creating users. {index} of {count} created ...",
+		"wrongUserCsvFormat_msg": "Please correct the CSV format of your data to:\n{format}",
+		"addressesAlreadyInUse_msg": "The following email addresses are already in use:",
 	}
 }

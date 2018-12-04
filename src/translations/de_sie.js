@@ -1153,5 +1153,13 @@ module.exports = {
 		"formatTextJustify_msg": "Blocksatz",
 		"formatTextUl_msg": "Liste",
 		"formatTextOl_msg": "Nummerierte Liste",
+		"createdUsersCount_msg": "{1} Benutzer angelegt.",
+		"errorAtLine_msg": "Fehler in Zeile {index}: {error}",
+		"enterMissingPassword_msg": "Es wurde kein Passwort gefunden, bitte ein Passwort angeben.",
+		"duplicatedMailAddressInUserList_msg": "Die angegebene E-Mail-Adresse kommt mehr als einmal in der Eingabe vor.",
+		"noInputWasMade_msg": "Eingabefeld ist leer!",
+		"userCreationWait_msg": "Erstellen der Benutzer. {index} von {count} erstellt ...",
+		"wrongUserCsvFormat_msg": "Das CSV-Format der eingegebenen Daten ist ungültig. Folgendes Format ist gültig:\n{format}",
+		"addressesAlreadyInUse_msg": "Die folgenden E-Mail-Adressen sind bereits vergeben:",
 	}
 }

@@ -458,7 +458,7 @@ module.exports = {
 		"html_action": "HTML",
 		"importCsvInvalid_msg": "Die CSV-Daten sind ungültig (Zeile {1}).",
 		"importCsv_label": "CSV-Daten importieren",
-		"importUsers_action": "Mehrere Benutzer aus CSV hinzufügen",
+		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
 		"importVCardSuccess_msg": "{1} Kontakt(e) erfolgreich importiert!",
 		"importVCard_action": "VCard importieren",
@@ -1151,6 +1151,14 @@ module.exports = {
 		"formatTextJustify_msg": "Blocksatz",
 		"formatTextUl_msg": "Liste",
 		"formatTextOl_msg": "Nummerierte Liste",
-		"tresoritDiscount_msg": "Exklusives Angebot von Tutanota + Tresorit: 5 Monate Rabatt im ersten Jahr!"
+		"tresoritDiscount_msg": "Exklusives Angebot von Tutanota + Tresorit: 5 Monate Rabatt im ersten Jahr!",
+		"createdUsersCount_msg": "{1} Benutzer angelegt.",
+		"errorAtLine_msg": "Fehler in Zeile {index}: {error}",
+		"enterMissingPassword_msg": "Es wurde kein Passwort gefunden, bitte ein Passwort angeben.",
+		"duplicatedMailAddressInUserList_msg": "Die angegebene E-Mail-Adresse kommt mehr als einmal in der Eingabe vor.",
+		"noInputWasMade_msg": "Eingabefeld ist leer!",
+		"userCreationWait_msg": "Erstellen der Benutzer. {index} von {count} erstellt ...",
+		"wrongUserCsvFormat_msg": "Das CSV-Format der eingegebenen Daten ist ungültig. Folgendes Format ist gültig:\n{format}",
+		"addressesAlreadyInUse_msg": "Die folgenden E-Mail-Adressen sind bereits vergeben:",
 	}
 }

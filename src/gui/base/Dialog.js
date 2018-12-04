@@ -247,7 +247,7 @@ export class Dialog {
 
 			let dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					lines.map(line => m(".dialog-contentButtonsBottom.text-break", line)).concat(
+					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line)).concat(
 						m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 					)
 			})

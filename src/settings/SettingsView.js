@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isApp, isIOSApp} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
@@ -32,6 +32,10 @@ import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
 import {PaymentViewer} from "../subscription/PaymentViewer"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {showUserImportDialog} from "./UserViewer"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {getAvailableDomains} from "./AddUserDialog"
+import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 
@@ -47,6 +51,7 @@ export class SettingsView implements CurrentView {
 	_selectedFolder: SettingsFolder;
 	_currentViewer: ?UpdatableSettingsViewer;
 	detailsViewer: ?UpdatableSettingsViewer; // the component for the details column. can be set by settings views
+	_customDomains: LazyLoaded<string[]>;
 
 	constructor() {
 		this._userFolders = [
@@ -124,9 +129,18 @@ export class SettingsView implements CurrentView {
 		locator.entityEvent.addListener((updates) => {
 			this.entityEventsReceived(updates)
 		})
+
+		this._customDomains = new LazyLoaded(() => {
+			return getAvailableDomains(true)
+		})
+		this._customDomains.getAsync().then(() => m.redraw())
 	}
 
 	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {
+		let importUsersButton = new Button('importUsers_action',
+			() => showUserImportDialog(this._customDomains.getLoaded()),
+			() => Icons.ContactImport
+		).setColors(ButtonColors.Nav)
 		let buttons = folders.map(folder => {
 			let button = new NavButton(folder.nameTextId, folder.icon, () => folder.url, folder.url)
 				.setColors(ButtonColors.Nav)
@@ -138,7 +152,11 @@ export class SettingsView implements CurrentView {
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
 			view: () => m(".folders", buttons.map(fb => fb.isVisible() ?
-				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [m(fb)]) : null))
+				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [m(fb),
+					!isApp() && fb.isSelected() && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0
+						? m(importUsersButton)
+						: null])
+				: null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander
@@ -201,6 +219,10 @@ export class SettingsView implements CurrentView {
 					}
 					m.redraw()
 				})
+			}
+			if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+				this._customDomains.reset()
+				this._customDomains.getAsync().then(() => m.redraw())
 			}
 		}
 		if (this._currentViewer) {
