@@ -40,23 +40,27 @@ class NativeWrapper {
 					]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
 						const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 						return logins.waitForUserLogin()
-						             .then(() => mailToUrl ? [] : this._getFilesData(filesUris))
-						             .then(files => {
-							             const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-							             let editorInit
-							             if (mailToUrl) {
-								             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
-							             } else {
-								             const address = addresses ? addresses.shift() : null
-								             const finalSubject = subject || (files.length > 0 ? files[0].name : "")
-								             editorInit = editor.initWithTemplate(null, address, finalSubject,
-									             (text || "") + mailUtilsModule.getEmailSignature(), null)
+						             .then(() => Promise.join(
+							             mailToUrl ? [] : this._getFilesData(filesUris),
+							             mailModelModule.mailModel.init(),
+							             (files) => {
+								             const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+								             let editorInit
+								             if (mailToUrl) {
+									             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
+								             } else {
+									             const address = addresses ? addresses.shift() : null
+									             const finalSubject = subject || (files.length > 0 ? files[0].name : "")
+									             editorInit = editor.initWithTemplate(null, address, finalSubject,
+										             (text || "") + mailUtilsModule.getEmailSignature(), null)
+								             }
+								             return editorInit.then(() => {
+									             editor.attachFiles(files)
+									             editor.show()
+								             })
 							             }
-							             return editorInit.then(() => {
-								             editor.attachFiles(files)
-								             editor.show()
-							             })
-						             })
+							             )
+						             )
 					})
 				},
 				handleBackPress: (): Promise<boolean> => {

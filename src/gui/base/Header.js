@@ -211,9 +211,9 @@ class Header {
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
-			(mailEditorModule, mailModelModule) => {
-				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-			}
+			(mailEditorModule, mailModelModule) =>
+				mailModelModule.mailModel.init()
+				               .then(() => new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails()))
 		)
 	}
 
