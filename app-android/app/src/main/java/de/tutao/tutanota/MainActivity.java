@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -92,7 +93,6 @@ public class MainActivity extends Activity {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         WebSettings settings = webView.getSettings();
-        checkOutdatedWebView(settings.getUserAgentString());
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -116,8 +116,14 @@ public class MainActivity extends Activity {
                     nativeImpl.setup();
                     return false;
                 }
+
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(MainActivity.this, "Could not open link", Toast.LENGTH_SHORT)
+                            .show();
+                }
                 return true;
             }
 
@@ -162,54 +168,6 @@ public class MainActivity extends Activity {
         } else {
             startWebApp(queryParameters);
         }
-    }
-
-    private void checkOutdatedWebView(String userAgent) {
-        if (this.isWebViewOutdated(userAgent)) {
-            this.showOutdatedWebViewDialog();
-        }
-    }
-
-    private boolean isWebViewOutdated(String userAgent) {
-        Matcher matcher = Pattern.compile(".*Chrome/([0-9]*).*").matcher(userAgent);
-        if (matcher.find()) {
-            String versionString = matcher.group(1);
-            if (versionString != null) {
-                try {
-                    int versionNumber = Integer.parseInt(versionString);
-                    if (versionNumber < SUPPORTED_WEBVIEW_VERSION) {
-                        return true;
-                    }
-                } catch (NumberFormatException e) {
-                    Log.w(TAG, "Failed to parse version string", e);
-                }
-            }
-        }
-        return false;
-    }
-
-    private void showOutdatedWebViewDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Outdated WebView version")
-                .setMessage("We've detected that your device is running an outdated WebView version. Please update it or alternatively update your system.")
-                .setPositiveButton("Update", (d, w) -> {
-                    final String appPackageName = "com.google.android.webview";
-                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName));
-                    if (marketIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivity(marketIntent);
-                    } else {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-                    }
-                    finish();
-                })
-                .setCancelable(false)
-                .setOnKeyListener((dialog, keyCode, event) -> {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        finish();
-                    }
-                    return false;
-                })
-                .show();
     }
 
     private void startWebApp(List<String> queryParams) {
