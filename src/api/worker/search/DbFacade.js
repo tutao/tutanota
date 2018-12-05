@@ -1,6 +1,7 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
+import {downcast} from "../../common/utils/Utils"
 
 export const SearchIndexOS = "SearchIndex"
 export const SearchIndexMetaDataOS = "SearchIndexMeta"
@@ -176,7 +177,7 @@ export class DbTransaction {
 					callback(new DbError("IDB Unable to retrieve data from database!", event))
 				}
 				request.onsuccess = (event) => {
-					let cursor = event.target.result
+					let cursor = request.result
 					if (cursor) {
 						keys.push({key: cursor.key, value: cursor.value})
 						cursor.continue() // onsuccess is called again
