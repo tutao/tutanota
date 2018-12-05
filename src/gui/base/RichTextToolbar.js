@@ -12,6 +12,7 @@ import {attachDropdown} from "./DropdownN"
 import {lang} from '../../misc/LanguageViewModel.js'
 import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
+import {BrowserType} from "../../misc/ClientConstants"
 
 export class RichTextToolbar {
 	view: Function;
@@ -146,12 +147,20 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".content-bg.overflow-hidden.pb-2" + (client.isIos() ? '' : '.sticky'), {
-				style: {"top": '0px'}
-			}, [
-				m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs).map(t => m(ButtonN, t))),
-				m("hr.hr")
-			])
+			return m(".content-bg.overflow-hidden.pb-2", {
+					style: {
+						"top": '0px',
+						"position": client.browser === BrowserType.SAFARI
+							? client.isMacOS
+								? "-webkit-sticky" // safari on macos
+								: "inherit" // sticky changes the rendering order on iOS
+							: "sticky" // normal browsers
+					}
+				}, [
+					m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs).map(t => m(ButtonN, t))),
+					m("hr.hr")
+				]
+			)
 		}
 	}
 
