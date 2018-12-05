@@ -20,6 +20,7 @@ assertMainOrNodeBoot()
 
 export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 
+// TODO: add resize listener like in the old Dropdown
 export class DropdownN {
 	children: Array<DropDownChildAttrs>;
 	_domDropdown: HTMLElement;

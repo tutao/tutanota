@@ -308,21 +308,24 @@ export class Dropdown {
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
 
+			return (animate
+				? animations.add(this._domDropdown, [
+					width(0, this._width),
+					height(0, this.maxHeight)
+				], {easing: ease.out, duration: DefaultAnimationTime})
+				: Promise.resolve())
 			// We would prefer to cancel current animation but we don't have infrastructure for this yet
-			return animations.add(this._domDropdown, [
-				width(0, this._width),
-				height(0, this.maxHeight)
-			], {easing: ease.out, duration: animate ? DefaultAnimationTime : 0})
-			                 .then(() => {
-				                 if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
-					                 // do not show the scrollbar during the animation.
-					                 this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
-					                 this._domContents.style.overflowY = client.overflowAuto
-				                 }
-				                 if (this._domInput) {
-					                 this._domInput.focus()
-				                 }
-			                 })
+				.then(() => {
+					this._domDropdown.style.height = px(this.maxHeight)
+					if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
+						// do not show the scrollbar during the animation.
+						this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
+						this._domContents.style.overflowY = client.overflowAuto
+					}
+					if (this._domInput) {
+						this._domInput.focus()
+					}
+				})
 		}
 	}
 
