@@ -270,6 +270,9 @@ export class DropdownN {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
+		if (!this._domContents || !this._domDropdown) {
+			return Promise.resolve()
+		}
 		this._domDropdown.style.overflowY = 'hidden'
 		return animations.add(this._domDropdown, [
 			width(this._width, 0),
