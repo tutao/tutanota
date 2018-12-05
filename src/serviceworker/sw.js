@@ -23,6 +23,7 @@ class ServiceWorker {
 	_applicationPaths: string[]
 	_isTutanotaDomain: boolean
 	_urlsToCache: string[]
+	_isBuggyChrome: boolean
 
 	constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
 	            isTutanotaDomain: boolean) {
@@ -33,9 +34,26 @@ class ServiceWorker {
 		this._possibleRest = selfLocation + "rest"
 		this._applicationPaths = applicationPaths
 		this._isTutanotaDomain = isTutanotaDomain
+		this._isBuggyChrome = false
+
+		if (typeof navigator !== "undefined") {
+			const results = navigator.userAgent.match(/Chrome\/([0-9]*)\./)
+			if (results != null && results.length > 0) {
+				const numberVersion = Number(results[1])
+				if (!isNaN(numberVersion) && numberVersion < 50) {
+					// Chrome 44-49 has weird bug where ByteStreams from cache are not interpreted correctly
+					console.log("Buggy Chrome version detected. Deferring to no-op sw.js")
+					this._isBuggyChrome = true
+				}
+			}
+		}
 	}
 
 	respond(evt: FetchEvent): void {
+		if (this._isBuggyChrome) {
+			// Defer to default browser behavior
+			return
+		}
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
 		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
 			evt.respondWith(this._fromCache(urlWithoutParams))
