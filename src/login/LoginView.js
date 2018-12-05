@@ -40,6 +40,7 @@ export class LoginView {
 	_viewController: Promise<ILoginViewController>;
 	oncreate: Function;
 	onremove: Function;
+	permitAutoLogin: boolean;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -83,6 +84,13 @@ export class LoginView {
 		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/login/LoginViewController.js`)
 			.then(module => new module.LoginViewController(this))
+
+		if (window.location.href.includes('signup')) {
+			this.permitAutoLogin = false
+			showProgressDialog('loading_msg', this._viewController.then(c => c.showSignupWizard()), false)
+		} else {
+			this.permitAutoLogin = true
+		}
 
 		const optionsExpander = this._expanderButton()
 
@@ -264,7 +272,6 @@ export class LoginView {
 
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
-			this._viewController.then((c) => c.showSignupWizard())
 			return
 		}
 
@@ -314,7 +321,7 @@ export class LoginView {
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._showingKnownCredentials = this._knownCredentials.length > 0
 				let autoLoginCredentials: ?Credentials = null
-				if (args.noAutoLogin !== true) {
+				if (args.noAutoLogin !== true && this.permitAutoLogin) {
 					if (args.loginWith && deviceConfig.get(args.loginWith)) {
 						// there are credentials for the desired email address existing, so try to auto login
 						autoLoginCredentials = deviceConfig.get(args.loginWith)

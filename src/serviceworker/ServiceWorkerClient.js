@@ -50,7 +50,10 @@ export function init() {
 	if (serviceWorker) {
 		if (env.dist && !isApp()) {
 			console.log("Registering ServiceWorker")
-			serviceWorker.register("sw.js")
+			let location = window.location.pathname.endsWith("/")
+				? "../sw.js"
+				: "sw.js"
+			serviceWorker.register(location)
 			             .then((registration) => {
 				             console.log("ServiceWorker has been installed")
 				             showUpdateMessageIfNeeded(registration)
