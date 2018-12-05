@@ -95,11 +95,11 @@ function switchSubscription(
 					}
 				}).then(() => {
 					if (currentNbrOfOrderedStorage < proStorage) {
-						buyStorage(proStorage)
+						return buyStorage(proStorage)
 					}
 				}).then(() => {
 					if (!currentlyWhitelabelOrdered) {
-						buyWhitelabel(true)
+						return buyWhitelabel(true)
 					}
 				}).then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
 					.then(() => dialog.close())
