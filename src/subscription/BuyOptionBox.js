@@ -63,7 +63,7 @@ export class BuyOptionBox {
 							right: px(10)
 						}
 					}, this.selected
-						? m(".buyOptionBox.selected.content-accent-fg.items-center.center", lang.get("currentPlan_label"))
+						? m(".buyOptionBox.selected.content-accent-fg.items-center.center", lang.get("pricing.currentPlan_label"))
 						: m(ButtonN, this._buttonAttrs))
 				]), m(".flex.flex-column.pt", {
 					style: {lineHeight: px(inputLineHeight)}
