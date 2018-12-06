@@ -33,6 +33,7 @@ module.exports = {
 		"noMail_msg": "Tu name nenîşankirî ye",
 		"nonConfidential_action": "Ne veşartî ye",
 		"passwords_label": "Şîfre",
+		"pricing.yearly_label": "Salane",
 		"receivedMail_alt": "Nameyên hatî",
 		"register_alt": "Xwe qeyd bike",
 		"send_action": "Bişîne",
@@ -44,7 +45,6 @@ module.exports = {
 		"welcomeMailSubject_msg": "Mîna ku hûn li mala xwe: daneyên we ji we tenê re vekirî ne",
 		"work_label": "Pisporî",
 		"xing_label": "XING",
-		"yearly_label": "Salane",
 		"yesterday_label": "Duh"
 	}
 }

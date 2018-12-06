@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-08-05T13:59:19Z",
-	"updated_at": "2018-11-23T12:38:53Z",
+	"updated_at": "2018-11-27T13:10:11Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Нажалост ваш Тутанота налог је деактивиран. Молимо контактирајте вашег администратора.",
@@ -65,7 +65,6 @@ module.exports = {
 		"bookingTotalPrice_label": "Укупна цена",
 		"browserNoKeygen_msg": "Хвала што сте изабрали Тутанота е-mail. Приликом процеса регистрације генеришу се сигурни кључеви. Нажалост, генерисање кључа тражи више перформанси него што омогућава ваш тренутни браузер или уређај. Молимо употребите један од ових браузера на вашем PC рачунару или лаптопу:",
 		"businessOrPrivateUsage_label": "Употреба",
-		"businessUse_label": "Пословни",
 		"buy_action": "Купи",
 		"by_label": "по",
 		"callNumber_alt": "Назовите овај број",
@@ -336,7 +335,6 @@ module.exports = {
 		"mobileNumberValidFormat_msg": "Формат је у реду.",
 		"mobile_label": "Мобилни",
 		"monitor_label": "надгледање",
-		"monthly_label": "Месечно",
 		"monthNames_label": "---\n- Јан\n- Феб\n- Мар\n- Апр\n- Мај\n- Јун\n- Јул\n- Авг\n- Сеп\n- Окт\n- Нов\n- Дец",
 		"moreInfo_msg": "Више информација:",
 		"more_label": "Више",
@@ -409,8 +407,6 @@ module.exports = {
 		"paymentMethod_label": "Начин плаћања",
 		"paymentProviderNotAvailable_msg": "Провајдер платне услуге тренутно није доступан. Молимо покушајте поново касније.",
 		"paypalData_label": "PayPal налог",
-		"perMonth_label": "месечно",
-		"perYear_label": "годишње",
 		"phone_label": "Телефон",
 		"pleaseWait_msg": "Молимо вас сачекајте...",
 		"presharedPasswordAndStrength_msg": "Јачина лозинке:",
@@ -423,8 +419,13 @@ module.exports = {
 		"priceForCurrentAccountingPeriod_label": "Сразмерна цена за текући период претплате је {1}.",
 		"priceIncludesTaxes_msg": "Цена укључује порезе.",
 		"price_label": "Цена",
+		"pricing.businessUse_label": "Пословни",
+		"pricing.monthly_label": "Месечно",
+		"pricing.perMonth_label": "месечно",
+		"pricing.perYear_label": "годишње",
+		"pricing.privateUse_label": "Приватно",
+		"pricing.yearly_label": "Годишње",
 		"privacyLink_label": "Политика приватности",
-		"privateUse_label": "Приватно",
 		"private_label": "Приватан",
 		"promotionCodeInvalid_msg": "Неважећи промотивни кôд.",
 		"pushNewMail_msg": "Примљена је нова е-пошта.",
@@ -543,7 +544,6 @@ module.exports = {
 		"welcomeMailSubject_msg": "Осећајте се као код куће: Ваши подаци остају приватни.",
 		"work_label": "Посао",
 		"xing_label": "XING",
-		"yearly_label": "Годишње",
 		"yesterday_label": "јуче"
 	}
 }

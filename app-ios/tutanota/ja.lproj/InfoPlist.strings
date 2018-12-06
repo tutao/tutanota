@@ -5,6 +5,7 @@ NSMicrophoneUsageDescription = "添付ファイルとして動画を収録する
 NSContactsUsageDescription = "連絡先で受信者の電子メールアドレスを検索します。";
 NSRemindersUsageDescription = "新着メールが届いたときに通知を表示します。";
 TutaoChoosePhotosAction = "写真";
+TutaoNoPermissionTitle = "権限がありません";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
 TutaoCancelAction = "中止";
 TutaoSettingsAction = "設定";

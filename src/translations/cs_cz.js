@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2018-11-23T12:38:53Z",
+	"updated_at": "2018-11-27T13:10:11Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Váš účet u služby Tutanota byl bohužel deaktivován. Kontaktujte prosím vašeho správce.",
@@ -319,7 +319,6 @@ module.exports = {
 		"mobileNumberValidFormat_msg": "Formát je v pořádku.",
 		"mobile_label": "Mobilní telefon",
 		"monitor_label": "sledovat",
-		"monthly_label": "Měsíčně",
 		"monthNames_label": "---\n- Leden\n- Únor\n- Březen\n- Duben\n- Květen\n- Červen\n- Červenec\n- Srpen\n- Září\n- Říjen\n- Listopad\n- Prosinec",
 		"more_label": "Více",
 		"move_action": "Přesunout",
@@ -386,7 +385,6 @@ module.exports = {
 		"paymentMethodCreditCard_label": "Kreditní karta",
 		"paymentProviderNotAvailableError_msg": "Vámi zvolená platební metoda není momentálně dostupná, prosím zkuste to později.",
 		"paymentProviderTransactionFailedError_msg": "Platební transakce selhala. Prosím zkuste to znovu později, nebo upravte své platební údaje.",
-		"perMonth_label": "za měsíc",
 		"phone_label": "Telefon",
 		"photoLibraryUsageDescription_msg": "Přidat obrázek z knihovny jako přílohu.",
 		"pleaseWait_msg": "Čekejte prosím ...",
@@ -396,6 +394,10 @@ module.exports = {
 		"preSharedPasswordNeeded_label": "Zadejte prosím dohodnuté heslo pro každého externího příjemce.",
 		"presharedPasswordNotStrongEnough_msg": "Alespoň jedno ze zadaných hesel není dostatečně bezpečné. Přesto zprávu odeslat?",
 		"presharedPassword_label": "Dohodnuté heslo",
+		"pricing.monthly_label": "Měsíčně",
+		"pricing.perMonth_label": "za měsíc",
+		"pricing.select_action": "Vybrat",
+		"pricing.yearly_label": "Ročně",
 		"privacyLink_label": "Ochrana osobních údajů",
 		"private_label": "Soukromé",
 		"promotionCodeInvalid_msg": "Slevový kód je neplatný.",
@@ -440,7 +442,6 @@ module.exports = {
 		"savingFailed_msg": "Zpráva byla úspěšně odeslána, ale nelze ji uložit do složky vaší odeslané pošty.",
 		"secureMail_title": "Zpráva je pro externí příjemce šifrována.",
 		"selectAddress_label": "Vyberte prosím emailovou adresu",
-		"select_action": "Vybrat",
 		"sender_label": "Odesílatel",
 		"sendingFailed_msg": "Zprávu se nepodařilo odeslat. Zkuste to prosím znovu později.",
 		"sendingSms_msg": "Odesílání SMS zprávy...",
@@ -523,7 +524,6 @@ module.exports = {
 		"welcomeMailSubject_msg": "Můžete se cítit jako doma: Vaše data zůstanou v bezpečí.",
 		"work_label": "Práce",
 		"xing_label": "XING",
-		"yearly_label": "Ročně",
 		"yesterday_label": "včera"
 	}
 }

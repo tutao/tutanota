@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-02-19T16:32:05Z",
-	"updated_at": "2018-11-09T15:18:20Z",
+	"updated_at": "2018-11-27T13:10:12Z",
 	"source_locale": null,
 	"keys": {
 		"adminPremiumFeatures_action": "Estyniadau",
@@ -60,6 +60,7 @@ module.exports = {
 		"password2Invalid_msg": "Mae'r cyfrinair cadarnhaol yn wahanol.",
 		"passwordResetFailed_msg": "Mae gwall wedi digwydd. Nid yw'r cyfrinair wedi newid.",
 		"paymentProviderNotAvailableError_msg": "Nid yw'r darpsrwr talu nid ar gael. Ceisiwch eto yn nes ymlaen os gwelwch yn dda.",
+		"pricing.select_action": "Dewis",
 		"promotionCodeEnterNeutral_msg": "Rhowch eich cod hybu yma os gwelwch yn dda.",
 		"receivedMails_alt": "Bwlch derbyn",
 		"removeAttachment_alt": "Dileu atodiad",
@@ -67,7 +68,6 @@ module.exports = {
 		"saveDownloadNotPossibleIos_msg": "Nid yw Safari'n cefnogi arbed atodiadau i ddisg. Gellir arddangos rhai mathau o ffeiliau yn y porwr drwy glicio ar y ddolen uchod. Fel arall, defnyddiwch Mozilla Firefox neu Google Chrome os gwelwch yn dda.",
 		"savePassword_label": "Cofio",
 		"save_msg": "Yn arbed data...",
-		"select_action": "Dewis",
 		"sentMail_alt": "Bwlch gyrru",
 		"storageCapacity_label": "Cynhwysedd storio",
 		"twoMonthsForFreeYearly_msg": "Byddwch yn cael dau fis yn rhad ac am ddim wrth dalu yn flynyddol.",
