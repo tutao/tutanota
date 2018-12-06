@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2018-12-05T09:17:53Z",
+	"updated_at": "2018-12-06T12:48:56Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "このアカウントは残念ながら停止されました。管理者に問い合わせてください。",
@@ -369,10 +369,10 @@ module.exports = {
 		"footer_label": "フッター",
 		"formatTextAlignment_msg": "配置",
 		"formatTextBold_msg": "選択したテキストを太字にします。",
-		"formatTextCenter_msg": "中央",
-		"formatTextJustify_msg": "行の長さを揃える",
+		"formatTextCenter_msg": "中央揃え",
+		"formatTextJustify_msg": "両端揃え",
 		"formatTextMonospace_msg": "Monospace",
-		"formatTextRight_msg": "右",
+		"formatTextRight_msg": "右揃え",
 		"formatTextUl_msg": "順序なしリスト",
 		"formatTextUnderline_msg": "選択したテキストを下線付きにします。",
 		"forward_action": "転送する",

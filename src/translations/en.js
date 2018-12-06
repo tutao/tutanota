@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-12-05T16:01:37Z",
+	"updated_at": "2018-12-06T12:37:30Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -996,6 +996,7 @@ module.exports = {
 		"showPasswordChannelColumn_title": "Enter passwords for external recipients.",
 		"showPassword_alt": "Keep button pressed to show the password.",
 		"showQuotation_action": "+ Show all",
+		"showRichTextToolbar_action": "Show formatting tools",
 		"showURL_alt": "Open link",
 		"show_action": "Show",
 		"signatureConfigFailure_msg": "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
@@ -1153,7 +1154,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"showRichTextToolbar_action": "Show formatting tools"
+		"yourMessage_label": "Your message"
 	}
 }

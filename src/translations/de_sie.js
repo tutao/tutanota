@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2018-12-04T15:42:14Z",
+	"updated_at": "2018-12-06T12:38:15Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1001,6 +1001,7 @@ module.exports = {
 		"showPasswordChannelColumn_title": "Passwörter für externe Empfänger eingeben.",
 		"showPassword_alt": "Button gedrückt halten, um das Passwort anzuzeigen.",
 		"showQuotation_action": "+ Alles anzeigen",
+		"showRichTextToolbar_action": "Formatierungswerkzeuge",
 		"showURL_alt": "Link öffnen",
 		"show_action": "Anzeigen",
 		"signatureConfigFailure_msg": "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Möchten Sie die Benachrichtigungs-E-Mail ohne Signatur senden?",
