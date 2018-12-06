@@ -82,6 +82,7 @@ export class DropdownN {
 						size: maxStringLength,
 						style: {
 							paddingLeft: px(size.hpad_large * 2),
+							paddingRight: px(size.hpad_small),
 							top: 0,
 							height: px(size.button_height),
 							left: 0,
@@ -205,10 +206,11 @@ export class DropdownN {
 	}
 
 	chooseMatch = () => {
+		const filterString = this._filterString().toLowerCase()
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
 		let matchingButton = visibleElements.length === 1
 			? visibleElements[0]
-			: visibleElements.find(b => getLabel(b.label).toLowerCase() === this._filterString().toLowerCase())
+			: visibleElements.find(b => getLabel(b.label).toLowerCase() === filterString)
 		if (document.activeElement === this._domInput
 			&& matchingButton
 			&& matchingButton.click) {
