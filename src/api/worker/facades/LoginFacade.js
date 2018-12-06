@@ -324,6 +324,16 @@ export class LoginFacade {
 		this._accessToken = accessToken
 		return load(UserTypeRef, userId)
 			.then(user => {
+				// we check that the password is not changed
+				// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
+				// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
+				if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))) {
+					// delete the obsolete session in parallel to make sure it can not be used any more
+					this.deleteSession(accessToken)
+					this._accessToken = null
+					console.log("password has changed")
+					throw new NotAuthenticatedError("password has changed")
+				}
 				this._user = user
 				this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
 				return load(GroupInfoTypeRef, user.userGroup.groupInfo)
