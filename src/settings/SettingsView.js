@@ -75,11 +75,11 @@ export class SettingsView implements CurrentView {
 		}
 		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
-			if (logins.getUserController().isGlobalAdmin() && !isIOSApp()) {
-				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer()).setIsVisibleHandler(() => {
-					return !logins.getUserController().isFreeAccount()
-				}))
+			if (logins.getUserController().isGlobalAdmin()) {
+				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer())
+					.setIsVisibleHandler(() => !isIOSApp() || !logins.getUserController().isFreeAccount()))
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer())
+					.setIsVisibleHandler(() => !logins.getUserController().isFreeAccount()))
 			}
 		}
 

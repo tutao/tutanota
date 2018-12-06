@@ -41,6 +41,7 @@ export class LoginView {
 	oncreate: Function;
 	onremove: Function;
 	permitAutoLogin: boolean;
+	_showingSignup: boolean;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -87,7 +88,7 @@ export class LoginView {
 
 		if (window.location.href.includes('signup')) {
 			this.permitAutoLogin = false
-			showProgressDialog('loading_msg', this._viewController.then(c => c.showSignupWizard()), false)
+			this._signup()
 		} else {
 			this.permitAutoLogin = true
 		}
@@ -270,10 +271,20 @@ export class LoginView {
 		m.redraw()
 	}
 
+	_signup() {
+		if (!this._showingSignup) {
+			this._showingSignup = true
+			showProgressDialog('loading_msg', this._viewController.then(c => c.showSignupWizard()), false)
+		}
+	}
+
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
+			this._signup()
 			return
 		}
+		this._showingSignup = false
+
 
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
