@@ -304,8 +304,8 @@ styles.registerStyle('main', () => {
 		'.flex-column-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
 		'.flex-grow': {flex: "1"},
-		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
-		'.flex-third-middle': {flex: '2 1 auto'},
+		'.flex-third': {flex: '1 0 0', 'min-width': "100px"}, // splits a flex layout into three same width columns
+		'.flex-third-middle': {flex: '2 1 0'}, // take up more space for the middle column
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
 		'.flex-grow-shrink-half': {flex: '1 1 50%'},
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.

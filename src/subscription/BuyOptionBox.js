@@ -38,7 +38,7 @@ export class BuyOptionBox {
 		this.view = (): ?VirtualElement => {
 			return m("", {
 				style: {
-					margin: "10px",
+					"margin": "10px 9px 10px 9px", // we can not use 10px left/right because on Firefox the scrollbar would wrap the third box
 					width: px(width),
 					padding: "10px"
 				}
