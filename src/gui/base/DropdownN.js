@@ -108,7 +108,7 @@ export class DropdownN {
 				},
 				(this._visibleChildren().map(child => {
 					if (typeof child === "string") {
-						return m(".flex-v-center.center.button-height.b.text-break.doNotClose", child)
+						return m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", child)
 					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
 					} else {
