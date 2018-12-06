@@ -117,7 +117,6 @@ export class RichTextToolbar {
 				setTimeout(() => editor._squire.focus(), 100) // blur for the editor is fired after the handler for some reason
 				m.redraw()
 			},
-			dropdownWidth: 150
 		}
 
 		const buttonPanelAttrs = {

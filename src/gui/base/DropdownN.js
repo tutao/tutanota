@@ -28,6 +28,7 @@ export class DropdownN {
 	maxHeight: number;
 	oninit: Function;
 	view: Function;
+	_maxWidth: number;
 	_width: number;
 	shortcuts: Function;
 	_buttonsHeight: number;
@@ -37,10 +38,10 @@ export class DropdownN {
 	_isFilterable: boolean;
 
 
-	constructor(lazyChildren: lazy<Array<DropDownChildAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<Array<DropDownChildAttrs>>, maxWidth?: number) {
 		this.children = []
 		this.maxHeight = 0
-		this._width = width
+		this._maxWidth = maxWidth ? maxWidth : window.innerWidth - 40
 		this._buttonsHeight = 0
 		this._filterString = stream("")
 
@@ -66,9 +67,11 @@ export class DropdownN {
 		}
 
 		const _inputField = () => {
+			const placeholder = lang.get("typeToFilter_label")
+			const maxStringLength = Math.max(placeholder.length, ...this.children.map(c => typeof c === 'string' ? c.length : getLabel(c.label).length))
 			return this._isFilterable
-				? m("input.dropdown-bar.doNotClose.pl-l.button-height.abs", {
-						placeholder: lang.get("typeToFilter_label"),
+				? m("input.dropdown-bar.doNotClose.button-height.abs", {
+						placeholder,
 						oncreate: (vnode) => {
 							this._domInput = vnode.dom
 							this._domInput.value = this._filterString()
@@ -76,8 +79,9 @@ export class DropdownN {
 						oninput: e => {
 							this._filterString(this._domInput.value)
 						},
+						size: maxStringLength,
 						style: {
-							width: px(this._width - size.hpad_large),
+							paddingLeft: px(size.hpad_large * 2),
 							top: 0,
 							height: px(size.button_height),
 							left: 0,
@@ -202,7 +206,9 @@ export class DropdownN {
 
 	chooseMatch = () => {
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
-		let matchingButton = visibleElements.find(b => getLabel(b.label).toLowerCase() === this._filterString().toLowerCase())
+		let matchingButton = visibleElements.length === 1
+			? visibleElements[0]
+			: visibleElements.find(b => getLabel(b.label).toLowerCase() === this._filterString().toLowerCase())
 		if (document.activeElement === this._domInput
 			&& matchingButton
 			&& matchingButton.click) {
@@ -214,6 +220,12 @@ export class DropdownN {
 
 	show(domElement: HTMLElement) {
 		this._domContents = domElement
+		this._width = Math.min(
+			this._maxWidth,
+			(this._isFilterable
+				? this._domInput.clientWidth
+				: this._domContents.clientWidth)
+		)
 		if (this.origin) {
 			let left = this.origin.left
 			let right = window.innerWidth - this.origin.right
@@ -293,11 +305,11 @@ export class DropdownN {
 	}
 }
 
-export function createDropdown(lazyButtons: lazy<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
-	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
+export function createDropdown(lazyButtons: lazy<Array<DropDownChildAttrs>>, maxWidth?: number): clickHandler {
+	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), maxWidth)
 }
 
-export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
+export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAttrs>>, maxWidth?: number): clickHandler {
 	return ((e) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
@@ -308,7 +320,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAt
 				})
 		}
 		buttonPromise.then(buttons => {
-			let dropdown = new DropdownN(() => buttons, width)
+			let dropdown = new DropdownN(() => buttons, maxWidth)
 			if (e.currentTarget) {
 				let buttonRect: ClientRect = e.currentTarget.getBoundingClientRect()
 				dropdown.setOrigin(buttonRect)
@@ -323,7 +335,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAt
  * @param mainButtonAttrs the attributes of the main button
  * @param childAttrs the attributes of the children shown in the dropdown
  * @param showDropdown this will be checked before showing the dropdown
- * @param width width of the dropdown
+ * @param maxWidth maximum width of the dropdown (defaults to window.innerWidth-40)
  * @returns {ButtonAttrs} modified mainButtonAttrs that shows a dropdown on click or
  * executes the original onclick if showDropdown returns false
  */
@@ -331,13 +343,13 @@ export function attachDropdown(
 	mainButtonAttrs: ButtonAttrs,
 	childAttrs: lazy<Array<DropDownChildAttrs>>,
 	showDropdown?: lazy<boolean> = () => true,
-	width?: number): ButtonAttrs {
+	maxWidth?: number): ButtonAttrs {
 
 	const oldClick = mainButtonAttrs.click
 	mainButtonAttrs = Object.assign({}, mainButtonAttrs, {
 		click: (e, dom) => {
 			if (showDropdown()) {
-				const dropDownFn = createDropdown(childAttrs, width)
+				const dropDownFn = createDropdown(childAttrs, maxWidth)
 				dropDownFn({currentTarget: dom})
 			} else {
 				oldClick(e)
