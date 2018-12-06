@@ -159,19 +159,20 @@ export class MailEditor {
 			noBubble: true
 		}
 
-		let toolbarButtonAttrs = {
-			label: 'showRichTextToolbar_action',
-			icon: () => Icons.FontSize,
-			click: () => this._showToolbar = !this._showToolbar,
-			isVisible: () => styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly,
-			isSelected: () => this._showToolbar,
-			noBubble: true
-		}
+		const toolbarButton = () => (styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly)
+			? m(ButtonN, {
+				label: 'showRichTextToolbar_action',
+				icon: () => Icons.FontSize,
+				click: () => this._showToolbar = !this._showToolbar,
+				isSelected: () => this._showToolbar,
+				noBubble: true
+			})
+			: null
 
 		this.subject._injectionsRight = () => {
 			return this._allRecipients().find(r => r.type === recipientInfoType.external)
-				? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), m(ButtonN, toolbarButtonAttrs)]
-				: [m(ButtonN, attachFilesButtonAttrs), m(ButtonN, toolbarButtonAttrs)]
+				? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+				: [m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
 		}
 		this.subject.onUpdate(v => this._mailChanged = true)
 

@@ -32,6 +32,6 @@ const server = http.createServer(function (req, res) {
 
 require('chokidar-socket-emitter')({app: server, path: './build', relativeTo: './build'})
 
-console.log(`Static server for build is running on ${os.hostname()}:${port}`)}
+console.log(`Static server for build is running on ${os.hostname()}:${port}`)
 console.log("Open /build for normal builds or /build/dist for dist build")
 server.listen(port)
