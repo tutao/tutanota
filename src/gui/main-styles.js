@@ -283,6 +283,7 @@ styles.registerStyle('main', () => {
 		'.button-width-fixed': {width: px(size.button_height)},
 		'.large-button-height': {height: px(size.button_floating_size)},
 		'.large-button-width': {width: px(size.button_floating_size)},
+		// Stretch editor a little bit more than parent so that the content is visible
 		'.full-height': {"min-height": client.isIos() ? '101%' : '100%'},
 		'.full-width': {width: '100%'},
 		'.half-width': {width: '50%'},

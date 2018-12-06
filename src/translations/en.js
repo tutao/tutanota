@@ -1150,7 +1150,7 @@ module.exports = {
 		"formatTextJustify_msg": "Justify",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextOl_msg": "Ordered list",
-		"showRichTextToolbar_action": "Show formatting Tools"
+		"showRichTextToolbar_action": "Show formatting Tools",
 		"tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!",
 		"createdUsersCount_msg": "{1} user(s) created.",
 		"errorAtLine_msg": "Error at line {index}: {error}",
@@ -1159,6 +1159,6 @@ module.exports = {
 		"noInputWasMade_msg": "Input field is empty!",
 		"userCreationWait_msg": "Creating users. {index} of {count} created ...",
 		"wrongUserCsvFormat_msg": "Please correct the CSV format of your data to:\n{format}",
-		"addressesAlreadyInUse_msg": "The following email addresses are already in use:",
+		"addressesAlreadyInUse_msg": "The following email addresses are already in use:"
 	}
 }
