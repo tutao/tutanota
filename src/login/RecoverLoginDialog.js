@@ -49,7 +49,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 	}
 
 
-	const resetActionClickHandler = createDropdown(() => [resetPasswordAction, resetSecondFactorAction], 300)
+	const resetActionClickHandler = createDropdown(() => [resetPasswordAction, resetSecondFactorAction])
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",
 		click: resetActionClickHandler,
