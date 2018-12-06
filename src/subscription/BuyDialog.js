@@ -165,9 +165,9 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 function _getSubscriptionText(price: PriceServiceReturn): string {
 	if (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") {
-		return lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label')
+		return lang.get("pricing.yearly_label") + ', ' + lang.get('automaticRenewal_label')
 	} else {
-		return lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label')
+		return lang.get("pricing.monthly_label") + ', ' + lang.get('automaticRenewal_label')
 	}
 }
 
@@ -178,7 +178,7 @@ function _getSubscriptionInfoText(price: PriceServiceReturn): string {
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
 	let netGrossText = neverNull(price.futurePriceNextPeriod).taxIncluded ? lang.get("gross_label") : lang.get("net_label")
 	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval === "12")
-		? lang.get('perYear_label') : lang.get('perMonth_label')
+		? lang.get('pricing.perYear_label') : lang.get('pricing.perMonth_label')
 	let futurePriceNextPeriod = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 	let currentPriceNextPeriod = _getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 

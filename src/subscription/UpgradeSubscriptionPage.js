@@ -45,8 +45,8 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 		}
 
 		let businessUseItems = [
-			{name: lang.get("privateUse_label"), value: false},
-			{name: lang.get("businessUse_label"), value: true}
+			{name: lang.get("pricing.privateUse_label"), value: false},
+			{name: lang.get("pricing.businessUse_label"), value: true}
 		]
 		this._businessUse = stream(businessUseItems[0])
 		this._selector = new SubscriptionSelector(

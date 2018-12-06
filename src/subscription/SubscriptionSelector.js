@@ -42,26 +42,26 @@ export class SubscriptionSelector {
 		this._campaign = campaign
 
 		this._freeTypeBox = {
-			buyOptionBox: new BuyOptionBox(() => "Free", "select_action",
+			buyOptionBox: new BuyOptionBox(() => "Free", "pricing.select_action",
 				freeAction,
 				() => this._getOptions([
-					"comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"
+					"pricing.comparisonUsers", "pricing.comparisonStorage", "pricing.comparisonDomain", "pricing.comparisonSearch"
 				], "Free"), 230, 240),
 			paymentInterval: stream({name: "yearly", value: 12})
 		}
 		this._freeTypeBox.buyOptionBox.setPrice(formatPrice(0, true))
-		this._freeTypeBox.buyOptionBox.setHelpLabel(lang.get("upgradeLater_msg"))
+		this._freeTypeBox.buyOptionBox.setHelpLabel(lang.get("pricing.upgradeLater_msg"))
 
-		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
+		//"pricing.comparisonAlias", ""pricing.comparisonInboxRules"", "pricing.comparisonDomain", "pricing.comparisonLogin"
 		this._premiumUpgradeBox = this._createUpgradeBox(AccountType.STARTER, current, Number(currentPaymentInterval), premiumAction, () => [
-			this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
-			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
-			"comparisonSupport"
+			this._premiumUpgradeBox.paymentInterval().value === 1 ? "pricing.comparisonUsersMonthlyPayment" : "pricing.comparisonUsers",
+			"pricing.comparisonStorage", "pricing.comparisonDomain", "pricing.comparisonSearch", "pricing.comparisonAlias", "pricing.comparisonInboxRules",
+			"pricing.comparisonSupport"
 		])
 		this._proUpgradeBox = this._createUpgradeBox(AccountType.PREMIUM, current, Number(currentPaymentInterval), proAction, () => [
-			this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
-			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
-			"comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"
+			this._proUpgradeBox.paymentInterval().value === 1 ? "pricing.comparisonUsersMonthlyPayment" : "pricing.comparisonUsers",
+			"pricing.comparisonStorage", "pricing.comparisonDomain", "pricing.comparisonSearch", "pricing.comparisonAlias", "pricing.comparisonInboxRules",
+			"pricing.comparisonSupport", "pricing.comparisonLogin", "pricing.comparisonTheme", "pricing.comparisonContactForm"
 		])
 
 		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
@@ -72,13 +72,13 @@ export class SubscriptionSelector {
 			this.setOptionBoxPrices(false, yearlyPrice, this._premiumUpgradeBox.buyOptionBox)
 			this.setOptionBoxPrices(true, yearlyPrice, this._proUpgradeBox.buyOptionBox)
 
-			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
+			const helpLabel = lang.get(business() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			m.redraw()
 		})
 		business.map(business => {
-			const helpLabel = lang.get(business ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
+			const helpLabel = lang.get(business ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg")
 			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
 		})
@@ -94,7 +94,7 @@ export class SubscriptionSelector {
 	_createUpgradeBox(upgrade: AccountTypeEnum, current: AccountTypeEnum, paymentInterval: number, action: clickHandler, featurePrefixes: lazy<string[]>, fixedPaymentInterval: ?number): UpgradeBox {
 		const proUpgrade = upgrade === AccountType.PREMIUM
 		let title = proUpgrade ? "Pro" : "Premium"
-		let buyOptionBox = new BuyOptionBox(() => title, "select_action",
+		let buyOptionBox = new BuyOptionBox(() => title, "pricing.select_action",
 			action,
 			() => {
 				return this._getOptions(featurePrefixes(), title)
@@ -108,8 +108,8 @@ export class SubscriptionSelector {
 		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
 
 		let paymentIntervalItems = [
-			{name: lang.get("yearly_label"), value: 12},
-			{name: lang.get("monthly_label"), value: 1}
+			{name: lang.get("pricing.yearly_label"), value: 12},
+			{name: lang.get("pricing.monthly_label"), value: 1}
 		]
 		const startingInterval = paymentIntervalItems.find((i) => i.value === paymentInterval)
 		let upgradeBox: UpgradeBox = {
@@ -181,13 +181,13 @@ export class SubscriptionSelector {
 			let fullMessage = f + type + "_msg"
 			//workaround for removing prices from translations
 			switch (fullMessage) {
-				case "comparisonUsersMonthlyPaymentPremium_msg":
+				case "pricing.comparisonUsersMonthlyPaymentPremium_msg":
 					return lang.get(f + type + "_msg", {"{1}": formatPrice(1.2, true)})
-				case "comparisonUsersMonthlyPaymentPro_msg":
+				case "pricing.comparisonUsersMonthlyPaymentPro_msg":
 					return lang.get(f + type + "_msg", {"{1}": formatPrice(2.4, true)})
-				case "comparisonUsersPremium_msg":
+				case "pricing.comparisonUsersPremium_msg":
 					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
-				case "comparisonUsersPro_msg":
+				case "pricing.comparisonUsersPro_msg":
 					return lang.get(f + type + "_msg", {"{1}": formatPrice(24, true)})
 				default:
 					return lang.get(f + type + "_msg")

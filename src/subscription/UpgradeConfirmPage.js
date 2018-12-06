@@ -137,18 +137,18 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		this._upgradeData = wizardData
 		this._orderField.setValue(this._upgradeData.type)
 		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval === 12
-			? lang.get("yearly_label")
-			: lang.get("monthly_label")) + ", " + lang.get("automaticRenewal_label"))
+			? lang.get("pricing.yearly_label")
+			: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
 		const netOrGross = this._upgradeData.subscriptionOptions.businessUse
 			? lang.get("net_label")
 			: lang.get("gross_label")
 		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
-			? lang.get("perYear_label")
-			: lang.get("perMonth_label")) + " (" + netOrGross + ")")
+			? lang.get("pricing.perYear_label")
+			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		if (this._upgradeData.priceNextYear) {
 			this._priceNextYearField.setValue(this._upgradeData.priceNextYear + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
-				? lang.get("perYear_label")
-				: lang.get("perMonth_label")) + " (" + netOrGross + ")")
+				? lang.get("pricing.perYear_label")
+				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		}
 
 		this._paymentMethodField.setValue(getPaymentMethodName(this._upgradeData.paymentData.paymentMethod))

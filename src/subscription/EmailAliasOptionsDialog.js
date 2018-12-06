@@ -86,7 +86,7 @@ export function show(): Promise<void> {
 }
 
 function createEmailAliasPackageBox(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount: number, buyOptionBox: BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => lang.get("mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "select_action",
+	let buyOptionBox = new BuyOptionBox(() => lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": Math.max(amount, freeAmount)}), "pricing.select_action",
 		() => buyAction(amount),
 		() => [], 230, 240)
 
@@ -101,7 +101,7 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias)
 		buyOptionBox.setPrice(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("perYear_label") : lang.get("perMonth_label"))
+		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label"))
 		m.redraw()
 	})
 	return {amount, buyOptionBox}

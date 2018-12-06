@@ -41,7 +41,7 @@ export function formatPriceDataWithInfo(priceData: PriceData): string {
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
 	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("perYear_label") : lang.get("perMonth_label")
+	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
 	return formatPrice(price, true) + " " + yearlyOrMonthly + " (" + netOrGross + ")"
 }
 

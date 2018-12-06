@@ -93,7 +93,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
 			.setDisabled()
-		let usageTypeAction = new Button("businessUse_label", () => {
+		let usageTypeAction = new Button("pricing.businessUse_label", () => {
 			this._switchToBusinessUse()
 		}, () => Icons.Edit)
 		this._usageTypeField._injectionsRight = () => this._accountingInfo
@@ -125,8 +125,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
 		let subscriptionPeriods = [
-			{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
-			{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
+			{name: lang.get("pricing.yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
+			{name: lang.get("pricing.monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
 		]
 		this._selectedSubscriptionInterval = stream()
 		this._subscriptionIntervalField = new DropDownSelector("subscriptionPeriod_label",
@@ -271,7 +271,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: ""
-			}, "businessUse_label", "businessChangeInfo_msg")
+			}, "pricing.businessUse_label", "businessChangeInfo_msg")
 		}
 	}
 
@@ -303,7 +303,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._usageTypeField.setValue(accountingInfo.business ? lang.get("businessUse_label") : lang.get("privateUse_label"))
+		this._usageTypeField.setValue(accountingInfo.business ? lang.get("pricing.businessUse_label") : lang.get("pricing.privateUse_label"))
 		this._selectedSubscriptionInterval(Number(accountingInfo.paymentInterval))
 
 		m.redraw()

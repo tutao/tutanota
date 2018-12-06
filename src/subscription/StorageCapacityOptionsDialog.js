@@ -81,7 +81,7 @@ export function show(): Promise<void> {
 }
 
 function createStorageCapacityBox(amount: number, freeAmount: number, buyAction: (amount: number) => void, actionId: string = "buy_action"): {amount: number, buyOptionBox: BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "select_action",
+	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "pricing.select_action",
 		() => buyAction(amount),
 		() => [], 230, 240)
 
@@ -96,7 +96,7 @@ function createStorageCapacityBox(amount: number, freeAmount: number, buyAction:
 		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage)
 		buyOptionBox.setPrice(formatPrice(price, true))
 		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("perYear_label") : lang.get("perMonth_label"))
+		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label"))
 		m.redraw()
 	})
 	return {amount, buyOptionBox}
