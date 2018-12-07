@@ -217,9 +217,11 @@ export class EventBusClient {
 		if (event.code === 4401 || event.code === 4470 || event.code === 4472) {
 			this._terminate()
 			this._worker.sendError(handleRestError(event.code - 4000, "web socket error"))
-		}
-
-		if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
+		} else if (event.code === 4440) {
+			// session is expired. do not try to reconnect until the user creates a new session
+			this._state = EventBusState.Suspended
+			this._worker.updateWebSocketState("connecting")
+		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
 			this._worker.updateWebSocketState("connecting")
 
 			if (this._immediateReconnect || isIOSApp()) {
