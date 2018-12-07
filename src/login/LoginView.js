@@ -287,8 +287,10 @@ export class LoginView {
 	}
 
 	updateUrl(args: Object, requestedPath: string) {
-		if (requestedPath.startsWith("/signup") || requestedPath.startsWith("/recover")) {
+		if (requestedPath.startsWith("/signup")) {
 			this._signup()
+			return
+		} else if(requestedPath.startsWith("/recover")) {
 			return
 		}
 		this._showingSignup = false
