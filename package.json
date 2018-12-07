@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "3.42.3",
+  "version": "3.42.4",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
