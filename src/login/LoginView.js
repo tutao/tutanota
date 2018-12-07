@@ -89,6 +89,9 @@ export class LoginView {
 		if (window.location.href.includes('signup')) {
 			this.permitAutoLogin = false
 			this._signup()
+		} else if (window.location.href.endsWith('recover')) {
+			this.permitAutoLogin = false
+			show()
 		} else {
 			this.permitAutoLogin = true
 		}
@@ -206,7 +209,10 @@ export class LoginView {
 				}) : null,
 				this._recoverLoginVisible() ? m(ButtonN, {
 					label: "recoverAccountAccess_action",
-					click: () => show(),
+					click: () => {
+						m.route.set('/recover')
+						show()
+					},
 					type: ButtonType.Secondary,
 				}) : null,
 				m(ButtonN, {
@@ -239,8 +245,10 @@ export class LoginView {
 			m("p.center.statusTextColor", m("small", [
 				this.helpText + " ",
 				this.invalidCredentials && this._recoverLoginVisible()
-					? m(`a[href=#}]`, {
-						onclick: (e) => {
+					? m('a', {
+						href: '/recover',
+						onclick: e => {
+							m.route.set('/recover')
 							show(this.mailAddress.value(), "password")
 							e.preventDefault()
 						}
@@ -279,7 +287,7 @@ export class LoginView {
 	}
 
 	updateUrl(args: Object, requestedPath: string) {
-		if (requestedPath.startsWith("/signup")) {
+		if (requestedPath.startsWith("/signup") || requestedPath.startsWith("/recover")) {
 			this._signup()
 			return
 		}

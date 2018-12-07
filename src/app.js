@@ -192,6 +192,8 @@ let initialized = lang.init(en).then(() => {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 		"/login": loginViewResolver,
+		"/signup": loginViewResolver,
+		"/recover": loginViewResolver,
 		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
@@ -204,7 +206,6 @@ let initialized = lang.init(en).then(() => {
 		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
-		"/signup": loginViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {

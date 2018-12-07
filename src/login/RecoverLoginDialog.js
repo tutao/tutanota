@@ -132,11 +132,15 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 				showProgressDialog("pleaseWait_msg",
 					worker.initialized
 					      .then(() => worker.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
-					.then(() => recoverDialog.close())
+					.then(() => {
+						recoverDialog.close()
+						deviceConfig.delete(cleanMailAddress)
+						m.route.set("/login", {loginWith: cleanMailAddress, noAutoLogin: true})
+					})
 					.catch(e => handleError(e))
 			}
 		},
-		allowCancel: true
+		cancelAction: () => m.route.set("/login")
 	})
 	return recoverDialog
 }
