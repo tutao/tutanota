@@ -23,7 +23,7 @@ export type DropDownSelectorAttrs<T> = {
 	 */
 	selectionChangedHandler?: handler<T>,
 	helpLabel?: lazy<string>,
-	maxDropdownWidth?: number,
+	dropdownWidth?: number,
 	icon?: AllIconsEnum,
 }
 
@@ -61,7 +61,7 @@ class _DropDownSelector<T> {
 					isSelected: () => a.selectedValue() === item.value
 				}
 			})
-		}, a.maxDropdownWidth)
+		}, a.dropdownWidth)
 	}
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: ?T): ?string {

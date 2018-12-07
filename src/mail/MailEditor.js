@@ -139,6 +139,7 @@ export class MailEditor {
 				return {name: lang.get(language.textId), value: language.code}
 			}),
 			selectedValue: this._selectedNotificationLanguage,
+			dropdownWidth: 250
 		}
 
 		this._confidentialButtonState = !props.defaultUnconfidential
@@ -196,7 +197,7 @@ export class MailEditor {
 				click: () => this.saveDraft(true, true).then(() => this._close()),
 				type: ButtonType.Dropdown
 			}
-		], () => this._mailChanged)
+		], () => this._mailChanged, 250)
 
 		const sendButtonAttrs = {
 			label: "send_action",
