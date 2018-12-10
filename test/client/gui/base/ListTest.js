@@ -76,7 +76,7 @@ o.spec("gui > list updateRange", function () {
 			done()
 		})
 
-		let mockedDomList = {
+		list._domListContainer = {
 			clientWidth: 100,
 			clientHeight: 100,
 			addEventListener: function () {
@@ -84,7 +84,8 @@ o.spec("gui > list updateRange", function () {
 		}
 		list._domLoadingRow = {classList: {add: () => undefined, remove: () => undefined}, style: {}}
 		list._setDomList({style: {}})
-		list._init(mockedDomList)
+		list._init()
+		list._domInitialized.resolve()
 	})
 })
 
@@ -129,25 +130,23 @@ o.spec("gui > list init", function () {
 			},
 			sortCompare: dummySort
 		})
+		list._domListContainer = {
+			clientWidth: 100,
+			clientHeight: 235,
+			addEventListener: function () {
+			}
+		}
 		list.loadInitial().then(() => {
-			list._init({
-				clientHeight: 235,
-				addEventListener: () => {
-				}
-			}, false)
+			list._init()
+			list._createVirtualElements()
 			o(list._virtualList.length).equals(Math.ceil(235 / 62) + ScrollBuffer * 2)
 		}).finally(() => {
 			done()
 		})
 
-		let mockedDomList = {
-			clientWidth: 100,
-			clientHeight: 100,
-			addEventListener: function () {
-			}
-		}
+		list._domInitialized.resolve()
 		list._domLoadingRow = {classList: {add: () => undefined, remove: () => undefined}, style: {}}
 		list._setDomList({style: {}})
-		list._init(mockedDomList)
+		list._init()
 	})
 })

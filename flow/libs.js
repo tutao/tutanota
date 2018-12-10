@@ -51,7 +51,7 @@ declare module 'mithril' {
 
 		parseQueryString(queryString: string): {[string]: string};
 
-		render(element: HTMLElement, vnodes: VirtualElement | Array<VirtualElement>): void;
+		render(element: HTMLElement, vnodes: Children): void;
 	}
 
 	declare export default Mithril;
