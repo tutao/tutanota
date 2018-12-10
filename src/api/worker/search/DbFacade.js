@@ -1,7 +1,6 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
-import {downcast} from "../../common/utils/Utils"
 
 export const SearchIndexOS = "SearchIndex"
 export const SearchIndexMetaDataOS = "SearchIndexMeta"
@@ -31,7 +30,7 @@ export class DbFacade {
 
 						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
 						DBOpenRequest.onerror = (error) => {
-							callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
+							callback(new DbError(`could not open indexeddb ${this._id}`, error))
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
@@ -71,7 +70,7 @@ export class DbFacade {
 							callback(null, DBOpenRequest.result)
 						}
 					} catch (e) {
-						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e), null)
+						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e))
 					}
 				})
 			}

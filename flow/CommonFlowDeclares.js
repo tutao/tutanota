@@ -11,7 +11,7 @@ declare function progressUpdater(number): void;
 
 declare type lazy<T> = () => T;
 
-declare function lazyAsync<T>(): Promise<T>;
+declare type lazyAsync<T> = () => Promise<T>;
 
 declare function action(): Promise<void>;
 
@@ -36,6 +36,7 @@ declare interface Shortcut {
 	shift?: boolean; // undefined == false
 	meta?: boolean; // undefined == false
 	enabled?: lazy<boolean>;
+
 	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
 	help: string;
 }

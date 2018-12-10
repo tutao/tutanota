@@ -226,7 +226,7 @@ function getColors(buttonColors: NavButtonColorEnum) {
 	}
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: lazyIcon, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): NavButton {
+export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: lazyIcon, lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200): NavButton {
 	let dropdown = new Dropdown(lazyButtons, width)
 	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
 		.setClickHandler((() => {

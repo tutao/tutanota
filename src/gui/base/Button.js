@@ -305,7 +305,7 @@ export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<st
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
-                                          lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
+                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | NavButton | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {

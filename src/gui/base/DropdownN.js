@@ -22,7 +22,7 @@ export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN {
-	children: Array<DropDownChildAttrs>;
+	children: $ReadOnlyArray<DropDownChildAttrs>;
 	_domDropdown: HTMLElement;
 	origin: ?ClientRect;
 	maxHeight: number;
@@ -37,7 +37,7 @@ export class DropdownN {
 	_isFilterable: boolean;
 
 
-	constructor(lazyChildren: lazy<Array<DropDownChildAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
@@ -302,7 +302,7 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAtt
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 
-export function createAsyncDropdown(lazyButtons: lazyAsync<Array<DropDownChildAttrs>>, width: number = 200): clickHandler {
+export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
 	return ((e) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
@@ -342,7 +342,7 @@ export function attachDropdown(
 	mainButtonAttrs = Object.assign({}, mainButtonAttrs, {
 		click: (e, dom) => {
 			if (showDropdown()) {
-				const dropDownFn = createAsyncDropdown(Promise.resolve(childAttrs), width)
+				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
 				dropDownFn({currentTarget: dom})
 			} else {
 				oldClick(e)

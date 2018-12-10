@@ -58,7 +58,7 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 }
 
 export class Dropdown {
-	children: Array<string | NavButton | Button>;
+	children: $ReadOnlyArray<string | NavButton | Button>;
 	_domDropdown: HTMLElement;
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
@@ -75,7 +75,7 @@ export class Dropdown {
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(lazyChildren: lazy<Array<string | NavButton | Button>>, width: number) {
+	constructor(lazyChildren: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
