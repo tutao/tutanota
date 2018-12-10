@@ -146,7 +146,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this.view = (vnode): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
-					this._init(vnode.dom)
+					this._domListContainer = vnode.dom
 					this._createVirtualElements()
 					const render = () => {
 						m.render(vnode.dom, [
@@ -200,9 +200,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							m(this._emptyMessageBox)
 						])
 						this._domInitialized.resolve()
+						this._init()
 					}
 					if (client.isMobileDevice()) {
-						const id = window.setTimeout(() => render(), 200)
+						// We want side menu animation to end before doing any heavy things so it's smooth
+						const id = window.setTimeout(() => render(), DefaultAnimationTime)
 						this._renderCallback = {type: 'timeout', id}
 					} else {
 						const id = window.requestAnimationFrame(() => render())
@@ -538,42 +540,18 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}, delayed ? DefaultAnimationTime : 5)
 	}
 
-
-	/**
-	 *  updates the virtual elements that belong to the list entries between start and start + count
-	 */
-	// not used currently
-	// updateVirtualRows(start: number, count: number) {
-	//     let rowHeight = this._config.rowHeight
-	//     for (let ve of this._virtualList) {
-	//         let position = ve.top / rowHeight
-	//         if (start <= position && position < start + count) {
-	//             ve.update(this._getListElement(position), this.isEntitySelected(this._getListElement(position)))
-	//         }
-	//     }
-	// }
-
-	_doRender() {
-		this._domInitialized.promise.then(() => {
-			window.requestAnimationFrame(() => {
-				this._domList.style.height = this._calculateListHeight()
-				this._reposition()
-				this.ready = true
-				if (client.isTouchSupported() && this._config.swipe.enabled) {
-					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
-				}
-			})
-
-		})
-	}
-
-	_init(domElement: HTMLElement) {
-		this._domListContainer = domElement
-
+	_init() {
 		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
-		this._doRender()
+		window.requestAnimationFrame(() => {
+			this._domList.style.height = this._calculateListHeight()
+			this._reposition()
+			this.ready = true
+			if (client.isTouchSupported() && this._config.swipe.enabled) {
+				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
+			}
+		})
 	}
 
 	_cancelRenderCallback() {
