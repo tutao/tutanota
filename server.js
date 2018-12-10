@@ -9,7 +9,7 @@ const http = require('http')
 const fs = require('fs')
 const os = require('os')
 
-const prefix = `http://localhost:${port}/build`
+const prefix = `http://ivk:${port}/build`
 const distPrefix = prefix + "/dist"
 
 const server = http.createServer(function (req, res) {

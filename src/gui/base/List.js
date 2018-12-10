@@ -537,7 +537,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
-		}, delayed ? DefaultAnimationTime : 5)
+			// Delay a little bit more than DefaultAnimationTime to execute after the dom is likely initialized
+		}, delayed ? DefaultAnimationTime + 16 : 5)
 	}
 
 	_init() {
