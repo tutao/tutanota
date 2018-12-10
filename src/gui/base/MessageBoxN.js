@@ -35,8 +35,7 @@ class _MessageBoxN {
 			m(".dialog-width-s.pt.pb.plr.mlr", {
 				class: a.bgClass ? a.bgClass : "content-message-bg",
 				style: {'margin-top': px(a.marginTop ? a.marginTop : 100), 'white-space': 'pre-wrap', 'text-align': 'center'}
-			}, (a.label instanceof Function) ?
-				a.label() : lang.get(a.label))
+			}, lang.getMaybeLazy(a.label))
 		])
 	}
 }

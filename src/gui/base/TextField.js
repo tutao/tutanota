@@ -31,7 +31,7 @@ const inputMarginTop = size.font_size_small + size.hpad_small + 3
  */
 export class TextField {
 	label: string | lazy<string>; // The labelId visible on the button. The labelId is not shown, if it is not provided.
-	helpLabel: ?lazy<string>; // returns the translated and formatted help labelId
+	helpLabel: ?lazy<Children>; // returns the translated and formatted help labelId
 	value: Stream<string>;
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
@@ -52,7 +52,7 @@ export class TextField {
 
 	isEmpty: Function;
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string> | ?lazy<Vnode<any>>) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<Children>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
 		this.webkitAutofill = false
@@ -93,7 +93,7 @@ export class TextField {
 							this._domLabel.style.transform = 'translateY(' + 0 + "px)"
 						}
 					},
-				}, this.label instanceof Function ? this.label() : lang.get(this.label)),
+				}, lang.getMaybeLazy(this.label)),
 				m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
 					m(".flex.items-end.flex-wrap", {
 						style: {

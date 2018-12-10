@@ -13,10 +13,11 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import type {Button} from "./Button"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
 assertMainOrNodeBoot()
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
+const TRUE_CLOSURE: lazy<boolean> = () => true
 
 export class NavButton {
 	icon: lazyIcon;
@@ -52,7 +53,7 @@ export class NavButton {
 				return false
 			}
 		}
-		this.getLabel = label instanceof Function ? label : lang.get.bind(lang, label)
+		this.getLabel = typeof label === "function" ? label : lang.get.bind(lang, label)
 
 		this._dropCounter = 0
 
@@ -87,7 +88,7 @@ export class NavButton {
 	}
 
 	_getUrl(): string {
-		return (this.href instanceof Function) ? this.href() : this.href
+		return lazyStringValue(this.href)
 	}
 
 	_isExternalUrl() {

@@ -8,7 +8,7 @@ import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
-import type {AllIconsEnum, IconAttrs, lazyIcon} from "./Icon"
+import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
@@ -35,9 +35,9 @@ export const ButtonColors = {
 }
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
+const TRUE_CLOSURE: lazy<boolean> = () => true
 
-const FALSE_CLOSURE = (): lazy<boolean> => false
+const FALSE_CLOSURE: lazy<boolean> = () => false
 
 function getColors(buttonColors: ButtonColorEnum) {
 	switch (buttonColors) {
@@ -67,7 +67,7 @@ export class Button {
 	_type: ButtonTypeEnum;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
-	icon: ?lazy<Vnode<IconAttrs>>;
+	icon: ?lazyIcon;
 	isVisible: lazy<boolean>;
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
@@ -87,7 +87,7 @@ export class Button {
 		this.isVisible = TRUE_CLOSURE
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
-		this.getLabel = labelTextIdOrTextFunction instanceof Function
+		this.getLabel = typeof labelTextIdOrTextFunction === "function"
 			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
@@ -298,7 +298,7 @@ export class Button {
 }
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
-                                     lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
+                                     lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)

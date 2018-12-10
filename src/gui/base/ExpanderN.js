@@ -42,7 +42,7 @@ class _ExpanderButton {
 					icon: Icons.Warning,
 					style: {fill: a.color ? a.color : theme.content_button}
 				}) : null,
-				m("small.b.text-ellipsis", (a.label instanceof Function ? a.label() : lang.get(a.label)).toUpperCase()),
+				m("small.b.text-ellipsis", lang.getMaybeLazy(a.label).toUpperCase()),
 				m(Icon, {
 					icon: BootIcons.Expand,
 					class: "flex-center items-center",

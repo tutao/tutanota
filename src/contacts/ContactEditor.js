@@ -86,7 +86,9 @@ export class ContactEditor {
 			bday.day = "22"
 			bday.month = "9"
 			bday.year = "2000"
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
+			return this.invalidBirthday
+				? lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
+				: ""
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
 			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")

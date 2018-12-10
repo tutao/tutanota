@@ -10,7 +10,7 @@ import {ButtonN} from "./ButtonN"
 export class DialogHeaderBarN {
 	buttonId: number;
 	right: ButtonAttrs[];
-	middle: lazy<string>;
+	middle: ?lazy<string>;
 	left: ButtonAttrs[];
 	view: Function;
 	domButtonBar: ?HTMLElement;

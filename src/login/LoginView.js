@@ -52,7 +52,7 @@ export class LoginView {
 		this.helpText = lang.get('emptyString_msg')
 		this.password = new TextField("password_label")
 			.setType(Type.Password)
-		this.savePassword = new Checkbox("storePassword_action", () => lang.get("onlyPrivateComputer_msg"))
+		this.savePassword = new Checkbox(() => lang.get("storePassword_action"), () => lang.get("onlyPrivateComputer_msg"))
 		if (!client.localStorage()) {
 			this.savePassword.setDisabled("functionNotSupported_msg")
 		}

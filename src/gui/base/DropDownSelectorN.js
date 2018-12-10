@@ -10,6 +10,7 @@ import {ButtonN} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
 import {Icons} from "./icons/Icons"
 import type {AllIconsEnum} from "./Icon"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
 assertMainOrNode()
 
@@ -70,8 +71,7 @@ class _DropDownSelector<T> {
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
-				console.log(`Dropdown ${a.label
-				instanceof Function ? a.label() : a.label} couldn't find element for value: ${JSON.stringify(value)}`)
+				console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
 			}
 		}
 		return null

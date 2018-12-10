@@ -235,8 +235,9 @@ export class ContactFormRequestDialog {
 	}
 
 	send() {
-		if (this._passwordForm.getErrorMessageId()) {
-			Dialog.error(this._passwordForm.getErrorMessageId())
+		const passwordErrorId = this._passwordForm.getErrorMessageId()
+		if (passwordErrorId) {
+			Dialog.error(passwordErrorId)
 			return
 		}
 		let passwordCheck = Promise.resolve(true)

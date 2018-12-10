@@ -9,7 +9,7 @@ declare function validator(): ?string;
 
 declare function progressUpdater(number): void;
 
-declare function lazy<T>(): T;
+declare type lazy<T> = () => T;
 
 declare function lazyAsync<T>(): Promise<T>;
 

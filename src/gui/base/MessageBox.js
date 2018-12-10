@@ -25,8 +25,7 @@ export default class MessageBox {
 				m(".dialog-width-s.pt.pb.plr.mlr", {
 					class: bgClass,
 					style: {'margin-top': px(marginTop), 'white-space': 'pre-wrap', 'text-align': 'center'}
-				}, (messageIdOrMessageFunction instanceof Function) ?
-					messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
+				}, lang.getMaybeLazy(messageIdOrMessageFunction))
 			])
 		}
 	}

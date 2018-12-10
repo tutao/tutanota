@@ -74,7 +74,7 @@ class _Button {
 	view(vnode: Vnode<LifecycleAttrs<ButtonAttrs>>) {
 		const a = vnode.attrs
 		const type = this.getType(a.type)
-		const title = a.title !== undefined ? this.getTitle(a.title) : getLabel(a.label)
+		const title = a.title !== undefined ? this.getTitle(a.title) : lang.getMaybeLazy(a.label)
 
 		return m("button.limit-width.noselect",
 			{
@@ -87,7 +87,7 @@ class _Button {
 					|| type === ButtonType.Dropdown
 					|| type === ButtonType.Login
 					|| type === ButtonType.Floating)
-					? getLabel(a.label)
+					? lang.getMaybeLazy(a.label)
 					: title,
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
@@ -108,7 +108,7 @@ class _Button {
 	}
 
 	getTitle(title: string | lazy<string>): string {
-		return title instanceof Function ? title() : lang.get(title)
+		return lang.getMaybeLazy(title)
 	}
 
 	getType(type: ?ButtonTypeEnum) {
@@ -200,7 +200,7 @@ class _Button {
 
 	_getLabelElement(a: ButtonAttrs) {
 		const type = this.getType(a.type)
-		const label = getLabel(a.label)
+		const label = lang.getMaybeLazy(a.label)
 		if (label.trim() === '' || [ButtonType.Action, ButtonType.Floating].includes(type)) {
 			return null
 		}
@@ -257,8 +257,4 @@ export function isVisible(a: NavButtonAttrs | ButtonAttrs) {
 
 export function isSelected(a: NavButtonAttrs | ButtonAttrs) {
 	return typeof a.isSelected === "function" ? a.isSelected() : false
-}
-
-export function getLabel(label: string | lazy<string>): string {
-	return label instanceof Function ? label() : lang.get(label)
 }

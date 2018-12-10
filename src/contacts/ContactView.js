@@ -140,7 +140,7 @@ export class ContactView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => this.createNewContact(),
-				enabled: () => this._contactList,
+				enabled: () => this._contactList != null,
 				help: "newContact_action"
 			},
 		]

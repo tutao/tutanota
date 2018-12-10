@@ -18,8 +18,7 @@ export class ExpanderButton {
 
 	constructor(labelTextIdOrLabelFunction: string | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
 		this.panel = panel
-		this.getLabel = labelTextIdOrLabelFunction
-		instanceof Function ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
+		this.getLabel = typeof labelTextIdOrLabelFunction === "function" ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
 		if (typeof style.color === 'undefined') {
 			style.color = color
 		}
