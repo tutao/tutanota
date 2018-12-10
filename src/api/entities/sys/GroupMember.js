@@ -50,7 +50,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "38"
+	"version": "39"
 }
 
 export function createGroupMember(): GroupMember {
