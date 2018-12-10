@@ -14,7 +14,7 @@ const FALSE_CLOSURE = () => {
 }
 
 export class Checkbox {
-	getLabel: lazy<Children>;
+	getChildren: lazy<Children>;
 	helpLabel: ?lazy<string>;
 	checked: Stream<boolean>;
 	focused: Stream<boolean>;
@@ -24,8 +24,8 @@ export class Checkbox {
 	_disabledTextId: string;
 
 
-	constructor(labelTextIdOrTextFunction: string | lazy<Children>, helpLabel?: lazy<string>) {
-		this.getLabel = typeof labelTextIdOrTextFunction === "function" ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+	constructor(lazyChildren: lazy<Children>, helpLabel?: lazy<string>) {
+		this.getChildren = lazyChildren
 		this.helpLabel = helpLabel
 		this.checked = stream(false)
 		this.focused = stream(false)
@@ -72,7 +72,7 @@ export class Checkbox {
 					}),
 					m(".pl", {
 						class: this.focused() ? "content-accent-fg" : "content-fg",
-					}, this.getLabel()),
+					}, this.getChildren()),
 				]),
 				this.helpLabel ? m("small.block.content-fg", this.enabled ? this.helpLabel() : lang.get(this._disabledTextId)) : [],
 			])

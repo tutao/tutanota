@@ -10,7 +10,7 @@ import {theme} from "../theme"
 import {styles} from "../styles"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
-export type NavButtonAttrs = {
+export type NavButtonAttrs = {|
 	label: string | lazy<string>,
 	icon: lazyIcon,
 	href: string | lazy<string>,
@@ -20,7 +20,7 @@ export type NavButtonAttrs = {
 	isVisible?: lazy<boolean>,
 	dropHandler?: dropHandler,
 	hideLabel?: boolean,
-}
+|}
 
 class _NavButton {
 	_domButton: HTMLElement;
