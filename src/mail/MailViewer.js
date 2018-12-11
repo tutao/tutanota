@@ -69,6 +69,7 @@ import {client} from "../misc/ClientDetector"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
+import {FileOpenError} from "../api/common/error/FileOpenError"
 
 assertMainOrNode()
 
@@ -690,7 +691,8 @@ export class MailViewer {
 			})
 		} else {
 			buttons = files.map(file => new Button(() => file.name,
-				() => fileController.downloadAndOpen(file, true),
+				() => fileController.downloadAndOpen(file, true)
+					.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 				() => Icons.Attachment)
 				.setType(ButtonType.Bubble)
 				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")

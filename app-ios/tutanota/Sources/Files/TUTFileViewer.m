@@ -6,6 +6,8 @@
 //
 //
 
+#import "swiftier.h"
+
 #import <Foundation/Foundation.h>
 #import "TUTFileViewer.h"
 #import <QuickLook/QuickLook.h>
@@ -29,7 +31,7 @@
     return self;
 }
 
-- (void) openFileAtPath:(NSString*) filePath completion:(void(^)(NSError * error))completion {
+- (void) openFileAtPath:(NSString*)filePath completion:(void(^)(NSError * error))completion {
 	_completionHandler = completion;
     _previewController= [[QLPreviewController alloc] init];
     _previewController.dataSource = self;
@@ -43,7 +45,9 @@
 												completion:nil];
 		});
 	} else {
-		completion([TUTErrorFactory createError:@"cannot display files"]);
+		let errorMessage = [NSString stringWithFormat:@"Cannot display file. Extension: @%",
+							filePath.lastPathComponent];
+		completion([TUTErrorFactory createErrorWithDomain:TUT_FILEVIEWER_ERROR message:errorMessage]);
 	}
 }
 
