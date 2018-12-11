@@ -55,8 +55,8 @@ class NativeWrapper {
 										             (text || "") + mailUtilsModule.getEmailSignature(), null)
 								             }
 								             return editorInit.then(() => {
-									             editor.attachFiles(files)
 									             editor.show()
+									             editor.attachFiles(files)
 								             })
 							             }
 							             )
