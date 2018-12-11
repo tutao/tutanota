@@ -567,7 +567,7 @@ export class MailView implements CurrentView {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let editor = new MailEditor(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
-				editor.initWithTemplate(null, null, "", getEmailSignature())
+				editor.initWithTemplate(null, null, "", "<br/>" + getEmailSignature())
 				editor.show()
 				return editor
 			}
@@ -680,8 +680,8 @@ export class MailView implements CurrentView {
 		if (this.mailViewer != null && !this.mailHeaderDialog.visible) {
 			if (this.mailViewer.mail.headers) {
 				load(MailHeadersTypeRef, this.mailViewer.mail.headers).then(mailHeaders => {
-					this.mailHeaderInfo = mailHeaders.headers
-					this.mailHeaderDialog.show()
+						this.mailHeaderInfo = mailHeaders.headers
+						this.mailHeaderDialog.show()
 					}
 				).catch(NotFoundError, noOp)
 			} else {
