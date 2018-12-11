@@ -122,13 +122,13 @@ export class EditSecondFactorsForm {
 			.spread((totpKeys, u2fSupport, user) => {
 				let type = new DropDownSelector("type_label", null,
 					Object.keys(SecondFactorTypeToNameTextId)
-					      .filter(k => (k === SecondFactorType.u2f && !u2fSupport) ? false : true)
-					      .map(key => {
-						      return {
-							      name: lang.get(SecondFactorTypeToNameTextId[key]),
-							      value: key
-						      }
-					      }), stream(u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp), 300)
+						.filter(k => (k === SecondFactorType.u2f && !u2fSupport) ? false : true)
+						.map(key => {
+							return {
+								name: lang.get(SecondFactorTypeToNameTextId[key]),
+								value: key
+							}
+						}), stream(u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp), 300)
 				let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
 				let u2fRegistrationData = stream(null)
 
@@ -177,13 +177,13 @@ export class EditSecondFactorsForm {
 					let cleanedValue = v.replace(/ /g, "")
 					if (cleanedValue.length === 6) {
 						worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key)
-						      .then(number => {
-							      if (number === Number(cleanedValue)) {
-								      verificationStatus(VerificationStatus.Success)
-							      } else {
-								      verificationStatus(VerificationStatus.Failed)
-							      }
-						      })
+							.then(number => {
+								if (number === Number(cleanedValue)) {
+									verificationStatus(VerificationStatus.Success)
+								} else {
+									verificationStatus(VerificationStatus.Failed)
+								}
+							})
 					} else {
 						verificationStatus(VerificationStatus.Progress)
 					}
@@ -259,7 +259,6 @@ export class EditSecondFactorsForm {
 								m(totpCode)
 							]) : null,
 							m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
-							m(".small", lang.get("secondFactorInfoOldClient_msg"))
 						]
 					},
 					okAction: saveAction,
@@ -269,18 +268,18 @@ export class EditSecondFactorsForm {
 
 				function registerResumeOnTimeout() {
 					u2f.register()
-					   .catch((e) => {
-						   if (e instanceof U2fError) {
-							   Dialog.error("u2fUnexpectedError_msg").then(() => {
-								   if (dialog.visible) {
-									   dialog.close()
-								   }
-							   })
-						   } else {
-							   registerResumeOnTimeout()
-						   }
-					   })
-					   .then(registrationData => u2fRegistrationData(registrationData))
+						.catch((e) => {
+							if (e instanceof U2fError) {
+								Dialog.error("u2fUnexpectedError_msg").then(() => {
+									if (dialog.visible) {
+										dialog.close()
+									}
+								})
+							} else {
+								registerResumeOnTimeout()
+							}
+						})
+						.then(registrationData => u2fRegistrationData(registrationData))
 				}
 
 				if (u2fSupport) registerResumeOnTimeout()
