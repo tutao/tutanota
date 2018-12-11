@@ -4,7 +4,7 @@ const spawnSync = require('child_process').spawnSync
 options
 	.usage('[options] [test|prod|URL] ')
 	.arguments('<targetUrl>')
-	.option('-b, --buildtype <type>', 'gradle build type', /^(debugDist|debug|release)$/i, 'release')
+	.option('-b, --buildtype <type>', 'gradle build type', /^(debugDist|debug|release|releaseTest)$/i, 'release')
 	.option('-w --webclient <client>', 'choose web client build', /^(build|dist)$/i, 'dist')
 	.parse(process.argv)
 options.host = options.args[0] || 'prod'
@@ -18,6 +18,9 @@ switch (options.buildtype) {
 	case 'debug':
 		apkPath = 'app/build/outputs/apk/debug/app-debug.apk'
 		break;
+	case 'releaseTest':
+		apkPath = 'app/build/outputs/apk/releaseTest/app-releaseTest-unsigned.apk'
+		break
 	default:
 		apkPath = 'app/build/outputs/apk/release/app-release-unsigned.apk'
 }
@@ -57,7 +60,7 @@ spawnSync("mkdir", ["-p", "build/app-android"])
 const version = require('./package.json').version
 const outPath = `./build/app-android/tutanota-${version}-${options.buildtype}.apk`
 
-if (options.buildtype === 'release') {
+if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	const keyAlias = getEnv('APK_SIGN_ALIAS')
 	const storePass = getEnv('APK_SIGN_STORE_PASS')
 	const keyPass = getEnv('APK_SIGN_KEY_PASS')

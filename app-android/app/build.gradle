@@ -23,6 +23,12 @@ android {
             buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             applicationIdSuffix ".debugdist"
         }
+        releaseTest {
+            initWith release
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.test']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+            applicationIdSuffix ".test"
+        }
         release {
             minifyEnabled false
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
