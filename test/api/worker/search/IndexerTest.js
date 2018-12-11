@@ -214,7 +214,7 @@ o.spec("Indexer test", () => {
 		user.memberships[1].group = "constant-group-id"
 
 		let deletedGroupId = "deleted-group-id"
-		let groupData = {groupType: GroupType.Team}
+		let groupData = {groupType: GroupType.MailingList}
 		let transaction = {
 			getAll: (os) => {
 				o(os).equals(GroupDataOS)
@@ -233,7 +233,7 @@ o.spec("Indexer test", () => {
 
 		indexer._loadGroupDiff(user).then(result => {
 			o(result).deepEquals({
-				deletedGroups: [{id: 'deleted-group-id', type: GroupType.Team}],
+				deletedGroups: [{id: 'deleted-group-id', type: GroupType.MailingList}],
 				newGroups: [{id: 'new-group-id', type: GroupType.Mail}]
 			})
 			done()
@@ -274,7 +274,7 @@ o.spec("Indexer test", () => {
 		})
 
 		let user = createUser()
-		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Team}], newGroups: []}
+		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.MailingList}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
 			done()
 		})
@@ -337,7 +337,7 @@ o.spec("Indexer test", () => {
 		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		user.memberships[2].groupType = GroupType.Contact
 		user.memberships[2].group = "group-contact"
@@ -390,7 +390,7 @@ o.spec("Indexer test", () => {
 		user.memberships = [createGroupMembership(), createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		let indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			let count = 0
@@ -575,7 +575,7 @@ o.spec("Indexer test", () => {
 		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		user.memberships[2].groupType = GroupType.Contact
 		user.memberships[2].group = "group-contact"
@@ -659,7 +659,7 @@ o.spec("Indexer test", () => {
 	o("processEntityEvents non indexed group", function (done) {
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].groupType = GroupType.Team
+		user.memberships[0].groupType = GroupType.MailingList
 		user.memberships[0].group = "group-id"
 		const indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			mock.db.initialized = Promise.resolve()

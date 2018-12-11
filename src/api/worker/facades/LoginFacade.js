@@ -431,7 +431,8 @@ export class LoginFacade {
 	}
 
 	getAllGroupIds(): Id[] {
-		let groups = this.getLoggedInUser().memberships.map(membership => membership.group)
+		let groups = this.getLoggedInUser().memberships
+		                 .map(membership => membership.group)
 		groups.push(this.getLoggedInUser().userGroup.group)
 		return groups
 	}

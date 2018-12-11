@@ -87,8 +87,7 @@ export class UserManagementFacade {
 	}
 
 	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (this._login.getLoggedInUser().accountType
-			=== AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
+		let mailAddress = (this._login.getLoggedInUser().accountType === AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
 		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
 			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
 				return (groupInfo.mailAddress === mailAddress)
