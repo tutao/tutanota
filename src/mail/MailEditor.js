@@ -230,7 +230,7 @@ export class MailEditor {
 		}
 
 		this.view = () => {
-			return m("#mail-editor.full-height.text.touch-callout", {
+			return m("#mail-editor.full-height.text.touch-callout.break-word-links", {
 				oncreate: vnode => this._domElement = vnode.dom,
 				onclick: (e) => {
 					if (e.target === this._domElement) {
@@ -405,7 +405,7 @@ export class MailEditor {
 
 	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
 		if (addSignature) {
-			bodyText = "<br><br><br>" + bodyText
+			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()
 			if (logins.getUserController().isInternalUser() && signature) {
 				bodyText = signature + bodyText
