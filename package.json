@@ -22,6 +22,7 @@
     "caller": "1.0.1",
     "chokidar": "1.4.3",
     "chokidar-socket-emitter": "0.6.0",
+    "commmander": "0.0.1-security",
     "core-js": "2.5.7",
     "express": "4.16.4",
     "flow-bin": "0.77.0",
