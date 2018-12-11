@@ -12,7 +12,12 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {InvoiceTypeRef} from "../api/entities/sys/Invoice"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {createNotAvailableForFreeButton, getInvoiceStatusText, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
+import {
+	createNotAvailableForFreeButton,
+	getInvoiceStatusText,
+	getPaymentMethodInfoText,
+	getPaymentMethodName
+} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod, isSameId, sortCompareByReverseId} from "../api/common/EntityFunctions"
@@ -118,7 +123,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					m(this._invoiceExpanderButton)
 				]),
 				m(this._invoiceExpanderButton.panel),
-				m(".small", lang.get("invoiceSettingDescription_msg"))
+				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg"))
 			])
 		}
 
@@ -268,6 +273,6 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
 
 		dialog.setCloseHandler(cancelAction)
-		      .show()
+			.show()
 	})
 }

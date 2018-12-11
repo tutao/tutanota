@@ -1159,6 +1159,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"laterInvoicingInfo_msg": "Separat dazu gebuchte Features werden nicht direkt abgebucht, sondern erst zum nächstmöglichen Zeitpunkt der Abrechnung hinzugefügt."
 	}
 }

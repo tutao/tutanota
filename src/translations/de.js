@@ -1157,6 +1157,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"laterInvoicingInfo_msg":"Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats."
 	}
 }

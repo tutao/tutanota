@@ -503,7 +503,7 @@ module.exports = {
 		"invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added in the future.",
 		"invoicePay_action": "Pay",
 		"invoiceRecipient_label": "Invoice recipient",
-		"invoiceSettingDescription_msg": "List of all your existing invoices including payment status",
+		"invoiceSettingDescription_msg": "List of all your existing invoices including payment status.",
 		"invoiceStateCancelled_label": "Canceled",
 		"invoiceStateOpen_label": "Unpaid",
 		"invoiceStatePaid_label": "Paid",
@@ -1154,6 +1154,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month."
 	}
 }
