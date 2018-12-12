@@ -27,6 +27,7 @@ import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientDetector"
 import {BrowserType} from "../../../misc/ClientConstants"
+import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -398,7 +399,7 @@ export class IndexerCore {
 			// update group data
 			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: ?GroupData) => {
 				if (!groupData) {
-					throw new Error("GroupData not available for group " + indexUpdate.groupId)
+					throw new InvalidDatabaseStateError("GroupData not available for group " + indexUpdate.groupId)
 				}
 				if (indexUpdate.indexTimestamp != null) {
 					groupData.indexTimestamp = indexUpdate.indexTimestamp

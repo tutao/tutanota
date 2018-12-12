@@ -137,16 +137,17 @@ export class Indexer {
 					// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
 					// initialized promise will be resolved in this.init later.
 					console.log("disable mail indexing and init again", e)
-					let mailIndexingEnabled = this._mail.mailIndexingEnabled;
-					return this._mail.disableMailIndexing().then(() => {
-						// do not try to init again on error
-						return this.init(this._initParams.user, this._initParams.groupKey, false).then(() => {
-							if (mailIndexingEnabled) {
-								return this.enableMailIndexing()
-							}
-						})
-					})
+					return this._reCreateIndex()
 				} else {
+					// disable storage if it fails to inititalize
+					this._core.indexingSupported = false
+					this._worker.sendIndexState({
+						initializing: false,
+						indexingSupported: false,
+						mailIndexEnabled: false,
+						progress: 0,
+						currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+					})
 					throw e
 				}
 			})
@@ -198,6 +199,17 @@ export class Indexer {
 		this._core.queue.start()
 	}
 
+	_reCreateIndex(): Promise<void> {
+		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled;
+		return this._mail.disableMailIndexing().then(() => {
+			// do not try to init again on error
+			return this.init(this._initParams.user, this._initParams.groupKey, false).then(() => {
+				if (mailIndexingWasEnabled) {
+					return this.enableMailIndexing()
+				}
+			})
+		})
+	}
 
 	_createIndexTables(user: User, userGroupKey: Aes128Key): Promise<void> {
 		return this._loadGroupData(user)
@@ -485,6 +497,11 @@ export class Indexer {
 			           } else {
 				           throw e
 			           }
+		           })
+		           .catch(InvalidDatabaseStateError, (e) => {
+			           console.log("InvalidDatabaseStateError during _processEntityEvents")
+			           this._core.stopProcessing()
+			           return this._reCreateIndex()
 		           })
 	}
 

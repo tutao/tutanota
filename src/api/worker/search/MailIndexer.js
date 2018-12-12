@@ -149,7 +149,7 @@ export class MailIndexer {
 					              .then(spamFolders => {
 						              this._excludedListIds = spamFolders.map(folder => folder.mails)
 						              this.mailIndexingEnabled = true
-						              return this._db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
+						              return this._db.dbFacade.createTransaction(false, [MetaDataOS])
 						                         .then(t2 => {
 							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
