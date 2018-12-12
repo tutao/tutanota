@@ -13,7 +13,7 @@ Tutanota is the [secure email](https://tutanota.com) service with built-in end-t
 
 <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="75"></a><a href="https://f-droid.org/packages/de.tutao.tutanota/"><img src="https://f-droid.org/badge/get-it-on.png" height="75"></a>
 
-## Building and running your own Tutanota (new beta) web client
+## Building and running your own Tutanota web client
 
 You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on 
 your own. If you prefer the auto-update feature, you can use the official [mail](https://mail.tutanota.com) client.
@@ -32,7 +32,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 6. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
 7. Open the `` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
-## Building and running your own Tutanota (new beta) Android app
+## Building and running your own Tutanota Android app
 
 If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically.
 If you prefer the auto-update feature, use the Google Play Store or F-Droid in the future.
