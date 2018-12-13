@@ -57,7 +57,7 @@ export class UserManagementFacade {
 				data.salt = salt
 				data.verifier = passwordVerifier
 				data.pwEncUserGroupKey = pwEncUserGroupKey
-				return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
+				return serviceRequestVoid(SysService.ResetPasswordService, HttpMethod.POST, data)
 			})
 		})
 	}
@@ -75,7 +75,7 @@ export class UserManagementFacade {
 						addAccountGroup.user = user._id
 						addAccountGroup.group = accountGroupMembership.group
 						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), accountGroupMembership.symEncGKey))
-						return serviceRequestVoid("membershipservice", HttpMethod.POST, addAccountGroup)
+						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
 					})
 				} else {
 					return this._groupManagement.removeUserFromGroup(user._id, adminGroupId).then(() => {
@@ -147,7 +147,7 @@ export class UserManagementFacade {
 		data.user = user._id
 		data.restore = restore
 		data.date = Const.CURRENT_DATE
-		return serviceRequestVoid("userservice", HttpMethod.DELETE, data)
+		return serviceRequestVoid(SysService.UserService, HttpMethod.DELETE, data)
 	}
 
 	_getGroupId(user: User, groupType: GroupTypeEnum): Id {

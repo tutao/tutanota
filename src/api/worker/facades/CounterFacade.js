@@ -17,7 +17,7 @@ export class CounterFacade {
 		let counterData = createReadCounterData()
 		counterData.monitor = monitorValue
 		counterData.owner = ownerId
-		return serviceRequest("counterservice", HttpMethod.GET, counterData, ReadCounterReturnTypeRef)
+		return serviceRequest(MonitorService.CounterService, HttpMethod.GET, counterData, ReadCounterReturnTypeRef)
 			.then(counterReturn => {
 				return counterReturn.value;
 			})

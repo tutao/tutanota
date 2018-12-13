@@ -217,7 +217,7 @@ export class LoginViewController implements ILoginViewController {
 		}).then(() => {
 			if (logins.isGlobalAdminUserLoggedIn()) {
 				let receiveInfoData = createReceiveInfoServiceData()
-				return serviceRequestVoid("receiveinfoservice", HttpMethod.POST, receiveInfoData)
+				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
 			}
 		})
 	}

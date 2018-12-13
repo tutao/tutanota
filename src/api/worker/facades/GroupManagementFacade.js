@@ -18,6 +18,7 @@ import {neverNull} from "../../common/utils/Utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
+import {SysService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
@@ -98,7 +99,7 @@ export class GroupManagementFacade {
 						data.user = user._id
 						data.group = groupId
 						data.symEncGKey = encryptKey(userGroupKey, groupKey)
-						return serviceRequestVoid("membershipservice", HttpMethod.POST, data)
+						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, data)
 					})
 				})
 			})
@@ -109,7 +110,7 @@ export class GroupManagementFacade {
 		let data = createMembershipRemoveData()
 		data.user = userId
 		data.group = groupId
-		return serviceRequestVoid("membershipservice", HttpMethod.DELETE, data)
+		return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
 	}
 
 	deactivateGroup(group: Group, restore: boolean): Promise<void> {

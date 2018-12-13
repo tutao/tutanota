@@ -159,7 +159,7 @@ export class CustomerFacade {
 				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 				let data = createCreateCustomerServerPropertiesData()
 				data.adminGroupEncSessionKey = groupEncSessionKey
-				p = serviceRequest("createcustomerserverproperties", HttpMethod.POST, data,
+				p = serviceRequest(SysService.CreateCustomerServerProperties, HttpMethod.POST, data,
 					CreateCustomerServerPropertiesReturnTypeRef)
 					.then(returnData => {
 						return returnData.id

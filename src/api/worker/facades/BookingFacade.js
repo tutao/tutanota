@@ -8,6 +8,7 @@ import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "../../common/utils/Utils"
 import {assertWorkerOrNode} from "../../Env"
 import {HttpMethod} from "../../common/EntityFunctions"
+import {SysService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
@@ -39,7 +40,7 @@ export class BookingFacade {
 		priceRequestData.business = business == undefined ? null : business
 		serviceData.priceRequest = priceRequestData
 		serviceData.campaign = campaign
-		return serviceRequest("priceservice", HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
+		return serviceRequest(SysService.PriceService, HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
 	}
 
 
@@ -49,7 +50,7 @@ export class BookingFacade {
 	 */
 	getCurrentPrice(): Promise<PriceServiceReturn> {
 		let serviceData = createPriceServiceData()
-		return serviceRequest("priceservice", HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
+		return serviceRequest(SysService.PriceService, HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
 	}
 
 	/**
