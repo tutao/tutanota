@@ -111,3 +111,5 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	}
 }
 
+console.log(`APK was moved to\n${outPath}`)
+
