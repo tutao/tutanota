@@ -89,19 +89,13 @@ export class GroupManagementFacade {
 	}
 
 	addUserToGroup(user: User, groupId: Id): Promise<void> {
-		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			this.getAdminGroupKey(userGroup).then(adminGroupKeyForUserGroup => {
-				let userGroupKey = decryptKey(adminGroupKeyForUserGroup, neverNull(userGroup.adminGroupEncGKey))
-				return load(GroupTypeRef, groupId).then(group => {
-					this.getAdminGroupKey(group).then(adminGroupKey => {
-						let groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
-						let data = createMembershipAddData()
-						data.user = user._id
-						data.group = groupId
-						data.symEncGKey = encryptKey(userGroupKey, groupKey)
-						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, data)
-					})
-				})
+		return this.getGroupKeyAsAdmin(user.userGroup.group).then(userGroupKey => {
+			return this.getGroupKeyAsAdmin(groupId).then(groupKey => {
+				let data = createMembershipAddData()
+				data.user = user._id
+				data.group = groupId
+				data.symEncGKey = encryptKey(userGroupKey, groupKey)
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, data)
 			})
 		})
 	}
@@ -126,16 +120,31 @@ export class GroupManagementFacade {
 		}
 	}
 
-	getAdminGroupKey(group: Group): Promise<Aes128Key> {
-		try {
-			// the admin and local admin can retrieve their group keys directly from their memberships
-			let adminGroupKey = (group.type === GroupType.Admin || group.type
-				=== GroupType.LocalAdmin) ? this._login.getGroupKey(group._id) : this._login.getGroupKey(neverNull(group.admin))
-			return Promise.resolve(adminGroupKey)
-		} catch (e) {
-			let globalAdminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
-			return load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
-				return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
+	getGroupKeyAsAdmin(groupId: Id): Promise<Aes128Key> {
+		if (this._login.hasGroup(groupId)) {
+			// e.g. I am a global admin and want to add another user to the global admin group
+			return Promise.resolve(this._login.getGroupKey(neverNull(groupId)))
+		} else {
+			return load(GroupTypeRef, groupId).then(group => {
+				return Promise.resolve().then(() => {
+					if (group.admin && this._login.hasGroup(group.admin)) {
+						// e.g. I am a member of the group that administrates group G and want to add a new member to G
+						return this._login.getGroupKey(neverNull(group.admin))
+					} else {
+						// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
+						let globalAdminGroupId = this._login.getGroupId(GroupType.Admin)
+						let globalAdminGroupKey = this._login.getGroupKey(globalAdminGroupId)
+						return load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+							if (localAdminGroup.admin === globalAdminGroupId) {
+								return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
+							} else {
+								throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
+							}
+						})
+					}
+				}).then(adminGroupKey => {
+					return decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+				})
 			})
 		}
 	}

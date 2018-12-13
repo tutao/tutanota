@@ -44,21 +44,18 @@ export class UserManagementFacade {
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
-		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			this._groupManagement.getAdminGroupKey(userGroup).then(adminGroupKey => {
-				let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-				let salt = generateRandomSalt()
-				let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-				let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
-				let passwordVerifier = createAuthVerifier(passwordKey)
+		return this._groupManagement.getGroupKeyAsAdmin(user.userGroup.group).then(userGroupKey => {
+			let salt = generateRandomSalt()
+			let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+			let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+			let passwordVerifier = createAuthVerifier(passwordKey)
 
-				let data = createResetPasswordData()
-				data.user = neverNull(userGroup.user)
-				data.salt = salt
-				data.verifier = passwordVerifier
-				data.pwEncUserGroupKey = pwEncUserGroupKey
-				return serviceRequestVoid(SysService.ResetPasswordService, HttpMethod.POST, data)
-			})
+			let data = createResetPasswordData()
+			data.user = user._id
+			data.salt = salt
+			data.verifier = passwordVerifier
+			data.pwEncUserGroupKey = pwEncUserGroupKey
+			return serviceRequestVoid(SysService.ResetPasswordService, HttpMethod.POST, data)
 		})
 	}
 
