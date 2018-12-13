@@ -1695,7 +1695,10 @@ sjcl.mode.cbc = {
 		for (i = 0; bp + 128 <= bl; i += 4, bp += 128) {
 			/* Encrypt a non-final block */
 			iv = prp.encrypt(xor(iv, plaintext.slice(i, i + 4)));
-			output.splice(i, 0, iv[0], iv[1], iv[2], iv[3]);
+			// TUTAO: replaced splice with push because of performance bug in chromium
+			// https://bugs.chromium.org/p/chromium/issues/detail?id=914395&can=1&q=splice&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+			//output.splice(i, 0, iv[0], iv[1], iv[2], iv[3]);
+			output.push(iv[0], iv[1], iv[2], iv[3])
 		}
 
 		if (usePadding) {
@@ -1704,7 +1707,10 @@ sjcl.mode.cbc = {
 
 			/* Pad and encrypt. */
 			iv = prp.encrypt(xor(iv, w.concat(plaintext, [bl, bl, bl, bl]).slice(i, i + 4)));
-			output.splice(i, 0, iv[0], iv[1], iv[2], iv[3]);
+			// TUTAO: replaced splice with push because of performance bug in chromium
+			// output.splice(i, 0, iv[0], iv[1], iv[2], iv[3]);
+			output.push(iv[0], iv[1], iv[2], iv[3])
+
 		}
 		return output;
 	},
@@ -1740,7 +1746,10 @@ sjcl.mode.cbc = {
 		for (i = 0; i < ciphertext.length; i += 4) {
 			bi = ciphertext.slice(i, i + 4);
 			bo = xor(iv, prp.decrypt(bi));
-			output.splice(i, 0, bo[0], bo[1], bo[2], bo[3]);
+			// TUTAO: replaced splice with push because of performance bug in chromium
+			// https://bugs.chromium.org/p/chromium/issues/detail?id=914395&can=1&q=splice&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+			//output.splice(i, 0, bo[0], bo[1], bo[2], bo[3]);
+			output.push(bo[0], bo[1], bo[2], bo[3]);
 			iv = bi;
 		}
 
