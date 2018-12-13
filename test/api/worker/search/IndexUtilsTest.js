@@ -111,7 +111,7 @@ o.spec("Index Utils", () => {
 		user.memberships[3].groupType = GroupType.External
 		user.memberships[4].groupType = GroupType.File
 		user.memberships[5].groupType = GroupType.Mail
-		user.memberships[6].groupType = GroupType.Team
+		user.memberships[6].groupType = GroupType.MailingList
 		user.memberships[7].groupType = GroupType.User
 		o(filterIndexMemberships(user))
 			.deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
@@ -130,7 +130,7 @@ o.spec("Index Utils", () => {
 		user.memberships[3].groupType = GroupType.External
 		user.memberships[4].groupType = GroupType.File
 		user.memberships[5].groupType = GroupType.Mail
-		user.memberships[6].groupType = GroupType.Team
+		user.memberships[6].groupType = GroupType.MailingList
 		user.memberships[7].groupType = GroupType.User
 		user.memberships[8].groupType = GroupType.Mail
 		o(filterMailMemberships(user)).deepEquals([user.memberships[5], user.memberships[8]])

@@ -3,7 +3,7 @@
 export const GroupType = {
 	User: "0",
 	Admin: "1",
-	Team: "2",
+	MailingList: "2",
 	Customer: "3",
 	External: "4",
 	Mail: "5",

@@ -65,7 +65,7 @@ export class GroupViewer {
 		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
 		let editNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.Team && newName.trim()
+				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim()
 					=== "") {
 					return "enterName_msg"
 				} else {

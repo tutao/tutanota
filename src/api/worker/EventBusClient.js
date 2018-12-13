@@ -17,7 +17,7 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
-import {CloseEventBusOption} from "../common/TutanotaConstants"
+import {CloseEventBusOption, GroupType} from "../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
@@ -268,7 +268,7 @@ export class EventBusClient {
 	 */
 	_setLatestEntityEventIds(): Promise<void> {
 		this._queueWebsocketEvents = true
-		return Promise.each(this._login.getAllGroupIds(), groupId => {
+		return Promise.each(this._eventGroups(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
 				this._lastEntityEventIds[groupId] = [
 					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
@@ -288,7 +288,7 @@ export class EventBusClient {
 				if (expired) {
 					return this._worker.sendError(new OutOfSyncError())
 				} else {
-					return Promise.each(this._login.getAllGroupIds(), groupId => {
+					return Promise.each(this._eventGroups(), groupId => {
 						return loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
 							.each(eventBatch => {
 								return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
@@ -377,7 +377,7 @@ export class EventBusClient {
 	 * @return True if the events have expired, false otherwise.
 	 */
 	_checkIfEntityEventsAreExpired(): Promise<boolean> {
-		return Promise.each(this._login.getAllGroupIds(), groupId => {
+		return Promise.each(this._eventGroups(), groupId => {
 			let lastEventBatchId = this._getLastEventBatchIdOrMinIdForGroup(groupId)
 			if (lastEventBatchId !== GENERATED_MIN_ID) {
 				return load(EntityEventBatchTypeRef, [groupId, lastEventBatchId])
@@ -410,5 +410,11 @@ export class EventBusClient {
 		} else {
 			return Promise.resolve()
 		}
+	}
+
+	_eventGroups(): Id[] {
+		return this._login.getLoggedInUser().memberships
+		           .filter(membership => membership.groupType !== GroupType.MailingList)
+		           .map(membership => membership.group)
 	}
 }
