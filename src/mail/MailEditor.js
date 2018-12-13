@@ -290,7 +290,7 @@ export class MailEditor {
 				),
 				this._attachments.length > 0 ? m("hr.hr") : null,
 				this._showToolbar ? m(this._richTextToolbar) : null,
-				m(".pt-s.text.scroll-x", {onclick: () => this._editor.focus()}, m(this._editor)),
+				m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this._editor.focus()}, m(this._editor)),
 				m(".pb")
 			])
 		}
@@ -405,7 +405,7 @@ export class MailEditor {
 
 	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
 		if (addSignature) {
-			bodyText = "<br><br><br>" + bodyText
+			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()
 			if (logins.getUserController().isInternalUser() && signature) {
 				bodyText = signature + bodyText
