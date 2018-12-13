@@ -68,7 +68,9 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	const androidHome = getEnv('ANDROID_HOME')
 
 	console.log("starting signing")
+	// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
+	// jarsigner must be run before zipalign
 	error = spawnSync('jarsigner', [
 		'-verbose',
 		'-keystore', keyStore,
@@ -87,6 +89,7 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 
 	console.log("started zipalign")
 
+	// Android requires all resources to be aligned for mmap. Must be done.
 	error = spawnSync(`${androidHome}/build-tools/27.0.3/zipalign`, [
 		'4',
 		'app-android/' + apkPath,
