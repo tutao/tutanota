@@ -755,6 +755,7 @@ type PushIdentifier = {
 	_owner: Id;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	disabled: boolean;
 	identifier: string;
 	language: string;
 	lastNotificationDate: ?Date;

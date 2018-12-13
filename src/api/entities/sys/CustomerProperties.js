@@ -47,7 +47,7 @@ export const _TypeModel: TypeModel = {
 		}, "smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "38"
+	"version": "39"
 }
 
 export function createCustomerProperties(): CustomerProperties {

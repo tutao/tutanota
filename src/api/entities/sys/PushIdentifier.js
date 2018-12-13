@@ -18,6 +18,7 @@ export const _TypeModel: TypeModel = {
 		"_owner": {"name": "_owner", "id": 630, "since": 5, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 1029, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"_permissions": {"name": "_permissions", "id": 628, "since": 5, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"disabled": {"name": "disabled", "id": 1476, "since": 39, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
 		"identifier": {"name": "identifier", "id": 633, "since": 5, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"language": {"name": "language", "id": 634, "since": 5, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"lastNotificationDate": {
@@ -33,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "38"
+	"version": "39"
 }
 
 export function createPushIdentifier(): PushIdentifier {

@@ -610,7 +610,6 @@ export class MailEditor {
 
 			return attachDropdown({
 				label: () => file.name,
-				click: noOp,
 				icon: () => Icons.Attachment,
 				type: ButtonType.Bubble,
 				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
@@ -854,7 +853,6 @@ export class MailEditor {
 		let bubbleWrapper = {}
 		bubbleWrapper.buttonAttrs = attachDropdown({
 			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
-			click: noOp,
 			type: ButtonType.TextBubble,
 			isSelected: () => false,
 		}, () => {

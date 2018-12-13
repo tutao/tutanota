@@ -323,6 +323,9 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 	}: clickHandler)
 }
 
+// We override type of click to be optional because we wrap it in our own
+export type DropdownButtonAttrs = {click?: (MouseEvent) => void} & ButtonAttrs
+
 /**
  *
  * @param mainButtonAttrs the attributes of the main button
@@ -333,22 +336,20 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
  * executes the original onclick if showDropdown returns false
  */
 export function attachDropdown(
-	mainButtonAttrs: ButtonAttrs,
+	mainButtonAttrs: DropdownButtonAttrs,
 	childAttrs: lazy<$Promisable<$ReadOnlyArray<DropDownChildAttrs>>>,
 	showDropdown?: lazy<boolean> = () => true,
 	width?: number): ButtonAttrs {
 
 	const oldClick = mainButtonAttrs.click
-	mainButtonAttrs = Object.assign({}, mainButtonAttrs, {
+	return Object.assign({}, mainButtonAttrs, {
 		click: (e, dom) => {
 			if (showDropdown()) {
 				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
 				dropDownFn({currentTarget: dom})
-			} else {
+			} else if (oldClick) {
 				oldClick(e)
 			}
 		}
 	})
-
-	return mainButtonAttrs
 }

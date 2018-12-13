@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {"items": {"name": "items", "id": 721, "since": 9, "type": "AGGREGATION", "cardinality": "Any", "refType": "BookingItem", "final": false}},
 	"app": "sys",
-	"version": "38"
+	"version": "39"
 }
 
 export function createBooking(): Booking {
