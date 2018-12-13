@@ -111,7 +111,7 @@ export class Queue {
 
 	_handleMessage(message: Response | Request | RequestError) {
 		if (message.type === 'response') {
-			this._queue[message.id](null, (message: any).value)
+			this._queue[message.id](null, message.value)
 			delete this._queue[message.id]
 		} else if (message.type === 'requestError') {
 			this._queue[message.id](objToError((message: any).error), null)
@@ -135,7 +135,6 @@ export class Queue {
 			}
 		}
 	}
-
 
 	setCommands(commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command}) {
 		this._commands = commands

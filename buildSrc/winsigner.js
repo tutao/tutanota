@@ -21,7 +21,7 @@ function signer(args) {
 	]
 
 	if (!(certificateFile && certificatePassword && fs.existsSync(command))) {
-		console.log(`  ${chalk.yellow("• ")}"` + args.path.split(path.sep).pop() + "\" not signed:")
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer will not work.")
 		console.log("\t• install osslsigncode")
 		console.log("\t• set WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD env vars")
 		return Promise.resolve(args.path)

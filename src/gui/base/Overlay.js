@@ -13,13 +13,13 @@ export type PositionRect = {
 	height?: ?string,
 }
 
-type AnimtationProvider = (dom: HTMLElement) => DomMutation
+type AnimationProvider = (dom: HTMLElement) => DomMutation
 
 type OverlayAttrs = {
 	component: Component;
 	position: PositionRect;
-	createAnimation?: AnimtationProvider;
-	closeAnimation?: AnimtationProvider;
+	createAnimation?: AnimationProvider;
+	closeAnimation?: AnimationProvider;
 }
 
 const overlays: Array<[OverlayAttrs, ?HTMLElement]> = []
@@ -28,8 +28,8 @@ const boxShadow = (() => {
 	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
 })()
 
-export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimtationProvider,
-                               closeAnimation?: AnimtationProvider): () => void {
+export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimationProvider,
+                               closeAnimation?: AnimationProvider): () => void {
 	const newAttrs = {
 		position,
 		component,

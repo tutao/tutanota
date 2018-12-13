@@ -7,6 +7,7 @@ export const Mode = {
 	Browser: "Browser",
 	App: "App",
 	Test: "Test",
+	Desktop: "Desktop"
 }
 
 export function getWebsocketOrigin(): string {
@@ -41,6 +42,12 @@ export function isApp(): boolean {
 
 export function isDesktop(): boolean {
 	return env.mode === Mode.Desktop
+}
+
+export function ifDesktop<T>(obj: T | null): T | null {
+	return isDesktop()
+		? obj
+		: null
 }
 
 let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)

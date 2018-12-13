@@ -590,6 +590,7 @@ export class Dialog {
 	static showRequestPasswordDialog(okAction: (input: TextField) => mixed, errorMessage: Stream<string>, cancelAction: ?() => mixed): Dialog {
 		let pwInput = new TextField("password_label", errorMessage)
 			.setType(Type.Password)
+		setTimeout(() => pwInput.focus(), 100)
 		pwInput._keyHandler = (key: KeyPress) => {
 			switch (key.keyCode) {
 				case 13: // return

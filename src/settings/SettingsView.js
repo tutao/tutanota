@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isApp, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isApp, isIOSApp, isDesktop} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
@@ -12,6 +12,7 @@ import type {CurrentView} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
+import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -59,6 +60,11 @@ export class SettingsView implements CurrentView {
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 		]
+
+		if (isDesktop()) {
+			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => new DesktopSettingsViewer()))
+		}
+
 		this._adminFolders = []
 
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))

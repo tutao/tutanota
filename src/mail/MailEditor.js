@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
-import bridge from "../desktop/bridge.js"
 import {Dialog} from "../gui/base/Dialog"
+import {nativeApp} from '../native/NativeWrapper.js'
 import {TextField, Type} from "../gui/base/TextField"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
@@ -235,9 +235,9 @@ export class MailEditor {
 			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => {
 					this._domElement = vnode.dom
-					bridge.startListening('close', closeButton.clickHandler)
+					nativeApp.startListening('close-editor', () => closeButtonAttrs.click(null, this._domCloseButton))
 				},
-				onremove: vnode => bridge.stopListening('close', closeButton.clickHandler),
+				onremove: vnode => nativeApp.stopListening('close-editor', () => closeButtonAttrs.click(null, this._domCloseButton)),
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this._editor.focus()

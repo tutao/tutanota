@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="264"
+   width="264"
+   version="1.1"
+   id="Ebene_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 263.99999 264"
+   enable-background="new 0 0 1280 800"
+   preserveAspectRatio="xMinYMid"
+   xml:space="preserve"
+   sodipodi:docname="logo-solo-red.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:export-filename="/home/nig/dev/repositories/tutanota/resources/desktop-icons/logo-solo-red_512x512@2x.png"
+   inkscape:export-xdpi="372.36365"
+   inkscape:export-ydpi="372.36365"><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1712"
+   inkscape:window-height="893"
+   id="namedview8"
+   showgrid="true"
+   inkscape:zoom="0.9979154"
+   inkscape:cx="-329.26107"
+   inkscape:cy="125.16907"
+   inkscape:window-x="-70"
+   inkscape:window-y="273"
+   inkscape:window-maximized="0"
+   inkscape:current-layer="Ebene_1"
+   fit-margin-top="2"
+   fit-margin-right="2"
+   fit-margin-bottom="2"
+   fit-margin-left="2"
+   showborder="true"
+   inkscape:showpageshadow="false"><inkscape:grid
+     type="xygrid"
+     id="grid819"
+     snapvisiblegridlinesonly="true"
+     dotted="true" /></sodipodi:namedview><metadata
+   id="metadata27"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs25" />
+    
+    
+    
+    <g
+   transform="matrix(-0.9986213,0,0,-0.97035101,393.71156,476.26508)"
+   style="fill:#fcffff;fill-opacity:1"
+   id="g33-3"><path
+     id="a-6"
+     d="m 155.503,222.799 c -12.64,0 -22.875,10.246 -22.875,22.872 v 211.23 c 0,0.801 0.046,1.608 0.123,2.388 8.5,-3.167 17.524,-6.629 27.054,-10.436 66.336,-26.48 120.569,-48.994 120.618,-74.415 0,-0.814 -0.056,-1.636 -0.172,-2.458 -3.43,-25.098 -63.407,-32.879 -63.324,-44.381 0.007,-0.611 0.18,-1.25 0.548,-1.889 7.205,-12.619 35.743,-12.015 46.253,-12.907 10.519,-0.913 35.206,-0.724 36.399,-8.244 0.035,-0.232 0.057,-0.463 0.057,-0.695 0.028,-6.987 -16.977,-9.726 -16.977,-9.726 0,0 20.635,3.083 20.579,11.11 0,0.393 -0.048,0.8 -0.158,1.214 -2.222,8.624 -20.379,10.246 -32.386,10.835 -11.356,0.569 -28.648,1.861 -28.707,7.408 -0.007,0.323 0.049,0.66 0.165,1.004 2.71,8.11 66.09,12.015 106.64,33.061 23.335,12.099 34.94,32.422 40.263,53.418 v -166.52 c 0,-12.626 -10.243,-22.872 -22.869,-22.872 H 155.503 Z"
+     inkscape:connector-curvature="0"
+     style="fill:#fcffff;fill-opacity:1" /></g><rect
+   y="69"
+   x="5"
+   height="120.82793"
+   width="255.92857"
+   id="rect828"
+   style="fill:#fcffff;fill-opacity:1;stroke-width:1.18073797" /><g
+   transform="matrix(1,0,0,1.0058263,-127.751,-219.60973)"
+   style="fill:#840010"
+   id="g33">
+      <path
+   id="a"
+   d="m 155.503,222.799 c -12.64,0 -22.85995,10.24601 -22.875,22.872 l -0.25052,210.14031 c -9.6e-4,0.801 0.2652,2.04388 0.3422,2.82388 8.5,-3.167 17.55532,-5.97519 27.08532,-9.78219 66.336,-26.48 120.569,-48.994 120.618,-74.415 0,-0.814 -0.056,-1.636 -0.172,-2.458 -3.43,-25.098 -63.407,-32.879 -63.324,-44.381 0.007,-0.611 0.18,-1.25 0.548,-1.889 7.205,-12.619 35.743,-12.015 46.253,-12.907 10.519,-0.913 35.206,-0.724 36.399,-8.244 0.035,-0.232 0.057,-0.463 0.057,-0.695 0.028,-6.987 -16.977,-9.726 -16.977,-9.726 0,0 20.635,3.083 20.579,11.11 0,0.393 -0.048,0.8 -0.158,1.214 -2.222,8.624 -20.379,10.246 -32.386,10.835 -11.356,0.569 -28.648,1.861 -28.707,7.408 -0.007,0.323 0.049,0.66 0.165,1.004 2.71,8.11 66.09,12.015 106.64,33.061 23.335,12.099 34.34214,32.00372 39.66514,52.99972 L 389.603,245.668 c 0.0455,-12.62592 -10.243,-22.872 -22.869,-22.872 H 155.503 Z"
+   inkscape:connector-curvature="0"
+   sodipodi:nodetypes="csscccccccccccccccccsscc" />
+    </g>
+</svg>
