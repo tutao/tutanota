@@ -175,6 +175,7 @@ class ClientDetector {
 		var operaIndex1 = this.userAgent.indexOf("Opera")
 		var operaIndex2 = this.userAgent.indexOf("OPR/")
 		var firefoxIndex = this.userAgent.indexOf("Firefox/")
+		var paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
 		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
 		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
@@ -203,7 +204,10 @@ class ClientDetector {
 		} else if (operaIndex2 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
-		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
+		} else if(paleMoonIndex !== -1) {
+				this.browser = BrowserType.PALEMOON
+				versionIndex = paleMoonIndex + 9
+		}else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
 			if (firefoxIndex !== -1) {

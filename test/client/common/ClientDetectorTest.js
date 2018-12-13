@@ -21,6 +21,30 @@ o.spec("ClientDetector test", function () {
 		o(client.isMobileDevice()).equals(false)
 	})
 
+	o("ClientDetector detect palemoon firefox compat mode", () => {
+		client.init("Mozilla/5.0 (X11; Linux x86_64; rv:60.9) Gecko/20100101 Goanna/4.1 Firefox/60.9 PaleMoon/28.2.2", "Linux")
+		o(client.browser).equals(BrowserType.PALEMOON)
+		o(client.browserVersion).equals(28.2)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+	})
+
+	o("ClientDetector detect palemoon native mode", () => {
+		client.init("Mozilla/5.0 (X11; Linux x86_64; rv:60.9) Goanna/4.1 PaleMoon/28.2.2", "Linux")
+		o(client.browser).equals(BrowserType.PALEMOON)
+		o(client.browserVersion).equals(28.2)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+	})
+
+	o("ClientDetector detect palemoon gecko compat mode", () => {
+		client.init("Mozilla/5.0 (X11; Linux x86_64; rv:60.9) Gecko/20100101 Goanna/4.1 PaleMoon/28.2.2", "Linux")
+		o(client.browser).equals(BrowserType.PALEMOON)
+		o(client.browserVersion).equals(28.2)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+	})
+
 	o("ClientDetector detect safari 5.1 ipad", () => {
 		client.init("Mozilla/5.0 (iPad CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3", "Linux")
 		o(client.browser).equals(BrowserType.SAFARI)
@@ -55,16 +79,16 @@ o.spec("ClientDetector test", function () {
 
 	o("ClientDetector detect safari 6.0 iphone home screen", () => {
 		client.init("Mozilla/5.0 (iPhone CPU iPhone OS 6_1_6 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10B500", "Linux")
-		o(client.browser).equals(BrowserType.OTHER)
-		o(client.browserVersion).equals(0)
+		o(client.browser).equals(BrowserType.SAFARI)
+		o(client.browserVersion).equals(6.1)
 		o(client.device).equals(DeviceType.IPHONE)
 		o(client.isMobileDevice()).equals(true)
 	})
 
 	o("ClientDetector detect safari 7 iphone home screen", () => {
 		client.init("Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Mobile/11A501", "Linux")
-		o(client.browser).equals(BrowserType.OTHER)
-		o(client.browserVersion).equals(0)
+		o(client.browser).equals(BrowserType.SAFARI)
+		o(client.browserVersion).equals(7)
 		o(client.device).equals(DeviceType.IPHONE)
 		o(client.isMobileDevice()).equals(true)
 	})
@@ -249,8 +273,8 @@ o.spec("ClientDetector test", function () {
 
 	o("ClientDetector detect chrome 34 on iphone", () => {
 		client.init("Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/34.0.1847.18 Mobile/11A501 Safari/9537.53", "Linux")
-		o(client.browser).equals(BrowserType.OTHER)
-		o(client.browserVersion).equals(0)
+		o(client.browser).equals(BrowserType.CHROME)
+		o(client.browserVersion).equals(34)
 		o(client.device).equals(DeviceType.IPHONE)
 		o(client.isMobileDevice()).equals(true)
 	})

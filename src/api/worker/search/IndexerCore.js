@@ -433,6 +433,7 @@ export class IndexerCore {
 
 	_needsMicrotaskHack(browserData: BrowserData): boolean {
 		return browserData.browserType === BrowserType.SAFARI
+			|| browserData.browserType === BrowserType.PALEMOON
 			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
 			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
 	}
