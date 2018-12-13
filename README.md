@@ -47,9 +47,6 @@ If you prefer the auto-update feature, use the Google Play Store or F-Droid in t
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the Tutanota directory: `cd tutanota`
 3. Install dependencies: `npm install`
-4. Build the web part: `node dist prod`
-5. Switch to the Android folder: `cd app-android`
-6. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
-7. Build the Android app: `./gradlew assembleRelease`
-8. Sign the app: `jarsigner -verbose -keystore MyKeystore.jks -storepass CHANGEME app/build/outputs/apk/release/app-release-unsigned.apk tutaKey`
-9. Install the app on your device: `adb install -r app/build/outputs/apk/release/app-release-unsigned.apk`
+4. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
+5. run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
+6. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
