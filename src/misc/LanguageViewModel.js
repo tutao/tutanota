@@ -47,8 +47,8 @@ export const languages: Language[] = [
 	{code: 'tr', textId: 'languageTurkish_label'},
 	{code: 'uk_ua', textId: 'languageUkrainian_label'},
 	{code: 'vi', textId: 'languageVietnamese_label'},
-	{code: 'zh_hant', textId: 'languageChineseTraditional_label'},
-	{code: 'zh_tw', textId: 'languageChineseSimplified_label'}
+	{code: 'zh', textId: 'languageChineseSimplified_label'},
+	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
 ]
 
 const infoLinks = {
@@ -232,8 +232,12 @@ class LanguageViewModel {
 				let language = languages.find(l => l.code === code && (restrictions == null
 					|| restrictions.indexOf(l.code) !== -1))
 				if (language == null) {
-					language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null
-						|| restrictions.indexOf(l.code) !== -1))
+					if (tag === 'zh-HK') {
+						language = languages.find(l => l.code === 'zh_tw')
+					} else {
+						language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null
+							|| restrictions.indexOf(l.code) !== -1))
+					}
 				}
 				if (language) {
 					if (language.code === 'de' && whitelabelCustomizations
