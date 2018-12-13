@@ -11,6 +11,7 @@
 
 NSString *const TUT_ERROR_DOMAIN = @"de.tutao.tutanota";
 NSString *const TUT_CRYPTO_ERROR = @"de.tutao.tutanota.TutCrypto";
+NSString *const TUT_FILEVIEWER_ERROR = @"de.tutao.tutanota.TutFileViewer";
 
 @implementation TUTErrorFactory
 

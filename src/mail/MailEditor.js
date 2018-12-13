@@ -71,6 +71,7 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
+import {FileOpenError} from "../api/common/error/FileOpenError"
 
 assertMainOrNode()
 
@@ -589,10 +590,12 @@ export class MailEditor {
 				click: () => {
 					if (file._type === 'FileReference') {
 						return fileApp.open((file: FileReference))
+						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					} else if (file._type === "DataFile") {
 						return fileController.open(file)
 					} else {
 						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					}
 
 				}

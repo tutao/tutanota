@@ -69,6 +69,7 @@ import {client} from "../misc/ClientDetector"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
+import {FileOpenError} from "../api/common/error/FileOpenError"
 
 assertMainOrNode()
 
@@ -673,10 +674,12 @@ export class MailViewer {
 				const dropdownButton: Button = createDropDownButton(() => file.name,
 					() => Icons.Attachment,
 					() => [
-						new Button("open_action", () => fileController.downloadAndOpen(file, true), null)
-							.setType(ButtonType.Dropdown),
-						new Button("download_action", () => fileController.downloadAndOpen(file, false), null)
-							.setType(ButtonType.Dropdown)
+						new Button("open_action",
+							() => fileController.downloadAndOpen(file, true).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							null).setType(ButtonType.Dropdown),
+						new Button("download_action",
+							() => fileController.downloadAndOpen(file, false).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
 						const rect = dropdownButton._domButton.getBoundingClientRect()
@@ -690,7 +693,7 @@ export class MailViewer {
 			})
 		} else {
 			buttons = files.map(file => new Button(() => file.name,
-				() => fileController.downloadAndOpen(file, true),
+				() => fileController.downloadAndOpen(file, true).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 				() => Icons.Attachment)
 				.setType(ButtonType.Bubble)
 				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
