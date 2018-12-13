@@ -4,6 +4,7 @@ import {HttpMethod} from "../../common/EntityFunctions"
 import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
 import {serviceRequest} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
+import {MonitorService} from "../../entities/monitor/Services"
 
 assertWorkerOrNode()
 

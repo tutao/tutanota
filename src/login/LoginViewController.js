@@ -37,6 +37,7 @@ import {fileApp} from "../native/FileApp"
 import {showSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
+import {TutanotaService} from "../api/entities/tutanota/Services"
 
 assertMainOrNode()
 
