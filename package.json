@@ -30,7 +30,7 @@
     "electron-builder": "^20.31.2",
     "electron-localshortcut": "^3.1.0",
     "electron-packager": "^12.1.2",
-    "electron-updater": "^3.1.2",
+    "electron-updater": "^4.0.0",
     "express": "4.16.4",
     "flow-bin": "0.77.0",
     "fs-extra": "7.0.0",
