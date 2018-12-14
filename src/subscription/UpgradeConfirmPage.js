@@ -19,7 +19,7 @@ import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
-import {SubscriptionType} from "./SubscriptionUtils"
+import {formatPrice, SubscriptionType} from "./SubscriptionUtils"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
@@ -143,13 +143,14 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		const netOrGross = this._upgradeData.options.businessUse()
 			? lang.get("net_label")
 			: lang.get("gross_label")
-		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.options.paymentInterval() === 12
+		this._priceField.setValue(formatPrice(Number(this._upgradeData.price), true) + " " + (this._upgradeData.options.paymentInterval() === 12
 			? lang.get("pricing.perYear_label")
 			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		if (this._upgradeData.priceNextYear) {
-			this._priceNextYearField.setValue(this._upgradeData.priceNextYear + " " + (this._upgradeData.options.paymentInterval() === 12
-				? lang.get("pricing.perYear_label")
-				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
+			this._priceNextYearField.setValue(formatPrice(Number(this._upgradeData.priceNextYear), true) + " " +
+				(this._upgradeData.options.paymentInterval() === 12
+					? lang.get("pricing.perYear_label")
+					: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		}
 
 		this._paymentMethodField.setValue(getPaymentMethodName(this._upgradeData.paymentData.paymentMethod))
