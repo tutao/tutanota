@@ -32,12 +32,13 @@ import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
-import {formatPrice, isMailAddress} from "../misc/Formatter"
+import {isMailAddress} from "../misc/Formatter"
 import {fileApp} from "../native/FileApp"
-import {showSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -285,7 +286,7 @@ export class LoginViewController implements ILoginViewController {
 		})
 	}
 
-	showSignupWizard(): Promise<void> {
-		return worker.initialized.then(() => showSignupWizard())
+	loadSignupWizard(): Promise<{+show: () => any}> {
+		return worker.initialized.then(() => loadSignupWizard())
 	}
 }

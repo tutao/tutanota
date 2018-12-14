@@ -2,12 +2,13 @@
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
-import {BuyOptionBox} from "./BuyOptionBox"
+import type {BuyOptionBoxAttr} from "./BuyOptionBox"
+import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import {load, serviceRequestVoid} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {formatPrice} from "../misc/Formatter"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -15,11 +16,12 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Button, ButtonType} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {Keys} from "../misc/KeyManager"
-import * as BuyDialog from "./BuyDialog"
 import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
+import {ButtonN} from "../gui/base/ButtonN"
+import * as BuyDialog from "./BuyDialog"
 
 export function buyStorage(amount: number): Promise<void> {
 	const bookingData = createBookingServiceData()
@@ -54,12 +56,12 @@ export function show(): Promise<void> {
 					callback(null)
 				}
 
-				const storageBuyOptions = [
-					createStorageCapacityBox(0, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
-					createStorageCapacityBox(10, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
-					createStorageCapacityBox(100, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
-					createStorageCapacityBox(1000, freeStorageCapacity, changeStorageCapacityAction, "buy_action"),
-				].filter(scb => scb.amount === 0 || scb.amount > freeStorageCapacity).map(scb => scb.buyOptionBox) // filter needless buy options
+				const storageBuyOptionsAttrs = [
+					createStorageCapacityBoxAttr(0, freeStorageCapacity, changeStorageCapacityAction),
+					createStorageCapacityBoxAttr(10, freeStorageCapacity, changeStorageCapacityAction),
+					createStorageCapacityBoxAttr(100, freeStorageCapacity, changeStorageCapacityAction),
+					createStorageCapacityBoxAttr(1000, freeStorageCapacity, changeStorageCapacityAction),
+				].filter(scb => scb.amount === 0 || scb.amount > freeStorageCapacity).map(scb => scb.buyOptionBoxAttr) // filter needless buy options
 
 				const headerBar = new DialogHeaderBar()
 					.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
@@ -67,7 +69,7 @@ export function show(): Promise<void> {
 				const dialog = Dialog.largeDialog(headerBar, {
 					view: () => [
 						m(".pt.center", lang.get("buyStorageCapacityInfo_msg")),
-						m(".flex-center.flex-wrap", storageBuyOptions.map(so => m(so)))
+						m(".flex-center.flex-wrap", storageBuyOptionsAttrs.map(attr => m(BuyOptionBox, attr)))
 					]
 				}).addShortcut({
 					key: Keys.ESC,
@@ -80,26 +82,39 @@ export function show(): Promise<void> {
 		})
 }
 
-function createStorageCapacityBox(amount: number, freeAmount: number, buyAction: (amount: number) => void, actionId: string = "buy_action"): {amount: number, buyOptionBox: BuyOptionBox} {
-	let buyOptionBox = new BuyOptionBox(() => formatStorageCapacity(Math.max(amount, freeAmount)), "pricing.select_action",
-		() => buyAction(amount),
-		() => [], 230, 240)
-
-	buyOptionBox.setPrice(lang.get("emptyString_msg"))
-	buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
+function createStorageCapacityBoxAttr(amount: number, freeAmount: number, buyAction: (amount: number) => void): {amount: number, buyOptionBoxAttr: BuyOptionBoxAttr} {
+	let attrs = {
+		heading: formatStorageCapacity(Math.max(amount, freeAmount)),
+		actionButton: {
+			view: () => {
+				return m(ButtonN, {
+					label: "pricing.select_action",
+					type: ButtonType.Login,
+					click: () => buyAction(amount)
+				})
+			}
+		},
+		price: lang.get("emptyString_msg"),
+		originalPrice: lang.get("emptyString_msg"),
+		helpLabel: "emptyString_msg",
+		features: () => [],
+		width: 230,
+		height: 210,
+		paymentInterval: null,
+		showReferenceDiscount: false
+	}
 
 	worker.getPrice(BookingItemFeatureType.Storage, amount, false).then(newPrice => {
-		const currentCount = getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Storage);
-		if (amount === currentCount) {
-			buyOptionBox.selected = true
+		if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Storage)) {
+			attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
 		}
-		const price = getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage)
-		buyOptionBox.setPrice(formatPrice(price, true))
-		const paymentInterval = neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-		buyOptionBox.setHelpLabel(paymentInterval === "12" ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label"))
+		let price = formatPrice(getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage), true)
+		attrs.price = price
+		attrs.originalPrice = price
+		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval === "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
 		m.redraw()
 	})
-	return {amount, buyOptionBox}
+	return {amount, buyOptionBoxAttr: attrs}
 }
 
 function formatStorageCapacity(amount: number): string {

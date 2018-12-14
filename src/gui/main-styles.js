@@ -274,7 +274,8 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar',
 		},
-		'.center': {'text-align': 'center'},
+		'.center': {'text-align': 'center'}, //TODO: migrate to .text-center
+		'.text-center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
 		'.left': {'text-align': 'left'},
 		'.statusTextColor': {color: theme.content_accent},
@@ -296,13 +297,15 @@ styles.registerStyle('main', () => {
 		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
 		'.flex-fixed': {flex: "0 0 auto"},
-		'.flex-center': {display: 'flex', 'justify-content': 'center'},
+		'.flex-center': {display: 'flex', 'justify-content': 'center'}, // TODO: migrate to .flex.center-horizontal
 		'.flex-end': {display: 'flex', 'justify-content': 'flex-end'},
 		'.flex-start': {display: 'flex', 'justify-content': 'flex-start'},
 		'.flex-v-center': {display: 'flex', 'flex-direction': "column", 'justify-content': 'center'},
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
-		'.flex-column': {'flex-direction': "column"},
-		'.flex-column-reverse': {'flex-direction': "column-reverse"},
+		'.flex-column': {'flex-direction': "column"}, //TODO migrate to .col
+		".col": {'flex-direction': "column"},
+		'.flex-column-reverse': {'flex-direction': "column-reverse"}, //TODO: migrate to col-reverse
+		'.col-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
 		'.flex-grow': {flex: "1"},
 		'.flex-third': {flex: '1 0 0', 'min-width': "100px"}, // splits a flex layout into three same width columns
@@ -315,8 +318,10 @@ styles.registerStyle('main', () => {
 		'.flex-no-grow-no-shrink-auto': {flex: "0 0 auto"},
 		'.flex-no-grow': {flex: "0"},
 		'.flex-no-grow-shrink-auto': {flex: "0 1 auto"},
-		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
-		'.items-center': {'align-items': 'center'},
+		'.flex-wrap': {'flex-wrap': 'wrap'}, // TODO: migrate to .wrap
+		".wrap": {'flex-wrap': 'wrap'}, // elements may move into the next line
+		'.items-center': {'align-items': 'center'}, //TODO: migrate to .center-vertically
+		".center-vertically": {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},
 		'.items-start': {'align-items': 'flex-start'},
 		'.items-base': {'align-items': 'baseline'},
@@ -324,7 +329,8 @@ styles.registerStyle('main', () => {
 		'.align-self-center': {'align-self': 'center'},
 		'.align-self-end': {'align-self': 'flex-end'},
 		'.align-self-stretch': {'align-self': 'stretch'},
-		'.justify-center': {'justify-content': 'center'},
+		'.justify-center': {'justify-content': 'center'}, //TODO: migrate to justify-horizontally
+		".center-horizontally": {'justify-content': 'center'},
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
 		'.justify-start': {'justify-content': 'flex-start'},
@@ -792,8 +798,13 @@ styles.registerStyle('main', () => {
 			width: "100%",
 			padding: px(10)
 		},
-		'.buyOptionBox.selected': {
+		'.buyOptionBox.active': {
 			border: `1px solid ${theme.content_accent}`,
+		},
+
+		'.buyOptionBox.highlighted': {
+			border: `2px solid ${theme.content_accent}`,
+			padding: px(9)
 		},
 
 		'.ribbon-vertical': {

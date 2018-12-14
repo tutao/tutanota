@@ -10,7 +10,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {formatDate, formatPrice} from "../misc/Formatter"
+import {formatDate} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -18,6 +18,7 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {getPriceItem} from "./PriceUtils"
+import {formatPrice} from "./SubscriptionUtils"
 
 assertMainOrNode()
 

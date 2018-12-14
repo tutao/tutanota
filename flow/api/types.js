@@ -295,11 +295,6 @@ type SearchIndexStateInfo = {
 	currentMailIndexTimestamp: number;
 }
 
-type SubscriptionOptions = {
-	businessUse: boolean,
-	paymentInterval: number,
-}
-
 type CreditCardData = {
 	number: string,
 	cvv: string,

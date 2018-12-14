@@ -37,3 +37,4 @@ type SysServiceEnum =
 	| "locationservice"
 	| "signorderprocessingagreementservice"
 	| "resetfactorsservice"
+	| "upgradepriceservice"

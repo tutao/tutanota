@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2018-11-27T13:10:11Z",
+	"updated_at": "2018-12-11T10:48:18Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",
@@ -732,12 +732,9 @@ module.exports = {
 		"pricing.basePriceIncludesTaxes_msg": "Preu base. Inclou impostos.",
 		"pricing.businessUse_label": "Empresa",
 		"pricing.comparisonDomainFree_msg": "Només dominis Tutanota",
-		"pricing.comparisonDomainPro_msg": "Dominis personalitzats",
 		"pricing.comparisonLoginPro_msg": "Inici de sessió personalitzat",
 		"pricing.comparisonSearchPremium_msg": "Búsquedes il·limitades",
-		"pricing.comparisonStorageFree_msg": "1 GB d'emmagatzematge",
-		"pricing.comparisonStoragePremium_msg": "1 GB d'emmagatzematge",
-		"pricing.comparisonStoragePro_msg": "10 GB d'emmagatzematge",
+		"pricing.comparisonStorage_msg": "{amount} GB d'emmagatzematge",
 		"pricing.comparisonSupportPremium_msg": "Suport via correu electrònic",
 		"pricing.comparisonThemePro_msg": "Logotip i colors personalitzats",
 		"pricing.comparisonUsersFree_msg": "Un usuari",

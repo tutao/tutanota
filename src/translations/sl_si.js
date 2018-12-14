@@ -266,7 +266,6 @@ module.exports = {
 		"paypalData_label": "PayPal račun",
 		"premiumAccountCanceled_msg": "Premium račun je bil že preklican.",
 		"presharedPasswordAndStrength_msg": "Moč gesla",
-		"pricing.comparisonAliasPro_msg": "20 alternativnih e-poštnih naslovov",
 		"pricing.mailAddressAliasesShort_label": "{amount} alternativni elektronski naslov",
 		"privacyLink_label": "Politika zasebnosti",
 		"promotionCodeAliasSuccess_msg": "Uspešno odklenjenih je bilo 5 alternativnih e-poštnih naslovov.",

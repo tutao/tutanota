@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2018-11-27T13:10:11Z",
+	"updated_at": "2018-12-11T10:52:22Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sayangnya, akun Tutanota Anda telah dinonaktifkan. Mohon hubungi administrator Anda.",
@@ -545,12 +545,8 @@ module.exports = {
 		"priceIncludesTaxes_msg": "Harga termasuk pajak.",
 		"price_label": "Harga",
 		"pricing.businessUse_label": "Bisnis",
-		"pricing.comparisonAliasPro_msg": "20 alias",
-		"pricing.comparisonInboxRulesPro_msg": "Aturan kotak masuk",
 		"pricing.comparisonSearchFree_msg": "Pencarian terbatas",
-		"pricing.comparisonStorageFree_msg": "Penyimpanan 1 GB",
-		"pricing.comparisonStoragePremium_msg": "Penyimpanan 1 GB",
-		"pricing.comparisonStoragePro_msg": "Penyimpanan 10 GB",
+		"pricing.comparisonStorage_msg": "Penyimpanan {amount} GB",
 		"pricing.mailAddressAliasesShort_label": "{amount} alias",
 		"pricing.monthly_label": "Bulanan",
 		"pricing.perMonth_label": "tiap bulan",

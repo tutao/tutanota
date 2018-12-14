@@ -282,7 +282,7 @@ export class LoginView {
 	_signup() {
 		if (!this._showingSignup) {
 			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.showSignupWizard()), false)
+			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard()), false).then(dialog => dialog.show())
 		}
 	}
 

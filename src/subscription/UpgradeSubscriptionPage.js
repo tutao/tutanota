@@ -1,72 +1,76 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
-import type {SubscriptionTypeEnum, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionType} from "./UpgradeSubscriptionWizard"
+import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SubscriptionSelector} from "./SubscriptionSelector"
-import {AccountType} from "../api/common/TutanotaConstants"
 import {isApp, isTutanotaDomain} from "../api/Env"
 import {client} from "../misc/ClientDetector"
-
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {getUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
-	_businessUse: Stream<SegmentControlItem<boolean>>;
 	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
 	_upgradeData: UpgradeSubscriptionData;
-	_selector: SubscriptionSelector;
 
-
-	constructor(upgradeData: UpgradeSubscriptionData, includeFree: boolean) {
+	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._upgradeData = upgradeData
-		const actionHandler = (type: SubscriptionTypeEnum) => {
-			return () => {
-				let upgradeBox;
-				if (type == SubscriptionType.Premium) {
-					upgradeBox = this._selector._premiumUpgradeBox
-				} else if (type == SubscriptionType.Pro) {
-					upgradeBox = this._selector._proUpgradeBox
-				} else {
-					upgradeBox = this._selector._freeTypeBox
-				}
-				this._upgradeData.subscriptionOptions = {
-					businessUse: this._businessUse().value,
-					paymentInterval: upgradeBox.paymentInterval().value
-				}
-				this._upgradeData.type = type
-				this._upgradeData.price = upgradeBox.buyOptionBox.price()
-				this._upgradeData.priceNextYear = upgradeBox.buyOptionBox.nextYearPrice()
-				this._pageActionHandler.showNext(this._upgradeData)
-			}
-		}
-
-		let businessUseItems = [
-			{name: lang.get("pricing.privateUse_label"), value: false},
-			{name: lang.get("pricing.businessUse_label"), value: true}
-		]
-		this._businessUse = stream(businessUseItems[0])
-		this._selector = new SubscriptionSelector(
-			AccountType.FREE,
-			"12",
-			actionHandler(SubscriptionType.Free),
-			actionHandler(SubscriptionType.Premium),
-			actionHandler(SubscriptionType.Pro),
-			this._businessUse.map(business => business.value ? true : false),
-			includeFree, this._upgradeData.campaign
-		)
-
-		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse).setSelectionChangedHandler(businessUseItem => {
-			this._businessUse(businessUseItem)
-		})
-
 		this.view = () => m("#upgrade-account-dialog.pt", [
-				m(privateBusinesUseControl),
-				this._upgradeData.campaign ? m(".b.center.mt", lang.get("tresoritDiscount_msg")) : null,
-				m(this._selector)
+				m(SubscriptionSelector, {
+					options: this._upgradeData.options,
+					campaignInfoTextId: upgradeData.campaignInfoTextId,
+					boxWidth: 230,
+					boxHeight: 250,
+					highlightPremium: true,
+					premiumPrices: upgradeData.premiumPrices,
+					proPrices: upgradeData.proPrices,
+					isInitialUpgrade: upgradeData.isInitialUpgrade,
+					freeActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Free
+									this._upgradeData.price = "0"
+									this._upgradeData.priceNextYear = "0"
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					premiumActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Premium
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					proActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Pro
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					}
+				})
 			]
 		)
 	}

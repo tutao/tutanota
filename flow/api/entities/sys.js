@@ -1523,3 +1523,34 @@ type ResetFactorsDeleteData = {
 	recoverCodeVerifier: string;
 
 }
+
+type UpgradePriceServiceData = {
+	_type: TypeRef<UpgradePriceServiceData>;
+	_format: NumberString;
+	campaign: ?string;
+	date: ?Date;
+
+}
+
+type PlanPrices = {
+	_type: TypeRef<PlanPrices>;
+	_id: Id;
+	additionalUserPriceMonthly: NumberString;
+	contactFormPriceMonthly: NumberString;
+	firstYearDiscount: NumberString;
+	includedAliases: NumberString;
+	includedStorage: NumberString;
+	monthlyPrice: NumberString;
+	monthlyReferencePrice: NumberString;
+
+}
+
+type UpgradePriceServiceReturn = {
+	_type: TypeRef<UpgradePriceServiceReturn>;
+	_format: NumberString;
+	business: boolean;
+	messageTextId: ?string;
+
+	premiumPrices: PlanPrices;
+	proPrices: PlanPrices;
+}

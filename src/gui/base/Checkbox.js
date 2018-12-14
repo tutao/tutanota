@@ -9,9 +9,6 @@ import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNodeBoot()
 
-const FALSE_CLOSURE = () => {
-	return false
-}
 
 export class Checkbox {
 	getChildren: lazy<Children>;

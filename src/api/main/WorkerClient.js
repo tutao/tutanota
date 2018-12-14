@@ -230,7 +230,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('switchPremiumToFreeGroup', arguments))
 	}
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return this._postRequest(new Request('updatePaymentData', arguments))
 	}
 
@@ -258,7 +258,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean, campaign: ?string): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 

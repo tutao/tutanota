@@ -8,5 +8,5 @@ TutaoShowCameraAction = "Fotoaparát";
 TutaoChoosePhotosAction = "Fotky";
 TutaoNoPermissionTitle = "Bez povolenia";
 TutaoChangePermissionMsg = "Pre poskytnutie prístupu musíš upraviť povolenia pre toto zariadenie.";
-TutaoCancelAction = "Zruš";
+TutaoCancelAction = "Zrušiť";
 TutaoSettingsAction = "Nastavenia";

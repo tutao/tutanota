@@ -2,13 +2,12 @@
 import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
-import {formatPrice} from "../misc/Formatter"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {Button} from "../gui/base/Button"
 import {neverNull} from "../api/common/utils/Utils"
 import type {lazyIcon} from "../gui/base/Icon"
-
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -23,7 +22,6 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
 	}
 }
-
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {

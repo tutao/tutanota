@@ -4,7 +4,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionType} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -23,6 +22,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {neverNull} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
+import {SubscriptionType} from "./SubscriptionUtils"
 
 
 /**
@@ -49,7 +50,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			} else {
 				this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
 				this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.subscriptionOptions, this._upgradeData.invoiceData, this._upgradeData.paymentData, null)
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null)
 					.then(success => {
 						if (success) {
 							this._pageActionHandler.showNext(this._upgradeData)
@@ -112,12 +113,12 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 					}))
 			}
 		}).then(() => {
-			this._invoiceDataInput = new InvoiceDataInput(data.subscriptionOptions, data.invoiceData)
+			this._invoiceDataInput = new InvoiceDataInput(data.options, data.invoiceData)
 			let payPalRequestUrl = getLazyLoadedPayPalUrl()
 			if (logins.isUserLoggedIn()) {
 				payPalRequestUrl.getAsync()
 			}
-			this._paymentMethodInput = new PaymentMethodInput(data.subscriptionOptions, this._invoiceDataInput.selectedCountry, data.accountingInfo, payPalRequestUrl)
+			this._paymentMethodInput = new PaymentMethodInput(data.options, this._invoiceDataInput.selectedCountry, data.accountingInfo, payPalRequestUrl)
 			this._availablePaymentMethods = this._paymentMethodInput.getAvailablePaymentMethods()
 			this._paymentMethodSelector = new SegmentControl(this._availablePaymentMethods, this._selectedPaymentMethod, 130)
 				.setSelectionChangedHandler((selectedItem) => {
@@ -138,7 +139,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 
 
 export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country): Promise<boolean> {
-	return worker.updatePaymentData(subscriptionOptions, invoiceData, paymentData, confirmedCountry)
+	return worker.updatePaymentData(subscriptionOptions.businessUse(), subscriptionOptions.paymentInterval(), invoiceData, paymentData, confirmedCountry)
 	             .then(paymentResult => {
 		             const statusCode = paymentResult.result
 		             if (statusCode === PaymentDataResultType.OK) {

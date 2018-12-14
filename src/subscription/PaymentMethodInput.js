@@ -15,6 +15,7 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -101,9 +102,9 @@ export class PaymentMethodInput {
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			if (this._subscriptionOptions.businessUse && country && country.t === CountryType.OTHER) {
+			if (this._subscriptionOptions.businessUse() && country && country.t === CountryType.OTHER) {
 				return "paymentMethodNotAvailable_msg"
-			} else if (!this._subscriptionOptions.businessUse) {
+			} else if (!this._subscriptionOptions.businessUse()) {
 				return "paymentMethodNotAvailable_msg"
 			}
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
@@ -154,7 +155,7 @@ export class PaymentMethodInput {
 			{name: "PayPal", value: PaymentMethodType.Paypal}
 		]
 
-		if (this._subscriptionOptions.businessUse) {
+		if (this._subscriptionOptions.businessUse()) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodOnAccount_label"),
 				value: PaymentMethodType.Invoice

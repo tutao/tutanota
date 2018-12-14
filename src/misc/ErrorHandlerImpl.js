@@ -30,7 +30,7 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
-import {formatPrice} from "./Formatter"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 

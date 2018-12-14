@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2018-11-27T13:10:11Z",
+	"updated_at": "2018-12-11T10:50:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -594,10 +594,7 @@ module.exports = {
 		"pricing.businessUse_label": "Бизнес",
 		"pricing.comparisonSearchFree_msg": "Ограниченный поиск",
 		"pricing.comparisonSearchPremium_msg": "Неограниченный поиск",
-		"pricing.comparisonSearchPro_msg": "Неограниченный поиск.",
-		"pricing.comparisonStorageFree_msg": "Хранилище 1 Гб",
-		"pricing.comparisonStoragePremium_msg": "Хранилище 1 Гб",
-		"pricing.comparisonStoragePro_msg": "Хранилище 10 Гб",
+		"pricing.comparisonStorage_msg": "Хранилище {amount} Гб",
 		"pricing.comparisonSupportPremium_msg": "Поддержка по электронной почте",
 		"pricing.comparisonUsersFree_msg": "Один пользователь",
 		"pricing.mailAddressAliasesShort_label": "{amount} алиасов",

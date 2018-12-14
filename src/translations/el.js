@@ -353,7 +353,6 @@ module.exports = {
 		"priceIncludesTaxes_msg": "Η τιμή περιλαμβάνει τους φόρους.",
 		"price_label": "Τιμή",
 		"pricing.comparisonSearchPremium_msg": "Απεριόριστη αναζήτηση",
-		"pricing.comparisonSearchPro_msg": "Απεριόριστη αναζήτηση",
 		"pricing.monthly_label": "Μηνιαία",
 		"pricing.perMonth_label": "ανά μήνα",
 		"pricing.perYear_label": "ανά έτος",

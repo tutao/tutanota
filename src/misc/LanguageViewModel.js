@@ -184,6 +184,18 @@ class LanguageViewModel {
 		}
 	}
 
+	exists(id: string): boolean {
+		try {
+			this.get(id)
+			return true
+		} catch (e) {
+			return false
+		}
+	}
+
+	/**
+	 * @throws An error if there is no translation for the given id.
+	 */
 	get(id: string, params: ?Object): string {
 		if (id == null) {
 			return ""

@@ -355,15 +355,14 @@ export class CustomerFacade {
 			})
 	}
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
-						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
-						service.business = subscriptionOptions.businessUse
-						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
+						service.business = businessUse
+						service.paymentInterval = paymentInterval.toString()
 						service.invoiceName = ""
 						service.invoiceAddress = invoiceData.invoiceAddress
 						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""

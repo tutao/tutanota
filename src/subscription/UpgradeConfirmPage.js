@@ -15,10 +15,11 @@ import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {deleteCampaign, SubscriptionType} from "./UpgradeSubscriptionWizard"
+import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
+import {SubscriptionType} from "./SubscriptionUtils"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
@@ -47,7 +48,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		let upgradeButton = new Button("buy_action", () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			serviceData.proUpgrade = (data.type == SubscriptionType.Pro)
+			serviceData.proUpgrade = (data.type === SubscriptionType.Pro)
 			serviceData.date = Const.CURRENT_DATE
 			serviceData.campaign = this._upgradeData.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
@@ -136,17 +137,17 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 	updateWizardData(wizardData: UpgradeSubscriptionData) {
 		this._upgradeData = wizardData
 		this._orderField.setValue(this._upgradeData.type)
-		this._subscriptionField.setValue((this._upgradeData.subscriptionOptions.paymentInterval === 12
+		this._subscriptionField.setValue((this._upgradeData.options.paymentInterval() === 12
 			? lang.get("pricing.yearly_label")
 			: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
-		const netOrGross = this._upgradeData.subscriptionOptions.businessUse
+		const netOrGross = this._upgradeData.options.businessUse()
 			? lang.get("net_label")
 			: lang.get("gross_label")
-		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
+		this._priceField.setValue(this._upgradeData.price + " " + (this._upgradeData.options.paymentInterval() === 12
 			? lang.get("pricing.perYear_label")
 			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		if (this._upgradeData.priceNextYear) {
-			this._priceNextYearField.setValue(this._upgradeData.priceNextYear + " " + (this._upgradeData.subscriptionOptions.paymentInterval === 12
+			this._priceNextYearField.setValue(this._upgradeData.priceNextYear + " " + (this._upgradeData.options.paymentInterval() === 12
 				? lang.get("pricing.perYear_label")
 				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		}

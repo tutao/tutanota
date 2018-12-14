@@ -1,6 +1,6 @@
 // @flow
 import {lang} from "./LanguageViewModel"
-import {startsWith, pad} from "../api/common/utils/StringUtils"
+import {pad, startsWith} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
@@ -187,18 +187,6 @@ export function _cleanupAndSplit(dateString: string): number[] {
 	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
 }
 
-export function formatPrice(value: number, includeCurrency: boolean): string {
-	if (includeCurrency) {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithCurrency.format(value)
-			: lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
-	} else {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithoutCurrency.format(value)
-			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
-	}
-}
-
 /**
  * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
  * Additionally, whitespaces at any positions outside name and mailAddress are ignored.
@@ -210,27 +198,27 @@ export function stringToNameAndMailAddress(string: string): ?{name: string, mail
 	if (string === "") {
 		return null
 	}
-	var startIndex = string.indexOf("<")
+	let startIndex = string.indexOf("<")
 	if (startIndex !== -1) {
-		var endIndex = string.indexOf(">", startIndex)
+		const endIndex = string.indexOf(">", startIndex)
 		if (endIndex === -1) {
 			return null
 		}
-		var cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
+		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
 
 		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
 			return null
 		}
-		var name = string.substring(0, startIndex).trim()
+		const name = string.substring(0, startIndex).trim()
 		return {name: name, mailAddress: cleanedMailAddress}
 	} else {
-		var startIndex = string.lastIndexOf(" ")
+		startIndex = string.lastIndexOf(" ")
 		startIndex++
-		var cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
+		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
 		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
 			return null
 		}
-		var name = string.substring(0, startIndex).trim()
+		const name = string.substring(0, startIndex).trim()
 		return {name: name, mailAddress: cleanedMailAddress}
 	}
 }

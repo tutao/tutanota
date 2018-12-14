@@ -24,7 +24,7 @@ import {HttpMethod, isSameId, sortCompareByReverseId} from "../api/common/Entity
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {formatDate, formatNameAndAddress, formatPrice} from "../misc/Formatter"
+import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
@@ -40,6 +40,8 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import stream from "mithril/stream/stream.js"
+import {formatPrice} from "./SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -75,8 +77,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				const accountingInfo = neverNull(this._accountingInfo)
 				const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
 				InvoiceDataDialog.show({
-						businessUse: accountingInfo.business,
-						paymentInterval: Number(accountingInfo.paymentInterval)
+						businessUse: stream(accountingInfo.business),
+						paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 					}, {
 						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 						country: invoiceCountry,

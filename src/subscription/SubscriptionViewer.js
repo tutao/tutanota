@@ -82,6 +82,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					this._isPro,
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
+					getIncludedStorageCapacity(neverNull(this._customerInfo)),
+					getIncludedAliases(neverNull(this._customerInfo)),
 					this._isWhitelabelActive())
 			}
 		}, () => Icons.Edit)
@@ -265,8 +267,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			let accountingInfo = neverNull(this._accountingInfo)
 			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 			InvoiceDataDialog.show({
-				businessUse: true,
-				paymentInterval: Number(accountingInfo.paymentInterval),
+				businessUse: stream(true),
+				paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 			}, {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
@@ -449,7 +451,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
  * Returns the available storage capacity for the customer in GB
  */
 function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeStorageCapacity = Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
+	let freeStorageCapacity = getIncludedStorageCapacity(customerInfo)
 	if (customer.type === AccountType.PREMIUM) {
 		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
 	} else {
@@ -457,8 +459,12 @@ function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo,
 	}
 }
 
+function getIncludedStorageCapacity(customerInfo: CustomerInfo): number {
+	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
+}
+
 function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
+	let freeAliases = getIncludedAliases(customerInfo)
 	if (customer.type === AccountType.PREMIUM) {
 		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
 	} else {
@@ -466,6 +472,9 @@ function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBoo
 	}
 }
 
+function getIncludedAliases(customerInfo: CustomerInfo): number {
+	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
+}
 
 function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
 	if (type === AccountType.PREMIUM && isPro) {
@@ -478,10 +487,7 @@ function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
 export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
 		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-		worker.updatePaymentData({
-				businessUse: accountingInfo.business,
-				paymentInterval: paymentInterval,
-			}, {
+		worker.updatePaymentData(accountingInfo.business, paymentInterval, {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: accountingInfo.invoiceVatIdNo

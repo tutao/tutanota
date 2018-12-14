@@ -5,6 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, headingId: ?string, infoMessageId: ?string): Dialog {
 
