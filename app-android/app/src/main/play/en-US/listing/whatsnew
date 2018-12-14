@@ -1,4 +1,15 @@
-- WebView detection is more strict and points to more info
-- No longer notify about recovery code
-- Dialogs don't close immedeately on logging in
-- Other small fixes
+New:
+- Signup links for donations
+- Disable push notificaiton for specific account on device
+- Removed app links for whitelabel login
+
+Bugfixes:
+- Attachment download in Chrome
+- Fix error after upgrading
+- [ios] "cannot display files" bug
+- [android] File size dialog was not visible when file was shared from the outside
+- Select correct Chinese language
+- Search index error
+- Wrap long lines in mail viewer and editor
+- Fix PaleMoon errors
+- Prevent reconnecting when session has expired
