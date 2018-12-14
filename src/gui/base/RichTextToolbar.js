@@ -73,7 +73,7 @@ export class RichTextToolbar {
 			}
 		}, {
 			label: "emptyString_msg",
-			title: () => lang.get("formatTextUl_msg") + " (Ctrl + Shift + 9)",
+			title: () => lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)",
 			click: () => {
 				if (editor.styles.listing === 'ol') {
 					editor._squire.removeList()
