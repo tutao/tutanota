@@ -255,7 +255,7 @@ export class LoginView {
 					}, lang.get("recoverAccountAccess_action"))
 					: null
 			])),
-			isApp() ? null : m(".flex-center.pt-l", this.appButtons.map(button => m(button)))
+			!isApp() && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
 	}
 
@@ -290,7 +290,7 @@ export class LoginView {
 		if (requestedPath.startsWith("/signup")) {
 			this._signup()
 			return
-		} else if(requestedPath.startsWith("/recover")) {
+		} else if (requestedPath.startsWith("/recover")) {
 			return
 		}
 		this._showingSignup = false
