@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2018-12-11T12:18:50Z",
+	"updated_at": "2018-12-17T09:53:33Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -116,8 +116,8 @@ module.exports = {
 		"browserNoKeygen_msg": "Lieber Interessent von Tutanota, während der Registrierung werden Schlüssel erzeugt. Die Erzeugung dieser Schlüssel benötigt mehr Rechenleistung als das momentan verwendete Gerät bereitstellt. Bitte registrieren Sie sich am besten auf einem Desktoprechner oder Laptop und verwenden Sie dabei einen der folgenden Browser:",
 		"businessChangeInfo_msg": "Bitte bestätigen Sie Ihre Rechnungsdaten für die geschäftliche Nutzung.",
 		"businessOrPrivateUsage_label": "Nutzung",
-		"buyEmailAliasInfo_msg": "Bitte wählen Sie eins der verfügbaren E-Mail-Alias-Pakete aus, um die verfügbaren E-Mail-Aliasse zu ändern. Die gebuchten E-Mail-Aliasse können von beliebigen Benutzern verwendet werden.",
-		"buyStorageCapacityInfo_msg": "Bitte wählen Sie eins der verfügbaren Speicher-Pakete aus, um die verfügbare Speicherkapazität zu ändern. Die gebuchte Speicherkapazität kann von allen Benutzern geteilt werden.",
+		"buyEmailAliasInfo_msg": "Bitte wählen Sie eins der E-Mail-Alias-Pakete aus, um die verfügbaren E-Mail-Aliasse zu ändern. Die gebuchten E-Mail-Aliasse können von beliebigen Benutzern verwendet werden.",
+		"buyStorageCapacityInfo_msg": "Bitte wählen Sie eins der Speicher-Pakete aus, um die verfügbare Speicherkapazität zu ändern. Die gebuchte Speicherkapazität kann von allen Benutzern geteilt werden.",
 		"buy_action": "Kaufen",
 		"by_label": "von",
 		"callNumber_alt": "Diese Telefonnummer anrufen",
@@ -582,6 +582,7 @@ module.exports = {
 		"lastName_placeholder": "Nachname",
 		"lastSuccessfulLoginInfo_msg": "Der Zeitpunkt des letzten erfolgreichen Logins vor dem aktuellen Login.",
 		"lastSuccessfulLogin_label": "Letzter erfolgreicher Login",
+		"laterInvoicingInfo_msg": "Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats.",
 		"leavePageConfirmation_msg": "Möchten Sie Tutanota wirklich schließen?",
 		"linkedin_label": "LinkedIn",
 		"loadingMail_msg": "Lade Mailbox ...",
@@ -714,6 +715,8 @@ module.exports = {
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noVcardsFound_msg": "Keine vCards gefunden.",
 		"no_label": "Nein",
+		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!",
+		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
 		"number_label": "Nummer",
 		"ok_action": "OK",
 		"oldBrowser_msg": "Oh, das tut uns leid. Dieser Browser wird nur in einer aktuelleren Version unterstützt. Bitte nutzen Sie die aktuelle Version eines der folgenden Browser:",
@@ -813,9 +816,9 @@ module.exports = {
 		"pricing.basePriceExcludesTaxes_msg": "Basispreis. Ohne MwSt.",
 		"pricing.basePriceIncludesTaxes_msg": "Basispreis. Inklusive MwSt.",
 		"pricing.businessUse_label": "Geschäftlich",
-		"pricing.comparisonAddUser_msg": "Benutzer für {1} hinzufügen",
+		"pricing.comparisonAddUser_msg": "Benutzer hinzufügen ({1})",
 		"pricing.comparisonContactFormPro_msg": "Kontaktformulare ({price})",
-		"pricing.comparisonDomainFree_msg": "Nur Tutanota domains",
+		"pricing.comparisonDomainFree_msg": "Nur Tutanota-Domains",
 		"pricing.comparisonDomainPremium_msg": "Eigene Domains",
 		"pricing.comparisonInboxRulesPremium_msg": "Posteingangs-Regeln",
 		"pricing.comparisonLoginPro_msg": "Login auf eigener Domain",
@@ -1151,7 +1154,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht",
-		"laterInvoicingInfo_msg": "Separat dazu gebuchte Features werden nicht direkt abgebucht, sondern erst zum nächstmöglichen Zeitpunkt der Abrechnung hinzugefügt."
+		"yourMessage_label": "Ihre Nachricht"
 	}
 }

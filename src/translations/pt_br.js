@@ -14,7 +14,7 @@ module.exports = {
 	"updated_at": "2018-12-11T10:50:18Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
-		"name": "pt_pt",
+		"name": "pt",
 		"code": "pt-PT"
 	},
 	"keys": {

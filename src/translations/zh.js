@@ -1,6 +1,6 @@
 module.exports = {
 	"id": "92297bc51fe91ba6e1288ba94a0275f0",
-	"name": "Simplified_Chinese",
+	"name": "zh",
 	"code": "zh",
 	"default": false,
 	"main": false,
@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2018-12-11T10:51:09Z",
+	"updated_at": "2018-12-13T12:52:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -343,6 +343,7 @@ module.exports = {
 		"endsWith_label": "结束于",
 		"enforcePasswordUpdate_msg": "当管理员重置密码后，强制用户更新密码。",
 		"enforcePasswordUpdate_title": "强制更新密码",
+		"enterAsCSV_msg": "请输入您的用户详情 CSV。",
 		"enterName_msg": "请输入名称",
 		"enterPaymentDataFirst_msg": "订购附加包之前请先填写支付数据。",
 		"enterPaymentDataRedirect_msg": "您将被重定向至{1}。",
@@ -409,6 +410,7 @@ module.exports = {
 		"globalAdmin_label": "全局管理员",
 		"globalSettings_label": "全局设定",
 		"goodPassphrase_action": "如何设置一个好密码？",
+		"goPremium_msg": "高级用户能够用左侧的菜单调整搜索过滤器。",
 		"gross_label": "含税",
 		"groupDeactivated_msg": "此群组已经被停用。",
 		"groupMembers_label": "组成员",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-12-06T12:37:30Z",
+	"updated_at": "2018-12-17T09:53:21Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -110,7 +110,7 @@ module.exports = {
 		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use.",
 		"businessOrPrivateUsage_label": "Usage",
 		"buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. The booked email aliases can be used by any user.",
-		"buyStorageCapacityInfo_msg": "Please choose one of the storage packages to change the storage capacity. The booked storage is shared by all users.",
+		"buyStorageCapacityInfo_msg": "Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
 		"buy_action": "Buy",
 		"by_label": "by",
 		"callNumber_alt": "Call this number",
@@ -575,6 +575,7 @@ module.exports = {
 		"lastName_placeholder": "Last name",
 		"lastSuccessfulLoginInfo_msg": "The time of your last successful login before the current one.",
 		"lastSuccessfulLogin_label": "Last successful login",
+		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",
 		"leavePageConfirmation_msg": "Do you really want to leave Tutanota?",
 		"linkedin_label": "LinkedIn",
 		"loadingMail_msg": "Loading mailbox ...",
@@ -707,6 +708,8 @@ module.exports = {
 		"notSigned_msg": "Not signed.",
 		"noVcardsFound_msg": "No vCards found.",
 		"no_label": "No",
+		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!",
+		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"number_label": "Number",
 		"ok_action": "Ok",
 		"oldBrowser_msg": "Oh! We are sorry. Unfortunately, you are using an outdated browser. Please upgrade to the latest version of one of the following browsers:",
@@ -865,7 +868,7 @@ module.exports = {
 		"recoveryCodeEmpty_msg": "Please enter a recovery code",
 		"recoveryCodeReminder_msg": "You can set up a recovery code now which can help you to restore access to your account.",
 		"recoveryCode_label": "Recovery code",
-		"recoveryCode_msg": "Please take a minute to write down your recovery code. It is used to restore access to your account in case you lose your password or second factor.",
+		"recoveryCode_msg": "Please take a minute to write down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
 		"recover_label": "Recover",
 		"refresh_action": "Refresh",
 		"regDisabledFree_msg": "The number of Tutanota Free users is limited and registration currently disabled. Please follow us here, to get notified as soon as registration is possible again:",
@@ -1144,10 +1147,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",
-		"yourMessage_label": "Your message",
-		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
-		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!"
+		"yourMessage_label": "Your message"
 	}
 }
