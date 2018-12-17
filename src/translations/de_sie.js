@@ -1152,6 +1152,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"laterInvoicingInfo_msg": "Separat dazu gebuchte Features werden nicht direkt abgebucht, sondern erst zum nächstmöglichen Zeitpunkt der Abrechnung hinzugefügt."
+		"laterInvoicingInfo_msg": "Separat dazu gebuchte Features werden nicht direkt abgebucht, sondern erst zum nächstmöglichen Zeitpunkt der Abrechnung hinzugefügt.",
+		"willBeDeleted_msg": "Geschlossene Sitzungen werden nach zwei Wochen aus der Liste gelöscht."
 	}
 }

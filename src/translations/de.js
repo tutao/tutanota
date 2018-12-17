@@ -1152,6 +1152,7 @@ module.exports = {
 		"laterInvoicingInfo_msg": "Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats.",
 		"yourMessage_label": "Deine Nachricht",
 		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
-		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!"
+		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!",
+		"willBeDeleted_msg": "Geschlossene Sitzungen werden nach zwei Wochen aus der Liste gelöscht."
 	}
 }
