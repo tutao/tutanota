@@ -322,7 +322,7 @@ export class Dropdown {
 						this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
 						this._domContents.style.overflowY = client.overflowAuto
 					}
-					if (this._domInput) {
+					if (this._domInput && !client.isMobileDevice()) {
 						this._domInput.focus()
 					}
 				})
