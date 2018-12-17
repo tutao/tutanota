@@ -1148,6 +1148,7 @@ module.exports = {
 		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",
 		"yourMessage_label": "Your message",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
-		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!"
+		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!",
+		"willBeDeleted_msg": "These will be deleted 2 weeks after closing."
 	}
 }
