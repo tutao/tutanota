@@ -1,5 +1,6 @@
 import "core-js/es6/symbol.js"
 import "core-js/es6/array.js"
+import "core-js/modules/es7.array.includes.js"
 import "core-js/es6/object.js"
 import "core-js/es6/string.js"
 import "core-js/es6/map.js"

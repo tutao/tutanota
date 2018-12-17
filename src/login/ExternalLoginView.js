@@ -213,16 +213,23 @@ export class ExternalLoginView {
 			            return errorAction()
 		            })
 		            .catch(TooManyRequestsError, e => {
-			            this.view.helpText = 'tooManyAttempts_msg'
+			            this._helpText = 'tooManyAttempts_msg'
 			            return errorAction()
 		            })
 		            .catch(CancelledError, () => {
-			            this.view.helpText = 'emptyString_msg'
+			            this._helpText = 'emptyString_msg'
 			            return errorAction()
 		            })
 		            .catch(ConnectionError, e => {
-			            this._helpText = 'emptyString_msg'
-			            throw e;
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this._helpText = 'loginFailed_msg'
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this._helpText = 'emptyString_msg'
+				            throw e;
+			            }
 		            }).finally(() => m.redraw())
 	}
 
