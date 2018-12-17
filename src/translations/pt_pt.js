@@ -1,6 +1,6 @@
 module.exports = {
 	"id": "1c50f9a9b6bd977b100d4e27f07e8319",
-	"name": "pt_pt",
+	"name": "pt",
 	"code": "pt_pt",
 	"default": false,
 	"main": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2018-12-11T10:50:40Z",
+	"updated_at": "2018-12-12T13:43:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

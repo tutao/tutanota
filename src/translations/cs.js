@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "19ecbe40ebe264a9f75f712bb71adfbe",
 	"name": "cz",
-	"code": "cs_cz",
+	"code": "cs",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2018-11-27T13:10:11Z",
+	"updated_at": "2018-12-12T11:58:56Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Váš účet u služby Tutanota byl bohužel deaktivován. Kontaktujte prosím vašeho správce.",

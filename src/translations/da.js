@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "11f201a619413fb4269642880313942c",
 	"name": "da",
-	"code": "da_dk",
+	"code": "da",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2018-12-11T10:48:27Z",
+	"updated_at": "2018-12-12T13:43:19Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Uheldigvis er din Tutanota konto blevet deaktiveret. Kontakt venligst din administrator.",

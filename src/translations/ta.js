@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "61f357c77ff05b9217406ec6876a4ab4",
 	"name": "ta",
-	"code": "ta_in",
+	"code": "ta",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-18T10:48:25Z",
-	"updated_at": "2018-11-23T12:38:53Z",
+	"updated_at": "2018-12-12T12:05:58Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "துரதிருஷ்டவசமாக, உங்கள் Tutanota கணக்கு செயலிழக்கச் செய்யப்பட்டுள்ளது. தயவுசெய்து உங்கள் நிர்வாகியை தொடர்பு கொள்ளவும்.",

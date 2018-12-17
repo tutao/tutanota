@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2018-12-11T12:18:08Z",
+	"updated_at": "2018-12-17T09:53:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -579,6 +579,7 @@ module.exports = {
 		"lastName_placeholder": "Nachname",
 		"lastSuccessfulLoginInfo_msg": "Der Zeitpunkt des letzten erfolgreichen Logins vor dem aktuellen Login.",
 		"lastSuccessfulLogin_label": "Letzter erfolgreicher Login",
+		"laterInvoicingInfo_msg": "Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats.",
 		"leavePageConfirmation_msg": "Möchtest du Tutanota wirklich schließen?",
 		"linkedin_label": "LinkedIn",
 		"loadingMail_msg": "Lade Mailbox ...",
@@ -711,6 +712,8 @@ module.exports = {
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noVcardsFound_msg": "Keine vCards gefunden.",
 		"no_label": "Nein",
+		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!",
+		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
 		"number_label": "Nummer",
 		"ok_action": "OK",
 		"oldBrowser_msg": "Oh, das tut uns leid. Dieser Browser wird nur in einer aktuelleren Version unterstützt. Bitte nutze die aktuelle Version eines der folgenden Browser:",
@@ -869,7 +872,7 @@ module.exports = {
 		"recoveryCodeEmpty_msg": "Bitte gib deinen Wiederherstellungs-Code ein.",
 		"recoveryCodeReminder_msg": "Richte jetzt deinen Wiederherstellungs-Code ein, um den Zugang zu deinem Account wiederherstellen zu können.",
 		"recoveryCode_label": "Wiederherstellungs-Code",
-		"recoveryCode_msg": "Bitte nimm dir etwas Zeit um den Wiederherstellungs-Code aufzuschreiben. Dieser wird verwendet, um den Zugang zu deinen Account wiederherzustellen, falls du das Passwort oder den zweiten Faktor verloren hast.",
+		"recoveryCode_msg": "Bitte nimm dir die Zeit um den Wiederherstellungs-Code aufzuschreiben. Dieser ist die einzige Möglichkeit, um den Zugang zu deinem Account wiederherzustellen, falls du das Passwort oder den zweiten Faktor verlieren solltest.",
 		"recover_label": "Wiederherstellen",
 		"refresh_action": "Aktualisieren",
 		"regDisabledFree_msg": "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte folge uns hier, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
@@ -1148,10 +1151,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"laterInvoicingInfo_msg": "Hinweis: Separat hinzugebuchte Erweiterungen werden nicht direkt in Rechnung gestellt, sondern erst zu Beginn des nächsten Abrechnungsmonats.",
-		"yourMessage_label": "Deine Nachricht",
-		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
-		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!"
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

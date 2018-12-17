@@ -1,6 +1,6 @@
 module.exports = {
 	"id": "8c6ce8d414ce54afc19520f270239f41",
-	"name": "Persian",
+	"name": "fa",
 	"code": "fa_ir",
 	"default": false,
 	"main": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2018-12-11T10:52:51Z",
+	"updated_at": "2018-12-12T13:43:19Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",

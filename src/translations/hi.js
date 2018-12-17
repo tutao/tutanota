@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "32e5c8c009e49509605a0c2c6b0c394f",
 	"name": "hi",
-	"code": "hi_in",
+	"code": "hi",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-12-12T13:43:19Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "दुर्भाग्य से, आपका टुटानोटा खाता निष्क्रिय हो गया है. कृपया अपने व्यवस्थापक से संपर्क करें.",

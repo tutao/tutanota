@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "843123d4565788564ec757f2a14cdbc4",
 	"name": "ca",
-	"code": "ca_es",
+	"code": "ca",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2018-12-11T10:48:18Z",
+	"updated_at": "2018-12-12T13:43:19Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",

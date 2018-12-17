@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "fcfbc586c7d11ed248b6e4f4fb2ea2d8",
 	"name": "he",
-	"code": "he_il",
+	"code": "he",
 	"default": false,
 	"main": false,
 	"rtl": true,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2018-11-16T14:19:34Z",
+	"updated_at": "2018-12-12T12:00:45Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "למרבה הצער, חשבון הטוטנוטה שלך נחסם. אנא פנה למנהל המערכת שלך.",

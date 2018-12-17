@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "b21bfe77b6ca0c165f4a2dad6f1d7029",
 	"name": "fil",
-	"code": "fil_ph",
+	"code": "fil",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-30T10:38:11Z",
-	"updated_at": "2018-11-23T12:38:53Z",
+	"updated_at": "2018-12-12T12:00:11Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sa kasamaang-palad, ang iyong Tutanota account ay nawalang bisa. Pakipaalam sa iyong administrator.",

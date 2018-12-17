@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "c422d719f2cb6aff639b4e5c8d87e0a0",
 	"name": "lt",
-	"code": "lt_lt",
+	"code": "lt",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2018-11-27T13:10:11Z",
+	"updated_at": "2018-12-12T12:01:18Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Deja, jūsų Tutanota paskyra išjungta. Kreipkitės į jūsų administratorių.",

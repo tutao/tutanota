@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "c18c8162679d1ff1eeb1fc56eb855860",
 	"name": "sl",
-	"code": "sl_si",
+	"code": "sl",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2018-11-22T13:43:22Z",
+	"updated_at": "2018-12-12T12:02:59Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Vaš uporabniški račun pri Tutanoti je bil žal deaktiviran. Prosimo, obrnite se na svojega administratorja.",

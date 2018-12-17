@@ -1,7 +1,7 @@
 module.exports = {
 	"id": "7099d69d03bc03d4e76962b7301d6b82",
 	"name": "bg",
-	"code": "bg_bg",
+	"code": "bg",
 	"default": false,
 	"main": false,
 	"rtl": false,
@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2018-12-11T10:48:00Z",
+	"updated_at": "2018-12-12T11:57:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "За съжаление, Вашият Тутанота профил бе деактивиран. Моля свържете се с Вашият администратор.",
