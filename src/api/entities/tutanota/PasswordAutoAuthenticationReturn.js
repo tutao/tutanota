@@ -14,7 +14,7 @@ export const _TypeModel: TypeModel = {
 	"values": {"_format": {"name": "_format", "id": 318, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {},
 	"app": "tutanota",
-	"version": "29"
+	"version": "30"
 }
 
 export function createPasswordAutoAuthenticationReturn(): PasswordAutoAuthenticationReturn {

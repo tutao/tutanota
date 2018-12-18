@@ -38,6 +38,7 @@ export const _TypeModel: TypeModel = {
 			"encrypted": true
 		},
 		"listUnsubscribe": {"name": "listUnsubscribe", "id": 866, "since": 24, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": true},
+		"movedTime": {"name": "movedTime", "id": 896, "since": 30, "type": "Date", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"receivedDate": {"name": "receivedDate", "id": 107, "since": 1, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
 		"replyType": {"name": "replyType", "id": 466, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
 		"sentDate": {"name": "sentDate", "id": 106, "since": 1, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
@@ -111,7 +112,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "30"
 }
 
 export function createMail(): Mail {

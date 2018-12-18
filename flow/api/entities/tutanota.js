@@ -170,6 +170,7 @@ type Mail = {
 	confidential: boolean;
 	differentEnvelopeSender: ?string;
 	listUnsubscribe: boolean;
+	movedTime: ?Date;
 	receivedDate: Date;
 	replyType: NumberString;
 	sentDate: Date;

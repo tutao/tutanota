@@ -96,7 +96,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "30"
 }
 
 export function createContact(): Contact {
