@@ -100,6 +100,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						m(closedSessionExpander)
 					]),
 					m(closedSessionExpander.panel),
+					m(".small", lang.get("sessionsWillBeDeleted_msg")),
 					m(".small", lang.get("sessionsInfo_msg")),
 				])
 			]

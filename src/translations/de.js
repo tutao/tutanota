@@ -889,7 +889,8 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"sessionsWillBeDeleted_msg": "Geschlossene Sessions werden nach zwei Wochen aus der Liste gelöscht."
 	}
 }
 export default translation

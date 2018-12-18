@@ -885,7 +885,8 @@ const translation = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"sessionsWillBeDeleted_msg": "These will be deleted 2 weeks after closing."
 	}
 }
 export default translation
