@@ -886,7 +886,8 @@ const translation = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"sessionsWillBeDeleted_msg": "These will be deleted 2 weeks after closing."
+		"sessionsWillBeDeleted_msg": "These will be deleted 2 weeks after closing.",
+		"unsupportedBrowser_msg": "You're using an unsupported browser. Some functionality may be unavailable."
 	}
 }
 export default translation
