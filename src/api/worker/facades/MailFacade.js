@@ -28,22 +28,9 @@ import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {
-	containsId,
-	getLetId,
-	HttpMethod,
-	isSameId,
-	isSameTypeRefByAttr,
-	stringToCustomId
-} from "../../common/EntityFunctions"
+import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {
-	defer,
-	downcast,
-	getEnabledMailAddressesForGroupInfo,
-	getUserGroupMemberships,
-	neverNull
-} from "../../common/utils/Utils"
+import {defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -203,8 +190,7 @@ export class MailFacade {
 			let attachments = neverNull(providedFiles)
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
-				if (!attachments.find(attachment => (attachment._type !== "DataFile")
-					&& isSameId(getLetId(downcast(attachment)), fileId))) {
+				if (!attachments.find(attachment => (attachment._type === "TutanotaFile") && isSameId(getLetId(attachment), fileId))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})
@@ -250,7 +236,7 @@ export class MailFacade {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
 						fileApp.clearFileData()
-						              .catch((e) => console.warn("Failed to clear files", e))
+						       .catch((e) => console.warn("Failed to clear files", e))
 					}
 				})
 		} else {
