@@ -150,12 +150,13 @@ export class MailView implements CurrentView {
 									ed.attachFiles((dataFiles: any))
 									m.redraw()
 								}).catch(noOp)
-							ev.stopPropagation()
-							ev.preventDefault()
 						}
+						// prevent in any case because firefox tries to open
+						// dataTransfer as a URL otherwise.
+						ev.stopPropagation()
+						ev.preventDefault()
 					}
-				}
-				, [
+				}, [
 					m(this.viewSlider),
 					(this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly))
 						? m(this.newAction)
