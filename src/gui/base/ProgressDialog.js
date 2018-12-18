@@ -10,7 +10,7 @@ import {PasswordIndicator} from "./PasswordIndicator"
 
 assertMainOrNode()
 
-export function showProgressDialog<T>(messageIdOrMessageFunction: string | lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
+export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
 	let progress = 0
 	let progressIndicator = (showProgress === true) ? new PasswordIndicator(() => progress) : null
 	let progressDialog = new Dialog(DialogType.Progress, {

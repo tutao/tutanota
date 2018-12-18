@@ -1,4 +1,6 @@
-module.exports = {
+//@flow
+
+const translation = {
 	"id": "383e7ffd8cc62e3f2cd8ef07a234fb91",
 	"name": "Tagalog",
 	"code": "tl",
@@ -17,3 +19,5 @@ module.exports = {
 		"welcomeMailBody5_msg": "PS: Ang Tutanota ay bukas na pinagmulan, kaya maari at puweding  mag-inspeksyon at suriin ang source code:"
 	}
 }
+export default translation
+export var __useDefault = translation

@@ -11,7 +11,7 @@ import {styles} from "../styles"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
 export type NavButtonAttrs = {|
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	icon: lazyIcon,
 	href: string | lazy<string>,
 	isSelectedPrefix?: string,

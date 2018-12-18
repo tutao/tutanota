@@ -14,6 +14,7 @@ import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import type {Button} from "./Button"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -37,7 +38,7 @@ export class NavButton {
 	_hideLabel: boolean;
 
 
-	constructor(label: string | lazy<string>, icon: lazyIcon, href: string | Function, selectedPrefix: ?string) {
+	constructor(label: TranslationKey | lazy<string>, icon: lazyIcon, href: string | Function, selectedPrefix: ?string) {
 		this._hideLabel = false
 		this.icon = icon
 		this.href = href
@@ -226,7 +227,7 @@ function getColors(buttonColors: NavButtonColorEnum) {
 	}
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: lazyIcon, lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200): NavButton {
+export function createDropDownNavButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: lazyIcon, lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200): NavButton {
 	let dropdown = new Dropdown(lazyButtons, width)
 	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
 		.setClickHandler((() => {

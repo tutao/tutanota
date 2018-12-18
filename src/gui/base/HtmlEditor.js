@@ -6,6 +6,7 @@ import {DropDownSelector} from "./DropDownSelector"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export const Mode = {
 	HTML: "html",
@@ -22,14 +23,14 @@ export class HtmlEditor {
 	_borderDomElement: HTMLElement;
 	_showBorders: boolean;
 	_minHeight: ?number;
-	_placeholderId: ?string;
+	_placeholderId: ?TranslationKey;
 	view: Function;
 	_placeholderDomElement: HTMLElement;
 	_value: Stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
 
-	constructor(labelIdOrLabelFunction: ?(string | lazy<string>)) {
+	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>)) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -127,7 +128,7 @@ export class HtmlEditor {
 	}
 
 
-	setModeSwitcher(label: string | lazy<string>) {
+	setModeSwitcher(label: TranslationKey | lazy<string>) {
 		this._modeSwitcher = new DropDownSelector(label, null, [
 			{name: lang.get("richText_label"), value: Mode.WYSIWYG},
 			{name: lang.get("htmlSourceCode_label"), value: Mode.HTML}
@@ -149,7 +150,7 @@ export class HtmlEditor {
 		return this
 	}
 
-	setPlaceholderId(placeholderId: string): HtmlEditor {
+	setPlaceholderId(placeholderId: TranslationKey): HtmlEditor {
 		this._placeholderId = placeholderId
 		return this
 	}

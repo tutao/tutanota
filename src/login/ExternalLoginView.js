@@ -35,6 +35,7 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
 import {getImprintLink} from "./LoginView"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -42,8 +43,8 @@ export class ExternalLoginView {
 
 	_password: stream<string>;
 	_savePassword: stream<boolean>;
-	_helpText: string;
-	_errorMessageId: ?string;
+	_helpText: TranslationKey;
+	_errorMessageId: ?TranslationKey;
 	_userId: Id;
 	_salt: Uint8Array;
 	view: Function;

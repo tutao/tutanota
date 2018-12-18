@@ -8,6 +8,7 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -53,8 +54,8 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 }
 
 export type ButtonAttrs = {
-	label: string | lazy<string>,
-	title?: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
+	title?: TranslationKey | lazy<string>,
 	click: clickHandler,
 	icon?: lazyIcon,
 	type?: ButtonTypeEnum,
@@ -107,7 +108,7 @@ class _Button {
 		)
 	}
 
-	getTitle(title: string | lazy<string>): string {
+	getTitle(title: TranslationKey | lazy<string>): string {
 		return lang.getMaybeLazy(title)
 	}
 

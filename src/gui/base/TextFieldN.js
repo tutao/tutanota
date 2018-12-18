@@ -12,7 +12,7 @@ import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
 
 export type TextFieldAttrs = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
 	type?: TextFieldTypeEnum,
 	helpLabel?: lazy<string>,

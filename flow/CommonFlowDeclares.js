@@ -1,4 +1,5 @@
 import type {EntityUpdateData} from "../src/api/main/EntityEventController"
+import type {TranslationKey} from "../src/misc/LanguageViewModel"
 
 // FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
 declare function finder(any): boolean
@@ -38,7 +39,7 @@ declare interface Shortcut {
 	enabled?: lazy<boolean>;
 
 	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
-	help: string;
+	help: TranslationKey;
 }
 
 /**
@@ -191,7 +192,7 @@ type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'
 
 type Status = {
 	type: StatusTypeEnum,
-	text: string
+	text: TranslationKey
 }
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}

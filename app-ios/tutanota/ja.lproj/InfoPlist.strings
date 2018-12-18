@@ -7,5 +7,5 @@ NSRemindersUsageDescription = "新着メールが届いたときに通知を表�
 TutaoChoosePhotosAction = "写真";
 TutaoNoPermissionTitle = "権限がありません";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
-TutaoCancelAction = "中止";
+TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";

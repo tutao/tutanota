@@ -2,6 +2,7 @@
 import m from "mithril"
 import {inputLineHeight, px} from "../gui/size"
 import {SegmentControl} from "./SegmentControl"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {PaymentIntervalItems} from "./SubscriptionUtils"
 import {neverNull} from "../api/common/utils/Utils"
@@ -12,7 +13,7 @@ export type BuyOptionBoxAttr = {|
 	actionButton: ?Component,
 	price: string,
 	originalPrice: string,
-	helpLabel: string | lazy<string>,
+	helpLabel: TranslationKey | lazy<string>,
 	features: () => string[],
 	width: number,
 	height: number,

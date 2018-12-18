@@ -1,4 +1,6 @@
-module.exports = {
+//@flow
+
+const translation = {
 	"id": "39fa6520abc75717e7f15fc3b8ef70c9",
 	"name": "Breton",
 	"code": "br",
@@ -18,8 +20,8 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"edit_action": "Kemmañ",
-		"sentMails_alt": "Kas",
-		"sentMail_alt": "Postel kaset",
 		"sent_action": "Kas"
 	}
 }
+export default translation
+export var __useDefault = translation

@@ -1,5 +1,6 @@
 //@flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
@@ -9,7 +10,7 @@ import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionTyp
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,
-	campaignInfoTextId: ?string,
+	campaignInfoTextId: ?TranslationKey,
 	freeActionButton: Component,
 	premiumActionButton: Component,
 	proActionButton: Component,

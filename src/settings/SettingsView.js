@@ -6,6 +6,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {CurrentView} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
@@ -136,7 +137,7 @@ export class SettingsView implements CurrentView {
 		this._customDomains.getAsync().then(() => m.redraw())
 	}
 
-	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {
+	_createFolderExpander(textId: TranslationKey, folders: SettingsFolder[]): ExpanderButton {
 		let importUsersButton = new Button('importUsers_action',
 			() => showUserImportDialog(this._customDomains.getLoaded()),
 			() => Icons.ContactImport
@@ -152,10 +153,13 @@ export class SettingsView implements CurrentView {
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
 			view: () => m(".folders", buttons.map(fb => fb.isVisible() ?
-				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [m(fb),
-					!isApp() && fb.isSelected() && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0
+				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
+					m(fb),
+					!isApp() && fb.isSelected() && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+					&& this._customDomains.getLoaded().length > 0
 						? m(importUsersButton)
-						: null])
+						: null
+				])
 				: null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()

@@ -19,7 +19,7 @@ import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundErr
 import {assertMainOrNode, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {
 	createNewContact,
 	createRecipientInfo,
@@ -359,7 +359,7 @@ export class MailEditor {
 		})
 	}
 
-	_conversationTypeToTitleTextId(): string {
+	_conversationTypeToTitleTextId(): TranslationKey {
 		switch (this.conversationType) {
 			case ConversationType.NEW:
 				return "newMail_action"
@@ -738,7 +738,7 @@ export class MailEditor {
 							})
 						})
 						.catch(RecipientNotResolvedError, e => {
-							return Dialog.error("recipientNotResolvedTooManyRequests_msg")
+							return Dialog.error("tooManyAttempts_msg")
 						})
 						.catch(RecipientsNotFoundError, e => {
 							let invalidRecipients = e.message.join("\n")
@@ -874,7 +874,7 @@ export class MailEditor {
 				// we are offline but we want to show the error dialog only when we click on send.
 			})
 			.catch(TooManyRequestsError, e => {
-				Dialog.error("recipientNotResolvedTooManyRequests_msg")
+				Dialog.error("tooManyAttempts_msg")
 			})
 		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
 		return bubbleWrapper.bubble

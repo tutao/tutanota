@@ -14,6 +14,7 @@ import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -30,7 +31,7 @@ export class PasswordForm {
 	_repeatedPasswordField: TextField;
 	_repeatedPasswordFieldStatus: StatusField;
 
-	constructor(validateOldPassword: boolean, enforcePasswordStrength: boolean, repeatPassword: boolean, passwordInfoTextId: ?string) {
+	constructor(validateOldPassword: boolean, enforcePasswordStrength: boolean, repeatPassword: boolean, passwordInfoTextId: ?TranslationKey) {
 		this._oldPasswordField = new TextField("oldPassword_label", () => m(this._oldPasswordFieldStatus)).setType(Type.Password)
 		this._oldPasswordFieldStatus = new StatusField(this._oldPasswordField.value.map(pw => {
 				if (validateOldPassword && pw === "") {
@@ -96,7 +97,7 @@ export class PasswordForm {
 		return Math.min(100, (getPasswordStrength(this._newPasswordField.value(), reserved) / 0.8 * 1))
 	}
 
-	getErrorMessageId(): ?string {
+	getErrorMessageId(): ?TranslationKey {
 		return this._oldPasswordFieldStatus.getErrorMessageId() || this._newPasswordFieldStatus.getErrorMessageId()
 			|| this._repeatedPasswordFieldStatus.getErrorMessageId()
 	}

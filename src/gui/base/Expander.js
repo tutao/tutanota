@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {Icon} from "./Icon"
@@ -16,7 +17,7 @@ export class ExpanderButton {
 	view: Function;
 	_showWarning: boolean;
 
-	constructor(labelTextIdOrLabelFunction: string | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
+	constructor(labelTextIdOrLabelFunction: TranslationKey | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
 		this.panel = panel
 		this.getLabel = typeof labelTextIdOrLabelFunction === "function" ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
 		if (typeof style.color === 'undefined') {
