@@ -7,8 +7,9 @@ import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {isMailAddress} from "../misc/Formatter"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
-import {createDropDownButton, Button, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -18,7 +19,7 @@ export class SelectMailAddressForm {
 	view: Function;
 	_username: TextField;
 	_domain: string;
-	_messageId: string;
+	_messageId: TranslationKey;
 
 	constructor(availableDomains: string[]) {
 		this._messageId = "mailAddressNeutral_msg"
@@ -84,7 +85,7 @@ export class SelectMailAddressForm {
 	/**
 	 * @return null if the entered email address is valid, the corresponding error message otherwise
 	 */
-	getErrorMessageId(): ?string {
+	getErrorMessageId(): ?TranslationKey {
 		return (this._messageId === VALID_MESSAGE_ID) ? null : this._messageId
 	}
 }

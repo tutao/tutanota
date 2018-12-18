@@ -16,6 +16,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -34,8 +35,7 @@ export function show(emailAddressOrDomainName: ?string) {
 
 	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), stream(getSpamRuleTypeNameMapping()[0].value))
 	let valueField = new TextField("emailSenderPlaceholder_label",
-		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)
-			|| "emptyString_msg")).setValue(emailAddressOrDomainName)
+		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg")).setValue(emailAddressOrDomainName)
 	let form = {
 		view: () => {
 			return [
@@ -57,7 +57,7 @@ export function show(emailAddressOrDomainName: ?string) {
 	})
 }
 
-function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
+function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?TranslationKey {
 	let currentValue = value.toLowerCase().trim()
 
 	if (!existingRules || !customDomains) {

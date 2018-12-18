@@ -3,6 +3,7 @@ import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
 import {px} from "../size"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -14,7 +15,7 @@ export default class MessageBox {
 	_messageNode: HTMLElement;
 	_visible: boolean;
 
-	constructor(messageIdOrMessageFunction: string | lazy<Children>, bgClass: string = "content-message-bg", marginTop: number = 100) {
+	constructor(messageIdOrMessageFunction: TranslationKey | lazy<Children>, bgClass: string = "content-message-bg", marginTop: number = 100) {
 		this._visible = true
 
 		this.view = (): VirtualElement => {

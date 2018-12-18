@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
@@ -18,7 +19,7 @@ export class Checkbox {
 	enabled: boolean;
 	_domInput: HTMLElement;
 	view: Function;
-	_disabledTextId: string;
+	_disabledTextId: TranslationKey;
 
 
 	constructor(lazyChildren: lazy<Children>, helpLabel?: lazy<string>) {
@@ -86,7 +87,7 @@ export class Checkbox {
 		event.stopPropagation()
 	}
 
-	setDisabled(disabledTextId: string) {
+	setDisabled(disabledTextId: TranslationKey) {
 		this.enabled = false
 		this._disabledTextId = disabledTextId
 	}

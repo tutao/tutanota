@@ -5,6 +5,7 @@ import {TextField} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -15,7 +16,7 @@ export class DropDownSelector<T> {
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>,
+	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, helpLabel: ?lazy<string>,
 	            items: {name: string, value: T}[], selectedValue: Stream<T>,
 	            dropdownWidth: ?number) {
 		this.selectedValue = selectedValue

@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -68,7 +69,7 @@ export class InvoiceDataInput {
 		}
 	}
 
-	validateInvoiceData(): ? string {
+	validateInvoiceData(): ? TranslationKey {
 		let address = this._getAddress()
 		if (this._subscriptionOptions.businessUse()) {
 			if (address.trim() === "" || address.split('\n').length > 5) {

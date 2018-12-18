@@ -11,11 +11,12 @@ import {createDropdown} from "./DropdownN.js"
 import {Icons} from "./icons/Icons"
 import type {AllIconsEnum} from "./Icon"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
 export type DropDownSelectorAttrs<T> = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	items: {name: string, value: T}[],
 	selectedValue: Stream<?T>,
 	/**

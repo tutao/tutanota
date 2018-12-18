@@ -30,7 +30,7 @@ export class Table {
 	 * @param showActionButtonColumn True if addButton is specified or the table lines may contain action buttons.
 	 * @param addButton If set, this button appears beside the expander button.
 	 */
-	constructor(columnHeadingTextIds: string[], columnWidths: ColumnWidthEnum[], showActionButtonColumn: boolean, addButton: ?Button) {
+	constructor(columnHeadingTextIds: TranslationKey[], columnWidths: ColumnWidthEnum[], showActionButtonColumn: boolean, addButton: ?Button) {
 		this._lines = []
 		this._loading = true
 
@@ -64,12 +64,14 @@ export class Table {
 				style: {
 					width: px(size.button_height),
 				}
-			}, (actionButton) ? [m("", {
-				style: {
-					position: 'relative',
-					right: px(-size.hpad_button) // same as .mr-negative-s
-				}
-			}, m(actionButton))] : []))
+			}, (actionButton) ? [
+				m("", {
+					style: {
+						position: 'relative',
+						right: px(-size.hpad_button) // same as .mr-negative-s
+					}
+				}, m(actionButton))
+			] : []))
 		}
 		return m("tr.selectable", cells)
 	}

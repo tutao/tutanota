@@ -1,4 +1,6 @@
-module.exports = {
+//@flow
+
+const translation = {
 	"id": "3cae2b3dd99533a25fb40876ff835c01",
 	"name": "bs",
 	"code": "bs",
@@ -17,3 +19,5 @@ module.exports = {
 	"source_locale": null,
 	"keys": {}
 }
+export default translation
+export var __useDefault = translation

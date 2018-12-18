@@ -24,6 +24,8 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {createUpgradePriceServiceData} from "../api/entities/sys/UpgradePriceServiceData"
 import {SysService} from "../api/entities/sys/Services"
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
+import type {TranslationKey} from "../misc/LanguageViewModel"
+import {assertTranslation} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -45,7 +47,7 @@ export type UpgradeSubscriptionData = {
 	accountingInfo: ?AccountingInfo,
 	newAccountData: ?NewAccountData,
 	campaign: ?string,
-	campaignInfoTextId: ?string,
+	campaignInfoTextId: ?TranslationKey,
 	isInitialUpgrade: boolean,
 	premiumPrices: PlanPrices,
 	proPrices: PlanPrices
@@ -105,7 +107,7 @@ export function showUpgradeWizard(): void {
 						accountingInfo: accountingInfo,
 						newAccountData: null,
 						campaign: getCampaign(),
-						campaignInfoTextId: prices.messageTextId,
+						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						isInitialUpgrade: true,
 						premiumPrices: prices.premiumPrices,
 						proPrices: prices.proPrices,
@@ -148,7 +150,7 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 			accountingInfo: null,
 			newAccountData: null,
 			campaign: getCampaign(),
-			campaignInfoTextId: prices.messageTextId,
+			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			isInitialUpgrade: true,
 			premiumPrices: prices.premiumPrices,
 			proPrices: prices.proPrices

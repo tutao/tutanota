@@ -3,11 +3,12 @@ import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
 import {px} from "../size"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
 export type MessageBoxAttrs = {|
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	bgClass?: string,
 	marginTop?: number,
 	visible?: stream<boolean>

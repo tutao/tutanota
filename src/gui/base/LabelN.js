@@ -3,9 +3,10 @@ import m from "mithril"
 import {px, size} from "../size"
 import {inputLineHeight} from "./TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export type LabelAttrs = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 }
 
 class _LabelN {

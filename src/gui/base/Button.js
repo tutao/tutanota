@@ -76,7 +76,7 @@ export class Button {
 	_staticRightText: ?string;
 	_colors: ButtonColorEnum;
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
+	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 

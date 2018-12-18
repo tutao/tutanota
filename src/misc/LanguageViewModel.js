@@ -1,12 +1,15 @@
 // @flow
 import {startsWith} from "../api/common/utils/StringUtils"
 import {assertMainOrNodeBoot} from "../api/Env"
-import {asyncImport} from "../api/common/utils/Utils"
+import {asyncImport, downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
+import typeof en from "../translations/en"
 
 assertMainOrNodeBoot()
 
-export type Language = {code: string, textId: string}
+export type TranslationKey = $Keys<$PropertyType<en, "keys">> | "emptyString_msg"
+
+export type Language = {code: string, textId: TranslationKey}
 
 export const languages: Language[] = [
 	{code: 'bg', textId: 'languageBulgarian_label'},
@@ -185,7 +188,7 @@ class LanguageViewModel {
 		}
 	}
 
-	exists(id: string): boolean {
+	exists(id: TranslationKey): boolean {
 		try {
 			this.get(id)
 			return true
@@ -197,7 +200,7 @@ class LanguageViewModel {
 	/**
 	 * @throws An error if there is no translation for the given id.
 	 */
-	get(id: string, params: ?Object): string {
+	get(id: TranslationKey, params: ?Object): string {
 		if (id == null) {
 			return ""
 		}
@@ -224,7 +227,7 @@ class LanguageViewModel {
 		return text
 	}
 
-	getMaybeLazy(value: string | lazy<string>): string {
+	getMaybeLazy(value: TranslationKey | lazy<string>): string {
 		return typeof value === "function" ? value() : lang.get(value)
 	}
 
@@ -277,5 +280,7 @@ class LanguageViewModel {
 	}
 
 }
+
+export const assertTranslation: (id: string) => TranslationKey = downcast
 
 export const lang: LanguageViewModel = new LanguageViewModel()

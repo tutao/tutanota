@@ -1,19 +1,20 @@
 // @flow
 import {assertMainOrNode} from "../api/Env"
 import {isSelectedPrefix} from "../gui/base/NavButton"
-import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
+import type {lazyIcon} from "../gui/base/Icon"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
 export class SettingsFolder {
-	nameTextId: string;
+	nameTextId: TranslationKey;
 	icon: lazyIcon;
 	path: string;
 	url: string; // can be changed from outside
 	viewerCreator: lazy<UpdatableSettingsViewer>;
 	_isVisibleHandler: lazy<boolean>;
 
-	constructor(nameTextId: string, icon: lazyIcon, path: string, viewerCreator: lazy<UpdatableSettingsViewer>) {
+	constructor(nameTextId: TranslationKey, icon: lazyIcon, path: string, viewerCreator: lazy<UpdatableSettingsViewer>) {
 		this.nameTextId = nameTextId
 		this.icon = icon
 		this.path = path

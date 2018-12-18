@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Country} from "../api/common/CountryList"
 import {CountryType} from "../api/common/CountryList"
@@ -97,7 +98,7 @@ export class PaymentMethodInput {
 		return this._accountingInfo && this._accountingInfo.paypalBillingAgreement != null
 	}
 
-	validatePaymentData(): ?string {
+	validatePaymentData(): ?TranslationKey {
 		const country = this._selectedCountry()
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"

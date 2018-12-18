@@ -18,6 +18,7 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
 import {ButtonN} from "./ButtonN"
 import {DialogHeaderBarN} from "./DialogHeaderBarN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -230,7 +231,7 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: string | lazy<string>): Promise<void> {
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 
@@ -304,7 +305,7 @@ export class Dialog {
 	}
 
 
-	static confirm(messageIdOrMessageFunction: string | lazy<string>, confirmId: string = "ok_action"): Promise<boolean> {
+	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: string = "ok_action"): Promise<boolean> {
 		return Promise.fromCallback(cb => {
 			let buttons = []
 			let cancelAction = () => {
@@ -509,7 +510,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: string, labelIdOrLabelFunction: string | lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
 			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
@@ -536,7 +537,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextAreaInputDialog(titleId: string, labelIdOrLabelFunction: string | lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
 			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
@@ -557,7 +558,7 @@ export class Dialog {
 		})
 	}
 
-	static showDropDownSelectionDialog<T>(titleId: string, labelId: string, infoMsgId: ?string, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: TranslationKey, labelId: TranslationKey, infoMsgId: ?TranslationKey, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
 		return Promise.fromCallback(cb => {
 			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
 

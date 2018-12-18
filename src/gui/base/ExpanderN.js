@@ -9,9 +9,10 @@ import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
 import {px} from "../size"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export type ExpanderAttrs = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	expanded: Stream<boolean>,
 	showWarning?: boolean,
 	style?: Object,
