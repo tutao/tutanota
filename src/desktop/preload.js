@@ -18,7 +18,8 @@ const MenuItem = remote.MenuItem
  */
 const menu = new Menu()
 let pasteItem, copyItem, copyLinkItem: MenuItem
-let targetUrl: string
+let hoverUrl: string = "" // for the link popup
+let urlToCopy: string = "" // for the context menu
 
 lang.initialized.promise.then(() => {
 	pasteItem = new MenuItem({label: lang.get("paste_action"), accelerator: "CmdOrCtrl+V", click() { document.execCommand('paste') }})
@@ -38,14 +39,14 @@ window.addEventListener('contextmenu', (e) => {
 	pasteItem.enabled = clipboard.readText().length > 0
 	let sel = window.getSelection().toString()
 	if (sel.length < 1 && !!e.target.href) {
+		urlToCopy = e.target.href
 		copyItem.visible = false
 		copyLinkItem.visible = true
-		targetUrl = e.target.href
 	} else {
 		copyItem.visible = true
 		copyLinkItem.visible = false
 		copyItem.enabled = sel.length > 0
-		targetUrl = ""
+		urlToCopy = ""
 	}
 	menu.popup({window: remote.getCurrentWindow()})
 }, false)
@@ -62,7 +63,7 @@ window.addEventListener('mouseover', (e) => {
 		(document.body: any).appendChild(elem)
 	}
 	elem.innerText = e.target.href
-	targetUrl = e.target.href
+	hoverUrl = e.target.href
 	elem.className = "reveal"
 })
 
@@ -70,14 +71,14 @@ window.addEventListener('mouseout', (e) => {
 	let elem = document.getElementById('link-tt')
 	if (e.target.tagName === 'A' && elem) {
 		elem.className = ""
-		targetUrl = ""
+		hoverUrl = ""
 	}
 })
 
 // copy function
 function copy() {
-	if (window.getSelection().toString().length < 1 && !!targetUrl) {
-		clipboard.writeText(targetUrl)
+	if (window.getSelection().toString().length < 1 && !!urlToCopy) {
+		clipboard.writeText(urlToCopy)
 	} else {
 		document.execCommand('copy')
 	}
