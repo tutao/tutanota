@@ -68,7 +68,6 @@ export class FileController {
 							.finally(() => this._deleteFile(file.location)))
 				}))
 			.return()
-			.catch(() => Dialog.error("couldNotAttachFile_msg"))
 	}
 
 	/**
@@ -208,8 +207,10 @@ export class FileController {
 	}
 
 	_deleteFile(filePath: string) {
-		fileApp.deleteFile(filePath)
-		       .catch((e) => console.log("failed to delete file", filePath, e))
+		if (isApp()) {
+			fileApp.deleteFile(filePath)
+			       .catch((e) => console.log("failed to delete file", filePath, e))
+		}
 	}
 }
 
