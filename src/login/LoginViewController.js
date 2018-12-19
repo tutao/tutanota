@@ -165,9 +165,16 @@ export class LoginViewController implements ILoginViewController {
 			            return errorAction()
 		            })
 		            .catch(ConnectionError, e => {
-			            this.view.helpText = lang.get('emptyString_msg')
-			            m.redraw()
-			            throw e;
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this.view.helpText = lang.get('loginFailed_msg')
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this.view.helpText = lang.get('emptyString_msg')
+				            m.redraw()
+				            throw e;
+			            }
 		            })
 	}
 

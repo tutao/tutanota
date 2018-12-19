@@ -7,6 +7,7 @@ import {displayOverlay} from "./Overlay"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -34,8 +35,8 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 /**
  * @param buttons The postpone button is automatically added and does not have to be passed from outside
  */
-export function show(message: Component, buttons: Array<ButtonAttrs>) {
-	notificationQueue.push({message, buttons})
+export function show(message: Component, closeButtonText: TranslationKey | lazy<string>, buttons: Array<ButtonAttrs>) {
+	notificationQueue.push({message, buttons, closeButtonText})
 	if (notificationQueue.length > 1) {
 		// another notification is already visible. Next notification will be shown when closing current notification
 		return
@@ -44,7 +45,7 @@ export function show(message: Component, buttons: Array<ButtonAttrs>) {
 }
 
 function showNextNotification() {
-	const {message, buttons} = notificationQueue[0]
+	const {message, buttons, closeButtonText} = notificationQueue[0]
 
 	currentAnimationTimeout = null
 	const width = window.innerWidth
@@ -80,7 +81,7 @@ function showNextNotification() {
 
 	// add the postpone button
 	allButtons.unshift({
-		label: "postpone_action",
+		label: closeButtonText,
 		click: closeAndOpenNext,
 		type: ButtonType.Secondary
 	})

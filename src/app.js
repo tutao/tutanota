@@ -60,7 +60,11 @@ function _asyncImport(path: string) {
 client.init(navigator.userAgent, navigator.platform)
 
 _asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
-
+if (client.isIE()) {
+	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
+		view: () => m("", lang.get("unsupportedBrowser_msg"))
+	}, "close_alt", []))
+}
 
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
 	? deletedModule.module.state : {prefix: null}

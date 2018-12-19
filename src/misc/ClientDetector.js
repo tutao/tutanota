@@ -36,10 +36,7 @@ class ClientDetector {
 			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
-			this.randomNumbers() &&
 			this.supportsFocus() &&
-			this.notIE() &&
-			this.arrayIncludes() &&
 			this.notOldFirefox()
 	}
 
@@ -84,10 +81,6 @@ class ClientDetector {
 	supportsFocus(): boolean {
 		return typeof HTMLInputElement !== "undefined"
 			&& typeof HTMLInputElement.prototype.focus === "function"
-	}
-
-	arrayIncludes(): boolean {
-		return typeof [].includes === "function"
 	}
 
 	dateFormat(): boolean {
@@ -204,10 +197,10 @@ class ClientDetector {
 		} else if (operaIndex2 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
-		} else if(paleMoonIndex !== -1) {
-				this.browser = BrowserType.PALEMOON
-				versionIndex = paleMoonIndex + 9
-		}else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
+		} else if (paleMoonIndex !== -1) {
+			this.browser = BrowserType.PALEMOON
+			versionIndex = paleMoonIndex + 9
+		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
 			if (firefoxIndex !== -1) {
@@ -344,8 +337,8 @@ class ClientDetector {
 	}
 
 
-	notIE() {
-		return this.browser !== BrowserType.IE
+	isIE() {
+		return this.browser === BrowserType.IE
 	}
 
 	notOldFirefox() {

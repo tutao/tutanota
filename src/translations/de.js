@@ -890,7 +890,8 @@ const translation = {
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"sessionsWillBeDeleted_msg": "Geschlossene Sessions werden nach zwei Wochen aus der Liste gelöscht."
+		"sessionsWillBeDeleted_msg": "Geschlossene Sessions werden nach zwei Wochen aus der Liste gelöscht.",
+		"unsupportedBrowser_msg": "Du benutzt einen nicht unterstützten Browser. Einige Funktionen könnten nicht verfügbar sein."
 	}
 }
 export default translation

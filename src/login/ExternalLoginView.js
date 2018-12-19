@@ -17,6 +17,7 @@ import {
 } from "../api/common/error/RestError"
 import {GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
@@ -35,7 +36,6 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
 import {getImprintLink} from "./LoginView"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -213,16 +213,23 @@ export class ExternalLoginView {
 			            return errorAction()
 		            })
 		            .catch(TooManyRequestsError, e => {
-			            this.view.helpText = 'tooManyAttempts_msg'
+			            this._helpText = 'tooManyAttempts_msg'
 			            return errorAction()
 		            })
 		            .catch(CancelledError, () => {
-			            this.view.helpText = 'emptyString_msg'
+			            this._helpText = 'emptyString_msg'
 			            return errorAction()
 		            })
 		            .catch(ConnectionError, e => {
-			            this._helpText = 'emptyString_msg'
-			            throw e;
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this._helpText = 'loginFailed_msg'
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this._helpText = 'emptyString_msg'
+				            throw e;
+			            }
 		            }).finally(() => m.redraw())
 	}
 
@@ -263,8 +270,14 @@ export class ExternalLoginView {
 			             this._errorMessageId = 'invalidLink_msg'
 		             })
 		             .catch(ConnectionError, e => {
-			             this._helpText = 'emptyString_msg'
-			             throw e;
+			             if (client.isIE()) {
+				             // IE says it's error code 0 fore some reason
+				             this._helpText = 'loginFailed_msg'
+				             m.redraw()
+			             } else {
+				             this._helpText = 'emptyString_msg'
+				             throw e;
+			             }
 		             }).finally(() => m.redraw())
 	}
 
