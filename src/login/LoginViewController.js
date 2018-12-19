@@ -301,7 +301,7 @@ export class LoginViewController implements ILoginViewController {
 
 	_showStorageNotificationIfNeeded() {
 		const userProps: TutanotaProperties = logins.getUserController().props
-		if (logins.getUserController().isGlobalOrLocalAdmin() && userProps.lastSeenAnnouncement < Announcement.StorageDeletion) {
+		if (logins.getUserController().isGlobalOrLocalAdmin() && Number(userProps.lastSeenAnnouncement) < Number(Announcement.StorageDeletion)) {
 			userProps.lastSeenAnnouncement = Announcement.StorageDeletion
 			update(userProps)
 			show({
