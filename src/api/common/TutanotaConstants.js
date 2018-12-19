@@ -316,4 +316,9 @@ export const CloseEventBusOption = {
 	Pause: "pause"
 }
 
+export const Announcement = {
+	None: '0',
+	StorageDeletion: '1'
+}
+
 export type CloseEventBusOptionEnum = $Values<typeof InvoiceStatus>;

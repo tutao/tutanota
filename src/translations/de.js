@@ -891,7 +891,8 @@ const translation = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"sessionsWillBeDeleted_msg": "Geschlossene Sessions werden nach zwei Wochen aus der Liste gelöscht.",
-		"unsupportedBrowser_msg": "Du benutzt einen nicht unterstützten Browser. Einige Funktionen könnten nicht verfügbar sein."
+		"unsupportedBrowser_msg": "Du benutzt einen nicht unterstützten Browser. Einige Funktionen könnten eingeschränkt sein.",
+		"storageDeletionAnnouncement_msg": "Info: E-Mails im Papierkorb oder Spam-Ordner werden nach 30 Tagen automatisch gelöscht."
 	}
 }
 export default translation

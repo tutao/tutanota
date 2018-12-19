@@ -309,6 +309,7 @@ type TutanotaProperties = {
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
 	groupEncEntropy: ?Uint8Array;
+	lastSeenAnnouncement: NumberString;
 	noAutomaticContacts: boolean;
 	notificationMailLanguage: ?string;
 	sendPlaintextOnly: boolean;

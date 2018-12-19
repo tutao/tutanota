@@ -46,6 +46,15 @@ export const _TypeModel: TypeModel = {
 		},
 		"emailSignatureType": {"name": "emailSignatureType", "id": 472, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"groupEncEntropy": {"name": "groupEncEntropy", "id": 410, "since": 2, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"lastSeenAnnouncement": {
+			"name": "lastSeenAnnouncement",
+			"id": 897,
+			"since": 30,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"noAutomaticContacts": {
 			"name": "noAutomaticContacts",
 			"id": 568,

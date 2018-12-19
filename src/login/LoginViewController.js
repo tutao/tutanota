@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
-import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
+import {Announcement, CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -39,6 +39,7 @@ import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfo
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import {show} from "../gui/base/NotificationOverlay"
 
 assertMainOrNode()
 
@@ -205,6 +206,7 @@ export class LoginViewController implements ILoginViewController {
 		if (env.mode === Mode.App) {
 			pushServiceApp.register()
 		}
+		this._showStorageNotificationIfNeeded()
 
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
@@ -295,5 +297,16 @@ export class LoginViewController implements ILoginViewController {
 
 	loadSignupWizard(): Promise<{+show: () => any}> {
 		return worker.initialized.then(() => loadSignupWizard())
+	}
+
+	_showStorageNotificationIfNeeded() {
+		const userProps: TutanotaProperties = logins.getUserController().props
+		if (logins.getUserController().isGlobalOrLocalAdmin() && userProps.lastSeenAnnouncement < Announcement.StorageDeletion) {
+			userProps.lastSeenAnnouncement = Announcement.StorageDeletion
+			update(userProps)
+			show({
+				view: () => m("", lang.get("storageDeletionAnnouncement_msg"))
+			}, "close_alt", [])
+		}
 	}
 }
