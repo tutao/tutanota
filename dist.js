@@ -75,7 +75,7 @@ function processOptions() {
 		mac: options.mac ? [] : undefined
 	}
 
-	options.desktop = Object.values(options.desktop).reduce((prev, curr) => prev || !!curr, false)
+	options.desktop = Object.values(options.desktop).some(Boolean)
 		? options.desktop
 		: undefined
 
@@ -165,7 +165,7 @@ function buildWebapp() {
 		              } else if (process.argv.indexOf("host") !== -1) {
 			              targetUrl = process.argv[process.argv.indexOf("host") + 1]
 		              } else {
-			              version = process.argv.indexOf("deb") == -1 ? new Date().getTime() : version
+			              version = process.argv.indexOf("deb") === -1 ? new Date().getTime() : version
 			              targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
 		              }
 		              return Promise.all([
