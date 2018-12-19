@@ -190,7 +190,8 @@ export class MailFacade {
 			let attachments = neverNull(providedFiles)
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
-				if (!attachments.find(attachment => (attachment._type === "TutanotaFile") && isSameId(getLetId(attachment), fileId))) {
+				if (!attachments.find(attachment =>
+					(attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId)))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})
