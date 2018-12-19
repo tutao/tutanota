@@ -2,7 +2,7 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {TextField, Type} from "../gui/base/TextField"
-import {lang, languages} from "../misc/LanguageViewModel"
+import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
@@ -133,7 +133,7 @@ export class MailEditor {
 
 		let sortedLanguages = languages.slice()
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-		this._selectedNotificationLanguage = stream(props.notificationMailLanguage || lang.code)
+		this._selectedNotificationLanguage = stream(getAvailableLanguageCode(props.notificationMailLanguage || lang.code))
 		const languageDropDownAttrs: DropDownSelectorAttrs<string> = {
 			label: "notificationMailLanguage_label",
 			items: sortedLanguages.map(language => {

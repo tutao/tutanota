@@ -9,7 +9,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
+import {getLanguage, lang} from "../misc/LanguageViewModel"
 import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
@@ -103,7 +103,7 @@ class ContactFormView {
 			this._loading = true
 			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {
 				this._contactForm = contactForm
-				lang.setLanguage(lang.getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
+				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
 

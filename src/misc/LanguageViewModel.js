@@ -107,7 +107,7 @@ class LanguageViewModel {
 		this.fallback = en // always load english as fallback
 		this.code = 'en'
 
-		return this.setLanguage(this.getLanguage())
+		return this.setLanguage(getLanguage())
 	}
 
 	addStaticTranslation(key: string, text: string) {
@@ -231,47 +231,6 @@ class LanguageViewModel {
 		return typeof value === "function" ? value() : lang.get(value)
 	}
 
-	/**
-	 * Gets the default language derived from the browser language.
-	 * @param restrictions An array of language codes the selection should be restricted to
-	 */
-	getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
-		// navigator.languages can be an empty array on android 5.x devices
-		let languageTags
-		if (typeof navigator !== 'undefined') {
-			languageTags = (navigator.languages && navigator.languages.length
-				> 0) ? navigator.languages : [navigator.language]
-		}
-		if (languageTags) {
-			for (let tag of languageTags) {
-				let code = tag.toLowerCase().replace("-", "_")
-				let language = languages.find(l => l.code === code && (restrictions == null
-					|| restrictions.indexOf(l.code) !== -1))
-				if (language == null) {
-					if (tag === 'zh-HK') {
-						language = languages.find(l => l.code === 'zh_tw')
-					} else {
-						language = languages.find(l => startsWith(l.code, code.substring(0, 2)) && (restrictions == null
-							|| restrictions.indexOf(l.code) !== -1))
-					}
-				}
-				if (language) {
-					if (language.code === 'de' && whitelabelCustomizations
-						&& whitelabelCustomizations.germanLanguageCode) {
-						return {code: whitelabelCustomizations.germanLanguageCode, languageTag: tag}
-					} else {
-						return {code: language.code, languageTag: tag}
-					}
-				}
-			}
-		}
-		if (restrictions == null || restrictions.indexOf("en") !== -1) {
-			return {code: 'en', languageTag: 'en-US'}
-		} else {
-			return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
-		}
-	}
-
 	getInfoLink(id: string) {
 		const code = ["de", "de_sie"].includes(this.code)
 			? "de"
@@ -280,6 +239,63 @@ class LanguageViewModel {
 	}
 
 }
+
+/**
+ * Gets the default language derived from the browser language.
+ * @param restrictions An array of language codes the selection should be restricted to
+ */
+export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+	// navigator.languages can be an empty array on android 5.x devices
+	let languageTags
+	if (typeof navigator !== 'undefined') {
+		languageTags = (navigator.languages && navigator.languages.length
+			> 0) ? navigator.languages : [navigator.language]
+	}
+	if (languageTags) {
+		for (let tag of languageTags) {
+			let code = _getSubstitutedLanguageCode(tag, restrictions)
+			if (code) {
+				return {code: code, languageTag: tag}
+			}
+		}
+	}
+	if (restrictions == null || restrictions.indexOf("en") !== -1) {
+		return {code: 'en', languageTag: 'en-US'}
+	} else {
+		return {code: restrictions[0], languageTag: restrictions[0].replace("/_/g", "-")}
+	}
+}
+
+export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]): ?string {
+	let code = tag.toLowerCase().replace("-", "_")
+	let language = languages.find(l => l.code === code && (restrictions == null
+		|| restrictions.indexOf(l.code) !== -1))
+	if (language == null) {
+		if (code === 'zh_hk') {
+			language = languages.find(l => l.code === 'zh_tw')
+		} else {
+			const indexOfUnderscore = code.indexOf("_")
+			if (indexOfUnderscore > 0) {
+				const basePart = code.substring(0, indexOfUnderscore)
+				language = languages.find(l => startsWith(l.code, basePart) && (restrictions == null || restrictions.indexOf(l.code) !== -1))
+			}
+		}
+	}
+	if (language) {
+		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+			return whitelabelCustomizations.germanLanguageCode
+		} else {
+			return language.code
+		}
+	} else {
+		return null
+	}
+}
+
+export function getAvailableLanguageCode(code: string): string {
+	return _getSubstitutedLanguageCode(code, null) || "en"
+}
+
 
 export const assertTranslation: (id: string) => TranslationKey = downcast
 
