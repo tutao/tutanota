@@ -887,7 +887,7 @@ const translation = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"sessionsWillBeDeleted_msg": "These will be deleted 2 weeks after closing.",
-		"unsupportedBrowser_msg": "You're using an unsupported browser. Some functionality may be limited.",
+		"unsupportedBrowserOverlay_msg": "You're using an unsupported browser. Some functionality may be limited.",
 		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days."
 	}
 }

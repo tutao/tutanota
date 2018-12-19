@@ -62,7 +62,7 @@ client.init(navigator.userAgent, navigator.platform)
 _asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
 if (client.isIE()) {
 	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
-		view: () => m("", lang.get("unsupportedBrowser_msg"))
+		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
 	}, "close_alt", []))
 }
 
