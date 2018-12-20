@@ -147,6 +147,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
+					this._width = this._domListContainer.clientWidth
 					this._createVirtualElements()
 					const render = () => {
 						m.render(vnode.dom, [
@@ -542,7 +543,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	_init() {
-		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
 		window.requestAnimationFrame(() => {
