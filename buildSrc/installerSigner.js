@@ -4,16 +4,12 @@
  * enables the User to verify the authenticity of their manually downloaded
  * Installer with the openssl utility.
  *
- *  Should the location of the public key change, we can leave the URL to
- *  the new location in place of the key
- *  (in the format :NEWURL: https://new.com/pub.pem :NEWURL:, to protect against format changes
- *  we don't control).
- *  the verifier will follow the links until it gets a response body
- *  that starts with '-----BEGIN PUBLIC KEY-----'
- *  or throw an error if it can't find the next step
+ * The installer signatures are provided as separate files:
+ * https://mail.tutanota.com/desktop/tutanota-desktop-win-sig.bin (for Windows)
+ * https://mail.tutanota.com/desktop/tutanota-desktop-mac-sig.bin (for Mac)
+ * https://mail.tutanota.com/desktop/tutanota-desktop-linux-sig.bin (for Linux)
  *
- *  the Installer signature is provided as a separate file (here: signature.bin) to the User
- *  to verify the initial download via
+ * They allow verifying the initial download via
  *
  *      # get public key from github
  *      wget https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem
