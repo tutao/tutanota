@@ -895,18 +895,20 @@ const translation = {
 		"previous_action": "Previous",
 		"ignoreCase_alt": "Ignore case",
 		"matchCase_alt": "Match case",
-		"searchPage_label": "Search Page...",
-		"copyLink_action": "Copy Link Address",
+		"searchPage_label": "Search page...",
+		"copyLink_action": "Copy link address",
 		"cut_action": "Cut",
 		"paste_action": "Paste",
 		"undo_action": "Undo",
 		"redo_action": "Redo",
 		"desktop_label": "Desktop",
 		"registered_label": "Registered",
-		"unregistered_label": "Unregistered",
-		"defaultMailHandler_msg": "Register Tutanota Desktop as the default email handler, e.g. to open mailto links. This operation may require administrator permissions.",
-		"defaultMailHandler_label": "Default Email Handler",
-		"desktopSettings_label": "Desktop Settings",
+		"unregistered_label": "Not registered",
+		"defaultMailHandler_msg": "Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
+		"defaultMailHandler_label": "Default email handler",
+		"desktopSettings_label": "Desktop settings",
+		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
+		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!"
 	}
 }
 export default translation

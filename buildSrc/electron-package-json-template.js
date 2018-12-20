@@ -20,7 +20,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
 			"pollingInterval": 30000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
-			"checkUpdateSignature": true || !!process.env.JENKINS,
+			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota"
 		},
 		"dependencies": {
