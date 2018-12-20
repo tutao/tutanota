@@ -1,5 +1,5 @@
 //@flow
-import {assertMainOrNodeBoot, isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isTutanotaDomain} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
@@ -17,14 +17,16 @@ function showUpdateOverlay(onUpdate: () => void) {
 			return m("span", [
 				lang.get("updateFound_label"),
 				" ",
-				m("a", {
-					href: `https://github.com/tutao/tutanota/releases/`,
-					target: "_blank"
-				}, lang.get("releaseNotes_action"))
+				isTutanotaDomain()
+					? m("a", {
+						href: `https://github.com/tutao/tutanota/releases/`,
+						target: "_blank"
+					}, lang.get("releaseNotes_action"))
+					: null
 			])
 		}
 	}
-	notificationOverlay.show(notificationMessage, "postpone_action",[
+	notificationOverlay.show(notificationMessage, "postpone_action", [
 		{
 			label: "refresh_action",
 			click: onUpdate,
