@@ -1,6 +1,15 @@
 const options = require('commander')
 const spawnSync = require('child_process').spawnSync
 
+/**
+ * Besides options below this script may require signing parameters passed as environment variables:
+ * 'APK_SIGN_ALIAS'
+ * 'APK_SIGN_STORE_PASS'
+ * 'APK_SIGN_KEY_PASS'
+ * 'APK_SIGN_STORE'
+ * 'ANDROID_HOME'
+ */
+
 options
 	.usage('[options] [test|prod|URL] ')
 	.arguments('<targetUrl>')
@@ -8,6 +17,8 @@ options
 	.option('-w --webclient <client>', 'choose web client build', /^(build|dist)$/i, 'dist')
 	.parse(process.argv)
 options.host = options.args[0] || 'prod'
+
+console.log(`Starting build with buildtype: ${options.buildtype} webclient: ${options.webclient} host: ${options.host}`)
 
 let apkPath
 
