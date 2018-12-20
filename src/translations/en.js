@@ -886,7 +886,9 @@ const translation = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",
+		"sessionsWillBeDeleted_msg": "These will be deleted 2 weeks after closing.",
+		"unsupportedBrowserOverlay_msg": "You're using an unsupported browser. Some functionality may be limited.",
+		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
 		"yourMessage_label": "Your message",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!",
@@ -895,7 +897,7 @@ const translation = {
 		"previous_action": "Previous",
 		"ignoreCase_alt": "Ignore case",
 		"matchCase_alt": "Match case",
-		"searchPage_label": "Search page...",
+		"searchPage_action": "Search page...",
 		"copyLink_action": "Copy link address",
 		"cut_action": "Cut",
 		"paste_action": "Paste",
@@ -907,8 +909,6 @@ const translation = {
 		"defaultMailHandler_msg": "Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
 		"defaultMailHandler_label": "Default email handler",
 		"desktopSettings_label": "Desktop settings",
-		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
-		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!"
 	}
 }
 export default translation

@@ -62,7 +62,7 @@ export class SearchInPageOverlay {
 
 	_inputField = (): VirtualElement | null => {
 		return m("input.dropdown-bar.pl-l.button-height.inputWrapper", {
-				placeholder: lang.get("searchPage_label"),
+				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 				},
