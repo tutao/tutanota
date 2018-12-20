@@ -87,9 +87,8 @@ export function putFileIntoDownloadsFolder(localFileUri: string): Promise<string
 	return nativeApp.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
 }
 
-function saveBlob(data: DataFile): Promise<FileReference> {
+function saveBlob(data: DataFile): Promise<void> {
 	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
-	                .then(uriToFileRef)
 }
 
 /**

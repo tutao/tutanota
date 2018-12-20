@@ -16,6 +16,7 @@
 #import "TUTCrypto.h"
 #import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
+#import "TUTEncodingConverter.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -184,6 +185,16 @@ typedef void(^VoidCallback)(void);
 							   completionHandler:^(BOOL success) {
 								   sendResponseBlock(@(success), nil);
 							   }];
+	} else if ([@"saveBlob" isEqualToString:type]) {
+		NSString* fileDataB64 = arguments[1];
+		let fileData = [TUTEncodingConverter base64ToBytes:fileDataB64];
+		[_fileUtil openFile:arguments[0] fileData:fileData completion:^(NSError * _Nullable error) {
+			if (error != nil) {
+				[self sendErrorResponseWithId:requestId value:error];
+			} else {
+				[self sendResponseWithId:requestId value:NSNull.null];
+			}
+		}];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		NSLog(@"%@", message);
