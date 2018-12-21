@@ -39,7 +39,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
-			"artifactName": "${name}-${version}-${os}.${ext}",
+			"artifactName": "${name}-${os}.${ext}",
 			"protocols": [
 				{
 					"name": "Mailto Links",

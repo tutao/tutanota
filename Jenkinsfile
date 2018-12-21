@@ -114,22 +114,6 @@ pipeline {
 					unstash 'win_installer_snapshot'
 					unstash 'mac_installer_snapshot'
 				}
-				sh '''
-					targetAppImage=`ls /opt/desktop-snapshot/tutanota-desktop*.AppImage`;
-					targetAppImageSig=`ls /opt/desktop-snapshot/tutanota-desktop*linux-sig.bin`;
-					ln -s "${targetAppImage}" /opt/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage;
-					ln -s "${targetAppImageSig}" /opt/desktop-snapshot/tutanota-desktop-snapshot-linux-sig.bin;
-
-					targetExe=`ls /opt/desktop-snapshot/tutanota-desktop*.exe`;
-					targetExeSig=`ls /opt/desktop-snapshot/tutanota-desktop*win-sig.bin`;
-					ln -s "${targetExe}" /opt/desktop-snapshot/tutanota-desktop-snapshot-win.exe;
-					ln -s "${targetExeSig}" /opt/desktop-snapshot/tutanota-desktop-snapshot-win-sig.bin;
-
-					targetZip=`ls /opt/desktop-snapshot/tutanota-desktop*.zip`;
-					targetZipSig=`ls /opt/desktop-snapshot/tutanota-desktop*mac-sig.bin`;
-					ln -s "${targetZip}" /opt/desktop-snapshot/tutanota-desktop-snapshot-mac.zip;
-					ln -s "${targetZipSig}" /opt/desktop-snapshot/tutanota-desktop-snapshot-mac-sig.bin;
-				'''
 			}
 		}
 

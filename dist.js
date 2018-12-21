@@ -297,11 +297,6 @@ function packageDeb() {
 		let desktopPaths = ""
 		if (fs.existsSync('./build/desktop') && fs.existsSync('./build/desktop-test')) {
 			desktopPaths = ` desktop/=${target}/desktop desktop-test/=${target}/desktop-test`
-			glob.sync(`./build/desktop*/tutanota-desktop*`).map((f) => {
-				console.log(f)
-				const linkName = f.substring(0, f.indexOf(version) - 1) + f.substring(f.indexOf(version) + version.length)
-				fs.symlinkSync(path.basename(f), linkName)
-			})
 		}
 
 		console.log("create " + debName)
