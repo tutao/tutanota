@@ -47,7 +47,8 @@ pipeline {
 						    node dist -ew '''
 						}
 						dir('build') {
-							stash includes: 'desktop*/*', name:'win_installer'
+							stash includes: 'desktop-snapshot/*', name:'win_installer_snapshot'
+							stash includes: 'desktop-test/* desktop/*', name:'win_installer'
 						}
                 	}
                 }
@@ -70,7 +71,8 @@ pipeline {
 							node dist -em '''
 						}
 						dir('build') {
-							stash includes: 'desktop*/*', name:'mac_installer'
+							stash includes: 'desktop-snapshot/*', name:'mac_installer_snapshot'
+							stash includes: 'desktop-test/* desktop/*', name:'mac_installer'
 						}
                     }
                 }
@@ -93,7 +95,8 @@ pipeline {
 							node dist -el '''
 						}
 						dir('build') {
-							stash includes: 'desktop*/*', name:'linux_installer'
+							stash includes: 'desktop-snapshot/*', name:'linux_installer_snapshot'
+							stash includes: 'desktop-test/* desktop/*', name:'linux_installer'
 						}
                     }
                 }
@@ -130,9 +133,9 @@ pipeline {
             steps {
             	sh 'rm -f /opt/desktop-snapshot/*'
             	dir('/opt') {
-					unstash 'linux_installer'
-					unstash 'win_installer'
-					unstash 'mac_installer'
+					unstash 'linux_installer_snapshot'
+					unstash 'win_installer_snapshot'
+					unstash 'mac_installer_snapshot'
             	}
 				sh '''
 					targetAppImage=`ls /opt/desktop-snapshot/tutanota-desktop*.AppImage`;
