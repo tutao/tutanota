@@ -20,7 +20,6 @@ const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 let start = Date.now()
 
 const DistDir = 'build/dist'
-let targetUrl
 
 let bundles = {}
 const bundlesCache = "build/bundles.json"
@@ -42,23 +41,45 @@ function getAsyncImports(file) {
 const distLoc = (filename) => `${DistDir}/${filename}`
 
 options
-	.usage('[options] [test|prod|URL] ')
-	.arguments('<targetUrl>')
-	.option('-p, --prebuilt', 'Use prebuilt Webapp files in /build/dist/')
+	.usage('[options] [test|prod|local|release|host <url>], "release" is default, implies -d and creates git tags')
+	.arguments('[stage] [host]')
+	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
 	.option('-w --win', 'Build desktop client for windows')
 	.option('-l --linux', 'Build desktop client for linux')
 	.option('-m --mac', 'Build desktop client for mac')
 	.option('-d, --deb', 'Build .deb package')
-	.option('-r, --release', 'Release .deb and tag commit. Implies --deb.')
+	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage')
+	.action((stage, host) => {
+		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
+			|| (stage !== "host" && host)
+			|| (stage === "host" && !host)
+			|| stage !== "release" && options.publish) {
+			options.outputHelp()
+			process.exit(1)
+		}
+		options.stage = stage || "release"
+		options.host = host
+
+		options.desktop = {
+			win: options.win ? [] : undefined,
+			linux: options.linux ? [] : undefined,
+			mac: options.mac ? [] : undefined
+		}
+		options.desktop = Object.values(options.desktop).some(Boolean)
+			? options.desktop
+			: undefined
+
+		if (options.stage === "release") {
+			options.deb = true
+		}
+	})
 	.parse(process.argv)
-options.host = options.args[0]
 
 Promise.resolve()
-       .then(processOptions)
        .then(buildWebapp)
        .then(buildDesktopClient)
        .then(packageDeb)
-       .then(release)
+       .then(publish)
        .then(() => {
 	       const now = new Date(Date.now()).toTimeString().substr(0, 5)
 	       console.log(`\nBuild time: ${measure()}s (${now})`)
@@ -67,37 +88,6 @@ Promise.resolve()
 	       console.log("\nBuild error:", e)
 	       process.exit(1)
        })
-
-function processOptions() {
-	options.desktop = {
-		win: options.win ? [] : undefined,
-		linux: options.linux ? [] : undefined,
-		mac: options.mac ? [] : undefined
-	}
-
-	options.desktop = Object.values(options.desktop).some(Boolean)
-		? options.desktop
-		: undefined
-
-	//set target url
-	if (options.desktop || !options.prebuilt) {
-		if (options.host === 'test') {
-			targetUrl = "https://test.tutanota.com"
-		} else if (options.host === 'prod') {
-			targetUrl = "https://mail.tutanota.com"
-		} else if (options.host === 'local') {
-			version = options.deb ? new Date().getTime() : version
-			targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
-		} else if (options.host) {
-			targetUrl = options.host
-		}
-		console.log("targetUrl: ", targetUrl)
-	}
-
-	//--release implies --deb
-	options.deb = options.release ? true : options.deb
-	return Promise.resolve()
-}
 
 function measure() {
 	return (Date.now() - start) / 1000
@@ -109,8 +99,8 @@ function clean() {
 }
 
 function buildWebapp() {
-	if (options.prebuilt) {
-		console.log("Found prebuilt option (-p). Skipping Webapp build.")
+	if (options.existing) {
+		console.log("Found existing option (-e). Skipping Webapp build.")
 		return fs.readFileAsync(path.join(__dirname, bundlesCache)).then(bundlesCache => {
 			bundles = JSON.parse(bundlesCache)
 		})
@@ -158,21 +148,26 @@ function buildWebapp() {
 	              .then(() => console.log("creating language bundles"))
 	              .then(() => createLanguageBundles(bundles))
 	              .then(() => {
-		              if (process.argv.indexOf("test") !== -1) {
-			              targetUrl = "https://test.tutanota.com"
-		              } else if (process.argv.indexOf("prod") !== -1) {
-			              targetUrl = "https://mail.tutanota.com"
-		              } else if (process.argv.indexOf("host") !== -1) {
-			              targetUrl = process.argv[process.argv.indexOf("host") + 1]
-		              } else {
-			              version = process.argv.indexOf("deb") === -1 ? new Date().getTime() : version
-			              targetUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		              let restUrl
+		              if (options.stage === 'test') {
+			              restUrl = 'https://test.tutanota.com'
+		              } else if (options.stage === 'prod') {
+			              restUrl = 'https://mail.tutanota.com'
+		              } else if (options.stage === 'local') {
+			              restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		              } else if (options.stage === 'release') {
+			              restUrl = undefined
+		              } else { // host
+			              restUrl = options.host
 		              }
 		              return Promise.all([
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host === null
-				              ? null
-				              : targetUrl, version, "Browser", true), bundles),
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "App", true), bundles),
+			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
+				              (options.stage === 'release' || options.stage === 'local')
+					              ? null
+					              : restUrl, version, "Browser", true), bundles),
+			              (options.stage !== 'release')
+				              ? createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), restUrl, version, "App", true), bundles)
+				              : null,
 		              ])
 	              })
 	              .then(() => bundleServiceWorker(bundles))
@@ -182,15 +177,29 @@ function buildWebapp() {
 
 function buildDesktopClient() {
 	if (options.desktop) {
-		if (options.host === undefined) {
+		if (options.stage === "release") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", ""))
 				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
 				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop-test", "-test"))
-		} else {
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), targetUrl, version, "Desktop", true), bundles)
+				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles))
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://next.tutao.de/desktop-snapshot", "-snapshot"))
+		} else if (options.stage === "local") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "https://next.tutao.de/desktop-snapshot", "-snapshot"))
+					options.desktop, "http://localhost:9000", "-snapshot"))
+		} else if (options.stage === "test") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop-test", "-test"))
+		} else if (options.stage === "prod") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop", ""))
+		} else { // stage = host
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host, version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop-snapshot", "-snapshot"))
 		}
 	}
 }
@@ -286,22 +295,33 @@ let debName = `tutanota-next-${version}_1_amd64.deb`
 
 function packageDeb() {
 	if (options.deb) {
+		// create a symlink to all desktop files that does not include the version to not change the download link
+		const target = `/opt/releases/tutanota-next-${version}`
+		let desktopPaths = ""
+		if (fs.existsSync('./build/desktop') && fs.existsSync('./build/desktop-test')) {
+			desktopPaths = ` desktop/=${target}/desktop desktop-test/=${target}/desktop-test`
+			glob.sync(`./build/desktop*/tutanota-desktop*`).map((f) => {
+				console.log(f)
+				const linkName = f.substring(0, f.indexOf(version) - 1) + f.substring(f.indexOf(version) + version.length)
+				fs.symlinkSync(path.basename(f), linkName)
+			})
+		}
+
 		console.log("create " + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		const target = `/opt/releases/tutanota-next-${version}`
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=${target} desktop/=${target}/desktop desktop-test/=${target}/desktop-test`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=${target}${desktopPaths}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 	}
 }
 
-function release() {
-	if (options.release) {
+function publish() {
+	if (options.publish) {
 		console.log("Create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
@@ -325,7 +345,7 @@ function release() {
 }
 
 function exitOnFail(result) {
-	if (result.status != 0) {
+	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 }

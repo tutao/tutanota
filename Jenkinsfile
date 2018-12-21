@@ -19,7 +19,7 @@ pipeline {
             steps {
             	sh 'npm prune'
             	sh 'npm install'
-				sh 'node dist'
+				sh 'node dist release'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
 				stash includes: 'build/bundles.json', name: 'bundles'
@@ -44,7 +44,7 @@ pipeline {
 						    export JENKINS=TRUE;
 						    export WIN_CSC_KEY_PASSWORD=${PW};
 						    export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12";
-						    node dist -pw ''' + (params.RELEASE ? "" : "prod")
+						    node dist -ew '''
 						}
 						dir('build') {
 							stash includes: 'desktop*/*', name:'win_installer'
@@ -67,7 +67,7 @@ pipeline {
 							export JENKINS=TRUE;
 							export MAC_CSC_KEY_PASSWORD=${PW};
 							export MAC_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -pm ''' + (params.RELEASE ? "" : "prod")
+							node dist -em '''
 						}
 						dir('build') {
 							stash includes: 'desktop*/*', name:'mac_installer'
@@ -90,7 +90,7 @@ pipeline {
 							export JENKINS=TRUE;
 							export LINUX_CSC_KEY_PASSWORD=${PW};
 							export LINUX_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -pl ''' + (params.RELEASE ? "" : "prod")
+							node dist -el '''
 						}
 						dir('build') {
 							stash includes: 'desktop*/*', name:'linux_installer'
@@ -100,7 +100,7 @@ pipeline {
             }
         }
 
-        stage('Build deb') {
+        stage('Build deb and publish') {
             when {
             	expression { params.RELEASE }
             }
@@ -119,7 +119,7 @@ pipeline {
 					unstash 'mac_installer'
 					unstash 'win_installer'
 				}
-				sh 'node dist -pr'
+				sh 'node dist -edp release'
             }
         }
 
@@ -127,9 +127,6 @@ pipeline {
 			agent {
 				label 'master'
 			}
-            when {
-                expression {!params.RELEASE}
-            }
             steps {
             	sh 'rm -f /opt/desktop-snapshot/*'
             	dir('/opt') {
