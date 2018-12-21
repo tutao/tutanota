@@ -41,14 +41,14 @@ function getAsyncImports(file) {
 const distLoc = (filename) => `${DistDir}/${filename}`
 
 options
-	.usage('[options] [test|prod|local|release|host <url>], "release" is default, implies -d and creates git tags')
+	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.arguments('[stage] [host]')
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
 	.option('-w --win', 'Build desktop client for windows')
 	.option('-l --linux', 'Build desktop client for linux')
 	.option('-m --mac', 'Build desktop client for mac')
 	.option('-d, --deb', 'Build .deb package')
-	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage')
+	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
 	.action((stage, host) => {
 		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
 			|| (stage !== "host" && host)
@@ -59,6 +59,7 @@ options
 		}
 		options.stage = stage || "release"
 		options.host = host
+		options.deb = options.deb || options.publish
 
 		options.desktop = {
 			win: options.win ? [] : undefined,
@@ -68,10 +69,6 @@ options
 		options.desktop = Object.values(options.desktop).some(Boolean)
 			? options.desktop
 			: undefined
-
-		if (options.stage === "release") {
-			options.deb = true
-		}
 	})
 	.parse(process.argv)
 
