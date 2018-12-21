@@ -287,9 +287,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 		decisionHandler(WKNavigationActionPolicyAllow);
 	} else {
 		decisionHandler(WKNavigationActionPolicyCancel);
-		[self presentViewController:[[SFSafariViewController alloc] initWithURL:navigationAction.request.URL]
-						   animated:YES
-						 completion:nil];
+		[[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
 	}
 }
 
