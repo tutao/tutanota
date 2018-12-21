@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2018-12-18T15:29:04Z",
+	"updated_at": "2018-12-20T10:41:48Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "請在調整帳戶訂閱前先停用所有訂購的擴充功能和別名方案，並關閉所有電子郵件別名。",

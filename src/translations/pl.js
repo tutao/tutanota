@@ -15,7 +15,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2018-12-12T13:43:19Z",
+	"updated_at": "2018-12-18T19:23:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -477,7 +477,7 @@ const translation = {
 		"notificationMailLanguage_label": "Język powiadomienia:",
 		"notificationMailSendFailureBody_msg": "Z przykrością informujemy, że poniższe powiadomienie nie może zostać doręczone.",
 		"notificationSettings_action": "Powiadomienia",
-		"no_label": "Nr",
+		"no_label": "Nie",
 		"number_label": "Numer",
 		"ok_action": "OK",
 		"oldPasswordInvalid_msg": "Nieprawidłowe hasło. ",

@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2018-12-13T02:11:11Z",
+	"updated_at": "2018-12-20T10:41:48Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Vänligen avaktivera alla bokade tillägg och paket och inaktivera alla e-postalias innan du byter abonnemang.",

@@ -15,7 +15,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2018-12-18T15:29:04Z",
+	"updated_at": "2018-12-20T10:41:48Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Перш, ніж змінити тип облікового запису,  деактивуйте усі заброньовані розширення та пакети і вимкніть усі псевдоніми електронної пошти.",

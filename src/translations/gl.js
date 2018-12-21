@@ -16,7 +16,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2018-12-18T15:29:04Z",
+	"updated_at": "2018-12-20T10:41:48Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",

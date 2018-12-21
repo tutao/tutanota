@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2018-12-18T15:29:04Z",
+	"updated_at": "2018-12-20T10:41:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
