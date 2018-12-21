@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "3.44.7",
+  "version": "3.44.8",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2",
     "start": "./node_modules/electron/dist/electron ./build/"
