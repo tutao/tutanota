@@ -48,7 +48,7 @@ pipeline {
 						}
 						dir('build') {
 							stash includes: 'desktop-snapshot/*', name:'win_installer_snapshot'
-							stash includes: 'desktop-test/* desktop/*', name:'win_installer'
+							stash includes: 'desktop-test/*,desktop/*', name:'win_installer'
 						}
                 	}
                 }
@@ -72,7 +72,7 @@ pipeline {
 						}
 						dir('build') {
 							stash includes: 'desktop-snapshot/*', name:'mac_installer_snapshot'
-							stash includes: 'desktop-test/* desktop/*', name:'mac_installer'
+							stash includes: 'desktop-test/*,desktop/*', name:'mac_installer'
 						}
                     }
                 }
@@ -96,7 +96,7 @@ pipeline {
 						}
 						dir('build') {
 							stash includes: 'desktop-snapshot/*', name:'linux_installer_snapshot'
-							stash includes: 'desktop-test/* desktop/*', name:'linux_installer'
+							stash includes: 'desktop-test/*,desktop/*', name:'linux_installer'
 						}
                     }
                 }
