@@ -32,7 +32,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.44.3</string>
+	<string>3.44.4</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -53,7 +53,7 @@
 	<key>NSRemindersUsageDescription</key>
 	<string>Shows notification when new email arrives.</string>
 	<key>TutanotaApplicationPath</key>
-	<string>build/</string>
+	<string>build/dist/</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ionicons.ttf</string>
