@@ -70,13 +70,10 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 - (void)getMimeTypeForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
-		if (mimeType) {
-			completion(mimeType, nil);
-		} else {
-			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
-												code:1
-												userInfo:@{@"message":@"Could not determine MIME type"}]);
+		if (mimeType == nil) {
+			mimeType = @"application/octet-stream";
 		}
+		completion(mimeType, nil);
 	});
 }
 
