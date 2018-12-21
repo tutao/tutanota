@@ -66,7 +66,7 @@ function prepareAssets() {
 		              console.log('targetUrl: ', targetUrl)
 
 		              return Promise.all([
-			              createHtml(env.create(SystemConfig.devConfig(true), targetUrl, version, "Browser")),
+			              createHtml(env.create(SystemConfig.devConfig(true), (options.host === 'local') ? null : targetUrl, version, "Browser")),
 			              createHtml(env.create(SystemConfig.devConfig(true), targetUrl, version, "App")),
 			              createHtml(env.create(SystemConfig.devConfig(false), targetUrl, version, "Desktop"))
 		              ])
