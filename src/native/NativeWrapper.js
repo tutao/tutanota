@@ -1,7 +1,7 @@
 //@flow
 import {Queue, Request} from "../api/common/WorkerProtocol"
 import {ConnectionError} from "../api/common/error/RestError"
-import {defer, neverNull, noOp} from "../api/common/utils/Utils"
+import {defer, neverNull} from "../api/common/utils/Utils"
 import {isMainOrNode, Mode} from "../api/Env"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {appCommands, desktopCommands} from './NativeWrapperCommands.js'
@@ -16,18 +16,6 @@ class NativeWrapper {
 
 	_workerQueue: ?Queue;
 	_nativeQueue: ?Queue;
-	_nativeAppProxy: any;
-
-	constructor() {
-
-		this._nativeAppProxy = new Proxy({}, {
-			get: (obj, prop) => {
-				return prop in window.nativeApp
-					? window.nativeApp[prop]
-					: noOp
-			}
-		})
-	}
 
 	init() {
 		if (isMainOrNode() && (env.mode === Mode.App || env.mode === Mode.Desktop)) {
@@ -60,11 +48,15 @@ class NativeWrapper {
 	}
 
 	startListening(msg: BridgeMessage, listener: Function) {
-		this._nativeAppProxy.startListening(msg, listener)
+		if (window.nativeApp && window.nativeApp.startListening) {
+			window.nativeApp.startListening(msg, listener)
+		}
 	}
 
 	stopListening(msg: BridgeMessage, listener: Function) {
-		this._nativeAppProxy.stopListening(msg, listener)
+		if (window.nativeApp && window.nativeApp.stopListening) {
+			window.nativeApp.stopListening(msg, listener)
+		}
 	}
 
 	/**

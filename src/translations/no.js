@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2018-12-21T00:59:50Z",
+	"updated_at": "2018-12-21T15:34:46Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Vennligst deaktiver alle bestilte utvidelser og pakker, og deaktiver alle epostalias før du bytter abonnement.",
@@ -796,6 +796,7 @@ const translation = {
 		"storageCapacityTooManyUsedForBooking_msg": "Det er brukt for mye lagringsplass for å behandle denne ordren. Vennligst frigjør noe lagringsplass for å fortsette.",
 		"storageCapacityUsed_label": "Brukt plass",
 		"storageCapacity_label": "Lagringskapasitet",
+		"storageDeletionAnnouncement_msg": "Merk: E-poster flyttet til søppelkurven eller søppelpostmappen vil automatisk bli slettet etter 30 dager.",
 		"storePassword_action": "Lagre passord",
 		"subject_label": "Emne",
 		"subscriptionCancelledMessage_msg": "Ditt abonnement har blitt avbrutt. Vennligst kontakt support for å reaktivere ditt abonnement.",

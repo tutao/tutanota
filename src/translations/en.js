@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2018-12-20T11:58:31Z",
+	"updated_at": "2018-12-21T15:27:37Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Please deactivate all booked extensions and packages and disable all email aliases before switching the subscription.",
@@ -796,6 +796,7 @@ const translation = {
 		"storageCapacityTooManyUsedForBooking_msg": "There is too much storage used to process this order. Please free some memory to continue.",
 		"storageCapacityUsed_label": "Used storage",
 		"storageCapacity_label": "Storage capacity",
+		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
 		"storePassword_action": "Store password",
 		"subject_label": "Subject",
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
