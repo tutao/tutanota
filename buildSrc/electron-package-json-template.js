@@ -92,10 +92,11 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"linux": {
+				"icon": path.join(path.dirname(iconPath), "icon/"),
 				"synopsis": "Tutanota Desktop Client",
 				"category": "Network",
 				"desktop": {
-					"StartupWMClass": "Tutanota"
+					"StartupWMClass": "tutanota-desktop"
 				},
 				"target": [
 					{

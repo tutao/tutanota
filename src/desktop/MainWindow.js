@@ -47,15 +47,13 @@ export class MainWindow {
 		console.log("startFile: ", this._startFile)
 		let trayIcon
 		if (process.platform === 'darwin') {
-			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.icns'))
+			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
 		} else if (process.platform === 'win32') {
 			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.ico'))
 		} else {
-			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red-small.png'))
+			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
 		}
 		this._browserWindow = new BrowserWindow({
-			// electron process global has additional properties
-			//icon: path.join((process: any).resourcesPath, 'icons/desktop-icon-small.png'),
 			icon: trayIcon,
 			show: false,
 			width: 1280,
