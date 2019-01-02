@@ -130,6 +130,7 @@ export class MainWindow {
 		localShortcut.register('F11', () => this._toggleMaximize())
 		localShortcut.register('F12', () => this._toggleDevTools())
 		localShortcut.register('F5', () => this._browserWindow.loadURL(this._startFile))
+		localShortcut.register('Command+W', () => this._browserWindow.hide())
 	}
 
 	// filesystem paths work differently than URLs
