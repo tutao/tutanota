@@ -18,7 +18,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"tutao-config": {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
-			"pollingInterval": 30000,
+			"pollingInterval": 4000000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota"
@@ -33,7 +33,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.0-beta.9",
+			"electronVersion": "4.0.0",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota",
 			"productName": nameSuffix.length > 0
