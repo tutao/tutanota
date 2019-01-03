@@ -35,7 +35,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
 			"electronVersion": "4.0.0",
 			"icon": iconPath,
-			"appId": "de.tutao.tutanota",
+			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
@@ -96,7 +96,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"synopsis": "Tutanota Desktop Client",
 				"category": "Network",
 				"desktop": {
-					"StartupWMClass": "tutanota-desktop"
+					"StartupWMClass": "tutanota-desktop" + nameSuffix
 				},
 				"target": [
 					{
