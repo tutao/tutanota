@@ -1,24 +1,31 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission} from 'electron'
-import {app, BrowserWindow, nativeImage, WebContents} from 'electron'
+import {BrowserWindow, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import open from './open.js'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
 import u2f from '../misc/u2f-api.js'
+import {tray} from './DesktopTray.js'
 
-export class MainWindow {
+
+const windows: ApplicationWindow[] = []
+
+export class ApplicationWindow {
 	_rewroteURL: boolean;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
-	_forceQuit: boolean;
-	_currentZoomFactor: number;
+	id: number;
 
 	constructor() {
-		this._forceQuit = false
 		this._createBrowserWindow()
 		this._browserWindow.loadURL(this._startFile)
+		if (!ipc.initialized().isFulfilled()) {
+			ipc.init()
+		}
+		windows.push(this)
+		ipc.addWindow(this.id)
 	}
 
 	show() {
@@ -40,21 +47,12 @@ export class MainWindow {
 	}
 
 	_createBrowserWindow() {
-		this._currentZoomFactor = 1
 		this._rewroteURL = false
 		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
 		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
 		console.log("startFile: ", this._startFile)
-		let trayIcon
-		if (process.platform === 'darwin') {
-			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
-		} else if (process.platform === 'win32') {
-			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.ico'))
-		} else {
-			trayIcon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
-		}
 		this._browserWindow = new BrowserWindow({
-			icon: trayIcon,
+			icon: tray.getIcon(),
 			show: false,
 			width: 1280,
 			height: 800,
@@ -66,47 +64,45 @@ export class MainWindow {
 				// https://github.com/electron-userland/electron-builder/issues/2562
 				// https://electronjs.org/docs/api/sandbox-option
 				sandbox: true,
-				// can't use contextIsolation because this will isolate
-				// the preload script from the web app
-				// contextIsolation: true,
+				// can't use contextIsolation because this will prevent
+				// the preload script changes to the web app
+				contextIsolation: false,
 				webSecurity: true,
 				preload: path.join(__dirname, 'preload.js')
 			}
 		})
 
-		ipc.init(this)
+		this.id = this._browserWindow.id
 
 		this._browserWindow.once('ready-to-show', () => {
+			this._browserWindow.webContents.setZoomFactor(1.0);
 			this._browserWindow.show()
-			ipc.send('ready-to-show')
+			tray.show()
 		})
 
-		// user clicked 'x' button
-		if (process.platform !== "darwin") {
-			this._browserWindow.on('close', (ev) => {
-				ipc.send('close-editor')
-			})
-		} else {
-			app.on('before-quit', () => {
-				this._forceQuit = true
-			})
-			this._browserWindow.on('close', (ev) => {
-				//prevents the window from being killed by MacOS
-				ipc.send('close-editor')
-				if (!this._forceQuit) {
-					this._browserWindow.hide()
-					ev.preventDefault()
-				}
-			})
-		}
-
+		this._browserWindow.on('closed', ev => {
+			windows.splice(windows.indexOf(this), 1)
+			ipc.removeWindow(this.id)
+			tray.show()
+		}).on('focus', ev => {
+			localShortcut.enableAll(this._browserWindow)
+			windows.splice(windows.indexOf(this), 1)
+			windows.push(this)
+		}).on('blur', ev => {
+			localShortcut.disableAll(this._browserWindow)
+		}).on('minimize', ev => {
+			if (process.platform !== 'linux') { // no proper tray on linux
+				this._browserWindow.hide()
+				ev.preventDefault()
+			}
+		}).on('page-title-updated', ev => tray.show())
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
 
 		this._browserWindow.webContents
 		    .on('new-window', (e, url) => {
-			    // we never open any new windows except for links in mails etc.
-			    // so open them in the browser, not in electron
+			    // we never open any new windows directly from the renderer
+			    // except for links in mails etc. so open them in the browser
 			    open(url)
 			    e.preventDefault()
 		    })
@@ -123,12 +119,12 @@ export class MainWindow {
 			    }
 		    })
 
-		localShortcut.register('CommandOrControl+F', () => this._openFindInPage())
-		localShortcut.register('CommandOrControl+P', () => this._printMail())
-		localShortcut.register('F11', () => this._toggleMaximize())
-		localShortcut.register('F12', () => this._toggleDevTools())
-		localShortcut.register('F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register('Command+W', () => this._browserWindow.hide())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
+		localShortcut.register(this._browserWindow, 'F11', () => this._toggleMaximize())
+		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
+		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
+		localShortcut.register(this._browserWindow, 'Command+W', () => this._browserWindow.hide())
 	}
 
 	// filesystem paths work differently than URLs
@@ -150,17 +146,6 @@ export class MainWindow {
 		return url
 	}
 
-	changeZoomFactor(amount: number) {
-		let newFactor = ((this._currentZoomFactor * 100) + amount) / 100
-		if (newFactor > 3) {
-			newFactor = 3
-		} else if (newFactor < 0.5) {
-			newFactor = 0.5
-		}
-		this._browserWindow.webContents.setZoomFactor(newFactor)
-		this._currentZoomFactor = newFactor
-	}
-
 	findInPage(args: Array<any>) {
 		if (args[0] !== '') {
 			this._browserWindow.webContents.findInPage(args[0], args[1])
@@ -171,6 +156,10 @@ export class MainWindow {
 
 	stopFindInPage() {
 		this._browserWindow.webContents.stopFindInPage('keepSelection')
+	}
+
+	getTitle(): string {
+		return this._browserWindow.getTitle()
 	}
 
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
@@ -186,7 +175,7 @@ export class MainWindow {
 		if (wc.isDevToolsOpened()) {
 			wc.closeDevTools()
 		} else {
-			wc.openDevTools({mode: 'undocked'})
+			wc.openDevTools({mode: 'right'})
 		}
 	}
 
@@ -199,14 +188,35 @@ export class MainWindow {
 	}
 
 	_printMail() {
-		ipc.sendRequest('print', [])
+		ipc.sendRequest(this.id, 'print', [])
 	}
 
 	_openFindInPage(): void {
-		ipc.sendRequest('openFindInPage', [])
+		ipc.sendRequest(this.id, 'openFindInPage', [])
 	}
 
 	_refresh(): void {
 		this._browserWindow.webContents.reloadIgnoringCache()
+	}
+
+	static get(id: ?number): ?ApplicationWindow {
+		if (typeof id === 'number') {
+			const w = windows.find(w => w.id === id)
+			return w
+				? w
+				: null
+		}
+		return null
+	}
+
+	static getAll(): ApplicationWindow[] {
+		return windows
+	}
+
+	static getLastFocused(): ApplicationWindow {
+		const w = windows[windows.length - 1]
+		return w
+			? w
+			: new ApplicationWindow()
 	}
 }

@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {nativeApp} from '../native/NativeWrapper.js'
 import {TextField, Type} from "../gui/base/TextField"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
@@ -232,12 +231,13 @@ export class MailEditor {
 		}
 
 		this.view = () => {
+			let unsubscribeFunction = () => {}
 			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => {
 					this._domElement = vnode.dom
-					nativeApp.startListening('close-editor', () => closeButtonAttrs.click(null, this._domCloseButton))
+					unsubscribeFunction = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
 				},
-				onremove: vnode => nativeApp.stopListening('close-editor', () => closeButtonAttrs.click(null, this._domCloseButton)),
+				onremove: vnode => unsubscribeFunction(),
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this._editor.focus()

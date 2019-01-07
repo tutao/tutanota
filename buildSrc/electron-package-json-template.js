@@ -84,6 +84,9 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"allowElevation": true,
 			},
 			"mac": {
+				"extendInfo": {
+					"LSUIElement": 1 //hide dock icon on startup
+				},
 				"target": [
 					{
 						"target": "zip",

@@ -47,18 +47,6 @@ class NativeWrapper {
 		}
 	}
 
-	startListening(msg: BridgeMessage, listener: Function) {
-		if (window.nativeApp && window.nativeApp.startListening) {
-			window.nativeApp.startListening(msg, listener)
-		}
-	}
-
-	stopListening(msg: BridgeMessage, listener: Function) {
-		if (window.nativeApp && window.nativeApp.stopListening) {
-			window.nativeApp.stopListening(msg, listener)
-		}
-	}
-
 	/**
 	 * invoked via eval()-type call (App)
 	 * @param msg64

@@ -11,11 +11,13 @@ import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
 import type {MailEditor} from "../../mail/MailEditor"
-import {assertMainOrNodeBoot, isIOSApp, Mode} from "../../api/Env"
+import {assertMainOrNodeBoot, isDesktop, isIOSApp, Mode} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
+import {nativeApp} from '../../native/NativeWrapper.js'
+import {Request} from "../../api/common/WorkerProtocol"
 
 export const LogoutUrl = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : '/login?noAutoLogin=true'
 
@@ -86,6 +88,9 @@ class Header {
 				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
 				                                                                                        .isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
+			.addButton(new NavButton('openNewWindow_action', () => BootIcons.Apple, () => m.route.get())
+				.setIsVisibleHandler(isDesktop)
+				.setClickHandler(() => nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('openNewWindow', [])))))
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => isNotSignup() && logins.isUserLoggedIn()), 0, true)
 

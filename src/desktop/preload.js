@@ -6,6 +6,7 @@ import {ipcRenderer, remote} from 'electron'
  * in the main thread.
  */
 const app = remote.require('electron').app
+const webFrame = require('electron').webFrame
 const clipboard = remote.require('electron').clipboard
 const PreloadImports = remote.require('./PreloadImports.js').default
 const lang = PreloadImports.lang
@@ -93,44 +94,34 @@ function copy() {
 	}
 }
 
-
-function sendMessage(msg, args) {
-	ipcRenderer.send(msg, args)
-}
-
-ipcRenderer.on('protocol-message', (ev, msg) => {
+ipcRenderer.on(`${remote.getCurrentWindow().id}`, (ev, msg) => {
 	window.tutao.nativeApp.handleMessageObject(msg)
 })
 
 ipcRenderer.once('print-argv', (ev, msg) => {
-	console.log("node argv:", msg)
+	console.log(msg)
 })
 
-function receiveMessage(msg, listener) {
-	return ipcRenderer.on(msg, listener)
-}
-
-function removeListener(msg, listener) {
-	return ipcRenderer.removeListener(msg, listener)
-}
-
 window.onmousewheel = (e) => {
-	if (e.ctrlKey) {
-		e.preventDefault()
-		window.tutao.nativeApp.invokeNative(new PreloadImports.Request('changeZoomFactor', [e.deltaY > 0 ? -10 : 10]))
+	if (!e.ctrlKey) {
+		return
 	}
-}
-
-window.nativeApp = {
-	invoke: (msg: string) => {sendMessage('protocol-message', msg)},
-	sendMessage: (msg: BridgeMessage, data: any) => sendMessage(msg, data),
-	startListening: (msg: BridgeMessage, listener: Function) => receiveMessage(msg, listener),
-	stopListening: (msg: BridgeMessage, listener: Function) => removeListener(msg, listener),
-	getVersion: () => app.getVersion()
+	let newFactor = ((webFrame.getZoomFactor() * 100) + (e.deltaY > 0 ? -10 : 10)) / 100
+	if (newFactor > 3) {
+		newFactor = 3
+	} else if (newFactor < 0.5) {
+		newFactor = 0.5
+	}
+	webFrame.setZoomFactor(newFactor)
 }
 
 // window.focus() doesn't seem to be working right now, so we're replacing it
 // https://github.com/electron/electron/issues/8969#issuecomment-288024536
 window.focus = () => {
-	ipcRenderer.send('show-window')
+	window.tutao.nativeApp.invokeNative(new PreloadImports.Request('showWindow', []))
+}
+
+window.nativeApp = {
+	invoke: (msg: string) => ipcRenderer.send(`${remote.getCurrentWindow().id}`, msg),
+	getVersion: () => app.getVersion()
 }
