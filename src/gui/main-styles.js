@@ -183,18 +183,23 @@ styles.registerStyle('main', () => {
 		'.pt-m': {'padding-top': px(size.vpad)},
 		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
+		'.pt-s': {'padding-top': px(size.hpad_small)},
+		'.pt-xs': {'padding-top': px(size.vpad_xs)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
 		'.pb-2': {'padding-bottom': '2px'}, // for dropdown toggles
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
+		'.pb-xs': {'padding-bottom': px(size.vpad_xs)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
 		'.pb-m': {'padding-bottom': px(size.vpad)},
+		'.pb-ml': {'padding-bottom': px(size.vpad_ml)},
 		'.pb-floating': {'padding-bottom': px(size.button_floating_size + size.hpad_large)}, // allow scrolling across the floating button
 		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 		'.pl': {'padding-left': px(size.hpad)},
 		'.pl-s': {'padding-left': px(size.hpad_small)},
 		'.pl-m': {'padding-left': px(size.hpad)},
+		'.pl-xs': {'padding-left': px(size.vpad_xs)},
 		'.pr': {'padding-right': px(size.hpad)},
 		'.pr-s': {'padding-right': px(size.hpad_small)},
 		'.pr-m': {'padding-right': px(size.vpad)},
@@ -254,7 +259,6 @@ styles.registerStyle('main', () => {
 			color: theme.content_accent,
 		},
 		'.content-message-bg': {'background-color': theme.content_message_bg},
-
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
@@ -816,6 +820,12 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
+
+		'.featureList': {
+			'margin-top': '10px',
+			'padding-inline-start': '12px',
+		},
+
 		'.buyOptionBox': {
 			position: 'relative',
 			display: 'inline-block',

@@ -94,11 +94,11 @@ export class WizardDialog<T> {
 			]
 		)
 		this.dialog = Dialog.largeDialog(headerBar, this)
-		                    .addShortcut({
-			                    key: Keys.ESC,
-			                    exec: () => this._close(),
-			                    help: "close_alt"
-		                    }).setCloseHandler(backAction)
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => this._close(),
+				help: "close_alt"
+			}).setCloseHandler(backAction)
 	}
 
 	_getEnabledPages(): WizardPage<T>[] {
