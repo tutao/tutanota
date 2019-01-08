@@ -12,12 +12,7 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {InvoiceTypeRef} from "../api/entities/sys/Invoice"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {
-	createNotAvailableForFreeButton,
-	getInvoiceStatusText,
-	getPaymentMethodInfoText,
-	getPaymentMethodName
-} from "./PriceUtils"
+import {createNotAvailableForFreeButton, getInvoiceStatusText, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod, isSameId, sortCompareByReverseId} from "../api/common/EntityFunctions"
@@ -109,8 +104,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._invoiceTable = new Table(["date_label", "invoiceState_label", "invoiceTotal_label"], [
 			ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small
 		], true)
-		this._invoiceExpanderButton = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
-		this._invoiceExpanderButton.panel.expanded = true
+		this._invoiceExpanderButton = new ExpanderButton(
+			"show_action",
+			new ExpanderPanel(this._invoiceTable).setExpanded(true),
+			false
+		)
+
 
 		this.view = (): VirtualElement => {
 			return m("#invoicing-settings.fill-absolute.scroll.plr-l", [
@@ -217,8 +216,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 
 	_isPayButtonVisible(invoice: Invoice): boolean {
-		return (invoice.paymentMethod === PaymentMethodType.CreditCard || invoice.paymentMethod
-			=== PaymentMethodType.Paypal)
+		return (invoice.paymentMethod === PaymentMethodType.CreditCard || invoice.paymentMethod === PaymentMethodType.Paypal)
 			&& (invoice.status === InvoiceStatus.FIRSTREMINDER || invoice.status === InvoiceStatus.SECONDREMINDER)
 	}
 
@@ -282,6 +280,6 @@ function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, 
 		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
 
 		dialog.setCloseHandler(cancelAction)
-			.show()
+		      .show()
 	})
 }

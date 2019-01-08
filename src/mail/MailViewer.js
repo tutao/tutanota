@@ -350,7 +350,7 @@ export class MailViewer {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
 							},
-							onclick: (event: Event) => this._handleMailto(event),
+							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
 						}, (this._mailBody == null
@@ -613,7 +613,7 @@ export class MailViewer {
 		}
 	}
 
-	_handleMailto(event: Event): void {
+	_handleAnchorClick(event: Event): void {
 		let target = (event.target: any)
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
@@ -626,6 +626,12 @@ export class MailViewer {
 						          mailEditor.show()
 					          })
 				}
+			}
+			// Navigate to the settings menu if they are linked within an email.
+			if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
+				m.route.set(newRoute)
+				event.preventDefault()
 			}
 		}
 	}
