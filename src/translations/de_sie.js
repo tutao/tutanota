@@ -912,6 +912,7 @@ const translation = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
+		"removeFormatting_action": "Textformatierung der Auswahl entfernen",
 		"quit_action": "Beenden",
 		"openNewWindow_action": "Neues Fenster",
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorgen Sie bitte dafür, dass ausreichend Guthaben vorhanden ist.",

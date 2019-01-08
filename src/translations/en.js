@@ -906,6 +906,7 @@ const translation = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
+		"removeFormatting_action": "Remove formatting from selection",
 		"quit_action": "Quit",
 		"openNewWindow_action": "New window",
 		"failedDebitAttempt_msg": "If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered.",

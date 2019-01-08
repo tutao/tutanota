@@ -6,7 +6,6 @@ import stream from "mithril/stream/stream.js"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {size} from '../size.js'
-import type {DropDownSelectorAttrs} from "./DropDownSelectorN"
 import {noOp} from "../../api/common/utils/Utils"
 import {attachDropdown} from "./DropdownN"
 import {lang} from '../../misc/LanguageViewModel.js'
@@ -106,17 +105,13 @@ export class RichTextToolbar {
 			noBubble: true,
 		}, () => alignToggleAttrs, () => true, 2 * size.hpad_large + size.button_height,)
 
-		const sizeSelectorAttrs: DropDownSelectorAttrs<number> = {
-			label: "formatTextFontSize_msg",
-			items: numberRange(8, 144).map(n => ({name: n.toString(), value: n})),
-			selectedValue: this.selectedSize,
-			selectionChangedHandler: (newSize: number) => {
-				editor._squire.setFontSize(newSize)
-				this.selectedSize(newSize)
-				setTimeout(() => editor._squire.focus(), 100) // blur for the editor is fired after the handler for some reason
-				m.redraw()
-			},
-			dropdownWidth: 150
+		const removeFormattingButtonAttrs = {
+			label: "emptyString_msg",
+			title: "removeFormatting_action",
+			icon: () => Icons.Close,
+			type: ButtonType.Toggle,
+			click: () => editor._squire.removeAllFormatting(),
+			noBubble: true,
 		}
 
 		const sizeButtonAttrs = attachDropdown({
@@ -156,7 +151,7 @@ export class RichTextToolbar {
 							: "sticky" // normal browsers
 					}
 				}, [
-					m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs).map(t => m(ButtonN, t))),
+					m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs).map(t => m(ButtonN, t))),
 					m("hr.hr")
 				]
 			)
