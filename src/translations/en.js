@@ -910,6 +910,8 @@ const translation = {
 		"openNewWindow_action": "New window",
 		"failedDebitAttempt_msg": "If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered.",
 		"accountWasStillCreated_msg": "Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later."
+		"yourMessage_label": "Your message",
+		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts."
 	}
 }
 export default translation

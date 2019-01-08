@@ -913,6 +913,8 @@ const translation = {
 		"openNewWindow_action": "Neues Fenster",
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist.",
 		"accountWasStillCreated_msg": "Dein Account wurde trotzdem schon als Free-Account erstellt. Du kannst auch die Zahlung jetzt abbrechen, dich in deinen Account einloggen und dort upgraden."
+		"yourMessage_label": "Deine Nachricht",
+		"signupOneFreeAccountConfirm_msg": "Es ist nur ein Free-Account pro Person erlaubt. Bitte bestätige, dass du keine weiteren kostenfreien Tutanota-Accounts besitzt."
 	}
 }
 export default translation
