@@ -44,6 +44,7 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }
 
+//TODO: move version in Entity.js to EntityFunctions and use it from here. Remove this restricted version
 export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 	return _loadAll(typeRef, listId, (start) ? start : GENERATED_MIN_ID)
 }

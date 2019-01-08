@@ -39,6 +39,7 @@ export const GENERATED_ID_BYTES_LENGTH = 9
 export const CUSTOM_MIN_ID = ""
 
 export const RANGE_ITEM_LIMIT = 1000
+export const LOAD_MULTIPLE_LIMIT = 100
 
 /**
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
@@ -181,12 +182,21 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 
 
 export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<T[]> {
+	// split the ids into chunks
+	let idChunks = [];
+	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
+		idChunks.push(elementIds.slice(i, i + LOAD_MULTIPLE_LIMIT))
+	}
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
-		let queryParams = {
-			ids: elementIds.join(",")
-		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+		return Promise.map(idChunks, idChunk => {
+			let queryParams = {
+				ids: idChunk.join(",")
+			}
+			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+		}, {concurrency: 1}).then(instanceChunks => {
+			return Array.prototype.concat.apply([], instanceChunks);
+		})
 	})
 }
 
