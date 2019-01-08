@@ -21,7 +21,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"pollingInterval": 4000000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
-			"appUserModelId": "de.tutao.tutanota"
+			"appUserModelId": "de.tutao.tutanota",
 		},
 		"dependencies": {
 			"electron-updater": "^4.0.6",
@@ -33,7 +33,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.0",
+			"electronVersion": "4.0.1",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
@@ -78,10 +78,11 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"nsis": {
-				"oneClick": true,
+				"oneClick": false,
 				"perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
+				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
 				"extendInfo": {

@@ -11,10 +11,7 @@ import {ipc} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
 
 PreloadImports.keep()
-conf.get("appUserModelId")
-    .then((id) => {
-	    app.setAppUserModelId(id)
-    })
+conf.get("appUserModelId").then(app.setAppUserModelId)
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
 

@@ -33,6 +33,7 @@ declare module 'electron' {
 		exit(code: Number): void,
 		getVersion(): string,
 		getName(): string,
+		setPath(name: string, path: string): void;
 		setAppUserModelId(string): void,
 		isDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		setAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
