@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode, isAdminClient} from "../../api/Env"
 import {worker} from "../../api/main/WorkerClient"
 import {Dialog, DialogType} from "./Dialog"
 import {DefaultAnimationTime} from "../animation/Animations"
@@ -29,6 +29,8 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 	progressDialog.show()
 	let start = new Date().getTime()
 
+	let minDialogVisibilityMillis = isAdminClient() ? 0 : 1000
+
 	return Promise.fromCallback(cb => {
 		action.then(result => {
 			let diff = new Date().getTime() - start
@@ -36,14 +38,14 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 				worker.unregisterProgressUpdater(updater)
 				progressDialog.close()
 				setTimeout(() => cb(null, result), DefaultAnimationTime)
-			}, Math.max(1000 - diff, 0))
+			}, Math.max(minDialogVisibilityMillis - diff, 0))
 		}).catch(e => {
 			let diff = new Date().getTime() - start
 			setTimeout(() => {
 				worker.unregisterProgressUpdater(updater)
 				progressDialog.close()
 				setTimeout(() => cb(e), DefaultAnimationTime)
-			}, Math.max(1000 - diff, 0))
+			}, Math.max(minDialogVisibilityMillis - diff, 0))
 		})
 	})
 }
