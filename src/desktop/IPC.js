@@ -3,6 +3,7 @@ import {BrowserWindow, ipcMain} from 'electron'
 import {ApplicationWindow} from './ApplicationWindow'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
+import {noOp} from '../api/common/utils/Utils'
 import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 
@@ -14,18 +15,13 @@ class IPC {
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	_on = () => console.log("ipc not initialized!")
-	_once = () => console.log("ipc not initialized!")
+	_on = noOp;
+	_once = noOp;
 
 	constructor() {
 		this._initialized = defer()
 		this._queue = {}
-	}
 
-	init() {
-		if (this.initialized().isFulfilled()) {
-			this._initialized = defer()
-		}
 		this._on = (...args: any) => ipcMain.on.apply(ipcMain, args)
 		this._once = (...args: any) => ipcMain.once.apply(ipcMain, args)
 	}
@@ -93,7 +89,7 @@ class IPC {
 					if (w) {
 						w.show()
 					}
-				})
+				}).then(() => d.resolve())
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))

@@ -908,7 +908,9 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"quit_action": "Beenden",
+		"openNewWindow_action": "Neues Fenster"
 	}
 }
 export default translation

@@ -21,11 +21,6 @@ export class ApplicationWindow {
 	constructor() {
 		this._createBrowserWindow()
 		this._browserWindow.loadURL(this._startFile)
-		if (!ipc.initialized().isFulfilled()) {
-			ipc.init()
-		}
-		windows.push(this)
-		ipc.addWindow(this.id)
 	}
 
 	show() {
@@ -73,6 +68,8 @@ export class ApplicationWindow {
 		})
 
 		this.id = this._browserWindow.id
+		windows.push(this)
+		ipc.addWindow(this.id)
 
 		this._browserWindow.once('ready-to-show', () => {
 			this._browserWindow.webContents.setZoomFactor(1.0);
@@ -175,7 +172,7 @@ export class ApplicationWindow {
 		if (wc.isDevToolsOpened()) {
 			wc.closeDevTools()
 		} else {
-			wc.openDevTools({mode: 'right'})
+			wc.openDevTools({mode: 'undocked'})
 		}
 	}
 
@@ -195,18 +192,11 @@ export class ApplicationWindow {
 		ipc.sendRequest(this.id, 'openFindInPage', [])
 	}
 
-	_refresh(): void {
-		this._browserWindow.webContents.reloadIgnoringCache()
-	}
-
-	static get(id: ?number): ?ApplicationWindow {
-		if (typeof id === 'number') {
-			const w = windows.find(w => w.id === id)
-			return w
-				? w
-				: null
-		}
-		return null
+	static get(id: number): ?ApplicationWindow {
+		const w = windows.find(w => w.id === id)
+		return w
+			? w
+			: null
 	}
 
 	static getAll(): ApplicationWindow[] {
