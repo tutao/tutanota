@@ -162,6 +162,7 @@ styles.registerStyle('main', () => {
 		'.mt-xs': {'margin-top': px(size.vpad_xs)},
 		'.mt-s': {'margin-top': px(size.vpad_small)},
 		'.mt-l': {'margin-top': px(size.vpad_large)},
+		'.mt-m': {'margin-top': px(size.hpad)},
 		'.mt-xl': {'margin-top': px(size.vpad_xl)},
 		'.mt-form': {'margin-top': px(size.hpad_medium)},
 		'.mb-0': {'margin-bottom': 0},
@@ -820,11 +821,6 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
-
-		'.featureList': {
-			'margin-top': '10px',
-			'padding-inline-start': '12px',
-		},
 
 		'.buyOptionBox': {
 			position: 'relative',

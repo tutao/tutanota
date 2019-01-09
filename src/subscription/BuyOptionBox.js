@@ -82,13 +82,17 @@ class _BuyOptionBox {
 						right: px(10)
 					}
 				}, m(neverNull(vnode.attrs.actionButton))) : null
-			]), m("div.featureList", vnode.attrs.features().map(f => m(".flex",
-				[m(Icon, {
-					icon: Icons.Checkmark,
-					style: {
-						'padding-top': '5px'
-					}
-				}), window.innerWidth > 809 ? m(".align-self-center.pt-xs.pb-xs.pl-xs.text-ellipsis", {title: f}, f) : m(".align-self-center.pt-xs.pb-xs.pl-xs", f)])))
+			]), m("div.mt-m.pl", vnode.attrs.features().map(f => m(".flex",
+				[
+					m(Icon, {
+						icon: Icons.Checkmark,
+						style: {
+							'padding-top': '5px'
+						}
+					}),
+					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {title: window.innerWidth > 809 ? f : ""}, f)
+				]
+			)))
 		])
 	}
 }

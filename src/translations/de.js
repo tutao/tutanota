@@ -568,8 +568,8 @@ const translation = {
 		"oldPassword_label": "Altes Passwort",
 		"oneContactSelected_msg": "1 Kontakt ausgewählt.",
 		"oneMailSelected_msg": "1 E-Mail ausgewählt.",
-		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechsel jetzt zu Premium!",
-		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium verfügbar. Bitte wechsel jetzt zu Premium!",
+		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium oder Pro gebucht werden. Bitte wechsel jetzt!",
+		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium oder Pro verfügbar. Bitte wechsel jetzt!",
 		"onlyPrivateComputer_msg": "Wähle diese Option nur bei der Verwendung eines privaten Geräts.",
 		"openCamera_action": "Kamera",
 		"open_action": "Öffnen",
@@ -623,7 +623,7 @@ const translation = {
 		"pleaseEnterValidPath_msg": "Bitte gebe einen gültigen Pfad an. Gültige Zeichen sind a-z, A-Z, '-' and '_'.",
 		"pleaseWait_msg": "Bitte warten ...",
 		"postpone_action": "Später",
-		"premiumOffer_msg": "Mit Premium bekommst du für {1} im Monat 5 Aliasse, eine uneingeschränkte Suchfunktion, kannst Inbox-Regeln anlegen, deine eigene(n) Domain(s) verwenden, weitere Benutzer anlegen (kostenpflichtig) und mehr. Für die geschäftliche Nutzung bist du laut unseren AGB verpflichtet zu Premium zu wechseln. Deine Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Lies hier welche Vorteile du mit Premium bekommst:",
+		"premiumOffer_msg": "Deine Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Für die geschäftliche Nutzung bist du laut unseren AGB verpflichtet zu einer kostenpflichtigen Variante zu wechseln. Lies hier welche Vorteile du mit Premium oder Pro bekommst:",
 		"presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Soll die E-Mail trotzdem gesendet werden?",
 		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!",
 		"presharedPassword_label": "Vereinbartes Passwort",
@@ -911,7 +911,7 @@ const translation = {
 		"yourMessage_label": "Deine Nachricht",
 		"quit_action": "Beenden",
 		"openNewWindow_action": "Neues Fenster",
-		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass aussreichend Guthaben vorhanden ist."
+		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist."
 	}
 }
 export default translation
