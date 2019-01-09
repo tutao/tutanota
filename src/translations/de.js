@@ -910,7 +910,8 @@ const translation = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"quit_action": "Beenden",
-		"openNewWindow_action": "Neues Fenster"
+		"openNewWindow_action": "Neues Fenster",
+		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass aussreichend Guthaben vorhanden ist."
 	}
 }
 export default translation

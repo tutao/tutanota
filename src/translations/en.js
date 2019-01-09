@@ -907,7 +907,8 @@ const translation = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"quit_action": "Quit",
-		"openNewWindow_action": "New window"
+		"openNewWindow_action": "New window",
+		"failedDebitAttempt_msg":"If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered."
 	}
 }
 export default translation

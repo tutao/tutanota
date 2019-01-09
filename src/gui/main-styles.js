@@ -280,7 +280,7 @@ styles.registerStyle('main', () => {
 			fill: '#ffffff',
 		},
 		'.blue': {'background-color': "#2196F3"},
-
+		'.underline': {'text-decoration': 'underline'},
 		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
 		// positioning
