@@ -16,6 +16,7 @@ class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?TimeoutID;
 	windowCloseConfirmation: boolean;
+	_windowCloseListeners: Set<() => void>;
 	_worker: WorkerClient;
 	// following two properties are for the iOS
 	_keyboardSize = 0;
@@ -25,6 +26,7 @@ class WindowFacade {
 		this._windowSizeListeners = []
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
+		this._windowCloseListeners = new Set()
 		this.init()
 		asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/api/main/WorkerClient.js`)
@@ -48,6 +50,15 @@ class WindowFacade {
 		if (index > -1) {
 			this._windowSizeListeners.splice(index, 1)
 		}
+	}
+
+	addWindowCloseListener(listener: () => void): Function {
+		this._windowCloseListeners.add(listener)
+		return () => this._windowCloseListeners.delete(listener)
+	}
+
+	notifyCloseListeners() {
+		this._windowCloseListeners.forEach(f => f())
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {
@@ -104,6 +115,7 @@ class WindowFacade {
 	}
 
 	_beforeUnload(e: any) { // BeforeUnloadEvent
+		this.notifyCloseListeners()
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m

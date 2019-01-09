@@ -18,10 +18,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"tutao-config": {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
-			"pollingInterval": 30000,
+			"pollingInterval": 4000000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
-			"appUserModelId": "de.tutao.tutanota"
+			"appUserModelId": "de.tutao.tutanota",
 		},
 		"dependencies": {
 			"electron-updater": "^4.0.6",
@@ -33,9 +33,9 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.0-beta.9",
+			"electronVersion": "4.0.1",
 			"icon": iconPath,
-			"appId": "de.tutao.tutanota",
+			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
@@ -78,12 +78,16 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"nsis": {
-				"oneClick": true,
+				"oneClick": false,
 				"perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
+				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
+				"extendInfo": {
+					"LSUIElement": 1 //hide dock icon on startup
+				},
 				"target": [
 					{
 						"target": "zip",
@@ -92,10 +96,11 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"linux": {
+				"icon": path.join(path.dirname(iconPath), "icon/"),
 				"synopsis": "Tutanota Desktop Client",
 				"category": "Network",
 				"desktop": {
-					"StartupWMClass": "Tutanota"
+					"StartupWMClass": "tutanota-desktop" + nameSuffix
 				},
 				"target": [
 					{

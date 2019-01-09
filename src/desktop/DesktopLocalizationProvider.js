@@ -13,8 +13,8 @@ class DesktopLocalizationProvider {
 	staticTranslations: Object;
 	formats: Object;
 
-	init = (): Promise<void> => {
-		return ipc.sendRequest('sendTranslations', [])
+	init = (windowId: number): Promise<void> => {
+		return ipc.sendRequest(windowId, 'sendTranslations', [])
 		          .then(this._setTranslations)
 		          .then(() => this.initialized.resolve())
 	}

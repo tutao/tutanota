@@ -20,6 +20,7 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
 		nameSuffix !== "-snapshot"
 	)
+	console.log("updateUrl is", updateUrl)
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')
 
 	//prepare files

@@ -3,22 +3,75 @@
  */
 
 declare module 'electron' {
-	declare export var app: {
-		on(AppEvent, (Event, ...Array<any>) => void): void,
+	declare export var app: App;
+	declare export var remote: any;
+	declare export var webFrame: WebFrame;
+	declare export var ipcRenderer: any;
+	declare export var ipcMain: any;
+	declare export var nativeImage: {
+		// https://electronjs.org/docs/api/native-image
+		createEmpty(): NativeImage;
+		createFromPath(String): NativeImage;
+		createFromBuffer(Buffer, opts?: {width: Number, height: Number, scaleFactor: Number}): NativeImage;
+	};
+
+	declare export type NativeImage = {};
+
+	declare export class Menu {
+		// https://electronjs.org/docs/api/menu
+		constructor(): Menu;
+		popup(opts?: {window: BrowserWindow, x: Number, y: Number, positioningItem: Number, callback: Function}): void;
+		append(MenuItem): void;
+		static setApplicationMenu(Menu | null): void;
+		static getApplicationMenu(): Menu | null;
+	}
+
+	declare export class App {
+		on(AppEvent, (Event, ...Array<any>) => void): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
 		getVersion(): string,
 		getName(): string,
+		setPath(name: string, path: string): void;
 		setAppUserModelId(string): void,
 		isDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		setAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		removeAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
-	};
-	declare export var remote: any;
-	declare export var ipcRenderer: any;
-	declare export var ipcMain: any;
-	declare export var nativeImage: any;
+		dock: Dock,
+	}
+
+	declare export type Dock = {
+		setMenu(Menu): void,
+		bounce(): void,
+		hide(): void,
+		show(): void,
+	}
+
+	declare export class MenuItem {
+		// https://electronjs.org/docs/api/menu-item
+		constructor(opts: {
+			click?: Function,
+			menuItem?: MenuItem,
+			browserWindow?: BrowserWindow,
+			event?: Event,
+			role?: String,
+			type?: String,
+			label?: String,
+			sublabel?: String,
+			accelerator?: String,
+			icon?: NativeImage | String,
+			enabled?: Boolean,
+			visible?: Boolean,
+			checked?: Boolean,
+			registerAccelerator?: Boolean,
+			id?: String,
+			before?: String,
+			after?: String,
+			beforeGroupContaining?: String,
+			afterGroupContaining?: String,
+		}): MenuItem;
+	}
 
 	declare export class BrowserWindow {
 		// https://github.com/electron/electron/blob/master/docs/api/browser-window.md#new-browserwindowoptions
@@ -36,7 +89,23 @@ declare module 'electron' {
 		loadURL(string): void;
 		isMinimized(): boolean;
 		openDevTools(): void;
+		getTitle(): string;
 		webContents: WebContents;
+		id: Number;
+
+		static fromId(number): BrowserWindow;
+	}
+
+	declare export class Tray {
+		// https://electronjs.org/docs/api/tray
+		constructor(string | NativeImage): Tray;
+		destroy(): void;
+		setImage(string | NativeImage): void;
+		setPressedImage(string | NativeImage): void;
+		setTooltip(string): void;
+		setTitle(string): void;
+		setContextMenu(Menu | null): void;
+		on(TrayEvent, (Event, ...Array<any>) => void): Tray;
 	}
 
 	declare export class Notification {
@@ -59,7 +128,7 @@ declare module 'electron' {
 
 	declare export class WebContents {
 		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
-		send(BridgeMessage, any): void;
+		send(string, any): void;
 		session: ElectronSession;
 		getURL(): string;
 		getZoomFactor((factor: number) => void): void;
@@ -72,6 +141,11 @@ declare module 'electron' {
 		reloadIgnoringCache(): void;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
+	}
+
+	declare export class WebFrame {
+		getZoomFactor(): number;
+		setZoomFactor(factor: number): void;
 	}
 
 	declare export class ElectronSession {
@@ -95,12 +169,12 @@ declare module 'electron-updater' {
 
 declare module 'electron-localshortcut' {
 	declare module .exports: {
-		register(shortcut: string, cb: Function): void;
+		register(win?: BrowserWindow, shortcut: string, cb: Function): void;
 		unregister(shortcut: string): void;
 		isRegistered(shortcut: string): boolean;
 		unregisterAll(): void;
-		enableAll(): void;
-		disableAll(): void;
+		enableAll(win?: BrowserWindow): void;
+		disableAll(win?: BrowserWindow): void;
 	}
 ;
 }
@@ -183,13 +257,6 @@ export type CancellationToken = {
 export type UpdateFileInfo = {
 	url: string
 }
-
-// export type Bridge = {|
-// 	sendMessage: (msg: BridgeMessage, data: any) => void,
-// 	startListening: (msg: BridgeMessage, listener: Function) => void,
-// 	stopListening: (msg: BridgeMessage, listener: Function) => void,
-// 	getVersion: () => string,
-// |}
 
 // https://github.com/electron/electron/blob/master/docs/api/app.md#events
 export type AppEvent
@@ -308,13 +375,5 @@ export type AutoUpdaterEvent
 	| 'download-progress'
 	| 'update-downloaded'
 
-
-// Add Tutanota specific Messages here
-export type BridgeMessage
-	= 'window-close'    // user closed the client
-	| 'close-editor'    // try to close the mail editor
-	| 'mailto'          // external navigation event
-	| 'show-window'     // focus the browserWindow
-	| 'get-translations'// get all translations from the webapp
-	| 'protocol-message'// WorkerProtocol communication
-	| 'print-argv'      // prints argument to browser console
+export type TrayEvent
+	= 'click'

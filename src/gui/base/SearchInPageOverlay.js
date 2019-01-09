@@ -92,7 +92,7 @@ export class SearchInPageOverlay {
 			noBubble: true,
 			isSelected: () => this._matchCase,
 			click: () => {
-				this._matchCase = true
+				this._matchCase = !this._matchCase
 				nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {forward: true, matchCase: this._matchCase}]))
 				this._domInput.focus()
 			},

@@ -10,6 +10,7 @@ assertMainOrNodeBoot()
 
 class Modal {
 	components: {key: number, component: ModalComponent}[];
+	_uniqueComponent: ?ModalComponent;
 	_domModal: HTMLElement;
 	view: Function;
 	visible: boolean;
@@ -19,6 +20,7 @@ class Modal {
 		this.currentKey = 0
 		this.components = []
 		this.visible = false
+		this._uniqueComponent = null
 
 		this.view = (): VirtualElement => {
 			return m("#modal.fill-absolute", {
@@ -64,6 +66,20 @@ class Modal {
 		keyManager.registerModalShortcuts(component.shortcuts())
 	}
 
+
+	/**
+	 * used for modal components that should only be opened once
+	 * multiple calls will be ignored if the first component is still visible
+	 * @param component
+	 */
+	displayUnique(component: ModalComponent) {
+		if (this._uniqueComponent) {
+			return
+		}
+		this.display(component)
+		this._uniqueComponent = component
+	}
+
 	remove(component: ModalComponent) {
 		let componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
 		if (componentIndex === -1) {
@@ -75,6 +91,9 @@ class Modal {
 			keyManager.unregisterModalShortcuts(component.shortcuts())
 		}
 		this.components.splice(componentIndex, 1)
+		if (this._uniqueComponent === component) {
+			this._uniqueComponent = null
+		}
 		m.redraw()
 		if (this.components.length === 0) {
 			this.currentKey = 0
