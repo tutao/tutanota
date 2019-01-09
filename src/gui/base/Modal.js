@@ -66,9 +66,15 @@ class Modal {
 		keyManager.registerModalShortcuts(component.shortcuts())
 	}
 
+
+	/**
+	 * used for modal components that should only be opened once
+	 * multiple calls will be ignored if the first component is still visible
+	 * @param component
+	 */
 	displayUnique(component: ModalComponent) {
 		if (this._uniqueComponent) {
-			this.remove(this._uniqueComponent)
+			return
 		}
 		this.display(component)
 		this._uniqueComponent = component
