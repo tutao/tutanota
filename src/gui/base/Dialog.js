@@ -4,6 +4,7 @@ import {Button, ButtonType} from "./Button"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextField, Type} from "./TextField"
@@ -18,7 +19,6 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
 import {ButtonN} from "./ButtonN"
 import {DialogHeaderBarN} from "./DialogHeaderBarN"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -590,6 +590,8 @@ export class Dialog {
 	static showRequestPasswordDialog(okAction: (input: TextField) => mixed, errorMessage: Stream<string>, cancelAction: ?() => mixed): Dialog {
 		let pwInput = new TextField("password_label", errorMessage)
 			.setType(Type.Password)
+			// invisible input field to prevent that autocomplete focuses another input field on the page, e.g. search bar
+			.setPreventAutofill(true)
 		pwInput._keyHandler = (key: KeyPress) => {
 			switch (key.keyCode) {
 				case 13: // return
@@ -601,8 +603,7 @@ export class Dialog {
 		}
 		return Dialog.showActionDialog({
 			title: lang.get("password_label"),
-			// invisible input field to prevent that autocomplete focuses another input field on the page, e.g. search bar
-			child: {view: () => [m("input", {style: {display: 'none'}}), m(pwInput)]},
+			child: {view: () => m(pwInput)},
 			okAction: () => okAction(pwInput),
 			allowCancel: cancelAction !== null,
 			cancelAction: cancelAction

@@ -18,7 +18,7 @@ export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
 
 export function focusPrevious(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -41,7 +41,7 @@ export function focusPrevious(dom: HTMLElement) {
 }
 
 export function focusNext(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly

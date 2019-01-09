@@ -5,6 +5,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {StatusField} from "../gui/base/StatusField"
 import Stream from "mithril/stream/stream.js"
@@ -14,7 +15,6 @@ import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -32,7 +32,7 @@ export class PasswordForm {
 	_repeatedPasswordFieldStatus: StatusField;
 
 	constructor(validateOldPassword: boolean, enforcePasswordStrength: boolean, repeatPassword: boolean, passwordInfoTextId: ?TranslationKey) {
-		this._oldPasswordField = new TextField("oldPassword_label", () => m(this._oldPasswordFieldStatus)).setType(Type.Password)
+		this._oldPasswordField = new TextField("oldPassword_label", () => m(this._oldPasswordFieldStatus)).setType(Type.Password).setPreventAutofill(true)
 		this._oldPasswordFieldStatus = new StatusField(this._oldPasswordField.value.map(pw => {
 				if (validateOldPassword && pw === "") {
 					return {type: "neutral", text: "oldPasswordNeutral_msg"}
@@ -43,7 +43,7 @@ export class PasswordForm {
 		)
 
 		let passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
-		this._newPasswordField = new TextField("newPassword_label", () => m(this._newPasswordFieldStatus)).setType(Type.Password)
+		this._newPasswordField = new TextField("newPassword_label", () => m(this._newPasswordFieldStatus)).setType(Type.Password).setPreventAutofill(true)
 		this._newPasswordField._injectionsRight = () => m(".mb-s.mlr", [m(passwordIndicator)])
 		this._newPasswordFieldStatus = new StatusField(Stream.combine(() => {
 			if (this._newPasswordField.value() === "") {
