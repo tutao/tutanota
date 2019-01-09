@@ -115,7 +115,11 @@ export class WorkerClient {
 		nativeApp.init()
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		return this.initialized.then(() => this._postRequest(new Request('generateSignupKeys', arguments)))
+	}
+
+	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 

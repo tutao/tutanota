@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		"exception": {"name": "exception", "id": 479, "since": 1, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "Exception", "final": false}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "40"
 }
 
 export function createWebsocketWrapper(): WebsocketWrapper {

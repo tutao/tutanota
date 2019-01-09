@@ -49,7 +49,7 @@ export class GroupManagementFacade {
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
+		return generateRsaKey().then(keyPair => this.generateInternalGroupData(keyPair, mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey))
 		           .then(mailGroupData => {
 			           let data = createCreateMailGroupData()
 			           data.mailAddress = mailAddress
@@ -67,7 +67,7 @@ export class GroupManagementFacade {
 		let groupKey = aes128RandomKey()
 		let groupInfoSessionKey = aes128RandomKey()
 
-		return this.generateInternalGroupData(groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey)
+		return generateRsaKey().then(keyPair => this.generateInternalGroupData(keyPair, groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
 		           .then(mailGroupData => {
 			           let data = createCreateLocalAdminGroupData()
 			           data.encryptedName = encryptString(groupInfoSessionKey, name)
@@ -76,16 +76,14 @@ export class GroupManagementFacade {
 		           })
 	}
 
-	generateInternalGroupData(groupKey: Aes128Key, groupInfoSessionKey: Aes128Key, adminGroupId: ?Id, adminGroupKey: Aes128Key, ownerGroupKey: Aes128Key): Promise<InternalGroupData> {
-		return generateRsaKey().then(keyPair => {
-			let groupData = createInternalGroupData()
-			groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
-			groupData.groupEncPrivateKey = encryptRsaKey(groupKey, keyPair.privateKey)
-			groupData.adminGroup = adminGroupId
-			groupData.adminEncGroupKey = encryptKey(adminGroupKey, groupKey)
-			groupData.ownerEncGroupInfoSessionKey = encryptKey(ownerGroupKey, groupInfoSessionKey)
-			return groupData
-		})
+	generateInternalGroupData(keyPair: RsaKeyPair, groupKey: Aes128Key, groupInfoSessionKey: Aes128Key, adminGroupId: ?Id, adminGroupKey: Aes128Key, ownerGroupKey: Aes128Key): InternalGroupData {
+		let groupData = createInternalGroupData()
+		groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
+		groupData.groupEncPrivateKey = encryptRsaKey(groupKey, keyPair.privateKey)
+		groupData.adminGroup = adminGroupId
+		groupData.adminEncGroupKey = encryptKey(adminGroupKey, groupKey)
+		groupData.ownerEncGroupInfoSessionKey = encryptKey(ownerGroupKey, groupInfoSessionKey)
+		return groupData
 	}
 
 	addUserToGroup(user: User, groupId: Id): Promise<void> {

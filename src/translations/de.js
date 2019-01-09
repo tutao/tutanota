@@ -164,7 +164,7 @@ const translation = {
 		"corrupted_msg": "Dieses Element kann nicht korrekt dargestellt werden.",
 		"couldNotAttachFile_msg": "Die Datei konnte leider nicht geladen werden.",
 		"createAccountAccessDeactivated_msg": "Die Registrierung ist für deine IP-Adresse kurzzeitig nicht möglich, um Missbrauch zu vermeiden. Bitte versuche es später erneut oder verwende einen anderen Internetanschluss.",
-		"createAccountInvalidCaptcha_msg": "Die Antwort ist leider falsch. Bitte starte die Registrierung erneut.",
+		"createAccountInvalidCaptcha_msg": "Die Antwort ist leider falsch. Bitte versuche es erneut.",
 		"createAccountRunning_msg": "Account wird vorbereitet ...",
 		"createActionStatus_msg": "Accounts werden angelegt. Es wurden {index} von {count} erstellt ...",
 		"createContactForm_label": "Kontaktformular erstellen",

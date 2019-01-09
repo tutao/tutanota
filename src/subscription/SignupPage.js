@@ -28,6 +28,7 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
 
 
 export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
@@ -167,35 +168,97 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
 	_signup(mailAddress: string, pw: string, registrationCode: string, campaign: ?string): Promise<void> {
-		return this._requestCaptcha(campaign).then(captchaReturn => {
-			let regDataId = captchaReturn.token
-			if (captchaReturn.challenge) {
-				return new CaptchaDialog(this, captchaReturn, campaign).solveCaptcha().then(captchaReturn => {
-					if (captchaReturn) return captchaReturn.token
-				})
-			} else {
-				return regDataId
-			}
-		}).then(regDataId => {
-			if (regDataId) {
-				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code), true)
-					.then((recoverCode) => {
-						deleteCampaign()
-						this._upgradeData.newAccountData = {
-							mailAddress,
-							password: pw,
-							recoverCode
-						}
-						this._pageActionHandler.showNext(this._upgradeData)
-					})
-			}
-		}).catch(AccessDeactivatedError, e => Dialog.error("createAccountAccessDeactivated_msg"))
-		           .catch(InvalidDataError, e => Dialog.error("invalidRegistrationCode_msg"))
+		return showProgressDialog("createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
+			return this._runCaptcha(mailAddress, campaign).then(regDataId => {
+				if (regDataId) {
+					return worker.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)
+					             .then((recoverCode) => {
+						             deleteCampaign()
+						             this._upgradeData.newAccountData = {
+							             mailAddress,
+							             password: pw,
+							             recoverCode
+						             }
+						             this._pageActionHandler.showNext(this._upgradeData)
+					             })
+				}
+			})
+		}), true)
 	}
 
-	_requestCaptcha(campaignToken: ?string): Promise<RegistrationCaptchaServiceReturn> {
-		let queryParams = (campaignToken) ? {token: campaignToken} : null
-		return showProgressDialog("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef, queryParams))
+	/**
+	 * @returns the auth token for the signup if the captcha was solved or no captcha was necessary, null otherwise
+	 */
+	_runCaptcha(mailAddress: string, campaignToken: ?string): Promise<?string> {
+		let data = createRegistrationCaptchaServiceGetData()
+		data.token = campaignToken
+		data.mailAddress = mailAddress
+		return serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, data, RegistrationCaptchaServiceReturnTypeRef)
+			.then(captchaReturn => {
+				let regDataId = captchaReturn.token
+				if (captchaReturn.challenge) {
+					return Promise.fromCallback(callback => {
+						let captchaInput = new TextField(() => lang.get("captchaInput_label") + ' (hh:mm)', () => lang.get("captchaInfo_msg"))
+						let actionBar = new DialogHeaderBar()
+						let dialog = new Dialog(DialogType.EditSmall, {
+							view: (): Children => [
+								m(".dialog-header.plr-l", m(actionBar)),
+								m(".plr-l.pb", [
+									m("img.mt-l", {
+										src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(captchaReturn.challenge)),
+										alt: lang.get("captchaDisplay_label")
+									}),
+									m(captchaInput)
+								])
+							]
+						})
+
+						let cancelAction = () => {
+							dialog.close()
+							callback(null)
+						}
+						actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
+						actionBar.addRight(new Button("ok_action", () => {
+							let captchaTime = captchaInput.value().trim()
+							if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
+								let data = createRegistrationCaptchaServiceData()
+								data.token = captchaReturn.token
+								data.response = captchaTime
+								dialog.close()
+								serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data)
+									.then(() => {
+										callback(null, captchaReturn.token)
+									})
+									.catch(InvalidDataError, e => {
+										return Dialog.error("createAccountInvalidCaptcha_msg").then(() => {
+											this._runCaptcha(mailAddress, campaignToken).then(regDataId => {
+												callback(null, regDataId)
+											})
+										})
+									})
+									.catch(AccessExpiredError, e => {
+										Dialog.error("createAccountAccessDeactivated_msg").then(() => {
+											callback(null, null)
+										})
+									})
+									.catch(e => {
+										callback(e)
+									})
+							} else {
+								Dialog.error("captchaEnter_msg")
+							}
+						}).setType(ButtonType.Primary))
+						         .setMiddle(() => lang.get("captchaDisplay_label"))
+						dialog.setCloseHandler(cancelAction)
+						dialog.show()
+					})
+				} else {
+					return regDataId
+				}
+			})
+			.catch(AccessDeactivatedError, e => {
+				return Dialog.error("createAccountAccessDeactivated_msg")
+			})
 	}
 
 	/**
@@ -229,83 +292,4 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	isEnabled(data: UpgradeSubscriptionData) {
 		return true
 	}
-}
-
-
-class CaptchaDialog {
-	dialog: Dialog;
-	captchaReturn: RegistrationCaptchaServiceReturn;
-	callback: Callback<RegistrationCaptchaServiceReturn>;
-
-	constructor(signupPage: SignupPage, captchaReturn: RegistrationCaptchaServiceReturn, campaign: ?string) {
-		this.captchaReturn = captchaReturn
-		let captchaInput = new TextField(() => lang.get("captchaInput_label")
-			+ ' (hh:mm)', () => lang.get("captchaInfo_msg"))
-
-		this.dialog = new Dialog(DialogType.EditSmall, {
-			view: (): Children => [
-				m(".dialog-header.plr-l", m(actionBar)),
-				m(".plr-l.pb", [
-					m("img.mt-l", {
-						src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(this.captchaReturn.challenge)),
-						alt: lang.get("captchaDisplay_label")
-					}),
-					m(captchaInput)
-				])
-			]
-		})
-
-		let actionBar = new DialogHeaderBar()
-		let cancelAction = () => {
-			this.dialog.close()
-			this.callback(null)
-		}
-		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-		actionBar.addRight(new Button("ok_action", () => {
-			let captchaTime = captchaInput.value().trim()
-			if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
-				let data = createRegistrationCaptchaServiceData()
-				data.token = this.captchaReturn.token
-				data.response = captchaTime
-				showProgressDialog("loading_msg", serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data))
-					.then(() => {
-						this.dialog.close()
-						this.callback(null, this.captchaReturn)
-					})
-					.catch(InvalidDataError, e => {
-						signupPage._requestCaptcha(campaign).then(captchaReturn => {
-							this.captchaReturn = captchaReturn
-							Dialog.error("createAccountInvalidCaptcha_msg")
-						}).catch(e => {
-							this.dialog.close()
-							this.callback(e)
-						})
-					})
-					.catch(AccessExpiredError, e => {
-						Dialog.error("createAccountAccessDeactivated_msg")
-						this.dialog.close()
-						this.callback(null)
-					})
-					.catch(e => {
-						this.dialog.close()
-						this.callback(e)
-					})
-			} else {
-				Dialog.error("captchaEnter_msg")
-			}
-		}).setType(ButtonType.Primary))
-		         .setMiddle(() => lang.get("captchaDisplay_label"))
-		this.dialog.setCloseHandler(cancelAction)
-	}
-
-	/**
-	 * returns the authToken, after the captcha has been solved
-	 */
-	solveCaptcha(): Promise<?RegistrationCaptchaServiceReturn> {
-		return Promise.fromCallback(callback => {
-			this.callback = callback
-			this.dialog.show()
-		})
-	}
-
 }

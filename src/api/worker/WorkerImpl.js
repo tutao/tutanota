@@ -48,6 +48,9 @@ export class WorkerImpl {
 				let ErrorType = errorTypes[message.args[0].errorType]
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
 			},
+			generateSignupKeys:(message: Request) => {
+				return locator.customer.generateSignupKeys.apply(locator.customer, message.args)
+			},
 			signup: (message: Request) => {
 				return locator.customer.signup.apply(locator.customer, message.args)
 			},

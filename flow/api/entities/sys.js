@@ -1554,3 +1554,11 @@ type UpgradePriceServiceReturn = {
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
 }
+
+type RegistrationCaptchaServiceGetData = {
+	_type: TypeRef<RegistrationCaptchaServiceGetData>;
+	_format: NumberString;
+	mailAddress: ?string;
+	token: ?string;
+
+}

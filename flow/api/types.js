@@ -50,6 +50,7 @@ type PublicKey = {
 }
 
 type WorkerRequestType = 'setup'
+	| 'generateSignupKeys'
 	| 'signup'
 	| 'createSession'
 	| 'createExternalSession'
