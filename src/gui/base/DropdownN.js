@@ -317,7 +317,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 			if (e.currentTarget) {
 				let buttonRect: ClientRect = e.currentTarget.getBoundingClientRect()
 				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
+				modal.displayUnique(dropdown)
 			}
 		})
 	}: clickHandler)
