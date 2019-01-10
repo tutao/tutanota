@@ -137,7 +137,6 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 
 }
 
-
 export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country): Promise<boolean> {
 	return worker.updatePaymentData(subscriptionOptions.businessUse(), subscriptionOptions.paymentInterval(), invoiceData, paymentData, confirmedCountry)
 		.then(paymentResult => {
@@ -157,23 +156,23 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 					})
 				} else {
 					if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-						Dialog.error("invalidVatIdNumber_msg")
+						Dialog.error(() => lang.get("invalidVatIdNumber_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-						Dialog.error("creditCardNumberInvalid_msg");
+						Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
 						Dialog.error("creditCardCVVInvalid_msg");
 					} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-						Dialog.error("paymentProviderNotAvailable_msg");
+						Dialog.error(() => lang.get("paymentProviderNotAvailable_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-						Dialog.error("paymentAccountRejected_msg");
+						Dialog.error(() => lang.get("paymentAccountRejected_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
 						Dialog.error("creditCardExprationDateInvalid_msg");
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-						Dialog.error("creditCardNumberInvalid_msg");
+						Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-						Dialog.error("invalidVatIdValidationFailed_msg");
+						Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else {
-						Dialog.error("otherPaymentProviderError_msg");
+						Dialog.error(() => lang.get("otherPaymentProviderError_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					}
 					return false
 				}

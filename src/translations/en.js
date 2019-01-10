@@ -908,7 +908,8 @@ const translation = {
 		"yourMessage_label": "Your message",
 		"quit_action": "Quit",
 		"openNewWindow_action": "New window",
-		"failedDebitAttempt_msg":"If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered."
+		"failedDebitAttempt_msg": "If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered.",
+		"accountWasStillCreated_msg": "Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later."
 	}
 }
 export default translation

@@ -571,8 +571,8 @@ const translation = {
 		"oldPassword_label": "Altes Passwort",
 		"oneContactSelected_msg": "1 Kontakt ausgewählt.",
 		"oneMailSelected_msg": "1 E-Mail ausgewählt.",
-		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium gebucht werden. Bitte wechseln Sie jetzt zu Premium!",
-		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium verfügbar. Bitte wechseln Sie jetzt zu Premium!",
+		"onlyAvailableForPremiumNotIncluded_msg": "Diese Funktion kann nur nach dem Wechsel auf Tutanota Premium oder Pro gebucht werden. Bitte wechseln Sie jetzt!",
+		"onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium oder Pro verfügbar. Bitte wechseln Sie jetzt!",
 		"onlyPrivateComputer_msg": "Wählen Sie diese Option nur bei der Verwendung eines privaten Geräts.",
 		"openCamera_action": "Kamera",
 		"open_action": "Öffnen",
@@ -913,7 +913,10 @@ const translation = {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"quit_action": "Beenden",
-		"openNewWindow_action": "Neues Fenster"
+		"openNewWindow_action": "Neues Fenster",
+		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorgen Sie bitte dafür, dass ausreichend Guthaben vorhanden ist.",
+		"accountWasStillCreated_msg": "Ihr Account wurde trotzdem schon als Free-Account erstellt. Sie können auch die Zahlung jetzt abbrechen, sich in Ihren Account einloggen und dort upgraden."
+
 	}
 }
 export default translation
