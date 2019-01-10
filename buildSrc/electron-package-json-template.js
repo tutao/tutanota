@@ -85,6 +85,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
+				"icon": path.join(path.dirname(iconPath), "logo-solo-red.png.icns"),
 				"extendInfo": {
 					"LSUIElement": 1 //hide dock icon on startup
 				},
