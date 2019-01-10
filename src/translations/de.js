@@ -911,7 +911,8 @@ const translation = {
 		"yourMessage_label": "Deine Nachricht",
 		"quit_action": "Beenden",
 		"openNewWindow_action": "Neues Fenster",
-		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist."
+		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist.",
+		"accountWasStillCreated_msg": "Dein Account wurde trotzdem schon als Free-Account erstellt. Du kannst auch die Zahlung jetzt abbrechen, dich in deinen Account einloggen und dort upgraden."
 	}
 }
 export default translation
