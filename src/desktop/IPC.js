@@ -11,7 +11,7 @@ import DesktopUtils from "../desktop/DesktopUtils"
  * node-side endpoint for communication between the renderer thread and the node thread
  */
 class IPC {
-	_initialized: DeferredObject<void>;
+	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
@@ -19,7 +19,7 @@ class IPC {
 	_once = noOp;
 
 	constructor() {
-		this._initialized = defer()
+		this._initialized = []
 		this._queue = {}
 
 		this._on = (...args: any) => ipcMain.on.apply(ipcMain, args)
@@ -31,13 +31,13 @@ class IPC {
 
 		switch (method) {
 			case 'init':
-				if (!this._initialized.promise.isFulfilled()) {
-					this._initialized.resolve()
+				if (!this.initialized(windowId).isFulfilled()) {
+					this._initialized[windowId].resolve()
 				}
 				d.resolve(process.platform);
 				break
 			case 'findInPage':
-				this._initialized.promise.then(() => {
+				this.initialized(windowId).then(() => {
 					const w = ApplicationWindow.get(windowId)
 					if (w) {
 						w.findInPage(args)
@@ -46,7 +46,7 @@ class IPC {
 				d.resolve()
 				break
 			case 'stopFindInPage':
-				this._initialized.promise.then(() => {
+				this.initialized(windowId).then(() => {
 					const w = ApplicationWindow.get(windowId)
 					if (w) {
 						w.stopFindInPage()
@@ -84,7 +84,7 @@ class IPC {
 				d.resolve()
 				break
 			case 'showWindow':
-				this._initialized.promise.then(() => {
+				this.initialized(windowId).then(() => {
 					const w = ApplicationWindow.get(windowId)
 					if (w) {
 						w.show()
@@ -100,17 +100,19 @@ class IPC {
 	}
 
 	sendRequest(windowId: number, type: JsRequestType, args: Array<any>): Promise<Object> {
-		const requestId = this._createRequestId();
-		const request = {
-			id: requestId,
-			type: type,
-			args: args,
-		}
+		return this.initialized(windowId).then(() => {
+			const requestId = this._createRequestId();
+			const request = {
+				id: requestId,
+				type: type,
+				args: args,
+			}
 
-		BrowserWindow.fromId(windowId).webContents.send(`${windowId}`, request)
-		const d = defer()
-		this._queue[requestId] = d.resolve;
-		return d.promise;
+			BrowserWindow.fromId(windowId).webContents.send(`${windowId}`, request)
+			const d = defer()
+			this._queue[requestId] = d.resolve;
+			return d.promise;
+		})
 	}
 
 	_createRequestId(): string {
@@ -128,11 +130,16 @@ class IPC {
 		return this._on.apply(this, args)
 	}
 
-	initialized(): Promise<void> {
-		return this._initialized.promise
+	initialized(windowId: number): Promise<void> {
+		if (this._initialized[windowId]) {
+			return this._initialized[windowId].promise
+		} else {
+			return Promise.reject(new Error("Tried to call ipc function on nonexistent window"))
+		}
 	}
 
 	addWindow(id: number) {
+		this._initialized[id] = defer()
 		ipcMain.on(`${id}`, (ev: Event, msg: string) => {
 			const request = JSON.parse(msg)
 			if (request.type === "response") {
@@ -161,7 +168,7 @@ class IPC {
 
 		const window = ApplicationWindow.get(id)
 		if (window) {
-			this._initialized.promise.then(() => {
+			this.initialized(id).then(() => {
 				window._browserWindow.webContents.send('print-argv', [{'argv': process.argv, 'id': window.id}])
 			})
 		}

@@ -31,12 +31,13 @@ if (process.argv.indexOf("-r") !== -1) {
 		app.quit()
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
+			console.log("2nd instance args:", args)
 			if (process.platform !== 'linux') {
 				ApplicationWindow.getAll().forEach(w => w.show())
-				handleArgv(args)
 			} else {
 				new ApplicationWindow()
 			}
+			handleArgv(args)
 		})
 	}
 
@@ -61,7 +62,7 @@ function createMainWindow() {
 	const w = new ApplicationWindow()
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
-	ipc.initialized()
+	ipc.initialized(w.id)
 	   .then(() => lang.init(w.id))
 	   .then(main)
 }
