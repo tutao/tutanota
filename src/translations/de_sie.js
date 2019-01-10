@@ -626,7 +626,7 @@ const translation = {
 		"pleaseEnterValidPath_msg": "Bitte geben Sie einen gültigen Pfad an. Gültige Zeichen sind a-z, A-Z, '-' and '_'.",
 		"pleaseWait_msg": "Bitte warten ...",
 		"postpone_action": "Später",
-		"premiumOffer_msg": "Mit Premium bekommen Sie 5 Aliasse, eine erweiterte Suchfunktion, können Inbox-Regeln anlegen, Ihre eigene Domain verwenden, weitere Benutzer anlegen (kostenpflichtig) und mehr. Außerdem können Sie Tutanota als Geschäftskunde nutzen. So helfen Sie uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Vielen Dank!",
+		"premiumOffer_msg": "Ihre Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Für die geschäftliche Nutzung sind Sie du laut unseren AGB verpflichtet zu einer kostenpflichtigen Variante zu wechseln. Lesen Sie hier welche Vorteile Sie mit Premium oder Pro bekommen:",
 		"presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Soll die E-Mail trotzdem gesendet werden?",
 		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!",
 		"presharedPassword_label": "Vereinbartes Passwort",

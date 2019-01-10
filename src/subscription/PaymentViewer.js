@@ -54,6 +54,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_paymentBusy: boolean;
 	_invoiceVatNumber: TextField;
 	_invoiceExpanderButton: ExpanderButton;
+	_paymentFailedInfo: boolean;
 
 	view: Function;
 
@@ -71,6 +72,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._paymentMethodField._injectionsRight = () => [m(changePaymentDataButton)]
 		this._invoices = []
 		this._paymentBusy = false
+		this._paymentFailedInfo = false
 
 		const changeInvoiceDataButton = createNotAvailableForFreeButton("edit_action", () => {
 			if (this._accountingInfo) {
@@ -93,6 +95,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				PaymentDataDialog.show(this._accountingInfo).then(success => {
 					if (success) {
 						return Promise.each(this._invoices, (invoice) => {
+
 							if (this._isPayButtonVisible(invoice)) {
 								return this._showPayInvoiceDialog(invoice)
 							}
@@ -107,7 +110,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small
 		], true)
 		this._invoiceExpanderButton = new ExpanderButton("show_action", new ExpanderPanel(this._invoiceTable), false)
-
+		this._invoiceExpanderButton.panel.expanded = true
 
 		this.view = (): VirtualElement => {
 			return m("#invoicing-settings.fill-absolute.scroll.plr-l", [
@@ -125,7 +128,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					m(this._invoiceExpanderButton)
 				]),
 				m(this._invoiceExpanderButton.panel),
-				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg"))
+				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
+				(this._paymentFailedInfo) ? m(".small.underline.b", lang.get("failedDebitAttempt_msg")) : null
 			])
 		}
 
@@ -159,6 +163,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_updateInvoiceTable() {
 		let showExpanderWarning = false
 		this._invoiceTable.updateEntries(this._invoices.map((invoice) => {
+			if (invoice.status === InvoiceStatus.DEBITFAILED) {
+				this._paymentFailedInfo = true
+			}
 			const downloadButton = new Button("download_action", () => {
 				showProgressDialog("pleaseWait_msg", worker.downloadInvoice(invoice)).then(pdfInvoice => fileController.open(pdfInvoice))
 			}, () => Icons.Download)

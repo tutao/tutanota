@@ -389,7 +389,8 @@ export class MailEditor {
 		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
 			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
-			textField.setType(Type.ExternalPassword)
+				.setType(Type.ExternalPassword)
+				.setPreventAutofill(true)
 
 			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
 				textField.setValue(recipientInfo.contact.presharedPassword)

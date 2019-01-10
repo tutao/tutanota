@@ -6,7 +6,8 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import {SegmentControl} from "./SegmentControl"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {BusinessUseItems,formatPrice,getFormattetUpgradePrice,SubscriptionType,	UpgradePriceType} from "./SubscriptionUtils"
+import {size} from "../gui/size"
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,
@@ -26,17 +27,24 @@ export type SubscriptionSelectorAttr = {|
 class _SubscriptionSelector {
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>) {
+		//shows different order of BuyBoxes if screen with is smaller than 810 px. Changes order of BuyBoxes to Premium Pro Free, needed for mobile view
+		let freeBuyBox = !vnode.attrs.options.businessUse() ? m(BuyOptionBox, this._createFreeUpgradeBoxAttr(vnode.attrs)) : null
+		let buyBoxesViewPlacement = [
+			m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
+			m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs)),
+		]
+		if (window.innerWidth < (size.desktop_layout_width + 90)) {
+			buyBoxesViewPlacement.push(freeBuyBox)
+		} else {
+			buyBoxesViewPlacement.splice(0, 0, freeBuyBox)
+		}
 		return [
 			vnode.attrs.isInitialUpgrade ? m(SegmentControl, {
 				selectedValue: vnode.attrs.options.businessUse,
 				items: BusinessUseItems
 			}) : null,
 			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
-			m(".flex.center-horizontally.wrap", [
-				!vnode.attrs.options.businessUse() ? m(BuyOptionBox, this._createFreeUpgradeBoxAttr(vnode.attrs)) : null,
-				m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
-				m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs)),
-			])
+			m(".flex.center-horizontally.wrap", buyBoxesViewPlacement)
 		]
 	}
 
@@ -60,12 +68,6 @@ class _SubscriptionSelector {
 				lang.get("pricing.comparisonStorage_msg", {"{amount}": 1}),
 				lang.get("pricing.comparisonDomainFree_msg"),
 				lang.get("pricing.comparisonSearchFree_msg"),
-				"--",
-				"--",
-				"--",
-				"--",
-				"--",
-				"--",
 			],
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -97,9 +99,6 @@ class _SubscriptionSelector {
 				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.premiumPrices.includedAliases}),
 				lang.get("pricing.comparisonInboxRulesPremium_msg"),
 				lang.get("pricing.comparisonSupportPremium_msg"),
-				"--",
-				"--",
-				"--",
 			],
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,

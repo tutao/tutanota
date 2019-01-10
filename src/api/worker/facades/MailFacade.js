@@ -231,7 +231,7 @@ export class MailFacade {
 					} else {
 						return null
 					}
-				})
+				}, {concurrency:1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.filter(attachment => (attachment != null))
 				.tap(() => {
 					// only delete the temporary files after all attachments have been uploaded

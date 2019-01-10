@@ -140,43 +140,43 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 
 export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country): Promise<boolean> {
 	return worker.updatePaymentData(subscriptionOptions.businessUse(), subscriptionOptions.paymentInterval(), invoiceData, paymentData, confirmedCountry)
-	             .then(paymentResult => {
-		             const statusCode = paymentResult.result
-		             if (statusCode === PaymentDataResultType.OK) {
-			             return true;
-		             } else {
-			             if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
-				             const countryName = invoiceData.country ? invoiceData.country.n : ""
-				             const confirmMessage = lang.get("confirmCountry_msg", {"{1}": countryName})
-				             return Dialog.confirm(() => confirmMessage).then(confirmed => {
-					             if (confirmed) {
-						             return updatePaymentData(subscriptionOptions, invoiceData, paymentData, invoiceData.country)  // add confirmed invoice country
-					             } else {
-						             return false;
-					             }
-				             })
-			             } else {
-				             if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-					             Dialog.error("invalidVatIdNumber_msg")
-				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-					             Dialog.error("creditCardNumberInvalid_msg");
-				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
-					             Dialog.error("creditCardCVVInvalid_msg");
-				             } else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-					             Dialog.error("paymentProviderNotAvailable_msg");
-				             } else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-					             Dialog.error("paymentAccountRejected_msg");
-				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
-					             Dialog.error("creditCardExprationDateInvalid_msg");
-				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-					             Dialog.error("creditCardNumberInvalid_msg");
-				             } else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-					             Dialog.error("invalidVatIdValidationFailed_msg");
-				             } else {
-					             Dialog.error("otherPaymentProviderError_msg");
-				             }
-				             return false
-			             }
-		             }
-	             })
+		.then(paymentResult => {
+			const statusCode = paymentResult.result
+			if (statusCode === PaymentDataResultType.OK) {
+				return true;
+			} else {
+				if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
+					const countryName = invoiceData.country ? invoiceData.country.n : ""
+					const confirmMessage = lang.get("confirmCountry_msg", {"{1}": countryName})
+					return Dialog.confirm(() => confirmMessage).then(confirmed => {
+						if (confirmed) {
+							return updatePaymentData(subscriptionOptions, invoiceData, paymentData, invoiceData.country)  // add confirmed invoice country
+						} else {
+							return false;
+						}
+					})
+				} else {
+					if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
+						Dialog.error("invalidVatIdNumber_msg")
+					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
+						Dialog.error("creditCardNumberInvalid_msg");
+					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
+						Dialog.error("creditCardCVVInvalid_msg");
+					} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
+						Dialog.error("paymentProviderNotAvailable_msg");
+					} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
+						Dialog.error("paymentAccountRejected_msg");
+					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
+						Dialog.error("creditCardExprationDateInvalid_msg");
+					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
+						Dialog.error("creditCardNumberInvalid_msg");
+					} else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
+						Dialog.error("invalidVatIdValidationFailed_msg");
+					} else {
+						Dialog.error("otherPaymentProviderError_msg");
+					}
+					return false
+				}
+			}
+		})
 }

@@ -81,6 +81,7 @@ class _Button {
 			{
 				class: this.getButtonClasses(a).join(' '),
 				style: vnode.attrs.type === ButtonType.Login ? {
+					'border-radius': '3px',
 					'background-color': theme.content_accent,
 				} : {},
 				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
