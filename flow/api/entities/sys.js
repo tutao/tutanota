@@ -1558,7 +1558,7 @@ type UpgradePriceServiceReturn = {
 type RegistrationCaptchaServiceGetData = {
 	_type: TypeRef<RegistrationCaptchaServiceGetData>;
 	_format: NumberString;
-	mailAddress: ?string;
+	mailAddress: string;
 	token: ?string;
 
 }
