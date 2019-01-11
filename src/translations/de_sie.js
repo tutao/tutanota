@@ -916,7 +916,9 @@ const translation = {
 		"quit_action": "Beenden",
 		"openNewWindow_action": "Neues Fenster",
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorgen Sie bitte dafür, dass ausreichend Guthaben vorhanden ist.",
-		"accountWasStillCreated_msg": "Ihr Account wurde trotzdem schon als Free-Account erstellt. Sie können auch die Zahlung jetzt abbrechen, sich in Ihren Account einloggen und dort upgraden."
+		"accountWasStillCreated_msg": "Ihr Account wurde trotzdem schon als Free-Account erstellt. Sie können auch die Zahlung jetzt abbrechen, sich in Ihren Account einloggen und dort upgraden.",
+		"makeLink_action": "Hyperlink erstellen",
+		"breakLink_action": "Hyperlink entfernen"
 
 	}
 }

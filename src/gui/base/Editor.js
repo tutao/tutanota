@@ -3,10 +3,12 @@ import m from "mithril"
 import SquireEditor from "squire-rte"
 import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
+import {Dialog} from "./Dialog"
+import {isMailAddress} from '../../misc/Formatter.js'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
-type Style = 'b' | 'i' | 'u' | 'c'
+type Style = 'b' | 'i' | 'u' | 'c' | 'a'
 type Alignment = 'left' | 'center' | 'right' | 'justify'
 type Listing = 'ol' | 'ul'
 type Styles = {
@@ -32,6 +34,7 @@ export class Editor {
 		i: false,
 		u: false,
 		c: false,
+		a: false,
 		alignment: 'left',
 		listing: null,
 	};
@@ -52,6 +55,7 @@ export class Editor {
 			'i': [() => this._squire.italic(), () => this._squire.removeItalic(), () => this.styles.i],
 			'u': [() => this._squire.underline(), () => this._squire.removeUnderline(), () => this.styles.u],
 			'c': [() => this._squire.setFontFace('monospace'), () => this._squire.setFontFace('sans-serif'), () => this.styles.c],
+			'a': [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a]
 		})
 
 		this.view = () => {
@@ -177,6 +181,9 @@ export class Editor {
 			this.styles.listing = 'ul'
 		}
 
+		//links
+		this.styles.a = pathSegments.includes('A')
+
 		// alignment
 		let alignment = pathSegments.find(f => f.includes('align'))
 		if (alignment !== undefined) {
@@ -204,6 +211,22 @@ export class Editor {
 		this.styles.b = this._squire.hasFormat('b')
 		this.styles.u = this._squire.hasFormat('u')
 		this.styles.i = this._squire.hasFormat('i')
+	}
+
+	makeLink() {
+		Dialog.showTextInputDialog("makeLink_action", 'url_label', null, "", null)
+		      .then(url => {
+				      if (isMailAddress(url, false)) {
+					      url = 'mailto:' + url
+				      } else if (!url.startsWith('http://')
+					      && !url.startsWith('https://')
+					      && !url.startsWith('mailto:')
+				      ) {
+					      url = 'https://' + url
+				      }
+				      this._squire.makeLink(url)
+			      }
+		      )
 	}
 
 	focus() {

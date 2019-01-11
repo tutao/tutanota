@@ -25,7 +25,14 @@ export class RichTextToolbar {
 			{style: 'b', title: () => lang.get("formatTextBold_msg") + " (Ctrl + B)", icon: Icons.Bold},
 			{style: 'i', title: () => lang.get("formatTextItalic_msg") + " (Ctrl + I)", icon: Icons.Italic},
 			{style: 'u', title: () => lang.get("formatTextUnderline_msg") + " (Ctrl + U)", icon: Icons.Underline},
-			{style: 'c', title: "formatTextMonospace_msg", icon: Icons.Code}
+			{style: 'c', title: "formatTextMonospace_msg", icon: Icons.Code},
+			{
+				style: 'a',
+				title: () => editor.hasStyle('a')
+					? lang.get('breakLink_action')
+					: lang.get('makeLink_action'),
+				icon: Icons.Link
+			}
 		].map(o => ({
 			label: "emptyString_msg",
 			title: o.title,
