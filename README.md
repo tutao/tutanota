@@ -16,6 +16,12 @@ Tutanota is the [secure email](https://tutanota.com) service with built-in end-t
 
 <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="75"></a><a href="https://f-droid.org/packages/de.tutao.tutanota/"><img src="https://f-droid.org/badge/get-it-on.png" height="75"></a>
 
+<a href="https://mail.tutanota.com">Web client</a>
+•
+<a href="https://itunes.apple.com/us/app/tutanota/id922429609">iOS App Store</a>
+•
+<a href="https://tutanota.com/blog/posts/desktop-clients">Desktop Client (Beta)</a>
+
 ## Building and running your own Tutanota web client
 
 You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on 
