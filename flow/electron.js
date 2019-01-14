@@ -6,6 +6,7 @@ declare module 'electron' {
 	declare export var app: App;
 	declare export var remote: any;
 	declare export var webFrame: WebFrame;
+	declare export var dialog: ElectronDialog;
 	declare export var ipcRenderer: any;
 	declare export var ipcMain: any;
 	declare export var nativeImage: {
@@ -46,6 +47,49 @@ declare module 'electron' {
 		setAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		removeAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		dock: Dock,
+	}
+
+	declare export class ElectronDialog {
+		showMessageBox(browserWindow: ?BrowserWindow, options: MessageBoxOptions, cb: ?((response: number, checkboxChecked: boolean) => void)): ?number
+	}
+
+	declare export type MessageBoxOptions = {
+		// type of the message box
+		type: "none" | "info" | "error" | "question" | "warning",
+		// array of button labels
+		buttons: Array<String>,
+		// Index of the button in the buttons array which will be selected by default when the message box opens.
+		defaultId: number,
+		// Title of the message box, some platforms will not show it.
+		title?: String,
+		// Content of the message box.
+		message: String,
+		// Extra information of the message.
+		detail?: String,
+		// If provided, the message box will include a checkbox with the given label.
+		// The checkbox state can be inspected only when using callback.
+		checkboxLabel?: String,
+		// Initial checked state of the checkbox. false by default.
+		checkboxChecked?: Boolean,
+		icon?: NativeImage,
+		// The index of the button to be used to cancel the dialog, via the Esc key.
+		// By default this is assigned to the first button with "cancel" or "no" as the label.
+		// If no such labeled buttons exist and this option is not set, 0 will be used
+		// as the return value or callback response.
+		cancelId?: number,
+		// On Windows Electron will try to figure out which one of the buttons are common
+		// buttons(like "Cancel" or "Yes"), and show the others as command links in the
+		// dialog. This can make the dialog appear in the style of modern Windows apps.
+		// If you don't like this behavior, you can set noLink to true.
+		noLink?: Boolean,
+		// Normalize the keyboard access keys across platforms. Default is false.
+		// Enabling this assumes & is used in the button labels for the placement
+		// of the keyboard shortcut access key and labels will be converted so
+		// they work correctly on each platform, & characters are removed on
+		// macOS, converted to _ on Linux, and left untouched on Windows. For
+		// example, a button label of Vie&w will be converted to Vie_w on Linux
+		// and View on macOS and can be selected via Alt-W on Windows and Linux.
+		normalizeAccessKeys?: Boolean
 	}
 
 	declare export type Dock = {

@@ -3,7 +3,6 @@ import {BrowserWindow, ipcMain} from 'electron'
 import {ApplicationWindow} from './ApplicationWindow'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {noOp} from '../api/common/utils/Utils'
 import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 
@@ -15,15 +14,9 @@ class IPC {
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	_on = noOp;
-	_once = noOp;
-
 	constructor() {
 		this._initialized = []
 		this._queue = {}
-
-		this._on = (...args: any) => ipcMain.on.apply(ipcMain, args)
-		this._once = (...args: any) => ipcMain.once.apply(ipcMain, args)
 	}
 
 	_invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): Promise<any> {
@@ -122,14 +115,6 @@ class IPC {
 		return "desktop" + this._requestId++
 	}
 
-	on(...args: any) {
-		return this._on.apply(this, args)
-	}
-
-	once(...args: any) {
-		return this._on.apply(this, args)
-	}
-
 	initialized(windowId: number): Promise<void> {
 		if (this._initialized[windowId]) {
 			return this._initialized[windowId].promise
@@ -165,17 +150,11 @@ class IPC {
 				    })
 			}
 		})
-
-		const window = ApplicationWindow.get(id)
-		if (window) {
-			this.initialized(id).then(() => {
-				window._browserWindow.webContents.send('print-argv', [{'argv': process.argv, 'id': window.id}])
-			})
-		}
 	}
 
 	removeWindow(id: number) {
 		ipcMain.removeAllListeners(`${id}`)
+		delete this._initialized[id]
 	}
 }
 

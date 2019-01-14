@@ -1,4 +1,5 @@
 // @flow
+import {err} from './DesktopErrorHandler.js'
 import {conf} from './DesktopConfigHandler'
 import {app} from 'electron'
 import {updater} from './ElectronUpdater.js'
@@ -59,6 +60,7 @@ if (process.argv.indexOf("-r") !== -1) {
 }
 
 function createMainWindow() {
+	err.init()
 	const w = new ApplicationWindow()
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
