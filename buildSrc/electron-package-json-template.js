@@ -24,12 +24,12 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"appUserModelId": "de.tutao.tutanota",
 		},
 		"dependencies": {
-			"electron-updater": "^4.0.6",
-			"electron-localshortcut": "^3.1.0",
+			"electron-updater": "4.0.6",
+			"electron-localshortcut": "3.1.0",
 			"fs-extra": "1.0.0",
 			"bluebird": "3.5.2",
-			"request": "^2.88.0",
-			"node-forge": "^0.7.6"
+			"request": "2.88.0",
+			"node-forge": "0.7.6"
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
