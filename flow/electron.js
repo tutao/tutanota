@@ -14,6 +14,13 @@ declare module 'electron' {
 		createFromPath(String): NativeImage;
 		createFromBuffer(Buffer, opts?: {width: Number, height: Number, scaleFactor: Number}): NativeImage;
 	};
+	declare export var shell: {
+		// Open the given external protocol URL in the desktop's default manner.
+		// (For example, mailto: URLs in the user's default mail agent).
+		openExternal(url: string): void;
+		// Open the given file in the desktop's default manner.
+		openItem(fullPath: string): boolean;
+	};
 
 	declare export type NativeImage = {};
 

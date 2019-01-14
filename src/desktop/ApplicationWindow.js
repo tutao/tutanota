@@ -1,9 +1,8 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission} from 'electron'
-import {BrowserWindow, WebContents} from 'electron'
+import {BrowserWindow, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
-import open from './open.js'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
 import u2f from '../misc/u2f-api.js'
@@ -100,7 +99,7 @@ export class ApplicationWindow {
 		    .on('new-window', (e, url) => {
 			    // we never open any new windows directly from the renderer
 			    // except for links in mails etc. so open them in the browser
-			    open(url)
+			    shell.openExternal(url)
 			    e.preventDefault()
 		    })
 		    .on('will-attach-webview', (e: Event, webPreferences, params) => {
