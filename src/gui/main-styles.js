@@ -558,7 +558,7 @@ styles.registerStyle('main', () => {
 			outline: 'none'
 		},
 
-		'blockquote.tutanota_quote': {
+		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),
 			'margin-left': px(0)
