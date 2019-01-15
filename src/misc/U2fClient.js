@@ -44,7 +44,7 @@ export class U2fClient {
 	 * Triggers a dummy U2F registration request to check if the U2F interface is available.
 	 */
 	isSupported(): Promise<boolean> {
-		if (client.browser === BrowserType.IE || client.browser === BrowserType.EDGE || isApp()) {
+		if (client.browser === BrowserType.IE || client.browser === BrowserType.EDGE || isApp() || client.isMobileDevice()) {
 			// we do not use the actual check below in IE and Edge because they would ask how to open the chrome extension
 			return Promise.resolve(false)
 		} else {
