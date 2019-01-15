@@ -37,6 +37,7 @@ import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {throttleRoute} from "../misc/RouteChange"
 
 
 assertMainOrNode()
@@ -53,9 +54,11 @@ export class ContactView implements CurrentView {
 	view: Function;
 	oncreate: Function;
 	onbeforeremove: Function;
+	_throttledSetUrl: (string) => void;
 
 	constructor() {
 		let expander = this.createContactFoldersExpander()
+		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
@@ -350,7 +353,7 @@ export class ContactView implements CurrentView {
 		header.contactsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/contact")) {
-			m.route.set(url)
+			this._throttledSetUrl(url)
 		}
 	}
 
