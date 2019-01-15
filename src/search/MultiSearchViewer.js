@@ -261,9 +261,7 @@ export class MultiSearchViewer {
 						if (confirmed) {
 							mergeContacts(keptContact, goodbyeContact)
 							return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
-								return erase(goodbyeContact).catch(NotFoundError, e => {
-									// ignore
-								}).then(() => {//is needed for correct selection behavior on mobile
+								return erase(goodbyeContact).catch(NotFoundError, noOp).then(() => {//is needed for correct selection behavior on mobile
 									this._searchListView.selectNone()
 								})
 							}))
