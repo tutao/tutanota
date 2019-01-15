@@ -34,7 +34,7 @@ declare module 'mithril' {
 
 		route: {
 			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
-			set(path: string, data?: {[string]: mixed}): void;
+			set(path: string, data?: ?{[string]: mixed}, options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
 			get(): string;
 			param(): Object;
 			prefix(prefix: string): void;

@@ -55,6 +55,7 @@ import type {EntityUpdateData} from "../api/main/EntityEventController"
 import {isUpdateForTypeRef} from "../api/main/EntityEventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
+import {throttleRoute} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -83,14 +84,15 @@ export class MailView implements CurrentView {
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
 	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
-	_actionBar: lazy<ActionBar>
+	_actionBar: lazy<ActionBar>;
+	_throttledRouteSet: (string) => void;
 
 	constructor() {
 		this.mailViewer = null
 		this.mailHeaderInfo = ""
 		this._mailboxExpanders = {}
 		this._folderToUrl = {}
-
+		this._throttledRouteSet = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden",
@@ -471,7 +473,7 @@ export class MailView implements CurrentView {
 		header.mailsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/mail")) {
-			m.route.set(url + location.hash)
+			this._throttledRouteSet(url + location.hash)
 		}
 	}
 

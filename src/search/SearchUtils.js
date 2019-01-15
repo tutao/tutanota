@@ -9,6 +9,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
+import {throttleRoute} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -37,9 +38,11 @@ export const SEARCH_MAIL_FIELDS = [
 	{textId: "attachmentName_label", field: "attachment", attributeIds: [MailModel.associations["attachments"].id]}
 ]
 
+const routeSetThrottled = throttleRoute()
+
 export function setSearchUrl(url: string) {
 	if (url !== m.route.get()) {
-		m.route.set(url)
+		routeSetThrottled(url)
 	}
 }
 
