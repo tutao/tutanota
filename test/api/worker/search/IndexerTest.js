@@ -764,8 +764,8 @@ o.spec("Indexer test", () => {
 		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", oneMinuteOld])).equals(oneMinuteOldMinusOneMS)
 
 		// two batches of which the oldest is exactly one minute and one ms old, so the newest id is returned minus 1 ms. this tests the outer limit
-		let olderThanOneMinute= timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1)
-		let newestMinusOneMinute= timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
+		let olderThanOneMinute = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1)
+		let newestMinusOneMinute = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
 		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", olderThanOneMinute])).equals(newestMinusOneMinute)
 
 		// two batches of which the oldest is very old, so the newest id is returned minus 1 ms.

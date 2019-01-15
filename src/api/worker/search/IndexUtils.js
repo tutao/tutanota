@@ -4,7 +4,6 @@ import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
 import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import type {OperationTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
 
@@ -95,7 +94,7 @@ export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
 export function htmlToText(html: ?string): string {
 	if (html == null) return ""
 	let text = html.replace(/<[^>]*>?/gm, " ")
-	return text.replace(/&[#,0-9,a-z,A-Z]{1,5};/g, (match) => {
+	return text.replace(/&[#0-9a-zA-Z]+;/g, (match) => {
 		let replacement
 		if (match.startsWith("&#")) {
 			let charCode = match.substring(2, match.length - 1) // remove &# and ;

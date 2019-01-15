@@ -186,6 +186,7 @@ o.spec("Index Utils", () => {
 		o(htmlToText("&Phi;")).equals("Φ")
 		o(htmlToText(null)).equals("")
 		o(htmlToText(undefined)).equals("")
+		o(htmlToText("&#10595;&#1339;")).equals("⥣Ի")
 	})
 })
 
