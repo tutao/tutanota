@@ -69,7 +69,17 @@ public class Utils {
         } else if (scheme.equals("content")) {
             try (Cursor cursor = context.getContentResolver().query(fileUri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    return new FileInfo(cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)), cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE)));
+                    String filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                    if (filename == null) {
+                        // From Android docs:
+                        // "If this is not provided then the name should default to the the last
+                        // segment of the file's URI."
+                        // It's not clear if it's responsibility of the provider or of us but it
+                        // seems like some providers are not implemented correctly so we default
+                        // by ourselves.
+                        filename = fileUri.getLastPathSegment();
+                    }
+                    return new FileInfo(filename, cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE)));
                 }
             } catch (SecurityException e) {
                 // When file is deleted SecurityException may be thrown instead.
