@@ -32,7 +32,7 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (process.platform !== 'linux') {
+			if (process.platform !== 'linux' && ApplicationWindow.getAll().length > 0) {
 				ApplicationWindow.getAll().forEach(w => w.show())
 			} else {
 				new ApplicationWindow()
