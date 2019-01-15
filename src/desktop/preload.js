@@ -42,6 +42,8 @@ if (process.platform === 'darwin') {
 	localShortcut.register(remote.getCurrentWindow(), 'Command+C', copy)
 	localShortcut.register(remote.getCurrentWindow(), 'Command+X', () => document.execCommand('cut'))
 	localShortcut.register(remote.getCurrentWindow(), 'Command+V', () => document.execCommand('paste'))
+	localShortcut.register(remote.getCurrentWindow(), 'Command+A', () => document.execCommand('selectAll'))
+
 }
 
 window.addEventListener('contextmenu', (e) => {
