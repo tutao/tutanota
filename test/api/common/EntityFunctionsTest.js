@@ -5,7 +5,7 @@ import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 
 o.spec("EntityFunctions", function () {
 
-	o.only("_loadMultipleEntities", function () {
+	o("_loadMultipleEntities", function () {
 		testLoadMultipleEntities(fillArray(0, 1), [["0"]])
 		testLoadMultipleEntities(fillArray(0, 100), [fillArray(0, 100)])
 		testLoadMultipleEntities(fillArray(0, 101), [fillArray(0, 100), ["100"]])
