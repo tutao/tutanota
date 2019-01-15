@@ -18,6 +18,7 @@ import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {downcast} from "../common/utils/Utils"
+import {EntityWorker} from "./EntityWorker"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -44,7 +45,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
 	const restClient = new EntityRestClient(getAuthHeaders)
-
+	const entityWorker = new EntityWorker()
 	locator._browserData = browserData
 	locator._indexedDbSupported = indexedDbSupported
 	locator.indexer = new Indexer(restClient, worker, indexedDbSupported, browserData)
@@ -59,7 +60,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
-	locator.mail = new MailFacade(locator.login, locator.file)
+	locator.mail = new MailFacade(entityWorker, locator.login, locator.file)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)

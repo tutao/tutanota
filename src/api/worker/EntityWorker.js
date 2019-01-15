@@ -121,4 +121,13 @@ export class EntityWorker {
 	_loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<T[]> {
 		return _loadMultipleEntities(typeRef, listId, elementIds, target)
 	}
+
+	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
+		return serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
+	}
+
+
+	serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
+		return serviceRequestVoid(service, method, requestEntity, queryParams, sk, extraHeaders)
+	}
 }

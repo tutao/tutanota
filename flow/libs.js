@@ -60,8 +60,36 @@ declare module 'mithril' {
 declare module 'mithril/stream/stream.js' {
 	declare export default function stream<T>(T | void): Stream<T>;
 }
+
+type DescriptionFn = (string) => void;
+
 declare module 'ospec/ospec.js' {
-	declare export default any;
+	declare interface Ospec {
+		spec: Function;
+
+		(name: string, callback: Function): void;
+
+		<T>(arg: T): {
+			equals: (toWhat: T) => DescriptionFn;
+			notEquals: (toWhat: T) => DescriptionFn;
+			deepEquals: (toWhat: T) => DescriptionFn;
+			notDeepEquals: (toWhat: T) => DescriptionFn;
+			throws: (c: $Class<any> | string) => DescriptionFn;
+			notThrows: (c: $Class<any> | string) => DescriptionFn;
+		};
+
+		only: Function;
+		before: Function;
+		beforeEach: Function;
+		after: Function;
+		afterEach: Function;
+		spy: Function;
+		run: Function;
+		report: Function;
+		new: Function;
+	}
+
+	declare export default Ospec;
 }
 declare module 'faker' {
 	declare var faker: any;

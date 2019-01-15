@@ -1,7 +1,6 @@
 // @flow
 import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {aes128RandomKey} from "../crypto/Aes"
-import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
 import type {ConversationTypeEnum} from "../../common/TutanotaConstants"
@@ -50,18 +49,21 @@ import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import {fileApp} from "../../../native/FileApp"
+import type {EntityWorker} from "../EntityWorker"
 
 assertWorkerOrNode()
 
 export class MailFacade {
 	_login: LoginFacade;
 	_file: FileFacade;
+	_entity: EntityWorker;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
 
-	constructor(login: LoginFacade, fileFacade: FileFacade) {
+	constructor(entityWorker: EntityWorker, login: LoginFacade, fileFacade: FileFacade) {
 		this._login = login
 		this._file = fileFacade
+		this._entity = entityWorker
 		this._deferredDraftId = null
 		this._deferredDraftUpdate = null
 	}
@@ -73,7 +75,7 @@ export class MailFacade {
 		newFolder.folderName = name
 		newFolder.parentFolder = parent
 		newFolder.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
-		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.POST, newFolder, null, sk)
+		return this._entity.serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.POST, newFolder, null, sk)
 	}
 
 	/**
@@ -84,7 +86,7 @@ export class MailFacade {
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
 	 */
 	createDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], conversationType: ConversationTypeEnum, previousMessageId: ?Id, attachments: ?Array<TutanotaFile | DataFile | FileReference>, confidential: boolean, replyTos: RecipientInfo[]): Promise<Mail> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
+		return this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
 			let userGroupKey = this._login.getUserGroupKey()
 			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
 			let sk = aes128RandomKey()
@@ -115,8 +117,8 @@ export class MailFacade {
 			return this._createAddedAttachments(attachments, [], mailGroupKey).then(addedAttachments => {
 				draftData.addedAttachments = addedAttachments
 				service.draftData = draftData
-				return serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, null, sk)
-					.then(createDraftReturn => load(MailTypeRef, createDraftReturn.draft))
+				return this._entity.serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, null, sk)
+				           .then(createDraftReturn => this._entity.load(MailTypeRef, createDraftReturn.draft))
 			})
 		})
 	}
@@ -145,7 +147,7 @@ export class MailFacade {
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
 	updateDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], attachments: ?Array<TutanotaFile | DataFile | FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
+		return this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
 			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
 			let sk = decryptKey(mailGroupKey, (draft._ownerEncSessionKey: any))
 
@@ -173,10 +175,10 @@ export class MailFacade {
 				this._deferredDraftUpdate = defer()
 				// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 				let deferredUpdatePromiseWrapper = this._deferredDraftUpdate
-				return serviceRequest(TutanotaService.DraftService, HttpMethod.PUT, service, DraftUpdateReturnTypeRef, null, sk)
-					.then(() => {
-						return deferredUpdatePromiseWrapper.promise
-					})
+				return this._entity.serviceRequest(TutanotaService.DraftService, HttpMethod.PUT, service, DraftUpdateReturnTypeRef, null, sk)
+				           .then(() => {
+					           return deferredUpdatePromiseWrapper.promise
+				           })
 			})
 		})
 	}
@@ -231,7 +233,7 @@ export class MailFacade {
 					} else {
 						return null
 					}
-				}, {concurrency:1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+				}, {concurrency: 1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.filter(attachment => (attachment != null))
 				.tap(() => {
 					// only delete the temporary files after all attachments have been uploaded
@@ -257,47 +259,47 @@ export class MailFacade {
 	}
 
 	sendDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string): Promise<void> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address)
-			.then(senderMailGroupId => {
-				let bucketKey = aes128RandomKey()
+		return this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address)
+		           .then(senderMailGroupId => {
+			           let bucketKey = aes128RandomKey()
 
-				let service = createSendDraftData()
-				service.language = language
-				service.mail = draft._id
+			           let service = createSendDraftData()
+			           service.language = language
+			           service.mail = draft._id
 
-				return Promise.each(draft.attachments, fileId => {
-					return load(FileTypeRef, fileId).then(file => {
-						return resolveSessionKey(FileTypeModel, file).then(fileSessionKey => {
-							let data = createAttachmentKeyData()
-							data.file = fileId
-							if (draft.confidential) {
-								data.bucketEncFileSessionKey = encryptKey(bucketKey, neverNull(fileSessionKey))
-							} else {
-								data.fileSessionKey = keyToUint8Array(neverNull(fileSessionKey))
-							}
-							service.attachmentKeyData.push(data)
-						})
-					})
-				}).then(() => {
-					return Promise.all([
-						loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
-							service.plaintext = tutanotaProperties.sendPlaintextOnly
-						}),
-						resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
-							let sk = neverNull(mailSessionkey)
-							if (draft.confidential) {
-								service.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
-								if (recipientInfos.find(r => isExternalSecureRecipient(r)) != null) {
-									service.senderNameUnencrypted = draft.sender.name // needed for notification mail
-								}
-								return this._addRecipientKeyData(bucketKey, service, recipientInfos, senderMailGroupId)
-							} else {
-								service.mailSessionKey = bitArrayToUint8Array(sk)
-							}
-						})
-					])
-				}).then(() => serviceRequestVoid(TutanotaService.SendDraftService, HttpMethod.POST, service))
-			})
+			           return Promise.each(draft.attachments, fileId => {
+				           return this._entity.load(FileTypeRef, fileId).then(file => {
+					           return resolveSessionKey(FileTypeModel, file).then(fileSessionKey => {
+						           let data = createAttachmentKeyData()
+						           data.file = fileId
+						           if (draft.confidential) {
+							           data.bucketEncFileSessionKey = encryptKey(bucketKey, neverNull(fileSessionKey))
+						           } else {
+							           data.fileSessionKey = keyToUint8Array(neverNull(fileSessionKey))
+						           }
+						           service.attachmentKeyData.push(data)
+					           })
+				           })
+			           }).then(() => {
+				           return Promise.all([
+					           this._entity.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
+						           service.plaintext = tutanotaProperties.sendPlaintextOnly
+					           }),
+					           resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
+						           let sk = neverNull(mailSessionkey)
+						           if (draft.confidential) {
+							           service.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
+							           if (recipientInfos.find(r => isExternalSecureRecipient(r)) != null) {
+								           service.senderNameUnencrypted = draft.sender.name // needed for notification mail
+							           }
+							           return this._addRecipientKeyData(bucketKey, service, recipientInfos, senderMailGroupId)
+						           } else {
+							           service.mailSessionKey = bitArrayToUint8Array(sk)
+						           }
+					           })
+				           ])
+			           }).then(() => this._entity.serviceRequestVoid(TutanotaService.SendDraftService, HttpMethod.POST, service))
+		           })
 	}
 
 	_addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipientInfos: RecipientInfo[], senderMailGroupId: Id): Promise<void> {
@@ -342,26 +344,26 @@ export class MailFacade {
 				} else {
 					let keyData = createPublicKeyData()
 					keyData.mailAddress = recipientInfo.mailAddress
-					return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
-						.then(publicKeyData => {
-							let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
-							let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
-							if (notFoundRecipients.length === 0) {
-								return rsaEncrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
-									let data = createInternalRecipientKeyData()
-									data.mailAddress = recipientInfo.mailAddress
-									data.pubEncBucketKey = encrypted
-									data.pubKeyVersion = publicKeyData.pubKeyVersion
-									service.internalRecipientKeyData.push(data)
-								})
-							}
-						})
-						.catch(NotFoundError, e => {
-							notFoundRecipients.push(recipientInfo.mailAddress)
-						})
-						.catch(TooManyRequestsError, e => {
-							throw new RecipientNotResolvedError()
-						})
+					return this._entity.serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
+					           .then(publicKeyData => {
+						           let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+						           let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+						           if (notFoundRecipients.length === 0) {
+							           return rsaEncrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
+								           let data = createInternalRecipientKeyData()
+								           data.mailAddress = recipientInfo.mailAddress
+								           data.pubEncBucketKey = encrypted
+								           data.pubKeyVersion = publicKeyData.pubKeyVersion
+								           service.internalRecipientKeyData.push(data)
+							           })
+						           }
+					           })
+					           .catch(NotFoundError, e => {
+						           notFoundRecipients.push(recipientInfo.mailAddress)
+					           })
+					           .catch(TooManyRequestsError, e => {
+						           throw new RecipientNotResolvedError()
+					           })
 				}
 			})
 		).then(() => {
@@ -378,59 +380,59 @@ export class MailFacade {
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
 	_getExternalGroupKey = function (recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
-		return loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
+		return this._entity.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
-			return load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
-				.then(externalUserReference => {
-					return load(UserTypeRef, externalUserReference.user).then(externalUser => {
-						let mailGroupId = neverNull(externalUser.memberships.find(m => m.groupType
-							=== GroupType.Mail)).group
-						return Promise.all([
-							load(GroupTypeRef, mailGroupId), load(GroupTypeRef, externalUserReference.userGroup)
-						]).then(([externalMailGroup, externalUserGroup]) => {
-							let externalUserGroupKey = decryptKey(this._login.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
-							let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
-							return {externalUserGroupKey, externalMailGroupKey}
-						})
-					})
-				})
-				.catch(NotFoundError, e => {
-					// it does not exist, so create it
-					let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
-					let externalUserGroupKey = aes128RandomKey()
-					let externalMailGroupKey = aes128RandomKey()
-					let externalUserGroupInfoSessionKey = aes128RandomKey()
-					let externalMailGroupInfoSessionKey = aes128RandomKey()
-					let clientKey = aes128RandomKey()
-					let tutanotaPropertiesSessionKey = aes128RandomKey()
-					let mailboxSessionKey = aes128RandomKey()
+			return this._entity.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
+			           .then(externalUserReference => {
+				           return this._entity.load(UserTypeRef, externalUserReference.user).then(externalUser => {
+					           let mailGroupId = neverNull(externalUser.memberships.find(m => m.groupType
+						           === GroupType.Mail)).group
+					           return Promise.all([
+						           this._entity.load(GroupTypeRef, mailGroupId), this._entity.load(GroupTypeRef, externalUserReference.userGroup)
+					           ]).then(([externalMailGroup, externalUserGroup]) => {
+						           let externalUserGroupKey = decryptKey(this._login.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
+						           let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
+						           return {externalUserGroupKey, externalMailGroupKey}
+					           })
+				           })
+			           })
+			           .catch(NotFoundError, e => {
+				           // it does not exist, so create it
+				           let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
+				           let externalUserGroupKey = aes128RandomKey()
+				           let externalMailGroupKey = aes128RandomKey()
+				           let externalUserGroupInfoSessionKey = aes128RandomKey()
+				           let externalMailGroupInfoSessionKey = aes128RandomKey()
+				           let clientKey = aes128RandomKey()
+				           let tutanotaPropertiesSessionKey = aes128RandomKey()
+				           let mailboxSessionKey = aes128RandomKey()
 
-					let userEncEntropy = encryptBytes(externalUserGroupKey, random.generateRandomData(32))
+				           let userEncEntropy = encryptBytes(externalUserGroupKey, random.generateRandomData(32))
 
-					let d = createExternalUserData()
-					d.verifier = verifier
-					d.userEncClientKey = encryptKey(externalUserGroupKey, clientKey)
-					d.externalUserEncUserGroupInfoSessionKey = encryptKey(externalUserGroupKey, externalUserGroupInfoSessionKey)
-					d.internalMailEncUserGroupInfoSessionKey = encryptKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
-					d.externalUserEncMailGroupKey = encryptKey(externalUserGroupKey, externalMailGroupKey)
-					d.externalMailEncMailGroupInfoSessionKey = encryptKey(externalMailGroupKey, externalMailGroupInfoSessionKey)
-					d.internalMailEncMailGroupInfoSessionKey = encryptKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
-					d.externalUserEncEntropy = userEncEntropy
-					d.externalUserEncTutanotaPropertiesSessionKey = encryptKey(externalUserGroupKey, tutanotaPropertiesSessionKey)
-					d.externalMailEncMailBoxSessionKey = encryptKey(externalMailGroupKey, mailboxSessionKey)
+				           let d = createExternalUserData()
+				           d.verifier = verifier
+				           d.userEncClientKey = encryptKey(externalUserGroupKey, clientKey)
+				           d.externalUserEncUserGroupInfoSessionKey = encryptKey(externalUserGroupKey, externalUserGroupInfoSessionKey)
+				           d.internalMailEncUserGroupInfoSessionKey = encryptKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
+				           d.externalUserEncMailGroupKey = encryptKey(externalUserGroupKey, externalMailGroupKey)
+				           d.externalMailEncMailGroupInfoSessionKey = encryptKey(externalMailGroupKey, externalMailGroupInfoSessionKey)
+				           d.internalMailEncMailGroupInfoSessionKey = encryptKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
+				           d.externalUserEncEntropy = userEncEntropy
+				           d.externalUserEncTutanotaPropertiesSessionKey = encryptKey(externalUserGroupKey, tutanotaPropertiesSessionKey)
+				           d.externalMailEncMailBoxSessionKey = encryptKey(externalMailGroupKey, mailboxSessionKey)
 
-					let userGroupData = createCreateExternalUserGroupData()
-					userGroupData.mailAddress = cleanedMailAddress
-					userGroupData.externalPwEncUserGroupKey = encryptKey(externalUserPwKey, externalUserGroupKey)
-					userGroupData.internalUserEncUserGroupKey = encryptKey(this._login.getUserGroupKey(), externalUserGroupKey)
+				           let userGroupData = createCreateExternalUserGroupData()
+				           userGroupData.mailAddress = cleanedMailAddress
+				           userGroupData.externalPwEncUserGroupKey = encryptKey(externalUserPwKey, externalUserGroupKey)
+				           userGroupData.internalUserEncUserGroupKey = encryptKey(this._login.getUserGroupKey(), externalUserGroupKey)
 
-					d.userGroupData = userGroupData
+				           d.userGroupData = userGroupData
 
-					return serviceRequestVoid(TutanotaService.ExternalUserService, HttpMethod.POST, d).then(() => {
-						return {externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: externalMailGroupKey}
-					})
-				})
+				           return this._entity.serviceRequestVoid(TutanotaService.ExternalUserService, HttpMethod.POST, d).then(() => {
+					           return {externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: externalMailGroupKey}
+				           })
+			           })
 		})
 	}
 
@@ -439,7 +441,7 @@ export class MailFacade {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(MailTypeRef, update.application, update.type)
 				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {
-				return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
+				return this._entity.load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
 					let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
 					this._deferredDraftUpdate = null
 					deferredPromiseWrapper.resolve(mail)
@@ -451,30 +453,29 @@ export class MailFacade {
 	}
 
 
-}
-
-function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
-	return Promise.filter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
-		return load(GroupTypeRef, groupMembership.group).then(mailGroup => {
-			if (mailGroup.user == null) {
-				return load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
-					return contains(getEnabledMailAddressesForGroupInfo(mailGroupInfo), mailAddress)
-				})
-			} else if (isSameId(mailGroup.user, user._id)) {
-				return load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
-					return contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), mailAddress)
-				})
+	_getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
+		return Promise.filter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
+			return this._entity.load(GroupTypeRef, groupMembership.group).then(mailGroup => {
+				if (mailGroup.user == null) {
+					return this._entity.load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
+						return contains(getEnabledMailAddressesForGroupInfo(mailGroupInfo), mailAddress)
+					})
+				} else if (isSameId(mailGroup.user, user._id)) {
+					return this._entity.load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
+						return contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), mailAddress)
+					})
+				} else {
+					// not supported
+					return false
+				}
+			})
+		}).then(filteredMemberships => {
+			if (filteredMemberships.length === 1) {
+				return filteredMemberships[0].group
 			} else {
-				// not supported
-				return false
+				throw new NotFoundError("group for mail address not found " + mailAddress)
 			}
 		})
-	}).then(filteredMemberships => {
-		if (filteredMemberships.length === 1) {
-			return filteredMemberships[0].group
-		} else {
-			throw new NotFoundError("group for mail address not found " + mailAddress)
-		}
-	})
+	}
 }
 
