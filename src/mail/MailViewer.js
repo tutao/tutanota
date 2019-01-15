@@ -19,7 +19,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isIOSApp} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -470,7 +470,7 @@ export class MailViewer {
 
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
-		update(this.mail)
+		update(this.mail).catch(NotFoundError, noOp)
 	}
 
 	_editDraft() {

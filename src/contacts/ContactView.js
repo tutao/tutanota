@@ -11,7 +11,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -275,6 +275,7 @@ export class ContactView implements CurrentView {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
 					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
+						.catch(NotFoundError, noOp)
 				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -378,11 +379,10 @@ export class ContactView implements CurrentView {
 				return Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
-						return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
-							return erase(goodbyeContact).catch(NotFoundError, e => {
-								// ignore
-							})
-						}))
+						return showProgressDialog("pleaseWait_msg",
+							update(keptContact)
+								.then(() => erase(goodbyeContact)))
+							.catch(NotFoundError, noOp)
 					}
 				})
 			} else {
