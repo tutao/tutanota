@@ -36,7 +36,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			getAll: (os) => {
-				return Promise.resolve([])
+				// So that we don't run into "no group ids' check
+				return Promise.resolve([{key: "key", value: "value"}])
 			},
 			put: (os, key, value) => {
 				o(os).equals(MetaDataOS)
@@ -100,7 +101,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			getAll: (os) => {
-				return Promise.resolve([])
+				// So that we don't run into "no group ids' check
+				return Promise.resolve([{key: "key", value: "value"}])
 			},
 			wait: () => Promise.resolve()
 		}
@@ -164,7 +166,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			wait: () => Promise.resolve(),
-			getAll: () => Promise.resolve([])
+			// So that we don't run into "no group ids' check
+			getAll: () => Promise.resolve([{key: "key", value: "value"}])
 		}
 
 		let groupDiff = [{groupDiff: "dummy"}]
