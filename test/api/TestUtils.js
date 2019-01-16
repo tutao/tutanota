@@ -41,6 +41,9 @@ export function unmockAttribute(mock: Object) {
 
 export type Spy = ((...any) => any) & {invocations: any[]}
 
+// Can be typed precisely if we have a boilerplate to extract function
+// see https://github.com/lttb/flown/blob/master/src/Arguments/index.js
+// but as it is a test utility, it's not strictly required.
 export function spy(producer?: (...any) => any): Spy {
 	const invocations = []
 	const s = (...args: any[]) => {

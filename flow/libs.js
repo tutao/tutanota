@@ -74,8 +74,9 @@ declare module 'ospec/ospec.js' {
 			notEquals: (toWhat: T) => DescriptionFn;
 			deepEquals: (toWhat: T) => DescriptionFn;
 			notDeepEquals: (toWhat: T) => DescriptionFn;
-			throws: (c: $Class<any> | string) => DescriptionFn;
-			notThrows: (c: $Class<any> | string) => DescriptionFn;
+			// Not released yet! (in 3.0.1)
+			// throws: (c: $Class<any> | string) => DescriptionFn;
+			// notThrows: (c: $Class<any> | string) => DescriptionFn;
 		};
 
 		only: Function;
