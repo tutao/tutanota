@@ -30,7 +30,10 @@ class ElectronUpdater {
 				        .then(this._trackPublicKey)
 				        .then((pubKey) => {
 					        this._pubKey = pubKey
-					        autoUpdater.on('update-available', this._verifySignature)
+					        autoUpdater.on('update-available', updateInfo => {
+						        this._stopPolling()
+						        this._verifySignature(updateInfo)
+					        })
 					        this._startPolling()
 				        })
 				        .catch((e: Error) => {
