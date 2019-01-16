@@ -913,7 +913,9 @@ const translation = {
 		"accountWasStillCreated_msg": "Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later.",
 		"makeLink_action": "Create Hyperlink",
 		"breakLink_action": "Break Hyperlink",
-		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts."
+		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
+		"sendReportAfterRestart_msg": "Something unexpected went wrong. Do you want to send an error report the next time you start Tutanota?",
+		"restartNow_label": "Restart Tutanota now"
 	}
 }
 export default translation

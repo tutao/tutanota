@@ -39,9 +39,26 @@ declare module 'electron' {
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
+		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
 		getName(): string,
 		setPath(name: string, path: string): void;
+		getAppPath(): string;
+		getPath(name: 'home'
+			| 'appData' //Per-user application data directory
+			| 'userData' // directory for your app's configuration files, by default it is appData + app name.
+			| 'temp' //Temporary directory.
+			| 'exe' // The current executable file.
+			| 'module' // The libchromiumcontent library.
+			| 'desktop' // The current user's Desktop directory.
+			| 'documents' // Directory for a user's "My Documents".
+			| 'downloads' // Directory for a user's downloads.
+			| 'music' // Directory for a user's music.
+			| 'pictures'// Directory for a user's pictures.
+			| 'videos' //Directory for a user's videos.
+			| 'logs' // Directory for your app's log folder.
+			| 'pepperFlashSystemPlugin'// Full path to the system version of the Pepper Flash plugin.
+		): string,
 		setAppUserModelId(string): void,
 		isDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		setAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
