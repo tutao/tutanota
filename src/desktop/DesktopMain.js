@@ -61,7 +61,7 @@ if (process.argv.indexOf("-r") !== -1) {
 
 function createMainWindow() {
 	err.init()
-	const w = new ApplicationWindow()
+	const w = ApplicationWindow.getLastFocused()
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
 	ipc.initialized(w.id)

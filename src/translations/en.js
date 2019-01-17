@@ -914,7 +914,7 @@ const translation = {
 		"makeLink_action": "Create Hyperlink",
 		"breakLink_action": "Break Hyperlink",
 		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
-		"sendReportAfterRestart_msg": "Something unexpected went wrong. Do you want to send an error report the next time you start Tutanota?",
+		"sendReport_msg": "Something unexpected went wrong. Do you want to send an error report?",
 		"restartNow_label": "Restart Tutanota now"
 	}
 }

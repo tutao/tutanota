@@ -918,7 +918,9 @@ const translation = {
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung, werden wir es in einigen Tagen erneut versuchen. Sorgen Sie bitte dafür, dass ausreichend Guthaben vorhanden ist.",
 		"accountWasStillCreated_msg": "Ihr Account wurde trotzdem schon als Free-Account erstellt. Sie können auch die Zahlung jetzt abbrechen, sich in Ihren Account einloggen und dort upgraden.",
 		"makeLink_action": "Hyperlink erstellen",
-		"breakLink_action": "Hyperlink entfernen"
+		"breakLink_action": "Hyperlink entfernen",
+		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Wollen Sie einen Fehlerbericht senden?",
+		"restartNow_label": "Tutanota neu starten"
 
 	}
 }

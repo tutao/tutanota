@@ -916,7 +916,9 @@ const translation = {
 		"accountWasStillCreated_msg": "Dein Account wurde trotzdem schon als Free-Account erstellt. Du kannst auch die Zahlung jetzt abbrechen, dich in deinen Account einloggen und dort upgraden.",
 		"makeLink_action": "Hyperlink erstellen",
 		"breakLink_action": "Hyperlink entfernen",
-		"signupOneFreeAccountConfirm_msg": "Es ist nur ein Free-Account pro Person erlaubt. Bitte bestätige, dass du keine weiteren kostenfreien Tutanota-Accounts besitzt."
+		"signupOneFreeAccountConfirm_msg": "Es ist nur ein Free-Account pro Person erlaubt. Bitte bestätige, dass du keine weiteren kostenfreien Tutanota-Accounts besitzt.",
+		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Willst du einen Fehlerbericht senden?",
+		"restartNow_label": "Tutanota neu starten",
 	}
 }
 export default translation
