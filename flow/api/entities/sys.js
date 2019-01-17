@@ -617,23 +617,6 @@ type Exception = {
 
 }
 
-type WebsocketWrapper = {
-	_type: TypeRef<WebsocketWrapper>;
-	_format: NumberString;
-	clientVersion: string;
-	eventBatchId: ?Id;
-	eventBatchOwner: ?Id;
-	modelVersions: string;
-	msgId: NumberString;
-	type: string;
-
-	authentication: ?Authentication;
-	chat: ?Chat;
-	entityUpdate: ?EntityUpdate;
-	eventBatch: EntityUpdate[];
-	exception: ?Exception;
-}
-
 type Version = {
 	_type: TypeRef<Version>;
 	_id: Id;
@@ -1561,4 +1544,28 @@ type RegistrationCaptchaServiceGetData = {
 	mailAddress: string;
 	token: ?string;
 
+}
+
+type WebsocketEntityData = {
+	_type: TypeRef<WebsocketEntityData>;
+	_format: NumberString;
+	eventBatchId: Id;
+	eventBatchOwner: Id;
+
+	eventBatch: EntityUpdate[];
+}
+
+type WebsocketCounterValue = {
+	_type: TypeRef<WebsocketCounterValue>;
+	_id: Id;
+	count: NumberString;
+	mailListId: Id;
+
+}
+
+type WebsocketCounterData = {
+	_type: TypeRef<WebsocketCounterData>;
+	_format: NumberString;
+
+	counterValues: WebsocketCounterValue[];
 }
