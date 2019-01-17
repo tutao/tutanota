@@ -269,7 +269,6 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.H,
-				ctrl: true,
 				exec: () => this._showHeaders(),
 				help: "showHeaders_action"
 			},

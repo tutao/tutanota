@@ -87,6 +87,7 @@ declare module 'electron' {
 		once(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		focus(): void;
 		hide(): void;
+		close(): void;
 		restore(): void;
 		show(): void;
 		maximize(): void;

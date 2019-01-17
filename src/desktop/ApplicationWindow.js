@@ -120,7 +120,8 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'F11', () => this._toggleMaximize())
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.hide())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow())
 	}
 
