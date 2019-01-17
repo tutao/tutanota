@@ -34,6 +34,23 @@ lang.initialized.promise.then(() => {
 	contextMenu.append(new MenuItem({type: 'separator'}))
 	contextMenu.append(new MenuItem({label: lang.get("undo_action"), accelerator: "CmdOrCtrl+Z", click() { document.execCommand('undo') }}))
 	contextMenu.append(new MenuItem({label: lang.get("redo_action"), accelerator: "CmdOrCtrl+Shift+Z", click() { document.execCommand('redo') }}))
+
+	window.addEventListener('contextmenu', (e) => {
+		e.preventDefault()
+		pasteItem.enabled = clipboard.readText().length > 0
+		let sel = window.getSelection().toString()
+		if (sel.length < 1 && !!e.target.href) {
+			urlToCopy = e.target.href
+			copyItem.visible = false
+			copyLinkItem.visible = true
+		} else {
+			copyItem.visible = true
+			copyLinkItem.visible = false
+			copyItem.enabled = sel.length > 0
+			urlToCopy = ""
+		}
+		contextMenu.popup({window: remote.getCurrentWindow()})
+	}, false)
 })
 
 if (process.platform === 'darwin') {
@@ -45,23 +62,6 @@ if (process.platform === 'darwin') {
 	localShortcut.register(remote.getCurrentWindow(), 'Command+A', () => document.execCommand('selectAll'))
 
 }
-
-window.addEventListener('contextmenu', (e) => {
-	e.preventDefault()
-	pasteItem.enabled = clipboard.readText().length > 0
-	let sel = window.getSelection().toString()
-	if (sel.length < 1 && !!e.target.href) {
-		urlToCopy = e.target.href
-		copyItem.visible = false
-		copyLinkItem.visible = true
-	} else {
-		copyItem.visible = true
-		copyLinkItem.visible = false
-		copyItem.enabled = sel.length > 0
-		urlToCopy = ""
-	}
-	contextMenu.popup({window: remote.getCurrentWindow()})
-}, false)
 
 // href URL reveal
 window.addEventListener('mouseover', (e) => {
