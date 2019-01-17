@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isApp, isIOSApp, isDesktop} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
@@ -100,7 +100,8 @@ export class SettingsView implements CurrentView {
 				m(".plr-l", m(userFolderExpander)),
 				m(userFolderExpander.panel),
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
-				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null
+				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
+				isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 			])
 		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
 
@@ -245,5 +246,30 @@ export class SettingsView implements CurrentView {
 
 	getViewSlider(): ?IViewSlider {
 		return this.viewSlider
+	}
+
+	_aboutThisSoftwareLink(): Vnode<any> {
+		const pltf = isAndroidApp()
+			? 'android-'
+			: isIOSApp()
+				? 'ios-'
+				: ''
+		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
+		return m(".flex-column.flex-end.pb-s.abs", {
+			style: {
+				bottom: '0px',
+				left: '0px',
+				right: '0px'
+			},
+		}, [
+			m("a.text-center.small.no-text-decoration", {
+					href: lnk,
+					target: '_blank',
+				}, [
+					m("", `Tutanota v${env.versionNumber}`),
+					m(".underline", lang.get('releaseNotes_action'))
+				]
+			)
+		])
 	}
 }
