@@ -7,7 +7,7 @@
   <br>
 </h1>
 
-Tutanota is the [secure email](https://tutanota.com) service with built-in end-to-end encryption that enables you to communicate securely with anyone.
+Tutanota is the [secure email](https://tutanota.com) service with built-in end-to-end encryption that enables you to communicate securely with anyone on all your devices.
 
 * Forum for bug reports/feature requests: https://www.reddit.com/r/tutanota
 * Roadmap: http://tutanota.com/roadmap/
