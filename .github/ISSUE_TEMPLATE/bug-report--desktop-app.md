@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
+ - Desktop Environment, if applicable (on Linux)
  - Version [e.g. 22]
 
 **Additional context**
