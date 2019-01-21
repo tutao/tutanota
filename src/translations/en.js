@@ -918,7 +918,8 @@ const translation = {
 		"restartNow_label": "Restart Tutanota now",
 		"alwaysAsk_action": "Always ask",
 		"defaultDownloadPath_label": "Default download path",
-		"chooseDirectory_action": "Choose directory"
+		"chooseDirectory_action": "Choose directory",
+		"hideMinimizedWindowsToTray_action": "Hide minimized windows to tray"
 	}
 }
 export default translation

@@ -51,7 +51,7 @@ class DesktopTray {
 				m.append(new MenuItem({label: w.getTitle(), click: () => w.show()}))
 			})
 		}
-		if (process.platform === 'win32') {
+		if (process.platform !== 'darwin') {
 			m.append(new MenuItem({type: 'separator'}))
 			m.append(new MenuItem({label: lang.get("quit_action"), accelerator: "CmdOrCtrl+Q", click: app.quit}))
 		}

@@ -919,6 +919,8 @@ const translation = {
 		"signupOneFreeAccountConfirm_msg": "Es ist nur ein Free-Account pro Person erlaubt. Bitte bestätige, dass du keine weiteren kostenfreien Tutanota-Accounts besitzt.",
 		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Willst du einen Fehlerbericht senden?",
 		"restartNow_label": "Tutanota neu starten",
+		"hideMinimizedWindowsToTray_action": "Minimierte Fenster auf das Infobereich-Symbol verschieben",
+		"restartNow_label": "Tutanota neu starten",
 	}
 }
 export default translation

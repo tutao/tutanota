@@ -920,7 +920,8 @@ const translation = {
 		"makeLink_action": "Hyperlink erstellen",
 		"breakLink_action": "Hyperlink entfernen",
 		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Wollen Sie einen Fehlerbericht senden?",
-		"restartNow_label": "Tutanota neu starten"
+		"restartNow_label": "Tutanota neu starten",
+		"hideMinimizedWindowsToTray_action": "Minimierte Fenster auf das Infobereich-Symbol verschieben"
 
 	}
 }

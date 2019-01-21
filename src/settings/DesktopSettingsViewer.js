@@ -29,16 +29,14 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 	_isDefaultMailtoHandler: stream<?boolean>;
 	_defaultDownloadPath: stream<string>;
+	_hideMinimizedWindows: stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
-		this._defaultDownloadPath = stream(lang.get("alwaysAsk_action"))
-		this._isDefaultMailtoHandler = stream(false)
-		this._isPathDialogOpen = false
 		this._requestDesktopConfig()
 
 		this.view = () => {
-			const setDefaultMailtoHandlerAttrs : DropDownSelectorAttrs<boolean> = {
+			const setDefaultMailtoHandlerAttrs: DropDownSelectorAttrs<boolean> = {
 				label: "defaultMailHandler_label",
 				helpLabel: () => lang.get("defaultMailHandler_msg"),
 				items: [
@@ -55,7 +53,20 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				}
 			}
 
-			const changeDefaultDownloadPathAttrs : ButtonAttrs = attachDropdown({
+			const setHideMinimizedWindowsAttrs: DropDownSelectorAttrs<boolean> = {
+				label: "hideMinimizedWindowsToTray_action",
+				items: [
+					{name: lang.get("yes_label"), value: true},
+					{name: lang.get("no_label"), value: false}
+				],
+				selectedValue: this._hideMinimizedWindows,
+				selectionChangedHandler: v => {
+					this._hideMinimizedWindows(v)
+					this.setHideMinimizedWindows(v)
+				}
+			}
+
+			const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown({
 				label: "edit_action",
 				type: ButtonType.Action,
 				click: noOp,
@@ -73,7 +84,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				}
 			], () => !this._isPathDialogOpen, 200)
 
-			const defaultDownloadPathAttrs : TextFieldAttrs =  {
+			const defaultDownloadPathAttrs: TextFieldAttrs = {
 				label: "defaultDownloadPath_label",
 				value: this._defaultDownloadPath,
 				injectionsRight: () => m(ButtonN, changeDefaultDownloadPathAttrs),
@@ -83,7 +94,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			return [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('desktopSettings_label')),
-					env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),//this._setDefaultMailtoHandlerDropdown),
+					env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
+					m(DropDownSelectorN, setHideMinimizedWindowsAttrs),
 					m(TextFieldN, defaultDownloadPathAttrs)
 				])
 			]
@@ -101,33 +113,42 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_requestDesktopConfig() {
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(desktopConfig => {
-			         this._isDefaultMailtoHandler(desktopConfig.isMailtoHandler)
-			         this._defaultDownloadPath(desktopConfig.defaultDownloadPath
+			         this._isDefaultMailtoHandler = stream(desktopConfig.isMailtoHandler)
+			         this._defaultDownloadPath = stream(desktopConfig.defaultDownloadPath
 				         ? desktopConfig.defaultDownloadPath
 				         : lang.get('alwaysAsk_action')
 			         )
+			         this._hideMinimizedWindows = stream(desktopConfig.hideMinimizedWindows)
 			         m.redraw()
 		         })
 	}
 
-	setDefaultDownloadPath(v : $Values<typeof DownloadLocationStrategy>)  {
+	setHideMinimizedWindows(hideMinimizedWindows: boolean) {
+		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
+		         .then(config => {
+			         config.hideMinimizedWindows = hideMinimizedWindows
+			         return nativeApp.invokeNative(new Request('updateDesktopConfig', [config]))
+		         }).then(() => m.redraw())
+	}
+
+	setDefaultDownloadPath(v: $Values<typeof DownloadLocationStrategy>) {
 		this._isPathDialogOpen = true
-			Promise.join(
-				nativeApp.invokeNative(new Request('sendDesktopConfig', [])),
-				v === DownloadLocationStrategy.ALWAYS_ASK
-					? Promise.resolve([null])
-					: fileApp.openFolderChooser(),
-				(config, newPaths) => {
-					config.defaultDownloadPath = newPaths[0]
-					this._defaultDownloadPath(newPaths[0]
-						? newPaths[0]
-						: lang.get('alwaysAsk_action'))
-					return config
-				}).then(config => nativeApp.invokeNative(new Request('updateDesktopConfig', [config])))
-			       .then(() => {
-				       this._isPathDialogOpen = false
-				       m.redraw()
-			       })
+		Promise.join(
+			nativeApp.invokeNative(new Request('sendDesktopConfig', [])),
+			v === DownloadLocationStrategy.ALWAYS_ASK
+				? Promise.resolve([null])
+				: fileApp.openFolderChooser(),
+			(config, newPaths) => {
+				config.defaultDownloadPath = newPaths[0]
+				this._defaultDownloadPath(newPaths[0]
+					? newPaths[0]
+					: lang.get('alwaysAsk_action'))
+				return config
+			}).then(config => nativeApp.invokeNative(new Request('updateDesktopConfig', [config])))
+		       .then(() => {
+			       this._isPathDialogOpen = false
+			       m.redraw()
+		       })
 	}
 
 	// this is all local for now

@@ -91,7 +91,7 @@ export class ApplicationWindow {
 		}).on('blur', ev => {
 			localShortcut.disableAll(this._browserWindow)
 		}).on('minimize', ev => {
-			if (process.platform !== 'linux') { // no proper tray on linux
+			if (conf.getDesktopConfig('hideMinimizedWindows')) {
 				this._browserWindow.hide()
 				ev.preventDefault()
 			}
