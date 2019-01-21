@@ -21,28 +21,26 @@ class ElectronUpdater {
 	};
 
 	start() {
-		conf.get("checkUpdateSignature")
-		    .then((checkUpdateSignature) => {
-			    autoUpdater.autoDownload = !checkUpdateSignature
-			    autoUpdater.logger = this._logger
-			    if (checkUpdateSignature) {
-				    conf.get("pubKeyUrl")
-				        .then(this._trackPublicKey)
-				        .then((pubKey) => {
-					        this._pubKey = pubKey
-					        autoUpdater.on('update-available', updateInfo => {
-						        this._stopPolling()
-						        this._verifySignature(updateInfo)
-					        })
-					        this._startPolling()
-				        })
-				        .catch((e: Error) => {
-					        this._logger.error("ElectronUpdater.start() failed,", e.message)
-				        })
-			    } else {
+		const checkUpdateSignature = conf.get('checkUpdateSignature')
+		const pubKeyUrl = conf.get("pubKeyUrl")
+		autoUpdater.autoDownload = !checkUpdateSignature
+		autoUpdater.logger = this._logger
+		if (checkUpdateSignature) {
+			this._trackPublicKey(pubKeyUrl)
+			    .then((pubKey) => {
+				    this._pubKey = pubKey
+				    autoUpdater.on('update-available', updateInfo => {
+					    this._stopPolling()
+					    this._verifySignature(updateInfo)
+				    })
 				    this._startPolling()
-			    }
-		    })
+			    })
+			    .catch((e: Error) => {
+				    this._logger.error("ElectronUpdater.start() failed,", e.message)
+			    })
+		} else {
+			this._startPolling()
+		}
 
 		autoUpdater.on('update-downloaded', (info) => {
 			this._stopPolling()
@@ -110,24 +108,18 @@ class ElectronUpdater {
 		if (this._interval) {
 			return
 		}
-		conf.get("pollingInterval")
-		    .then((pollingInterval) => {
-			    this._pollingInterval = pollingInterval
-		    })
-		    .catch(() => {
-			    this._pollingInterval = 1000000
-		    })
-		    .then(() => {
-			    autoUpdater
-				    .checkForUpdates()
-				    .catch((e: Error) => this._logger.error("Update check failed,", e.message))
+		this._pollingInterval = conf.get("pollingInterval")
+			? conf.get("pollingInterval")
+			: 1000000
+		autoUpdater
+			.checkForUpdates()
+			.catch((e: Error) => this._logger.error("Update check failed,", e.message))
 
-			    this._interval = setInterval(() => {
-				    autoUpdater
-					    .checkForUpdates()
-					    .catch((e: Error) => this._logger.error("Update check failed,", e.message))
-			    }, this._pollingInterval)
-		    })
+		this._interval = setInterval(() => {
+			autoUpdater
+				.checkForUpdates()
+				.catch((e: Error) => this._logger.error("Update check failed,", e.message))
+		}, this._pollingInterval)
 	}
 
 	_stopPolling() {

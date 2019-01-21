@@ -915,7 +915,10 @@ const translation = {
 		"breakLink_action": "Break Hyperlink",
 		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
 		"sendReport_msg": "Something unexpected went wrong. Do you want to send an error report?",
-		"restartNow_label": "Restart Tutanota now"
+		"restartNow_label": "Restart Tutanota now",
+		"alwaysAsk_action": "Always ask",
+		"defaultDownloadPath_label": "Default download path",
+		"chooseDirectory_action": "Choose directory"
 	}
 }
 export default translation

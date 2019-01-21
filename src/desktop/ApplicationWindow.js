@@ -7,6 +7,10 @@ import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
 import u2f from '../misc/u2f-api.js'
 import {tray} from './DesktopTray.js'
+import {conf} from './DesktopConfigHandler.js'
+import {lang} from './DesktopLocalizationProvider.js'
+import {dialog} from 'electron'
+import fs from 'fs'
 
 
 const windows: ApplicationWindow[] = []
@@ -114,6 +118,41 @@ export class ApplicationWindow {
 				    this._browserWindow.loadURL(newURL)
 			    }
 		    })
+
+		this._browserWindow.webContents.session
+		    .on('will-download', (ev, item) => {
+			    if(conf.getDesktopConfig('defaultDownloadPath')) {
+				    try {
+					    const fileName = path.basename(item.getFilename())
+					    const savePath = path.join(
+						    conf.getDesktopConfig('defaultDownloadPath'),
+						    DesktopUtils.nonClobberingFileName(
+							    fs.readdirSync(conf.getDesktopConfig('defaultDownloadPath')),
+							    fileName
+						    )
+					    )
+					    item.setSavePath(savePath)
+				    } catch (e) {
+					    dialog.showMessageBox(null, {
+					    	type: 'error',
+					    	buttons: [lang.get('ok_action')],
+						    defaultId: 0,
+						    title: lang.get('download_action'),
+						    message: lang.get('couldNotAttachFile_msg')
+							    + '\n'
+							    + item.getFilename()
+						        + '\n'
+						        + e.message
+					    })
+				    }
+			    }
+			    //  this opens multiple file managers if there are multiple downloads
+			    //  item.on('done', (event, state) => {
+			    //      if(state === 'completed')  {
+			    //          shell.openItem(path.dirname(savePath))
+			    //      }
+			    //  })
+		})
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())

@@ -19,6 +19,7 @@ declare module 'electron' {
 		// Open the given external protocol URL in the desktop's default manner.
 		// (For example, mailto: URLs in the user's default mail agent).
 		openExternal(url: string): void;
+		showItemInFolder(fullPath: string): void;
 		// Open the given file in the desktop's default manner.
 		openItem(fullPath: string): boolean;
 	};
@@ -67,7 +68,16 @@ declare module 'electron' {
 	}
 
 	declare export class ElectronDialog {
-		showMessageBox(browserWindow: ?BrowserWindow, options: MessageBoxOptions, cb: ?((response: number, checkboxChecked: boolean) => void)): ?number
+		showMessageBox(browserWindow: ?BrowserWindow, options: MessageBoxOptions, cb: ?((response: number, checkboxChecked: boolean) => void)): ?number,
+		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions, cb: ?((paths: Array<strings>) => void)) : ?Array<string>
+	}
+
+	declare export type OpenDialogOptions = {
+		title?: string,
+		defaultPath?: string,
+		buttonLabel?: string,
+		filters?: Array<{name: string, extensions: Array<string>}>,
+		properties: Array<'openFile'|'openDirectory'|'multiSelection'| 'showHiddenFiles'>,
 	}
 
 	declare export type MessageBoxOptions = {
@@ -219,7 +229,17 @@ declare module 'electron' {
 
 	declare export class ElectronSession {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
+		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => void) => void;
 	}
+
+	declare export type DownloadItem = {
+		on('done' | 'updated', (event: Event, state: string) => void) : DownloadItem;
+		setSavePath: (path: string) => void;
+		getSavePath: () => string;
+		getFilename: () => string;
+		pause: () => void;
+		resume: () => void;
+ 	}
 
 	declare export type PermissionRequestHandler = (WebContents, ElectronPermission, (boolean) => void) => void;
 	declare export type ElectronPermission
@@ -230,6 +250,8 @@ declare module 'electron' {
 		| 'pointerLock'
 		| 'fullscreen'
 		| 'openExternal';
+	declare export type ElectronSessionEvent
+		= 'will-download';
 }
 
 declare module 'electron-updater' {
@@ -244,26 +266,9 @@ declare module 'electron-localshortcut' {
 		unregisterAll(): void;
 		enableAll(win?: BrowserWindow): void;
 		disableAll(win?: BrowserWindow): void;
-	}
-;
+	};
 }
 
-declare module 'fs-extra' {
-	declare export default any;
-	//declare export var fs: any;
-}
-
-declare module 'bluebird' {
-	declare export default any;
-}
-
-declare module 'request' {
-	declare export default any;
-}
-
-declare module 'node-forge' {
-	declare export default any;
-}
 
 declare class AutoUpdater {
 	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => void;
@@ -446,3 +451,21 @@ export type AutoUpdaterEvent
 
 export type TrayEvent
 	= 'click'
+
+
+declare module 'fs-extra' {
+	declare export default any;
+	//declare export var fs: any;
+}
+
+declare module 'bluebird' {
+	declare export default any;
+}
+
+declare module 'request' {
+	declare export default any;
+}
+
+declare module 'node-forge' {
+	declare export default any;
+}

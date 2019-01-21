@@ -19,7 +19,7 @@ export default class DesktopUtils {
 			.split(path.sep)
 			.map((fragment) => encodeURIComponent(fragment))
 			.join("/")
-		const extraSlashForWindows = process.platform === "win32"
+		const extraSlashForWindows = process.platform === "win32" && pathToConvert !== ''
 			? "/"
 			: ""
 		let urlFromPath = url.format({
@@ -28,6 +28,34 @@ export default class DesktopUtils {
 		})
 
 		return urlFromPath.trim()
+	}
+
+	/**
+	 * find a filename not already contained in directory
+	 * there are tests for this function.
+	 * @returns {string} the basename appended with '-<first non-clashing nonnegative number>.<ext>
+	 */
+	static nonClobberingFileName(files: Array<string>, fileName: string) : string {
+		files.sort()
+		const clashingFile = files.find(f => f === fileName)
+		if(typeof clashingFile !== "string") { // all is well
+			return fileName
+		} else { // there are clashing file names
+			const ext = path.extname(fileName)
+			const basename = path.basename(fileName, ext)
+			const clashNumbers = files
+				.filter(f => f.startsWith(`${basename}-`))
+				.map(f => f.slice(0, f.length-ext.length))
+				.map(f => parseInt(f.slice(basename.length + 1, f.length)))
+				.filter(n => typeof n === 'number' && !isNaN(n))
+
+			// if a number is bigger than its index, there is room somewhere before that number
+			const lastClashingNumber = clashNumbers.find((n, i, a) => a[i + 1] > i + 1)
+
+			return typeof lastClashingNumber === 'number'
+				? `${basename}-${lastClashingNumber + 1}${ext}`
+				: `${basename}-1${ext}`
+		}
 	}
 
 	static checkIsMailtoHandler(): Promise<boolean> {

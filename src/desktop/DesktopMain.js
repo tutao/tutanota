@@ -12,7 +12,7 @@ import {ipc} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
 
 PreloadImports.keep()
-conf.get("appUserModelId").then(app.setAppUserModelId)
+app.setAppUserModelId(conf.get("appUserModelId"))
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
 
@@ -42,6 +42,11 @@ if (process.argv.indexOf("-r") !== -1) {
 		})
 	}
 
+	app.on('ready', createMainWindow)
+}
+
+function createMainWindow() {
+
 	app.on('window-all-closed', () => {
 		if (process.platform === 'linux') {
 			app.quit()
@@ -56,10 +61,8 @@ if (process.argv.indexOf("-r") !== -1) {
 		// first launch, dock click,
 		// attempt to launch while already running on macOS
 		ApplicationWindow.getLastFocused().show()
-	}).on('ready', createMainWindow)
-}
+	})
 
-function createMainWindow() {
 	err.init()
 	const w = ApplicationWindow.getLastFocused()
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))

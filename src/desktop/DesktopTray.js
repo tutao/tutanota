@@ -9,6 +9,9 @@ class DesktopTray {
 	_tray: Tray;
 	_icon: NativeImage;
 
+	/**
+	 * linux env: DESKTOP_SESSION XDG_SESSION_DESKTOP XDG_CURRENT_DESKTOP to detect WM
+	 */
 	show() {
 		lang.initialized.promise.then(() => {
 			if (process.platform === 'darwin') { // we use the dock on MacOs

@@ -1,10 +1,11 @@
 // @flow
-import {BrowserWindow, ipcMain} from 'electron'
+import {BrowserWindow, dialog, ipcMain} from 'electron'
 import {ApplicationWindow} from './ApplicationWindow'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
+import {conf} from "./DesktopConfigHandler"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -67,10 +68,26 @@ class IPC {
 						d.reject(new Error('mailto registration failed'))
 					})
 				break
-			case 'checkMailto':
+			case 'sendDesktopConfig':
 				DesktopUtils
 					.checkIsMailtoHandler()
-					.then(v => d.resolve(v))
+					.then((isMailtoHandler) => {
+						const config = conf.getDesktopConfig()
+						config.isMailtoHandler = isMailtoHandler
+						return d.resolve(config)
+					})
+				break
+			case 'openFileChooser':
+				if (args[1]) { // open folder dialog
+					dialog.showOpenDialog(null, {properties: ['openDirectory']}, paths => {
+						d.resolve(paths ? paths : [])
+					})
+				} else { // open file
+					d.resolve([])
+				}
+				break
+			case 'updateDesktopConfig':
+				conf.setDesktopConfig(null, args[0]).then(() => d.resolve())
 				break
 			case 'openNewWindow':
 				new ApplicationWindow()
