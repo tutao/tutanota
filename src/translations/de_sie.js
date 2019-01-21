@@ -921,8 +921,10 @@ const translation = {
 		"breakLink_action": "Hyperlink entfernen",
 		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Wollen Sie einen Fehlerbericht senden?",
 		"restartNow_label": "Tutanota neu starten",
+		"alwaysAsk_action": "Jedes Mal fragen",
+		"defaultDownloadPath_label": "Zielordner für Downloads",
+		"chooseDirectory_action": "Ordner wählen",
 		"hideMinimizedWindowsToTray_action": "Minimierte Fenster auf das Infobereich-Symbol verschieben"
-
 	}
 }
 export default translation

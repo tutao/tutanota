@@ -35,6 +35,7 @@ class DesktopConfigHandler {
 				fs.writeFileSync(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
 			}
 		} catch (e) {
+			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
 			console.error("Could not create or load desktop config:", e.message)
 		}
 	}

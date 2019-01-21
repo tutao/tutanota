@@ -58,10 +58,32 @@ o.spec("nonClobberingFileName Test", function () {
 		], 'hello.ext')).equals('hello-1.ext')
 	})
 
-	o('oneClashingFile', function () {
+	o('clashingFiles', function () {
 		o(DesktopUtils.nonClobberingFileName([
 			'hello.ext'
 		], 'hello.ext')).equals('hello-1.ext')
+
+		o(DesktopUtils.nonClobberingFileName([
+			'hello.ext',
+			'hello-1.ext'
+		], 'hello.ext')).equals('hello-2.ext')
+
+		o(DesktopUtils.nonClobberingFileName([
+			'hello.ext',
+			'hello-1.ext',
+			'hello-2.ext'
+		], 'hello.ext')).equals('hello-3.ext')
+
+		o(DesktopUtils.nonClobberingFileName([
+			'hello.ext', 'hello-1.ext',
+			'hello-2.ext', 'hello-3.ext',
+			'hello-4.ext', 'hello-5.ext',
+			'hello-6.ext', 'hello-7.ext',
+			'hello-8.ext', 'hello-9.ext',
+			'hello-10.ext',
+		], 'hello.ext')).equals('hello-11.ext')
+
+
 	})
 
 	o('numberedFileNameNonClashing', function () {
@@ -93,6 +115,7 @@ o.spec("nonClobberingFileName Test", function () {
 		], 'hello.ext')).equals('hello-2.ext')
 
 		o(DesktopUtils.nonClobberingFileName([
+			'hello--2.ext',
 			'hello-0.ext',
 			'hello-3.ext',
 			'hello-1.ext',

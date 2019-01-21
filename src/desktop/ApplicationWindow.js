@@ -1,7 +1,7 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission} from 'electron'
-import {BrowserWindow, shell, WebContents} from 'electron'
+import {BrowserWindow, dialog, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
@@ -9,11 +9,12 @@ import u2f from '../misc/u2f-api.js'
 import {tray} from './DesktopTray.js'
 import {conf} from './DesktopConfigHandler.js'
 import {lang} from './DesktopLocalizationProvider.js'
-import {dialog} from 'electron'
 import fs from 'fs'
+import {noOp} from "../api/common/utils/Utils"
 
 
 const windows: ApplicationWindow[] = []
+let fileManagersOpen: number = 0
 
 export class ApplicationWindow {
 	_rewroteURL: boolean;
@@ -121,7 +122,7 @@ export class ApplicationWindow {
 
 		this._browserWindow.webContents.session
 		    .on('will-download', (ev, item) => {
-			    if(conf.getDesktopConfig('defaultDownloadPath')) {
+			    if (conf.getDesktopConfig('defaultDownloadPath')) {
 				    try {
 					    const fileName = path.basename(item.getFilename())
 					    const savePath = path.join(
@@ -131,28 +132,43 @@ export class ApplicationWindow {
 							    fileName
 						    )
 					    )
+					    // touch file so it is already in the dir the next time sth gets dl'd
+					    fs.closeSync(fs.openSync(savePath, 'w'))
 					    item.setSavePath(savePath)
+
+					    // if the last dl ended less than 30s ago, open dl dir in file manager
+					    let fileManagerLock = noOp
+					    if (fileManagersOpen === 0) {
+						    fileManagersOpen = fileManagersOpen + 1
+						    fileManagerLock = () => {
+							    shell.openItem(path.dirname(savePath))
+							    setTimeout(() => fileManagersOpen = fileManagersOpen - 1, 30000)
+						    }
+					    }
+
+					    item.on('done', (event, state) => {
+						    if (state === 'completed') {
+							    fileManagerLock()
+						    }
+					    })
+
 				    } catch (e) {
 					    dialog.showMessageBox(null, {
-					    	type: 'error',
-					    	buttons: [lang.get('ok_action')],
+						    type: 'error',
+						    buttons: [lang.get('ok_action')],
 						    defaultId: 0,
 						    title: lang.get('download_action'),
 						    message: lang.get('couldNotAttachFile_msg')
 							    + '\n'
 							    + item.getFilename()
-						        + '\n'
-						        + e.message
+							    + '\n'
+							    + e.message
 					    })
 				    }
+			    } else {
+				    // if we do nothing, user will be prompted for destination
 			    }
-			    //  this opens multiple file managers if there are multiple downloads
-			    //  item.on('done', (event, state) => {
-			    //      if(state === 'completed')  {
-			    //          shell.openItem(path.dirname(savePath))
-			    //      }
-			    //  })
-		})
+		    })
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())

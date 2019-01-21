@@ -111,14 +111,17 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_requestDesktopConfig() {
+		this._isDefaultMailtoHandler = stream(false)
+		this._hideMinimizedWindows = stream(false)
+		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(desktopConfig => {
-			         this._isDefaultMailtoHandler = stream(desktopConfig.isMailtoHandler)
-			         this._defaultDownloadPath = stream(desktopConfig.defaultDownloadPath
+			         this._isDefaultMailtoHandler(desktopConfig.isMailtoHandler)
+			         this._defaultDownloadPath(desktopConfig.defaultDownloadPath
 				         ? desktopConfig.defaultDownloadPath
 				         : lang.get('alwaysAsk_action')
 			         )
-			         this._hideMinimizedWindows = stream(desktopConfig.hideMinimizedWindows)
+			         this._hideMinimizedWindows(desktopConfig.hideMinimizedWindows)
 			         m.redraw()
 		         })
 	}

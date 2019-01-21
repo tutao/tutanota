@@ -31,30 +31,35 @@ export default class DesktopUtils {
 	}
 
 	/**
-	 * find a filename not already contained in directory
+	 * find the first filename not already contained in directory
+	 * ATTENTION: doesn't take concurrent access into account
 	 * there are tests for this function.
-	 * @returns {string} the basename appended with '-<first non-clashing nonnegative number>.<ext>
+	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
-	static nonClobberingFileName(files: Array<string>, fileName: string) : string {
-		files.sort()
+	static nonClobberingFileName(files: Array<string>, fileName: string): string {
 		const clashingFile = files.find(f => f === fileName)
-		if(typeof clashingFile !== "string") { // all is well
+		if (typeof clashingFile !== "string") { // all is well
 			return fileName
 		} else { // there are clashing file names
 			const ext = path.extname(fileName)
 			const basename = path.basename(fileName, ext)
 			const clashNumbers = files
 				.filter(f => f.startsWith(`${basename}-`))
-				.map(f => f.slice(0, f.length-ext.length))
-				.map(f => parseInt(f.slice(basename.length + 1, f.length)))
-				.filter(n => typeof n === 'number' && !isNaN(n))
+				.map(f => f.slice(0, f.length - ext.length))
+				.map(f => f.slice(basename.length + 1, f.length))
+				.map(f => !f.startsWith('0') ? parseInt(f, 10) : 0)
+				.filter(n => !isNaN(n) && n > 0)
+			const clashNumbersSet = new Set(clashNumbers)
+			clashNumbersSet.add(0)
 
 			// if a number is bigger than its index, there is room somewhere before that number
-			const lastClashingNumber = clashNumbers.find((n, i, a) => a[i + 1] > i + 1)
+			const firstGap = [...clashNumbersSet]
+				.sort((a,b) => a-b)
+				.find((n, i, a) => a[i + 1] > i + 1) + 1
 
-			return typeof lastClashingNumber === 'number'
-				? `${basename}-${lastClashingNumber + 1}${ext}`
-				: `${basename}-1${ext}`
+			return !isNaN(firstGap)
+				? `${basename}-${firstGap}${ext}`
+				: `${basename}-${clashNumbersSet.size}${ext}`
 		}
 	}
 
