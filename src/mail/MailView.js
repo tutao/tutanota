@@ -391,7 +391,7 @@ export class MailView implements CurrentView {
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
 					                                   .map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
+						                                   return m(".folder-row.pl-l.pr.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
 							                                   m(button),
 							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
 							                                   // Fixed width container so that this space is always reserved
@@ -407,7 +407,7 @@ export class MailView implements CurrentView {
 					                                   })
 					                                   .concat(logins.isInternalUserLoggedIn()
 						                                   ? [
-							                                   m(".folder-row.flex-space-between.plr-l", [
+							                                   m(".folder-row.flex-space-between.pl-l.pr", [
 								                                   m("small.b.pt-s.align-self-center.ml-negative-xs",
 									                                   {style: {color: theme.navigation_button}},
 									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
@@ -418,7 +418,7 @@ export class MailView implements CurrentView {
 					                                   )
 					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.flex-space-between.plr-l" + (button.isSelected() ? ".row-selected" : ""), [
+						                                   return m(".folder-row.flex-space-between.pl-l.pr" + (button.isSelected() ? ".row-selected" : ""), [
 							                                   m(button),
 							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
 							                                   m(".button-width-fixed",
