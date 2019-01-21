@@ -21,8 +21,8 @@ import {module as replaced} from "@hot"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {locator} from "../api/main/MainLocator"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
@@ -34,18 +34,32 @@ export type MailboxDetail = {
 	mailGroup: Group
 }
 
+export type MailboxCounters = {
+	// mail group
+	[Id]: {
+		// mailListId and counter
+		[string]: number
+	}
+}
+
 export class MailModel {
 	mailboxDetails: Stream<MailboxDetail[]>
+	mailboxCounters: Stream<MailboxCounters>
 	_initialization: ?Promise<void>
 	_notifications: Notifications
 
 	constructor(notifications: Notifications) {
 		this.mailboxDetails = stream([])
+		this.mailboxCounters = stream()
 		this._initialization = null
 		this._notifications = notifications
 
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			this.entityEventsReceived(updates)
+		})
+
+		locator.eventController.countersStream().map((update) => {
+			this._mailboxCountersUpdates(update)
 		})
 	}
 
@@ -212,6 +226,16 @@ export class MailModel {
 				}
 			}
 		}
+	}
+
+	_mailboxCountersUpdates(counters: WebsocketCounterData) {
+		const normalized = this.mailboxCounters() || {}
+		const group = normalized[counters.mailGroup] || {}
+		counters.counterValues.forEach((value) => {
+			group[value.mailListId] = Number(value.count) || 0
+		})
+		normalized[counters.mailGroup] = group
+		this.mailboxCounters(normalized)
 	}
 
 	_showNotification(update: EntityUpdateData) {

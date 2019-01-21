@@ -45,7 +45,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.entityEvent.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -63,6 +63,10 @@ export class WorkerClient {
 			},
 			updateWebSocketState: (message: Message) => {
 				this._wsConnection(downcast(message.args[0]));
+				return Promise.resolve()
+			},
+			counterUpdate: (message: Message) => {
+				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			}
 		})

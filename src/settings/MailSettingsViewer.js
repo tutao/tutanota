@@ -31,8 +31,8 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
 import stream from "mithril/stream/stream.js"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

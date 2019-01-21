@@ -16,7 +16,7 @@ import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import * as RecoverLoginDialog from "./RecoverLoginDialog"
 
 assertMainOrNode()
@@ -45,7 +45,7 @@ export class SecondFactorHandler {
 			return
 		}
 		this._otherLoginListenerInitialized = true
-		locator.entityEvent.addListener((updates) => Promise
+		locator.eventController.addEntityListener((updates) => Promise
 			.each(updates, (update) => {
 				let sessionId = [neverNull(update.instanceListId), update.instanceId];
 				if (isUpdateForTypeRef(SessionTypeRef, update)) {

@@ -1566,6 +1566,7 @@ type WebsocketCounterValue = {
 type WebsocketCounterData = {
 	_type: TypeRef<WebsocketCounterData>;
 	_format: NumberString;
+	mailGroup: Id;
 
 	counterValues: WebsocketCounterValue[];
 }

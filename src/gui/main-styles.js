@@ -544,7 +544,14 @@ styles.registerStyle('main', () => {
 		'.folders': {'margin-bottom': px(12)},
 		'.folder-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
-			'margin-right': px(-size.hpad_button)
+			'margin-right': px(-size.hpad_button),
+			'align-items': 'center'
+		},
+		'.folder-counter': {
+			'font-size': px(size.font_size_base * 0.86),
+			'font-weight': 'bold',
+			color: theme.navigation_button
+			// 'opacity': '0.8'
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},

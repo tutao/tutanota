@@ -59,8 +59,8 @@ import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import type {EntityEventsListener} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityEventsListener} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -531,7 +531,7 @@ export class MailEditor {
 	}
 
 	show() {
-		locator.entityEvent.addListener(this._entityEventReceived)
+		locator.eventController.addEntityListener(this._entityEventReceived)
 		this.dialog.show()
 		windowFacade.checkWindowClosing(true)
 	}
@@ -539,7 +539,7 @@ export class MailEditor {
 
 	_close() {
 		windowFacade.checkWindowClosing(false)
-		locator.entityEvent.removeListener(this._entityEventReceived)
+		locator.eventController.removeEntityListener(this._entityEventReceived)
 		this.dialog.close()
 	}
 

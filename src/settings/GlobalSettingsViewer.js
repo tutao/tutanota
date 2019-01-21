@@ -31,8 +31,8 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

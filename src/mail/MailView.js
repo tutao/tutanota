@@ -51,18 +51,20 @@ import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
 
 assertMainOrNode()
 
+type MailFolderRowData = {id: Id, button: NavButton}
+
 type MailboxExpander = {
 	expanderButton: ExpanderButton,
-	systemFolderButtons: NavButton[],
-	customFolderButtons: NavButton[],
+	systemFolderButtons: MailFolderRowData[],
+	customFolderButtons: MailFolderRowData[],
 	folderAddButton: Button
 }
 
@@ -182,7 +184,7 @@ export class MailView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			for (let update of updates) {
 				this.entityEventReceived(update)
 			}
@@ -344,6 +346,9 @@ export class MailView implements CurrentView {
 				}
 			}
 		})
+
+		mailModel.mailboxCounters.map(m.redraw)
+
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
 
@@ -364,6 +369,7 @@ export class MailView implements CurrentView {
 			systemFolderButtons: this.createFolderButtons(getSortedSystemFolders(mailboxDetail.folders)),
 			customFolderButtons: this.createFolderButtons(getSortedCustomFolders(mailboxDetail.folders)),
 			folderAddButton: this.createFolderAddButton(mailboxDetail.mailGroup._id),
+			counter: null
 		}
 	}
 
@@ -379,35 +385,53 @@ export class MailView implements CurrentView {
 		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
 
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
-			view: () => m(".folders", this._mailboxExpanders[mailGroupId].systemFolderButtons.map(fb =>
-				m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-					m(fb),
-					fb.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder) ? m(purgeAllButton, {
-						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-					}) : null
-				]))
-			                                                             .concat(
-				                                                             logins.isInternalUserLoggedIn() ? [
-					                                                             m(".folder-row.flex-space-between.plr-l", [
-						                                                             m("small.b.pt-s.align-self-center.ml-negative-xs",
-							                                                             {style: {color: theme.navigation_button}},
-							                                                             lang.get("yourFolders_action")
-							                                                                 .toLocaleUpperCase()),
-						                                                             m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
-					                                                             ])
-				                                                             ] : []
-			                                                             )
-			                                                             .concat(
-				                                                             this._mailboxExpanders[mailGroupId].customFolderButtons.map(fb =>
-					                                                             m(".folder-row.flex-space-between.plr-l"
-						                                                             + (fb.isSelected() ? ".row-selected" : ""), [
-						                                                             m(fb),
-						                                                             fb.isSelected() ? m(folderMoreButton, {
-							                                                             oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-							                                                             onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-						                                                             }) : null
-					                                                             ]))))
+			view: () => {
+				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
+				return m(".folders",
+					this._mailboxExpanders[mailGroupId].systemFolderButtons
+					                                   .map(({id, button}) => {
+						                                   const count = groupCounters[id]
+						                                   return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
+							                                   m(button),
+							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
+							                                   // Fixed width container so that this space is always reserved
+							                                   m(".button-width-fixed",
+								                                   button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
+									                                   ? m(purgeAllButton, {
+										                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+										                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+									                                   })
+									                                   : null
+							                                   )
+						                                   ])
+					                                   })
+					                                   .concat(logins.isInternalUserLoggedIn()
+						                                   ? [
+							                                   m(".folder-row.flex-space-between.plr-l", [
+								                                   m("small.b.pt-s.align-self-center.ml-negative-xs",
+									                                   {style: {color: theme.navigation_button}},
+									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
+								                                   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
+							                                   ])
+						                                   ]
+						                                   : []
+					                                   )
+					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
+						                                   const count = groupCounters[id]
+						                                   return m(".folder-row.flex-space-between.plr-l" + (button.isSelected() ? ".row-selected" : ""), [
+							                                   m(button),
+							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
+							                                   m(".button-width-fixed",
+								                                   button.isSelected()
+									                                   ? m(folderMoreButton, {
+										                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+										                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+									                                   })
+									                                   : null
+							                                   )
+						                                   ])
+					                                   })))
+			}
 		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
 		return mailboxExpander
@@ -500,7 +524,7 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	createFolderButtons(folders: MailFolder[]): NavButton[] {
+	createFolderButtons(folders: MailFolder[]): MailFolderRowData[] {
 		return folders.map(folder => {
 			this._folderToUrl[folder._id[1]] = `/mail/${folder.mails}`
 			let button = new NavButton(() => getFolderName(folder),
@@ -522,7 +546,7 @@ export class MailView implements CurrentView {
 					}
 				}
 			})
-			return button
+			return {id: folder.mails, button}
 		})
 	}
 

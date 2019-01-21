@@ -35,8 +35,8 @@ import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {throttleRoute} from "../misc/RouteChange"
 
 
@@ -101,7 +101,7 @@ export class ContactView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener(updates => {
+		locator.eventController.addEntityListener(updates => {
 			updates.forEach((update) => this._processEntityUpdate(update))
 		})
 	}

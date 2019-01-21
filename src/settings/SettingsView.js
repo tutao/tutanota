@@ -32,8 +32,8 @@ import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
 import {PaymentViewer} from "../subscription/PaymentViewer"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getAvailableDomains} from "./AddUserDialog"
@@ -133,7 +133,7 @@ export class SettingsView implements CurrentView {
 					m(newAction) : null
 			])
 		}
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			this.entityEventsReceived(updates)
 		})
 

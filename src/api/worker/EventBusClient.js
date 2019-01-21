@@ -173,8 +173,8 @@ export class EventBusClient {
 						})
 					}
 				})
-		} else if (type === "counterUpdate") {
-			// TODO: do something with it
+		} else if (type === "unreadCounterUpdate") {
+			this._worker.updateCounter(JSON.parse(value))
 		}
 		return Promise.resolve()
 	}
