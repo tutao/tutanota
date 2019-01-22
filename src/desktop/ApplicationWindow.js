@@ -1,7 +1,7 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission} from 'electron'
-import {BrowserWindow, dialog, shell, WebContents} from 'electron'
+import {BrowserWindow, dialog, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
@@ -25,6 +25,7 @@ export class ApplicationWindow {
 	constructor() {
 		this._createBrowserWindow()
 		this._browserWindow.loadURL(this._startFile)
+		Menu.setApplicationMenu(null)
 	}
 
 	show() {

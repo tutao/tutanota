@@ -69,7 +69,7 @@ declare module 'electron' {
 
 	declare export class ElectronDialog {
 		showMessageBox(browserWindow: ?BrowserWindow, options: MessageBoxOptions, cb: ?((response: number, checkboxChecked: boolean) => void)): ?number,
-		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions, cb: ?((paths: Array<strings>) => void)) : ?Array<string>
+		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions, cb: ?((paths: Array<strings>) => void)): ?Array<string>
 	}
 
 	declare export type OpenDialogOptions = {
@@ -77,7 +77,7 @@ declare module 'electron' {
 		defaultPath?: string,
 		buttonLabel?: string,
 		filters?: Array<{name: string, extensions: Array<string>}>,
-		properties: Array<'openFile'|'openDirectory'|'multiSelection'| 'showHiddenFiles'>,
+		properties: Array<'openFile' | 'openDirectory' | 'multiSelection' | 'showHiddenFiles'>,
 	}
 
 	declare export type MessageBoxOptions = {
@@ -169,6 +169,7 @@ declare module 'electron' {
 		isMinimized(): boolean;
 		openDevTools(): void;
 		getTitle(): string;
+		setMenu(menu: Menu | null): void;
 		webContents: WebContents;
 		id: Number;
 
@@ -233,13 +234,13 @@ declare module 'electron' {
 	}
 
 	declare export type DownloadItem = {
-		on('done' | 'updated', (event: Event, state: string) => void) : DownloadItem;
+		on('done' | 'updated', (event: Event, state: string) => void): DownloadItem;
 		setSavePath: (path: string) => void;
 		getSavePath: () => string;
 		getFilename: () => string;
 		pause: () => void;
 		resume: () => void;
- 	}
+	}
 
 	declare export type PermissionRequestHandler = (WebContents, ElectronPermission, (boolean) => void) => void;
 	declare export type ElectronPermission
