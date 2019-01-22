@@ -924,7 +924,8 @@ const translation = {
 		"alwaysAsk_action": "Jedes Mal fragen",
 		"defaultDownloadPath_label": "Zielordner für Downloads",
 		"chooseDirectory_action": "Ordner wählen",
-		"hideMinimizedWindowsToTray_action": "Minimierte Fenster auf das Infobereich-Symbol verschieben"
+		"runAsTrayApp_action": "Als Hintergrundanwendung ausführen",
+		"runOnStartup_action": "Bei Systemstart ausführen"
 	}
 }
 export default translation

@@ -1,7 +1,7 @@
 // @flow
 import {ipc} from './IPC.js'
-import type {ElectronPermission} from 'electron'
-import {BrowserWindow, dialog, Menu, shell, WebContents} from 'electron'
+import type {ElectronPermission, Rectangle} from 'electron'
+import {BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
@@ -12,6 +12,10 @@ import {lang} from './DesktopLocalizationProvider.js'
 import fs from 'fs'
 import {noOp} from "../api/common/utils/Utils"
 
+type WindowBounds = {
+	rect: Rectangle,
+	fullscreen: ?boolean,
+}
 
 const windows: ApplicationWindow[] = []
 let fileManagersOpen: number = 0
@@ -22,8 +26,8 @@ export class ApplicationWindow {
 	_browserWindow: BrowserWindow;
 	id: number;
 
-	constructor() {
-		this._createBrowserWindow()
+	constructor(showWhenReady: boolean) {
+		this._createBrowserWindow(showWhenReady)
 		this._browserWindow.loadURL(this._startFile)
 		Menu.setApplicationMenu(null)
 	}
@@ -46,16 +50,20 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow() {
+	_createBrowserWindow(showWhenReady: boolean) {
 		this._rewroteURL = false
 		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
 		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
 		console.log("startFile: ", this._startFile)
+		const startingBounds: WindowBounds = getStartingBounds()
 		this._browserWindow = new BrowserWindow({
 			icon: tray.getIcon(),
 			show: false,
-			width: 1280,
-			height: 800,
+			width: startingBounds.fullscreen ? undefined : startingBounds.rect.width,
+			height: startingBounds.fullscreen ? undefined : startingBounds.rect.height,
+			x: startingBounds.fullscreen ? undefined : startingBounds.rect.x,
+			y: startingBounds.fullscreen ? undefined : startingBounds.rect.y,
+			fullscreen: startingBounds.fullscreen,
 			autoHideMenuBar: true,
 			webPreferences: {
 				nodeIntegration: false,
@@ -76,16 +84,27 @@ export class ApplicationWindow {
 		windows.push(this)
 		ipc.addWindow(this.id)
 
+
 		this._browserWindow.once('ready-to-show', () => {
-			this._browserWindow.webContents.setZoomFactor(1.0);
-			this._browserWindow.show()
-			tray.show()
+			this._browserWindow.webContents.setZoomFactor(1.0)
+			tray.update()
+			if (showWhenReady) {
+				this._browserWindow.show()
+			}
 		})
 
-		this._browserWindow.on('closed', ev => {
+		this._browserWindow.on('close', ev => {
+			const lastBounds = this._browserWindow.getBounds()
+			if (isContainedIn(screen.getDisplayMatching(lastBounds).bounds, lastBounds)) {
+				conf.setDesktopConfig('lastBounds', {
+					fullscreen: this._browserWindow.isFullScreen(),
+					rect: this._browserWindow.getBounds()
+				})
+			}
+		}).on('closed', ev => {
 			windows.splice(windows.indexOf(this), 1)
 			ipc.removeWindow(this.id)
-			tray.show()
+			tray.update()
 		}).on('focus', ev => {
 			localShortcut.enableAll(this._browserWindow)
 			windows.splice(windows.indexOf(this), 1)
@@ -93,11 +112,11 @@ export class ApplicationWindow {
 		}).on('blur', ev => {
 			localShortcut.disableAll(this._browserWindow)
 		}).on('minimize', ev => {
-			if (conf.getDesktopConfig('hideMinimizedWindows')) {
+			if (conf.getDesktopConfig('runAsTrayApp')) {
 				this._browserWindow.hide()
 				ev.preventDefault()
 			}
-		}).on('page-title-updated', ev => tray.show())
+		}).on('page-title-updated', ev => tray.update())
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
 
@@ -122,6 +141,7 @@ export class ApplicationWindow {
 		    })
 
 		this._browserWindow.webContents.session
+		    .removeAllListeners('will-download')
 		    .on('will-download', (ev, item) => {
 			    if (conf.getDesktopConfig('defaultDownloadPath')) {
 				    try {
@@ -151,6 +171,9 @@ export class ApplicationWindow {
 						    if (state === 'completed') {
 							    fileManagerLock()
 						    }
+						    if (state === 'interrupted') {
+							    throw new Error('download interrupted')
+						    }
 					    })
 
 				    } catch (e) {
@@ -178,7 +201,7 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow(true))
 	}
 
 	// filesystem paths work differently than URLs
@@ -260,10 +283,38 @@ export class ApplicationWindow {
 		return windows
 	}
 
-	static getLastFocused(): ApplicationWindow {
+	static getLastFocused(show: boolean): ApplicationWindow {
 		const w = windows[windows.length - 1]
-		return w
-			? w
-			: new ApplicationWindow()
+		if (w && show) {
+			w.show()
+			return w
+		} else {
+			return new ApplicationWindow(show)
+		}
 	}
+}
+
+function getStartingBounds(): WindowBounds {
+	const defaultBounds = {
+		rect: {
+			width: 1280,
+			height: 800,
+			x: undefined,
+			y: undefined
+		},
+		fullscreen: undefined
+	}
+	const lastBounds: WindowBounds = conf.getDesktopConfig("lastBounds")
+	if (!lastBounds || !isContainedIn(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
+		return (defaultBounds: any)
+	} else {
+		return lastBounds
+	}
+}
+
+function isContainedIn(closestRect: Rectangle, lastBounds: Rectangle): boolean {
+	return lastBounds.x >= closestRect.x - 10
+		&& lastBounds.y >= closestRect.y - 10
+		&& lastBounds.width + lastBounds.x <= closestRect.width + 10
+		&& lastBounds.height + lastBounds.y <= closestRect.height + 10
 }

@@ -919,7 +919,8 @@ const translation = {
 		"alwaysAsk_action": "Always ask",
 		"defaultDownloadPath_label": "Default download path",
 		"chooseDirectory_action": "Choose directory",
-		"hideMinimizedWindowsToTray_action": "Hide minimized windows to tray"
+		"runAsTrayApp_action": "Run as tray App",
+		"runOnStartup_action": "Run on startup"
 	}
 }
 export default translation

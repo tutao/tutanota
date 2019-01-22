@@ -3,6 +3,7 @@ import type {NativeImage} from 'electron'
 import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
 import path from 'path'
 import {lang} from './DesktopLocalizationProvider.js'
+import {conf} from './DesktopConfigHandler.js'
 import {ApplicationWindow} from "./ApplicationWindow.js"
 
 class DesktopTray {
@@ -12,7 +13,10 @@ class DesktopTray {
 	/**
 	 * linux env: DESKTOP_SESSION XDG_SESSION_DESKTOP XDG_CURRENT_DESKTOP to detect WM
 	 */
-	show() {
+	update(): void {
+		if (!conf.getDesktopConfig('runAsTrayApp')) {
+			return
+		}
 		lang.initialized.promise.then(() => {
 			if (process.platform === 'darwin') { // we use the dock on MacOs
 				app.dock.setMenu(this._getMenu())
@@ -21,7 +25,7 @@ class DesktopTray {
 				if (!this._tray) {
 					this._tray = new Tray(this.getIcon())
 					this._tray.on('click', ev => {
-						ApplicationWindow.getLastFocused().show()
+						ApplicationWindow.getLastFocused(true)
 					})
 				}
 				this._tray.setContextMenu(this._getMenu())
@@ -44,7 +48,7 @@ class DesktopTray {
 
 	_getMenu(): Menu {
 		const m = new Menu()
-		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {new ApplicationWindow()}}))
+		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {new ApplicationWindow(true)}}))
 		if (ApplicationWindow.getAll().length > 0) {
 			m.append(new MenuItem({type: 'separator'}))
 			ApplicationWindow.getAll().forEach(w => {

@@ -53,12 +53,12 @@ class DesktopConfigHandler {
 	}
 
 	setDesktopConfig = (key: ?string, value: any): Promise<void> => {
-			if(key) {
-				this._desktopConfig[key] = value
-			} else {
-				this._desktopConfig = value
-			}
-			return Promise.promisify(fs.writeFile)(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
+		if (key) {
+			this._desktopConfig[key] = value
+		} else {
+			this._desktopConfig = value
+		}
+		return Promise.promisify(fs.writeFile)(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
 	}
 }
 

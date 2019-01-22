@@ -5,6 +5,7 @@
 declare module 'electron' {
 	declare export var app: App;
 	declare export var remote: any;
+	declare export var screen: ElectronScreen;
 	declare export var webFrame: WebFrame;
 	declare export var dialog: ElectronDialog;
 	declare export var ipcRenderer: any;
@@ -25,6 +26,13 @@ declare module 'electron' {
 	};
 
 	declare export type NativeImage = {};
+
+	declare export type Rectangle = {|
+		x: number,
+		y: number,
+		width: number,
+		height: number
+	|}
 
 	declare export class Menu {
 		// https://electronjs.org/docs/api/menu
@@ -126,6 +134,24 @@ declare module 'electron' {
 		show(): void,
 	}
 
+	declare export type ElectronScreen = {
+		on(event: 'display-added' | 'display-removed', (ev: Event, display: Display) => void): void;
+		on(event: 'display-metrics-changed', (ev: Event, changedMetrics: Array<'bounds' | 'workArea' | 'scaleFactor' | 'rotation'>) => void): void;
+		getAllDisplays(): Array<Display>;
+		getDisplayMatching(rect: Rectangle): Display;
+	}
+
+	declare export type Display = {|
+		id: number,
+		rotation: number,
+		scaleFactor: number,
+		touchSupport: 'available' | 'unavailable' | 'unknown',
+		bounds: Rectangle,
+		size: {width: number, height: number},
+		workArea: Rectangle,
+		workAreaSize: {width: number, height: number},
+	|}
+
 	declare export class MenuItem {
 		// https://electronjs.org/docs/api/menu-item
 		constructor(opts: {
@@ -167,8 +193,10 @@ declare module 'electron' {
 		loadFile(string): void;
 		loadURL(string): void;
 		isMinimized(): boolean;
+		isFullScreen(): boolean;
 		openDevTools(): void;
 		getTitle(): string;
+		getBounds(): Rectangle;
 		setMenu(menu: Menu | null): void;
 		webContents: WebContents;
 		id: Number;
@@ -231,6 +259,7 @@ declare module 'electron' {
 	declare export class ElectronSession {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
 		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => void) => void;
+		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;
 	}
 
 	declare export type DownloadItem = {
@@ -267,7 +296,8 @@ declare module 'electron-localshortcut' {
 		unregisterAll(): void;
 		enableAll(win?: BrowserWindow): void;
 		disableAll(win?: BrowserWindow): void;
-	};
+	}
+;
 }
 
 

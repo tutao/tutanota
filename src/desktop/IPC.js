@@ -90,7 +90,7 @@ class IPC {
 				conf.setDesktopConfig(null, args[0]).then(() => d.resolve())
 				break
 			case 'openNewWindow':
-				new ApplicationWindow()
+				new ApplicationWindow(true)
 				d.resolve()
 				break
 			case 'showWindow':

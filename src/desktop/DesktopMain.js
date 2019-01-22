@@ -33,22 +33,22 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (process.platform !== 'linux' && ApplicationWindow.getAll().length > 0) {
+			if (!conf.getDesktopConfig('runAsTrayApp') && ApplicationWindow.getAll().length > 0) {
 				ApplicationWindow.getAll().forEach(w => w.show())
 			} else {
-				new ApplicationWindow()
+				new ApplicationWindow(true)
 			}
 			handleArgv(args)
 		})
 	}
 
-	app.on('ready', createMainWindow)
+	app.on('ready', onAppReady)
 }
 
-function createMainWindow() {
+function onAppReady() {
 
 	app.on('window-all-closed', () => {
-		if (process.platform === 'linux') {
+		if (!conf.getDesktopConfig('runAsTrayApp')) {
 			app.quit()
 		}
 	}).on('open-url', (e, url) => { // MacOS mailto handling
@@ -60,11 +60,11 @@ function createMainWindow() {
 	}).on('activate', () => { //MacOS
 		// first launch, dock click,
 		// attempt to launch while already running on macOS
-		ApplicationWindow.getLastFocused().show()
+		ApplicationWindow.getLastFocused(true)
 	})
 
 	err.init()
-	const w = ApplicationWindow.getLastFocused()
+	const w = ApplicationWindow.getLastFocused(!conf.getDesktopConfig('runOnStartup'))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
 	ipc.initialized(w.id)
@@ -73,7 +73,7 @@ function createMainWindow() {
 }
 
 function main() {
-	tray.show()
+	tray.update()
 	console.log("Webapp ready")
 	notifier.start()
 	updater.start()
@@ -91,8 +91,7 @@ function handleArgv(argv: string[]) {
 function handleMailto(mailtoArg?: string) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
-		const w = ApplicationWindow.getLastFocused()
-		w.show()
+		const w = ApplicationWindow.getLastFocused(true)
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }

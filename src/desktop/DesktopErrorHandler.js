@@ -31,7 +31,7 @@ class DesktopErrorHandler {
 				const lastErrorLog: ?ErrorLog = JSON.parse(fs.readFileSync(this._errorLogPath).toString())
 				if (lastErrorLog) {
 					console.log('found error log')
-					this._sendErrorReport(ApplicationWindow.getLastFocused().id, lastErrorLog)
+					this._sendErrorReport(ApplicationWindow.getLastFocused(true).id, lastErrorLog)
 					    .then(() => fs.unlinkSync(this._errorLogPath))
 				}
 			} catch (e) {
@@ -75,7 +75,7 @@ class DesktopErrorHandler {
 						if (loggedInWindow) {
 							this._sendErrorReport(loggedInWindow.id, errorLog)
 						} else {
-							this._sendErrorReport(ApplicationWindow.getLastFocused().id, errorLog)
+							this._sendErrorReport(ApplicationWindow.getLastFocused(true).id, errorLog)
 						}
 					}
 				}

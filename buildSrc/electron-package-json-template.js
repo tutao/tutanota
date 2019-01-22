@@ -25,7 +25,8 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"defaultDesktopConfig": {
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,
-				"hideMinimizedWindows": false
+				"runAsTrayApp": true,
+				"runOnStartup": false,
 			}
 		},
 		"dependencies": {

@@ -29,7 +29,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 	_isDefaultMailtoHandler: stream<?boolean>;
 	_defaultDownloadPath: stream<string>;
-	_hideMinimizedWindows: stream<?boolean>;
+	_runAsTrayApp: stream<?boolean>;
+	_runOnStartup: stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -53,16 +54,29 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				}
 			}
 
-			const setHideMinimizedWindowsAttrs: DropDownSelectorAttrs<boolean> = {
-				label: "hideMinimizedWindowsToTray_action",
+			const setRunAsTrayAppAttrs: DropDownSelectorAttrs<boolean> = {
+				label: "runAsTrayApp_action",
 				items: [
 					{name: lang.get("yes_label"), value: true},
 					{name: lang.get("no_label"), value: false}
 				],
-				selectedValue: this._hideMinimizedWindows,
+				selectedValue: this._runAsTrayApp,
 				selectionChangedHandler: v => {
-					this._hideMinimizedWindows(v)
-					this.setHideMinimizedWindows(v)
+					this._runAsTrayApp(v)
+					this.setBooleanSetting('runAsTrayApp ', v)
+				}
+			}
+
+			const setRunOnStartupAttrs: DropDownSelectorAttrs<boolean> = {
+				label: "runOnStartup_action",
+				items: [
+					{name: lang.get("yes_label"), value: true},
+					{name: lang.get("no_label"), value: false}
+				],
+				selectedValue: this._runOnStartup,
+				selectionChangedHandler: v => {
+					this._runOnStartup(v)
+					this.setBooleanSetting('runOnStartup', v)
 				}
 			}
 
@@ -95,7 +109,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('desktopSettings_label')),
 					env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
-					m(DropDownSelectorN, setHideMinimizedWindowsAttrs),
+					env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunAsTrayAppAttrs),
+					m(DropDownSelectorN, setRunOnStartupAttrs),
 					m(TextFieldN, defaultDownloadPathAttrs)
 				])
 			]
@@ -112,7 +127,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 	_requestDesktopConfig() {
 		this._isDefaultMailtoHandler = stream(false)
-		this._hideMinimizedWindows = stream(false)
+		this._runAsTrayApp = stream(true)
+		this._runOnStartup = stream(false)
 		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(desktopConfig => {
@@ -121,15 +137,16 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				         ? desktopConfig.defaultDownloadPath
 				         : lang.get('alwaysAsk_action')
 			         )
-			         this._hideMinimizedWindows(desktopConfig.hideMinimizedWindows)
+			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
+			         this._runOnStartup(desktopConfig.runOnStartup)
 			         m.redraw()
 		         })
 	}
 
-	setHideMinimizedWindows(hideMinimizedWindows: boolean) {
+	setBooleanSetting(setting: string, value: boolean): void {
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(config => {
-			         config.hideMinimizedWindows = hideMinimizedWindows
+			         config[setting] = value
 			         return nativeApp.invokeNative(new Request('updateDesktopConfig', [config]))
 		         }).then(() => m.redraw())
 	}
