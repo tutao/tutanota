@@ -157,7 +157,7 @@ export class ContactView implements CurrentView {
 		let folderButton = new NavButton('all_contacts_label', () => BootIcons.Contacts, () => m.route.get())
 		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
 				view: () => m(".folders", [
-					m(".folder-row.flex-space-between.pl-l.pr.row-selected", [
+					m(".folder-row.flex-space-between.plr-l.row-selected", [
 						m(folderButton),
 						m(folderMoreButton)
 					])

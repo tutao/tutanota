@@ -88,6 +88,7 @@ export class MailView implements CurrentView {
 	_multiMailViewer: MultiMailViewer;
 	_actionBar: lazy<ActionBar>;
 	_throttledRouteSet: (string) => void;
+	_countersStream: Stream<*>;
 
 	constructor() {
 		this.mailViewer = null
@@ -347,14 +348,13 @@ export class MailView implements CurrentView {
 			}
 		})
 
-		mailModel.mailboxCounters.map(m.redraw)
-
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
-
+			this._countersStream = mailModel.mailboxCounters.map(m.redraw)
 		}
 		this.onbeforeremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
+			this._countersStream.end(true)
 		}
 	}
 
@@ -391,23 +391,20 @@ export class MailView implements CurrentView {
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
 					                                   .map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.pl-l.pr.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
+						                                   return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
+							                                   count > 0 ? m(".folder-counter", count > 99 ? "99+" : count) : null,
 							                                   m(button),
-							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
-							                                   // Fixed width container so that this space is always reserved
-							                                   m(".button-width-fixed",
-								                                   button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
-									                                   ? m(purgeAllButton, {
-										                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-										                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-									                                   })
-									                                   : null
-							                                   )
+							                                   button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
+								                                   ? m(purgeAllButton, {
+									                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+									                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+								                                   })
+								                                   : null
 						                                   ])
 					                                   })
 					                                   .concat(logins.isInternalUserLoggedIn()
 						                                   ? [
-							                                   m(".folder-row.flex-space-between.pl-l.pr", [
+							                                   m(".folder-row.flex-space-between.plr-l", [
 								                                   m("small.b.pt-s.align-self-center.ml-negative-xs",
 									                                   {style: {color: theme.navigation_button}},
 									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
@@ -418,17 +415,15 @@ export class MailView implements CurrentView {
 					                                   )
 					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.flex-space-between.pl-l.pr" + (button.isSelected() ? ".row-selected" : ""), [
+						                                   return m(".folder-row.flex-space-between.plr-l" + (button.isSelected() ? ".row-selected" : ""), [
+							                                   count > 0 ? m(".folder-counter", count > 99 ? "99+" : count) : null,
 							                                   m(button),
-							                                   count > 0 ? m(".folder-counter.mr-s", count) : null,
-							                                   m(".button-width-fixed",
-								                                   button.isSelected()
-									                                   ? m(folderMoreButton, {
-										                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-										                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-									                                   })
-									                                   : null
-							                                   )
+							                                   button.isSelected()
+								                                   ? m(folderMoreButton, {
+									                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+									                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+								                                   })
+								                                   : null
 						                                   ])
 					                                   })))
 			}

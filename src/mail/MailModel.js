@@ -50,7 +50,7 @@ export class MailModel {
 
 	constructor(notifications: Notifications) {
 		this.mailboxDetails = stream([])
-		this.mailboxCounters = stream()
+		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
 
