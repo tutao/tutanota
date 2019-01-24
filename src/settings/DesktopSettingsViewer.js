@@ -34,6 +34,9 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_isPathDialogOpen: boolean;
 
 	constructor() {
+		this._isDefaultMailtoHandler = stream(false)
+		this._runAsTrayApp = stream(true)
+		this._runOnStartup = stream(false)
 		this._requestDesktopConfig()
 
 		this.view = () => {
@@ -126,9 +129,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_requestDesktopConfig() {
-		this._isDefaultMailtoHandler = stream(false)
-		this._runAsTrayApp = stream(true)
-		this._runOnStartup = stream(false)
 		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(desktopConfig => {

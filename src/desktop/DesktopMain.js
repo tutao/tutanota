@@ -69,6 +69,7 @@ function onAppReady() {
 	})
 
 	err.init()
+	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	const w = ApplicationWindow.getLastFocused(!conf.getDesktopConfig('runOnStartup'))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
