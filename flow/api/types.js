@@ -164,6 +164,8 @@ type NativeRequestType = 'init'
 	| 'showWindow'
 	| 'sendDesktopConfig'
 	| 'updateDesktopConfig'
+	| 'enableAutoLaunch'
+	| 'disableAutoLaunch'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

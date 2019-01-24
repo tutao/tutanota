@@ -63,7 +63,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				selectedValue: this._runAsTrayApp,
 				selectionChangedHandler: v => {
 					this._runAsTrayApp(v)
-					this.setBooleanSetting('runAsTrayApp ', v)
+					this.setBooleanSetting('runAsTrayApp', v)
 				}
 			}
 
@@ -75,8 +75,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				],
 				selectedValue: this._runOnStartup,
 				selectionChangedHandler: v => {
-					this._runOnStartup(v)
-					this.setBooleanSetting('runOnStartup', v)
+					nativeApp.invokeNative(new Request(v ? 'enableAutoLaunch' : 'disableAutoLaunch', []))
+					         .then(() => this._runOnStartup(v))
 				}
 			}
 

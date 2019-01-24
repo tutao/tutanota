@@ -2,6 +2,7 @@
 import * as url from 'url'
 import path from 'path'
 import {exec, spawn} from 'child_process'
+import {promisify} from 'util'
 import fs from "fs-extra"
 import crypto from 'crypto'
 import {app} from 'electron'
@@ -54,7 +55,7 @@ export default class DesktopUtils {
 
 			// if a number is bigger than its index, there is room somewhere before that number
 			const firstGap = [...clashNumbersSet]
-				.sort((a,b) => a-b)
+				.sort((a, b) => a - b)
 				.find((n, i, a) => a[i + 1] > i + 1) + 1
 
 			return !isNaN(firstGap)
@@ -116,25 +117,28 @@ export default class DesktopUtils {
 				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
 		}
 	}
+
+	/**
+	 * run AppleScript and return stdout as string
+	 * @param script
+	 * @returns {never|Promise<any>|Promise<void>|Promise<string>|Promise<Buffer | string>|*}
+	 */
+	static executeAppleScript(script: string): Promise<{stdout: string, stderr: string}> {
+		return promisify(exec)(`osascript -e '${script}'`, {encoding: 'utf-8'})
+	}
 }
 
 /**
  * Checks if the user has admin privileges
- * @returns {boolean} true if user has admin privileges
+ * @returns {Promise<boolean>} true if user has admin privileges
  */
 function checkForAdminStatus(): Promise<boolean> {
-	let deferred = defer()
-	switch (process.platform) {
-		case "win32":
-			exec('NET SESSION', (err, so, se) => {
-				console.log(se.length === 0 ? "admin" : "not admin");
-				deferred.resolve(se.length === 0)
-			})
-			break;
-		default:
-			deferred.resolve(true)
+	if (process.platform === 'win32') {
+		return promisify(exec)('NET SESSION')
+			.then((ret) => ret.stderr.length === 0)
+	} else {
+		return Promise.reject(new Error(`No NET SESSION on ${process.platform}`))
 	}
-	return deferred.promise
 }
 
 /**

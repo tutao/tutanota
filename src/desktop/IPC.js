@@ -6,6 +6,7 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import {conf} from "./DesktopConfigHandler"
+import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -69,13 +70,15 @@ class IPC {
 					})
 				break
 			case 'sendDesktopConfig':
-				DesktopUtils
-					.checkIsMailtoHandler()
-					.then((isMailtoHandler) => {
+				Promise.join(
+					DesktopUtils.checkIsMailtoHandler(),
+					isAutoLaunchEnabled(),
+					(isMailtoHandler, autoLaunchEnabled) => {
 						const config = conf.getDesktopConfig()
 						config.isMailtoHandler = isMailtoHandler
-						return d.resolve(config)
-					})
+						config.runOnStartup = autoLaunchEnabled
+						return config
+					}).then((config) => d.resolve(config))
 				break
 			case 'openFileChooser':
 				if (args[1]) { // open folder dialog
@@ -100,6 +103,12 @@ class IPC {
 						w.show()
 					}
 				}).then(() => d.resolve())
+				break
+			case 'enableAutoLaunch':
+				enableAutoLaunch().then(() => d.resolve())
+				break
+			case 'disableAutoLaunch':
+				disableAutoLaunch().then(() => d.resolve())
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))

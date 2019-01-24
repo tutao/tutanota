@@ -26,7 +26,6 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
-				"runOnStartup": false,
 			}
 		},
 		"dependencies": {
@@ -35,7 +34,8 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"fs-extra": "1.0.0",
 			"bluebird": "3.5.2",
 			"request": "2.88.0",
-			"node-forge": "0.7.6"
+			"node-forge": "0.7.6",
+			"winreg": "1.2.4"
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",

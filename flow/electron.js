@@ -500,3 +500,7 @@ declare module 'request' {
 declare module 'node-forge' {
 	declare export default any;
 }
+
+declare module 'winreg' {
+	declare export default any;
+}

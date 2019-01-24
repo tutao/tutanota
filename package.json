@@ -48,6 +48,7 @@
     "systemjs-hmr": "git+https://github.com/mpfau/systemjs-hmr.git#temp",
     "systemjs-hot-reloader": "git+https://github.com/mpfau/systemjs-hot-reloader.git#temp",
     "systemjs-plugin-babel": "0.0.25",
+    "winreg": "1.2.4",
     "xhr2": "0.1.4"
   }
 }

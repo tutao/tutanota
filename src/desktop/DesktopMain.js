@@ -46,6 +46,7 @@ if (process.argv.indexOf("-r") !== -1) {
 }
 
 function onAppReady() {
+	let firstActivate = !conf.getDesktopConfig('runOnStartup')
 
 	app.on('window-all-closed', () => {
 		if (!conf.getDesktopConfig('runAsTrayApp')) {
@@ -60,6 +61,10 @@ function onAppReady() {
 	}).on('activate', () => { //MacOS
 		// first launch, dock click,
 		// attempt to launch while already running on macOS
+		if (firstActivate) { //skip showing window if autostart
+			firstActivate = false
+			return
+		}
 		ApplicationWindow.getLastFocused(true)
 	})
 
