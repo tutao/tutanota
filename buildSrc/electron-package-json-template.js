@@ -33,7 +33,6 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"electron-localshortcut": "3.1.0",
 			"fs-extra": "1.0.0",
 			"bluebird": "3.5.2",
-			"request": "2.88.0",
 			"node-forge": "0.7.6",
 			"winreg": "1.2.4"
 		},

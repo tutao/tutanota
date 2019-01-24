@@ -1,6 +1,6 @@
 // @flow
 import {autoUpdater} from 'electron-updater'
-import request from 'request'
+import {net} from 'electron'
 import forge from 'node-forge'
 import {NotificationResult, notifier} from './DesktopNotifier.js'
 import {lang} from './DesktopLocalizationProvider.js'
@@ -94,13 +94,20 @@ class ElectronUpdater {
 	}
 
 	_requestFile = (url: string): Promise<string> => {
+		let buf: Buffer = Buffer.alloc(0)
 		return new Promise((resolve, reject) => {
-			request(url, (error, response, body) => {
-				if (error !== null) {
-					reject(error)
-				}
-				resolve(body)
-			})
+			net.request(url)
+			   .on('response', response => {
+				   response.on('error', err => {
+					   reject(err)
+				   }).on('data', chunk => {
+					   buf = Buffer.concat([buf, chunk])
+				   }).on('end', () => {
+					   resolve(buf.toString('utf-8'))
+				   })
+			   }).on('error', err => {
+				reject(err)
+			}).end()
 		})
 	}
 

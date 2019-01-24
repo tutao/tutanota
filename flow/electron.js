@@ -4,6 +4,9 @@
 
 declare module 'electron' {
 	declare export var app: App;
+	declare export var net: {
+		request: (string) => ClientRequest;
+	};
 	declare export var remote: any;
 	declare export var screen: ElectronScreen;
 	declare export var webFrame: WebFrame;
@@ -33,6 +36,15 @@ declare module 'electron' {
 		width: number,
 		height: number
 	|}
+
+	declare export type ClientRequest = {
+		on('error' | 'response', (Error & IncomingMessage)=>void): ClientRequest,
+		end(): void,
+	}
+
+	declare export type IncomingMessage = {
+		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
+	}
 
 	declare export class Menu {
 		// https://electronjs.org/docs/api/menu
