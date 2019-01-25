@@ -10,7 +10,7 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError
 } from "../api/common/error/RestError"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
@@ -31,8 +31,14 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
+
+type FeedbackContent = {|
+	message: string,
+	subject: string
+|}
 
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
@@ -140,22 +146,9 @@ export function handleUncaughtError(e: Error) {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
 			if (logins.isUserLoggedIn()) {
-				// only logged in users can report errors
-				let timestamp = new Date()
-				let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
-				textField.type = Type.Area
-				let errorOkAction = (dialog) => {
-					unknownErrorDialogActive = false
-					_sendFeedbackMail(textField.value(), timestamp, e)
-					dialog.close() // show progress & then close?
-				}
-
-				Dialog.showActionDialog({
-					title: lang.get("errorReport_label"),
-					child: {view: () => m(textField)},
-					okAction: errorOkAction,
-					cancelAction: () => {
-						unknownErrorDialogActive = false
+				promptForFeedback(prepareFeedbackContent(e)).then(content => {
+					if (content) {
+						sendFeedbackMail(content)
 					}
 				})
 			} else {
@@ -168,32 +161,110 @@ export function handleUncaughtError(e: Error) {
 	}
 }
 
-function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Promise<void> {
-	let type = neverNull(Object.keys(AccountType)
-	                           .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
-	message += "\n\n Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
-		+ " app" : "Browser")
-	message += "\n Type: " + type
-	message += "\n Tutanota version: " + env.versionNumber
-	message += "\n Timestamp (UTC): " + timestamp.toUTCString()
-	message += "\n User agent: \n" + navigator.userAgent
+export function promptForFeedback(preparedContent: FeedbackContent): Promise<?FeedbackContent> {
+	return new Promise(resolve => {
+
+		const detailsExpanded = stream(false)
+
+		// only logged in users can report errors
+		let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
+		textField.type = Type.Area
+		let errorOkAction = (dialog) => {
+			unknownErrorDialogActive = false
+			preparedContent.message = textField.value() + "\n" + preparedContent.message
+			resolve(preparedContent)
+			dialog.close()
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("errorReport_label"),
+			type: DialogType.EditMedium,
+			child: {
+				view: () => {
+					return [
+						m(textField),
+						m(".flex-end",
+							m(".right",
+								m(ExpanderButtonN, {
+									label: "details_label",
+									expanded: detailsExpanded,
+								})
+							)
+						),
+						m(ExpanderPanelN, {expanded: detailsExpanded},
+							[
+								m("", preparedContent.subject),
+							].concat(preparedContent.message.split("\n")
+							                        .map(l => l.trim() === "" ? m(".pb-m", "") : m("", l)))
+						)
+					]
+				}
+			},
+			okAction: errorOkAction,
+			cancelAction: () => {
+				unknownErrorDialogActive = false
+				resolve(null)
+			}
+		})
+	})
+}
+
+function prepareFeedbackContent(error: Error): FeedbackContent {
+	const timestamp = new Date()
+	const type = neverNull(Object.keys(AccountType)
+	                             .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
+	const client = (() => {
+		let client = env.platformId
+		switch (env.mode) {
+			case Mode.App:
+			case Mode.Desktop:
+				client = env.platformId
+				break
+			case Mode.Browser:
+			case Mode.Test:
+				client = env.mode
+		}
+		return client ? client : ""
+	})()
+
+	let message = `\n\n Client: ${client}`
+	message += `\n Type: ${type}`
+	message += `\n Tutanota version: ${env.versionNumber}`
+	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
+	message += `\n User agent:\n${navigator.userAgent}`
 	if (error && error.message) {
-		message += "\n\n Error message: \n" + error.message
+		message += `\n\n Error message: \n${error.message}`
 	}
 
 	if (error && error.stack) {
 		// the error id is included in the stacktrace
-		message += "\n\n Stacktrace: \n" + error.stack
+		message += `\n\n Stacktrace: \n${error.stack}`
 	}
+	const subject = `Feedback v${env.versionNumber} - ${(error && error.name) ? error.name : '?'} - ${type} - ${client}`
+	return {
+		message,
+		subject
+	}
+}
 
-	message = message.split("\n").join("<br>")
-	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " "
-		+ type
-	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
-	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, [])
-	             .then(draft => {
-		             return worker.sendMailDraft(draft, [recipient], "de")
-	             })
+export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
+	const recipient = createRecipientInfo("support@tutao.de", "", null, true)
+	return worker.createMailDraft(
+		content.subject,
+		content.message.split("\n").join("<br>"),
+		neverNull(logins.getUserController().userGroupInfo.mailAddress),
+		"",
+		[recipient],
+		[],
+		[],
+		ConversationType.NEW,
+		null,
+		[],
+		true,
+		[]
+	).then(draft => {
+		return worker.sendMailDraft(draft, [recipient], "de")
+	})
 }
 
 /**
@@ -207,10 +278,10 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		let status = (customer.approvalStatus == "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
-		if (["1", "5", "7"].indexOf(status) != -1) {
+		let status = (customer.approvalStatus === "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
+		if (["1", "5", "7"].indexOf(status) !== -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (status == "6") {
+		} else if (status === "6") {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
 				return Dialog.error("requestApproval_msg").return(true)
 			} else {

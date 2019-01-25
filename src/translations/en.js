@@ -920,7 +920,8 @@ const translation = {
 		"defaultDownloadPath_label": "Default download path",
 		"chooseDirectory_action": "Choose directory",
 		"runAsTrayApp_action": "Run as tray App",
-		"runOnStartup_action": "Run on startup"
+		"runOnStartup_action": "Run on startup",
+		"details_label": "Details"
 	}
 }
 export default translation

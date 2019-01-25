@@ -925,7 +925,8 @@ const translation = {
 		"hideMinimizedWindowsToTray_action": "Minimierte Fenster auf das Infobereich-Symbol verschieben",
 		"restartNow_label": "Tutanota neu starten",
 		"runAsTrayApp_action": "Als Hintergrundanwendung ausführen",
-		"runOnStartup_action": "Bei Systemstart ausführen"
+		"runOnStartup_action": "Bei Systemstart ausführen",
+		"details_label": "Details"
 	}
 }
 export default translation

@@ -925,7 +925,8 @@ const translation = {
 		"defaultDownloadPath_label": "Zielordner für Downloads",
 		"chooseDirectory_action": "Ordner wählen",
 		"runAsTrayApp_action": "Als Hintergrundanwendung ausführen",
-		"runOnStartup_action": "Bei Systemstart ausführen"
+		"runOnStartup_action": "Bei Systemstart ausführen",
+		"details_label": "Details"
 	}
 }
 export default translation

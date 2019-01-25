@@ -102,6 +102,10 @@ function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 		})));
 }
 
+function reportError(err: Error) {
+	//throw err
+}
+
 function _asyncImport(path): Promise<any> {
 	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 }
@@ -120,5 +124,6 @@ export const desktopCommands = {
 	openMailbox,
 	sendTranslations,
 	print,
-	openFindInPage
+	openFindInPage,
+	reportError
 }

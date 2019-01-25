@@ -176,6 +176,7 @@ type JsRequestType = 'createMailEditor'
 	| 'sendTranslations'
 	| 'print'
 	| 'openFindInPage'
+	| 'reportError'
 
 
 type Callback<T> = (err: ?Error, data?: T) => void
@@ -220,7 +221,7 @@ type ModelAssociation = {
 type EnvType = {
 	staticUrl: ?string, // if null the url from the browser is used
 	mode: "Browser" | "App" | "Test" | "Playground",
-	platformId: ?"ios" | ?"android",
+	platformId: ?"ios" | ?"android" | ?"darwin" | ?"linux" | ?"win32",
 	dist: boolean,
 	versionNumber: string,
 	timeout: number,
