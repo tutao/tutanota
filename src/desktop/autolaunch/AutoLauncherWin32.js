@@ -24,7 +24,7 @@ export function isAutoLaunchEnabled(): Promise<boolean> {
 export function enableAutoLaunch(): Promise<void> {
 	// can't promisify here because it screws with autoRunKeys 'this' semantics
 	return new Promise((resolve, reject) => {
-		autoRunKey.set(app.getName(), Registry.REG_SZ, process.execPath, (err) => {
+		autoRunKey.set(app.getName(), Registry.REG_SZ, `${process.execPath} -a`, (err) => {
 			if (err) {
 				reject(err)
 			}

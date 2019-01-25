@@ -77,9 +77,15 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					{name: lang.get("no_label"), value: false}
 				],
 				selectedValue: this._runOnStartup,
-				selectionChangedHandler: v => {
-					nativeApp.invokeNative(new Request(v ? 'enableAutoLaunch' : 'disableAutoLaunch', []))
-					         .then(() => this._runOnStartup(v))
+				selectionChangedHandler: v => { // this may take a while
+					showProgressDialog("pleaseWait_msg",
+						nativeApp.invokeNative(new Request(v
+							? 'enableAutoLaunch'
+							: 'disableAutoLaunch', [])),
+						false).then(() => {
+						this._runOnStartup(v)
+						m.redraw()
+					})
 				}
 			}
 

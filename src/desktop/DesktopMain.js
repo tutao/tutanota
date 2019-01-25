@@ -16,6 +16,11 @@ app.setAppUserModelId(conf.get("appUserModelId"))
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
 
+let wasAutolaunched = process.platform !== 'darwin'
+	? process.argv.indexOf("-a") !== -1
+	: app.getLoginItemSettings().wasOpenedAtLogin
+
+
 //check if there are any cli parameters that should be handled without a window
 if (process.argv.indexOf("-r") !== -1) {
 	//register as mailto handler, then quit
@@ -46,7 +51,6 @@ if (process.argv.indexOf("-r") !== -1) {
 }
 
 function onAppReady() {
-	let firstActivate = !conf.getDesktopConfig('runOnStartup')
 
 	app.on('window-all-closed', () => {
 		if (!conf.getDesktopConfig('runAsTrayApp')) {
@@ -58,19 +62,12 @@ function onAppReady() {
 			return
 		}
 		handleMailto(url)
-	}).on('activate', () => { //MacOS
-		// first launch, dock click,
-		// attempt to launch while already running on macOS
-		if (firstActivate) { //skip showing window if autostart
-			firstActivate = false
-			return
-		}
-		ApplicationWindow.getLastFocused(true)
 	})
 
 	err.init()
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
-	const w = ApplicationWindow.getLastFocused(!conf.getDesktopConfig('runOnStartup'))
+	// also don't show the window when we're an autolaunched tray app
+	const w = ApplicationWindow.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	console.log("notifications available:", notifier.isAvailable())
 	ipc.initialized(w.id)
@@ -81,6 +78,12 @@ function onAppReady() {
 function main() {
 	tray.update()
 	console.log("Webapp ready")
+	app.on('activate', () => {
+		// MacOs
+		// this is fired for almost every interaction and on launch
+		// so set listener later to avoid the call on launch
+		ApplicationWindow.getLastFocused(true)
+	})
 	notifier.start()
 	updater.start()
 	handleArgv(process.argv)

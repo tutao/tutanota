@@ -25,7 +25,7 @@ export function enableAutoLaunch(): Promise<void> {
 	Version=${app.getVersion()}
 	Name=${app.getName()}
 	Comment=${app.getName()} startup script
-	Exec=${autoStartPath}
+	Exec=${autoStartPath} -a
 	StartupNotify=false
 	Terminal=false`
 

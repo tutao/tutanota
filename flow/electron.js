@@ -64,6 +64,18 @@ declare module 'electron' {
 		getVersion(): string,
 		getName(): string,
 		setPath(name: string, path: string): void;
+		getLoginItemSettings(opts?: {path: string, args: string}): {
+			openAtLogin: boolean,
+			openAsHidden: boolean,
+			wasOpenedAtLogin: boolean,
+			restoreState: boolean
+		};
+		setLoginItemSettings({
+			                     openAtLogin?: boolean,
+			                     openAsHidden?: boolean,
+			                     path?: string,
+			                     args?: string
+		                     }): void;
 		getAppPath(): string;
 		getPath(name: 'home'
 			| 'appData' //Per-user application data directory
