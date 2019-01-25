@@ -91,9 +91,7 @@ export class EventBusClient {
 			"modelVersions=" + WebsocketEntityDataTypeModel.version + "." + MailTypeModel.version
 			+ "&clientVersion=" + env.versionNumber
 			+ "&userId=" + this._login.getLoggedInUser()._id
-			+ "&" + (authHeaders.accessToken
-			? "accessToken=" + authHeaders.accessToken
-			: "authVerifier=" + authHeaders.authVerifier + "&extenalAuthToken=" + authHeaders.externalAuthToken)
+			+ "&" + ("accessToken=" + authHeaders.accessToken)
 		let url = getWebsocketOrigin() + "/event?" + authQuery;
 		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
