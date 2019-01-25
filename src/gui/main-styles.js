@@ -544,7 +544,22 @@ styles.registerStyle('main', () => {
 		'.folders': {'margin-bottom': px(12)},
 		'.folder-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
-			'margin-right': px(-size.hpad_button)
+			'margin-right': px(-size.hpad_button),
+			'align-items': 'center',
+			position: "relative"
+		},
+		'.folder-counter': {
+			position: 'absolute',
+			top: px(0),
+			left: px(3),
+			color: theme.navigation_button_icon,
+			background: theme.navigation_button,
+			"padding-left": px(4),
+			"padding-right": px(4),
+			"border-radius": px(8),
+			"line-height": px(16),
+			'font-size': px(size.font_size_small),
+			'font-weight': 'bold',
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},

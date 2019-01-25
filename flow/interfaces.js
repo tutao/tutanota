@@ -1,5 +1,5 @@
 import {ViewColumn as _ViewColumn} from "../src/gui/base/ViewColumn"
-import type {EntityUpdateData} from "../src/api/main/EntityEventController"
+import type {EntityUpdateData} from "../src/api/main/EventController"
 
 
 interface IViewSlider {

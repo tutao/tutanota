@@ -1,6 +1,6 @@
 //@flow
 import type {WorkerClient} from "./WorkerClient"
-import {EntityEventController} from "./EntityEventController"
+import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/SearchModel"
 import {assertMainOrNode} from "../Env"
@@ -9,7 +9,7 @@ import {logins} from "./LoginController"
 assertMainOrNode()
 
 export type MainLocatorType = {
-	entityEvent: EntityEventController;
+	eventController: EventController;
 	entropyCollector: EntropyCollector;
 	search: SearchModel;
 }
@@ -21,7 +21,7 @@ if (typeof window !== "undefined") {
 }
 
 export function initLocator(worker: WorkerClient) {
-	locator.entityEvent = new EntityEventController(logins)
+	locator.eventController = new EventController(logins)
 	locator.entropyCollector = new EntropyCollector(worker)
 	locator.search = new SearchModel()
 }

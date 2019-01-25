@@ -4,6 +4,8 @@ import {assertMainOrNode} from "../Env"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
+import stream from "mithril/stream/stream.js"
+import {identity} from "../common/utils/Utils"
 
 assertMainOrNode()
 
@@ -19,22 +21,28 @@ export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>) => mixed;
 
 export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 
-export class EntityEventController {
-
-	_listeners: Array<EntityEventsListener>;
+export class EventController {
+	_countersStream: Stream<WebsocketCounterData>;
+	_entityListeners: Array<EntityEventsListener>;
 	_logins: LoginController;
 
 	constructor(logins: LoginController) {
-		this._listeners = []
+		this._countersStream = stream()
+		this._entityListeners = []
 		this._logins = logins
 	}
 
-	addListener(listener: EntityEventsListener) {
-		this._listeners.push(listener)
+	addEntityListener(listener: EntityEventsListener) {
+		this._entityListeners.push(listener)
 	}
 
-	removeListener(listener: EntityEventsListener) {
-		remove(this._listeners, listener)
+	removeEntityListener(listener: EntityEventsListener) {
+		remove(this._entityListeners, listener)
+	}
+
+	countersStream(): Stream<WebsocketCounterData> {
+		// Create copy so it's never ended
+		return this._countersStream.map(identity)
 	}
 
 	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>) {
@@ -45,9 +53,13 @@ export class EntityEventController {
 		}
 
 		loginsUpdates.then(() => {
-			this._listeners.forEach(listener => {
+			this._entityListeners.forEach(listener => {
 				listener(entityUpdates)
 			})
 		})
+	}
+
+	counterUpdateReceived(update: WebsocketCounterData) {
+		this._countersStream(update)
 	}
 }

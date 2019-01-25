@@ -27,8 +27,8 @@ import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 import stream from "mithril/stream/stream.js"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 
 assertMainOrNode()

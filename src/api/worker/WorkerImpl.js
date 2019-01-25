@@ -48,7 +48,7 @@ export class WorkerImpl {
 				let ErrorType = errorTypes[message.args[0].errorType]
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
 			},
-			generateSignupKeys:(message: Request) => {
+			generateSignupKeys: (message: Request) => {
 				return locator.customer.generateSignupKeys.apply(locator.customer, message.args)
 			},
 			signup: (message: Request) => {
@@ -323,6 +323,10 @@ export class WorkerImpl {
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
 		console.log("ws state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
+	}
+
+	updateCounter(update: WebsocketCounterData): Promise<void> {
+		return this._queue.postMessage(new Request("counterUpdate", [update]))
 	}
 }
 

@@ -15,7 +15,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 /**
@@ -90,8 +90,8 @@ export class PaymentMethodInput {
 		this._currentPaymentMethodComponent = this._creditCardComponent
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard
 		this.view = () => m(this._currentPaymentMethodComponent)
-		this.oncreate = () => locator.entityEvent.addListener(accountingInfoListener)
-		this.onremove = () => locator.entityEvent.removeListener(accountingInfoListener)
+		this.oncreate = () => locator.eventController.addEntityListener(accountingInfoListener)
+		this.onremove = () => locator.eventController.removeEntityListener(accountingInfoListener)
 	}
 
 	isPaypalAssigned() {

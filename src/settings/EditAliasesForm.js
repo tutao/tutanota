@@ -25,8 +25,8 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {getAvailableDomains} from "./AddUserDialog"
 
 assertMainOrNode()

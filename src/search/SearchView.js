@@ -37,7 +37,7 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -193,7 +193,7 @@ export class SearchView implements CurrentView {
 		}
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			for (let update of updates) {
 				this.entityEventReceived(update)
 			}

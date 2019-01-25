@@ -9,8 +9,8 @@ import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {_TypeModel as SessionModelType} from "../entities/sys/Session"
-import type {EntityUpdateData} from "./EntityEventController"
-import {isUpdateForTypeRef} from "./EntityEventController"
+import type {EntityUpdateData} from "./EventController"
+import {isUpdateForTypeRef} from "./EventController"
 
 assertMainOrNode()
 

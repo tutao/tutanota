@@ -41,8 +41,8 @@ import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/Unen
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {getCurrentCount} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

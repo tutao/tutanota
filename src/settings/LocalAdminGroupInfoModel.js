@@ -6,15 +6,15 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {module as replaced} from "@hot"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;
 	groupInfos: GroupInfo[];
 
 	constructor() {
-		locator.entityEvent.addListener(updates => {
+		locator.eventController.addEntityListener(updates => {
 			for (let update of updates) {
 				this.entityEventReceived(update)
 			}
