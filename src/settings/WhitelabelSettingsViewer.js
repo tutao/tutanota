@@ -364,7 +364,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							{name: "Deutsch (Sie)", value: "de_sie"}
 						]
 						if (whitelabelConfig && (lang.code === 'de' || lang.code === 'de_sie')) {
-							const streamValue = stream(customGermanLanguageFileDefined ? customGermanLanguageFileDefined : items[0].value)
+							const streamValue = stream(customGermanLanguageFileDefined
+								? neverNull(whitelabelConfig.germanLanguageCode)
+								: items[0].value)
 							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, streamValue, 250).setSelectionChangedHandler(v => {
 								if (v) {
 									neverNull(whitelabelConfig).germanLanguageCode = v

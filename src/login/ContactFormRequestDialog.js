@@ -43,7 +43,7 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean;
 	_contactForm: ContactForm;
 	_domElement: HTMLElement;
-	_statisticFields: Array<{component: Component, name: string, value: lazy<string>}>;
+	_statisticFields: Array<{component: Component, name: string, value: lazy<?string>}>;
 	_notificationEmailAddress: TextField;
 	_passwordForm: PasswordForm;
 
@@ -140,7 +140,7 @@ export class ContactFormRequestDialog {
 		                     }).setCloseHandler(closeAction)
 	}
 
-	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
+	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<?string>}> {
 		let language = getDefaultContactFormLanguage(contactForm.languages)
 		return language.statisticsFields.map(field => {
 			if (field.type === InputFieldType.ENUM) {
