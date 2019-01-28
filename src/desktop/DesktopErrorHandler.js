@@ -64,9 +64,9 @@ class DesktopErrorHandler {
 				title: lang.get("errorReport_label"),
 				buttons: [lang.get('cancel_action'), lang.get('yes_label')],
 				defaultId: 1,
-				message: lang.get("sendReport_msg"),
-				checkboxLabel: lang.get("restartNow_label"),
-				checkboxChecked: true,
+				message: lang.get("wantToSendReport_msg"),
+				checkboxLabel: lang.get("restartBefore_action"),
+				checkboxChecked: false,
 				type: 'error'
 			}, (result, restartNow) => {
 				if (result === 1) { // clicked yes

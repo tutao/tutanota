@@ -295,7 +295,7 @@ const translation = {
 		"externalNotificationMailSubject_msg": "Confidential email from {1}",
 		"facebook_label": "Facebook",
 		"fax_label": "Fax",
-		"feedbackOnErrorInfo_msg": "Sorry, an error occurred. Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tutanota team. Thank you!",
+		"feedbackOnErrorInfo_msg": "Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tutanota team. Thank you!",
 		"field_label": "Field",
 		"fileAccessDeniedMobile_msg": "Access to external storage is denied. You can enable it in the settings of your mobile device.",
 		"filter_label": "Filter",
@@ -914,14 +914,15 @@ const translation = {
 		"makeLink_action": "Create Hyperlink",
 		"breakLink_action": "Break Hyperlink",
 		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
-		"sendReport_msg": "Something unexpected went wrong. Do you want to send an error report?",
-		"restartNow_label": "Restart Tutanota now",
+		"sendReport_msg": "Something unexpected went wrong. Do you want to send an error report? You can add a message to help us fix this error.",
+		"restartBefore_action": "Restart Tutanota before sending",
 		"alwaysAsk_action": "Always ask",
 		"defaultDownloadPath_label": "Default download path",
 		"chooseDirectory_action": "Choose directory",
 		"runAsTrayApp_action": "Run as tray App",
 		"runOnStartup_action": "Run on startup",
-		"details_label": "Details"
+		"details_label": "Details",
+		"sendErrorReport_action": "Send error report"
 	}
 }
 export default translation

@@ -302,7 +302,7 @@ const translation = {
 		"externalNotificationMailSubject_msg": "Vertrauliche Nachricht von {1}",
 		"facebook_label": "Facebook",
 		"fax_label": "Fax",
-		"feedbackOnErrorInfo_msg": "Leider ist ein Fehler aufgetreten. Bitte beschreiben Sie, welche Schritte dazu geführt haben, so dass wir ihn beheben können. Ihre Nachricht, Fehlerdetails und Ihre Browser-Kennung werden verschlüsselt an das Tutanota-Team gesendet. Danke!",
+		"feedbackOnErrorInfo_msg": "Bitte beschreiben Sie, welche Schritte zu diesem Fehler geführt haben, so dass wir ihn beheben können. Ihre Nachricht, Fehlerdetails und Ihre Browser-Kennung werden verschlüsselt an das Tutanota-Team gesendet. Danke!",
 		"field_label": "Feld",
 		"fileAccessDeniedMobile_msg": "Der Zugriff auf den externen Speicher ist gesperrt. Sie können die Freigabe in den Einstellungen Ihres Gerätes erteilen.",
 		"filter_label": "Filter",
@@ -920,13 +920,14 @@ const translation = {
 		"makeLink_action": "Hyperlink erstellen",
 		"breakLink_action": "Hyperlink entfernen",
 		"sendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Wollen Sie einen Fehlerbericht senden?",
-		"restartNow_label": "Tutanota neu starten",
+		"restartBefore_action": "Tutanota vorher neu starten",
 		"alwaysAsk_action": "Jedes Mal fragen",
 		"defaultDownloadPath_label": "Zielordner für Downloads",
 		"chooseDirectory_action": "Ordner wählen",
 		"runAsTrayApp_action": "Als Hintergrundanwendung ausführen",
 		"runOnStartup_action": "Bei Systemstart ausführen",
-		"details_label": "Details"
+		"details_label": "Details",
+		"sendErrorReport_action": "Fehlerbericht senden"
 	}
 }
 export default translation

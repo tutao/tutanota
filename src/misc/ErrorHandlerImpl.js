@@ -147,7 +147,7 @@ export function handleUncaughtError(e: Error) {
 			unknownErrorDialogActive = true
 			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
-				promptForFeedbackAndSend(e)
+				promptForFeedbackAndSend(e, true)
 			} else {
 				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
@@ -158,7 +158,7 @@ export function handleUncaughtError(e: Error) {
 	}
 }
 
-export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
+export function promptForFeedbackAndSend(e: Error, justHappened: boolean): Promise<?FeedbackContent> {
 	return new Promise(resolve => {
 		const preparedContent = prepareFeedbackContent(e)
 		const detailsExpanded = stream(false)
@@ -173,7 +173,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 		}
 
 		Dialog.showActionDialog({
-			title: lang.get("errorReport_label"),
+			title: justHappened ? lang.get("errorReport_label") : lang.get("sendErrorReport_action"),
 			type: DialogType.EditMedium,
 			child: {
 				view: () => {

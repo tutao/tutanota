@@ -108,7 +108,7 @@ function reportError(msg: Request): Promise<void> {
 		_asyncImport('src/api/main/LoginController.js'),
 		({promptForFeedbackAndSend}, {logins}) => {
 			return logins.waitForUserLogin()
-			             .then(() => promptForFeedbackAndSend(msg.args[0]))
+			             .then(() => promptForFeedbackAndSend(msg.args[0], false))
 		}
 	)
 }
