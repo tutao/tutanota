@@ -28,7 +28,6 @@ import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {animations, opacity} from "../gui/animation/Animations"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -56,6 +55,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
+import {animations, opacity} from "../gui/animation/Animations"
 
 assertMainOrNode()
 
@@ -390,16 +390,14 @@ export class MailView implements CurrentView {
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
 					                                   .map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), [
-							                                   count > 0 ? m(".folder-counter", count > 99 ? "99+" : count) : null,
-							                                   m(button),
-							                                   button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
-								                                   ? m(purgeAllButton, {
-									                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-									                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-								                                   })
-								                                   : null
-						                                   ])
+						                                   return m(MailFolderComponent, {
+							                                   count: count,
+							                                   button,
+							                                   rightButton: button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
+								                                   ? purgeAllButton
+								                                   : null,
+							                                   key: id
+						                                   })
 					                                   })
 					                                   .concat(logins.isInternalUserLoggedIn()
 						                                   ? [
@@ -414,16 +412,12 @@ export class MailView implements CurrentView {
 					                                   )
 					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(".folder-row.flex-space-between.plr-l" + (button.isSelected() ? ".row-selected" : ""), [
-							                                   count > 0 ? m(".folder-counter", count > 99 ? "99+" : count) : null,
-							                                   m(button),
-							                                   button.isSelected()
-								                                   ? m(folderMoreButton, {
-									                                   oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-									                                   onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-								                                   })
-								                                   : null
-						                                   ])
+						                                   return m(MailFolderComponent, {
+							                                   count,
+							                                   button,
+							                                   rightButton: button.isSelected() ? folderMoreButton : null,
+							                                   key: id
+						                                   })
 					                                   })))
 			}
 		}), false, {}, theme.navigation_button)
@@ -723,5 +717,40 @@ export class MailView implements CurrentView {
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
 			content: this._actionBar()
 		}) : null
+	}
+}
+
+class MailFolderComponent implements MComponent<{count: number, button: NavButton, rightButton: ?Button}> {
+	_hovered: boolean = false;
+
+	view(vnode): ?Children {
+		const {count, button, rightButton} = vnode.attrs
+		return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), {}, [
+			count > 0
+				?
+				m(".folder-counter.z2", {
+					onmouseenter: () => {
+						this._hovered = true
+					},
+					onmouseleave: () => {
+						this._hovered = false
+					}
+				}, count < 99 || this._hovered ? count : "99+")
+				: null,
+			m(button),
+			rightButton
+				? m(rightButton, {
+					// Setting initial opacity here because oncreate is called too late and it's blinking
+					oncreate: vnode => {
+						vnode.dom.style.opacity = 0
+						return animations.add(vnode.dom, opacity(0, 1, true))
+					},
+					onbeforeremove: vnode => {
+						vnode.dom.style.opacity = 1
+						return animations.add(vnode.dom, opacity(1, 0, true))
+					}
+				})
+				: null
+		])
 	}
 }
