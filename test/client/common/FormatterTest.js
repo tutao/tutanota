@@ -225,7 +225,7 @@ o.spec("FormatterTest", function () {
 		_checkParseBirthday("1.1.", 1, 1, null)
 		_checkParseBirthday("1.1.2001", 1, 1, 2001)
 		_checkParseBirthday("1.1.18", 1, 1, 2018)
-		_checkParseBirthday("1.1.19", 1, 1, 1919)
+		_checkParseBirthday("1.1.50", 1, 1, 1950)
 	}))
 
 	o("parseBirthdayUsLocale", browser(function () {
@@ -242,7 +242,8 @@ o.spec("FormatterTest", function () {
 		_checkParseBirthday("1/1", 1, 1, null)
 		_checkParseBirthday("1/1/2001", 1, 1, 2001)
 		_checkParseBirthday("1/1/18", 1, 1, 2018)
-		_checkParseBirthday("1/1/19", 1, 1, 1919)
+		// It will fail in 2050. Hello from 2019!
+		_checkParseBirthday("1/1/50", 1, 1, 1950)
 	}))
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {
