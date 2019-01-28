@@ -113,6 +113,7 @@ export class MailView implements CurrentView {
 
 		this.listColumn = new ViewColumn({
 			view: () => m(".list-column", [
+				m("", "oh no, we will delete stuff you didn't need"),
 				this.mailList ? m(this.mailList) : null,
 			])
 		}, ColumnType.Background, 300, 500, () => {

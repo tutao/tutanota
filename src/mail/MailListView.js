@@ -37,7 +37,7 @@ const iconMap: {[MailFolderTypeEnum]: string} = {
 }
 
 
-export class MailListView {
+export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
@@ -99,10 +99,10 @@ export class MailListView {
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")
 		})
+	}
 
-		this.view = (): VirtualElement => {
-			return m(this.list)
-		}
+	view(): Children {
+		return m(this.list)
 	}
 
 	targetInbox() {
