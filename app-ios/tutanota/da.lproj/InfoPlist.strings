@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Tag et billede eller video for at tilføje dette som vedhæft.";
-NSPhotoLibraryUsageDescription = "Læg til et billede fra dit bibliotek som vedheft.";
-NSPhotoLibraryAddUsageDescription = "Læg til et billede fra dit bibliotek som vedheft.";
+NSPhotoLibraryUsageDescription = "Tilføj et billede fra dit bibliotek som vedhæftet fil.";
+NSPhotoLibraryAddUsageDescription = "Tilføj et billede fra dit bibliotek som vedhæftet fil.";
 NSMicrophoneUsageDescription = "Anvendt til at indspille en video som vedheft.";
 NSContactsUsageDescription = "Find en modtagermailadresse i kontakter.";
 NSRemindersUsageDescription = "Viser beskeder når der kommer nye mails.";

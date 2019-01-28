@@ -16,7 +16,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2018-12-12T13:43:19Z",
+	"updated_at": "2019-01-28T12:46:59Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Tafadhali kulemaza hifadhi ya kiganjani kwa kupitia au lakabu mfuko na kulemaza lakabu wote wa barua pepe kabla ya kubadilisha aina ya akaunti.",
@@ -78,6 +78,7 @@ const translation = {
 		"captchaInput_label": "Muda",
 		"catchAllMailbox_label": "Kamata kikashabarua zote",
 		"cc_label": "Cc",
+		"certificateError_msg": "Inyuguti zibanga ntago imeze uko igomba kumera , binashoboka ko idahuye na nizina",
 		"changeAdminPassword_msg": "Samahani, huruhusiwi kubadilisha nywila ya msimamizi mwingine",
 		"changePasswordCode_msg": "Nambari ya uthibitishaji:",
 		"changePassword_label": "Badilisha neno la siri",
@@ -122,6 +123,7 @@ const translation = {
 		"creditCardNumberFormat_msg": "Tafadhali weka namba ya kadi yako.",
 		"creditCardNumberInvalid_msg": "Kadi ya malipo ni batili.",
 		"currentlyBooked_label": "Maelezo ya jumla ya tiketi",
+		"customColorsInfo_msg": "Mugihe usize ahabugenewe hibara , ibara risa nurumuri niryo rikoreshwa",
 		"customDomainDeletePreconditionFailed_msg": "Tafadhali kuzima watumiaji wote na majina ya utani barua pepe iliyo miliki: {domainName}",
 		"customDomainDomainAssigned_msg": "Kikoa imepangiliwa tayari kwa akaunti yako.",
 		"customDomainErrorDnsLookupFailure_msg": "Duhusi ya DNS imeshindwa",

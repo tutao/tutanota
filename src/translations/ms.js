@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2018-12-12T13:43:19Z",
+	"updated_at": "2019-01-28T12:46:59Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Sila nyahaktifkan pakej penyimpanan atau alias yang ditempah dan matikan semua alias email sebelum menukar jenis akaun.",

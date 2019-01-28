@@ -1,2 +1,9 @@
+NSPhotoLibraryUsageDescription = "Προσθέστε μια εικόνα από την βιβλιοθήκη σας ως συνημμένο.";
+NSPhotoLibraryAddUsageDescription = "Προσθέστε μια εικόνα από την βιβλιοθήκη σας ως συνημμένο.";
+NSMicrophoneUsageDescription = "Χρησιμοποιείται οταν ανεβάζεις ενα βίντεο σαν συνημμένο .";
+NSRemindersUsageDescription = "Ενημέρωνει όταν λαμβάνετε νέο μήνυμα ηλεκτρονικού ταχυδρομείου ";
+TutaoShowCameraAction = "Κάμερα ";
+TutaoChoosePhotosAction = "Φωτογραφίες ";
+TutaoNoPermissionTitle = "χωρίς άδεια";
 TutaoCancelAction = "Ακύρωση";
 TutaoSettingsAction = "Ρυθμίσεις";

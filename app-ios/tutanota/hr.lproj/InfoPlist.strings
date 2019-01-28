@@ -1,2 +1,4 @@
-TutaoCancelAction = "Odustati";
+NSMicrophoneUsageDescription = "Koristi se prilikom snimanja video privitka.";
+NSRemindersUsageDescription = "Prikaz obavijesti kad stigne novi email.";
+TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";

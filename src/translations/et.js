@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2018-12-12T11:59:57Z",
+	"updated_at": "2019-01-02T14:22:42Z",
 	"source_locale": null,
 	"keys": {
 		"account_label": "Kasutaja",

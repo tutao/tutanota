@@ -7,5 +7,6 @@ NSRemindersUsageDescription = "Viestin saapumisilmoitus.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Valokuvat";
 TutaoNoPermissionTitle = "Käyttöoikeutta ei ole";
+TutaoChangePermissionMsg = "Pääsyn salliminen edellyttää laitekohtaisen käyttöoikeuksien muokkausta.";
 TutaoCancelAction = "Peruuta";
 TutaoSettingsAction = "Asetukset";

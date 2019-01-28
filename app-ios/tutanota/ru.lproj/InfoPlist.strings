@@ -1,8 +1,12 @@
 NSCameraUsageDescription = "Сделайте снимок или видео для добавления его в качестве вложения.";
 NSPhotoLibraryUsageDescription = "Разместите изображение из библиотеки как вложение. ";
 NSPhotoLibraryAddUsageDescription = "Разместите изображение из библиотеки как вложение. ";
-NSMicrophoneUsageDescription = "Используется при записи видео приложения к письму.";
+NSMicrophoneUsageDescription = "Используется при записи видео-приложения.";
 NSContactsUsageDescription = "Найти адрес электронной почты получателя в контактах.";
 NSRemindersUsageDescription = "Показывает уведомление когда приходит новое сообщение. ";
+TutaoShowCameraAction = "Камера";
+TutaoChoosePhotosAction = "Фотографии";
+TutaoNoPermissionTitle = "Нет доступа";
+TutaoChangePermissionMsg = "Чтобы предоставить доступ, вы должны изменить разрешения для этого устройства.";
 TutaoCancelAction = "Отменить";
 TutaoSettingsAction = "Настройки";
