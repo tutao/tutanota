@@ -2,6 +2,7 @@
 import {client} from "../../misc/ClientDetector"
 import {ease} from "./Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import {downcast} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -29,6 +30,8 @@ const InitializedOptions = {
 	easing: ease.linear,
 	duration: DefaultAnimationTime
 }
+
+type AnimationPromise = {animations?: Array<Animation>} & Promise<void>
 
 class Animations {
 	activeAnimations: Animation[];
@@ -61,7 +64,7 @@ class Animations {
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
-	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): Promise<void> {
+	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): AnimationPromise {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
@@ -75,20 +78,33 @@ class Animations {
 		}
 		let verifiedOptions = Animations.verifiyOptions(options)
 		if (!targetArrayOrCollection) target = [target]
-		return Promise.fromCallback(resolve => {
+		const animations = []
+		const promise = new Promise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
 			for (let i = 0; i < target.length; i++) {
 				let delay = verifiedOptions.delay
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				this.activeAnimations.push(new Animation(target[i], mutation,
-					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
+				const animation = new Animation(target[i], mutation,
+					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration)
+
+				animations.push(animation)
+				this.activeAnimations.push(animation)
 			}
 			if (start) {
 				window.requestAnimationFrame(this._animate)
 			}
 		})
+		downcast(promise).animations = animations
+		return promise
+	}
+
+	cancel(animation: Animation) {
+		this.activeAnimations.splice(this.activeAnimations.indexOf(animation), 1)
+		if (animation.resolve) {
+			animation.resolve()
+		}
 	}
 
 	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration: number} {
