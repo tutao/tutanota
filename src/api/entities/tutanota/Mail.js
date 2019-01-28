@@ -4,14 +4,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 export const _TypeModel: TypeModel = {
-	"name": "Mail",
-	"since": 1,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 97,
-	"rootId": "CHR1dGFub3RhAGE",
-	"versioned": false,
-	"encrypted": true,
-	"values": {
+	"name": "Mail", "since": 1, "type": "LIST_ELEMENT_TYPE", "id": 97, "rootId": "CHR1dGFub3RhAGE", "versioned": false, "encrypted": true, "values": {
 		"_area": {"name": "_area", "id": 104, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false},
 		"_format": {"name": "_format", "id": 101, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 99, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
@@ -46,17 +39,8 @@ export const _TypeModel: TypeModel = {
 		"subject": {"name": "subject", "id": 105, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
 		"trashed": {"name": "trashed", "id": 110, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
 		"unread": {"name": "unread", "id": 109, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
-	},
-	"associations": {
-		"bccRecipients": {
-			"name": "bccRecipients",
-			"id": 114,
-			"since": 1,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"refType": "MailAddress",
-			"final": true
-		},
+	}, "associations": {
+		"bccRecipients": {"name": "bccRecipients", "id": 114, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "MailAddress", "final": true},
 		"ccRecipients": {"name": "ccRecipients", "id": 113, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "MailAddress", "final": true},
 		"replyTos": {"name": "replyTos", "id": 616, "since": 14, "type": "AGGREGATION", "cardinality": "Any", "refType": "EncryptedMailAddress", "final": true},
 		"restrictions": {
@@ -110,9 +94,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	},
-	"app": "tutanota",
-	"version": "30"
+	}, "app": "tutanota", "version": "30"
 }
 
 export function createMail(): Mail {

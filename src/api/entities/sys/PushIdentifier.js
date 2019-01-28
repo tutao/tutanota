@@ -4,14 +4,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 export const _TypeModel: TypeModel = {
-	"name": "PushIdentifier",
-	"since": 5,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 625,
-	"rootId": "A3N5cwACcQ",
-	"versioned": false,
-	"encrypted": false,
-	"values": {
+	"name": "PushIdentifier", "since": 5, "type": "LIST_ELEMENT_TYPE", "id": 625, "rootId": "A3N5cwACcQ", "versioned": false, "encrypted": false, "values": {
 		"_area": {"name": "_area", "id": 631, "since": 5, "type": "Number", "cardinality": "One", "final": true, "encrypted": false},
 		"_format": {"name": "_format", "id": 629, "since": 5, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 627, "since": 5, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
@@ -31,10 +24,7 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"pushServiceType": {"name": "pushServiceType", "id": 632, "since": 5, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
-	},
-	"associations": {},
-	"app": "sys",
-	"version": "41"
+	}, "associations": {}, "app": "sys", "version": "41"
 }
 
 export function createPushIdentifier(): PushIdentifier {

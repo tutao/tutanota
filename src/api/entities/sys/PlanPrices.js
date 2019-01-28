@@ -4,14 +4,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", "PlanPrices")
 export const _TypeModel: TypeModel = {
-	"name": "PlanPrices",
-	"since": 39,
-	"type": "AGGREGATED_TYPE",
-	"id": 1460,
-	"rootId": "A3N5cwAFtA",
-	"versioned": false,
-	"encrypted": false,
-	"values": {
+	"name": "PlanPrices", "since": 39, "type": "AGGREGATED_TYPE", "id": 1460, "rootId": "A3N5cwAFtA", "versioned": false, "encrypted": false, "values": {
 		"_id": {"name": "_id", "id": 1461, "since": 39, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"additionalUserPriceMonthly": {
 			"name": "additionalUserPriceMonthly",
@@ -44,10 +37,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		}
-	},
-	"associations": {},
-	"app": "sys",
-	"version": "41"
+	}, "associations": {}, "app": "sys", "version": "41"
 }
 
 export function createPlanPrices(): PlanPrices {

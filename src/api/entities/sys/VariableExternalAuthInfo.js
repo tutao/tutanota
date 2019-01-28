@@ -4,14 +4,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 export const _TypeModel: TypeModel = {
-	"name": "VariableExternalAuthInfo",
-	"since": 1,
-	"type": "ELEMENT_TYPE",
-	"id": 66,
-	"rootId": "A3N5cwBC",
-	"versioned": false,
-	"encrypted": false,
-	"values": {
+	"name": "VariableExternalAuthInfo", "since": 1, "type": "ELEMENT_TYPE", "id": 66, "rootId": "A3N5cwBC", "versioned": false, "encrypted": false, "values": {
 		"_format": {"name": "_format", "id": 70, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 68, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 995, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
@@ -38,10 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"loggedInVerifier": {"name": "loggedInVerifier", "id": 71, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"sentCount": {"name": "sentCount", "id": 74, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
-	},
-	"associations": {},
-	"app": "sys",
-	"version": "41"
+	}, "associations": {}, "app": "sys", "version": "41"
 }
 
 export function createVariableExternalAuthInfo(): VariableExternalAuthInfo {
