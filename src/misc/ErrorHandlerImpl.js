@@ -145,12 +145,9 @@ export function handleUncaughtError(e: Error) {
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
+			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
-				promptForFeedback(prepareFeedbackContent(e)).then(content => {
-					if (content) {
-						sendFeedbackMail(content)
-					}
-				})
+				promptForFeedbackAndSend(e)
 			} else {
 				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
@@ -161,12 +158,11 @@ export function handleUncaughtError(e: Error) {
 	}
 }
 
-export function promptForFeedback(preparedContent: FeedbackContent): Promise<?FeedbackContent> {
+export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 	return new Promise(resolve => {
-
+		const preparedContent = prepareFeedbackContent(e)
 		const detailsExpanded = stream(false)
 
-		// only logged in users can report errors
 		let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
 		textField.type = Type.Area
 		let errorOkAction = (dialog) => {
@@ -206,6 +202,10 @@ export function promptForFeedback(preparedContent: FeedbackContent): Promise<?Fe
 				resolve(null)
 			}
 		})
+	}).then(content => {
+		if (content) {
+			sendFeedbackMail(content)
+		}
 	})
 }
 

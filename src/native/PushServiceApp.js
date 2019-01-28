@@ -5,7 +5,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {getHttpOrigin, isAndroidApp, isIOSApp} from "../api/Env"
+import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
@@ -58,6 +58,10 @@ class PushServiceApp {
 				} else {
 					console.log("denied by user")
 				}
+			})
+		} else if (isDesktop()) {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
+				// we don't get this yet
 			})
 		} else {
 			return Promise.resolve()

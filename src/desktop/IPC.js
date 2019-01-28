@@ -1,6 +1,7 @@
 // @flow
 import {BrowserWindow, dialog, ipcMain} from 'electron'
 import {ApplicationWindow} from './ApplicationWindow'
+import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
@@ -109,6 +110,11 @@ class IPC {
 				break
 			case 'disableAutoLaunch':
 				disableAutoLaunch().then(() => d.resolve())
+				break
+			case 'getPushIdentifier':
+				// we know there's a logged in window
+				err.sendErrorReport(windowId)
+				d.resolve()
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))

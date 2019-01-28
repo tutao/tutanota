@@ -18,6 +18,7 @@ type ErrorLog = {|
 
 class DesktopErrorHandler {
 	_errorLogPath: string;
+	lastErrorLog: ?ErrorLog;
 
 	constructor() {
 		this._errorLogPath = path.join(app.getPath('userData'), 'lasterror.log')
@@ -25,29 +26,33 @@ class DesktopErrorHandler {
 
 	// these listeners can only be set after the app ready event
 	init() {
-		// check if there's an error log on disk
-		if (fs.existsSync(this._errorLogPath)) {
-			try {
-				const lastErrorLog: ?ErrorLog = JSON.parse(fs.readFileSync(this._errorLogPath).toString())
-				if (lastErrorLog) {
-					console.log('found error log')
-					this._sendErrorReport(ApplicationWindow.getLastFocused(true).id, lastErrorLog)
-					    .then(() => fs.unlinkSync(this._errorLogPath))
-				}
-			} catch (e) {
-			}
-		}
-
 		process.on('uncaughtException', error => {
 			this.handleUnexpectedFailure(error)
 		}).on('unhandledRejection', (error, p) => {
 			this.handleUnexpectedFailure(error)
 		})
+
+		// check if there's an error log on disk
+		if (fs.existsSync(this._errorLogPath)) {
+			try {
+				this.lastErrorLog = JSON.parse(fs.readFileSync(this._errorLogPath).toString())
+				if (this.lastErrorLog) {
+					console.log('found error log')
+				}
+			} catch (e) {
+				console.warn("Could not read error log:", e)
+			}
+			try {
+				fs.unlinkSync(this._errorLogPath)
+			} catch (e) {
+				console.warn("Could not delete error log:", e)
+			}
+		}
 	}
 
 	handleUnexpectedFailure(error: Error) {
-		const errorLog = {
-			name: error.name ? error.name : '?',
+		this.lastErrorLog = {
+			name: error.name,
 			platform: process.platform + ' ' + os.release(),
 			message: error.message,
 			stack: this._betterStack(error.stack),
@@ -67,15 +72,15 @@ class DesktopErrorHandler {
 				if (result === 1) { // clicked yes
 					if (restartNow) {
 						console.log('writing error log to', this._errorLogPath)
-						fs.writeFileSync(this._errorLogPath, JSON.stringify(errorLog))
+						fs.writeFileSync(this._errorLogPath, JSON.stringify(this.lastErrorLog))
 						app.relaunch({args: process.argv.slice(1)})
 						app.exit(0)
 					} else {
 						const loggedInWindow = ApplicationWindow.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
 						if (loggedInWindow) {
-							this._sendErrorReport(loggedInWindow.id, errorLog)
+							this.sendErrorReport(loggedInWindow.id)
 						} else {
-							this._sendErrorReport(ApplicationWindow.getLastFocused(true).id, errorLog)
+							this.sendErrorReport(ApplicationWindow.getLastFocused(true).id)
 						}
 					}
 				}
@@ -83,36 +88,26 @@ class DesktopErrorHandler {
 		} else { // failure before first web app loaded
 			// ignore and hope it wasn't important
 			// may later send to error report service if that gets implemented
+			console.warn("UI unavailable, ignored error:", error)
 		}
 	}
 
-	_sendErrorReport(windowId: number, lastErrorLog: ErrorLog) {
+	sendErrorReport(windowId: number): Promise<any> {
+		if (!this.lastErrorLog) {
+			return Promise.resolve()
+		}
 		return lang.initialized.promise
-		           .then(() => {
-			           const subject = `Feedback desktop client - ${lastErrorLog.name}`
-			           const text = [
-				           `=== ${lang.get('yourMessage_label')} ===`,
-				           '',
-				           '',
-				           '=== System Info ===',
-				           '',
-				           `Platform: ${lastErrorLog.platform}`,
-				           `Tutanota Version: ${lastErrorLog.version}`,
-				           '',
-				           'Error Message:',
-				           `${lastErrorLog.message}`,
-				           '',
-				           'Stacktrace:',
-				           `${lastErrorLog.stack}`,
-			           ].join('<br>')
-			           return ipc.sendRequest(windowId, 'createMailEditor', [[], text, ["support@tutao.de"], subject, null])
-		           })
+		           .then(() => ipc.sendRequest(windowId, 'reportError', [this.lastErrorLog]))
+		           .then(() => this.lastErrorLog = null)
 	}
 
 	// replace absolute file paths in stack trace with nicer ones relative to the app
 	_betterStack(stack: string): string {
+		if (typeof stack !== 'string') {
+			return ""
+		}
 		return stack.replace(/^\s*?at .*?\((.*?):/gm, (match, pathGroup) => {
-			return '<br>' + match.replace(pathGroup, path.relative(app.getAppPath(), pathGroup))
+			return match.replace(pathGroup, path.relative(app.getAppPath(), pathGroup))
 		})
 	}
 }

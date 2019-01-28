@@ -203,7 +203,7 @@ export class LoginViewController implements ILoginViewController {
 			console.log("offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		if (env.mode === Mode.App) {
+		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
 			pushServiceApp.register()
 		}
 		this._showStorageNotificationIfNeeded()

@@ -102,8 +102,15 @@ function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 		})));
 }
 
-function reportError(err: Error) {
-	//throw err
+function reportError(msg: Request): Promise<void> {
+	return Promise.join(
+		_asyncImport('src/misc/ErrorHandlerImpl.js'),
+		_asyncImport('src/api/main/LoginController.js'),
+		({promptForFeedbackAndSend}, {logins}) => {
+			return logins.waitForUserLogin()
+			             .then(() => promptForFeedbackAndSend(msg.args[0]))
+		}
+	)
 }
 
 function _asyncImport(path): Promise<any> {
