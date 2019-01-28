@@ -24,7 +24,8 @@ o.spec("LanguageViewModelTests", function () {
 			["clingon", "en"],
 			["pt_pt", "pt_pt"],
 			["pt_br", "pt_br"],
-			["fi", "fi"]
+			["fi", "fi"],
+			["fa", "fa_ir"]
 		].forEach(([k, r]) => o(getAvailableLanguageCode(k)).equals(r))
 	})
 
@@ -41,7 +42,8 @@ o.spec("LanguageViewModelTests", function () {
 			["clingon", null],
 			["pt_pt", "pt_pt"],
 			["pt_br", "pt_br"],
-			["fi", "fi"]
+			["fi", "fi"],
+			["fa", "fa_ir"]
 		].forEach(([k, r]) => o(_getSubstitutedLanguageCode(k)).equals(r))
 	})
 

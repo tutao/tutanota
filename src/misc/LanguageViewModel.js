@@ -1,5 +1,4 @@
 // @flow
-import {startsWith} from "../api/common/utils/StringUtils"
 import {assertMainOrNodeBoot} from "../api/Env"
 import {asyncImport, downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
@@ -12,6 +11,7 @@ export type TranslationKey = $Keys<$PropertyType<en, "keys">> | "emptyString_msg
 export type Language = {code: string, textId: TranslationKey}
 
 export const languages: Language[] = [
+	{code: 'ar', textId: 'languageArabic_label'},
 	{code: 'bg', textId: 'languageBulgarian_label'},
 	{code: 'ca', textId: 'languageCatalan_label'},
 	{code: 'cs', textId: 'languageCzech_label'},
@@ -22,6 +22,7 @@ export const languages: Language[] = [
 	{code: 'en', textId: 'languageEnglish_label'},
 	{code: 'es', textId: 'languageSpanish_label'},
 	{code: 'et', textId: 'languageEstonian_label'},
+	{code: 'fa_ir', textId: 'languagePersian_label'},
 	{code: 'fi', textId: 'languageFinnish_label'},
 	{code: 'fil', textId: 'languageFilipino_label'},
 	{code: 'fr', textId: 'languageFrench_label'},
@@ -29,10 +30,12 @@ export const languages: Language[] = [
 	{code: 'hi', textId: 'languageHindi_label'},
 	{code: 'hr', textId: 'languageCroatian_label'},
 	{code: 'hu', textId: 'languageHungarian_label'},
+	{code: 'hi', textId: 'languageHindi_label'},
 	{code: 'id', textId: 'languageIndonesian_label'},
 	{code: 'it', textId: 'languageItalian_label'},
 	{code: 'ja', textId: 'languageJapanese_label'},
 	{code: 'lt', textId: 'languageLithuanian_label'},
+	{code: 'lv', textId: 'languageLatvian_label'},
 	{code: 'mk', textId: 'languageMacedonian_label'},
 	{code: 'ms', textId: 'languageMalay_label'},
 	{code: 'nl', textId: 'languageDutch_label'},
@@ -274,11 +277,8 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 		if (code === 'zh_hk') {
 			language = languages.find(l => l.code === 'zh_tw')
 		} else {
-			const indexOfUnderscore = code.indexOf("_")
-			if (indexOfUnderscore > 0) {
-				const basePart = code.substring(0, indexOfUnderscore)
-				language = languages.find(l => startsWith(l.code, basePart) && (restrictions == null || restrictions.indexOf(l.code) !== -1))
-			}
+			let basePart = getBasePart(code)
+			language = languages.find(l => getBasePart(l.code) === basePart && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 		}
 	}
 	if (language) {
@@ -289,6 +289,15 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 		}
 	} else {
 		return null
+	}
+}
+
+function getBasePart(code: string): string {
+	const indexOfUnderscore = code.indexOf("_")
+	if (indexOfUnderscore > 0) {
+		return code.substring(0, indexOfUnderscore)
+	} else {
+		return code
 	}
 }
 
