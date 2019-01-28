@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-01-28T14:30:47Z",
+	"updated_at": "2019-01-28T15:01:59Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Please deactivate all booked extensions and packages and disable all email aliases before switching the subscription.",
@@ -447,6 +447,7 @@ const translation = {
 		"languageItalian_label": "Italian",
 		"languageJapanese_label": "Japanese",
 		"languageKorean_label": "Korean",
+		"languageLatvian_label": "Latvian",
 		"languageLithuanian_label": "Lithuanian",
 		"languageMacedonian_label": "Macedonian",
 		"languageMalayalam_label": "Malayalam",

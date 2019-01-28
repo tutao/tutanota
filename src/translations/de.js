@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-01-28T14:30:51Z",
+	"updated_at": "2019-01-28T15:01:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -451,6 +451,7 @@ const translation = {
 		"languageItalian_label": "Italienisch",
 		"languageJapanese_label": "Japanisch",
 		"languageKorean_label": "Koreanisch",
+		"languageLatvian_label": "Lettisch",
 		"languageLithuanian_label": "Litauisch",
 		"languageMacedonian_label": "Mazedonisch",
 		"languageMalayalam_label": "Malayalam",

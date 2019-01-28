@@ -30,7 +30,6 @@ export const languages: Language[] = [
 	{code: 'hi', textId: 'languageHindi_label'},
 	{code: 'hr', textId: 'languageCroatian_label'},
 	{code: 'hu', textId: 'languageHungarian_label'},
-	{code: 'hi', textId: 'languageHindi_label'},
 	{code: 'id', textId: 'languageIndonesian_label'},
 	{code: 'it', textId: 'languageItalian_label'},
 	{code: 'ja', textId: 'languageJapanese_label'},

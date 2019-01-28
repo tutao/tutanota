@@ -15,7 +15,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2019-01-28T14:26:50Z",
+	"updated_at": "2019-01-28T14:57:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -243,6 +243,7 @@ const translation = {
 		"delete_action": "Удалить",
 		"desktopSettings_label": "Настройки рабочего стола",
 		"desktop_label": "Рабочий стол",
+		"details_label": "Детали",
 		"differentSecurityKeyDomain_msg": "Ваш ключ безопасности не зарегистрирован для данного домента. Пожалуйста, войдите в {domain}",
 		"discardChanges_action": "Отменить изменения",
 		"display_action": "Показать",
@@ -711,6 +712,7 @@ const translation = {
 		"registrationHeadline_msg": "Зарегистрироваться",
 		"releaseNotes_action": "Изменения",
 		"remindersUsageDescription_msg": "Показывает уведомление когда приходит новое сообщение. ",
+		"removeFormatting_action": "Удалить форматирование из выделенного фрагмента",
 		"removeGroup_action": "Удалить группу",
 		"removeOwnAdminFlagInfo_msg": "Ваш флаг администратора может быть удален только другим администратором.",
 		"removeStatisticsField_action": "Удалить поле со статистикой",
@@ -767,6 +769,7 @@ const translation = {
 		"selectNext_action": "Далее",
 		"selectPeriodOfTime_label": "Выберите период времени",
 		"selectPrevious_action": "Выберите предыдущий",
+		"sendErrorReport_action": "Отправить отчет об ошибке",
 		"sender_label": "Отправитель",
 		"sendingSms_msg": "Отправляем СМС...",
 		"sendingUnencrypted_msg": "Сообщение отправляется.",
