@@ -10,6 +10,7 @@ import {ButtonN} from "./ButtonN"
 import {Dialog} from "./Dialog"
 import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>,
