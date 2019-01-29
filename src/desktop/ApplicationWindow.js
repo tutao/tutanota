@@ -157,7 +157,7 @@ export class ApplicationWindow {
 					    fs.closeSync(fs.openSync(savePath, 'w'))
 					    item.setSavePath(savePath)
 
-					    // if the last dl ended less than 30s ago, open dl dir in file manager
+					    // if the last dl ended more than 30s ago, open dl dir in file manager
 					    let fileManagerLock = noOp
 					    if (fileManagersOpen === 0) {
 						    fileManagersOpen = fileManagersOpen + 1
