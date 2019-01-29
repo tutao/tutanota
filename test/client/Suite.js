@@ -16,8 +16,12 @@ import "./mail/MailModelTest"
 import "./misc/U2fClientTest"
 import "./contact/ContactUtilsTest"
 import "./contact/ContactMergeUtilsTest"
-import "./desktop/DesktopUtilsTest.js"
+
 import o from "ospec/ospec.js"
+
+node(() => {
+	require("./desktop/DesktopUtilsTest.js")
+})()
 
 o.run()
 
