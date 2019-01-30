@@ -84,7 +84,6 @@ export class ApplicationWindow {
 		windows.push(this)
 		ipc.addWindow(this.id)
 
-
 		this._browserWindow.once('ready-to-show', () => {
 			this._browserWindow.webContents.setZoomFactor(1.0)
 			tray.update()
@@ -139,9 +138,23 @@ export class ApplicationWindow {
 				    this._browserWindow.loadURL(newURL)
 			    }
 		    })
+		    .on('context-menu', (e, params) => {
+			    this._browserWindow.webContents.send('context-menu', [{linkURL: params.linkURL}])
+		    })
+
+		/**
+		 * we need two conditions for the context menu to work on every window
+		 * 1. the preload script must have run already on this window
+		 * 2. the first web app instance must have sent the translations to the node thread
+		 * dom-ready is after preload and after the index.html was loaded into the webContents,
+		 * but may be before any javascript ran
+		 */
+		this._browserWindow.webContents.once('dom-ready', () => {
+			lang.initialized.promise.then(() => this._browserWindow.webContents.send('setup-context-menu', []))
+		})
 
 		this._browserWindow.webContents.session
-		    .removeAllListeners('will-download')
+		    .removeAllListeners('will-download') // all webContents use the same session
 		    .on('will-download', (ev, item) => {
 			    if (conf.getDesktopConfig('defaultDownloadPath')) {
 				    try {

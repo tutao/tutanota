@@ -260,6 +260,7 @@ declare module 'electron' {
 
 	declare export class WebContents {
 		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
+		once(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
 		send(string, any): void;
 		session: ElectronSession;
 		getURL(): string;

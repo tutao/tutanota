@@ -41,7 +41,7 @@ class DesktopLocalizationProvider {
 		if (id === "emptyString_msg") {
 			return "\u2008"
 		}
-		var text = this.translations.keys[id]
+		let text = this.translations.keys[id]
 		if (!text) {
 			// try fallback language
 			text = this.fallback.keys[id]
@@ -54,7 +54,7 @@ class DesktopLocalizationProvider {
 			}
 		}
 		if (params instanceof Object) {
-			for (var param in params) {
+			for (let param in params) {
 				text = text.replace(param, params[param])
 			}
 		}
