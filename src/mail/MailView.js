@@ -134,7 +134,7 @@ export class MailView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
-		this.newAction = new Button('newMail_action', () => this._newMail().catch(noOp), () => Icons.Edit)
+		this.newAction = new Button('newMail_action', () => this._newMail().catch(PermissionError, noOp), () => Icons.Edit)
 			.setType(ButtonType.Floating)
 
 		this.view = (): VirtualElement => {
@@ -154,7 +154,7 @@ export class MailView implements CurrentView {
 								(ed, dataFiles) => {
 									ed.attachFiles((dataFiles: any))
 									m.redraw()
-								}).catch(noOp)
+								}).catch(PermissionError, noOp)
 						}
 						// prevent in any case because firefox tries to open
 						// dataTransfer as a URL otherwise.
@@ -250,7 +250,7 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this._newMail(): any),
+				exec: () => (this._newMail().catch(PermissionError, noOp ): any),
 				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
 					&& !logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action"
