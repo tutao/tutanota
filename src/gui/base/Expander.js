@@ -80,7 +80,7 @@ export class ExpanderPanel {
 	constructor(child: Component) {
 		this.child = child
 		this.expanded = false
-		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden", [
+		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden.no-shrink", [
 			this.expanded
 				? m("div", {
 					oncreate: vnode => {

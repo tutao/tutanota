@@ -347,6 +347,7 @@ styles.registerStyle('main', () => {
 		'.flex-no-shrink': {flex: "1 0 0"},
 		'.flex-no-grow-no-shrink-auto': {flex: "0 0 auto"},
 		'.flex-no-grow': {flex: "0"},
+		'.no-shrink': {'flex-shrink': '0'},
 		'.flex-no-grow-shrink-auto': {flex: "0 1 auto"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // TODO: migrate to .wrap
 		".wrap": {'flex-wrap': 'wrap'}, // elements may move into the next line

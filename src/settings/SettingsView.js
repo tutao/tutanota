@@ -96,7 +96,7 @@ export class SettingsView implements CurrentView {
 		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", [
 				m(".plr-l", m(userFolderExpander)),
 				m(userFolderExpander.panel),
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
@@ -255,13 +255,7 @@ export class SettingsView implements CurrentView {
 				? 'ios-'
 				: ''
 		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
-		return m(".flex-column.flex-end.pb-s.abs", {
-			style: {
-				bottom: '0px',
-				left: '0px',
-				right: '0px'
-			},
-		}, [
+		return m(".pb-s.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m("a.text-center.small.no-text-decoration", {
 					href: lnk,
 					target: '_blank',
