@@ -560,6 +560,9 @@ styles.registerStyle('main', () => {
 			"line-height": px(16),
 			'font-size': px(size.font_size_small),
 			'font-weight': 'bold',
+			'min-width': px(16),
+			'min-height': px(16),
+			'text-align': 'center'
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},
