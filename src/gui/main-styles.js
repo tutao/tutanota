@@ -263,6 +263,7 @@ styles.registerStyle('main', () => {
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
+		'.bg-accent-fg': {'background-color': theme.list_accent_fg},
 		'.list-message-bg': {'background-color': theme.list_message_bg},
 
 		'.password-indicator-bg': {'background-color': theme.content_button},
@@ -480,6 +481,13 @@ styles.registerStyle('main', () => {
 			'border-radius': "50%",
 			overflow: "hidden"
 		},
+		'.circle': {
+			width: px(size.hpad_large_mobile + 1),
+			height: px(size.hpad_large_mobile + 1),
+			'border-radius': "50%",
+			overflow: "hidden",
+			'margin-top': px(6)
+		},
 		'.logo': {height: px(size.header_logo_height)},
 		'.logo-text': {height: px(size.header_logo_height), width: px(128)},
 		'.logo-height': {height: px(size.header_logo_height)},
@@ -633,13 +641,14 @@ styles.registerStyle('main', () => {
 		".list-font-icons": {
 			"letter-spacing": "8px",
 			"text-align": "right",
-			"margin-right": "-8px",
-			"color": theme.content_accent
+			"margin-right": "-8px"
 		},
 
 		'.monospace': {
 			'font-family': '"Lucida Console", Monaco, monospace'
 		},
+
+		'.hidden': {visibility: 'hidden'},
 
 		// action bar
 		'.action-bar': {width: 'initial', 'margin-left': 'auto'},

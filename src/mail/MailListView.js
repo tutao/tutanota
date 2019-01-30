@@ -78,7 +78,7 @@ export class MailListView implements Component {
 				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed == true) {
+					if (confirmed === true) {
 						mailModel.deleteMails([listElement])
 					} else {
 						return Promise.resolve()
@@ -148,6 +148,7 @@ export class MailRow {
 	_domSender: HTMLElement;
 	_domDate: HTMLElement;
 	_iconsDom: HTMLElement;
+	_domUnread: HTMLElement;
 	_showFolderIcon: boolean;
 	_domFolderIcons: {[key: MailFolderTypeEnum]: HTMLElement};
 	_domTeamLabel: HTMLElement;
@@ -171,8 +172,10 @@ export class MailRow {
 	update(mail: Mail, selected: boolean): void {
 		if (selected) {
 			this.domElement.classList.add("row-selected")
+			this._iconsDom.classList.add("secondary")
 		} else {
 			this.domElement.classList.remove("row-selected")
+			this._iconsDom.classList.remove("secondary")
 		}
 
 		this._iconsDom.textContent = this._iconsText(mail)
@@ -181,8 +184,10 @@ export class MailRow {
 		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
 		this._domSubject.textContent = mail.subject
 		if (mail.unread) {
+			this._domUnread.classList.remove("hidden")
 			this._domSubject.classList.add("b")
 		} else {
+			this._domUnread.classList.add("hidden")
 			this._domSubject.classList.remove("b")
 		}
 
@@ -226,26 +231,32 @@ export class MailRow {
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		return [
-			m(".top.flex.badge-line-height", [
-				m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
-				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
-				m(".flex-grow"),
-				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
-			]),
-			m(".bottom.flex-space-between", {
-					style: {
-						marginTop: px(2)
-					}
-				}, [
-					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-					m("span.ion.ml-s.list-font-icons", {
-						oncreate: (vnode) => this._iconsDom = vnode.dom
-					})
+		return m(".flex", [
+			m(".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs", m(".circle.bg-accent-fg.hidden", {
+					oncreate: vnode => this._domUnread = vnode.dom,
+				})
+			),
+			m(".flex-grow", [
+				m(".top.flex.badge-line-height", [
+					m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
+					m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
+					m(".flex-grow"),
+					m("small.text-ellipsis.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
+				]),
+				m(".bottom.flex-space-between", {
+						style: {
+							marginTop: px(2)
+						}
+					}, [
+						m(".text-ellipsis.flex-grow", {oncreate: (vnode) => this._domSubject = vnode.dom}),
+						m("span.ion.ml-s.list-font-icons.secondary", {
+							oncreate: (vnode) => this._iconsDom = vnode.dom
+						})
 
-				]
-			)
-		]
+					]
+				)
+			])
+		])
 	}
 
 	_getFolderIcon(type: MailFolderTypeEnum): string {

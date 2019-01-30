@@ -70,7 +70,7 @@ function getTheme(): Theme {
 		case 'custom':
 			return (Object.assign({}, getLightTheme(), customTheme): any)
 		case 'dark':
-			return getDarkTheme() // getD()
+			return getDarkTheme()
 		default:
 			return getLightTheme()
 	}
@@ -180,7 +180,7 @@ function getDarkTheme(): Theme {
 		list_message_bg: dark_lightest,
 		list_border: dark,
 
-		modal_bg: lighter,
+		modal_bg: dark_darkest,
 
 		navigation_bg: dark_lightest,
 		navigation_border: dark,
