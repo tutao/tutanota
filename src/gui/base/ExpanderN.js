@@ -74,7 +74,7 @@ class _ExpanderPanel {
 	_domPanel: HTMLElement;
 
 	view(vnode: Vnode<ExpanderPanelAttrs>) {
-		return m(".expander-panel.overflow-hidden", [
+		return m(".expander-panel.overflow-hidden.no-shrink", [
 			vnode.attrs.expanded() ? m("div", {
 				oncreate: vnode => {
 					this._domPanel = vnode.dom
