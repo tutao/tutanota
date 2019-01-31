@@ -11,6 +11,10 @@ declare module 'electron' {
 	declare export var screen: ElectronScreen;
 	declare export var webFrame: WebFrame;
 	declare export var dialog: ElectronDialog;
+	declare export var globalShortcut: {
+		register(shortcut: string, cb: Function): void;
+		unregister(shortcut: string): void;
+	};
 	declare export var ipcRenderer: any;
 	declare export var ipcMain: any;
 	declare export var nativeImage: {

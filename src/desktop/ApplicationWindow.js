@@ -214,7 +214,6 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow(true))
 	}
 
 	// filesystem paths work differently than URLs

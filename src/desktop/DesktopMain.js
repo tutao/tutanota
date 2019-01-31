@@ -1,7 +1,7 @@
 // @flow
 import {err} from './DesktopErrorHandler.js'
 import {conf} from './DesktopConfigHandler'
-import {app} from 'electron'
+import {app, globalShortcut} from 'electron'
 import {updater} from './ElectronUpdater.js'
 import {ApplicationWindow} from './ApplicationWindow.js'
 import DesktopUtils from './DesktopUtils.js'
@@ -78,6 +78,7 @@ function onAppReady() {
 function main() {
 	tray.update()
 	console.log("Webapp ready")
+	globalShortcut.register('CommandOrControl+N', () => new ApplicationWindow(true))
 	app.on('activate', () => {
 		// MacOs
 		// this is fired for almost every interaction and on launch
