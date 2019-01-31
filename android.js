@@ -36,9 +36,10 @@ switch (options.buildtype) {
 		apkPath = 'app/build/outputs/apk/release/app-release-unsigned.apk'
 }
 
-let {error} = spawnSync('node', [options.webclient, `${options.host}`], {
+let error
+error = spawnSync('node', [options.webclient, `${options.host}`], {
 	stdio: [null, process.stdout, process.stderr]
-})
+}).error
 
 if (error) {
 	console.log("Error during ", options.webclient, error)
@@ -82,19 +83,20 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
 	// jarsigner must be run before zipalign
-	error = spawnSync('jarsigner', [
+	let signCode = spawnSync('jarsigner', [
 		'-verbose',
+		'-strict',
 		'-keystore', keyStore,
 		'-storepass', storePass,
 		'-keypass', keyPass,
 		'./app-android/' + apkPath,
 		keyAlias
 	], {
-		stdio: [null, null, process.stderr]
-	}).error
+		stdio: [null, process.stdout, process.stderr]
+	}).status
 
-	if (error) {
-		console.log('Signing Error:', error)
+	if (signCode !== 0) {
+		console.log('Signing Error:', signCode)
 		process.exit(1)
 	}
 
