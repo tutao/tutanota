@@ -258,7 +258,6 @@ function createHtml(env) {
 		_writeFile(`./build/dist/${filenamePrefix}.js`, [
 			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
-			`window.nativeApp = Object.assign({}, window.nativeApp)`,
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,
 		].join("\n")),
