@@ -38,6 +38,8 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
 @property NSInteger requestId;
 @property (nullable) NSString *pushTokenRequestId;
+@property BOOL webViewInitialized;
+@property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @end
 
 @implementation TUTViewController
@@ -51,6 +53,8 @@ typedef void(^VoidCallback)(void);
 		_fileUtil = [[TUTFileUtil alloc] initWithViewController:self];
 		_contactsSource = [TUTContactsSource new];
 		_keyboardSize = 0;
+		_webViewInitialized = false;
+		_requestsBeforeInit = [NSMutableArray new];
 	}
 	return self;
 }
@@ -113,7 +117,12 @@ typedef void(^VoidCallback)(void);
 		id value = json[@"value"];
 		[self handleResponseWithId:requestId value:value];
 	} else if ([@"init" isEqualToString:type]) {
+		_webViewInitialized = YES;
 		[self sendResponseWithId:requestId value:@"ios"];
+		foreach(callback, _requestsBeforeInit) {
+			callback();
+		}
+		[_requestsBeforeInit removeAllObjects];
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
 		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] base64Seed:arguments[2] completion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {
@@ -121,6 +130,7 @@ typedef void(^VoidCallback)(void);
 							   base64Data:arguments[1]
 							   completion:sendResponseBlock];
 	} else if ([@"reload" isEqualToString:type]) {
+		_webViewInitialized = NO;
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self loadMainPageWithParams:arguments[0]];
 		});
@@ -294,6 +304,12 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 -(void)sendRequestWithType:(NSString * _Nonnull)type
 					  args:(NSArray<id> * _Nonnull)args
 				completion:(void(^ _Nullable)(NSDictionary * _Nullable value))completion {
+	if (!_webViewInitialized) {
+		let callback = ^void() { [self sendRequestWithType:type args:args completion:completion]; };
+		[_requestsBeforeInit addObject:callback];
+		return;
+	}
+
 	let requestId = [NSString stringWithFormat:@"app%ld", (long) _requestId++];
 	if (completion) {
 		_requests[requestId] = completion;
