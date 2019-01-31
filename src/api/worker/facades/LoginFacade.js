@@ -44,7 +44,14 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull} from "../../common/utils/Utils"
-import {_loadEntity, GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
+import {
+	_loadEntity,
+	GENERATED_ID_BYTES_LENGTH,
+	HttpMethod,
+	isSameId,
+	isSameTypeRefByAttr,
+	MediaType
+} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -175,7 +182,7 @@ export class LoginFacade {
 		this._loginRequestSessionId = sessionId
 		if (createSessionReturn.challenges.length > 0) {
 			this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges, mailAddress)) // show a notification to the user
-			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId)
+			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId, 0)
 		}
 		this._loggingInPromiseWrapper = defer()
 		// Wait for either login or cancel
@@ -186,7 +193,7 @@ export class LoginFacade {
 		})
 	}
 
-	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple): Promise<void> {
+	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
 		let secondFactorAuthGetData = createSecondFactorAuthGetData()
 		secondFactorAuthGetData.accessToken = accessToken
 		return serviceRequest(SysService.SecondFactorAuthService, HttpMethod.GET, secondFactorAuthGetData, SecondFactorAuthGetReturnTypeRef)
@@ -195,7 +202,14 @@ export class LoginFacade {
 					return Promise.reject(new CancelledError("login cancelled"))
 				}
 				if (secondFactorAuthGetReturn.secondFactorPending) {
-					return this._waitUntilSecondFactorApproved(accessToken, sessionId)
+					return this._waitUntilSecondFactorApproved(accessToken, sessionId, 0)
+				}
+			}).catch(ConnectionError, (e) => {
+				// connection error can occur on ios when switching between apps, just retry in this case.
+				if (retryOnNetworkError < 10) {
+					return this._waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
+				} else {
+					throw e
 				}
 			})
 	}
@@ -219,7 +233,10 @@ export class LoginFacade {
 
 		return serviceRequest(TutanotaService.PasswordMessagingService, HttpMethod.POST, data, PasswordMessagingReturnTypeRef, null, null, headers)
 			.then(result => {
-				return {symKeyForPasswordTransmission: neverNull(symKeyForPasswordTransmission), autoAuthenticationId: result.autoAuthenticationId}
+				return {
+					symKeyForPasswordTransmission: neverNull(symKeyForPasswordTransmission),
+					autoAuthenticationId: result.autoAuthenticationId
+				}
 			})
 	}
 
@@ -327,7 +344,8 @@ export class LoginFacade {
 				// we check that the password is not changed
 				// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
 				// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
-				if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))) {
+				if (uint8ArrayToBase64(user.verifier)
+					!== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))) {
 					// delete the obsolete session in parallel to make sure it can not be used any more
 					this.deleteSession(accessToken)
 					this._accessToken = null
@@ -644,30 +662,33 @@ export class LoginFacade {
 		// Don't pass email address to avoid proposing to reset second factor when we're resetting password
 			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 			.then(sessionData => {
-				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken}).then(user => {
-					if (user.auth == null || user.auth.recoverCode == null) {
-						return Promise.reject(new Error("missing recover code"))
-					}
-					const extraHeaders = {
-						accessToken: sessionData.accessToken,
-						recoverCodeVerifier: recoverCodeVerifierBase64
-					}
-					return _loadEntity(RecoverCodeTypeRef, user.auth.recoverCode, null, eventRestClient, extraHeaders)
-				}).then((recoverCode) => {
-					const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
-					let salt = generateRandomSalt();
-					let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-					let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
-					let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
+				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken})
+					.then(user => {
+						if (user.auth == null || user.auth.recoverCode == null) {
+							return Promise.reject(new Error("missing recover code"))
+						}
+						const extraHeaders = {
+							accessToken: sessionData.accessToken,
+							recoverCodeVerifier: recoverCodeVerifierBase64
+						}
+						return _loadEntity(RecoverCodeTypeRef, user.auth.recoverCode, null, eventRestClient, extraHeaders)
+					})
+					.then((recoverCode) => {
+						const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
+						let salt = generateRandomSalt();
+						let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+						let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
+						let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 
-					const postData = createChangePasswordData()
-					postData.salt = salt
-					postData.pwEncUserGroupKey = pwEncUserGroupKey
-					postData.verifier = newPasswordVerifier
-					postData.recoverCodeVerifier = recoverCodeVerifier
-					const extraHeaders = {accessToken: sessionData.accessToken}
-					return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
-				}).finally(() => this.deleteSession(sessionData.accessToken))
+						const postData = createChangePasswordData()
+						postData.salt = salt
+						postData.pwEncUserGroupKey = pwEncUserGroupKey
+						postData.verifier = newPasswordVerifier
+						postData.recoverCodeVerifier = recoverCodeVerifier
+						const extraHeaders = {accessToken: sessionData.accessToken}
+						return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
+					})
+					.finally(() => this.deleteSession(sessionData.accessToken))
 			})
 	}
 
