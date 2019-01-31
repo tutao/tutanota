@@ -8,7 +8,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 346010
-        versionName "3.46.1"
+        versionName "3.46.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -30,7 +30,7 @@ android {
             applicationIdSuffix ".test"
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
             buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -39,7 +39,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = new File(output.outputFile.name.replace("app-release.apk", "tutanota-${variant.versionName}.apk"))
+            outputFileName = output.outputFileName.replace("app-release.apk", "tutanota-${variant.versionName}.apk")
         }
     }
 
