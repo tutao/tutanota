@@ -97,6 +97,14 @@ export class EventBusClient {
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
 			console.log("ws open: ", new Date(), "state:", this._state);
+			let p = ((reconnect) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+			p.catch(ConnectionError, e => {
+				console.log("not connected in connect(), close websocket", e)
+				this.close(CloseEventBusOption.Reconnect)
+			})
+			 .catch(e => {
+				 this._worker.sendError(e)
+			 })
 			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
