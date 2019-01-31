@@ -215,11 +215,11 @@ export class LoginView {
 					},
 					type: ButtonType.Secondary,
 				}) : null,
-				m(ButtonN, {
+				!isApp() ? m(ButtonN, {
 					label: "imprint_label",
 					click: () => windowFacade.openLink(getImprintLink()),
 					type: ButtonType.Secondary,
-				})
+				}):null
 			])
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
