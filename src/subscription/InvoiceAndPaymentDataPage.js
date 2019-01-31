@@ -162,7 +162,7 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
 						Dialog.error("creditCardCVVInvalid_msg");
 					} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-						Dialog.error(() => lang.get("paymentProviderNotAvailable_msg") + " " + lang.get("accountWasStillCreated_msg"))
+						Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
 						Dialog.error(() => lang.get("paymentAccountRejected_msg") + " " + lang.get("accountWasStillCreated_msg"))
 					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
