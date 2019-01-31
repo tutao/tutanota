@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "3.46.1",
+  "version": "3.46.2",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2",
     "start": "./node_modules/electron/dist/electron --inspect-brk=5858 ./build/"
