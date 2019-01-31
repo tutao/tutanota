@@ -140,6 +140,16 @@ export class Dropdown {
 							}
 						})
 					},
+					onscroll: (ev) => {
+						// needed here to prevent flickering on ios
+						if(ev.target.scrollTop < 0 ) {
+							ev.redraw = true
+						} else if ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight ){
+							ev.redraw = true
+						} else {
+							ev.redraw = false
+						}
+					},
 					// a fixed with for the content of this dropdown is needed to avoid that
 					// the elements in the dropdown move during animation
 					style: {

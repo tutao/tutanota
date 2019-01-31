@@ -270,18 +270,20 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 
 	showTerms(section: string) {
 		asyncImport(typeof module !== "undefined"
-			? module.id : __moduleName, `${env.rootPathPrefix}src/register/terms.js`)
+			? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
 			.then(terms => {
 				let visibleLang = lang.code
+				let sanitizedTerms: string
 				let headerBar = new DialogHeaderBar()
 				headerBar.addLeft(new Button(() => "EN/DE", () => {
 					visibleLang = visibleLang === "de" ? "en" : "de"
+					sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
 					m.redraw()
 				}).setType(ButtonType.Secondary))
 				headerBar.setMiddle(() => "")
 				         .addRight(new Button('ok_action', () => dialog.close()).setType(ButtonType.Primary))
 
-				let sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+				sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
 				const dialog = Dialog.largeDialog(headerBar, {
 					view: () => m(".text-break", m.trust(sanitizedTerms))
 				})

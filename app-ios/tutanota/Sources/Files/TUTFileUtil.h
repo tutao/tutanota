@@ -15,6 +15,8 @@
 - (void)openFileAtPath:(NSString * _Nonnull)filePath
 			completion:(void (^ _Nonnull)(NSError * _Nullable))completion;
 
+- (void) openFile:(NSString*) name fileData:(NSData*) fileData completion:(void(^)(NSError * error))completion;
+
 - (void)deleteFileAtPath:(NSString * _Nonnull)filePath
 			  completion:(void (^ _Nonnull)(void))completion;
 

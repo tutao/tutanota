@@ -101,6 +101,16 @@ export class DropdownN {
 							}
 						})
 					},
+					onscroll: (ev) => {
+						// needed here to prevent flickering on ios
+						if(ev.target.scrollTop < 0 ) {
+							ev.redraw = true
+						} else if ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight ){
+							ev.redraw = true
+						} else {
+							ev.redraw = false
+						}
+					},
 					style: {
 						width: px(this._width),
 						top: px(this._getFilterHeight()),

@@ -37,18 +37,12 @@
     _previewController.dataSource = self;
     _previewController.delegate = self;
 	_fileUrl = [TUTFileUtil urlFromPath:filePath];
-	if ([QLPreviewController canPreviewItem:_fileUrl]) {
-		// ensure that ui related operations run in main thread
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self->_sourceController presentViewController:self->_previewController
-												  animated:YES
-												completion:nil];
-		});
-	} else {
-		let errorMessage = [NSString stringWithFormat:@"Cannot display file. Extension: @%",
-							filePath.lastPathComponent];
-		completion([TUTErrorFactory createErrorWithDomain:TUT_FILEVIEWER_ERROR message:errorMessage]);
-	}
+	// ensure that ui related operations run in main thread
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[self->_sourceController presentViewController:self->_previewController
+											  animated:YES
+											completion:nil];
+	});
 }
 
 /*!

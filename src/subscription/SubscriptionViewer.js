@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isIOSApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -41,6 +41,7 @@ import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -77,7 +78,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo && this._customer && this._customerInfo) {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else if (this._accountingInfo && this._customer && this._customerInfo) {
 				showSwitchDialog(this._accountingInfo,
 					this._isPro,
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
@@ -87,16 +90,30 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					this._isWhitelabelActive())
 			}
 		}, () => Icons.Edit)
-		let upgradeAction = new Button("upgrade_action", () => showUpgradeWizard(), () => Icons.Edit)
+
+		let upgradeAction = new Button("upgrade_action", () => {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				showUpgradeWizard()
+			}
+		}, () => Icons.Edit)
+
 		this._subscriptionField._injectionsRight = () => (
-			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-		                                                                            .isPremiumAccount()
-		&& !this._isCancelled ? [m(subscriptionAction)] : null)
+			logins.getUserController().isFreeAccount())
+			? m(upgradeAction)
+			: (logins.getUserController().isPremiumAccount() && !this._isCancelled
+				? [m(subscriptionAction)]
+				: null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		let usageTypeAction = new Button("pricing.businessUse_label", () => {
-			this._switchToBusinessUse()
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				this._switchToBusinessUse()
+			}
 		}, () => Icons.Edit)
 		this._usageTypeField._injectionsRight = () => this._accountingInfo
 		&& !this._accountingInfo.business ? m(usageTypeAction) : null
