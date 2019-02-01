@@ -26,7 +26,7 @@ import {ContactAddressTypeRef, createContactAddress} from "../api/entities/tutan
 import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {clone, neverNull, noOp} from "../api/common/utils/Utils"
+import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
@@ -49,6 +49,7 @@ export class ContactEditor {
 	phoneEditors: ContactAggregateEditor[];
 	addressEditors: ContactAggregateEditor[];
 	socialEditors: ContactAggregateEditor[];
+	_makeEditorId: () => string;
 
 	view: Function;
 
@@ -63,6 +64,9 @@ export class ContactEditor {
 	constructor(c: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
 		this.contact = c ? clone(c) : createContact()
 		migrateToNewBirthday(this.contact)
+
+		let editorId = 0
+		this._makeEditorId = () => String(editorId++)
 
 		this._newContactIdReceiver = newContactIdReceiver
 		if (c == null && listId == null) {
@@ -266,7 +270,9 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.mailAddressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		editor.id = this._makeEditorId()
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -283,7 +289,9 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.number = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.phoneEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		editor.id = this._makeEditorId()
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -300,7 +308,9 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.addressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		editor.id = this._makeEditorId()
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -317,7 +327,9 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.socialId = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.socialEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		editor.id = this._makeEditorId()
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -421,9 +433,15 @@ class ContactAggregateEditor {
 
 		this.textfield._injectionsRight = () => {
 			return [
-				m(typeButton), this.isInitialized ? m(cancelButton, {
-					oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
-				}) : null
+				m(typeButton),
+				this.isInitialized
+					? m(cancelButton, {
+						oncreate: vnode => {
+							vnode.dom.style.opacity = 0
+							return animations.add(vnode.dom, opacity(0, 1, true))
+						}
+					})
+					: null
 			]
 		}
 
@@ -438,6 +456,9 @@ class ContactAggregateEditor {
 
 	animate(domElement: HTMLElement, fadein: boolean) {
 		let childHeight = domElement.offsetHeight
+		if (fadein) {
+			domElement.style.opacity = "0"
+		}
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
 			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
