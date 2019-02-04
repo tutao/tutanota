@@ -244,7 +244,7 @@ export class LoginViewController implements ILoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
 								if (confirm) {
-									showUpgradeWizard(SubscriptionType.Free)
+									showUpgradeWizard()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()

@@ -103,7 +103,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			if (isIOSApp()) {
 				Dialog.error("notAvailableInApp_msg")
 			} else {
-				showUpgradeWizard(SubscriptionType.Free)
+				showUpgradeWizard()
 			}
 		}, () => Icons.Edit)
 

@@ -90,7 +90,7 @@ function loadCustomerAndInfo(): Promise<{customer: Customer, customerInfo: Custo
 				})))
 }
 
-export function showUpgradeWizard(currentSubscriptionType: SubscriptionTypeEnum): void {
+export function showUpgradeWizard(): void {
 	loadCustomerAndInfo()
 		.then(({customerInfo, accountingInfo}) => {
 				return loadUpgradePrices().then(prices => {
@@ -120,7 +120,7 @@ export function showUpgradeWizard(currentSubscriptionType: SubscriptionTypeEnum)
 						proPrices: prices.proPrices,
 					}
 					const wizardPages = [
-						new UpgradeSubscriptionPage(upgradeData, currentSubscriptionType),
+						new UpgradeSubscriptionPage(upgradeData, SubscriptionType.Free),
 						new InvoiceAndPaymentDataPage(upgradeData),
 						new UpgradeConfirmPage(upgradeData)
 					]

@@ -321,7 +321,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
 		      .then(confirmed => {
 			      if (confirmed) {
-				      showUpgradeWizard(SubscriptionType.Free)
+				      showUpgradeWizard()
 			      }
 		      })
 	}

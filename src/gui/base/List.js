@@ -812,8 +812,10 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			}
 		}
 
-		this._domInitialized.promise.then(() => this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight)
-		this._entitySelected(scrollTarget, addToSelection)
+		this._domInitialized.promise.then(() => {
+			this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
+			this._entitySelected(scrollTarget, addToSelection)
+		})
 	}
 
 	_loadTill(listElementId: Id): Promise<?T> {
