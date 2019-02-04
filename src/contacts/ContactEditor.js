@@ -49,7 +49,6 @@ export class ContactEditor {
 	phoneEditors: ContactAggregateEditor[];
 	addressEditors: ContactAggregateEditor[];
 	socialEditors: ContactAggregateEditor[];
-	_makeEditorId: () => string;
 
 	view: Function;
 
@@ -64,9 +63,6 @@ export class ContactEditor {
 	constructor(c: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
 		this.contact = c ? clone(c) : createContact()
 		migrateToNewBirthday(this.contact)
-
-		let editorId = 0
-		this._makeEditorId = () => String(editorId++)
 
 		this._newContactIdReceiver = newContactIdReceiver
 		if (c == null && listId == null) {
@@ -270,7 +266,6 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.mailAddressEditors, e), true, false)
-		editor.id = this._makeEditorId()
 		let value = editor.textfield.value.map(identity)
 		value.map(address => {
 			if (address.trim().length > 0) {
@@ -289,7 +284,6 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.number = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.phoneEditors, e), true, false)
-		editor.id = this._makeEditorId()
 		let value = editor.textfield.value.map(identity)
 		value.map(address => {
 			if (address.trim().length > 0) {
@@ -308,7 +302,6 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.addressEditors, e), true, false)
-		editor.id = this._makeEditorId()
 		let value = editor.textfield.value.map(identity)
 		value.map(address => {
 			if (address.trim().length > 0) {
@@ -327,7 +320,6 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.socialId = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.socialEditors, e), true, false)
-		editor.id = this._makeEditorId()
 		let value = editor.textfield.value.map(identity)
 		value.map(address => {
 			if (address.trim().length > 0) {
@@ -359,7 +351,7 @@ class ContactAggregateEditor {
 		this.aggregate = aggregate
 		this.isInitialized = allowCancel
 		this.animateCreate = animateCreate
-		this.id = aggregate._id
+		this.id = aggregate._id || String(Date.now())
 
 		let value = ""
 		let onUpdate = () => {
