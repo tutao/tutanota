@@ -144,7 +144,6 @@ class _IdentifierListViewer {
 	}
 
 	loadPushIdentifiers(user: ?User) {
-		console.log("loading")
 		if (!user) {
 			return
 		}

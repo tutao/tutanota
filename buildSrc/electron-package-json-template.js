@@ -83,8 +83,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"nsis": {
-				"oneClick": false,
-				"perMachine": false,
+				"oneClick": false,"perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
 				"allowToChangeInstallationDirectory": true
