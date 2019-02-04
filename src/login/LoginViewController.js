@@ -38,7 +38,7 @@ import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscr
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {formatPrice} from "../subscription/SubscriptionUtils"
+import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
 import {show} from "../gui/base/NotificationOverlay"
 
 assertMainOrNode()
@@ -244,7 +244,7 @@ export class LoginViewController implements ILoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
 								if (confirm) {
-									showUpgradeWizard()
+									showUpgradeWizard(SubscriptionType.Free)
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()

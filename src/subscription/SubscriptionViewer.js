@@ -42,6 +42,14 @@ import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {Dialog} from "../gui/base/Dialog"
+import {
+	getIncludedAliases,
+	getIncludedStorageCapacity,
+	getSubscriptionType,
+	getTotalAliases,
+	getTotalStorageCapacity,
+	isWhitelabelActive, SubscriptionType
+} from "./SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -87,7 +95,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getIncludedStorageCapacity(neverNull(this._customerInfo)),
 					getIncludedAliases(neverNull(this._customerInfo)),
-					this._isWhitelabelActive())
+					isWhitelabelActive(this._lastBooking))
 			}
 		}, () => Icons.Edit)
 
@@ -95,7 +103,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			if (isIOSApp()) {
 				Dialog.error("notAvailableInApp_msg")
 			} else {
-				showUpgradeWizard()
+				showUpgradeWizard(SubscriptionType.Free)
 			}
 		}, () => Icons.Edit)
 
@@ -335,12 +343,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			+ cancelledText).setDisabled()
 	}
 
-	_updatePro(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking) {
-		let aliases = getTotalAliases(customer, customerInfo, lastBooking)
-		let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
-		this._isPro = this._isWhitelabelActive() && aliases >= 20 && storage >= 10
-	}
-
 	_updateBookings() {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			load(CustomerInfoTypeRef, customer.customerInfo)
@@ -354,7 +356,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 							this._isCancelled = customer.canceledPremiumAccount
-							this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+							this._isPro = getSubscriptionType(this._lastBooking, customer, customerInfo) === SubscriptionType.Pro
 							this._updateSubscriptionField(this._isCancelled)
 							Promise.all([
 									this._updateUserField(),
@@ -428,16 +430,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateWhitelabelField(): Promise<void> {
-		if (this._isWhitelabelActive()) {
+		if (isWhitelabelActive(this._lastBooking)) {
 			this._whitelabelField.setValue(lang.get("active_label"))
 		} else {
 			this._whitelabelField.setValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
-	}
-
-	_isWhitelabelActive(): boolean {
-		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) !== 0
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
@@ -461,36 +459,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
 		}
 	}
-}
-
-
-/**
- * Returns the available storage capacity for the customer in GB
- */
-function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeStorageCapacity = getIncludedStorageCapacity(customerInfo)
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
-	} else {
-		return freeStorageCapacity
-	}
-}
-
-function getIncludedStorageCapacity(customerInfo: CustomerInfo): number {
-	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
-}
-
-function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeAliases = getIncludedAliases(customerInfo)
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
-	} else {
-		return freeAliases
-	}
-}
-
-function getIncludedAliases(customerInfo: CustomerInfo): number {
-	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
 }
 
 function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {

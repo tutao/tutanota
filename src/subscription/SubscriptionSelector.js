@@ -6,7 +6,7 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import {SegmentControl} from "./SegmentControl"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {BusinessUseItems,formatPrice,getFormattetUpgradePrice,SubscriptionType,	UpgradePriceType} from "./SubscriptionUtils"
+import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {size} from "../gui/size"
 
 export type SubscriptionSelectorAttr = {|
@@ -18,7 +18,7 @@ export type SubscriptionSelectorAttr = {|
 	boxWidth: number,
 	boxHeight: number,
 	highlightPremium?: boolean,
-	currentlyActive?: SubscriptionTypeEnum,
+	currentlyActive?: ?SubscriptionTypeEnum,
 	isInitialUpgrade: boolean,
 	premiumPrices: PlanPrices,
 	proPrices: PlanPrices

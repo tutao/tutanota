@@ -16,6 +16,7 @@ import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
+import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 
 export const LogoutUrl = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : '/login?noAutoLogin=true'
 
@@ -187,7 +188,9 @@ class Header {
 		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
 			.then(upgradeWizard => {
-					return upgradeWizard.showUpgradeWizard()
+					// To not import constant
+					let subscriptionType: SubscriptionTypeEnum = 'Free'
+					return upgradeWizard.showUpgradeWizard(subscriptionType)
 				}
 			)
 	}
@@ -280,8 +283,7 @@ class Header {
 	_getViewSlider(): ?IViewSlider {
 		if (this._currentView && this._currentView.getViewSlider) {
 			return this._currentView.getViewSlider()
-		}
-		else {
+		} else {
 			return null
 		}
 	}

@@ -30,7 +30,7 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
-import {formatPrice} from "../subscription/SubscriptionUtils"
+import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
@@ -321,7 +321,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
 		      .then(confirmed => {
 			      if (confirmed) {
-				      showUpgradeWizard()
+				      showUpgradeWizard(SubscriptionType.Free)
 			      }
 		      })
 	}
