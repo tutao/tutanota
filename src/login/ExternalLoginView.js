@@ -35,7 +35,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
-import {getImprintLink} from "./LoginView"
+import {renderPrivacyAndImprintLinks} from "./LoginView"
 
 assertMainOrNode()
 
@@ -106,7 +106,7 @@ export class ExternalLoginView {
 				}),
 				m(".pt", m(ButtonN, {label: 'showMail_action', click: () => this._formLogin(), type: ButtonType.Login})),
 				m("p.center.statusTextColor", m("small", lang.get(this._helpText))),
-				renderImprintLink()
+				renderPrivacyAndImprintLinks()
 			]
 		}
 	}
@@ -330,11 +330,4 @@ export class ExternalLoginView {
 		             }).finally(() => m.redraw())
 	}
 
-}
-
-export function renderImprintLink() {
-	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl", m("a", {
-		href: getImprintLink(),
-		target: "_blank"
-	}, lang.get("imprint_label")))
 }

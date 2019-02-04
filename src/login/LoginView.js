@@ -124,9 +124,10 @@ export class LoginView {
 					m(".flex-center.pt-l", [
 						m(optionsExpander),
 					]),
-					m(".pb-l", [
+					m("", [
 						m(optionsExpander.panel),
-					])
+					]),
+					(!isApp()) ? renderPrivacyAndImprintLinks() : null
 				]),
 			])
 		}
@@ -215,11 +216,6 @@ export class LoginView {
 					},
 					type: ButtonType.Secondary,
 				}) : null,
-				!isApp() ? m(ButtonN, {
-					label: "imprint_label",
-					click: () => windowFacade.openLink(getImprintLink()),
-					type: ButtonType.Secondary,
-				}):null
 			])
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
@@ -402,10 +398,28 @@ export function getWhitelabelRegistrationDomains(): string[] {
 		whitelabelCustomizations.registrationDomains : []
 }
 
-export function getImprintLink() {
-	return (whitelabelCustomizations && whitelabelCustomizations.imprintUrl) ?
+export function getImprintLink(): ?string {
+	return (whitelabelCustomizations) ?
 		whitelabelCustomizations.imprintUrl : "https://tutanota.com/contact"
 }
 
+export function getPrivacyStatementLink(): ?string {
+	return (whitelabelCustomizations) ?
+		whitelabelCustomizations.privacyStatementUrl : "https://tutanota.com/privacy"
+}
+
+
+export function renderPrivacyAndImprintLinks() {
+	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl", [
+		(getPrivacyStatementLink()) ? m("a.plr", {
+			href: getPrivacyStatementLink(),
+			target: "_blank"
+		}, lang.get("privacyLink_label")) : null,
+		(getImprintLink()) ? m("a.plr", {
+			href: getImprintLink(),
+			target: "_blank"
+		}, lang.get("imprint_label")) : null,
+	])
+}
 
 export const login: LoginView = new LoginView()

@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "41"
+	"version": "42"
 }
 
 export function createEmailSenderListElement(): EmailSenderListElement {

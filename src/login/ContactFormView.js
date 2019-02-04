@@ -15,7 +15,7 @@ import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {renderImprintLink} from "./ExternalLoginView"
+import {renderPrivacyAndImprintLinks} from "./LoginView"
 
 assertMainOrNode()
 
@@ -87,7 +87,7 @@ class ContactFormView {
 					])
 				]),
 				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
-				renderImprintLink()
+				renderPrivacyAndImprintLinks()
 			])
 		} else {
 			return m(new InfoView(() => "404", () => [

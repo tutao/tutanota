@@ -199,6 +199,8 @@ export class SettingsView implements CurrentView {
 				this._selectedFolder = folder
 				this._currentViewer = null
 				this.detailsViewer = null
+				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
+				this._getCurrentViewer()
 				header.settingsUrl = folder.url
 				m.redraw()
 			}

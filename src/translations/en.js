@@ -927,7 +927,8 @@ const translation = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"privacyPolicyUrl_label": "Link to privacy policy",
 	}
 }
 export default translation

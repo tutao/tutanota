@@ -1205,6 +1205,7 @@ type WhitelabelConfig = {
 	imprintUrl: ?string;
 	jsonTheme: string;
 	metaTags: string;
+	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
 }

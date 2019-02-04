@@ -238,6 +238,7 @@ type WhitelabelCustomizations = {
 	germanLanguageCode: string,
 	registrationDomains: ?string[],
 	imprintUrl: ?string,
+	privacyStatementUrl: ?string,
 }
 
 declare var whitelabelCustomizations: ?WhitelabelCustomizations

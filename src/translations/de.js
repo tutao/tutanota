@@ -931,7 +931,8 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
 	}
 }
 export default translation

@@ -75,7 +75,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "41"
+	"version": "42"
 }
 
 export function createCustomerServerProperties(): CustomerServerProperties {

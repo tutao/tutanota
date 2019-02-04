@@ -57,6 +57,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
 	_whitelabelImprintUrl: TextField;
+	_whitelabelPrivacyUrl: TextField;
 	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
@@ -111,6 +112,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					m(this._customColorsField),
 					m(this._customMetaTagsField),
 					m(this._whitelabelImprintUrl),
+					m(this._whitelabelPrivacyUrl),
 					this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
 					(this._isWhitelabelRegistrationVisible()) ? m("", [
 						m(this._whitelabelRegistrationDomains),
@@ -318,6 +320,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
 						this._whitelabelImprintUrl = new TextField("imprintUrl_label", null).setValue((whitelabelConfig
 							&& whitelabelConfig.imprintUrl) ? whitelabelConfig.imprintUrl : "").setDisabled()
+						this._whitelabelPrivacyUrl = new TextField("privacyPolicyUrl_label", null).setValue((whitelabelConfig
+							&& whitelabelConfig.privacyStatementUrl) ? whitelabelConfig.privacyStatementUrl : "").setDisabled()
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                       .setDisabled()
 						if (whitelabelConfig) {
@@ -354,7 +358,23 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 									}
 								})
 							}, () => Icons.Edit)
+							let editPrivacyUrlButton = new Button("edit_action", () => {
+								let privacyUrl = new TextField("privacyPolicyUrl_label")
+									.setValue(neverNull(whitelabelConfig).privacyStatementUrl)
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("privacyLink_label"),
+									child: {view: () => m(privacyUrl)},
+									okAction: (ok) => {
+										if (ok) {
+											neverNull(whitelabelConfig).privacyStatementUrl = privacyUrl.value() ? privacyUrl.value() : null
+											update(whitelabelConfig)
+											dialog.close()
+										}
+									}
+								})
+							}, () => Icons.Edit)
 							this._whitelabelImprintUrl._injectionsRight = () => m(editImprintUrlButton)
+							this._whitelabelPrivacyUrl._injectionsRight = () => m(editPrivacyUrlButton)
 						}
 
 						let customGermanLanguageFileDefined = whitelabelConfig
