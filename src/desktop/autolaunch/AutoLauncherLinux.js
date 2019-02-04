@@ -1,6 +1,6 @@
 // @flow
 import {promisify} from "util"
-import fs from "fs"
+import fs from "fs-extra"
 import {app} from "electron"
 import path from "path"
 
@@ -28,7 +28,7 @@ export function enableAutoLaunch(): Promise<void> {
 	Exec=${autoStartPath} -a
 	StartupNotify=false
 	Terminal=false`
-
+		fs.mkdirsSync(path.dirname(linuxDesktopPath))
 		fs.writeFileSync(linuxDesktopPath, desktopEntry, {encoding: 'utf-8'})
 	})
 }
