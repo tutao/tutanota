@@ -29,6 +29,8 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import stream from "mithril/stream/stream.js"
+import {CheckboxN} from "../gui/base/CheckboxN"
+import {getPrivacyStatementLink} from "./LoginView"
 
 assertMainOrNode()
 
@@ -46,6 +48,7 @@ export class ContactFormRequestDialog {
 	_statisticFields: Array<{component: Component, name: string, value: lazy<?string>}>;
 	_notificationEmailAddress: TextField;
 	_passwordForm: PasswordForm;
+	_privacyPolicyAccepted: Stream<boolean>;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -66,6 +69,7 @@ export class ContactFormRequestDialog {
 		this._statisticFields = this._createStatisticFields(contactForm)
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
+		this._privacyPolicyAccepted = stream(false)
 
 		let closeAction = () => this._close()
 
@@ -119,6 +123,13 @@ export class ContactFormRequestDialog {
 				m(this._notificationEmailAddress),
 				this._statisticFields.length > 0 ? m(statisticFieldHeader) : null,
 				this._statisticFields.map(field => m(field.component)),
+				(getPrivacyStatementLink()) ? m(CheckboxN, {
+					label: () => m("", [
+						m("div", lang.get("termsAndConditions_label")),
+						m("div", m(`a[href=${neverNull(getPrivacyStatementLink())}][target=_blank]`, lang.get("privacyLink_label")))
+					]),
+					checked: this._privacyPolicyAccepted
+				}) : null
 			])
 		}
 
@@ -237,6 +248,10 @@ export class ContactFormRequestDialog {
 		const passwordErrorId = this._passwordForm.getErrorMessageId()
 		if (passwordErrorId) {
 			Dialog.error(passwordErrorId)
+			return
+		}
+		if (getPrivacyStatementLink() && !this._privacyPolicyAccepted()) {
+			Dialog.error("acceptPrivacyPolicy_msg")
 			return
 		}
 		let passwordCheck = Promise.resolve(true)

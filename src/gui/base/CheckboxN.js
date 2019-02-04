@@ -6,7 +6,7 @@ import {Icon} from "./Icon"
 import {addFlash, removeFlash} from "./Flash"
 
 export type CheckboxAttrs = {
-	label: lazy<string>,
+	label: lazy<string | VirtualElement>,
 	checked: Stream<boolean>,
 	helpLabel?: lazy<string>,
 }

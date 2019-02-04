@@ -933,6 +933,7 @@ const translation = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
+		"acceptPrivacyPolicy_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Kontrollkästchen markierst.",
 	}
 }
 export default translation

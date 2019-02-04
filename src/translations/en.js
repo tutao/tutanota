@@ -929,6 +929,7 @@ const translation = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"privacyPolicyUrl_label": "Link to privacy policy",
+		"acceptPrivacyPolicy_msg": "Please accept the privacy policy by selecting the checkbox.",
 	}
 }
 export default translation
