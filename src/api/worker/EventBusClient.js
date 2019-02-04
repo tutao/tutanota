@@ -392,5 +392,6 @@ export class EventBusClient {
 		return this._login.getLoggedInUser().memberships
 		           .filter(membership => membership.groupType !== GroupType.MailingList)
 		           .map(membership => membership.group)
+		           .concat(this._login.getLoggedInUser().userGroup.group)
 	}
 }
