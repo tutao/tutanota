@@ -144,7 +144,6 @@ export class MailView implements CurrentView {
 						// do not check the datatransfer here because it is not always filled, e.g. in Safari
 						ev.stopPropagation()
 						ev.preventDefault()
-						ev.dataTransfer.dropEffect = 'copy'
 					},
 					ondrop: (ev) => {
 						if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
