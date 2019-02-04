@@ -811,7 +811,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				break;
 			}
 		}
-		this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
+
+		this._domInitialized.promise.then(() => this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight)
 		this._entitySelected(scrollTarget, addToSelection)
 	}
 
