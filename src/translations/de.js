@@ -418,7 +418,7 @@ const translation = {
 		"invoiceVatIdNoMissing_msg": "Falls du keine Umsatzsteuer-Identifikationsnummer hast, wähle bitte private Nutzung.",
 		"invoiceVatIdNo_label": "USt-IdNr.",
 		"IpAddress_label": "IP-Adresse",
-		"keyboardShortcuts_title": "Tastatur-Shortcuts",
+		"keyboardShortcuts_title": "Tastatur-Kürzel",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",
 		"languageAlbanianref_label": "Albanisch reformiert",
 		"languageAlbanian_label": "Albanisch",
@@ -933,7 +933,8 @@ const translation = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
-		"acceptPrivacyPolicy_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Kontrollkästchen markierst.",
+		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
+		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
 	}
 }
 export default translation

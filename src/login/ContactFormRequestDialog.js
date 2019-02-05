@@ -124,10 +124,7 @@ export class ContactFormRequestDialog {
 				this._statisticFields.length > 0 ? m(statisticFieldHeader) : null,
 				this._statisticFields.map(field => m(field.component)),
 				(getPrivacyStatementLink()) ? m(CheckboxN, {
-					label: () => m("", [
-						m("div", lang.get("termsAndConditions_label")),
-						m("div", m(`a[href=${neverNull(getPrivacyStatementLink())}][target=_blank]`, lang.get("privacyLink_label")))
-					]),
+					label: () => this._getPrivacyPolicyCheckboxContent(),
 					checked: this._privacyPolicyAccepted
 				}) : null
 			])
@@ -148,6 +145,15 @@ export class ContactFormRequestDialog {
 			                     },
 			                     help: "send_action"
 		                     }).setCloseHandler(closeAction)
+	}
+
+	_getPrivacyPolicyCheckboxContent(): VirtualElement {
+		let parts = lang.get("acceptPrivacyPolicy_msg").split("{privacyPolicy}")
+		return m("", [
+			m("span", parts[0]),
+			m("span", m(`a[href=${neverNull(getPrivacyStatementLink())}][target=_blank]`, lang.get("privacyLink_label"))),
+			m("span", parts[1]),
+		])
 	}
 
 	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<?string>}> {
@@ -251,7 +257,7 @@ export class ContactFormRequestDialog {
 			return
 		}
 		if (getPrivacyStatementLink() && !this._privacyPolicyAccepted()) {
-			Dialog.error("acceptPrivacyPolicy_msg")
+			Dialog.error("acceptPrivacyPolicyReminder_msg")
 			return
 		}
 		let passwordCheck = Promise.resolve(true)
