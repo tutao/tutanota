@@ -21,11 +21,11 @@ import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/Websoc
 assertWorkerOrNode()
 
 
-const EventBusState = {
+const EventBusState = Object.freeze({
 	Automatic: "automatic", // automatic reconnection is enabled
 	Suspended: "suspended", // automatic reconnection is suspended but can be enabled again
 	Terminated: "terminated" // automatic reconnection is disabled and websocket is closed but can be opened again by calling connect explicit
-}
+})
 
 type EventBusStateEnum = $Values<typeof EventBusState>;
 

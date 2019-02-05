@@ -3,12 +3,7 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
-import {
-	getContactAddressTypeLabel,
-	getContactPhoneNumberTypeLabel,
-	getContactSocialTypeLabel,
-	formatBirthdayWithMonthName
-} from "./ContactUtils"
+import {formatBirthdayWithMonthName, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
 import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
@@ -20,7 +15,7 @@ import {formatDateWithMonth} from "../misc/Formatter"
 import {NotFoundError} from "../api/common/error/RestError"
 import {MailEditor} from "../mail/MailEditor"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {ContactSocialType} from "../api/common/TutanotaConstants"
+import {ContactSocialType, getContactSocialType} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
 
@@ -95,7 +90,7 @@ export class ContactViewer {
 			return showAddress
 		})
 		this.socials = this.contact.socialIds.map(element => {
-			let showURL = new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
+			let showURL = new TextField(() => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
 			let showButton = new Button('showURL_alt', () => null, () => Icons.ArrowForward)

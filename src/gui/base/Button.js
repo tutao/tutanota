@@ -15,7 +15,7 @@ import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
-export const ButtonType = {
+export const ButtonType = Object.freeze({
 	Action: 'action',
 	ActionLarge: 'action-large', // action button with large icon
 	Primary: 'primary',
@@ -26,13 +26,13 @@ export const ButtonType = {
 	Floating: 'floating',
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
-}
+})
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = {
+export const ButtonColors = Object.freeze({
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 const TRUE_CLOSURE: lazy<boolean> = () => true

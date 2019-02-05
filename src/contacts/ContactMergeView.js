@@ -6,7 +6,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {Icons} from "../gui/base/icons/Icons"
 import type {ContactMergeActionEnum} from "../api/common/TutanotaConstants"
-import {ContactMergeAction} from "../api/common/TutanotaConstants"
+import {ContactMergeAction, getContactSocialType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {
@@ -78,7 +78,7 @@ export class ContactMergeView {
 				.setHtmlMonospace(false)
 		})
 		let socials1 = this.contact1.socialIds.map(element => {
-			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
+			return new TextField(() => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
 		})
@@ -103,7 +103,7 @@ export class ContactMergeView {
 				.setHtmlMonospace(false)
 		})
 		let socials2 = this.contact2.socialIds.map(element => {
-			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
+			return new TextField(() => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
 		})

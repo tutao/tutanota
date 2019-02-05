@@ -9,11 +9,11 @@ export type SubscriptionOptions = {
 	paymentInterval: Stream<number>
 }
 
-export const SubscriptionType = {
+export const SubscriptionType = Object.freeze({
 	Free: 'Free',
 	Premium: 'Premium',
 	Pro: 'Pro'
-}
+})
 export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
 
 export const PaymentIntervalItems: SegmentControlItem<number>[] = [
@@ -47,13 +47,13 @@ export type SubscriptionData = {
 	proPrices: PlanPrices
 }
 
-export const UpgradePriceType = {
+export const UpgradePriceType = Object.freeze({
 	PlanReferencePrice: "0",
 	PlanActualPrice: "1",
 	PlanNextYearsPrice: "2",
 	AdditionalUserPrice: "3",
 	ContactFormPrice: "4",
-}
+})
 export type UpgradePriceTypeEnum = $Values<typeof UpgradePriceType>;
 
 export function getUpgradePrice(attrs: SubscriptionData, premium: boolean, type: UpgradePriceTypeEnum): number {

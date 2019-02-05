@@ -24,14 +24,14 @@ assertMainOrNode()
 
 export const INPUT = "input, textarea, div[contenteditable='true']"
 
-export const DialogType = {
+export const DialogType = Object.freeze({
 	Progress: "Progress",
 	Alert: "Alert",
 	Reminder: "Reminder",
 	EditSmall: "EditSmall",
 	EditMedium: "EditMedium",
 	EditLarge: "EditLarge"
-}
+})
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
 export class Dialog {

@@ -8,10 +8,10 @@ import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 
-export const Mode = {
+export const Mode = Object.freeze({
 	HTML: "html",
 	WYSIWYG: "what you see is what you get",
-}
+})
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
 export class HtmlEditor {

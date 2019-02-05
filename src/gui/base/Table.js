@@ -9,10 +9,10 @@ import {progressIcon} from "./Icon"
 
 assertMainOrNode()
 
-export const ColumnWidth = {
+export const ColumnWidth = Object.freeze({
 	Small: 'column-width-small', // the column has a fixed small width
 	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
-}
+})
 export type ColumnWidthEnum = $Values<typeof ColumnWidth>;
 
 /**
