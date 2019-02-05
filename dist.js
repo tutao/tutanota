@@ -15,7 +15,6 @@ const os = require("os")
 const SystemConfig = require('./buildSrc/SystemConfig.js')
 const builder = new Builder(SystemConfig.distBuildConfig()) // baseURL and configuration
 const babelCompile = require('./buildSrc/Builder.js').babelCompile
-const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 
 let start = Date.now()
 
@@ -174,6 +173,7 @@ function buildWebapp() {
 
 function buildDesktopClient() {
 	if (options.desktop) {
+		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 		if (options.stage === "release") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", ""))
