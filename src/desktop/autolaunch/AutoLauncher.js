@@ -16,11 +16,15 @@ switch (process.platform) {
 }
 
 export function enableAutoLaunch(): Promise<void> {
-	return platformAutoLauncher.enableAutoLaunch()
+	return platformAutoLauncher.enableAutoLaunch().catch(e => {
+		console.log("could not enable auto launch:", e)
+	})
 }
 
 export function disableAutoLaunch(): Promise<void> {
-	return platformAutoLauncher.disableAutoLaunch()
+	return platformAutoLauncher.disableAutoLaunch().catch(e => {
+		console.log("could not disable auto launch:", e)
+	})
 }
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
