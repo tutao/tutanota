@@ -1,5 +1,8 @@
+//@flow
 import {assertMainOrNodeBoot} from "../api/Env"
 import {BrowserType, DeviceType} from "./ClientConstants"
+import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -53,7 +56,7 @@ class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/flexbox.js
 	 */
 	flexbox(): boolean {
-		return typeof document.documentElement.style.flexBasis === 'string'
+		return typeof neverNull(document.documentElement).style.flexBasis === 'string'
 	}
 
 	/**
@@ -170,6 +173,7 @@ class ClientDetector {
 		var firefoxIndex = this.userAgent.indexOf("Firefox/")
 		var paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
 		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
+		var waterfoxIndex = this.userAgent.indexOf("Waterfox/")
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
 		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
@@ -200,6 +204,9 @@ class ClientDetector {
 		} else if (paleMoonIndex !== -1) {
 			this.browser = BrowserType.PALEMOON
 			versionIndex = paleMoonIndex + 9
+		} else if (waterfoxIndex !== -1) {
+			this.browser = BrowserType.WATERFOX
+			versionIndex = waterfoxIndex + 9
 		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX

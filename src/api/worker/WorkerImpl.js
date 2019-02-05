@@ -15,7 +15,7 @@ import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
-import type {BrowserData} from "../../misc/ClientDetector"
+import type {BrowserData} from "../../misc/ClientConstants"
 
 assertWorkerOrNode()
 

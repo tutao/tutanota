@@ -45,6 +45,14 @@ o.spec("ClientDetector test", function () {
 		o(client.isMobileDevice()).equals(false)
 	})
 
+	o("ClientDetector detects Waterfox", () => {
+		client.init("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0 Waterfox/56.2.7", "Windows")
+		o(client.browser).equals(BrowserType.WATERFOX)
+		o(client.browserVersion).equals(56.2)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+	})
+
 	o("ClientDetector detect safari 5.1 ipad", () => {
 		client.init("Mozilla/5.0 (iPad CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3", "Linux")
 		o(client.browser).equals(BrowserType.SAFARI)

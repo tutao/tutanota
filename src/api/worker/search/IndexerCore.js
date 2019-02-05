@@ -25,7 +25,7 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
-import type {BrowserData} from "../../../misc/ClientDetector"
+import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
@@ -435,6 +435,7 @@ export class IndexerCore {
 	_needsMicrotaskHack(browserData: BrowserData): boolean {
 		return browserData.browserType === BrowserType.SAFARI
 			|| browserData.browserType === BrowserType.PALEMOON
+			|| browserData.browserType === BrowserType.WATERFOX
 			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
 			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
 	}
