@@ -178,7 +178,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								},
 								[
 									this._virtualList.map(virtualRow => {
-										return m("li.list-row.plr"
+										return m("li.list-row.pl.pr-l"
 											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 											style: {
