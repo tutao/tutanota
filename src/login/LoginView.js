@@ -400,7 +400,7 @@ export function getWhitelabelRegistrationDomains(): string[] {
 
 export function getImprintLink(): ?string {
 	return (whitelabelCustomizations) ?
-		whitelabelCustomizations.imprintUrl : "https://tutanota.com/contact"
+		whitelabelCustomizations.imprintUrl : "https://tutanota.com/about"
 }
 
 export function getPrivacyStatementLink(): ?string {
