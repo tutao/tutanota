@@ -51,6 +51,7 @@ class DesktopErrorHandler {
 	}
 
 	handleUnexpectedFailure(error: Error) {
+		console.error("unexpected error:", error)
 		this.lastErrorLog = {
 			name: error.name,
 			platform: process.platform + ' ' + os.release(),

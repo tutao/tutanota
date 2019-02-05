@@ -7,6 +7,7 @@ import {ApplicationWindow} from './ApplicationWindow.js'
 import DesktopUtils from './DesktopUtils.js'
 import {notifier} from "./DesktopNotifier.js"
 import {lang} from './DesktopLocalizationProvider.js'
+import {sock} from './Socketeer.js'
 import {tray} from './DesktopTray.js'
 import {ipc} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
@@ -77,6 +78,9 @@ function onAppReady() {
 
 function main() {
 	tray.update()
+	if (process.argv.indexOf('-s') !== -1) {
+		sock.startServer()
+	}
 	console.log("Webapp ready")
 	app.on('activate', () => {
 		// MacOs

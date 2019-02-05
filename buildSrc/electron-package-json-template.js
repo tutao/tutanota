@@ -2,7 +2,7 @@ const path = require('path')
 
 /**
  * This is used for launching electron:
- * 1. copied to app-desktop/build from build.js
+ * 1. copied to app-desktop/build from make.js
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
@@ -19,9 +19,12 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		"tutao-config": {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
+			"preloadjs": "./src/desktop/preload.js",
+			"desktophtml": "./desktop.html",
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
+			"iconName": "logo-solo-red",
 			"defaultDesktopConfig": {
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,

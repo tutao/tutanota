@@ -8,6 +8,7 @@ import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import {conf} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
+import {sock} from './Socketeer.js'
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -113,7 +114,11 @@ class IPC {
 				break
 			case 'getPushIdentifier':
 				// we know there's a logged in window
-				err.sendErrorReport(windowId)
+				//first, send error report if there is one
+				err.sendErrorReport(windowId).then(() => d.resolve())
+				break
+			case 'sendSocketMessage':
+				sock.sendSocketMessage(args[0])
 				d.resolve()
 				break
 			default:

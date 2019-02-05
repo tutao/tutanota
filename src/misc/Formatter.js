@@ -224,7 +224,6 @@ export function stringToNameAndMailAddress(string: string): ?{name: string, mail
 	}
 }
 
-
 /**
  * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
  * the address to lower case.

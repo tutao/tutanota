@@ -10,19 +10,21 @@ import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
 import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
+import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, isAndroidApp, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
+import {Request} from "../api/common/WorkerProtocol.js"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {
 	createNewContact,
@@ -76,7 +78,7 @@ assertMainOrNode()
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class MailViewer {
+export class    MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
@@ -95,6 +97,9 @@ export class MailViewer {
 	_folderText: ?string;
 
 	constructor(mail: Mail, showFolder: boolean) {
+		if(isDesktop()) {
+			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
+		}
 		this.mail = mail
 		this._folderText = null
 		if (showFolder) {

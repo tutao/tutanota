@@ -15,17 +15,19 @@ class DesktopConfigHandler {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
 
 		try {
-			this._buildConfig = require(path.join(__dirname, '../..', 'package.json'))['tutao-config']
+			this._buildConfig = require(path.join(app.getAppPath(), 'package.json'))['tutao-config']
 		} catch (e) {
-			dialog.showMessageBox(null, {
-				type: 'error',
-				buttons: ['Ok'],
-				defaultId: 0,
-				// no lang yet
-				title: 'Oh No!',
-				message: `Couldn't load config: \n ${e.message}`
+			app.once('ready', () => {
+				dialog.showMessageBox(null, {
+					type: 'error',
+					buttons: ['Ok'],
+					defaultId: 0,
+					// no lang yet
+					title: 'Oh No!',
+					message: `Couldn't load config: \n ${e.message}`
+				})
+				process.exit(1)
 			})
-			process.exit(1)
 		}
 		try {
 			if (fs.existsSync(this._desktopConfigPath)) {

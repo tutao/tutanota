@@ -2,6 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {isMailAddress} from "../misc/FormatValidator"
@@ -9,7 +10,6 @@ import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 

@@ -1,7 +1,7 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission, Rectangle} from 'electron'
-import {BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
+import {app, BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
@@ -18,6 +18,8 @@ type WindowBounds = {
 }
 
 const windows: ApplicationWindow[] = []
+const preloadjs = path.join(app.getAppPath(), conf.get('preloadjs'))
+const desktophtml = path.join(app.getAppPath(), conf.get('desktophtml'))
 let fileManagersOpen: number = 0
 
 export class ApplicationWindow {
@@ -52,9 +54,8 @@ export class ApplicationWindow {
 
 	_createBrowserWindow(showWhenReady: boolean) {
 		this._rewroteURL = false
-		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
-		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
-		console.log("startFile: ", this._startFile)
+		this._startFile = DesktopUtils.pathToFileURL(desktophtml)
+		console.log("startFile:", this._startFile)
 		const startingBounds: WindowBounds = getStartingBounds()
 		this._browserWindow = new BrowserWindow({
 			icon: tray.getIcon(),
@@ -76,7 +77,7 @@ export class ApplicationWindow {
 				// the preload script changes to the web app
 				contextIsolation: false,
 				webSecurity: true,
-				preload: path.join(__dirname, 'preload.js')
+				preload: preloadjs
 			}
 		})
 

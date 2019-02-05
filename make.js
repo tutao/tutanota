@@ -84,7 +84,6 @@ function prepareAssets() {
 
 function startDesktop() {
 	if (options.desktop) {
-		console.log("Building desktop client...")
 		console.log("Trying to start desktop client...")
 		const packageJSON = require('./buildSrc/electron-package-json-template.js')(
 			"",
