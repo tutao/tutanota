@@ -226,6 +226,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
+		'.min-width-0': {'min-width': 0},
 		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.break-word-links a': {'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
