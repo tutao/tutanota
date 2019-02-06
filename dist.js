@@ -116,7 +116,7 @@ function buildWebapp() {
 	              .then(() => {
 		              console.log("started tracing", measure())
 		              return Promise.all([
-			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
+			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js + libs/polyfill.js'),
 			              builder.trace('src/app.js + src/system-resolve.js'),
 			              builder.trace('src/gui/theme.js - libs/stream.js'),
 			              builder.trace(getAsyncImports('src/app.js')
