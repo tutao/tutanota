@@ -4,6 +4,7 @@ export const BrowserType = {
 	CHROME: "Chrome",
 	FIREFOX: "Firefox",
 	PALEMOON: "PaleMoon",
+	WATERFOX: "Waterfox",
 	IE: "Internet Explorer",
 	EDGE: "Edge",
 	SAFARI: "Safari",
