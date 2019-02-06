@@ -40,6 +40,11 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
+import {Dialog} from "../gui/base/Dialog"
+import {ButtonN} from "../gui/base/ButtonN"
+import {getDeviceLogs} from "../native/SystemApp"
+import {MailEditor} from "../mail/MailEditor"
+import {mailModel} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -170,7 +175,8 @@ export class SettingsView implements CurrentView {
 			view: () => m(".folders", buttons.map(fb => fb.isVisible()
 				? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
 					m(NavButtonN, fb),
-					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users')
+					&& this._customDomains.isLoaded()
 					&& this._customDomains.getLoaded().length > 0
 						? m(importUsersButton)
 						: null
@@ -265,15 +271,56 @@ export class SettingsView implements CurrentView {
 				? 'ios-'
 				: ''
 		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
-		return m(".pb-s.pt-l.flex-no-shrink.flex.col.justify-end", [
+		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m("a.text-center.small.no-text-decoration", {
-					href: lnk,
-					target: '_blank',
+					href: '#',
+					onclick: () => {
+						const dialog = Dialog.largeDialog({
+							right: [
+								{
+									label: "ok_action",
+									click: () => dialog.close(),
+									type: ButtonType.Secondary
+								}
+							]
+						}, AboutDialog).show()
+					}
 				}, [
 					m("", `Tutanota v${env.versionNumber}`),
-					m(".underline", lang.get('releaseNotes_action'))
+					m(".underline", "About")
 				]
 			)
+		])
+	}
+}
+
+class AboutDialog implements MComponent<void> {
+	view(vnode: Vnode<void>): ?Children {
+		return m(".flex.col", [
+			m(".center.mt", m.trust(theme.logo)),
+			m(".center.h1.b", `v${env.versionNumber}`),
+			m("a.text-center.no-text-decoration", {
+					href: 'https://github.com/tutao/tutanota/releases',
+					target: '_blank'
+				}, [
+					m(".underline", 'Source-Code')
+				]
+			),
+			m("p.text-center", "GPL-v3"),
+			m(".mt.right", m(ButtonN, {
+					label: () => 'Send Logs',
+					click: () => {
+						getDeviceLogs()
+							.then((fileReference) => {
+								const editor = new MailEditor(mailModel.getUserMailboxDetails())
+								editor.initWithTemplate(null, null, "Device logs " + env.versionNumber, "", true)
+								editor.attachFiles([fileReference])
+								editor.show()
+							})
+					},
+					type: ButtonType.Primary
+				})
+			),
 		])
 	}
 }
