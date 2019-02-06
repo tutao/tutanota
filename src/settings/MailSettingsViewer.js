@@ -39,16 +39,16 @@ import {IdentifierListViewer} from "./IdentifierListViewer.js"
 assertMainOrNode()
 
 export class MailSettingsViewer implements UpdatableSettingsViewer {
-	_senderName: stream<string>;
-	_signature: stream<string>;
-	_defaultSender: stream<?string>;
-	_defaultUnconfidential: stream<?boolean>;
-	_sendPlaintext: stream<?boolean>;
-	_noAutomaticContacts: stream<?boolean>;
-	_enableMailIndexing: stream<?boolean>;
-	_inboxRulesTableLines: stream<?Array<TableLineAttrs>>;
-	_inboxRulesExpanded: stream<boolean>;
-	_indexStateWatch: stream<any>;
+	_senderName: Stream<string>;
+	_signature: Stream<string>;
+	_defaultSender: Stream<?string>;
+	_defaultUnconfidential: Stream<?boolean>;
+	_sendPlaintext: Stream<?boolean>;
+	_noAutomaticContacts: Stream<?boolean>;
+	_enableMailIndexing: Stream<?boolean>;
+	_inboxRulesTableLines: Stream<?Array<TableLineAttrs>>;
+	_inboxRulesExpanded: Stream<boolean>;
+	_indexStateWatch: ?Stream<any>;
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser())
@@ -258,6 +258,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					}
 				}
 			}))
+			m.redraw()
 		})
 	}
 
@@ -284,9 +285,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
 				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this._senderName(groupInfo.name)
+					m.redraw()
 				})
 			}
 		}
-		m.redraw()
 	}
 }
