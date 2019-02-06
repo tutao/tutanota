@@ -57,7 +57,7 @@ class IPC {
 						d.resolve()
 					})
 					.catch(e => {
-						d.reject(new Error('mailto unregistration failed'))
+						d.reject(e)
 					})
 				break
 			case 'unregisterMailto':
@@ -67,7 +67,7 @@ class IPC {
 						d.resolve()
 					})
 					.catch(e => {
-						d.reject(new Error('mailto registration failed'))
+						d.reject(e)
 					})
 				break
 			case 'sendDesktopConfig':
