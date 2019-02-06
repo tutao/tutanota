@@ -1,0 +1,2 @@
+- [ ] This is not a feature request. I will request features via email or on the forum.
+- [ ] This issue doesn't fit into provided templates.
