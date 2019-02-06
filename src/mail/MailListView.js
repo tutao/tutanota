@@ -236,7 +236,7 @@ export class MailRow {
 					oncreate: vnode => this._domUnread = vnode.dom,
 				})
 			),
-			m(".flex-grow", [
+			m(".flex-grow.text-ellipsis", [
 				m(".top.flex.badge-line-height", [
 					m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
 					m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
