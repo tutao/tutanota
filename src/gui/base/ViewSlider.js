@@ -13,11 +13,12 @@ assertMainOrNode()
 
 type GestureInfo = {
 	x: number,
+	y: number,
 	time: number,
 	identifier: number
 }
 
-const gestureInfoFromTouch = (touch: Touch) => ({x: touch.pageX, time: Date.now(), identifier: touch.identifier})
+const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({x: touch.pageX, y: touch.pageY, time: Date.now(), identifier: touch.identifier})
 
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
@@ -34,8 +35,7 @@ export class ViewSlider {
 	_busy: Promise<void>;
 	_parentName: string
 	_isModalBackgroundVisible: boolean
-	lastGestureInfo: ?GestureInfo
-	oldGestureInfo: ?GestureInfo
+
 
 	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
 	oncreate = () => {
@@ -49,101 +49,6 @@ export class ViewSlider {
 	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
 
 	_getSideColDom = () => this.columns[0]._domColumn
-
-	_gestureEnd = (event: any) => {
-		const gestureInfo = this.lastGestureInfo
-		const oldGestureInfo = this.oldGestureInfo
-		if (gestureInfo && oldGestureInfo && !this.allColumnsVisible()) {
-			const touch = event.changedTouches[0]
-			const mainCol = this._mainColumn._domColumn
-			const sideCol = this._getSideColDom()
-			if (!mainCol || !sideCol) {
-				return
-			}
-
-			const mainColRect = mainCol.getBoundingClientRect()
-
-			const velocity = (gestureInfo.x - oldGestureInfo.x) / (gestureInfo.time - oldGestureInfo.time)
-
-			const show = () => {
-				this.focusedColumn = this.columns[0]
-				this._busy = this._slideForegroundColumn(this.columns[0], true)
-				this._isModalBackgroundVisible = true
-			}
-
-			const hide = () => {
-				this.focusedColumn = this.columns[1]
-				this._busy = this._slideForegroundColumn(this.columns[0], false)
-				this._isModalBackgroundVisible = false
-			}
-
-			if (velocity > 0.8) {
-				show()
-			} else if (velocity < -0.8) {
-				hide()
-			} else {
-				if (touch.pageX > mainColRect.left + 100) {
-					show()
-				} else {
-					hide()
-				}
-			}
-
-			this._busy.then(() => m.redraw())
-		}
-
-		if (gestureInfo && gestureInfo.identifier === event.changedTouches[0].identifier) {
-			this.lastGestureInfo = null
-			this.oldGestureInfo = null
-		}
-	}
-
-	_eventListners = {
-		touchstart: (event: any) => {
-			if (this.lastGestureInfo) {
-				// Already detecting a gesture, ignore second one
-				return;
-			}
-			const mainCol = this._mainColumn._domColumn
-			const sideCol = this._getSideColDom()
-			if (!mainCol || !sideCol || this.allColumnsVisible()) {
-				this.lastGestureInfo = null
-				return
-			}
-			const colRect = mainCol.getBoundingClientRect()
-			if (
-				event.touches.length === 1 &&
-				(this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)
-			) {
-				// Only stop propogation while the menu is not yet fully visible
-				if (!this.columns[0].isInForeground) {
-					event.stopPropagation()
-				}
-				this.lastGestureInfo = gestureInfoFromTouch(event.touches[0])
-			}
-		},
-		touchmove: (event: any) => {
-			const sideCol = this._getSideColDom()
-			if (!sideCol || !this._mainColumn || this.allColumnsVisible()) {
-				return
-			}
-
-			const gestureInfo = this.lastGestureInfo
-			if (gestureInfo && event.touches.length === 1) {
-				const touch = event.touches[0]
-				const newTouchPos = touch.pageX
-				const sideColRect = sideCol.getBoundingClientRect()
-				const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
-					sideColRect.width)
-				sideCol.style.transform = `translateX(${newTranslate}px)`
-				this.oldGestureInfo = this.lastGestureInfo
-				this.lastGestureInfo = gestureInfoFromTouch(touch)
-				event.stopPropagation()
-			}
-		},
-		touchend: this._gestureEnd,
-		touchcancel: this._gestureEnd
-	}
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
@@ -159,9 +64,7 @@ export class ViewSlider {
 			return m(".view-columns.fill-absolute.backface_fix", {
 				oncreate: (vnode) => {
 					this._domSlider = vnode.dom
-					for (let listener in this._eventListners) {
-						this._domSlider.addEventListener(listener, this._eventListners[listener], true)
-					}
+					this._attachTouchHandler(this._domSlider)
 				},
 				style: {
 					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
@@ -267,7 +170,6 @@ export class ViewSlider {
 		})
 	}
 
-
 	_setWidthForHiddenColumns(visibleColumns: ViewColumn[]) {
 		// if all columns are visible there is no need to set the width
 		if (this.columns.length === visibleColumns.length) {
@@ -338,7 +240,6 @@ export class ViewSlider {
 		})
 	}
 
-
 	updateOffsets(columns: ViewColumn[]) {
 		let offset = 0
 		for (let column of this.columns) {
@@ -378,4 +279,114 @@ export class ViewSlider {
 		return this._visibleBackgroundColumns.length === this.columns.length
 	}
 
+	_attachTouchHandler(element: HTMLElement) {
+		let lastGestureInfo: ?GestureInfo
+		let oldGestureInfo: ?GestureInfo
+		let initialGestureInfo: ?GestureInfo
+		const VERTICAL = 1
+		const HORIZONTAL = 2
+		let directionLock: 0 | 1 | 2 = 0
+
+		const gestureEnd = (event: any) => {
+			if (lastGestureInfo && oldGestureInfo && !this.allColumnsVisible()) {
+				const touch = event.changedTouches[0]
+				const mainCol = this._mainColumn._domColumn
+				const sideCol = this._getSideColDom()
+				if (!mainCol || !sideCol) {
+					return
+				}
+
+				const mainColRect = mainCol.getBoundingClientRect()
+
+				const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
+
+				const show = () => {
+					this.focusedColumn = this.columns[0]
+					this._busy = this._slideForegroundColumn(this.columns[0], true)
+					this._isModalBackgroundVisible = true
+				}
+
+				const hide = () => {
+					this.focusedColumn = this.columns[1]
+					this._busy = this._slideForegroundColumn(this.columns[0], false)
+					this._isModalBackgroundVisible = false
+				}
+
+				if (velocity > 0.8) {
+					show()
+				} else if (velocity < -0.8 && directionLock !== VERTICAL) {
+					hide()
+				} else {
+					if (touch.pageX > mainColRect.left + 100) {
+						show()
+					} else if (directionLock !== VERTICAL) {
+						hide()
+					}
+				}
+
+				this._busy.then(() => m.redraw())
+			}
+
+			if (lastGestureInfo && lastGestureInfo.identifier === event.changedTouches[0].identifier) {
+				lastGestureInfo = null
+				oldGestureInfo = null
+				initialGestureInfo = null
+				directionLock = 0
+			}
+		}
+
+		const listeners = {
+			touchstart: (event: any) => {
+				if (lastGestureInfo) {
+					// Already detecting a gesture, ignore second one
+					return;
+				}
+				const mainCol = this._mainColumn._domColumn
+				const sideCol = this._getSideColDom()
+				if (!mainCol || !sideCol || this.allColumnsVisible()) {
+					lastGestureInfo = null
+					return
+				}
+				const colRect = mainCol.getBoundingClientRect()
+				if (event.touches.length === 1
+					&& (this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)) {
+					// Only stop propogation while the menu is not yet fully visible
+					if (!this.columns[0].isInForeground) {
+						event.stopPropagation()
+					}
+					lastGestureInfo = initialGestureInfo = gestureInfoFromTouch(event.touches[0])
+				}
+			},
+			touchmove: (event: any) => {
+				const sideCol = this._getSideColDom()
+				if (!sideCol || !this._mainColumn || this.allColumnsVisible()) {
+					return
+				}
+
+				const gestureInfo = lastGestureInfo
+				if (gestureInfo && event.touches.length === 1 && initialGestureInfo) {
+					const touch = event.touches[0]
+					const newTouchPos = touch.pageX
+					const sideColRect = sideCol.getBoundingClientRect()
+					oldGestureInfo = lastGestureInfo
+					lastGestureInfo = gestureInfoFromTouch(touch)
+					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x) > 30) {
+						directionLock = HORIZONTAL
+						const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
+							sideColRect.width)
+						sideCol.style.transform = `translateX(${newTranslate}px)`
+						event.preventDefault()
+					} else if (directionLock !== VERTICAL && Math.abs(lastGestureInfo.y - initialGestureInfo.y) > 30) {
+						directionLock = VERTICAL
+					}
+					event.stopPropagation()
+				}
+			},
+			touchend: gestureEnd,
+			touchcancel: gestureEnd
+		}
+		for (let listener in listeners) {
+			element.addEventListener(listener, listeners[listener], true)
+		}
+	}
 }
