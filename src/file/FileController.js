@@ -11,6 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
+import {splitInChunks} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -66,6 +67,12 @@ export class FileController {
 					(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
 						.finally(() => this._deleteFile(file.location)))
 			}).return()
+	}
+
+	downloadBatched(attachments: TutanotaFile[]) {
+		return splitInChunks(10, attachments).reduce((p, chunk) => {
+			return p.then(() => this.downloadAll(chunk)).delay(1000)
+		}, Promise.resolve())
 	}
 
 	/**

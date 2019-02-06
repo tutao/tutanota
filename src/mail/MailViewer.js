@@ -708,27 +708,16 @@ export class MailViewer {
 		}
 
 		if (buttons.length >= 3 && !isIOSApp()) {
-			if (client.browser === BrowserType.CHROME) {
-				buttons.push(new Button("saveAll_action", () => {
-					this._downloadAttachmentsBatched(this._attachments)
-				}).setType(ButtonType.Secondary))
+			if (client.browser === BrowserType.CHROME && this._attachments.length > 10) {
+				buttons.push(new Button("saveAll_action",
+					() => showProgressDialog('pleaseWait_msg', fileController.downloadBatched(this._attachments)),
+					null).setType(ButtonType.Secondary))
 			} else {
 				buttons.push(new Button("saveAll_action",
-					() => showProgressDialog('pleaseWait_msg', fileController.downloadAll(this._attachments)), null)
-					.setType(ButtonType.Secondary))
+					() => showProgressDialog('pleaseWait_msg', fileController.downloadAll(this._attachments)),
+					null).setType(ButtonType.Secondary))
 			}
 		}
 		return buttons
-	}
-
-	_downloadAttachmentsBatched(attachments: TutanotaFile[]) {
-		let completedAttachments = 0, lastBatchSize = 0
-		let p = Promise.resolve()
-		while (completedAttachments < attachments.length) {
-			completedAttachments = completedAttachments + lastBatchSize
-			lastBatchSize = Math.min(10, attachments.length - completedAttachments)
-			p = p.delay(1000).then(() => fileController.downloadAll(attachments.slice(completedAttachments, lastBatchSize + completedAttachments)))
-		}
-		showProgressDialog('pleaseWait_msg', p)
 	}
 }
