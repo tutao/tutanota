@@ -70,7 +70,6 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {BrowserType} from "../misc/ClientConstants"
 
 assertMainOrNode()
 
@@ -708,15 +707,19 @@ export class MailViewer {
 		}
 
 		if (buttons.length >= 3 && !isIOSApp()) {
-			if (client.browser === BrowserType.CHROME && this._attachments.length > 10) {
-				buttons.push(new Button("saveAll_action",
-					() => showProgressDialog('pleaseWait_msg', fileController.downloadBatched(this._attachments)),
-					null).setType(ButtonType.Secondary))
-			} else {
-				buttons.push(new Button("saveAll_action",
-					() => showProgressDialog('pleaseWait_msg', fileController.downloadAll(this._attachments)),
-					null).setType(ButtonType.Secondary))
+			let downloadStrategy = () => fileController.downloadAll(this._attachments)
+
+			if (client.needsDownloadBatches() && this._attachments.length > 10) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 10, 1000)
+			} else if (!client.canDownloadMultipleFiles()) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 1, 10)
 			}
+
+			buttons.push(new Button(
+				"saveAll_action",
+				() => showProgressDialog("pleaseWait_msg", downloadStrategy()),
+				null)
+				.setType(ButtonType.Secondary))
 		}
 		return buttons
 	}

@@ -347,6 +347,16 @@ class ClientDetector {
 		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
 	}
 
+	canDownloadMultipleFiles(): boolean {
+		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion < 65
+	}
+
+	needsDownloadBatches(): boolean {
+		// chrome limits multiple automatic downloads to 10
+		return client.browser === BrowserType.CHROME
+	}
+
 	browserData(): BrowserData {
 		return {browserType: this.browser, browserVersion: this.browserVersion}
 	}

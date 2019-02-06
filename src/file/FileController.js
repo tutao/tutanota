@@ -69,9 +69,9 @@ export class FileController {
 			}).return()
 	}
 
-	downloadBatched(attachments: TutanotaFile[]) {
-		return splitInChunks(10, attachments).reduce((p, chunk) => {
-			return p.then(() => this.downloadAll(chunk)).delay(1000)
+	downloadBatched(attachments: TutanotaFile[], batchSize: number, delay: number) {
+		return splitInChunks(batchSize, attachments).reduce((p, chunk) => {
+			return p.then(() => this.downloadAll(chunk)).delay(delay)
 		}, Promise.resolve())
 	}
 
