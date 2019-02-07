@@ -379,10 +379,7 @@ export class SearchView implements CurrentView {
 		let selected = this._searchList.getSelectedEntities()
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = []
-				selected.forEach((m) => {
-					selectedMails.push(((m.entry: any): Mail))
-				})
+				let selectedMails = selected.map(m => ((m.entry: any): Mail))
 				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
 					if (confirmed) {
 						mailModel.deleteMails(selectedMails).then(() => {
@@ -392,7 +389,7 @@ export class SearchView implements CurrentView {
 				})
 
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContacts = ((selected: any): Contact[])
+				let selectedContacts = selected.map(m => ((m.entry: any): Contact))
 				Dialog.confirm("deleteContacts_msg").then(confirmed => {
 					if (confirmed) {
 						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
