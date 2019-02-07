@@ -973,6 +973,7 @@ class SwipeHandler {
 
 	move(e: TouchEvent) {
 		let {x, y} = this.getDelta(e)
+		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
 		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y) && Math.abs(x) > 14) {
 			this.directionLock = DirectionLock.Horizontal
 			// Do not scroll the list
@@ -983,6 +984,7 @@ class SwipeHandler {
 					// Do not animate the swipe gesture more than necessary
 					this.xoffset = x < 0 ? Math.max(x, -ActionDistance) : Math.min(x, ActionDistance)
 
+					// Animate the row with following touch
 					if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
 						ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
 						this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
@@ -990,9 +992,11 @@ class SwipeHandler {
 					}
 				})
 			}
+			// If we don't have a vertical lock yet but we would like to have it, lock vertically
 		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > size.list_row_height) {
 			this.directionLock = DirectionLock.Vertical
 			if (this.animating.isFulfilled()) {
+				// Reset the row
 				window.requestAnimationFrame(() => {
 					if (this.animating.isFulfilled()) {
 						this.reset()
@@ -1012,6 +1016,7 @@ class SwipeHandler {
 			&& this.virtualElement
 			&& this.virtualElement.entity
 			&& Math.abs(delta.x) > ActionDistance && this.directionLock === DirectionLock.Horizontal) {
+			// Gesture is completed
 			let entity = this.virtualElement.entity
 			let swipePromise
 			if (delta.x < 0) {
@@ -1021,6 +1026,7 @@ class SwipeHandler {
 			}
 			this.animating = this.finish(entity._id, swipePromise)
 		} else if (this.animating.isFulfilled()) {
+			// Gesture is not completed, reset row
 			this.animating = this.reset()
 		}
 		this.directionLock = null

@@ -312,11 +312,14 @@ export class ViewSlider {
 					this._isModalBackgroundVisible = false
 				}
 
+				// Gesture was with enough velocity to show the menu
 				if (velocity > 0.8) {
 					show()
+					// Gesture was with enough velocity to hide the menu and we're not scrolling vertically
 				} else if (velocity < -0.8 && directionLock !== VERTICAL) {
 					hide()
 				} else {
+					// Finger was released without much velocity so if it's further than some distance from edge, open menu. Otherwise, close it.
 					if (touch.pageX > mainColRect.left + 100) {
 						show()
 					} else if (directionLock !== VERTICAL) {
@@ -327,6 +330,7 @@ export class ViewSlider {
 				this._busy.then(() => m.redraw())
 			}
 
+			// If this is the first touch and not another one
 			if (lastGestureInfo && lastGestureInfo.identifier === event.changedTouches[0].identifier) {
 				lastGestureInfo = null
 				oldGestureInfo = null
@@ -370,12 +374,14 @@ export class ViewSlider {
 					const sideColRect = sideCol.getBoundingClientRect()
 					oldGestureInfo = lastGestureInfo
 					lastGestureInfo = gestureInfoFromTouch(touch)
+					// If we have horizonal lock or we don't have vertical lock but would like to acquire horizontal one, the lock horizontally
 					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x) > 30) {
 						directionLock = HORIZONTAL
 						const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
 							sideColRect.width)
 						sideCol.style.transform = `translateX(${newTranslate}px)`
 						event.preventDefault()
+						// If we don't have a vertical lock but we would like to acquire one, get it
 					} else if (directionLock !== VERTICAL && Math.abs(lastGestureInfo.y - initialGestureInfo.y) > 30) {
 						directionLock = VERTICAL
 					}
