@@ -19,7 +19,7 @@ import type {
 	SearchIndexEntry,
 	SearchIndexMetadataEntry
 } from "./SearchTypes"
-import {decryptSearchIndexEntry, encryptIndexKeyBase64, getPerformanceTimestamp, timeEnd, timeStart} from "./IndexUtils"
+import {decryptSearchIndexEntry, encryptIndexKeyBase64, getIdFromEncSearchIndexEntry, getPerformanceTimestamp, timeEnd, timeStart} from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
@@ -325,7 +325,7 @@ export class SearchFacade {
 		                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {
 			                  return indexEntries.map(entry => ({
 				                  encEntry: entry,
-				                  idHash: arrayHash(entry[0])
+				                  idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
 			                  }))
 		                  })
 		                  .then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {

@@ -7,7 +7,15 @@ import {neverNull} from "../../common/utils/Utils"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
-import {byteLength, encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId, getPerformanceTimestamp} from "./IndexUtils"
+import {
+	byteLength,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptSearchIndexEntry,
+	getAppId,
+	getIdFromEncSearchIndexEntry,
+	getPerformanceTimestamp
+} from "./IndexUtils"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -28,6 +36,7 @@ import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
+import {arrayHash} from "../../common/utils/ArrayUtils"
 
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -140,9 +149,11 @@ export class IndexerCore {
 	}
 
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		let encInstanceId = encryptIndexKeyBase64(this.db.key, event.instanceId, this.db.iv)
+		const encInstanceIdB64 = encryptIndexKeyBase64(this.db.key, event.instanceId, this.db.iv)
+		const encInstanceIdPlain = base64ToUint8Array(encInstanceIdB64)
+		encryptIndexKeyBase64(this.db.key, event.instanceId, this.db.iv)
 		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
-			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
+			return transaction.get(ElementDataOS, encInstanceIdB64).then(elementData => {
 				if (!elementData) {
 					return
 				}
@@ -153,10 +164,10 @@ export class IndexerCore {
 					if (ids == null) {
 						ids = []
 					}
-					ids.push(encInstanceId)
+					ids.push(encInstanceIdPlain)
 					indexUpdate.delete.encWordToEncInstanceIds.set(encWord, ids)
 				})
-				indexUpdate.delete.encInstanceIds.push(encInstanceId)
+				indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 			})
 		})
 	}
@@ -231,8 +242,13 @@ export class IndexerCore {
 
 	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		this._cancelIfNeeded()
+		performance.mark("deleteIndexEntryTotal-start")
 		if (indexUpdate.delete.encWordToEncInstanceIds.size === 0) return null // keep transaction context open (only in Safari)
-		let deleteElementDataPromise = indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId))
+		performance.mark("deleteElementData-start")
+		let deleteElementDataPromise = Promise.all(indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId)))
+		                                      .tap(() => {
+			                                      performance.mark("deleteElementData-end")
+		                                      })
 		return Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
 			return transaction.getAsList(SearchIndexMetaDataOS, encWord).then(metaDataEntries => {
 				if (metaDataEntries.length > 0) {
@@ -248,17 +264,30 @@ export class IndexerCore {
 					})
 				}
 			})
-		})).then(() => deleteElementDataPromise).return()
+		})).then(() => deleteElementDataPromise).return().tap(() => {
+			performance.mark("deleteIndexEntryTotal-end")
+			performance.measure("deleteIndexEntryTotal", "deleteIndexEntryTotal-start", "deleteIndexEntryTotal-end")
+			performance.measure("deleteElementData", "deleteElementData-start", "deleteElementData-end")
+			self.printMeasures()
+		})
 	}
 
-	_deleteSearchIndexEntries(transaction: DbTransaction, metaDataEntries: SearchIndexMetadataEntry[], encInstanceIds: B64EncInstanceId[]): $Promisable<SearchIndexMetadataEntry[]> {
+	_deleteSearchIndexEntries(transaction: DbTransaction, metaDataEntries: SearchIndexMetadataEntry[], encInstanceIds: Uint8Array[]): $Promisable<SearchIndexMetadataEntry[]> {
 		this._cancelIfNeeded()
+		const encInstanceIdSet = new Set(encInstanceIds.map((e) => arrayHash(e)))
 		return this._promiseMapCompat(metaDataEntries, metaData => {
 			return transaction.getAsList(SearchIndexOS, metaData.key).then(encryptedSearchIndexEntries => {
-				let remainingEntries = encryptedSearchIndexEntries.filter(e =>
-					!encInstanceIds.find(encInstanceId => uint8ArrayToBase64(e[0]) === encInstanceId))
+				performance.mark("findIndexEntriesInRows-start")
+				let remainingEntries = encryptedSearchIndexEntries.filter(e => {
+					const encInstanceIdHash = arrayHash(getIdFromEncSearchIndexEntry(e))
+					return !encInstanceIdSet.has(encInstanceIdHash)
+				})
+				performance.mark("findIndexEntriesInRows-end")
+				performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
 				metaData.size = remainingEntries.length
-				if (remainingEntries.length > 0) {
+				if (remainingEntries.length === encryptedSearchIndexEntries.length) {
+					return metaData
+				} else if (remainingEntries.length > 0) {
 					return transaction.put(SearchIndexOS, metaData.key, remainingEntries).return(metaData)
 				} else {
 					return transaction.delete(SearchIndexOS, metaData.key).return(metaData)
@@ -309,12 +338,17 @@ export class IndexerCore {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(key))
 			return this._putEncryptedEntity(indexUpdate.groupId, transaction, keysToUpdate, key, encryptedEntries)
 		}, {concurrency: 1})
-		return result instanceof Promise ? result : null
+		return result instanceof Promise
+			? result.tap(() => {
+				performance.mark("insertNewIndexEntries-end")
+				performance.measure("insertNewIndexEntries", "insertNewIndexEntries-start", "insertNewIndexEntries-end")
+			})
+			: null
 	}
 
 	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, keysToUpdate: {[B64EncInstanceId]: boolean}, b64EncIndexKey: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<void> {
 		this._cancelIfNeeded()
-		let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(entry[0])])
+		let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(getIdFromEncSearchIndexEntry(entry))])
 		let encIndexKey = base64ToUint8Array(b64EncIndexKey)
 		if (filteredEncryptedEntries.length > 0) {
 			performance.mark("insertNewIndexEntries_getMeta-start")
@@ -381,7 +415,7 @@ export class IndexerCore {
 				                  this._stats.largestColumn = columnSize > this._stats.largestColumn
 					                  ? columnSize : this._stats.largestColumn
 				                  this._stats.storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
-					                  sum + e[0].length + e[1].length, 0)
+					                  sum + e.length, 0)
 				                  performance.mark("insertNewIndexEntries_putMeta-start")
 				                  return transaction.put(SearchIndexMetaDataOS, b64EncIndexKey, metaData)
 				                                    .finally(() => {
@@ -458,4 +492,13 @@ export function measure(names: string[]) {
 	}
 	performance.clearMeasures()
 	console.log(JSON.stringify(measures))
+}
+
+self.printMeasures = () => {
+	measure([
+		"insertNewIndexEntries",
+		"deleteIndexEntryTotal",
+		"deleteElementData",
+		"findIndexEntriesInRows"
+	])
 }

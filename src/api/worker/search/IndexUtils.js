@@ -18,18 +18,21 @@ export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
 	let data = JSON.stringify([entry.app, entry.type, entry.attribute, entry.positions])
-	return [
-		encryptedInstanceId,
-		aes256Encrypt(key, stringToUtf8Uint8Array(data), random.generateRandomData(IV_BYTE_LENGTH), true, false)
-	]
+
+	const encData = aes256Encrypt(key, stringToUtf8Uint8Array(data), random.generateRandomData(IV_BYTE_LENGTH), true, false)
+	const resultArray = new Uint8Array(encryptedInstanceId.length + encData.length)
+	resultArray.set(encryptedInstanceId)
+	resultArray.set(encData, 16)
+	return resultArray
 }
 
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): SearchIndexEntry {
-	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, entry[0]), true, false))
-	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry[1], true, false)))
+	const encId = getIdFromEncSearchIndexEntry(entry)
+	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encId), true, false))
+	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry.subarray(16), true, false)))
 	return {
 		id: id,
-		encId: entry[0],
+		encId,
 		app: data[0],
 		type: data[1],
 		attribute: data[2],
@@ -239,3 +242,7 @@ export const timeStart: (string) => void =
 	typeof self !== "undefined" && console.time ? console.time.bind(console) : noOp
 export const timeEnd: (string) => void =
 	typeof self !== "undefined" && console.timeEnd ? console.timeEnd.bind(console) : noOp
+
+export function getIdFromEncSearchIndexEntry(entry: Uint8Array): Uint8Array {
+	return entry.subarray(0, 16)
+}

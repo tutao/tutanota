@@ -150,7 +150,7 @@ export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 	let fixedString
 	try {
 		fixedString = encodeURIComponent(string)
-	}catch(e) {
+	} catch (e) {
 		fixedString = encodeURIComponent(_replaceLoneSurrogates(string)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
 	}
 	let utf8 = unescape(fixedString)
@@ -253,6 +253,10 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
  * @return The Base64 encoded string.
  */
 export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
+	if (bytes.length < 60000) {
+		// Apply fails on big arrays fairly often
+		return btoa(String.fromCharCode.apply(null, bytes))
+	}
 	let binary = ''
 	let len = bytes.byteLength
 	for (let i = 0; i < len; i++) {
