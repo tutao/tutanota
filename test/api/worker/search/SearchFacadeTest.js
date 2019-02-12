@@ -19,9 +19,10 @@ import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../s
 import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {appendEntities} from "../../../../src/api/worker/search/SearchIndexEncoding"
 
 type MetaTable = {[Base64]: SearchIndexMetadataEntry[]}
-type IndexTable = {[number]: EncryptedSearchIndexEntry[]}
+type IndexTable = {[number]: Uint8Array}
 type DB = {metaTable: MetaTable, indexTable: IndexTable}
 
 o.spec("SearchFacade test", () => {
@@ -42,7 +43,8 @@ o.spec("SearchFacade test", () => {
 			chunks.forEach(chunk => {
 				counter++
 				metaTable[keyToIndexEntries.indexKey].push({key: counter, size: chunk.length})
-				indexTable[counter] = chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv)))
+				indexTable[counter] = appendEntities(
+					chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv))))
 			})
 		})
 		return {metaTable, indexTable}
@@ -60,13 +62,15 @@ o.spec("SearchFacade test", () => {
 					throw new Error()
 				}
 			},
-			get: (os, key): Promise<ElementData> => {
+			get: (os, key): Promise<ElementData | Uint8Array> => {
 				if (os === ElementDataOS) {
 					const id = neverNull(fullIds.find(id => {
 						let encId = encryptIndexKeyBase64(dbKey, id[1], fixedIv)
 						return encId === key
 					}))[0]
 					return Promise.resolve([id, new Uint8Array(0), ""])
+				} else if (os === SearchIndexOS) {
+					return Promise.resolve(db.indexTable[key])
 				} else {
 					throw new Error()
 				}

@@ -27,6 +27,7 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 }
 
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): SearchIndexEntry {
+	console.log("decrypt search index entry", entry)
 	const encId = getIdFromEncSearchIndexEntry(entry)
 	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encId), true, false))
 	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry.subarray(16), true, false)))

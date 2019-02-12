@@ -31,6 +31,7 @@ import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {CancelledError} from "../../common/error/CancelledError"
 import {mapInCallContext} from "../../common/utils/PromiseUtils"
+import {iterateSearchIndexBlocks} from "./SearchIndexEncoding"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -313,7 +314,15 @@ export class SearchFacade {
 	}
 
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
-		return transaction.getAsList(SearchIndexOS, entry.key)
+		return transaction.get(SearchIndexOS, entry.key).then((row) => {
+			if (!row) return []
+			const result = new Array(entry.size)
+			iterateSearchIndexBlocks(row, (block, s, e, iteration) => {
+				console.log("found block", row.subarray(s, e))
+				result[iteration] = block
+			})
+			return result
+		})
 	}
 
 	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {

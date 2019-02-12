@@ -37,6 +37,7 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {arrayHash} from "../../common/utils/ArrayUtils"
+import {appendEntities, iterateSearchIndexBlocks, removeSearchIndexRanges} from "./SearchIndexEncoding"
 
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -268,7 +269,7 @@ export class IndexerCore {
 			performance.mark("deleteIndexEntryTotal-end")
 			performance.measure("deleteIndexEntryTotal", "deleteIndexEntryTotal-start", "deleteIndexEntryTotal-end")
 			performance.measure("deleteElementData", "deleteElementData-start", "deleteElementData-end")
-			self.printMeasures()
+			// self.printMeasures()
 		})
 	}
 
@@ -276,23 +277,44 @@ export class IndexerCore {
 		this._cancelIfNeeded()
 		const encInstanceIdSet = new Set(encInstanceIds.map((e) => arrayHash(e)))
 		return this._promiseMapCompat(metaDataEntries, metaData => {
-			return transaction.getAsList(SearchIndexOS, metaData.key).then(encryptedSearchIndexEntries => {
-				performance.mark("findIndexEntriesInRows-start")
-				let remainingEntries = encryptedSearchIndexEntries.filter(e => {
-					const encInstanceIdHash = arrayHash(getIdFromEncSearchIndexEntry(e))
-					return !encInstanceIdSet.has(encInstanceIdHash)
-				})
-				performance.mark("findIndexEntriesInRows-end")
-				performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
-				metaData.size = remainingEntries.length
-				if (remainingEntries.length === encryptedSearchIndexEntries.length) {
+			return transaction.get(SearchIndexOS, metaData.key).then((indexEntriesRow) => {
+				if (!indexEntriesRow) return metaData
+
+				const rangesToRemove = []
+				const totalRowLength = iterateSearchIndexBlocks(indexEntriesRow, ((block, start, end) => {
+					if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
+						rangesToRemove.push([start, end])
+					}
+				}))
+				metaData.size = totalRowLength - rangesToRemove.length
+
+				if (rangesToRemove.length === 0) {
 					return metaData
-				} else if (remainingEntries.length > 0) {
-					return transaction.put(SearchIndexOS, metaData.key, remainingEntries).return(metaData)
-				} else {
+				} else if (totalRowLength === rangesToRemove.length) {
 					return transaction.delete(SearchIndexOS, metaData.key).return(metaData)
+				} else {
+					const trimmed = removeSearchIndexRanges(indexEntriesRow, rangesToRemove)
+					return transaction.put(SearchIndexOS, metaData.key, trimmed).return(metaData)
 				}
 			})
+
+			// return transaction.getAsList(SearchIndexOS, metaData.key).then(encryptedSearchIndexEntries => {
+			// 	performance.mark("findIndexEntriesInRows-start")
+			// 	let remainingEntries = encryptedSearchIndexEntries.filter(e => {
+			// 		const encInstanceIdHash = arrayHash(getIdFromEncSearchIndexEntry(e))
+			// 		return !encInstanceIdSet.has(encInstanceIdHash)
+			// 	})
+			// 	performance.mark("findIndexEntriesInRows-end")
+			// 	performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
+			// 	metaData.size = remainingEntries.length
+			// 	if (remainingEntries.length === encryptedSearchIndexEntries.length) {
+			// 		return metaData
+			// 	} else if (remainingEntries.length > 0) {
+			// 		return transaction.put(SearchIndexOS, metaData.key, remainingEntries).return(metaData)
+			// 	} else {
+			// 		return transaction.delete(SearchIndexOS, metaData.key).return(metaData)
+			// 	}
+			// })
 		})
 	}
 
@@ -359,25 +381,34 @@ export class IndexerCore {
 				                  if (!metadata) { // no meta data entry for enc word create new search index row and meta data entry
 					                  this._stats.storedBytes += encIndexKey.length
 					                  this._stats.words += 1
-					                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
-					                                    .then(newId => [
-						                                    {
-							                                    key: newId,
-							                                    size: filteredEncryptedEntries.length
-						                                    }
-					                                    ])
+					                  const binaryRow = appendEntities(filteredEncryptedEntries)
+
+					                  return transaction.put(SearchIndexOS, null, binaryRow)
+					                                    .then(newId => {
+
+						                                    const metaData = [
+							                                    {
+								                                    key: newId,
+								                                    size: filteredEncryptedEntries.length
+							                                    }
+						                                    ]
+						                                    console.log("create new index entry for key", b64EncIndexKey, "metaData", metaData, "added entries", filteredEncryptedEntries.length)
+						                                    return metaData
+					                                    })
 				                  } else {
 					                  const safeMetaData = neverNull(metadata)
 					                  const maxSize = SEARCH_INDEX_ROW_LENGTH - filteredEncryptedEntries.length
 					                  const vacantRow = metadata.find(entry => entry.size < maxSize)
 					                  performance.mark("insertNewIndexEntries_putIndexNew-start")
 					                  if (!vacantRow) { // new entries do not fit into existing search index row, create new row
-						                  return transaction.put(SearchIndexOS, null, filteredEncryptedEntries)
+						                  const binaryRow = appendEntities(filteredEncryptedEntries)
+						                  return transaction.put(SearchIndexOS, null, binaryRow)
 						                                    .then(newId => {
 							                                    safeMetaData.push({
 								                                    key: newId,
 								                                    size: filteredEncryptedEntries.length
 							                                    })
+							                                    console.log("insert new row for key", b64EncIndexKey, "metaData", safeMetaData, "added entries", filteredEncryptedEntries.length)
 							                                    return safeMetaData
 						                                    })
 						                                    .finally(() => {
@@ -386,18 +417,18 @@ export class IndexerCore {
 						                                    })
 					                  } else {
 						                  // add new entries to existing search index row
-
 						                  performance.mark("insertNewIndexEntries_getRow-start")
 						                  return transaction.get(SearchIndexOS, vacantRow.key)
 						                                    .then((row) => {
 							                                    performance.mark("insertNewIndexEntries_getRow-end")
 							                                    performance.measure("insertNewIndexEntries_getRow", "insertNewIndexEntries_getRow-start", "insertNewIndexEntries_getRow-end")
 							                                    performance.mark("insertNewIndexEntries_putIndex-start")
-							                                    let safeRow = row || []
-							                                    safeRow.push(...filteredEncryptedEntries)
-							                                    return transaction.put(SearchIndexOS, vacantRow.key, row)
+							                                    let safeRow = row || new Uint8Array(0)
+							                                    const resultRow = appendEntities(filteredEncryptedEntries, safeRow)
+							                                    return transaction.put(SearchIndexOS, vacantRow.key, resultRow)
 							                                                      .then(() => {
-								                                                      vacantRow.size = safeRow.length
+								                                                      vacantRow.size += filteredEncryptedEntries.length
+								                                                      console.log("update row entry for key", b64EncIndexKey, "metaData", safeMetaData, "added entries", filteredEncryptedEntries.length)
 								                                                      return safeMetaData
 							                                                      })
 						                                    })
@@ -494,11 +525,11 @@ export function measure(names: string[]) {
 	console.log(JSON.stringify(measures))
 }
 
-self.printMeasures = () => {
-	measure([
-		"insertNewIndexEntries",
-		"deleteIndexEntryTotal",
-		"deleteElementData",
-		"findIndexEntriesInRows"
-	])
-}
+// self.printMeasures = () => {
+// 	measure([
+// 		"insertNewIndexEntries",
+// 		"deleteIndexEntryTotal",
+// 		"deleteElementData",
+// 		"findIndexEntriesInRows"
+// 	])
+// }
