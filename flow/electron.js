@@ -1,3 +1,5 @@
+import {IncomingMessage} from "electron"
+
 /**
  * this file is highly inaccurate, check the docs at electronjs.org
  */
@@ -39,12 +41,7 @@ declare module 'electron' {
 		y: number,
 		width: number,
 		height: number
-	|}
-
-	declare export type ClientRequest = {
-		on('error' | 'response', (Error & IncomingMessage)=>void): ClientRequest,
-		end(): void,
-	}
+	|};
 
 	declare export type IncomingMessage = {
 		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
@@ -222,6 +219,7 @@ declare module 'electron' {
 		loadURL(string): void;
 		isMinimized(): boolean;
 		isFullScreen(): boolean;
+		isVisible(): boolean;
 		isSimpleFullScreen(): boolean;
 		setSimpleFullScreen(boolean): void;
 		setFullScreen(boolean): void;
@@ -315,6 +313,13 @@ declare module 'electron' {
 	declare export type ElectronSessionEvent
 		= 'will-download';
 }
+
+
+declare type ClientRequest = {
+	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage)=>void): ClientRequest,
+	end(): void,
+	abort(): void,
+};
 
 declare module 'electron-updater' {
 	declare export var autoUpdater: AutoUpdater
@@ -527,6 +532,18 @@ declare module 'bluebird' {
 
 declare module 'request' {
 	declare export default any;
+}
+
+declare module 'https' {
+	declare module .exports: {
+		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+	}
+}
+
+declare module 'http' {
+	declare module .exports: {
+		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+	}
 }
 
 declare module 'node-forge' {

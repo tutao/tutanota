@@ -1,7 +1,7 @@
 // @ flow
 import path from 'path'
 import {app, dialog} from 'electron'
-import fs from 'fs'
+import fs from 'fs-extra'
 
 /**
  * manages build and user config
@@ -32,6 +32,7 @@ class DesktopConfigHandler {
 				this._desktopConfig = JSON.parse(fs.readFileSync(this._desktopConfigPath).toString())
 			} else { //create default user config file
 				this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
+				fs.mkdirp(path.join(app.getPath('userData')))
 				fs.writeFileSync(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
 			}
 		} catch (e) {
@@ -58,7 +59,7 @@ class DesktopConfigHandler {
 		} else {
 			this._desktopConfig = value
 		}
-		return Promise.promisify(fs.writeFile)(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
+		return Promise.promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
 	}
 }
 

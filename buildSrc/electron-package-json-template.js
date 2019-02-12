@@ -23,6 +23,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
 			"defaultDesktopConfig": {
+				"heartbeatTimeoutInSeconds": 30,
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,

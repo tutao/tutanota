@@ -732,13 +732,16 @@ type RegistrationConfigReturn = {
 
 type PushIdentifier = {
 	_type: TypeRef<PushIdentifier>;
+	_errors: Object;
 	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	disabled: boolean;
+	displayName: string;
 	identifier: string;
 	language: string;
 	lastNotificationDate: ?Date;

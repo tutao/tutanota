@@ -287,6 +287,7 @@ export class ContactFormRequestDialog {
 						                                     let p = Promise.resolve()
 						                                     if (cleanedNotificationMailAddress) {
 							                                     let pushIdentifier = createPushIdentifier()
+							                                     pushIdentifier.displayName = client.getIdentifier()
 							                                     pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
 							                                     pushIdentifier.language = lang.code
 							                                     pushIdentifier.pushServiceType = PushServiceType.EMAIL

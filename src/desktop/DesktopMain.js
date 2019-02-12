@@ -69,7 +69,6 @@ function onAppReady() {
 	// also don't show the window when we're an autolaunched tray app
 	const w = ApplicationWindow.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
-	console.log("notifications available:", notifier.isAvailable())
 	ipc.initialized(w.id)
 	   .then(() => lang.init(w.id))
 	   .then(main)

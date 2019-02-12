@@ -293,5 +293,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 			this._identifierListViewer.entityEventReceived(update)
 		}
+		m.redraw()
 	}
 }

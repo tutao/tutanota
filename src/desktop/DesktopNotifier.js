@@ -1,5 +1,7 @@
 // @flow
+import type {NativeImage} from 'electron'
 import {Notification} from 'electron'
+import {tray} from "./DesktopTray"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
 export const NotificationResult = {
@@ -8,8 +10,9 @@ export const NotificationResult = {
 }
 
 class DesktopNotifier {
-	_canShow: boolean = false
-	pendingNotifications: Array<Function> = []
+	_canShow: boolean = false;
+	pendingNotifications: Array<Function> = [];
+	_notificationCloseFunctions: {[string]: ()=>void} = {};
 
 	/**
 	 * signal that notifications can now be shown. also start showing notifications that came
@@ -38,45 +41,57 @@ class DesktopNotifier {
 	showOneShot(props: {|
 		title: string,
 		body?: string,
-		icon?: string
+		icon?: NativeImage
 	|}): Promise<NotificationResultEnum> {
 		if (!this.isAvailable()) {
 			return Promise.resolve()
 		}
-		let promise: Promise<NotificationResultEnum>
-		if (this._canShow) {
-			promise = new Promise((resolve, reject) => this._makeNotification(props, (res) => {
-				return () => resolve(res)
-			}))
-		} else {
-			promise = new Promise((resolve, reject) => this.pendingNotifications.push(resolve))
-				.then(() => {
-					return new Promise((resolve, reject) => {
-						this._makeNotification(props, (res) => {
-							return () => resolve(res)
-						})
-					})
-				})
-		}
-		return promise
+		return this._canShow
+			? new Promise(resolve => this._makeNotification(props, res => resolve(res)))
+			: new Promise(resolve => this.pendingNotifications.push(resolve))
+				.then(() => new Promise(resolve => this._makeNotification(props, res => resolve(res))))
 	}
 
+	submitGroupedNotification(title: string, message: string, id: string, onClick: () => void): void {
+		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
+			this._notificationCloseFunctions[id]()
+		}
+		this._notificationCloseFunctions[id] = this._makeNotification({
+			title: title,
+			body: message,
+			icon: tray.getIcon(),
+		}, onClick)
+	}
+
+	resolveGroupedNotification(id: string) {
+		if ('function' === typeof this._notificationCloseFunctions[id]) {
+			this._notificationCloseFunctions[id]()
+		}
+		delete this._notificationCloseFunctions[id]
+	}
+
+	/**
+	 *
+	 * @param props
+	 * @param onClick this will get called with the result
+	 * @returns {function(): void} call this to dismiss the notification
+	 * @private
+	 */
 	_makeNotification(props: {|
 		title: string,
 		body?: string,
-		icon?: string
-	|}, onClick: (res: NotificationResultEnum) => Function): void {
+		icon?: NativeImage
+	|}, onClick: (res: NotificationResultEnum) => void): () => void {
 		const {title, body, icon} =
 			Object.assign({}, {body: ""}, props)
 
-		const oneshot = new Notification({
-			"title": title,
-			"icon": icon,
-			"body": body,
-		})
-		oneshot.on('click', onClick(NotificationResult.Click))
-		oneshot.on('close', onClick(NotificationResult.Close))
-		oneshot.show()
+		const notification = new Notification({title, icon, body})
+			.on('click', () => onClick(NotificationResult.Click))
+			.on('close', () => onClick(NotificationResult.Close))
+		notification.show()
+		//remove listeners before closing to distinguish from dismissal by user
+		return () => notification.removeAllListeners().close()
+
 	}
 }
 

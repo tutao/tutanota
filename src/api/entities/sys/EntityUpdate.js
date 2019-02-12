@@ -21,7 +21,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "42"
+	"version": "43"
 }
 
 export function createEntityUpdate(): EntityUpdate {

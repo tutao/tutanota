@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {isApp} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll, update} from "../api/main/Entity"
@@ -115,9 +115,11 @@ export class IdentifierListViewer {
 				])
 
 				const rows = this._identifiers().map(identifier => {
-					const current = isApp() && identifier.identifier === this._currentIdentifier
+					const current = (isApp() || isDesktop()) && identifier.identifier === this._currentIdentifier
 					return m(IdentifierRow, {
-						name: this._identifierTypeName(current, identifier.pushServiceType),
+						name: current
+							? lang.get("pushIdentifierCurrentDevice_label")
+							: identifier.displayName,
 						disabled: identifier.disabled,
 						identifier: identifier.identifier,
 						current: current,
@@ -155,16 +157,6 @@ export class IdentifierListViewer {
 		m.redraw()
 	}
 
-	_identifierTypeName(current: boolean, type: NumberString): string {
-		if (current) {
-			return lang.get("pushIdentifierCurrentDevice_label")
-		} else {
-			return [
-				"Android FCM", "iOS", lang.get("adminEmailSettings_action"), "Android Tutanota"
-			][Number(type)]
-		}
-	}
-
 	_showAddNotificationEmailAddressDialog(user: ?User) {
 		if (!user) {
 			return
@@ -189,6 +181,7 @@ export class IdentifierListViewer {
 			let addNotificationEmailAddressOkAction = (dialog) => {
 				user = neverNull(user)
 				let pushIdentifier = createPushIdentifier()
+				pushIdentifier.displayName = lang.get("adminEmailSettings_action")
 				pushIdentifier.identifier = neverNull(getCleanedMailAddress(mailAddress()))
 				pushIdentifier.language = lang.code
 				pushIdentifier.pushServiceType = PushServiceType.EMAIL

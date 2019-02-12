@@ -11,6 +11,8 @@ import {conf} from './DesktopConfigHandler.js'
 import {lang} from './DesktopLocalizationProvider.js'
 import fs from 'fs'
 import {noOp} from "../api/common/utils/Utils"
+import {LOGIN_TITLE} from "../api/Env"
+import {notifier} from "./DesktopNotifier"
 
 type WindowBounds = {
 	rect: Rectangle,
@@ -24,9 +26,11 @@ export class ApplicationWindow {
 	_rewroteURL: boolean;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
+	_userId: ?string;
 	id: number;
 
 	constructor(showWhenReady: boolean) {
+		this._userId = null
 		this._createBrowserWindow(showWhenReady)
 		this._browserWindow.loadURL(this._startFile)
 		Menu.setApplicationMenu(null)
@@ -101,6 +105,7 @@ export class ApplicationWindow {
 				})
 			}
 		}).on('closed', ev => {
+			this.setUserId(null)
 			windows.splice(windows.indexOf(this), 1)
 			ipc.removeWindow(this.id)
 			tray.update()
@@ -115,7 +120,12 @@ export class ApplicationWindow {
 				this._browserWindow.hide()
 				ev.preventDefault()
 			}
-		}).on('page-title-updated', ev => tray.update())
+		}).on('page-title-updated', () => {
+			if (this._browserWindow.getTitle() === LOGIN_TITLE) {
+				this.setUserId(null)
+			}
+			tray.update()
+		})
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
 
@@ -224,6 +234,18 @@ export class ApplicationWindow {
 		)
 	}
 
+	setUserId(userId: ?string) {
+		console.log('window changed state to userId:', userId)
+		this._userId = userId
+		if (userId) {
+			notifier.resolveGroupedNotification(userId)
+		}
+	}
+
+	getUserId(): ?string {
+		return this._userId
+	}
+
 	// filesystem paths work differently than URLs
 	_rewriteURL(url: string, isInPlace: boolean): string {
 		if (
@@ -260,11 +282,7 @@ export class ApplicationWindow {
 	}
 
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
-		const url = webContents.getURL()
-		if (!(url.startsWith('file://') && (permission === 'notifications'))) {
-			return callback(false)
-		}
-		return callback(true)
+		return callback(false)
 	}
 
 	_toggleDevTools(): void {
@@ -288,6 +306,10 @@ export class ApplicationWindow {
 		ipc.sendRequest(this.id, 'openFindInPage', [])
 	}
 
+	isVisible(): boolean {
+		return this._browserWindow.isVisible()
+	}
+
 	static get(id: number): ?ApplicationWindow {
 		const w = windows.find(w => w.id === id)
 		return w
@@ -307,6 +329,16 @@ export class ApplicationWindow {
 		} else {
 			return new ApplicationWindow(show)
 		}
+	}
+
+	static openMailBox(userId: Id, mailAddress: string) {
+		let w = windows.find(w => w.getUserId() === userId)
+			|| windows.find(w => w.getUserId() === null)
+			|| new ApplicationWindow(true)
+		ipc.initialized(w.id).then(() => {
+			ipc.sendRequest(w.id, 'openMailbox', [userId, mailAddress])
+			w.show()
+		})
 	}
 }
 

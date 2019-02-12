@@ -4,10 +4,12 @@ import {ApplicationWindow} from './ApplicationWindow'
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import {conf} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
+import {sse} from './DesktopSseClient.js'
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -113,8 +115,21 @@ class IPC {
 				break
 			case 'getPushIdentifier':
 				// we know there's a logged in window
+				//first, send error report if there is one
 				err.sendErrorReport(windowId)
+				   .then(() => neverNull(ApplicationWindow.get(windowId)).setUserId(args[0].toString()))
+				   .then(() => d.resolve(sse.getPushIdentifier()))
+				break
+			case 'storePushIdentifierLocally':
+				sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString())
+				   .then(() => d.resolve())
+				break
+			case 'initPushNotifications':
+				// no need to react, we start push service with node
 				d.resolve()
+				break
+			case 'closePushNotifications':
+				// TODO
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))

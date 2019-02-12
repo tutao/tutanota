@@ -10,6 +10,7 @@ import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
+import {client} from "../misc/ClientDetector.js"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -20,8 +21,8 @@ class PushServiceApp {
 	}
 
 	register(): Promise<void> {
-		if (isAndroidApp()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
+		if (isAndroidApp() || isDesktop()) {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", [logins.getUserController().user._id])).then(identifier => {
 				if (identifier) {
 					this._currentIdentifier = identifier
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
@@ -59,10 +60,6 @@ class PushServiceApp {
 					console.log("denied by user")
 				}
 			})
-		} else if (isDesktop()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
-				// we don't get this yet
-			})
 		} else {
 			return Promise.resolve()
 		}
@@ -85,6 +82,7 @@ class PushServiceApp {
 	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceTypeEnum): Promise<PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
 		let pushIdentifier = createPushIdentifier()
+		pushIdentifier.displayName = client.getIdentifier()
 		pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
 		pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
 		pushIdentifier._area = "0"
