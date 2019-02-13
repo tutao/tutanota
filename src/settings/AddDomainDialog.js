@@ -6,7 +6,7 @@ import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomDomainStatusCode} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
-import {isDomainName} from "../misc/Formatter"
+import {isDomainName} from "../misc/FormatValidator"
 
 assertMainOrNode()
 

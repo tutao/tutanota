@@ -4,7 +4,7 @@ import SquireEditor from "squire-rte"
 import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
-import {isMailAddress} from '../../misc/Formatter.js'
+import {isMailAddress} from '../../misc/FormatValidator'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 

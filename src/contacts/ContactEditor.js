@@ -6,7 +6,8 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress, parseBirthday} from "../misc/Formatter"
+import {parseBirthday} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import {
 	ContactMailAddressTypeToLabel,
 	ContactPhoneNumberTypeToLabel,
