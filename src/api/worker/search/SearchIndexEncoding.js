@@ -4,7 +4,7 @@ export function iterateSearchIndexBlocks(row: Uint8Array, cb: (block: Uint8Array
 	let offset = 0
 	let iterations = 0
 	while (offset < row.length) {
-		const block = readSearchIndexBlock(row, offset)
+		const block = decodeSearchIndexBlock(row, offset)
 		const start = offset
 		offset = block.byteOffset + block.length
 		cb(block, start, offset, iterations++)
@@ -43,58 +43,66 @@ export function appendEntities(source: Uint8Array[], destination?: Uint8Array): 
 }
 
 export function encodeSearchIndexBlock(entityData: Uint8Array, target: Uint8Array, offset: number): number {
-	const length = entityData.length
-	if (length <= 0x7F) {
-		target[offset] = length
-		target.set(entityData, offset + 1)
-		return length + 1
+	const lengthOfPrefix = encodeNumberBlock(entityData.length, target, offset)
+	target.set(entityData, offset + lengthOfPrefix)
+	return lengthOfPrefix + entityData.length
+}
+
+export function encodeNumberBlock(value: number, target: Uint8Array, offset: number): number {
+	if (value <= 0x7F) {
+		target[offset] = value
+		return 1
 	} else {
-		const lengthOfLength = numberOfBytes(length)
-		let remainingLength = length
-		target[offset] = lengthOfLength | 0x80
-		for (let i = 0; i < lengthOfLength; i++) {
-			if (remainingLength > 0xff) {
+		const length = numberOfBytes(value)
+		let remainingValue = value
+		target[offset] = length | 0x80
+		for (let i = 0; i < length; i++) {
+			if (remainingValue > 0xff) {
 				// like shifting right by 8 but without overflows
-				target[offset + i + 1] = remainingLength / 256
-				remainingLength = remainingLength % 256
+				target[offset + i + 1] = remainingValue / 256
+				remainingValue = remainingValue % 256
 			} else {
-				target[offset + i + 1] = remainingLength
+				target[offset + i + 1] = remainingValue
 			}
 		}
-		target.set(entityData, offset + 1 + lengthOfLength)
-		return length + lengthOfLength + 1
+		return length + 1
 	}
 }
 
-/**
- * Find range for the next entity
- * @param data view on data starting from the entity (incl. encoded length)
- * @returns view with only entity (without encoded length)
- */
-export function readSearchIndexBlock(source: Uint8Array, offset: number): Uint8Array {
+
+export function decodeSearchIndexBlock(source: Uint8Array, offset: number): Uint8Array {
+	let blockLength = decodeNumberBlock(source, offset)
+	let numberLength = calculateNeededSpaceForNumber(blockLength)
+	return source.subarray(offset + numberLength, offset + numberLength + blockLength)
+}
+
+
+export function decodeNumberBlock(source: Uint8Array, offset: number): number {
 	const markerBit = source[offset] & 0x80
 	if (markerBit) {
 		const numberLength = source[offset] & 0x7F
-		let length = 0
+		let value = 0
 		for (let i = 0; i < numberLength; i++) {
-			length = length * 256
-			length += source[offset + i + 1]
+			value = value * 256
+			value += source[offset + i + 1]
 		}
-		const start = offset + numberLength + 1
-		return source.subarray(start, start + length)
+		return value
 	} else {
-		const start = offset + 1
-		return source.subarray(start, start + source[offset])
+		return source[offset]
 	}
 }
 
 export function calculateNeededSpace(data: Uint8Array[]): number {
 	return data.reduce((acc, entry) => {
-		let lengthOfPrefix = entry.length <= 0x7f
-			? 1
-			: numberOfBytes(entry.length) + 1
+		let lengthOfPrefix = calculateNeededSpaceForNumber(entry.length)
 		return acc + entry.length + lengthOfPrefix
 	}, 0)
+}
+
+export function calculateNeededSpaceForNumber(value: number): number {
+	return value <= 0x7f
+		? 1
+		: numberOfBytes(value) + 1
 }
 
 export function numberOfBytes(number: number): number {

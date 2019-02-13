@@ -318,7 +318,6 @@ export class SearchFacade {
 			if (!row) return []
 			const result = new Array(entry.size)
 			iterateSearchIndexBlocks(row, (block, s, e, iteration) => {
-				console.log("found block", row.subarray(s, e))
 				result[iteration] = block
 			})
 			return result

@@ -10,7 +10,6 @@ import {
 	filterIndexMemberships,
 	filterMailMemberships,
 	getAppId,
-	getIdFromEncSearchIndexEntry,
 	htmlToText,
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin
@@ -36,25 +35,16 @@ o.spec("Index Utils", () => {
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 
-	o("encryptSearchIndexEntry", function () {
+	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
-		let entry: SearchIndexEntry = {id: "L0YED5d----1", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encryptedInstanceId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
-		let encryptedEntry = encryptSearchIndexEntry(key, entry, encryptedInstanceId)
-		o(Array.from(getIdFromEncSearchIndexEntry(encryptedEntry))).deepEquals(Array.from(encryptedInstanceId))
-		let decrypted = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, encryptedEntry.slice(16), true, false)))
-		o(decrypted.length).equals(4)
-		o(decrypted[0]).equals(entry.app)
-		o(decrypted[1]).equals(entry.type)
-		o(decrypted[2]).equals(entry.attribute)
-		o(decrypted[3]).deepEquals(entry.positions)
-	})
-
-	o("decryptSearchIndexEntry", function () {
-		let key = aes256RandomKey()
-		let entry: SearchIndexEntry = {id: "122", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
+		let entry: SearchIndexEntry = {id: "L0YED5d----1", app: 0, type: 64, attribute: 84, positions: [12, 536, 3]}
 		let encId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
+
+		const result = aes256Decrypt(key, encryptedEntry.slice(16), true, false)
+		o(Array.from(result))
+			.deepEquals(Array.from(new Uint8Array([0, 64, 84, 12, 0x82, 0x02, 0x18, 3])))
+
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(JSON.stringify(decrypted.encId)).deepEquals(JSON.stringify(encId))
 		delete decrypted.encId

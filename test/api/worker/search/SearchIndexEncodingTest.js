@@ -5,7 +5,7 @@ import {
 	calculateNeededSpace,
 	encodeSearchIndexBlock, iterateSearchIndexBlocks,
 	numberOfBytes,
-	readSearchIndexBlock,
+	decodeSearchIndexBlock,
 	removeSearchIndexRanges
 } from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {spy as makeSpy} from "../../TestUtils"
@@ -77,25 +77,25 @@ o.spec("SearchIndexEncoding test", function () {
 		})
 	})
 
-	o.spec("readSearchIndexBlock", function () {
+	o.spec("decodeSearchIndexBlock", function () {
 		o("with short length (literal length)", function () {
 			const searchIndexData = new Uint8Array([0x01].concat([0x00]))
-			o(JSON.stringify(readSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x00])))
+			o(JSON.stringify(decodeSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x00])))
 		})
 
 		o("with short length (encoded length)", function () {
 			const searchIndexData = new Uint8Array([0x7F].concat([0x00]))
-			o(JSON.stringify(readSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x00])))
+			o(JSON.stringify(decodeSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x00])))
 		})
 
 		o("with long length", function () {
 			const searchIndexData = new Uint8Array([0x81, 0x01].concat([0x01, 0x02, 0x03]))
-			o(JSON.stringify(readSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x01])))
+			o(JSON.stringify(decodeSearchIndexBlock(searchIndexData, 0))).deepEquals(JSON.stringify(new Uint8Array([0x01])))
 		})
 
 		o("with long length and offset", function () {
 			const searchIndexData = new Uint8Array([0x00, 0x82, 0x01, 0x00].concat(new Array(256).fill(0x00)))
-			o(JSON.stringify(readSearchIndexBlock(searchIndexData, 1))).deepEquals(JSON.stringify(new Uint8Array(256)))
+			o(JSON.stringify(decodeSearchIndexBlock(searchIndexData, 1))).deepEquals(JSON.stringify(new Uint8Array(256)))
 		})
 	})
 
@@ -112,8 +112,8 @@ o.spec("SearchIndexEncoding test", function () {
 	o.spec("iterateSearchIndexBlocks", function () {
 		o("works", function () {
 			const shortBlock = [0x01, 0x00] // literal length & data
-			const longBlock = [0x81, 0x03, 0x01, 0x02, 0x03] // first byte - length of length, second length of data, rest is data
-			const anotherLongBlock = [0x81, 0x01, 0x01] // first byte - length of length, second length of data, rest is data
+			const longBlock = [0x81, 0x80].concat(new Array(128).fill(2)) // first byte - length of length, second length of data, rest is data
+			const anotherLongBlock = [0x81, 0x81].concat(new Array(129).fill(3)) // first byte - length of length, second length of data, rest is data
 			const anotherShortBlock = [0x02, 0x01, 0x02]
 
 			// 0  1  2  3  4  5  6  7  8  9  10 11 12 13
@@ -125,9 +125,9 @@ o.spec("SearchIndexEncoding test", function () {
 			iterateSearchIndexBlocks(row, spy)
 			o(JSON.stringify(spy.invocations)).equals(JSON.stringify([
 				[new Uint8Array(shortBlock.slice(1)), 0, 2, 0],
-				[new Uint8Array(longBlock.slice(2)), 2, 7, 1],
-				[new Uint8Array(anotherLongBlock.slice(2)), 7, 10, 2],
-				[new Uint8Array(anotherShortBlock.slice(1)), 10, 13, 3]
+				[new Uint8Array(longBlock.slice(2)), 2, 132, 1],
+				[new Uint8Array(anotherLongBlock.slice(2)), 132, 263, 2],
+				[new Uint8Array(anotherShortBlock.slice(1)), 263, 266, 3]
 			]))
 		})
 	})

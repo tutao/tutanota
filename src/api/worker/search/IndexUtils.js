@@ -6,6 +6,7 @@ import {random} from "../crypto/Randomizer"
 import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
+import {calculateNeededSpaceForNumber, decodeNumberBlock, encodeNumberBlock} from "./SearchIndexEncoding"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
@@ -17,9 +18,21 @@ export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
-	let data = JSON.stringify([entry.app, entry.type, entry.attribute, entry.positions])
+	const neededSpace = calculateNeededSpaceForNumber(entry.app)
+		+ calculateNeededSpaceForNumber(entry.type)
+		+ calculateNeededSpaceForNumber(entry.attribute)
+		+ entry.positions.reduce((acc, position) => acc + calculateNeededSpaceForNumber(position), 0)
+	const block = new Uint8Array(neededSpace)
+	let offset = 0
+	offset += encodeNumberBlock(entry.app, block, offset)
+	offset += encodeNumberBlock(entry.type, block, offset)
+	offset += encodeNumberBlock(entry.attribute, block, offset)
+	entry.positions.forEach((pos) => {
+		offset += encodeNumberBlock(pos, block, offset)
+	})
 
-	const encData = aes256Encrypt(key, stringToUtf8Uint8Array(data), random.generateRandomData(IV_BYTE_LENGTH), true, false)
+	const encData = aes256Encrypt(key, block, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+
 	const resultArray = new Uint8Array(encryptedInstanceId.length + encData.length)
 	resultArray.set(encryptedInstanceId)
 	resultArray.set(encData, 16)
@@ -27,17 +40,30 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 }
 
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): SearchIndexEntry {
-	console.log("decrypt search index entry", entry)
 	const encId = getIdFromEncSearchIndexEntry(entry)
 	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encId), true, false))
-	let data = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, entry.subarray(16), true, false)))
+	const data = aes256Decrypt(key, entry.subarray(16), true, false)
+	let offset = 0
+	const app = decodeNumberBlock(data, offset)
+	offset += calculateNeededSpaceForNumber(app)
+	const type = decodeNumberBlock(data, offset)
+	offset += calculateNeededSpaceForNumber(type)
+	const attribute = decodeNumberBlock(data, offset)
+	offset += calculateNeededSpaceForNumber(attribute)
+	const positions = []
+	while (offset < data.length) {
+		const pos = decodeNumberBlock(data, offset)
+		positions.push(pos)
+		offset += calculateNeededSpaceForNumber(pos)
+	}
+
 	return {
 		id: id,
 		encId,
-		app: data[0],
-		type: data[1],
-		attribute: data[2],
-		positions: data[3],
+		app,
+		type,
+		attribute,
+		positions,
 	}
 }
 
