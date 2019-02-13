@@ -29,7 +29,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			}
 		},
 		"dependencies": {
-			"electron-updater": "4.0.6",
+			"electron-updater": "4.0.7",
 			"electron-localshortcut": "3.1.0",
 			"fs-extra": "7.0.1",
 			"bluebird": "3.5.2",
@@ -38,7 +38,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.2",
+			"electronVersion": "4.0.4",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
@@ -83,7 +83,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"nsis": {
-				"oneClick": false,"perMachine": false,
+				"oneClick": false, "perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
 				"allowToChangeInstallationDirectory": true
