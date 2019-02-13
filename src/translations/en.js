@@ -931,6 +931,7 @@ const translation = {
 		"privacyPolicyUrl_label": "Link to privacy policy",
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
 		"acceptPrivacyPolicy_msg": "I have read and agree to the {privacyPolicy}.",
+		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings."
 	}
 }
 export default translation

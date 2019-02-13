@@ -935,6 +935,7 @@ const translation = {
 		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
 		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
+		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern."
 	}
 }
 export default translation

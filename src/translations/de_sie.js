@@ -930,7 +930,8 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"allowPushNotification_msg": "Bitte deaktivieren Sie die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Sie können dies auch später in den Einstellungen ändern."
 	}
 }
 export default translation
