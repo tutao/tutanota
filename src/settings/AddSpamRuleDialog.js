@@ -1,11 +1,12 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {TextField} from "../gui/base/TextField"
 import {getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
-import {isDomainName, isMailAddress} from "../misc/Formatter"
+import {isDomainName, isMailAddress} from "../misc/FormatValidator"
 import {SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
@@ -16,7 +17,6 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -35,7 +35,8 @@ export function show(emailAddressOrDomainName: ?string) {
 
 	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), stream(getSpamRuleTypeNameMapping()[0].value))
 	let valueField = new TextField("emailSenderPlaceholder_label",
-		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg")).setValue(emailAddressOrDomainName)
+		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)
+			|| "emptyString_msg")).setValue(emailAddressOrDomainName)
 	let form = {
 		view: () => {
 			return [

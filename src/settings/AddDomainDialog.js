@@ -6,7 +6,7 @@ import {assertMainOrNode} from "../api/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomDomainStatusCode} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
-import {isDomainName} from "../misc/Formatter"
+import {isDomainName} from "../misc/FormatValidator"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 
@@ -18,7 +18,6 @@ export function show(customerInfo: CustomerInfo) {
 		label: "adminCustomDomain_label",
 		value: domainName
 	}
-
 	let dialog = Dialog.showActionDialog({
 		title: lang.get("addCustomDomain_action"),
 		child: () => [
