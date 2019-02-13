@@ -161,10 +161,6 @@ export class WorkerClient {
 		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
 	}
 
-	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId: Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
-		return this._postRequest(new Request('retrieveExternalSmsPassword', arguments))
-	}
-
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
 		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments))
 		                                       .then(loginData => {

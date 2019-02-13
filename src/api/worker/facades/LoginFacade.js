@@ -240,22 +240,6 @@ export class LoginFacade {
 			})
 	}
 
-	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId: Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
-		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
-		let data = createPasswordRetrievalData()
-		data.autoAuthenticationId = autoAuthenticationId
-
-		return serviceRequest(TutanotaService.PasswordRetrievalService, HttpMethod.GET, data, PasswordRetrievalReturnTypeRef, null, null, headers)
-			.then(result => {
-				if (!result.transmissionKeyEncryptedPassword) {
-					return null
-				} else {
-					let password = utf8Uint8ArrayToString(aes128Decrypt(symKeyForPasswordTransmission, concat(fixedIv, base64ToUint8Array(result.transmissionKeyEncryptedPassword))))
-					return password
-				}
-			})
-	}
-
 	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		if (this._user) {
 			throw new Error("user already logged in")
