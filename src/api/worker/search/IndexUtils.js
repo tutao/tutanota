@@ -6,7 +6,7 @@ import {random} from "../crypto/Randomizer"
 import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
-import {calculateNeededSpaceForNumber, decodeNumberBlock, encodeNumberBlock} from "./SearchIndexEncoding"
+import {calculateNeededSpaceForNumber, decodeNumberBlock, decodeNumbers, encodeNumberBlock, encodeNumbers} from "./SearchIndexEncoding"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
@@ -27,9 +27,7 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 	offset += encodeNumberBlock(entry.app, block, offset)
 	offset += encodeNumberBlock(entry.type, block, offset)
 	offset += encodeNumberBlock(entry.attribute, block, offset)
-	entry.positions.forEach((pos) => {
-		offset += encodeNumberBlock(pos, block, offset)
-	})
+	encodeNumbers(entry.positions, block, offset)
 
 	const encData = aes256Encrypt(key, block, random.generateRandomData(IV_BYTE_LENGTH), true, false)
 
@@ -50,12 +48,7 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 	offset += calculateNeededSpaceForNumber(type)
 	const attribute = decodeNumberBlock(data, offset)
 	offset += calculateNeededSpaceForNumber(attribute)
-	const positions = []
-	while (offset < data.length) {
-		const pos = decodeNumberBlock(data, offset)
-		positions.push(pos)
-		offset += calculateNeededSpaceForNumber(pos)
-	}
+	const positions = decodeNumbers(data, offset)
 
 	return {
 		id: id,
@@ -117,7 +110,7 @@ export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
 			indexMap: new Map(),
 		},
 		move: [],
-		delete: {encWordToEncInstanceIds: new Map(), encInstanceIds: []},
+		delete: {searchIndexRowToEncInstanceIds: new Map(), encInstanceIds: []},
 	}
 }
 

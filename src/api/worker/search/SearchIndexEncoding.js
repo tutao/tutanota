@@ -108,3 +108,21 @@ export function calculateNeededSpaceForNumber(value: number): number {
 export function numberOfBytes(number: number): number {
 	return Math.ceil(Math.log2(number + 1) / 8)
 }
+
+
+export function decodeNumbers(binaryNumbers: Uint8Array, offset: number = 0): number[] {
+	const numbers = []
+	while (offset < binaryNumbers.length) {
+		const number = decodeNumberBlock(binaryNumbers, offset)
+		numbers.push(number)
+		offset += calculateNeededSpaceForNumber(number)
+	}
+	return numbers
+}
+
+
+export function encodeNumbers(numbers: number[], target: Uint8Array, offset: number = 0): void {
+	numbers.forEach((number) => {
+		offset += encodeNumberBlock(number, target, offset)
+	})
+}

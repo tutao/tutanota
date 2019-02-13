@@ -6,18 +6,19 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 // db types
 export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encrypted app, attribute, type and positions
 
+export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc search index row keys, third is owner group id
+
 export type EncryptedSearchIndexEntryWithHash = {
 	encEntry: EncryptedSearchIndexEntry,
 	idHash: number
 }
-
-export type ElementData = [Id, Uint8Array, Id] // first element of value is listId (we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail), second is encrypted words of instance seperated by whitespace, third is the ownerGroup of the element
 
 export type GroupData = {
 	lastBatchIds: Id[];
 	indexTimestamp: number;
 	groupType: GroupTypeEnum;
 }
+
 
 // runtime types
 export type B64EncIndexKey = Base64;
@@ -28,6 +29,12 @@ export type B64EncInstanceId = Base64;
 export type AttributeHandler = {
 	attribute: ModelValue | ModelAssociation;
 	value: lazy<string>;
+}
+
+export type ElementDataSurrogate = {
+	listId: Id, // we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail
+	encWordsB64: Array<B64EncIndexKey>,
+	ownerGroup: Id
 }
 
 export type KeyToIndexEntries = {
@@ -55,7 +62,7 @@ export type IndexUpdate = {
 	batchId: ?IdTuple;
 	indexTimestamp: ?number;
 	create: {
-		encInstanceIdToElementData: Map<B64EncInstanceId, ElementData>;
+		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
 		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
 	};
 	move: {
@@ -63,7 +70,7 @@ export type IndexUpdate = {
 		newListId: Id;
 	}[];
 	delete: {
-		encWordToEncInstanceIds: Map<Base64, Uint8Array[]>;
+		searchIndexRowToEncInstanceIds: Map<number, Uint8Array[]>;
 		encInstanceIds: B64EncInstanceId[];
 	};
 }

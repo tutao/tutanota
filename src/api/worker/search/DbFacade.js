@@ -2,6 +2,7 @@
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
+export const SearchIndexWordsOS = "SearchIndexWords"
 export const SearchIndexOS = "SearchIndex"
 export const SearchIndexMetaDataOS = "SearchIndexMeta"
 export const ElementDataOS = "ElementData"
@@ -9,7 +10,7 @@ export const MetaDataOS = "MetaData"
 export const GroupDataOS = "GroupMetaData"
 export const SearchTermSuggestionsOS = "SearchTermSuggestions"
 
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 export class DbFacade {
 	_id: string;
@@ -43,17 +44,19 @@ export class DbFacade {
 									MetaDataOS,
 									GroupDataOS,
 									SearchTermSuggestionsOS,
-									SearchIndexMetaDataOS)
+									SearchIndexMetaDataOS,
+									SearchIndexWordsOS
+								)
 							}
 
 							try {
+								db.createObjectStore(SearchIndexWordsOS)
 								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
-								db.createObjectStore(SearchIndexMetaDataOS)
+								db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true})
 								db.createObjectStore(ElementDataOS)
 								db.createObjectStore(MetaDataOS)
 								db.createObjectStore(GroupDataOS)
 								db.createObjectStore(SearchTermSuggestionsOS)
-
 							} catch (e) {
 								callback(new DbError("could not create object store searchindex", e))
 							}

@@ -158,7 +158,7 @@ o.spec("Index Utils", () => {
 		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
 		o(indexUpdate.create.indexMap instanceof Map).equals(true)
 		o(indexUpdate.move).deepEquals([])
-		o(indexUpdate.delete.encWordToEncInstanceIds instanceof Map).equals(true)
+		o(indexUpdate.delete.searchIndexRowToEncInstanceIds instanceof Map).equals(true)
 		o(indexUpdate.delete.encInstanceIds).deepEquals([])
 	})
 

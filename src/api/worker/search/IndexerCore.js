@@ -1,12 +1,11 @@
 //@flow
-import {DbTransaction, ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "./DbFacade"
+import {DbTransaction, ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsOS} from "./DbFacade"
 import {firstBiggerThanSecond} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {downcast, neverNull} from "../../common/utils/Utils"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {random} from "../crypto/Randomizer"
 import {
 	byteLength,
 	encryptIndexKeyBase64,
@@ -19,7 +18,6 @@ import {
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
-	B64EncInstanceId,
 	Db,
 	EncryptedSearchIndexEntry,
 	GroupData,
@@ -37,8 +35,16 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {arrayHash} from "../../common/utils/ArrayUtils"
-import {appendEntities, iterateSearchIndexBlocks, removeSearchIndexRanges} from "./SearchIndexEncoding"
+import {
+	appendEntities,
+	calculateNeededSpaceForNumber,
+	decodeNumbers,
+	encodeNumberBlock,
+	iterateSearchIndexBlocks,
+	removeSearchIndexRanges
+} from "./SearchIndexEncoding"
 import {isTest} from "../../Env"
+import {random} from "../crypto/Randomizer"
 
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -126,26 +132,27 @@ export class IndexerCore {
 
 	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
 		let listId = id[0]
-		let encryptedInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1], this.db.iv)
-		let b64InstanceId = uint8ArrayToBase64(encryptedInstanceId)
+		let encInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1], this.db.iv)
+		let encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
 
 		let encryptionTimeStart = getPerformanceTimestamp()
-		let words = []
+		let encWordsB64 = []
 		keyToIndexEntries.forEach((value, indexKey) => {
-			let encIndexKey = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
-			let indexEntries = indexUpdate.create.indexMap.get(encIndexKey)
-			words.push(indexKey)
+			let encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
+			let indexEntries = indexUpdate.create.indexMap.get(encWordB64)
+			encWordsB64.push(encWordB64)
 			if (!indexEntries) {
 				indexEntries = []
 			}
-			indexUpdate.create.indexMap.set(encIndexKey, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encryptedInstanceId))))
+			indexUpdate.create.indexMap.set(encWordB64, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId))))
 		})
 
-		indexUpdate.create.encInstanceIdToElementData.set(b64InstanceId, [
-			listId,
-			aes256Encrypt(this.db.key, stringToUtf8Uint8Array(words.join(" ")), random.generateRandomData(IV_BYTE_LENGTH), true, false),
-			ownerGroup
-		])
+		indexUpdate.create.encInstanceIdToElementData.set(encInstanceIdB64, {
+				listId,
+				encWordsB64,
+				ownerGroup
+			}
+		)
 
 		this._stats.encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
@@ -159,15 +166,15 @@ export class IndexerCore {
 				if (!elementData) {
 					return
 				}
-				let words = utf8Uint8ArrayToString(aes256Decrypt(this.db.key, elementData[1], true, false)).split(" ")
-				let encWords = words.map(word => encryptIndexKeyBase64(this.db.key, word, this.db.iv))
-				encWords.map(encWord => {
-					let ids = indexUpdate.delete.encWordToEncInstanceIds.get(encWord)
+				let rowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true, false)
+				const rowKeys = decodeNumbers(rowKeysBinary)
+				rowKeys.map(rowKey => {
+					let ids = indexUpdate.delete.searchIndexRowToEncInstanceIds.get(rowKey)
 					if (ids == null) {
 						ids = []
 					}
 					ids.push(encInstanceIdPlain)
-					indexUpdate.delete.encWordToEncInstanceIds.set(encWord, ids)
+					indexUpdate.delete.searchIndexRowToEncInstanceIds.set(rowKey, ids)
 				})
 				indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 			})
@@ -190,16 +197,15 @@ export class IndexerCore {
 			return Promise.reject(new CancelledError("mail indexing cancelled"))
 		}
 		return this.db.dbFacade.createTransaction(false, [
-			SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS
+			SearchIndexWordsOS, SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS
 		])
 		           .then(transaction => {
 			           return Promise.resolve()
 			                         .then(() => this._moveIndexedInstance(indexUpdate, transaction))
 			                         .then(() => this._deleteIndexedInstance(indexUpdate, transaction))
-			                         .then(() => this._insertNewElementData(indexUpdate, transaction))
-			                         .then(keysToUpdate => keysToUpdate != null
-				                         ? this._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
-				                         : null)
+			                         .then(() => this._insertNewIndexEntries(indexUpdate, transaction))
+			                         .then((rowKeys: ?{[B64EncIndexKey]: number}) =>
+				                         rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys))
 			                         .then(() => this._updateGroupData(indexUpdate, transaction))
 			                         .then(() => {
 				                         return transaction.wait().then(() => {
@@ -245,208 +251,219 @@ export class IndexerCore {
 	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		this._cancelIfNeeded()
 		performance.mark("deleteIndexEntryTotal-start")
-		if (indexUpdate.delete.encWordToEncInstanceIds.size === 0) return null // keep transaction context open (only in Safari)
+		if (indexUpdate.delete.searchIndexRowToEncInstanceIds.size === 0) return null // keep transaction context open (only in Safari)
 		performance.mark("deleteElementData-start")
 		let deleteElementDataPromise = Promise.all(indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId)))
 		                                      .tap(() => {
 			                                      performance.mark("deleteElementData-end")
 		                                      })
-		return Promise.all(Array.from(indexUpdate.delete.encWordToEncInstanceIds).map(([encWord, encInstanceIds]) => {
-			return transaction.getAsList(SearchIndexMetaDataOS, encWord).then(metaDataEntries => {
-				if (metaDataEntries.length > 0) {
-					return thenOrApply(this._deleteSearchIndexEntries(transaction, metaDataEntries, encInstanceIds), (updatedMetaDataEntries) => {
-						const nonEmptyEntries = updatedMetaDataEntries
-							.filter(e => e.size > 0)
-						if (nonEmptyEntries.length === 0) {
-							return transaction.delete(SearchIndexMetaDataOS, encWord)
-						} else {
-							return transaction.put(SearchIndexMetaDataOS, encWord,
-								nonEmptyEntries)
-						}
-					})
+		return Promise.all(Array.from(indexUpdate.delete.searchIndexRowToEncInstanceIds)
+		                        .map(([row, encInstanceIds]) => this._deleteSearchIndexEntries(transaction, row, encInstanceIds)))
+		              .then(() => deleteElementDataPromise)
+		              .return()
+		              .tap(() => {
+			              performance.mark("deleteIndexEntryTotal-end")
+			              performance.measure("deleteIndexEntryTotal", "deleteIndexEntryTotal-start", "deleteIndexEntryTotal-end")
+			              performance.measure("deleteElementData", "deleteElementData-start", "deleteElementData-end")
+			              // if (!isTest()) {
+			              //     self.printMeasures()
+			              // }
+		              })
+	}
+
+	_deleteSearchIndexEntries(transaction: DbTransaction, searchIndexRowKey: number, encInstanceIds: Uint8Array[]): $Promisable<void> {
+		this._cancelIfNeeded()
+
+		const encInstanceIdSet = new Set(encInstanceIds.map((e) => arrayHash(e)))
+		return transaction.get(SearchIndexOS, searchIndexRowKey).then((indexEntriesRow) => {
+			if (!indexEntriesRow) return
+
+			const [metaDataRowId, indexEntriesBinary] = indexEntriesRow
+			performance.mark("findIndexEntriesInRows-start")
+			const rangesToRemove = []
+
+			const totalRowLength = iterateSearchIndexBlocks(indexEntriesBinary, ((block, start, end) => {
+				if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
+					rangesToRemove.push([start, end])
 				}
-			})
-		})).then(() => deleteElementDataPromise).return().tap(() => {
-			performance.mark("deleteIndexEntryTotal-end")
-			performance.measure("deleteIndexEntryTotal", "deleteIndexEntryTotal-start", "deleteIndexEntryTotal-end")
-			performance.measure("deleteElementData", "deleteElementData-start", "deleteElementData-end")
-			if (!isTest()) {
-				self.printMeasures()
+			}))
+
+			const newMetaDataSize = totalRowLength - rangesToRemove.length
+			if (rangesToRemove.length === 0) {
+				performance.mark("findIndexEntriesInRows-end")
+				performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
+				return
+			} else if (totalRowLength === rangesToRemove.length) {
+				performance.mark("findIndexEntriesInRows-end")
+				performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
+				return transaction.delete(SearchIndexOS, searchIndexRowKey)
+				                  .then(() => this._updateMetaData(transaction, metaDataRowId, searchIndexRowKey, newMetaDataSize))
+			} else {
+				const trimmed = removeSearchIndexRanges(indexEntriesBinary, rangesToRemove)
+				performance.mark("findIndexEntriesInRows-end")
+				performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
+				return transaction.put(SearchIndexOS, searchIndexRowKey, [metaDataRowId, trimmed])
+				                  .then(() => this._updateMetaData(transaction, metaDataRowId, searchIndexRowKey, newMetaDataSize))
 			}
 		})
 	}
 
-	_deleteSearchIndexEntries(transaction: DbTransaction, metaDataEntries: SearchIndexMetadataEntry[], encInstanceIds: Uint8Array[]): $Promisable<SearchIndexMetadataEntry[]> {
-		this._cancelIfNeeded()
-		const encInstanceIdSet = new Set(encInstanceIds.map((e) => arrayHash(e)))
-		return this._promiseMapCompat(metaDataEntries, metaData => {
-			return transaction.get(SearchIndexOS, metaData.key).then((indexEntriesRow) => {
-				if (!indexEntriesRow) return metaData
-
-				performance.mark("findIndexEntriesInRows-start")
-				const rangesToRemove = []
-				const totalRowLength = iterateSearchIndexBlocks(indexEntriesRow, ((block, start, end) => {
-					if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
-						rangesToRemove.push([start, end])
-					}
-				}))
-				metaData.size = totalRowLength - rangesToRemove.length
-
-				if (rangesToRemove.length === 0) {
-					performance.mark("findIndexEntriesInRows-end")
-					performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
-					return metaData
-				} else if (totalRowLength === rangesToRemove.length) {
-
-					performance.mark("findIndexEntriesInRows-end")
-					performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
-					return transaction.delete(SearchIndexOS, metaData.key).return(metaData)
-				} else {
-					const trimmed = removeSearchIndexRanges(indexEntriesRow, rangesToRemove)
-					performance.mark("findIndexEntriesInRows-end")
-					performance.measure("findIndexEntriesInRows", "findIndexEntriesInRows-start", "findIndexEntriesInRows-end")
-					return transaction.put(SearchIndexOS, metaData.key, trimmed).return(metaData)
+	_updateMetaData(transaction: DbTransaction, metaDataId: number, searchIndexRowId: number, rowSize: number): Promise<void> {
+		return transaction.getAsList(SearchIndexMetaDataOS, metaDataId).then((metaDataEntries: SearchIndexMetadataEntry[]) => {
+			const metaDataIndex = metaDataEntries.findIndex((metaData) => metaData.key === searchIndexRowId)
+			if (metaDataIndex !== -1) {
+				if (rowSize > 0) {
+					metaDataEntries[metaDataIndex].size = rowSize
+				} else if (rowSize === 0) {
+					metaDataEntries.splice(metaDataIndex, 1)
 				}
-			})
+			} else if (rowSize > 0) {
+				metaDataEntries.push({
+					size: rowSize,
+					key: searchIndexRowId
+				})
+			}
+			if (metaDataEntries.length !== 0) {
+				return transaction.put(SearchIndexMetaDataOS, metaDataId, metaDataEntries)
+			} else {
+				return transaction.delete(SearchIndexMetaDataOS, metaDataId)
+			}
 		})
 	}
 
 	/**
 	 * @return a map that contains all new encrypted instance ids
 	 */
-	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncInstanceId]: boolean}> {
+	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction, encWordToIndexRow: {[B64EncIndexKey]: number}): ?Promise<void> {
 		this._cancelIfNeeded()
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only in Safari)
 		performance.mark("insertNewElementData-start")
-		let keysToUpdate: {[B64EncInstanceId]: boolean} = {}
 		let promises = []
-		indexUpdate.create.encInstanceIdToElementData.forEach((elementData, b64EncInstanceId) => {
+		indexUpdate.create.encInstanceIdToElementData.forEach((elementDataSurrogate, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
-			performance.mark("insertNewElementData_get-start")
-			promises.push(transaction.get(ElementDataOS, b64EncInstanceId).then(result => {
-				performance.mark("insertNewElementData_get-end")
-				if (!result) { // only add the element to the index if it has not been indexed before
-					this._stats.writeRequests += 1
-					this._stats.storedBytes += encInstanceId.length + elementData[0].length + elementData[1].length
-					keysToUpdate[b64EncInstanceId] = true
-
-					performance.mark("insertNewElementData_put-start")
-					return transaction.put(ElementDataOS, b64EncInstanceId, elementData).finally(() => {
-						performance.mark("insertNewElementData_put-end")
-						performance.measure("insertNewElementData_put", "insertNewElementData_put-start", "insertNewElementData_put-end")
-					})
-				}
-			}))
+			performance.mark("insertNewElementData_put-start")
+			const encWords: Array<B64EncIndexKey> = elementDataSurrogate.encWordsB64
+			const rowKeys = encWords.map((encWord) => encWordToIndexRow[encWord])
+			const sizeBinary = rowKeys.reduce((acc, key) => acc + calculateNeededSpaceForNumber(key), 0)
+			const rowKeysBinary = new Uint8Array(sizeBinary)
+			let offset = 0
+			rowKeys.forEach((rowKey) => {
+				offset += encodeNumberBlock(rowKey, rowKeysBinary, offset)
+			})
+			const encRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+			return transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encRowKeys, elementDataSurrogate.ownerGroup]).finally(() => {
+				performance.mark("insertNewElementData_put-end")
+				performance.measure("insertNewElementData_put", "insertNewElementData_put-start", "insertNewElementData_put-end")
+			})
 		})
-		return Promise.all(promises).return(keysToUpdate).finally(() => {
+		return Promise.all(promises).finally(() => {
 			performance.mark("insertNewElementData-end")
 			performance.measure("insertNewElementData", "insertNewElementData-start", "insertNewElementData-end")
 		})
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, keysToUpdate: {[B64EncInstanceId]: boolean}, transaction: DbTransaction): ?Promise<*> {
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncIndexKey]: number}> {
 		this._cancelIfNeeded()
 		performance.mark("insertNewIndexEntries-start")
 		let keys = [...indexUpdate.create.indexMap.keys()]
-
-		const result = this._promiseMapCompat(keys, (key) => {
-			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(key))
-			return this._putEncryptedEntity(indexUpdate.groupId, transaction, keysToUpdate, key, encryptedEntries)
+		const keyToIndexEntryKey: {[B64EncIndexKey]: number} = {}
+		const result = this._promiseMapCompat(keys, (encWordB64) => {
+			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
+			return thenOrApply(this._putEncryptedEntity(indexUpdate.groupId, transaction, encWordB64, encryptedEntries), (rowId) => {
+				keyToIndexEntryKey[encWordB64] = rowId
+			})
 		}, {concurrency: 1})
+
 		return result instanceof Promise
-			? result.tap(() => {
+			? result.return(keyToIndexEntryKey).tap(() => {
 				performance.mark("insertNewIndexEntries-end")
 				performance.measure("insertNewIndexEntries", "insertNewIndexEntries-start", "insertNewIndexEntries-end")
 			})
 			: null
 	}
 
-	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, keysToUpdate: {[B64EncInstanceId]: boolean}, b64EncIndexKey: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<void> {
+
+	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, encWordB64: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<number> {
 		this._cancelIfNeeded()
-		let filteredEncryptedEntries = encryptedEntries.filter(entry => keysToUpdate[uint8ArrayToBase64(getIdFromEncSearchIndexEntry(entry))])
-		let encIndexKey = base64ToUint8Array(b64EncIndexKey)
-		if (filteredEncryptedEntries.length > 0) {
+		if (encryptedEntries.length > 0) {
 			performance.mark("insertNewIndexEntries_getMeta-start")
-			return transaction.get(SearchIndexMetaDataOS, b64EncIndexKey)
-			                  .then((metadata: ?SearchIndexMetadataEntry[]) => {
-				                  performance.mark("insertNewIndexEntries_getMeta-end")
-				                  performance.measure("insertNewIndexEntries_getMeta", "insertNewIndexEntries_getMeta-start", "insertNewIndexEntries_getMeta-end")
-				                  if (!metadata) { // no meta data entry for enc word create new search index row and meta data entry
-					                  this._stats.storedBytes += encIndexKey.length
-					                  this._stats.words += 1
-					                  const binaryRow = appendEntities(filteredEncryptedEntries)
-
-					                  return transaction.put(SearchIndexOS, null, binaryRow)
-					                                    .then(newId => {
-
-						                                    const metaData = [
-							                                    {
-								                                    key: newId,
-								                                    size: filteredEncryptedEntries.length
-							                                    }
-						                                    ]
-						                                    return metaData
-					                                    })
-				                  } else {
-					                  const safeMetaData = neverNull(metadata)
-					                  const maxSize = SEARCH_INDEX_ROW_LENGTH - filteredEncryptedEntries.length
-					                  const vacantRow = metadata.find(entry => entry.size < maxSize)
-					                  performance.mark("insertNewIndexEntries_putIndexNew-start")
-					                  if (!vacantRow) { // new entries do not fit into existing search index row, create new row
-						                  const binaryRow = appendEntities(filteredEncryptedEntries)
-						                  return transaction.put(SearchIndexOS, null, binaryRow)
-						                                    .then(newId => {
-							                                    safeMetaData.push({
-								                                    key: newId,
-								                                    size: filteredEncryptedEntries.length
+			return transaction
+				.get(SearchIndexWordsOS, encWordB64)
+				.then((metaDataRowId: ?number) => this._getOrCreateSearchIndexMeta(transaction, encWordB64, metaDataRowId))
+				.then(({rowId: metaRowId, entries: metadata}) => {
+					performance.mark("insertNewIndexEntries_getMeta-end")
+					performance.measure("insertNewIndexEntries_getMeta", "insertNewIndexEntries_getMeta-start", "insertNewIndexEntries_getMeta-end")
+					const safeMetaData = neverNull(metadata)
+					const maxSize = SEARCH_INDEX_ROW_LENGTH - encryptedEntries.length
+					const vacantRow = metadata.find(entry => entry.size < maxSize)
+					performance.mark("insertNewIndexEntries_putIndexNew-start")
+					if (!vacantRow) { // new entries do not fit into existing search index row, create new row
+						const binaryRow = appendEntities(encryptedEntries)
+						return transaction.put(SearchIndexOS, null, [metaRowId, binaryRow])
+						                  .then(newId => {
+							                  safeMetaData.push({
+								                  key: newId,
+								                  size: encryptedEntries.length
+							                  })
+							                  return [metaRowId, safeMetaData, newId]
+						                  })
+						                  .finally(() => {
+							                  performance.mark("insertNewIndexEntries_putIndexNew-end")
+							                  performance.measure("insertNewIndexEntries_putIndexNew", "insertNewIndexEntries_putIndexNew-start", "insertNewIndexEntries_putIndexNew-end")
+						                  })
+					} else {
+						// add new entries to existing search index row
+						performance.mark("insertNewIndexEntries_getRow-start")
+						return transaction.get(SearchIndexOS, vacantRow.key)
+						                  .then((indexEntriesRow) => {
+							                  performance.mark("insertNewIndexEntries_getRow-end")
+							                  performance.measure("insertNewIndexEntries_getRow", "insertNewIndexEntries_getRow-start", "insertNewIndexEntries_getRow-end")
+							                  performance.mark("insertNewIndexEntries_putIndex-start")
+							                  let safeRow = indexEntriesRow && indexEntriesRow[1] || new Uint8Array(0)
+							                  const resultRow = appendEntities(encryptedEntries, safeRow)
+							                  return transaction.put(SearchIndexOS, vacantRow.key, [metaRowId, resultRow])
+							                                    .then(() => {
+								                                    vacantRow.size += encryptedEntries.length
+								                                    return [metaRowId, safeMetaData, vacantRow.key]
 							                                    })
-							                                    return safeMetaData
-						                                    })
-						                                    .finally(() => {
-							                                    performance.mark("insertNewIndexEntries_putIndexNew-end")
-							                                    performance.measure("insertNewIndexEntries_putIndexNew", "insertNewIndexEntries_putIndexNew-start", "insertNewIndexEntries_putIndexNew-end")
-						                                    })
-					                  } else {
-						                  // add new entries to existing search index row
-						                  performance.mark("insertNewIndexEntries_getRow-start")
-						                  return transaction.get(SearchIndexOS, vacantRow.key)
-						                                    .then((row) => {
-							                                    performance.mark("insertNewIndexEntries_getRow-end")
-							                                    performance.measure("insertNewIndexEntries_getRow", "insertNewIndexEntries_getRow-start", "insertNewIndexEntries_getRow-end")
-							                                    performance.mark("insertNewIndexEntries_putIndex-start")
-							                                    let safeRow = row || new Uint8Array(0)
-							                                    const resultRow = appendEntities(filteredEncryptedEntries, safeRow)
-							                                    return transaction.put(SearchIndexOS, vacantRow.key, resultRow)
-							                                                      .then(() => {
-								                                                      vacantRow.size += filteredEncryptedEntries.length
-								                                                      return safeMetaData
-							                                                      })
-						                                    })
-						                                    .finally(() => {
-							                                    performance.mark("insertNewIndexEntries_putIndex-end")
-							                                    performance.measure("insertNewIndexEntries_putIndex", "insertNewIndexEntries_putIndex-start", "insertNewIndexEntries_putIndex-end")
-						                                    })
-					                  }
-				                  }
-			                  })
-			                  .then((metaData) => {
-				                  const columnSize = metaData.reduce((result, metaDataEntry) => result
-					                  + metaDataEntry.size, 0)
-				                  this._stats.writeRequests += 1
-				                  this._stats.largestColumn = columnSize > this._stats.largestColumn
-					                  ? columnSize : this._stats.largestColumn
-				                  this._stats.storedBytes += filteredEncryptedEntries.reduce((sum, e) =>
-					                  sum + e.length, 0)
-				                  performance.mark("insertNewIndexEntries_putMeta-start")
-				                  return transaction.put(SearchIndexMetaDataOS, b64EncIndexKey, metaData)
-				                                    .finally(() => {
-					                                    performance.mark("insertNewIndexEntries_putMeta-end")
-					                                    performance.measure("insertNewIndexEntries_putMeta", "insertNewIndexEntries_putMeta-start", "insertNewIndexEntries_putMeta-end")
-				                                    })
-			                  })
+						                  })
+						                  .finally(() => {
+							                  performance.mark("insertNewIndexEntries_putIndex-end")
+							                  performance.measure("insertNewIndexEntries_putIndex", "insertNewIndexEntries_putIndex-start", "insertNewIndexEntries_putIndex-end")
+						                  })
+					}
+				})
+				.then(([metaDataRowId, metaData, rowId]) => {
+					const columnSize = metaData.reduce((result, metaDataEntry) => result
+						+ metaDataEntry.size, 0)
+					this._stats.writeRequests += 1
+					this._stats.largestColumn = columnSize > this._stats.largestColumn
+						? columnSize : this._stats.largestColumn
+					this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
+						sum + e.length, 0)
+					performance.mark("insertNewIndexEntries_putMeta-start")
+					return transaction.put(SearchIndexMetaDataOS, metaDataRowId, metaData)
+					                  .return(rowId)
+					                  .finally(() => {
+						                  performance.mark("insertNewIndexEntries_putMeta-end")
+						                  performance.measure("insertNewIndexEntries_putMeta", "insertNewIndexEntries_putMeta-start", "insertNewIndexEntries_putMeta-end")
+					                  })
+				})
+
 		}
 	}
 
+	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey, metaDataRowId: ?number): Promise<{rowId: number, entries: SearchIndexMetadataEntry[]}> {
+		const rowId = metaDataRowId
+		if (rowId) {
+			return transaction.getAsList(SearchIndexMetaDataOS, rowId).then(entries => ({rowId, entries}))
+		} else {
+			return transaction.put(SearchIndexMetaDataOS, null, []).then(newMetaDataRowId => {
+				this._stats.words += 1
+				return transaction.put(SearchIndexWordsOS, encWordBase64, newMetaDataRowId).then(() => ({rowId: newMetaDataRowId, entries: []}))
+			})
+		}
+	}
 
 	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		this._cancelIfNeeded()

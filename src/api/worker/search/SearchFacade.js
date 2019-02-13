@@ -3,7 +3,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "./DbFacade"
+import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsOS} from "./DbFacade"
 import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
@@ -308,16 +308,18 @@ export class SearchFacade {
 	}
 
 	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
-		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
+		return this._db.dbFacade.createTransaction(true, [SearchIndexWordsOS, SearchIndexOS, SearchIndexMetaDataOS])
 		           .then(transaction =>
 			           mapInCallContext(searchTokens, (token) => this._findEntriesForSearchToken(transaction, token)))
 	}
 
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
-		return transaction.get(SearchIndexOS, entry.key).then((row) => {
-			if (!row) return []
+		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow) => {
+			if (!indexEntriesRow) return []
+			const [metaDataRowId, indexEntriesBinary] = indexEntriesRow
 			const result = new Array(entry.size)
-			iterateSearchIndexBlocks(row, (block, s, e, iteration) => {
+
+			iterateSearchIndexBlocks(indexEntriesBinary, (block, s, e, iteration) => {
 				result[iteration] = block
 			})
 			return result
@@ -326,28 +328,46 @@ export class SearchFacade {
 
 	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
-		return transaction.getAsList(SearchIndexMetaDataOS, indexKey)
-		                  .then(metadata => mapInCallContext(metadata, (entry) =>
-			                  this._findEntriesForMetadata(transaction, entry)))
-		                  .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
-		                  .then((indexEntries: EncryptedSearchIndexEntry[]) => {
-			                  return indexEntries.map(entry => ({
-				                  encEntry: entry,
-				                  idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
-			                  }))
-		                  })
-		                  .then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
-			                  return {
-				                  indexKey: indexKey,
-				                  indexEntries: indexEntries
-			                  }
-		                  })
+		return transaction
+			.get(SearchIndexWordsOS, indexKey)
+			.then(metaDataRowId => {
+					if (!metaDataRowId) {
+						return {
+							indexKey: indexKey,
+							indexEntries: []
+						}
+					}
+					return transaction
+						.getAsList(SearchIndexMetaDataOS, metaDataRowId)
+						.then(metadata => mapInCallContext(metadata, (entry) =>
+							this._findEntriesForMetadata(transaction, entry)))
+						.then((results: EncryptedSearchIndexEntry[][]) => flat(results))
+						.then((indexEntries: EncryptedSearchIndexEntry[]) => {
+							return indexEntries.map(entry => ({
+								encEntry: entry,
+								idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
+							}))
+						})
+						.then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+							return {
+								indexKey: indexKey,
+								indexEntries: indexEntries
+							}
+						})
+			
+				}
+			)
+
 	}
 
 	/**
 	 * Reduces the search result by filtering out all mailIds that don't match all search tokens
 	 */
-	_filterByEncryptedId(results: KeyToEncryptedIndexEntries[]): KeyToEncryptedIndexEntries[] {
+	_filterByEncryptedId(results
+		                     :
+		                     KeyToEncryptedIndexEntries[]
+	):
+		KeyToEncryptedIndexEntries[] {
 		// let matchingEncIds = null
 		let matchingEncIds: Set<number>
 		results.forEach(keyToEncryptedIndexEntry => {
@@ -372,7 +392,11 @@ export class SearchFacade {
 	}
 
 
-	_decryptSearchResult(results: KeyToEncryptedIndexEntries[]): KeyToIndexEntries[] {
+	_decryptSearchResult(results
+		                     :
+		                     KeyToEncryptedIndexEntries[]
+	):
+		KeyToIndexEntries[] {
 		return results.map(searchResult => {
 			return {
 				indexKey: searchResult.indexKey,
@@ -382,7 +406,13 @@ export class SearchFacade {
 	}
 
 
-	_filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction): KeyToIndexEntries[] {
+	_filterByTypeAndAttributeAndTime(results
+		                                 :
+		                                 KeyToIndexEntries[], restriction
+		                                 :
+		                                 SearchRestriction
+	):
+		KeyToIndexEntries[] {
 		// first filter each index entry by itself
 		let endTimestamp = this._getSearchEndTimestamp(restriction)
 		const minIncludedId = timestampToGeneratedId(endTimestamp)
@@ -416,8 +446,18 @@ export class SearchFacade {
 		})
 	}
 
-	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry, minIncludedId: Id,
-	                                maxExcludedId: ?Id): boolean {
+	_isValidTypeAndAttributeAndTime(restriction
+		                                :
+		                                SearchRestriction, entry
+		                                :
+		                                SearchIndexEntry, minIncludedId
+		                                :
+		                                Id,
+	                                maxExcludedId
+		                                :
+		                                ? Id
+	):
+		boolean {
 		let typeInfo = typeRefToTypeInfo(restriction.type)
 		if (typeInfo.appId !== entry.app || typeInfo.typeId !== entry.type) {
 			return false
@@ -440,7 +480,13 @@ export class SearchFacade {
 		return true
 	}
 
-	_reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): SearchIndexEntry[] {
+	_reduceWords(results
+		             :
+		             KeyToIndexEntries[], matchWordOrder
+		             :
+		             boolean
+	):
+		SearchIndexEntry[] {
 		if (matchWordOrder) {
 			return results[0].indexEntries.filter(firstWordEntry => {
 				// reduce the filtered positions for this first word entry and its attribute with each next word to those that are in order
@@ -465,7 +511,13 @@ export class SearchFacade {
 		}
 	}
 
-	_reduceToUniqueElementIds(results: SearchIndexEntry[], previousResult: SearchResult): SearchIndexEntry[] {
+	_reduceToUniqueElementIds(results
+		                          :
+		                          SearchIndexEntry[], previousResult
+		                          :
+		                          SearchResult
+	):
+		SearchIndexEntry[] {
 		let uniqueIds = {}
 		return results.filter(entry => {
 			if (!uniqueIds[entry.id] && !previousResult.results.find(r => r[1] === entry.id)) {
@@ -477,12 +529,22 @@ export class SearchFacade {
 		})
 	}
 
-	_filterByListIdAndGroupSearchResults(indexEntries: Array<MoreResultsIndexEntry>, searchResult: SearchResult,
-	                                     maxResults: ?number): Promise<void> {
+	_filterByListIdAndGroupSearchResults(indexEntries
+		                                     :
+		                                     Array<MoreResultsIndexEntry>, searchResult
+		                                     :
+		                                     SearchResult,
+	                                     maxResults
+		                                     :
+		                                     ? number
+	):
+		Promise<void> {
 		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
 		// downcast: Array of optional elements in not subtype of non-optional elements
-		const entriesCopy: Array<?MoreResultsIndexEntry> = downcast(indexEntries.slice())
+		const entriesCopy
+			:
+			Array<? MoreResultsIndexEntry> = downcast(indexEntries.slice())
 		const {resolve: stop, promise: whenToStop} = defer()
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS])
 		           .then((transaction) =>
@@ -511,13 +573,23 @@ export class SearchFacade {
 		           })
 	}
 
-	getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<void> {
+	getMoreSearchResults(searchResult
+		                     :
+		                     SearchResult, moreResultCount
+		                     :
+		                     number
+	):
+		Promise<void> {
 		return this._filterByListIdAndGroupSearchResults(searchResult.moreResultsEntries, searchResult, (searchResult.results.length + moreResultCount))
 		           .then(() => {searchResult.results.sort(compareNewestFirst)})
 	}
 
 
-	_getSearchEndTimestamp(restriction: SearchRestriction): number {
+	_getSearchEndTimestamp(restriction
+		                       :
+		                       SearchRestriction
+	):
+		number {
 		if (restriction.end) {
 			return restriction.end
 		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {

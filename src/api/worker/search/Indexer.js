@@ -22,7 +22,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
-import {IndexerCore} from "./IndexerCore"
+import {IndexerCore, measure} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
@@ -481,13 +481,13 @@ export class Indexer {
 					performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
 					performance.mark("processEntityEvents-end")
 					performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
-					// measure([
-					// 	"processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
-					// 	"processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get", "insertNewElementData_put",
-					// 	"insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
-					// 	"insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
-					// 	"insertNewIndexEntries_putMeta"
-					// ])
+					measure([
+						"processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
+						"processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get", "insertNewElementData_put",
+						"insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
+						"insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
+						"insertNewIndexEntries_putMeta"
+					])
 				})
 		})
 		           .catch(CancelledError, noOp)
