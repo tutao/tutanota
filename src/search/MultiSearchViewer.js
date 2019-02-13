@@ -15,7 +15,7 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "../mail/MailUtils"
+import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
@@ -98,7 +98,7 @@ export class MultiSearchViewer {
 				() => Icons.Cancel))
 		}
 		actionBar.add(new Button('delete_action', () => {
-			this._deleteSelected()
+			this._searchListView.deleteSelected()
 		}, () => Icons.Trash))
 		actionBar.add(new Button("merge_action", () => this.mergeSelected(),
 			() => Icons.People)
@@ -128,7 +128,7 @@ export class MultiSearchViewer {
 		}
 
 		actionBar.add(new Button('delete_action', () => {
-			this._deleteSelected()
+			this._searchListView.deleteSelected()
 
 		}, () => Icons.Trash))
 
@@ -210,43 +210,6 @@ export class MultiSearchViewer {
 			}
 		})).return()
 
-	}
-
-	_deleteSelected(): void {
-		let selected = this._searchListView.getSelectedEntities()
-		if (selected.length > 0) {
-			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = []
-				selected.forEach(m => {
-					selectedMails.push(((m.entry: any): Mail))
-				})
-				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
-					if (confirmed) {
-
-						mailModel.deleteMails(selectedMails).then(() => {
-							selected.forEach((sm) => this._searchListView.deleteLoadedEntity(sm._id[1]))
-						}).then(() => {//is needed for correct selection behavior on mobile
-							this._searchListView.selectNone()
-						})
-
-					}
-				})
-			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContacts = []
-				selected.forEach((c) => {
-					selectedContacts.push(((c.entry: any): Contact))
-				})
-				Dialog.confirm("deleteContacts_msg").then(confirmed => {
-					if (confirmed) {
-						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
-							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}))
-					}
-				}).then(() => {	//is needed for correct selection behavior on mobile
-					this._searchListView.selectNone()
-				})
-			}
-		}
 	}
 
 	mergeSelected(): Promise<void> {
