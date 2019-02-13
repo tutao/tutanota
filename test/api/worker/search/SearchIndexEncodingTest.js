@@ -9,7 +9,7 @@ import {
 	removeSearchIndexRanges
 } from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {spy as makeSpy} from "../../TestUtils"
-import {concat} from "../../../../src/api/common/utils/ArrayUtils"
+import {concat, flat} from "../../../../src/api/common/utils/ArrayUtils"
 
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {
@@ -114,17 +114,20 @@ o.spec("SearchIndexEncoding test", function () {
 			const shortBlock = [0x01, 0x00] // literal length & data
 			const longBlock = [0x81, 0x03, 0x01, 0x02, 0x03] // first byte - length of length, second length of data, rest is data
 			const anotherLongBlock = [0x81, 0x01, 0x01] // first byte - length of length, second length of data, rest is data
+			const anotherShortBlock = [0x02, 0x01, 0x02]
 
-			// 0 1 2 3 4 5 6 7 8 9 10
-			// l d d d l l l d d l
+			// 0  1  2  3  4  5  6  7  8  9  10 11 12 13
+			// l  d  l  l  d  d  d  l  l  d  l  d  d
+			// [1 ]  [2          ]  [3     ] [4    ]
 			// "i" - length, "d" data
-			const row = new Uint8Array(shortBlock.concat(longBlock).concat(anotherLongBlock))
+			const row = new Uint8Array(flat([shortBlock, longBlock, anotherLongBlock, anotherShortBlock]))
 			const spy = makeSpy()
 			iterateSearchIndexBlocks(row, spy)
 			o(JSON.stringify(spy.invocations)).equals(JSON.stringify([
 				[new Uint8Array(shortBlock.slice(1)), 0, 2, 0],
 				[new Uint8Array(longBlock.slice(2)), 2, 7, 1],
-				[new Uint8Array(anotherLongBlock.slice(2)), 7, 10, 2]
+				[new Uint8Array(anotherLongBlock.slice(2)), 7, 10, 2],
+				[new Uint8Array(anotherShortBlock.slice(1)), 10, 13, 3]
 			]))
 		})
 	})

@@ -84,7 +84,6 @@ export function readSearchIndexBlock(source: Uint8Array, offset: number): Uint8A
 		return source.subarray(start, start + length)
 	} else {
 		const start = offset + 1
-		// the error is here                         !
 		return source.subarray(start, start + source[offset])
 	}
 }
