@@ -15,6 +15,7 @@ import {Icons} from "./icons/Icons"
 export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
+	preventAutofill?: boolean,
 	type?: TextFieldTypeEnum,
 	helpLabel?: lazy<string>,
 	alignRight?: boolean,
@@ -117,7 +118,21 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m("input.input" + (a.alignRight ? ".right" : ""), {
+
+			/**
+			 * due to modern browser's 'smart' password managers that try to autofill everything
+			 * that remotely resembles a password field, we prepend invisible inputs to password fields
+			 * that shouldn't be autofilled.
+			 * since the autofill algorithm looks at inputs that come before and after the password field we need
+			 * three dummies.
+			 */
+			const autofillGuard = a.preventAutofill ? [
+				m("input", {style: {display: 'none'}, type: Type.Text}),
+				m("input", {style: {display: 'none'}, type: Type.Password}),
+				m("input", {style: {display: 'none'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow', autofillGuard.concat(m("input.input" + (a.alignRight ? ".right" : ""), {
 				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {
@@ -157,7 +172,7 @@ export class _TextField {
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					lineHeight: px(inputLineHeight),
 				}
-			})
+			})))
 		}
 	}
 

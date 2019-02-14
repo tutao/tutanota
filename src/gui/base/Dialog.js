@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {Button, ButtonType} from "./Button"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
@@ -7,11 +8,9 @@ import {ease} from "../animation/Easing"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {DialogHeaderBar} from "./DialogHeaderBar"
-import {TextField, Type} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
-import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
@@ -19,6 +18,9 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
 import {ButtonN} from "./ButtonN"
 import {DialogHeaderBarN} from "./DialogHeaderBarN"
+import type {TextFieldAttrs} from "./TextFieldN"
+import {TextFieldN, Type} from "./TextFieldN"
+import {DropDownSelectorN} from "./DropDownSelectorN"
 
 assertMainOrNode()
 
@@ -507,26 +509,30 @@ export class Dialog {
 
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons.
+	 * @param titleId title of the dialog
+	 * @param labelIdOrLabelFunction label of the text field
+	 * @param infoMsgId help label of the text field
+	 * @param value initial value
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
-		return Promise.fromCallback(cb => {
-			let textField = new TextField(labelIdOrLabelFunction, () => {
-				return (infoMsgId) ? lang.get(infoMsgId) : ""
-			})
-			textField.value(value)
-
-			let textInputOkAction = (dialog) => {
-				cb(null, textField.value())
-				dialog.close()
+		return new Promise(resolve => {
+			const result: Stream<string> = stream(value)
+			const textFieldAttrs: TextFieldAttrs = {
+				label: labelIdOrLabelFunction,
+				value: result,
+				helpLabel: () => infoMsgId ? lang.get(infoMsgId) : ""
 			}
 
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
-				child: {view: () => m(textField)},
-				validator: () => inputValidator ? inputValidator(textField.value()) : null,
-				okAction: textInputOkAction
+				child: {view: () => m(TextFieldN, textFieldAttrs)},
+				validator: () => inputValidator ? inputValidator(result()) : null,
+				okAction: dialog => {
+					resolve(result())
+					dialog.close()
+				}
 			})
 		})
 	}
@@ -534,43 +540,54 @@ export class Dialog {
 
 	/**
 	 * Shows a dialog with a text area input and ok/cancel buttons.
+	 * @param titleId title of the dialog
+	 * @param labelIdOrLabelFunction label of the text area
+	 * @param infoMsgId help label of the text area
+	 * @param value initial value
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
-		return Promise.fromCallback(cb => {
-			let textField = new TextField(labelIdOrLabelFunction, () => {
-				return (infoMsgId) ? lang.get(infoMsgId) : ""
-			}).setType(Type.Area)
-			textField.value(value)
-
-			let textAreaInputOkAction = (dialog) => {
-				cb(null, textField.value())
-				dialog.close()
+		return new Promise(resolve => {
+			const result: Stream<string> = stream(value)
+			const textFieldAttrs: TextFieldAttrs = {
+				label: labelIdOrLabelFunction,
+				helpLabel: () => infoMsgId ? lang.get(infoMsgId) : "",
+				value: result,
+				type: Type.Area
 			}
 
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
-				child: {view: () => m(textField)},
-				validator: (inputValidator) ? inputValidator(textField.value()) : null,
-				okAction: textAreaInputOkAction
+				child: {view: () => m(TextFieldN, textFieldAttrs)},
+				validator: (inputValidator) ? inputValidator(result()) : null,
+				okAction: dialog => {
+					resolve(result())
+					dialog.close()
+				}
 			})
 		})
 	}
 
-	static showDropDownSelectionDialog<T>(titleId: TranslationKey, labelId: TranslationKey, infoMsgId: ?TranslationKey, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
-		return Promise.fromCallback(cb => {
-			let dropdown = new DropDownSelector(labelId, () => (infoMsgId) ? lang.get(infoMsgId) : "", items, selectedValue, dropdownWidth)
-
-			let showDropDownSelectionOkAction = (dialog) => {
-				cb(null, dropdown.selectedValue())
-				dialog.close()
-			}
-
+	/**
+	 * Show a dialog with a dropdown selector
+	 * @param titleId title of the dialog
+	 * @param label label of the dropdown selector
+	 * @param infoMsgId help label of the dropdown selector
+	 * @param items selection set
+	 * @param selectedValue initial value
+	 * @param dropdownWidth width of the dropdown
+	 * @returns A promise resolving to the selected item. The returned promise is only resolved if "ok" is clicked.
+	 */
+	static showDropDownSelectionDialog<T>(titleId: TranslationKey, label: TranslationKey, infoMsgId: ?TranslationKey, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+		return new Promise(resolve => {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
-				child: {view: () => m(dropdown)},
-				okAction: showDropDownSelectionOkAction
+				child: {view: () => m(DropDownSelectorN, {label, items, selectedValue})},
+				okAction: dialog => {
+					resolve(selectedValue())
+					dialog.close()
+				}
 			})
 		})
 	}
@@ -587,27 +604,38 @@ export class Dialog {
 		})
 	}
 
-	static showRequestPasswordDialog(okAction: (input: TextField) => mixed, errorMessage: Stream<string>, cancelAction: ?() => mixed): Dialog {
-		let pwInput = new TextField("password_label", errorMessage)
-			.setType(Type.Password)
-			// invisible input field to prevent that autocomplete focuses another input field on the page, e.g. search bar
-			.setPreventAutofill(true)
-		pwInput._keyHandler = (key: KeyPress) => {
-			switch (key.keyCode) {
-				case 13: // return
-					okAction(pwInput)
+	/**
+	 * Requests a password from the user. Stays open until the caller sets the error message to "".
+	 * @param errorMessage a stream of error messages that will be shown as the password field help text. should not start with "", but with lang.get("emptyString_msg")
+	 * @returns a stream of entered passwords
+	 */
+	static showRequestPasswordDialog(errorMessage: Stream<string>): Stream<string> {
+		const out: Stream<string> = stream()
+		const value: Stream<string> = stream("")
+		const textFieldAttrs: TextFieldAttrs = {
+			label: "password_label",
+			helpLabel: errorMessage,
+			value: value,
+			preventAutoFill: true,
+			type: Type.Password,
+			keyHandler: (key: KeyPress) => {
+				if (key.keyCode === 13) {//return
+					out(value())
 					return false
-				default:
-					return true
+				}
+				return true
 			}
 		}
-		return Dialog.showActionDialog({
+		const dialog = Dialog.showActionDialog({
 			title: lang.get("password_label"),
-			child: {view: () => m(pwInput)},
-			okAction: () => okAction(pwInput),
-			allowCancel: cancelAction !== null,
-			cancelAction: cancelAction
+			child: {view: () => m(TextFieldN, textFieldAttrs)},
+			okAction: () => out(value()),
+			allowCancel: true,
+			cancelAction: () => dialog.close()
 		})
+
+		errorMessage.map(v => v ? m.redraw() : dialog.close())
+		return out
 	}
 
 	static _onKeyboardSizeChanged(newSize: number): void {

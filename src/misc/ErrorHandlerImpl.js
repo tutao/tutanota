@@ -30,7 +30,7 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
-import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
@@ -87,35 +87,26 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
 			loginDialogActive = true
-			let errorMessage = stream("")
-			const dialog = Dialog.showRequestPasswordDialog((pwInput) => {
-				showProgressDialog("pleaseWait_msg",
-					worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
-						pwInput.value(), client.getIdentifier(), false, true)
-					      .then(() => {
-						      dialog.close()
-						      loginDialogActive = false
-					      })
-					      .catch(AccessBlockedError, e => {
-						      errorMessage(lang.get('loginFailedOften_msg'))
-						      m.redraw()
-					      })
-					      .catch(NotAuthenticatedError, e => {
-						      errorMessage(lang.get('loginFailed_msg'))
-						      m.redraw()
-					      })
-					      .catch(AccessDeactivatedError, e => {
-						      errorMessage(lang.get('loginFailed_msg'))
-						      m.redraw()
-					      })
-					      .catch(ConnectionError, e => {
-						      errorMessage(lang.get('emptyString_msg'))
-						      m.redraw()
-						      throw e;
-					      })
-				)
-					.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			}, errorMessage)
+			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
+			Dialog.showRequestPasswordDialog(errorMessage)
+			      .map(pw => {
+					      showProgressDialog("pleaseWait_msg",
+						      worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
+							      pw, client.getIdentifier(), false, true))
+						      .then(() => {
+							      errorMessage("")
+							      loginDialogActive = false
+						      })
+						      .catch(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg')))
+						      .catch(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg')))
+						      .catch(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg')))
+						      .catch(ConnectionError, e => {
+							      errorMessage(lang.get('emptyString_msg'))
+							      throw e
+						      })
+						      .finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+				      }
+			      )
 		}
 	} else if (e instanceof SecondFactorPendingError) {
 		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges, e.data.mailAddress)
