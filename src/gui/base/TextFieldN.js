@@ -5,19 +5,19 @@ import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonN} from "./ButtonN"
 import {Dialog} from "./Dialog"
 import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
 	type?: TextFieldTypeEnum,
 	helpLabel?: lazy<string>,
-	style?: Object,
+	alignRight?: boolean,
 	injectionsLeft?: Function, // only used by the BubbleTextField to display bubbles
 	injectionsRight?: Function,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
@@ -96,7 +96,7 @@ export class _TextField {
 					a.injectionsLeft ? a.injectionsLeft() : null,
 					m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 						a.type !== Type.Area ? this._getInputField(a) : this._getTextArea(a),
-						a.injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", a.injectionsRight()) : null
+						a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null
 					])
 				]),
 			]),
@@ -117,7 +117,7 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m("input.input", {
+			return m("input.input" + (a.alignRight ? ".right" : ""), {
 				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {

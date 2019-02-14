@@ -935,7 +935,8 @@ const translation = {
 		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
 		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
-		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern."
+		"allowPushNotification_msg": "Bitte deaktiviere die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Du kannst dies auch später in den Einstellungen ändern.",
+		"permanentAliasWarning_msg": "Dies ist ein Tutanota-Alias. Diese können im Gegensatz zu Custom Domain-Aliassen nur deaktiviert, aber nicht gelöscht werden. Sie zählen permanent zur Zahl der registrierten Aliasse."
 	}
 }
 export default translation

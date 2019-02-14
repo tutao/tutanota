@@ -931,7 +931,8 @@ const translation = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"allowPushNotification_msg": "Bitte deaktivieren Sie die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Sie können dies auch später in den Einstellungen ändern."
+		"allowPushNotification_msg": "Bitte deaktivieren Sie die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Sie können dies auch später in den Einstellungen ändern.",
+		"permanentAliasWarning_msg": "Dies ist ein Tutanota-Alias. Diese können im Gegensatz zu Custom Domain-Aliassen nur deaktiviert, aber nicht gelöscht werden. Sie zählen permanent zur Zahl der registrierten Aliasse."
 	}
 }
 export default translation
