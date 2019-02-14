@@ -19,7 +19,7 @@ import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../s
 import {neverNull} from "../../../../src/api/common/utils/Utils"
 import {splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
-import {appendEntities} from "../../../../src/api/worker/search/SearchIndexEncoding"
+import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 
 type MetaTable = {[Base64]: SearchIndexMetadataEntry[]}
 type IndexTable = {[number]: Uint8Array}
@@ -43,7 +43,7 @@ o.spec("SearchFacade test", () => {
 			chunks.forEach(chunk => {
 				counter++
 				metaTable[keyToIndexEntries.indexKey].push({key: counter, size: chunk.length})
-				indexTable[counter] = appendEntities(
+				indexTable[counter] = appendBinaryBlocks(
 					chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv))))
 			})
 		})

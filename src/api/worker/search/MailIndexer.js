@@ -89,20 +89,15 @@ export class MailIndexer {
 	}
 
 	processNewMail(event: EntityUpdate): Promise<?{mail: Mail, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
-		performance.mark("processNewMail-start")
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		performance.mark("processNewMail_load-start")
 		return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 			return Promise.all([
 				Promise.map(mail.attachments, attachmentId => this._entity.load(FileTypeRef, attachmentId)),
 				this._entity.load(MailBodyTypeRef, mail.body)
 			]).spread((files, body) => {
-				performance.mark("processNewMail_load-end")
-				performance.mark("processNewMail_createIndexEnties-start")
 				let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
-				performance.mark("processNewMail_createIndexEnties-end")
 				return {mail, keyToIndexEntries}
 			})
 		}).catch(NotFoundError, () => {
@@ -111,8 +106,6 @@ export class MailIndexer {
 		}).catch(NotAuthorizedError, () => {
 			console.log("tried to index contact without permission")
 			return null
-		}).finally(() => {
-			performance.mark("processNewMail-end")
 		})
 	}
 
@@ -313,16 +306,7 @@ export class MailIndexer {
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-				                          }).then(() => this._core.writeIndexUpdate(indexUpdate)).finally(() => {
-					                          // measure([
-					                          //    "processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
-					                          //    "processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get",
-					                          //    "insertNewElementData_put",
-					                          //    "insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
-					                          //    "insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
-					                          //    "insertNewIndexEntries_putMeta"
-					                          // ])
-				                          })
+				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
 			                          })
 			                          .then(() => {
 				                          if (filteredMails.length === MAIL_INDEXER_CHUNK) { // not filtered and more emails are available

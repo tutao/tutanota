@@ -482,11 +482,7 @@ export class Indexer {
 					performance.mark("processEntityEvents-end")
 					performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
 					measure([
-						"processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
-						"processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get", "insertNewElementData_put",
-						"insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
-						"insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
-						"insertNewIndexEntries_putMeta"
+						"processEntityEvents", "processEvent", "writeIndexUpdate"
 					])
 				})
 		})

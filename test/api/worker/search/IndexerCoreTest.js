@@ -1,6 +1,13 @@
 // // @flow
 // import o from "ospec/ospec.js"
-// import type {B64EncInstanceId, ElementData, EncryptedSearchIndexEntry, GroupData, SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
+// import type {
+// 	B64EncInstanceId,
+// 	ElementData,
+// 	ElementDataSurrogate,
+// 	EncryptedSearchIndexEntry,
+// 	GroupData,
+// 	SearchIndexEntry
+// } from "../../../../src/api/worker/search/SearchTypes"
 // import {
 // 	_createNewIndexUpdate,
 // 	decryptSearchIndexEntry,
@@ -12,7 +19,7 @@
 // import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 // import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
 // import {defer, downcast, neverNull} from "../../../../src/api/common/utils/Utils"
-// import {DbTransaction, ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
+// import {DbTransaction, ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsOS} from "../../../../src/api/worker/search/DbFacade"
 // import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 // import {random} from "../../../../src/api/worker/crypto/Randomizer"
 // import {makeCore, spy} from "../../TestUtils"
@@ -20,7 +27,7 @@
 // import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 // import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 // import {concat} from "../../../../src/api/common/utils/ArrayUtils"
-// import {appendEntities} from "../../../../src/api/worker/search/SearchIndexEncoding"
+// import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 //
 //
 // o.spec("IndexerCore test", () => {
@@ -129,8 +136,8 @@
 // 		core.encryptSearchIndexEntries(id, ownerGroupId, keyToIndexEntries, indexUpdate)
 //
 // 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-// 		let elementData: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "2", core.db.iv)))
-// 		let listId = elementData[0]
+// 		let elementData: ElementDataSurrogate = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "2", core.db.iv)))
+// 		const {listId, encWordsB64, ownerGroup} = elementData
 // 		o(listId).equals(id[0])
 // 		let words = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData[1], true, false))
 // 		o(words).equals("a b")
@@ -181,7 +188,8 @@
 // 		core.encryptSearchIndexEntries(id2, ownerGroupId, keyToIndexEntries2, indexUpdate)
 //
 // 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(2)
-// 		let elementData2: ElementData = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "y", core.db.iv)))
+// 		let elementData2: ElementDataSurrogate =
+// 			neverNull(indexUpdate.create.encInstanceIdToElementData.get(encryptIndexKeyBase64(core.db.key, "y", core.db.iv)))
 // 		let listId2 = elementData2[0]
 // 		o(listId2).equals(id2[0])
 // 		let words2 = utf8Uint8ArrayToString(aes256Decrypt(core.db.key, elementData2[1], true, false))
@@ -267,60 +275,86 @@
 // 		let groupId = "my-group"
 // 		let indexUpdate = _createNewIndexUpdate(groupId)
 // 		const instanceId = new Uint8Array(16).fill(1)
+// 		const metaId = 3
 // 		let entry: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([4, 7, 6]))
 // 		let other1: EncryptedSearchIndexEntry = concat(new Uint8Array(16).fill(2), new Uint8Array([1, 12]))
 // 		let other2: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([1, 12]))
 //
 // 		let encWord = uint8ArrayToBase64(new Uint8Array([7, 8, 23]))
 // 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(encWord, [instanceId])
+// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(1, [instanceId])
 // 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 //
 // 		const metaData = [{key: 1, size: 2}, {key: 2, size: 1}]
 // 		let transaction: any = {
 // 			getAsList: (os, key) => {
-// 				return os === SearchIndexMetaDataOS
-// 					? Promise.resolve(metaData)
-// 					: Promise.reject()
+// 				switch (os) {
+// 					case SearchIndexMetaDataOS:
+// 						return Promise.resolve(metaData)
+// 					case SearchIndexOS:
+// 						return Promise.reject()
+// 					case SearchIndexWordsOS:
+// 						return Promise.reject()
+// 				}
 // 			},
 // 			get: (os, key) => {
-// 				return os === SearchIndexMetaDataOS
-// 					? Promise.resolve(metaData[key - 1])
-// 					: Promise.resolve(key === 1 ? appendEntities([entry, other1]) : appendEntities([other2]))
+// 				switch (os) {
+// 					case SearchIndexMetaDataOS:
+// 						return Promise.resolve(metaData)
+// 					case SearchIndexOS:
+// 						return Promise.resolve(key === 1
+// 							? [3, appendBinaryBlocks([entry, other1])]
+// 							: [3, appendBinaryBlocks([other2])])
+// 					case SearchIndexWordsOS:
+// 						return Promise.resolve(key === encWord ? metaId : null)
+// 				}
 // 			},
 // 			put: spy((os, key, value) => Promise.resolve()),
 // 			delete: spy((os, key) => Promise.resolve()),
 // 		}
 // 		const core = makeCore()
 // 		await core._deleteIndexedInstance(indexUpdate, transaction)
-// 		o(JSON.stringify(transaction.put.invocations[0])).equals(JSON.stringify([SearchIndexOS, 1, appendEntities([other1])]))
-// 		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, [{key: 1, size: 1}]])
+// 		o(JSON.stringify(transaction.put.invocations[0]))
+// 			.equals(JSON.stringify([SearchIndexOS, 1, [metaId, appendBinaryBlocks([other1])]]))
+// 		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, metaId, [{key: 1, size: 1}, {key: 2, size: 1}]])
 // 		o(transaction.delete.invocations[0]).deepEquals([ElementDataOS, encInstanceIdB64])
-// 		o(transaction.delete.invocations[1]).deepEquals([SearchIndexOS, 2])
 // 	})
 //
-// 	o("writeIndexUpdate _deleteIndexedInstance last entry for word", function () {
+// 	o.only("writeIndexUpdate _deleteIndexedInstance last entry for word", function () {
 // 		let groupId = "my-group"
 // 		let indexUpdate = _createNewIndexUpdate(groupId)
 // 		const instanceId = new Uint8Array(16).fill(8)
 // 		let entry: EncryptedSearchIndexEntry = concat(instanceId, (new Uint8Array([4, 7, 6])))
+// 		const metaId = 3
 //
 // 		let encWord = uint8ArrayToBase64(new Uint8Array([7, 8, 23]))
 // 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(encWord, [instanceId])
+// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(3, [instanceId])
 // 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 //
 // 		const metaData = [{key: 1, size: 1}]
 // 		let transaction: any = {
 // 			getAsList: (os, key) => {
-// 				return os === SearchIndexMetaDataOS
-// 					? Promise.resolve(metaData)
-// 					: Promise.resolve([appendEntities([entry])])
+// 				switch (os) {
+// 					case SearchIndexMetaDataOS:
+// 						return Promise.resolve(key === 3 ? metaData : null)
+// 					case SearchIndexOS:
+// 						return Promise.resolve([appendBinaryBlocks([entry])])
+// 					case SearchIndexWordsOS:
+// 						return Promise.resolve(key === encWord ? metaId : null)
+// 				}
 // 			},
 // 			get: (os, key) => {
-// 				return os === SearchIndexMetaDataOS
-// 					? Promise.resolve(metaData[0])
-// 					: Promise.resolve(appendEntities([entry]))
+// 				switch (os) {
+// 					case SearchIndexMetaDataOS:
+// 						return Promise.resolve(key === 3 ? metaData : null)
+// 					case SearchIndexOS:
+// 						return Promise.resolve(key === 1
+// 							? [metaId, appendBinaryBlocks([entry, entry])]
+// 							: null)
+// 					case SearchIndexWordsOS:
+// 						return Promise.resolve(key === encWord ? metaId : null)
+// 				}
 // 			},
 // 			put: spy((os, key, value) => Promise.resolve()),
 // 			delete: spy((os, key) => Promise.resolve())
@@ -331,7 +365,8 @@
 // 			o(transaction.delete.invocations).deepEquals([
 // 				[ElementDataOS, encInstanceIdB64],
 // 				[SearchIndexOS, 1],
-// 				[SearchIndexMetaDataOS, encWord]
+// 				[SearchIndexMetaDataOS, metaId],
+// 				[SearchIndexWordsOS, encWord]
 // 			])
 // 		})
 // 	})
@@ -446,7 +481,7 @@
 // 		const core = makeCore()
 // 		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 //
-// 		o(JSON.stringify(transaction.put.invocations[0])).equals(JSON.stringify([SearchIndexOS, null, appendEntities([entry])]))
+// 		o(JSON.stringify(transaction.put.invocations[0])).equals(JSON.stringify([SearchIndexOS, null, appendBinaryBlocks([entry])]))
 // 		o(transaction.put.invocations[1])
 // 			.deepEquals([SearchIndexMetaDataOS, encWord, [{key: searchIndexEntryId, size: 1}]])
 //
@@ -459,7 +494,7 @@
 // 		let encWord = uint8ArrayToBase64(new Uint8Array([77, 83, 2, 23]))
 // 		let entry: EncryptedSearchIndexEntry = concat(encInstanceId, new Uint8Array(0))
 // 		let existingEntry: EncryptedSearchIndexEntry = new Uint8Array([2, 0])
-// 		const row = appendEntities([existingEntry])
+// 		const row = appendBinaryBlocks([existingEntry])
 // 		indexUpdate.create.indexMap.set(encWord, [entry])
 //
 // 		const searchIndexMeta = {key: 1, size: 1}
@@ -481,7 +516,7 @@
 // 		await core._insertNewIndexEntries(indexUpdate, {[uint8ArrayToBase64(encInstanceId)]: true}, transaction)
 //
 // 		o(JSON.stringify(transaction.put.invocations[0]))
-// 			.equals(JSON.stringify([SearchIndexOS, searchIndexMeta.key, appendEntities([entry], row)]))
+// 			.equals(JSON.stringify([SearchIndexOS, searchIndexMeta.key, appendBinaryBlocks([entry], row)]))
 // 		let updatedMetadata = {key: 1, size: 2}
 // 		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, [updatedMetadata]])
 //
@@ -518,7 +553,7 @@
 //
 // 		const core = makeCore()
 // 		await core._insertNewIndexEntries(indexUpdate, keysToUpdate, transaction)
-// 		o(JSON.stringify(transaction.put.invocations[0])).deepEquals(JSON.stringify([SearchIndexOS, null, appendEntities(newEntries)]))
+// 		o(JSON.stringify(transaction.put.invocations[0])).deepEquals(JSON.stringify([SearchIndexOS, null, appendBinaryBlocks(newEntries)]))
 // 		let updatedMetadata = searchIndexMeta.concat({key: newKey, size: newEntries.length})
 // 		o(transaction.put.invocations[1]).deepEquals([SearchIndexMetaDataOS, encWord, updatedMetadata])
 // 	})
@@ -541,7 +576,7 @@
 // 		}
 //
 // 		const core = makeCore()
-// 		return core._insertNewIndexEntries(indexUpdate, {}, transaction)
+// 		return core._insertNewIndexEntries(indexUpdate, transaction)
 // 	})
 //
 // 	o("writeIndexUpdate _updateGroupData abort in case batch has been indexed already", function (done) {
