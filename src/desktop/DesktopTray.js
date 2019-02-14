@@ -39,7 +39,7 @@ class DesktopTray {
 		} else if (process.platform === 'darwin') {
 			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
 		} else if (process.platform === 'win32') {
-			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.ico'))
+			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
 		} else {
 			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
 		}
