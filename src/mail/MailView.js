@@ -22,8 +22,6 @@ import {MailListView} from "./MailListView"
 import {MailEditor} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
@@ -79,8 +77,6 @@ export class MailView implements CurrentView {
 	selectedFolder: MailFolder;
 	mailViewer: ?MailViewer;
 	newAction: Button;
-	mailHeaderDialog: Dialog;
-	mailHeaderInfo: string;
 	oncreate: Function;
 	onbeforeremove: Function;
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
@@ -92,7 +88,6 @@ export class MailView implements CurrentView {
 
 	constructor() {
 		this.mailViewer = null
-		this.mailHeaderInfo = ""
 		this._mailboxExpanders = {}
 		this._folderToUrl = {}
 		this._throttledRouteSet = throttleRoute()
@@ -168,20 +163,6 @@ export class MailView implements CurrentView {
 				])
 		}
 
-		let closeAction = () => this.mailHeaderDialog.close()
-		let headerBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("mailHeaders_title"))
-		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
-			view: () => {
-				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
-			}
-		}).addShortcut({
-			key: Keys.ESC,
-			exec: closeAction,
-			help: "close_alt"
-		}).setCloseHandler(closeAction)
-
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener((updates) => {
@@ -253,26 +234,6 @@ export class MailView implements CurrentView {
 				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
 					&& !logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action"
-			},
-			{
-				key: Keys.R,
-				exec: (key: KeyPress) => {
-					if (this.mailViewer) this.mailViewer._reply(false)
-				},
-				help: "reply_action"
-			},
-			{
-				key: Keys.R,
-				shift: true,
-				exec: (key: KeyPress) => {
-					if (this.mailViewer) this.mailViewer._reply(true)
-				},
-				help: "replyAll_action"
-			},
-			{
-				key: Keys.H,
-				exec: () => this._showHeaders(),
-				help: "showHeaders_action"
 			},
 			{
 				key: Keys.DELETE,
@@ -687,21 +648,6 @@ export class MailView implements CurrentView {
 					})
 				}
 			})
-		}
-	}
-
-	_showHeaders() {
-		if (this.mailViewer != null && !this.mailHeaderDialog.visible) {
-			if (this.mailViewer.mail.headers) {
-				load(MailHeadersTypeRef, this.mailViewer.mail.headers).then(mailHeaders => {
-						this.mailHeaderInfo = mailHeaders.headers
-						this.mailHeaderDialog.show()
-					}
-				).catch(NotFoundError, noOp)
-			} else {
-				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
-				this.mailHeaderDialog.show()
-			}
 		}
 	}
 

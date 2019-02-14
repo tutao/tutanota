@@ -305,7 +305,7 @@ export class SearchView implements CurrentView {
 			{
 				key: Keys.DELETE,
 				exec: () => this._deleteSelected(),
-				help: "delete_action"
+				help: "deleteEmails_action"
 			},
 		]
 
