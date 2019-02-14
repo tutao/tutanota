@@ -151,6 +151,7 @@ export class ApplicationWindow {
 		 */
 		this._browserWindow.webContents.once('dom-ready', () => {
 			lang.initialized.promise.then(() => this._browserWindow.webContents.send('setup-context-menu', []))
+			    .catch(noOp) //sometimes bowserWindow or webContents are not there anymore
 		})
 
 		this._browserWindow.webContents.session
