@@ -353,7 +353,7 @@ export class SearchBar implements Component {
 						    shownCount: this._results.length,
 						    indexTimestamp: searchResult.currentIndexTimestamp,
 						    allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
-						    && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
+							    && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
 					    }) // add SearchMoreAction
 				    }
 				    if (this._results.length > 0) {

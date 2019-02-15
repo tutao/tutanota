@@ -1,9 +1,9 @@
 //@flow
 import {DbTransaction, ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
-import {firstBiggerThanSecond} from "../../common/EntityFunctions"
+import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
-import {mergeMaps} from "../../common/utils/MapUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {getOrInsert, mergeMaps} from "../../common/utils/MapUtils"
+import {getOrSet, neverNull, newObject} from "../../common/utils/Utils"
 import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
@@ -24,7 +24,7 @@ import type {
 	EncryptedSearchIndexEntry,
 	EncryptedSearchIndexMetaDataRow,
 	GroupData,
-	IndexUpdate,
+	IndexUpdate, SearchIndexEntriesByAppType,
 	SearchIndexEntry,
 	SearchIndexMetaDataRow
 } from "./SearchTypes"
@@ -37,7 +37,7 @@ import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
-import {arrayHash} from "../../common/utils/ArrayUtils"
+import {arrayHash, findLast, groupBy} from "../../common/utils/ArrayUtils"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumber,
@@ -118,8 +118,6 @@ export class IndexerCore {
 				if (!attributeKeyToIndexMap.has(token)) {
 					attributeKeyToIndexMap.set(token, {
 						id: instance._id instanceof Array ? instance._id[1] : instance._id,
-						app: getAppId(instance._type),
-						type: model.id,
 						attribute: attributeHandler.attribute.id,
 						positions: [index]
 					})
@@ -132,21 +130,22 @@ export class IndexerCore {
 		return mergeMaps(indexEntries)
 	}
 
-	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
-		let listId = id[0]
-		let encInstanceId = encryptIndexKeyUint8Array(this.db.key, id[1], this.db.iv)
-		let encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
+	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, model: TypeModel,
+	                          indexUpdate: IndexUpdate): void {
+		const listId = listIdPart(id)
+		const encInstanceId = encryptIndexKeyUint8Array(this.db.key, elementIdPart(id), this.db.iv)
+		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
 
-		let encryptionTimeStart = getPerformanceTimestamp()
-		let encWordsB64 = []
+		const encryptionTimeStart = getPerformanceTimestamp()
+		const encWordsB64 = []
 		keyToIndexEntries.forEach((value, indexKey) => {
 			let encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
-			let indexEntries = indexUpdate.create.indexMap.get(encWordB64)
 			encWordsB64.push(encWordB64)
-			if (!indexEntries) {
-				indexEntries = []
-			}
-			indexUpdate.create.indexMap.set(encWordB64, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId))))
+
+			const byAppForWord = getOrInsert(indexUpdate.create.indexMap, encWordB64, newObject)
+			const byTypeForApp: {[number]: Array<EncryptedSearchIndexEntry>} = getOrSet(byAppForWord, getAppId(model), newObject)
+			const allByType: Array<EncryptedSearchIndexEntry> = getOrSet(byTypeForApp, model.id, () => [])
+			allByType.push(...value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId)))
 		})
 
 		indexUpdate.create.encInstanceIdToElementData.set(encInstanceIdB64, {
@@ -303,11 +302,6 @@ export class IndexerCore {
 				} else if (rowSize === 0) {
 					metaDataRow.rows.splice(metaDataIndex, 1)
 				}
-			} else if (rowSize > 0) {
-				metaDataRow.rows.push({
-					size: rowSize,
-					key: searchIndexRowId
-				})
 			}
 			if (metaDataRow.rows.length !== 0) {
 				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaDataRow))
@@ -322,7 +316,6 @@ export class IndexerCore {
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only in Safari)
 		let promises = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementDataSurrogate, b64EncInstanceId) => {
-			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
 			const encWords: Array<B64EncIndexKey> = elementDataSurrogate.encWordsB64
 			const rowKeys: Array<number> = encWords.map((encWord) => encWordToIndexRow[encWord])
 			const sizeBinary = rowKeys.reduce((acc, key) => acc + calculateNeededSpaceForNumber(key), 0)
@@ -334,14 +327,14 @@ export class IndexerCore {
 		return Promise.all(promises).return()
 	}
 
-	_insertNewIndexEntries(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncIndexKey]: number}> {
+	_insertNewIndexEntries(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<{[B64EncIndexKey]: Array<number>}> {
 		this._cancelIfNeeded()
 		let keys = [...indexUpdate.create.indexMap.keys()]
-		const keyToIndexEntryKey: {[B64EncIndexKey]: number} = {}
+		const keyToIndexEntryKey: {[B64EncIndexKey]: Array<number>} = {}
 		const result = this._promiseMapCompat(keys, (encWordB64) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
-			return thenOrApply(this._putEncryptedEntity(indexUpdate.groupId, transaction, encWordB64, encryptedEntries), (rowId) => {
-				keyToIndexEntryKey[encWordB64] = rowId
+			return thenOrApply(this._putEncryptedEntity(indexUpdate.groupId, transaction, encWordB64, encryptedEntries), (rowIds) => {
+				keyToIndexEntryKey[encWordB64] = rowIds
 			})
 		}, {concurrency: 2})
 
@@ -351,51 +344,69 @@ export class IndexerCore {
 	}
 
 
-	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, encWordB64: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<number> {
+	_putEncryptedEntity(groupId: Id, transaction: DbTransaction, encWordB64: B64EncIndexKey,
+	                    sortedEncryptedEntries: SearchIndexEntriesByAppType): ?Promise<Array<number>> {
 		this._cancelIfNeeded()
-		if (encryptedEntries.length > 0) {
-			return this._getOrCreateSearchIndexMeta(transaction, encWordB64)
-			           .then((metaData: SearchIndexMetaDataRow) => {
-				           const maxSize = SEARCH_INDEX_ROW_LENGTH - encryptedEntries.length
-				           const vacantRow = metaData.rows.find(entry => entry.size < maxSize)
-				           if (!vacantRow) { // new entries do not fit into existing search index row, create new row
-					           const binaryRow = appendBinaryBlocks(encryptedEntries)
-					           return transaction.put(SearchIndexOS, null, [metaData.id, binaryRow])
-					                             .then(newRowId => {
-						                             metaData.rows.push({
-							                             key: newRowId,
-							                             size: encryptedEntries.length
-						                             })
-						                             return {metaData, newRowId}
-					                             })
-				           } else {
-					           // add new entries to existing search index row
-					           return transaction.get(SearchIndexOS, vacantRow.key)
-					                             .then((indexEntriesRow) => {
-						                             let safeRow = indexEntriesRow && indexEntriesRow[1] || new Uint8Array(0)
-						                             const resultRow = appendBinaryBlocks(encryptedEntries, safeRow)
-						                             return transaction.put(SearchIndexOS, vacantRow.key, [metaData.id, resultRow])
-						                                               .then(() => {
-							                                               vacantRow.size += encryptedEntries.length
-							                                               return {metaData, newRowId: vacantRow.key}
-						                                               })
-					                             })
-				           }
-			           })
-			           .then((result: {metaData: SearchIndexMetaDataRow, newRowId: number}) => {
-				           const {metaData, newRowId} = result
-				           const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
-					           + metaDataEntry.size, 0)
-				           this._stats.writeRequests += 1
-				           this._stats.largestColumn = columnSize > this._stats.largestColumn
-					           ? columnSize : this._stats.largestColumn
-				           this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
-					           sum + e.length, 0)
-				           return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
-				                             .return(newRowId)
-			           })
 
+		if (Object.keys(sortedEncryptedEntries).length === 0) {
+			return
 		}
+		return this
+			._getOrCreateSearchIndexMeta(transaction, encWordB64)
+			.then((metaData: SearchIndexMetaDataRow) => {
+				const promises = []
+				Object.keys(sortedEncryptedEntries).forEach((app) => {
+					const typesForApp = sortedEncryptedEntries[Number(app)]
+					Object.keys(typesForApp).forEach((type) => {
+						const encryptedEntries = typesForApp[Number(type)]
+						const maxSize = SEARCH_INDEX_ROW_LENGTH - encryptedEntries.length
+						const vacantEntry = findLast(metaData.rows, r => r.app === app && r.type === type && r.size < maxSize)
+						if (vacantEntry) {
+							// add new entries to existing search index row
+							promises.push(transaction
+								.get(SearchIndexOS, vacantEntry.key)
+								.then((indexEntriesRow) => {
+									let safeRow = indexEntriesRow && indexEntriesRow[1] || new Uint8Array(0)
+									const resultRow = appendBinaryBlocks(encryptedEntries, safeRow)
+									this._stats.storedBytes += resultRow.length
+									return transaction.put(SearchIndexOS, vacantEntry.key, [metaData.id, resultRow])
+								})
+								.then(() => {
+									vacantEntry.size += encryptedEntries.length
+									return vacantEntry.key
+								}))
+						} else { // new entries do not fit into existing search index row, create new row
+							const binaryRow = appendBinaryBlocks(encryptedEntries)
+							this._stats.storedBytes += binaryRow.length
+							promises.push(transaction
+								.put(SearchIndexOS, null, [metaData.id, binaryRow])
+								.then(newRowId => {
+									metaData.rows.push({
+										key: newRowId,
+										size: encryptedEntries.length,
+										app: Number(app),
+										type: Number(type)
+									})
+									return newRowId
+								}))
+						}
+					})
+				})
+				return Promise.all(promises).then((newRowIds) => {
+					return {metaData, newRowIds}
+				})
+			})
+			.then((result: {metaData: SearchIndexMetaDataRow, newRowIds: Array<number>}) => {
+				const {metaData, newRowIds} = result
+				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
+					+ metaDataEntry.size, 0)
+				this._stats.writeRequests += 1
+				this._stats.largestColumn = columnSize > this._stats.largestColumn
+					? columnSize : this._stats.largestColumn
+				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
+				                  .return(newRowIds)
+			})
+
 	}
 
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey): Promise<SearchIndexMetaDataRow> {

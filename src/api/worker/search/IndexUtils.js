@@ -18,14 +18,10 @@ export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
-	const neededSpace = calculateNeededSpaceForNumber(entry.app)
-		+ calculateNeededSpaceForNumber(entry.type)
-		+ calculateNeededSpaceForNumber(entry.attribute)
+	const neededSpace = calculateNeededSpaceForNumber(entry.attribute)
 		+ entry.positions.reduce((acc, position) => acc + calculateNeededSpaceForNumber(position), 0)
 	const block = new Uint8Array(neededSpace)
 	let offset = 0
-	offset += encodeNumberBlock(entry.app, block, offset)
-	offset += encodeNumberBlock(entry.type, block, offset)
 	offset += encodeNumberBlock(entry.attribute, block, offset)
 	encodeNumbers(entry.positions, block, offset)
 
@@ -42,10 +38,6 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encId), true, false))
 	const data = aes256Decrypt(key, entry.subarray(16), true, false)
 	let offset = 0
-	const app = decodeNumberBlock(data, offset)
-	offset += calculateNeededSpaceForNumber(app)
-	const type = decodeNumberBlock(data, offset)
-	offset += calculateNeededSpaceForNumber(type)
 	const attribute = decodeNumberBlock(data, offset)
 	offset += calculateNeededSpaceForNumber(attribute)
 	const positions = decodeNumbers(data, offset)
@@ -53,18 +45,20 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 	return {
 		id: id,
 		encId,
-		app,
-		type,
 		attribute,
 		positions,
 	}
 }
 
 export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): EncryptedSearchIndexMetaDataRow {
-	const numbers = []
-	metaData.rows.forEach((r) => {
-		numbers.push(r.key, r.size)
-	})
+	const numbers = new Array(metaData.rows.length * 4)
+	for (let i = 0; i < metaData.rows.length; i += 4) {
+		const entry = metaData.rows[i]
+		numbers[i] = entry.app
+		numbers[i + 1] = entry.type
+		numbers[i + 2] = entry.key
+		numbers[i + 3] = entry.size
+	}
 	const spaceForRows = numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
 	const numberBlock = new Uint8Array(spaceForRows)
 	encodeNumbers(numbers, numberBlock)
@@ -76,8 +70,8 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: EncryptedSearchIn
 	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []
-	for (let i = 0; i < numbers.length; i += 2) {
-		rows.push({key: numbers[i], size: numbers[i + 1]})
+	for (let i = 0; i < numbers.length; i += 4) {
+		rows.push({app: numbers[i], type: numbers[i + 1], key: numbers[i + 2], size: numbers[i + 3]})
 	}
 	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }

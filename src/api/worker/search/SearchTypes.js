@@ -14,7 +14,7 @@ export type SearchIndexRow = [
 export type EncryptedSearchIndexMetaDataRow = {
 	id: number,
 	word: string,
-	rows: Uint8Array // encoded pairs of numbers, first item in a pair in search index row id, second is the size of the row
+	rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...]
 }
 
 export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc search index row keys, third is owner group id
@@ -59,13 +59,17 @@ export type KeyToEncryptedIndexEntries = {
 }
 
 export type SearchIndexEntry = {
-	id: Id;
-	app: number; // we have app and type on SearchIndexEntry instead of ElementData to be able to filter them before loading ElementData for each found instance
-	type: number;
-	attribute: number;
-	positions: number[];
+	id: Id,
+	attribute: number,
+	positions: number[],
 	// encId and is only set for entries that are retrived from the db (see decryptSearchIndexEntry)
-	encId?: Uint8Array;
+	encId?: Uint8Array
+}
+
+export type SearchIndexEntriesByAppType = {
+	[number]: {
+		[number]: Array<EncryptedSearchIndexEntry>
+	}
 }
 
 export type IndexUpdate = {
@@ -74,7 +78,7 @@ export type IndexUpdate = {
 	indexTimestamp: ?number;
 	create: {
 		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
-		indexMap: Map<B64EncIndexKey, EncryptedSearchIndexEntry[]>;
+		indexMap: Map<B64EncIndexKey, SearchIndexEntriesByAppType>;
 	};
 	move: {
 		encInstanceId: B64EncInstanceId;
@@ -101,7 +105,9 @@ export type SearchIndexMetaDataRow = {
 
 export type SearchIndexMetadataEntry = {
 	key: number,
-	size: number
+	size: number,
+	app: number,
+	type: number, // we have app and type in search index meta to filter for type (mail, contact, users) before loading and decrypting index rows.
 }
 
 export type MoreResultsIndexEntry = {

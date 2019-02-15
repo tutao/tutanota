@@ -100,7 +100,7 @@ export class ContactIndexer {
 						return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
 							contacts.forEach((contact) => {
 								let keyToIndexEntries = this.createContactIndexEntries(contact)
-								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, ContactModel, indexUpdate)
 							})
 							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 							return Promise.all([
@@ -121,7 +121,8 @@ export class ContactIndexer {
 			if (event.operation === OperationType.CREATE) {
 				return this.processNewContact(event).then(result => {
 					if (result) {
-						this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, ContactModel,
+							indexUpdate)
 					}
 				})
 			} else if (event.operation === OperationType.UPDATE) {
@@ -129,7 +130,8 @@ export class ContactIndexer {
 					this._core._processDeleted(event, indexUpdate),
 					this.processNewContact(event).then(result => {
 						if (result) {
-							this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries,
+								ContactModel, indexUpdate)
 						}
 					})
 				])

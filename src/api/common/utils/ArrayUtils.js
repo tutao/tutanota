@@ -104,6 +104,15 @@ export function last(theArray: Array<any>): ?any {
 	}
 }
 
+export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {
+	for (let i = array.length - 1; i >= 0; i--) {
+		if (predicate(array[i])) {
+			return array[i]
+		}
+	}
+	return null
+}
+
 export function contains(theArray: Array<any>, elementToCheck: any): boolean {
 	return theArray.indexOf(elementToCheck) !== -1
 }

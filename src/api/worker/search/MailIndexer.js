@@ -126,7 +126,8 @@ export class MailIndexer {
 					// instance is moved but not yet indexed: handle as new
 					return this.processNewMail(event).then(result => {
 						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+								MailModel, indexUpdate)
 						}
 					})
 				}
@@ -305,7 +306,9 @@ export class MailIndexer {
 				                          this._core._stats.mailcount += mailWithBodyAndFiles.length
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
-					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries,
+						                          MailModel,
+						                          indexUpdate)
 				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
 			                          })
 			                          .then(() => {
@@ -449,7 +452,8 @@ export class MailIndexer {
 					} else {
 						return this.processNewMail(event).then((result) => {
 							if (result) {
-								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+									MailModel, indexUpdate)
 							}
 						})
 					}
@@ -469,7 +473,8 @@ export class MailIndexer {
 							!futureActions.moved.get(event.instanceId)
 								? this.processNewMail(event).then(result => {
 									if (result) {
-										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+											MailModel, indexUpdate)
 									}
 								})
 								: Promise.resolve()

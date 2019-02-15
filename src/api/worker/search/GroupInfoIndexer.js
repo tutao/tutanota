@@ -75,7 +75,7 @@ export class GroupInfoIndexer {
 								let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
 								allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
 									let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
-									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
+									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, GroupInfoModel, indexUpdate)
 								})
 								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
@@ -96,13 +96,19 @@ export class GroupInfoIndexer {
 			if (userIsLocalOrGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup),
+								result.keyToIndexEntries, GroupInfoModel, indexUpdate)
+						}
 					})
 				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewGroupInfo(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup),
+									result.keyToIndexEntries, GroupInfoModel, indexUpdate)
+							}
 						})
 					])
 				} else if (event.operation === OperationType.DELETE) {

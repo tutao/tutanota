@@ -245,7 +245,7 @@ export class SearchFacade {
 		return this._tryExtendIndex(searchResult.restriction).then(() => {
 				makeStamp("_tryExtendIndex")
 				timeStart("findIndexEntries")
-				return this._findIndexEntries(searchTokens)
+				return this._findIndexEntries(searchTokens, searchResult.restriction)
 				           .then(keyToEncryptedIndexEntries => {
 					           makeStamp("findIndexEntries")
 					           timeStart("_filterByEncryptedId")
@@ -315,10 +315,10 @@ export class SearchFacade {
 		}
 	}
 
-	_findIndexEntries(searchTokens: string[]): Promise<KeyToEncryptedIndexEntries[]> {
+	_findIndexEntries(searchTokens: string[], restriction: SearchRestriction): Promise<KeyToEncryptedIndexEntries[]> {
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
 		           .then(transaction =>
-			           mapInCallContext(searchTokens, (token) => this._findEntriesForSearchToken(transaction, token)))
+			           mapInCallContext(searchTokens, (token) => this._findEntriesForSearchToken(transaction, token, restriction)))
 	}
 
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
@@ -333,13 +333,15 @@ export class SearchFacade {
 		})
 	}
 
-	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string): Promise<KeyToEncryptedIndexEntries> {
+	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string, restriction: SearchRestriction): Promise<KeyToEncryptedIndexEntries> {
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction
 			.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
 			.then((metaData: ?EncryptedSearchIndexMetaDataRow) => {
 				const safeRows = metaData ? decryptMetaData(this._db.key, metaData).rows : []
-				return mapInCallContext(safeRows, (entry) => this._findEntriesForMetadata(transaction, entry))
+				const typeInfo = typeRefToTypeInfo(restriction.type)
+				const filteredRows = safeRows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
+				return mapInCallContext(filteredRows, (entry) => this._findEntriesForMetadata(transaction, entry))
 			})
 			.then((results: EncryptedSearchIndexEntry[][]) => flat(results))
 			.then((indexEntries: EncryptedSearchIndexEntry[]) => {
@@ -401,7 +403,7 @@ export class SearchFacade {
 		const maxExcludedId = restriction.start ? timestampToGeneratedId(restriction.start + 1) : null
 		results.forEach(result => {
 			result.indexEntries = result.indexEntries.filter(entry => {
-				return this._isValidTypeAndAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId)
+				return this._isValidAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId)
 			})
 		})
 
@@ -428,12 +430,8 @@ export class SearchFacade {
 		})
 	}
 
-	_isValidTypeAndAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry, minIncludedId: Id,
-	                                maxExcludedId: ?Id): boolean {
-		let typeInfo = typeRefToTypeInfo(restriction.type)
-		if (typeInfo.appId !== entry.app || typeInfo.typeId !== entry.type) {
-			return false
-		}
+	_isValidAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry, minIncludedId: Id,
+	                         maxExcludedId: ?Id): boolean {
 		if (restriction.attributeIds) {
 			if (!contains(restriction.attributeIds, entry.attribute)) {
 				return false
@@ -446,10 +444,8 @@ export class SearchFacade {
 				return false
 			}
 		}
-		if (firstBiggerThanSecond(minIncludedId, entry.id)) {
-			return false
-		}
-		return true
+		return !firstBiggerThanSecond(minIncludedId, entry.id);
+
 	}
 
 	_reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): SearchIndexEntry[] {

@@ -75,7 +75,8 @@ export class WhitelabelChildIndexer {
 								let indexUpdate = _createNewIndexUpdate(customer.adminGroup)
 								allChildren.forEach(child => {
 									let keyToIndexEntries = this.createWhitelabelChildIndexEntries(child)
-									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
+									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, WhitelabelChildModel,
+										indexUpdate)
 								})
 								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
@@ -96,13 +97,19 @@ export class WhitelabelChildIndexer {
 			if (userIsGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup),
+								result.keyToIndexEntries, WhitelabelChildModel, indexUpdate)
+						}
 					})
 				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewWhitelabelChild(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup),
+									result.keyToIndexEntries, WhitelabelChildModel, indexUpdate)
+							}
 						})
 					])
 				} else if (event.operation === OperationType.DELETE) {
