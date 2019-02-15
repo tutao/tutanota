@@ -70,7 +70,7 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -117,11 +117,12 @@ export class MailViewer {
 		this._scrollAnimation = Promise.resolve()
 
 		let closeAction = () => this.mailHeaderDialog.close()
-		let headerBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("mailHeaders_title"))
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("mailHeaders_title")
+		}
 		this.mailHeaderInfo = ""
-		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
+		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
 			view: () => {
 				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
 			}

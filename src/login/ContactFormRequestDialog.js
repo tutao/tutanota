@@ -3,7 +3,6 @@ import m from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
 import {ConversationType, InputFieldType, MAX_ATTACHMENT_SIZE, PushServiceType} from "../api/common/TutanotaConstants"
@@ -31,6 +30,7 @@ import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import stream from "mithril/stream/stream.js"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "./LoginView"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -71,14 +71,11 @@ export class ContactFormRequestDialog {
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 		this._privacyPolicyAccepted = stream(false)
 
-		let closeAction = () => this._close()
-
-		let closeButton = new Button('cancel_action', closeAction).setType(ButtonType.Secondary)
-		let sendButton = new Button('send_action', () => this.send()).setType(ButtonType.Primary)
-		let headerBar = new DialogHeaderBar()
-			.addLeft(closeButton)
-			.setMiddle(() => lang.get("createContactRequest_action"))
-			.addRight(sendButton)
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			right: [{label: "send_action", click: () => this.send(), type: ButtonType.Primary}],
+			middle: () => lang.get("createContactRequest_action")
+		}
 
 		this._editor = new HtmlEditor().showBorders().setPlaceholderId("contactFormPlaceholder_label").setMinHeight(200)
 
@@ -130,10 +127,10 @@ export class ContactFormRequestDialog {
 			])
 		}
 
-		this._dialog = Dialog.largeDialog(headerBar, this)
+		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                     .addShortcut({
 			                     key: Keys.ESC,
-			                     exec: closeAction,
+			                     exec: () => this._close(),
 			                     help: "close_alt"
 		                     })
 		                     .addShortcut({
@@ -144,7 +141,7 @@ export class ContactFormRequestDialog {
 				                     this.send()
 			                     },
 			                     help: "send_action"
-		                     }).setCloseHandler(closeAction)
+		                     }).setCloseHandler(() => this._close())
 	}
 
 	_getPrivacyPolicyCheckboxContent(): VirtualElement {

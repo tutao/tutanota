@@ -1,9 +1,8 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Keys} from "../misc/KeyManager"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
@@ -19,11 +18,11 @@ import {buyStorage} from "./StorageCapacityOptionsDialog"
 import {buyWhitelabel} from "./WhitelabelBuyDialog"
 import {changeSubscriptionInterval} from "./SubscriptionViewer"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {ButtonN} from "../gui/base/ButtonN"
 import {SubscriptionType} from "./SubscriptionUtils"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {getPriceFromPriceData, getPriceItem} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription and switching between Premium and Pro.
@@ -43,10 +42,12 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean,
 				dialog.close()
 			}
 
-			const headerBar = new DialogHeaderBar()
-				.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-				.setMiddle(() => lang.get("subscription_label"))
-			const dialog = Dialog.largeDialog(headerBar, {
+			const headerBarAttrs : DialogHeaderBarAttrs = {
+				left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
+				right: [],
+				middle: () => lang.get("subscription_label")
+			}
+			const dialog = Dialog.largeDialog(headerBarAttrs, {
 				view: () => m("#upgrade-account-dialog.pt", m(SubscriptionSelector, {
 					options: {businessUse: businessStream, paymentInterval: paymentIntervalStream},
 					campaignInfoTextId: null,

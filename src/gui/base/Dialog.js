@@ -1,13 +1,11 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {Button, ButtonType} from "./Button"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {DialogHeaderBar} from "./DialogHeaderBar"
 import {assertMainOrNode} from "../../api/Env"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
@@ -16,8 +14,10 @@ import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
-import {ButtonN} from "./ButtonN"
-import {DialogHeaderBarN} from "./DialogHeaderBarN"
+import type {ButtonAttrs} from "./ButtonN"
+import {ButtonN, ButtonType} from "./ButtonN"
+import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
+import {DialogHeaderBar} from "./DialogHeaderBar"
 import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
@@ -38,7 +38,6 @@ export type DialogTypeEnum = $Values<typeof DialogType>;
 
 export class Dialog {
 	static _keyboardHeight = 0;
-	buttons: Button[];
 	_domDialog: HTMLElement;
 	_shortcuts: Shortcut[];
 	view: Function;
@@ -47,7 +46,6 @@ export class Dialog {
 	_closeHandler: ?(e: Event) => void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
-		this.buttons = []
 		this.visible = false
 		this._focusOnLoadFunction = this._defaultFocusOnLoad
 		this._shortcuts = [
@@ -161,18 +159,13 @@ export class Dialog {
 		return dialogStyle
 	}
 
-	addButton(button: Button): Dialog {
-		this.buttons.push(button)
-		return this
-	}
-
 	addShortcut(shortcut: Shortcut): Dialog {
 		this._shortcuts.push(shortcut)
 		return this
 	}
 
 	/**
-	 * Sets a close handler to the dialog. If set the handler will be notifed wehn onClose is called on the dialog.
+	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
 	setCloseHandler(closeHandler: ?(e: Event) => void): Dialog {
@@ -234,164 +227,157 @@ export class Dialog {
 	}
 
 	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
-		return Promise.fromCallback(cb => {
-			let buttons = []
-
-			let closeAction = () => {
-				(dialog: any).close()
-				setTimeout(() => cb(null), DefaultAnimationTime)
+		return new Promise(resolve => {
+			let dialog: Dialog
+			const closeAction = () => {
+				dialog.close()
+				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
-			buttons.push(new Button("ok_action", closeAction).setType(ButtonType.Primary))
+			const lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			const buttonAttrs: ButtonAttrs = {
+				label: "ok_action",
+				click: closeAction,
+				type: ButtonType.Primary,
 
-			let message = lang.getMaybeLazy(messageIdOrMessageFunction)
-			let lines = message.split("\n")
+			}
 
-			let dialog = new Dialog(DialogType.Alert, {
+			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
 					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line)).concat(
-						m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
+						m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs))
 					)
-			})
-			dialog.setCloseHandler(closeAction)
-
-			dialog.addShortcut({
-				key: Keys.RETURN,
-				shift: false,
-				exec: closeAction,
-				help: "close_alt"
-			})
-
-			dialog.addShortcut({
-				key: Keys.ESC,
-				shift: false,
-				exec: closeAction,
-				help: "close_alt"
-			})
-
-			dialog.show()
+			}).setCloseHandler(closeAction)
+			  .addShortcut({
+				  key: Keys.RETURN,
+				  shift: false,
+				  exec: closeAction,
+				  help: "close_alt"
+			  })
+			  .addShortcut({
+				  key: Keys.ESC,
+				  shift: false,
+				  exec: closeAction,
+				  help: "close_alt"
+			  }).show()
 		})
 	}
 
-
+	/**
+	 * fallback for cases where we can't directly download and open a file
+	 */
 	static legacyDownload(filename: string, url: string): Promise<void> {
-		return Promise.fromCallback(cb => {
-			let buttons = []
-			let closeAction = () => {
-				(dialog: any).close()
-				setTimeout(() => cb(null), DefaultAnimationTime)
+		return new Promise(resolve => {
+			let dialog: Dialog
+			const closeAction = () => {
+				dialog.close()
+				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
 
-			buttons.push(new Button("close_alt", closeAction).setType(ButtonType.Primary))
+			const closeButtonAttrs: ButtonAttrs = {
+				label: "close_alt",
+				click: closeAction,
+				type: ButtonType.Primary
+			}
 
-			let dialog = new Dialog(DialogType.Alert, {
+			const downloadButtonAttrs: ButtonAttrs = {
+				label: "download_action",
+				click: () => {
+					let popup = open('', '_blank')
+					popup.location = url
+					dialog.close()
+					resolve()
+				},
+				type: ButtonType.Primary
+			}
+
+			dialog = new Dialog(DialogType.Alert, {
 				view: () => m("", [
 					m(".dialog-contentButtonsBottom.text-break", [
-						m(ButtonN, {
-							label: "download_action",
-							click: () => {
-								let popup = open('', '_blank')
-								popup.location = url
-								dialog.close()
-								cb(null)
-							},
-							type: ButtonType.Primary
-						}),
+						m(ButtonN, downloadButtonAttrs),
 						m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))
 					]),
-					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
+					m(".flex-center.dialog-buttons", m(ButtonN, closeButtonAttrs))
 				])
-			})
-			dialog.setCloseHandler(closeAction)
-			dialog.show()
+			}).setCloseHandler(closeAction).show()
 		})
 	}
 
 
-	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: string = "ok_action"): Promise<boolean> {
-		return Promise.fromCallback(cb => {
-			let buttons = []
-			let cancelAction = () => {
+	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action"): Promise<boolean> {
+		return new Promise(resolve => {
+			let dialog: Dialog
+			const closeAction = conf => {
 				dialog.close()
-				setTimeout(() => cb(null, false), DefaultAnimationTime)
+				setTimeout(() => resolve(conf), DefaultAnimationTime)
 			}
+			const buttonAttrs: Array<ButtonAttrs> = [
+				{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
+				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary}
+			]
 
-			let confirmAction = () => {
-				dialog.close()
-				setTimeout(() => cb(null, true), DefaultAnimationTime)
-			}
-
-			buttons.push(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-			buttons.push(new Button(confirmId, confirmAction).setType(ButtonType.Primary))
-
-			let dialog = new Dialog(DialogType.Alert, {
+			dialog = new Dialog(DialogType.Alert, {
 				view: () => [
 					m(".dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
 						lang.getMaybeLazy(messageIdOrMessageFunction)),
-					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
+					m(".flex-center.dialog-buttons", buttonAttrs.map(a => m(ButtonN, a)))
 				]
-			})
-			dialog.setCloseHandler(cancelAction)
-
-			dialog.addShortcut({
+			}).setCloseHandler(
+				() => closeAction(false)
+			).addShortcut({
 				key: Keys.ESC,
 				shift: false,
-				exec: cancelAction,
+				exec: () => closeAction(false),
 				help: "cancel_action"
-			})
-
-			dialog.addShortcut({
+			}).addShortcut({
 				key: Keys.RETURN,
 				shift: false,
-				exec: confirmAction,
+				exec: () => closeAction(true),
 				help: neverNull(confirmId) //ok?
-			})
-
-			dialog.show()
+			}).show()
 		})
 	}
 
 	// used in admin client
 	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
-		return Promise.fromCallback(cb => {
-			let actionBar = new DialogHeaderBar()
-
-			let closeAction = () => {
+		return new Promise(resolve => {
+			let saveDialog: Dialog
+			const closeAction = () => {
 				saveDialog.close()
-				setTimeout(() => cb(), DefaultAnimationTime)
+				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
-			actionBar.addLeft(new Button("close_alt", closeAction).setType(ButtonType.Secondary))
-			actionBar.addRight(new Button("save_action", () => {
+			const onOk = () => {
 				saveAction().then(() => {
 					saveDialog.close()
-					setTimeout(() => cb(null), DefaultAnimationTime)
+					setTimeout(() => resolve(), DefaultAnimationTime)
 				})
-			}).setType(ButtonType.Primary))
-			let saveDialog = new Dialog(DialogType.EditMedium, {
+			}
+			const actionBarAttrs: DialogHeaderBarAttrs = {
+				left: [{label: "close_alt", click: closeAction, type: ButtonType.Secondary}],
+				right: [{label: "save_action", click: onOk, type: ButtonType.Primary}],
+				middle: title
+			}
+			saveDialog = new Dialog(DialogType.EditMedium, {
 				view: () => m("", [
-					m(".dialog-header.plr-l", m(actionBar)),
+					m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 					m(".plr-l.pb.text-break", m(child))
 				])
-			})
-			actionBar.setMiddle(title)
-			saveDialog.setCloseHandler(closeAction)
-			saveDialog.show()
+			}).setCloseHandler(closeAction).show()
 		})
 	}
 
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
-		return Promise.fromCallback(cb => {
-			let buttons = []
-			let cancelAction = () => {
+		return new Promise(resolve => {
+			let dialog: Dialog
+			const closeAction = res => {
 				dialog.close()
-				setTimeout(() => cb(null, false), DefaultAnimationTime)
+				setTimeout(() => resolve(res), DefaultAnimationTime)
 			}
-			buttons.push(new Button("upgradeReminderCancel_action", cancelAction).setType(ButtonType.Secondary))
-			buttons.push(new Button("showMoreUpgrade_action", () => {
-				dialog.close()
-				setTimeout(() => cb(null, true), DefaultAnimationTime)
-			}).setType(ButtonType.Primary))
+			const buttonAttrs: Array<ButtonAttrs> = [
+				{label: "upgradeReminderCancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
+				{label: "showMoreUpgrade_action", click: () => closeAction(true), type: ButtonType.Primary}
+			]
 
-			let dialog = new Dialog(DialogType.Reminder, {
+			dialog = new Dialog(DialogType.Reminder, {
 				view: () => [
 					m(".dialog-contentButtonsBottom.text-break.scroll", [
 						m(".h2.pb", title),
@@ -405,19 +391,15 @@ export class Dialog {
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
-					m(".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto", buttons.map(b => m(b)))
+					m(".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto", buttonAttrs.map(a => m(ButtonN, a)))
 				]
-			})
-			dialog.setCloseHandler(cancelAction)
-
-			dialog.addShortcut({
-				key: Keys.ESC,
-				shift: false,
-				exec: cancelAction,
-				help: "cancel_action"
-			})
-
-			dialog.show()
+			}).setCloseHandler(() => closeAction(false))
+			  .addShortcut({
+				  key: Keys.ESC,
+				  shift: false,
+				  exec: () => closeAction(false),
+				  help: "cancel_action"
+			  }).show()
 		})
 	}
 
@@ -434,29 +416,22 @@ export class Dialog {
 		validator?: validator,
 		okAction: null | (dialog: Dialog) => mixed,
 		allowCancel?: boolean,
-		okActionTextId?: string,
+		okActionTextId?: TranslationKey,
 		cancelAction?: ?(dialog: Dialog) => mixed,
 		type?: DialogTypeEnum,
 	|}): Dialog {
+		let dialog: Dialog
 		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
 			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", type: DialogType.EditSmall}, props)
-		let actionBar = new DialogHeaderBar()
 
-		let dialog = new Dialog(type, {
-			view: () => [
-				m(".dialog-header.plr-l", m(actionBar)),
-				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
-			]
-		})
-
-		let doCancel = () => {
+		const doCancel = () => {
 			if (cancelAction) {
 				cancelAction(dialog)
 			}
 			dialog.close()
 		}
 
-		let doAction = () => {
+		const doAction = () => {
 			if (!okAction) {
 				return
 			}
@@ -466,27 +441,25 @@ export class Dialog {
 			}
 			if (error_id) {
 				Dialog.error(error_id)
-				return
 			} else {
 				okAction(dialog)
 			}
 		}
 
-
-		if (okAction) {
-			actionBar.addRight(new Button(okActionTextId, doAction).setType(ButtonType.Primary))
-			//todo check if you want to have this option or just have a text area where you can shift enter to add line breaks to a div
-			/*dialog.addShortcut({
-					key: Keys.RETURN,
-					shift: true,
-					exec: doAction,
-					help: okActionTextId
-				})
-		*/
+		const actionBarAttrs: DialogHeaderBarAttrs = {
+			left: allowCancel ? [{label: "cancel_action", click: doCancel, type: ButtonType.Secondary}] : [],
+			right: okAction ? [{label: okActionTextId, click: doAction, type: ButtonType.Primary}] : [],
+			middle: typeof title === 'function' ? title : () => title
 		}
 
+		dialog = new Dialog(type, {
+			view: () => [
+				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
+			]
+		}).setCloseHandler(doCancel)
+
 		if (allowCancel) {
-			actionBar.addLeft(new Button("cancel_action", doCancel).setType(ButtonType.Secondary))
 			dialog.addShortcut({
 				key: Keys.ESC,
 				shift: false,
@@ -495,15 +468,6 @@ export class Dialog {
 			})
 		}
 
-		if (title) {
-			if (typeof title === "function") {
-				actionBar.setMiddle(title)
-			} else {
-				actionBar.setMiddle(() => title)
-			}
-		}
-
-		dialog.setCloseHandler(doCancel)
 		return dialog.show()
 	}
 
@@ -592,11 +556,11 @@ export class Dialog {
 		})
 	}
 
-	static largeDialog(headerBar: DialogHeaderBar | DialogHeaderBarN, child: Component): Dialog {
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [
-					m(".dialog-header.plr-l", m(headerBar)),
+					m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
 					m(".dialog-container.scroll",
 						m(".fill-absolute.plr-l", m(child)))
 				])

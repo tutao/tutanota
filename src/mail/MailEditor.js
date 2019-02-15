@@ -65,7 +65,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {DialogHeaderBarN} from "../gui/base/DialogHeaderBarN"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -178,10 +178,6 @@ export class MailEditor {
 		}
 		this.subject.onUpdate(v => this._mailChanged = true)
 
-		// close button needed changes so it was possible to show different outcomes
-		// if nothing changed in the editor in comparison to after it was created just close the editor onclick
-		// show drop down button if an input was made to choose closing or draft saving
-
 		let closeButtonAttrs = attachDropdown({
 			label: "close_alt",
 			click: () => this._close(),
@@ -200,16 +196,11 @@ export class MailEditor {
 			}
 		], () => this._mailChanged, 250)
 
-		const sendButtonAttrs = {
-			label: "send_action",
-			click: () => this.send(),
-			type: ButtonType.Primary
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [closeButtonAttrs],
+			right: [{label: "send_action", click: () => this.send(), type: ButtonType.Primary}],
+			middle: () => lang.get(this._conversationTypeToTitleTextId())
 		}
-
-		let headerBar = new DialogHeaderBarN()
-			.addLeft(closeButtonAttrs)
-			.setMiddle(() => lang.get(this._conversationTypeToTitleTextId()))
-			.addRight(sendButtonAttrs)
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._richTextToolbar = new RichTextToolbar(this._editor)
@@ -306,7 +297,7 @@ export class MailEditor {
 			}
 		}
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: () => closeButtonAttrs.click(null, this._domCloseButton),
@@ -651,8 +642,7 @@ export class MailEditor {
 				                console.log("draft has been deleted, creating new one")
 				                return createMailDraft()
 			                })
-		}
-		else {
+		} else {
 			promise = createMailDraft()
 		}
 
@@ -798,8 +788,7 @@ export class MailEditor {
 			return update(this._previousMail).catch(NotFoundError, e => {
 				// ignore
 			})
-		}
-		else {
+		} else {
 			return Promise.resolve();
 		}
 	}

@@ -4,7 +4,6 @@ import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress, parseBirthday} from "../misc/Formatter"
 import {
@@ -35,6 +34,7 @@ import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {NotFoundError} from "../api/common/error/RestError"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 
 assertMainOrNode()
@@ -138,10 +138,11 @@ export class ContactEditor {
 			.setValue((this.contact.presharedPassword: any))
 			.onUpdate(value => this.contact.presharedPassword = value) : null
 
-		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))
-			.setMiddle(name)
-			.addRight(new Button('save_action', () => this.save()).setType(ButtonType.Primary))
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			middle: name,
+			right: [{label: 'save_action', click: () => this.save(), type: ButtonType.Primary}]
+		}
 		this.view = () => m("#contact-editor", [
 			m(".wrapping-row", [
 				m(firstName),
@@ -198,7 +199,7 @@ export class ContactEditor {
 			m(".pb")
 		])
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: () => this._close(),
@@ -398,11 +399,6 @@ class ContactAggregateEditor {
 			            .map(key => {
 				            return new Button((TypeToLabelMap: any)[key], e => {
 					            if (isCustom(key)) {
-						            let tagDialogActionBar = new DialogHeaderBar()
-						            /* Unused Variable*/
-						            let tagName = new TextField("customLabel_label")
-							            .setValue(this.aggregate.customTypeName)
-
 						            setTimeout(() => {
 							            Dialog.showTextInputDialog("customLabel_label",
 								            "customLabel_label",

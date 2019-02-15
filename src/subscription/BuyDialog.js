@@ -3,8 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {TextField} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
@@ -19,6 +18,8 @@ import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {getPriceItem} from "./PriceUtils"
 import {formatPrice} from "./SubscriptionUtils"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -60,31 +61,29 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 										.setValue(_getPriceText(price, featureType))
 										.setDisabled()
 
-									return Promise.fromCallback(cb => {
-										let actionBar = new DialogHeaderBar()
-										let cancelAction = () => {
+									return new Promise(resolve => {
+										let dialog: Dialog
+										const doAction = res => {
 											dialog.close()
-											cb(null, false)
+											resolve(res)
 										}
-										actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-										actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-										actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
-											dialog.close()
-											cb(null, true)
-										}).setType(ButtonType.Primary))
 
-										let dialog = new Dialog(DialogType.EditSmall, {
+										let actionBarAttrs: DialogHeaderBarAttrs = {
+											left: [{label: "cancel_action", click: () => doAction(false), type: ButtonType.Secondary}],
+											right: [{label: buy ? "buy_action" : "order_action", click: () => doAction(true), type: ButtonType.Primary}],
+											middle: () => lang.get("bookingSummary_label")
+										}
+
+										dialog = new Dialog(DialogType.EditSmall, {
 											view: (): Children => [
-												m(".dialog-header.plr-l", m(actionBar)),
+												m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 												m(".plr-l.pb", m("", [
 													m(orderField),
 													buyField ? m(buyField) : null,
 													m(priceField),
 												]))
 											]
-										})
-										dialog.setCloseHandler(cancelAction)
-										dialog.show()
+										}).setCloseHandler(() => doAction(false)).show()
 									})
 								}
 							})

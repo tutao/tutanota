@@ -12,8 +12,6 @@ import {formatPrice} from "../subscription/SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {Button, ButtonType} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {Keys} from "../misc/KeyManager"
 import * as BuyDialog from "./BuyDialog"
@@ -21,7 +19,8 @@ import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 
 export function buyAliases(amount: number): Promise<void> {
@@ -65,10 +64,12 @@ export function show(): Promise<void> {
 				].filter(aliasPackage => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases)
 				 .map(scb => scb.buyOptionBoxAttr) // filter needless buy options
 
-				const headerBar = new DialogHeaderBar()
-					.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-					.setMiddle(() => lang.get("emailAlias_label"))
-				const dialog = Dialog.largeDialog(headerBar, {
+				const headerBarAttrs : DialogHeaderBarAttrs = {
+					left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
+					middle:() => lang.get("emailAlias_label")
+				}
+
+				const dialog = Dialog.largeDialog(headerBarAttrs, {
 					view: () => [
 						m(".pt.center", lang.get("buyEmailAliasInfo_msg")),
 						m(".flex-center.flex-wrap", emailAliasesBuyOptionsAttrs.map(attr => m(BuyOptionBox, attr)))

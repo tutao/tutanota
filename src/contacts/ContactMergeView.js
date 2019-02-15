@@ -1,7 +1,6 @@
 // @flow
 import {Button, ButtonType} from "../gui/base/Button"
 import m from "mithril"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Dialog} from "../gui/base/Dialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {Icons} from "../gui/base/icons/Icons"
@@ -9,12 +8,7 @@ import type {ContactMergeActionEnum} from "../api/common/TutanotaConstants"
 import {ContactMergeAction} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
-import {
-	getContactAddressTypeLabel,
-	getContactPhoneNumberTypeLabel,
-	getContactSocialTypeLabel,
-	formatBirthdayNumeric
-} from "./ContactUtils"
+import {formatBirthdayNumeric, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 
@@ -50,12 +44,11 @@ export class ContactMergeView {
 		const cancelAction = () => {
 			this._close(ContactMergeAction.Cancel)
 		}
-		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', cancelAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("merge_action"))
-			.addRight(new Button('skip_action', () => {
-				this._close(ContactMergeAction.Skip)
-			}).setType(ButtonType.Primary))
+		const headerBarAttrs = {
+			left: [{label: 'cancel_action', click: cancelAction, type: ButtonType.Secondary}],
+			right: [{label: 'skip_action', click: () => this._close(ContactMergeAction.Skip), type: ButtonType.Primary}],
+			middle: () => lang.get("merge_action")
+		}
 
 		let mailAddresses1 = this.contact1.mailAddresses.map(element => {
 			return new TextField(() => getContactAddressTypeLabel((element.type: any), element.customTypeName))
@@ -264,7 +257,7 @@ export class ContactMergeView {
 			])
 		}
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .setCloseHandler(cancelAction)
 	}
 

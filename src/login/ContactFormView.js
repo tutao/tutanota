@@ -7,7 +7,6 @@ import {animations, opacity} from "../gui/animation/Animations"
 import {NotFoundError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Dialog} from "../gui/base/Dialog"
 import {getLanguage, lang} from "../misc/LanguageViewModel"
 import {Keys} from "../misc/KeyManager"
@@ -16,6 +15,7 @@ import {InfoView} from "../gui/base/InfoView"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -45,11 +45,12 @@ class ContactFormView {
 
 		let closeAction = () => this._moreInformationDialog.close()
 
-		let moreInfoHeaderBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("moreInformation_action"))
+		const moreInfoHeaderBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("moreInformation_action")
+		}
 
-		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBar, {
+		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBarAttrs, {
 			view: () => {
 				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
 			}
