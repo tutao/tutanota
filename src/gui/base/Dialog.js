@@ -405,6 +405,7 @@ export class Dialog {
 
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons.
+	 * @param   props.child either a component (object with view function that returns a VirtualElement) or a naked view Function
 	 * @param   props.validator Called when "Ok" is clicked. Must return null if the input is valid or an error messageID if it is invalid, so an error message is shown.
 	 * @param   props.okAction called after successful validation.
 	 * @param   props.cancelAction called when allowCancel is true and the cancel button/shortcut was pressed.
@@ -412,17 +413,18 @@ export class Dialog {
 	 */
 	static showActionDialog(props: {|
 		title: lazy<string> | string,
-		child: Component,
+		child: Component | lazy<Children>,
 		validator?: validator,
-		okAction: null | (dialog: Dialog) => mixed,
+		okAction: null | (Dialog) => mixed,
 		allowCancel?: boolean,
 		okActionTextId?: TranslationKey,
-		cancelAction?: ?(dialog: Dialog) => mixed,
+		cancelAction?: ?(Dialog) => mixed,
+		cancelActionTextId?: TranslationKey,
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", type: DialogType.EditSmall}, props)
+		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelActionTextId, cancelAction, type} =
+			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {
@@ -447,7 +449,7 @@ export class Dialog {
 		}
 
 		const actionBarAttrs: DialogHeaderBarAttrs = {
-			left: allowCancel ? [{label: "cancel_action", click: doCancel, type: ButtonType.Secondary}] : [],
+			left: allowCancel ? [{label: cancelActionTextId, click: doCancel, type: ButtonType.Secondary}] : [],
 			right: okAction ? [{label: okActionTextId, click: doAction, type: ButtonType.Primary}] : [],
 			middle: typeof title === 'function' ? title : () => title
 		}
@@ -455,7 +457,7 @@ export class Dialog {
 		dialog = new Dialog(type, {
 			view: () => [
 				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
-				m(".dialog-max-height.plr-l.pb.text-break.scroll", m(child))
+				m(".dialog-max-height.plr-l.pb.text-break.scroll", 'function' === typeof child ? child() : m(child))
 			]
 		}).setCloseHandler(doCancel)
 
@@ -491,7 +493,7 @@ export class Dialog {
 
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
-				child: {view: () => m(TextFieldN, textFieldAttrs)},
+				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
 				okAction: dialog => {
 					resolve(result())

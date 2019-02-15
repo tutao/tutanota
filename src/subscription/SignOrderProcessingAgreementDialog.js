@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import {ButtonType} from "../gui/base/ButtonN"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
@@ -12,7 +11,6 @@ import {createSignOrderProcessingAgreementData} from "../api/entities/sys/SignOr
 import {SysService} from "../api/entities/sys/Services"
 import {getDisplayText} from "../mail/MailUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -35,11 +33,8 @@ const agreementTexts = {
 }
 
 
-export function showForSigning(customer: Customer, accountingInfo: AccountingInfo): Dialog {
-
-	const cancelAction = () => dialog.close()
-
-	const signAction = () => {
+export function showForSigning(customer: Customer, accountingInfo: AccountingInfo) {
+	const signAction = dialog => {
 		let data = createSignOrderProcessingAgreementData()
 		data.version = version
 		data.customerAddress = addressEditor.getValue()
@@ -51,9 +46,9 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		}
 	}
 
-	let version = "1_" + ((lang.code === "de") ? "de" : "en")
+	const version = "1_" + ((lang.code === "de") ? "de" : "en")
 
-	let addressEditor = new HtmlEditor()
+	const addressEditor = new HtmlEditor()
 		.setMinHeight(120)
 		.showBorders()
 		.setPlaceholderId("contractor_label")
@@ -61,14 +56,12 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		.setHtmlMonospace(false)
 		.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
 
-	let headerBarAttrs: DialogHeaderBarAttrs = {
-		left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
-		right: [{label: "sign_action", click: signAction, type: ButtonType.Primary}],
-		middle: () => lang.get("orderProcessingAgreement_label")
-	}
-
-	const dialog = Dialog.largeDialog(headerBarAttrs, {
-		view: () => m(".pt", [
+	Dialog.showActionDialog({
+		title: lang.get("orderProcessingAgreement_label"),
+		okAction: signAction,
+		okActionTextId: "sign_action",
+		type: DialogType.EditLarge,
+		child: () => m(".pt", [
 			m.trust(agreementTexts[version].heading),
 			m(".flex-center",
 				m(".dialog-width-s", [
@@ -78,21 +71,17 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 			m.trust(agreementTexts[version].content),
 			m.trust(agreementTexts[version].appendix)
 		])
-	}).setCloseHandler(cancelAction)
-	return dialog.show()
+	})
 }
 
-export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo): Dialog {
-	const headerBarAttrs: DialogHeaderBarAttrs = {
-		left: [{label: "close_alt", click: () => dialog.close(), type: ButtonType.Secondary}],
-		right: 'function' === typeof window.print
-			? [{label: "print_action", click: () => window.print(), type: ButtonType.Primary}]
-			: [],
-		middle: () => lang.get("orderProcessingAgreement_label")
-	}
-
-	const dialog = Dialog.largeDialog(headerBarAttrs, {
-		view: () => m(".pt", [
+export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
+	Dialog.showActionDialog({
+		title: lang.get("orderProcessingAgreement_label"),
+		okAction: 'function' === typeof window.print ? () => window.print() : null,
+		okActionTextId: "print_action",
+		cancelActionTextId: "close_alt",
+		type: DialogType.EditLarge,
+		child: () => m(".pt", [
 			m.trust(agreementTexts[agreement.version].heading),
 			m("p.center.text-prewrap", agreement.customerAddress),
 			m.trust(agreementTexts[agreement.version].content),
@@ -102,6 +91,5 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 			m("hr"),
 			m.trust(agreementTexts[agreement.version].appendix)
 		])
-	}).show()
-	return dialog
+	})
 }

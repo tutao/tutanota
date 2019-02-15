@@ -12,15 +12,13 @@ import {formatPrice} from "../subscription/SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
-import {Dialog} from "../gui/base/Dialog"
-import {Keys} from "../misc/KeyManager"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import * as BuyDialog from "./BuyDialog"
 import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 
 export function buyAliases(amount: number): Promise<void> {
@@ -38,22 +36,18 @@ export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
+			let dialog: Dialog
 			let freeEmailAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
-			return Promise.fromCallback((callback) => {
+			return new Promise(resolve => {
 				const changeEmailAliasPackageAction = (amount: number) => {
 					dialog.close()
 					BuyDialog.show(BookingItemFeatureType.Alias, amount, freeEmailAliases, false).then(confirm => {
 						if (confirm) {
 							return buyAliases(amount)
+						} else {
+							show()
 						}
-					}).then(() => {
-						callback(null)
-					})
-				}
-
-				const cancelAction = () => {
-					dialog.close()
-					callback(null)
+					}).then(() => resolve())
 				}
 
 				const emailAliasesBuyOptionsAttrs = [
@@ -64,25 +58,16 @@ export function show(): Promise<void> {
 				].filter(aliasPackage => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases)
 				 .map(scb => scb.buyOptionBoxAttr) // filter needless buy options
 
-				const headerBarAttrs : DialogHeaderBarAttrs = {
-					left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
-					middle:() => lang.get("emailAlias_label")
-				}
-
-				const dialog = Dialog.largeDialog(headerBarAttrs, {
-					view: () => [
+				dialog = Dialog.showActionDialog({
+					title: lang.get("emailAlias_label"),
+					okAction: null,
+					type: DialogType.EditLarge,
+					child: () => [
 						m(".pt.center", lang.get("buyEmailAliasInfo_msg")),
 						m(".flex-center.flex-wrap", emailAliasesBuyOptionsAttrs.map(attr => m(BuyOptionBox, attr)))
 					]
 				})
 
-				dialog.addShortcut({
-					key: Keys.ESC,
-					exec: cancelAction,
-					help: "close_alt"
-				})
-				dialog.setCloseHandler(cancelAction)
-				dialog.show()
 			})
 
 		})
