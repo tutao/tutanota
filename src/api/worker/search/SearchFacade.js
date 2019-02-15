@@ -12,14 +12,22 @@ import type {
 	Db,
 	ElementData,
 	EncryptedSearchIndexEntry,
-	EncryptedSearchIndexEntryWithHash,
+	EncryptedSearchIndexEntryWithHash, EncryptedSearchIndexMetaDataRow,
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
 	MoreResultsIndexEntry,
 	SearchIndexEntry,
 	SearchIndexMetadataEntry, SearchIndexMetaDataRow
 } from "./SearchTypes"
-import {decryptSearchIndexEntry, encryptIndexKeyBase64, getIdFromEncSearchIndexEntry, getPerformanceTimestamp, timeEnd, timeStart} from "./IndexUtils"
+import {
+	decryptMetaData,
+	decryptSearchIndexEntry,
+	encryptIndexKeyBase64,
+	getIdFromEncSearchIndexEntry,
+	getPerformanceTimestamp,
+	timeEnd,
+	timeStart
+} from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
@@ -329,8 +337,8 @@ export class SearchFacade {
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction
 			.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
-			.then((metaData: ?SearchIndexMetaDataRow) => {
-				const safeRows = metaData ? metaData.rows : []
+			.then((metaData: ?EncryptedSearchIndexMetaDataRow) => {
+				const safeRows = metaData ? decryptMetaData(this._db.key, metaData).rows : []
 				return mapInCallContext(safeRows, (entry) => this._findEntriesForMetadata(transaction, entry))
 			})
 			.then((results: EncryptedSearchIndexEntry[][]) => flat(results))

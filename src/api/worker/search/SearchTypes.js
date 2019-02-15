@@ -11,10 +11,10 @@ export type SearchIndexRow = [
 	Uint8Array // Binary encoded EncryptedSearchIndexEntries (see SearchIndexEncoding.js)
 	]
 
-export type SearchIndexMetaDataRow = {
+export type EncryptedSearchIndexMetaDataRow = {
 	id: number,
 	word: string,
-	rows: Array<SearchIndexMetadataEntry>
+	rows: Uint8Array // encoded pairs of numbers, first item in a pair in search index row id, second is the size of the row
 }
 
 export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc search index row keys, third is owner group id
@@ -91,6 +91,12 @@ export type Db = {
 	iv: Uint8Array; // fixed iv for all search index entries
 	dbFacade: DbFacade;
 	initialized: Promise<void>;
+}
+
+export type SearchIndexMetaDataRow = {
+	id: number,
+	word: B64EncIndexKey,
+	rows: Array<SearchIndexMetadataEntry>
 }
 
 export type SearchIndexMetadataEntry = {

@@ -8,8 +8,10 @@ import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encodin
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
 	byteLength,
+	decryptMetaData,
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
+	encryptMetaData,
 	encryptSearchIndexEntry,
 	getAppId,
 	getIdFromEncSearchIndexEntry,
@@ -20,6 +22,7 @@ import type {
 	B64EncIndexKey,
 	Db,
 	EncryptedSearchIndexEntry,
+	EncryptedSearchIndexMetaDataRow,
 	GroupData,
 	IndexUpdate,
 	SearchIndexEntry,
@@ -39,7 +42,7 @@ import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumber,
 	decodeNumbers,
-	encodeNumberBlock,
+	encodeNumbers,
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges
 } from "./SearchIndexEncoding"
@@ -288,34 +291,32 @@ export class IndexerCore {
 	}
 
 	_updateMetaDataAfterDelete(transaction: DbTransaction, metaDataId: number, searchIndexRowId: number, rowSize: number): Promise<void> {
-		return transaction.get(SearchIndexMetaDataOS, metaDataId).then((metaData: ?SearchIndexMetaDataRow) => {
-			if (!metaData) { // already deleted
+		return transaction.get(SearchIndexMetaDataOS, metaDataId).then((encMetaDataRow: ?EncryptedSearchIndexMetaDataRow) => {
+			if (!encMetaDataRow) { // already deleted
 				return
 			}
-			const metaDataIndex = metaData.rows.findIndex((metaData) => metaData.key === searchIndexRowId)
+			const metaDataRow = decryptMetaData(this.db.key, encMetaDataRow)
+			const metaDataIndex = metaDataRow.rows.findIndex((metaData) => metaData.key === searchIndexRowId)
 			if (metaDataIndex !== -1) {
 				if (rowSize > 0) {
-					metaData.rows[metaDataIndex].size = rowSize
+					metaDataRow.rows[metaDataIndex].size = rowSize
 				} else if (rowSize === 0) {
-					metaData.rows.splice(metaDataIndex, 1)
+					metaDataRow.rows.splice(metaDataIndex, 1)
 				}
 			} else if (rowSize > 0) {
-				metaData.rows.push({
+				metaDataRow.rows.push({
 					size: rowSize,
 					key: searchIndexRowId
 				})
 			}
-			if (metaData.rows.length !== 0) {
-				return transaction.put(SearchIndexMetaDataOS, null, metaData)
+			if (metaDataRow.rows.length !== 0) {
+				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaDataRow))
 			} else {
 				return transaction.delete(SearchIndexMetaDataOS, metaDataId)
 			}
 		})
 	}
 
-	/**
-	 * @return a map that contains all new encrypted instance ids
-	 */
 	_insertNewElementData(indexUpdate: IndexUpdate, transaction: DbTransaction, encWordToIndexRow: {[B64EncIndexKey]: number}): ?Promise<void> {
 		this._cancelIfNeeded()
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only in Safari)
@@ -323,13 +324,10 @@ export class IndexerCore {
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementDataSurrogate, b64EncInstanceId) => {
 			let encInstanceId = base64ToUint8Array(b64EncInstanceId)
 			const encWords: Array<B64EncIndexKey> = elementDataSurrogate.encWordsB64
-			const rowKeys = encWords.map((encWord) => encWordToIndexRow[encWord])
+			const rowKeys: Array<number> = encWords.map((encWord) => encWordToIndexRow[encWord])
 			const sizeBinary = rowKeys.reduce((acc, key) => acc + calculateNeededSpaceForNumber(key), 0)
 			const rowKeysBinary = new Uint8Array(sizeBinary)
-			let offset = 0
-			rowKeys.forEach((rowKey) => {
-				offset += encodeNumberBlock(rowKey, rowKeysBinary, offset)
-			})
+			encodeNumbers(rowKeys, rowKeysBinary)
 			const encRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
 			return transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encRowKeys, elementDataSurrogate.ownerGroup])
 		})
@@ -345,7 +343,7 @@ export class IndexerCore {
 			return thenOrApply(this._putEncryptedEntity(indexUpdate.groupId, transaction, encWordB64, encryptedEntries), (rowId) => {
 				keyToIndexEntryKey[encWordB64] = rowId
 			})
-		}, {concurrency: 1})
+		}, {concurrency: 2})
 
 		return result instanceof Promise
 			? result.return(keyToIndexEntryKey)
@@ -393,7 +391,7 @@ export class IndexerCore {
 					           ? columnSize : this._stats.largestColumn
 				           this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
 					           sum + e.length, 0)
-				           return transaction.put(SearchIndexMetaDataOS, null, metaData)
+				           return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
 				                             .return(newRowId)
 			           })
 
@@ -403,12 +401,12 @@ export class IndexerCore {
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey): Promise<SearchIndexMetaDataRow> {
 		return transaction
 			.get(SearchIndexMetaDataOS, encWordBase64, SearchIndexWordsIndex)
-			.then((metaData) => {
+			.then((metaData: ?EncryptedSearchIndexMetaDataRow) => {
 				if (metaData) {
-					return metaData
+					return decryptMetaData(this.db.key, metaData)
 				} else {
 					return transaction
-						.put(SearchIndexMetaDataOS, null, {word: encWordBase64, rows: []})
+						.put(SearchIndexMetaDataOS, null, {word: encWordBase64, rows: new Uint8Array(0)})
 						.then((rowId) => {
 							this._stats.words += 1
 							return {id: rowId, word: encWordBase64, rows: []}

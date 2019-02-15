@@ -3,7 +3,7 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
-import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
+import type {EncryptedSearchIndexEntry, EncryptedSearchIndexMetaDataRow, IndexUpdate, SearchIndexEntry, SearchIndexMetaDataRow} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
 import {calculateNeededSpaceForNumber, decodeNumberBlock, decodeNumbers, encodeNumberBlock, encodeNumbers} from "./SearchIndexEncoding"
@@ -58,6 +58,28 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 		attribute,
 		positions,
 	}
+}
+
+export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): EncryptedSearchIndexMetaDataRow {
+	const numbers = []
+	metaData.rows.forEach((r) => {
+		numbers.push(r.key, r.size)
+	})
+	const spaceForRows = numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
+	const numberBlock = new Uint8Array(spaceForRows)
+	encodeNumbers(numbers, numberBlock)
+	const encryptedRows = aes256Encrypt(key, numberBlock, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+	return {id: metaData.id, word: metaData.word, rows: encryptedRows}
+}
+
+export function decryptMetaData(key: Aes256Key, encryptedMeta: EncryptedSearchIndexMetaDataRow): SearchIndexMetaDataRow {
+	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
+	const numbers = decodeNumbers(numbersBlock)
+	const rows = []
+	for (let i = 0; i < numbers.length; i += 2) {
+		rows.push({key: numbers[i], size: numbers[i + 1]})
+	}
+	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }
 
 export function getAppId(typeRef: TypeRef<any>): number {
