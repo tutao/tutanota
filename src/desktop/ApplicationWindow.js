@@ -54,7 +54,7 @@ export class ApplicationWindow {
 			} else {
 				contents.closeDevTools()
 			}
-		} else {
+		} else if (!this._browserWindow.isFocused()) {
 			this._browserWindow.focus()
 		}
 	}
@@ -102,7 +102,7 @@ export class ApplicationWindow {
 		})
 
 		this._browserWindow.on('close', ev => {
-			if (conf.getDesktopConfig('runAsTrayApp') && this.getUserId() !== null && !forceQuit) {
+			if (conf.getDesktopConfig('runAsTrayApp') && typeof this.getUserId() === 'string' && !forceQuit) {
 				ev.preventDefault()
 				this._browserWindow.hide()
 			}
@@ -124,6 +124,7 @@ export class ApplicationWindow {
 			localShortcut.enableAll(this._browserWindow)
 			windows.splice(windows.indexOf(this), 1)
 			windows.push(this)
+			this.setUserId(this.getUserId())
 		}).on('blur', ev => {
 			localShortcut.disableAll(this._browserWindow)
 		}).on('page-title-updated', ev => {
@@ -241,7 +242,6 @@ export class ApplicationWindow {
 	}
 
 	setUserId(userId: ?string) {
-		console.log('window changed state to userId:', userId)
 		this._userId = userId
 		if (userId) {
 			notifier.resolveGroupedNotification(userId)
@@ -287,6 +287,10 @@ export class ApplicationWindow {
 		return this._browserWindow.webContents.getTitle()
 	}
 
+	hasNotifications(): boolean {
+		return !!this._userId && notifier.hasNotificationForId(this._userId)
+	}
+
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
 		return callback(false)
 	}
@@ -313,7 +317,7 @@ export class ApplicationWindow {
 	}
 
 	isVisible(): boolean {
-		return this._browserWindow.isVisible()
+		return this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
 	}
 
 	static get(id: number): ?ApplicationWindow {

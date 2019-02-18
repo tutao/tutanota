@@ -61,13 +61,21 @@ class DesktopNotifier {
 			body: message,
 			icon: tray.getIcon(),
 		}, onClick)
+
+		tray.update()
 	}
 
 	resolveGroupedNotification(id: string) {
 		if ('function' === typeof this._notificationCloseFunctions[id]) {
 			this._notificationCloseFunctions[id]()
+			tray.update()
 		}
 		delete this._notificationCloseFunctions[id]
+
+	}
+
+	hasNotificationForId(id: string): boolean {
+		return 'function' === typeof this._notificationCloseFunctions[id]
 	}
 
 	/**

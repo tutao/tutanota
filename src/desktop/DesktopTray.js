@@ -9,6 +9,7 @@ import {ApplicationWindow} from "./ApplicationWindow.js"
 class DesktopTray {
 	_tray: Tray;
 	_icon: NativeImage;
+	_markedIcon: NativeImage;
 
 	/**
 	 * linux env: DESKTOP_SESSION XDG_SESSION_DESKTOP XDG_CURRENT_DESKTOP to detect WM
@@ -20,7 +21,9 @@ class DesktopTray {
 		lang.initialized.promise.then(() => {
 			if (process.platform === 'darwin') { // we use the dock on MacOs
 				app.dock.setMenu(this._getMenu())
-				app.dock.show()
+				if (!app.dock.isVisible()) {
+					app.dock.show()
+				}
 			} else {
 				if (!this._tray) {
 					this._tray = new Tray(this.getIcon())
@@ -52,7 +55,16 @@ class DesktopTray {
 		if (ApplicationWindow.getAll().length > 0) {
 			m.append(new MenuItem({type: 'separator'}))
 			ApplicationWindow.getAll().forEach(w => {
-				m.append(new MenuItem({label: w.getTitle(), click: () => w.show()}))
+				let label = w.getTitle()
+				if (w.hasNotifications()) {
+					label = "• " + label
+				} else {
+					label = label + "  "
+				}
+				m.append(new MenuItem({
+					label: label,
+					click: () => w.show()
+				}))
 			})
 		}
 		if (process.platform !== 'darwin') {

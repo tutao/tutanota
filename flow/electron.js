@@ -156,6 +156,7 @@ declare module 'electron' {
 	declare export type Dock = {
 		setMenu(Menu): void,
 		bounce(): void,
+		isVisible(): boolean;
 		hide(): void,
 		show(): void,
 	}
@@ -219,6 +220,7 @@ declare module 'electron' {
 		loadFile(string): void;
 		loadURL(string): void;
 		isMinimized(): boolean;
+		isFocused(): boolean;
 		isFullScreen(): boolean;
 		isVisible(): boolean;
 		isSimpleFullScreen(): boolean;
