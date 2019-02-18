@@ -1,31 +1,33 @@
 // @flow
 import m from "mithril"
+import stream from 'mithril/stream/stream.js'
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
-import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomDomainStatusCode} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {isDomainName} from "../misc/Formatter"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
 export function show(customerInfo: CustomerInfo) {
-	let domainName = new TextField("adminCustomDomain_label")
-	let form = {
-		view: () => {
-			return [
-				m(domainName),
-				m(".small", lang.get("adminCustomDomainInfo_msg")),
-				m(".small", m(`a[href=${getDomainInfoLink()}][target=_blank]`, getDomainInfoLink())),
-			]
-		}
+	const domainName: Stream<string> = stream("")
+	const domainNameAttrs: TextFieldAttrs = {
+		label: "adminCustomDomain_label",
+		value: domainName
 	}
+
 	let dialog = Dialog.showActionDialog({
 		title: lang.get("addCustomDomain_action"),
-		child: form,
+		child: () => [
+			m(TextFieldN, domainNameAttrs),
+			m(".small", lang.get("adminCustomDomainInfo_msg")),
+			m(".small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))),
+		],
 		okAction: () => {
-			let cleanDomainName = domainName.value().trim().toLowerCase()
+			let cleanDomainName = domainName().trim().toLowerCase()
 			if (!isDomainName(cleanDomainName)) {
 				Dialog.error("customDomainNeutral_msg")
 			} else if (customerInfo.domainInfos.find(info => info.domain === cleanDomainName)) {
@@ -57,9 +59,4 @@ export function show(customerInfo: CustomerInfo) {
 			}
 		}
 	})
-}
-
-export function getDomainInfoLink(): string {
-	return (lang.code === "de" || lang.code
-		=== "de_sie") ? "https://tutanota.com/de/howto/#custom-domain" : "https://tutanota.com/howto#custom-domain"
 }

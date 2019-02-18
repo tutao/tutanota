@@ -65,6 +65,14 @@ const infoLinks = {
 	"2FA_link": {
 		"de": "https://tutanota.com/de/faq/#2fa",
 		"en": "https://tutanota.com/faq/#2fa"
+	},
+	"spamRules_link": {
+		"de": "https://tutanota.com/de/howto#spam",
+		"en": "https://tutanota.com/howto#spam"
+	},
+	"domainInfo_link": {
+		"de": "https://tutanota.com/de/howto/#custom-domain",
+		"en": "https://tutanota.com/howto#custom-domain"
 	}
 }
 
