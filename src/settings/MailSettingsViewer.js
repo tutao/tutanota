@@ -46,7 +46,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_sendPlaintext: Stream<?boolean>;
 	_noAutomaticContacts: Stream<?boolean>;
 	_enableMailIndexing: Stream<?boolean>;
-	_inboxRulesTableLines: Stream<?Array<TableLineAttrs>>;
+	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>;
 	_inboxRulesExpanded: Stream<boolean>;
 	_indexStateWatch: ?Stream<any>;
 
@@ -59,7 +59,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._noAutomaticContacts = stream(logins.getUserController().props.noAutomaticContacts)
 		this._enableMailIndexing = stream(locator.search.indexState().mailIndexEnabled)
 		this._inboxRulesExpanded = stream(false)
-		this._inboxRulesTableLines = stream(null)
+		this._inboxRulesTableLines = stream([])
 		this._indexStateWatch = null
 
 		this._updateInboxRules(logins.getUserController().props)

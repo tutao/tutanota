@@ -17,10 +17,10 @@ export type TextFieldAttrs = {
 	value: Stream<string>,
 	preventAutofill?: boolean,
 	type?: TextFieldTypeEnum,
-	helpLabel?: lazy<string>,
+	helpLabel?: ?lazy<Children>,
 	alignRight?: boolean,
-	injectionsLeft?: Function, // only used by the BubbleTextField to display bubbles
-	injectionsRight?: Function,
+	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles
+	injectionsRight?: lazy<Children>,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
 	onblur?: Function,
 	maxWidth?: number,
