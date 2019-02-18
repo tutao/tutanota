@@ -7,6 +7,11 @@ import type {EncryptedSearchIndexEntry, EncryptedSearchIndexMetaDataRow, IndexUp
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
 import {calculateNeededSpaceForNumber, decodeNumberBlock, decodeNumbers, encodeNumberBlock, encodeNumbers} from "./SearchIndexEncoding"
+import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
+import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
+import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
+import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
+import {TypeRef} from "../../common/EntityFunctions"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
@@ -52,12 +57,13 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 
 export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): EncryptedSearchIndexMetaDataRow {
 	const numbers = new Array(metaData.rows.length * 4)
-	for (let i = 0; i < metaData.rows.length; i += 4) {
+	for (let i = 0; i < metaData.rows.length; i++) {
 		const entry = metaData.rows[i]
-		numbers[i] = entry.app
-		numbers[i + 1] = entry.type
-		numbers[i + 2] = entry.key
-		numbers[i + 3] = entry.size
+		const offset = i * 4
+		numbers[offset] = entry.app
+		numbers[offset + 1] = entry.type
+		numbers[offset + 2] = entry.key
+		numbers[offset + 3] = entry.size
 	}
 	const spaceForRows = numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
 	const numberBlock = new Uint8Array(spaceForRows)
@@ -76,14 +82,50 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: EncryptedSearchIn
 	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }
 
-export function getAppId(typeRef: TypeRef<any>): number {
-	if (typeRef.app === "sys") {
-		return 0
-	} else if (typeRef.app === "tutanota") {
-		return 1
-	}
-	throw new Error("non indexed application " + typeRef.app)
+type TypeInfo = {
+	appId: number;
+	typeId: number;
+	attributeIds: number[];
 }
+
+const typeInfos = {
+	tutanota: {
+		Mail: {
+			appId: 1,
+			typeId: MailModel.id,
+			attributeIds: getAttributeIds(MailModel)
+		},
+		Contact: {
+			appId: 1,
+			typeId: ContactModel.id,
+			attributeIds: getAttributeIds(ContactModel)
+		}
+	},
+	sys: {
+		GroupInfo: {
+			appId: 0,
+			typeId: GroupInfoModel.id,
+			attributeIds: getAttributeIds(GroupInfoModel)
+		},
+		WhitelabelChild: {
+			appId: 0,
+			typeId: WhitelabelChildModel.id,
+			attributeIds: getAttributeIds(WhitelabelChildModel)
+		}
+	}
+}
+
+
+function getAttributeIds(model: TypeModel) {
+	return Object.keys(model.values)
+	             .map(name => model.values[name].id)
+	             .concat(Object.keys(model.associations).map(name => model.associations[name].id))
+}
+
+export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
+	return typeInfos[typeRef.app][typeRef.type]
+}
+
 
 export function userIsLocalOrGlobalAdmin(user: User): boolean {
 	return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
@@ -116,9 +158,11 @@ export function byteLength(str: ?string) {
 	return s;
 }
 
-export function _createNewIndexUpdate(groupId: Id): IndexUpdate {
+export function _createNewIndexUpdate(groupId: Id, typeInfo: TypeInfo): IndexUpdate {
 	return {
 		groupId,
+		appId: typeInfo.appId,
+		typeId: typeInfo.typeId,
 		batchId: null,
 		indexTimestamp: null,
 		create: {

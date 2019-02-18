@@ -66,19 +66,15 @@ export type SearchIndexEntry = {
 	encId?: Uint8Array
 }
 
-export type SearchIndexEntriesByAppType = {
-	[number]: {
-		[number]: Array<EncryptedSearchIndexEntry>
-	}
-}
-
 export type IndexUpdate = {
 	groupId: Id;
+	typeId: number; // index update must be unique for type and app
+	appId: number;
 	batchId: ?IdTuple;
 	indexTimestamp: ?number;
 	create: {
 		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
-		indexMap: Map<B64EncIndexKey, SearchIndexEntriesByAppType>;
+		indexMap: Map<B64EncIndexKey, Array<EncryptedSearchIndexEntry>>;
 	};
 	move: {
 		encInstanceId: B64EncInstanceId;

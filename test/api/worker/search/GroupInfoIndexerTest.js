@@ -16,7 +16,7 @@ import {
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
 import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddressAlias"
@@ -30,6 +30,8 @@ import {browserDataStub} from "../../TestUtils"
 
 
 const dbMock: any = {iv: fixedIv}
+
+const groupTypeInfo = typeRefToTypeInfo(GroupInfoTypeRef)
 
 o.spec("GroupInfoIndexer test", function () {
 
@@ -276,7 +278,7 @@ o.spec("GroupInfoIndexer test", function () {
 
 		const indexer = new GroupInfoIndexer(core, db, (null: any), suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
 		let events = [
 			createUpdate(OperationType.CREATE, "groupInfo-list", "1"),
 			createUpdate(OperationType.UPDATE, "groupInfo-list", "2"),
@@ -312,7 +314,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
@@ -343,7 +345,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
 		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
@@ -377,7 +379,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
 		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]

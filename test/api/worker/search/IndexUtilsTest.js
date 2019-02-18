@@ -2,30 +2,31 @@
 import o from "ospec/ospec.js"
 import {
 	_createNewIndexUpdate,
-	byteLength,
+	byteLength, decryptMetaData,
 	decryptSearchIndexEntry,
 	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
+	encryptIndexKeyUint8Array, encryptMetaData,
 	encryptSearchIndexEntry,
 	filterIndexMemberships,
 	filterMailMemberships,
-	getAppId,
-	htmlToText,
+	htmlToText, typeRefToTypeInfo,
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
-import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
+import {createUser, UserTypeRef, _TypeModel as UserTypeModel} from "../../../../src/api/entities/sys/User"
+import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
-import type {SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
+import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
+import {random} from "../../../../src/api/worker/crypto/Randomizer"
+import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
@@ -37,7 +38,7 @@ o.spec("Index Utils", () => {
 
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
-		let entry: SearchIndexEntry = {id: "L0YED5d----1", app: 0, type: 64, attribute: 84, positions: [12, 536, 3]}
+		let entry: SearchIndexEntry = {id: "L0YED5d----1", attribute: 84, positions: [12, 536, 3]}
 		let encId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
 
@@ -51,15 +52,31 @@ o.spec("Index Utils", () => {
 		o(JSON.stringify(decrypted)).deepEquals(JSON.stringify(entry))
 	})
 
-	o("getAppId", function () {
-		o(getAppId(UserTypeRef)).equals(0)
-		o(getAppId(ContactTypeRef)).equals(1)
-		try {
-			getAppId({app: 5})
-			o("Failure, non supported appid").equals(false)
-		} catch (e) {
-			o(e.message.startsWith("non indexed application")).equals(true)
-		}
+	o("encryptMetaData", function () {
+		const key = aes256RandomKey()
+		const meta: SearchIndexMetaDataRow = {id: 3, word: "asdsadasds", rows: [{app: 1, type: 64, key: 3, size: 10}, {app: 2, type: 66, key: 4, size: 8}]}
+		const encryptedMeta = encryptMetaData(key, meta)
+		o(encryptedMeta.id).equals(meta.id)
+		o(encryptedMeta.word).equals(meta.word)
+		o(Array.from(aes256Decrypt(key, encryptedMeta.rows, true, false))).deepEquals([1, 64, 3, 10, 2, 66, 4, 8])
+	})
+
+	o("decryptMetaData", function () {
+		const key = aes256RandomKey()
+		const meta: SearchIndexMetaDataRow = {id: 3, word: "asdsadasds", rows: [{app: 1, type: 64, key: 3, size: 10}, {app: 2, type: 66, key: 4, size: 8}]}
+		const encodedRows = new Uint8Array([1, 64, 3, 10, 2, 66, 4, 8])
+		const encryptedRows = aes256Encrypt(key, encodedRows, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+		const encryptedMeta: any = Object.assign({}, meta, {rows: encryptedRows})
+		const decryptedMeta = decryptMetaData(key, encryptedMeta)
+		o(decryptedMeta.id).equals(meta.id)
+		o(decryptedMeta.word).equals(meta.word)
+		o(decryptedMeta.rows).deepEquals(meta.rows)
+	})
+
+	o("typeRefToTypeInfo", function () {
+		o(typeRefToTypeInfo(UserTypeRef).appId).equals(0)
+		o(typeRefToTypeInfo(UserTypeRef).typeId).equals(UserTypeModel.id)
+		o(typeRefToTypeInfo(ContactTypeRef).appId).equals(1)
 	})
 
 	o("userIsLocalOrGlobalAdmin", function () {
@@ -151,7 +168,7 @@ o.spec("Index Utils", () => {
 	})
 
 	o("new index update", function () {
-		let indexUpdate = _createNewIndexUpdate("groupId")
+		let indexUpdate = _createNewIndexUpdate("groupId", typeRefToTypeInfo(MailTypeRef))
 		o(indexUpdate.groupId).equals("groupId")
 		o(indexUpdate.batchId).equals(null)
 		o(indexUpdate.indexTimestamp).equals(null)

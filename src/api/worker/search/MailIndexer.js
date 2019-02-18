@@ -11,7 +11,7 @@ import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, isSameId, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
-import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText} from "./IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -127,7 +127,7 @@ export class MailIndexer {
 					return this.processNewMail(event).then(result => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
-								MailModel, indexUpdate)
+								indexUpdate)
 						}
 					})
 				}
@@ -301,13 +301,13 @@ export class MailIndexer {
 				                          files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id)))
 			                          })))
 			                          .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
-				                          let indexUpdate = _createNewIndexUpdate(mailGroupId)
+				                          let indexUpdate = _createNewIndexUpdate(mailGroupId, typeRefToTypeInfo(MailTypeRef))
 				                          this._core._stats.downloadingTime += (getPerformanceTimestamp() - startTimeLoad)
 				                          this._core._stats.mailcount += mailWithBodyAndFiles.length
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries,
-						                          MailModel,
+
 						                          indexUpdate)
 				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
 			                          })
@@ -452,8 +452,7 @@ export class MailIndexer {
 					} else {
 						return this.processNewMail(event).then((result) => {
 							if (result) {
-								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
-									MailModel, indexUpdate)
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 							}
 						})
 					}
@@ -473,8 +472,7 @@ export class MailIndexer {
 							!futureActions.moved.get(event.instanceId)
 								? this.processNewMail(event).then(result => {
 									if (result) {
-										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
-											MailModel, indexUpdate)
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 									}
 								})
 								: Promise.resolve()

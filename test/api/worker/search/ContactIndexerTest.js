@@ -17,7 +17,7 @@ import {
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
@@ -27,6 +27,7 @@ import {downcast} from "../../../../src/api/common/utils/Utils"
 
 
 const dbMock: any = {iv: fixedIv}
+const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 
 o.spec("ContactIndexer test", () => {
 
@@ -308,7 +309,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
 		let events = [createUpdate(OperationType.CREATE, "contact-list", "1")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
@@ -335,7 +336,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
 		let events = [createUpdate(OperationType.UPDATE, "contact-list", "1")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
@@ -363,7 +364,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
 		let events = [createUpdate(OperationType.DELETE, "contact-list", "1")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed

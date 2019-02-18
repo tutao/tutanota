@@ -17,7 +17,7 @@ import type {
 	KeyToIndexEntries,
 	MoreResultsIndexEntry,
 	SearchIndexEntry,
-	SearchIndexMetadataEntry, SearchIndexMetaDataRow
+	SearchIndexMetadataEntry
 } from "./SearchTypes"
 import {
 	decryptMetaData,
@@ -26,7 +26,7 @@ import {
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
 	timeEnd,
-	timeStart
+	timeStart, typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
@@ -538,45 +538,3 @@ export class SearchFacade {
 }
 
 
-type TypeInfo = {
-	appId: number;
-	typeId: number;
-	attributeIds: number[];
-}
-
-const typeInfos = {
-	tutanota: {
-		Mail: {
-			appId: 1,
-			typeId: MailModel.id,
-			attributeIds: getAttributeIds(MailModel)
-		},
-		Contact: {
-			appId: 1,
-			typeId: ContactModel.id,
-			attributeIds: getAttributeIds(ContactModel)
-		}
-	},
-	sys: {
-		GroupInfo: {
-			appId: 0,
-			typeId: GroupInfoModel.id,
-			attributeIds: getAttributeIds(GroupInfoModel)
-		},
-		WhitelabelChild: {
-			appId: 0,
-			typeId: WhitelabelChildModel.id,
-			attributeIds: getAttributeIds(WhitelabelChildModel)
-		}
-	}
-}
-
-function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
-	return typeInfos[typeRef.app][typeRef.type]
-}
-
-function getAttributeIds(model: TypeModel) {
-	return Object.keys(model.values)
-	             .map(name => model.values[name].id)
-	             .concat(Object.keys(model.associations).map(name => model.associations[name].id))
-}

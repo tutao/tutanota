@@ -2,7 +2,7 @@
 import o from "ospec/ospec.js"
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db, ElementData, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
-import {_createNewIndexUpdate, encryptIndexKeyBase64} from "../../../../src/api/worker/search/IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {MailStateEnum, OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
@@ -211,7 +211,7 @@ o.spec("MailIndexer test", () => {
 
 		const indexer = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
 		indexer.processMovedMail(event, indexUpdate).then(() => {
 			o(indexUpdate.move.length).equals(1)
 			o(Array.from(indexUpdate.move[0].encInstanceId)).deepEquals(Array.from(encInstanceId))
@@ -243,7 +243,7 @@ o.spec("MailIndexer test", () => {
 		let result = {mail: {_id: 'mail-id', _ownerGroup: 'owner-group'}, keyToIndexEntries: new Map()}
 		indexer.processNewMail = o.spy(() => Promise.resolve(result))
 
-		let indexUpdate = _createNewIndexUpdate("group-id")
+		let indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
 		indexer.processMovedMail(event, indexUpdate).then(() => {
 			o(indexUpdate.move.length).equals(0)
 			o(indexer.processNewMail.callCount).equals(1)
@@ -436,7 +436,7 @@ o.spec("MailIndexer test", () => {
 	o.spec("processEntityEvents", function () {
 		let indexUpdate: IndexUpdate
 		o.beforeEach(function () {
-			indexUpdate = _createNewIndexUpdate("group-id")
+			indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
 		})
 
 		o("do nothing if mailIndexing is disabled", async function () {
@@ -519,7 +519,7 @@ o.spec("MailIndexer test", () => {
 		let indexUpdate: IndexUpdate
 		o.beforeEach(function () {
 			indexer = _prepareProcessEntityTests(true)
-			indexUpdate = _createNewIndexUpdate("group-id")
+			indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
 		})
 
 		o("create & delete == delete", async function () {

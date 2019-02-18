@@ -11,8 +11,11 @@ export const MetaDataOS: ObjectStoreName = "MetaData"
 export const GroupDataOS: ObjectStoreName = "GroupMetaData"
 export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 
+export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
+
 export opaque type IndexName = string
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
+export const indexName = (indexName: IndexName): string => indexName
 
 const DB_VERSION = 3
 
