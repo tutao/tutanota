@@ -93,7 +93,7 @@ let initialized = lang.init(en).then(() => {
 				() => [
 					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
 					m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
-					m("p", m("a", {href: "https://tutanota.uservoice.com/knowledgebase/articles/1890001-outdated-webview-version-on-android"}, "Learn more"))
+					m("p", m("a", {href: "https://tutanota.com/howto/#webview"}, "Learn more"))
 				].concat(androidVersion >= 7
 					? [
 						m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),

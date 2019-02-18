@@ -59,12 +59,12 @@ export const languages: Language[] = [
 
 const infoLinks = {
 	"recoverCode_link": {
-		"de": "https://tutanota.uservoice.com/knowledgebase/articles/470716",
-		"en": "https://tutanota.uservoice.com/knowledgebase/articles/470717"
+		"de": "https://tutanota.com/de/faq/#access-lost",
+		"en": "https://tutanota.com/faq/#access-lost"
 	},
 	"2FA_link": {
-		"de": "https://tutanota.uservoice.com/knowledgebase/articles/1201945",
-		"en": "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+		"de": "https://tutanota.com/de/faq/#2fa",
+		"en": "https://tutanota.com/faq/#2fa"
 	}
 }
 
