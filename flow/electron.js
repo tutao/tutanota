@@ -58,6 +58,7 @@ declare module 'electron' {
 
 	declare export class App {
 		on(AppEvent, (Event, ...Array<any>) => void): App,
+		once(AppEvent, (Event, ...Array<any>) => void): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
@@ -269,6 +270,7 @@ declare module 'electron' {
 		send(string, any): void;
 		session: ElectronSession;
 		getURL(): string;
+		getTitle(): string;
 		getZoomFactor((factor: number) => void): void;
 		setZoomFactor(factor: number): void;
 		openDevTools(opts?: {|mode: string|}): void;

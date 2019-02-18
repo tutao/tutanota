@@ -1,7 +1,7 @@
 // @flow
 import {ipc} from './IPC.js'
 import type {ElectronPermission, Rectangle} from 'electron'
-import {BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
+import {app, BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
@@ -21,6 +21,11 @@ type WindowBounds = {
 
 const windows: ApplicationWindow[] = []
 let fileManagersOpen: number = 0
+
+let forceQuit = false
+app.once('before-quit', () => {
+	forceQuit = true
+})
 
 export class ApplicationWindow {
 	_rewroteURL: boolean;
@@ -97,6 +102,12 @@ export class ApplicationWindow {
 		})
 
 		this._browserWindow.on('close', ev => {
+			if (conf.getDesktopConfig('runAsTrayApp') && this.getUserId() !== null && !forceQuit) {
+				ev.preventDefault()
+				this._browserWindow.hide()
+			}
+
+			// save window position
 			const lastBounds = this._browserWindow.getBounds()
 			if (isContainedIn(screen.getDisplayMatching(lastBounds).bounds, lastBounds)) {
 				conf.setDesktopConfig('lastBounds', {
@@ -115,13 +126,8 @@ export class ApplicationWindow {
 			windows.push(this)
 		}).on('blur', ev => {
 			localShortcut.disableAll(this._browserWindow)
-		}).on('minimize', ev => {
-			if (conf.getDesktopConfig('runAsTrayApp')) {
-				this._browserWindow.hide()
-				ev.preventDefault()
-			}
-		}).on('page-title-updated', () => {
-			if (this._browserWindow.getTitle() === LOGIN_TITLE) {
+		}).on('page-title-updated', ev => {
+			if (this.getTitle() === LOGIN_TITLE) {
 				this.setUserId(null)
 			}
 			tray.update()
@@ -278,7 +284,7 @@ export class ApplicationWindow {
 	}
 
 	getTitle(): string {
-		return this._browserWindow.getTitle()
+		return this._browserWindow.webContents.getTitle()
 	}
 
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
