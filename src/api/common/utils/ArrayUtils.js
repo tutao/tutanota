@@ -105,12 +105,20 @@ export function last(theArray: Array<any>): ?any {
 }
 
 export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {
-	for (let i = array.length - 1; i >= 0; i--) {
-		if (predicate(array[i])) {
-			return array[i]
-		}
+	const index = findLastIndex(array, predicate)
+	if (index !== -1) {
+		return array[index]
 	}
 	return null
+}
+
+export function findLastIndex<T>(array: Array<T>, predicate: (T) => boolean): number {
+	for (let i = array.length - 1; i >= 0; i--) {
+		if (predicate(array[i])) {
+			return i
+		}
+	}
+	return -1
 }
 
 export function contains(theArray: Array<any>, elementToCheck: any): boolean {

@@ -45,12 +45,14 @@ export class SearchModel {
 		}
 		if (query.trim() === "") {
 			// if there was an empty query, just send empty result
-			const result = {
+			const result: SearchResult = {
 				query: query,
 				restriction: restriction,
 				results: [],
 				currentIndexTimestamp: this.indexState().currentMailIndexTimestamp,
-				moreResultsEntries: []
+				lastReadSearchIndexRow: [],
+				maxResults: 0,
+				matchWordOrder: false
 			}
 			this.result(result)
 			return Promise.resolve(result)
@@ -88,4 +90,8 @@ export class SearchModel {
 			|| restriction.field !== result.restriction.field
 			|| restriction.listId !== result.restriction.listId
 	}
+}
+
+export function hasMoreResults(searchResult: SearchResult): boolean {
+	return searchResult.lastReadSearchIndexRow.some(([word, id]) => id !== 0)
 }

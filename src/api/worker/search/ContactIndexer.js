@@ -68,8 +68,7 @@ export class ContactIndexer {
 	}
 
 	_getSuggestionWords(contact: Contact): string[] {
-		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address)
-		                                                                          .join(" "))
+		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address).join(" "))
 	}
 
 	processNewContact(event: EntityUpdate): Promise<?{contact: Contact, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {

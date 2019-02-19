@@ -123,7 +123,7 @@ export class MailIndexer {
 						})
 					}
 				} else {
-					// instance is moved but not yet indexed: handle as new
+					// instance is moved but not yet indexed: handle as new for example moving a mail from non indexed folder like spam to indexed folder
 					return this.processNewMail(event).then(result => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,

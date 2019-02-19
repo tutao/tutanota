@@ -55,15 +55,18 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 	}
 }
 
+const metaEntryFieldsNumber = 5
+
 export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): EncryptedSearchIndexMetaDataRow {
-	const numbers = new Array(metaData.rows.length * 4)
+	const numbers = new Array(metaData.rows.length * metaEntryFieldsNumber)
 	for (let i = 0; i < metaData.rows.length; i++) {
 		const entry = metaData.rows[i]
-		const offset = i * 4
+		const offset = i * metaEntryFieldsNumber
 		numbers[offset] = entry.app
 		numbers[offset + 1] = entry.type
 		numbers[offset + 2] = entry.key
 		numbers[offset + 3] = entry.size
+		numbers[offset + 4] = entry.oldestElementTimestamp
 	}
 	const spaceForRows = numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
 	const numberBlock = new Uint8Array(spaceForRows)
@@ -76,8 +79,8 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: EncryptedSearchIn
 	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []
-	for (let i = 0; i < numbers.length; i += 4) {
-		rows.push({app: numbers[i], type: numbers[i + 1], key: numbers[i + 2], size: numbers[i + 3]})
+	for (let i = 0; i < numbers.length; i += metaEntryFieldsNumber) {
+		rows.push({app: numbers[i], type: numbers[i + 1], key: numbers[i + 2], size: numbers[i + 3], oldestElementTimestamp: numbers[i + 4]})
 	}
 	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }

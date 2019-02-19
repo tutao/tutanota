@@ -4,7 +4,7 @@ import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/Ent
 import {tokenize} from "./Tokenizer"
 import {mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {base64ToUint8Array, generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
 	byteLength,
@@ -22,9 +22,11 @@ import type {
 	Db,
 	EncryptedSearchIndexEntry,
 	EncryptedSearchIndexMetaDataRow,
+	EncSearchIndexEntryWithTimestamp,
 	GroupData,
 	IndexUpdate,
 	SearchIndexEntry,
+	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow
 } from "./SearchTypes"
 import type {QueuedBatch} from "./EventQueue"
@@ -36,7 +38,7 @@ import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
-import {arrayHash, findLast} from "../../common/utils/ArrayUtils"
+import {arrayHash, findLastIndex, last} from "../../common/utils/ArrayUtils"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumber,
@@ -133,6 +135,7 @@ export class IndexerCore {
 		const listId = listIdPart(id)
 		const encInstanceId = encryptIndexKeyUint8Array(this.db.key, elementIdPart(id), this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
+		const elementIdTimestamp = generatedIdToTimestamp(elementIdPart(id))
 
 		const encryptionTimeStart = getPerformanceTimestamp()
 		const encWordsB64 = []
@@ -143,7 +146,9 @@ export class IndexerCore {
 			if (!indexEntries) {
 				indexEntries = []
 			}
-			indexUpdate.create.indexMap.set(encWordB64, indexEntries.concat(value.map(indexEntry => encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId))))
+			indexUpdate.create.indexMap.set(encWordB64, indexEntries.concat(value.map(indexEntry => [
+				encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId), elementIdTimestamp
+			])))
 		})
 
 		indexUpdate.create.encInstanceIdToElementData.set(encInstanceIdB64, {
@@ -341,57 +346,151 @@ export class IndexerCore {
 			: null
 	}
 
-
-	_putEncryptedEntity(groupId: Id, appId: number, typeId: number, transaction: DbTransaction, encWordB64: B64EncIndexKey, encryptedEntries: EncryptedSearchIndexEntry[]): ?Promise<number> {
+	_putEncryptedEntity(groupId: Id, appId: number, typeId: number, transaction: DbTransaction, encWordB64: B64EncIndexKey,
+	                    encryptedEntries: Array<[EncryptedSearchIndexEntry, number]>): ?Promise<number> {
 		this._cancelIfNeeded()
-		if (encryptedEntries.length > 0) {
-			return this._getOrCreateSearchIndexMeta(transaction, encWordB64)
-			           .then((metaData: SearchIndexMetaDataRow) => {
-				           const maxSize = SEARCH_INDEX_ROW_LENGTH - encryptedEntries.length
-				           const vacantRow = findLast(metaData.rows, r => r.app === appId && r.type === typeId && r.size < maxSize)
-				           if (!vacantRow) { // new entries do not fit into existing search index row, create new row
-					           const binaryRow = appendBinaryBlocks(encryptedEntries)
-					           return transaction
-						           .put(SearchIndexOS, null, [metaData.id, binaryRow])
-						           .then(newRowId => {
-							           metaData.rows.push({
-								           key: newRowId,
-								           size: encryptedEntries.length,
-								           app: appId,
-								           type: typeId
-							           })
-							           return {metaData, newRowId}
-						           })
-				           } else {
-					           // add new entries to existing search index row
-					           return transaction
-						           .get(SearchIndexOS, vacantRow.key)
-						           .then((indexEntriesRow) => {
-							           let safeRow = indexEntriesRow && indexEntriesRow[1] || new Uint8Array(0)
-							           const resultRow = appendBinaryBlocks(encryptedEntries, safeRow)
-							           return transaction.put(SearchIndexOS, vacantRow.key, [metaData.id, resultRow])
-							                             .then(() => {
-								                             vacantRow.size += encryptedEntries.length
-								                             return {metaData, newRowId: vacantRow.key}
-							                             })
-						           })
-				           }
-			           })
-			           .then((result: {metaData: SearchIndexMetaDataRow, newRowId: number}) => {
-				           const {metaData, newRowId} = result
-				           const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
-					           + metaDataEntry.size, 0)
-				           this._stats.writeRequests += 1
-				           this._stats.largestColumn = columnSize > this._stats.largestColumn
-					           ? columnSize : this._stats.largestColumn
-				           this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
-					           sum + e.length, 0)
-				           return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
-				                             .return(newRowId)
-			           })
+		if (encryptedEntries.length <= 0) {
+			return
+		}
 
+		return this
+			._getOrCreateSearchIndexMeta(transaction, encWordB64)
+			.then((metaData: SearchIndexMetaDataRow) => {
+				encryptedEntries.sort((a, b) => a[1] - b[1])
+				// TODO: figure out what to return
+				return this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
+			})
+			.then((result: {metaData: SearchIndexMetaDataRow, newRowId: number}) => {
+				const {metaData, newRowId} = result
+				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
+					+ metaDataEntry.size, 0)
+				this._stats.writeRequests += 1
+				this._stats.largestColumn = columnSize > this._stats.largestColumn
+					? columnSize : this._stats.largestColumn
+				this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
+					sum + e.length, 0)
+				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
+				                  .return(newRowId)
+			})
+	}
+
+	_writeEntries(transaction: DbTransaction, entries: Array<EncSearchIndexEntryWithTimestamp>, metaData: SearchIndexMetaDataRow, appId: number,
+	              typeId: number): Promise<*> {
+		if (entries.length === 0) {
+			return Promise.resolve()
+		}
+		const oldestTimestamp = entries[0][1]
+		const newestTimestamp = neverNull(last(entries))[1]
+		const indexOfMetaEntry = this._findMetaDataEntryByTimestamp(metaData, oldestTimestamp, appId, typeId)
+		if (indexOfMetaEntry !== -1) {
+			const nextEntry = metaData.rows[indexOfMetaEntry + 1]
+			const currentMetaDataEntry = metaData.rows[indexOfMetaEntry]
+			if (!nextEntry && currentMetaDataEntry.size > SEARCH_INDEX_ROW_LENGTH) {
+				return this._createNewRow(transaction, metaData, entries.map(p => p[0]), oldestTimestamp, appId, typeId)
+				           .then(metaDataEntry => {
+					           metaData.rows.push(metaDataEntry)
+				           })
+			} else if (!nextEntry || newestTimestamp < nextEntry.oldestElementTimestamp) {
+				return this._appendIndexEntriesToRow(transaction, metaData, metaData.rows[indexOfMetaEntry], entries.map(p => p[0]))
+			} else {
+				const [toCurrentOne, toNextOnes] = this._splitByTimestamp(entries, nextEntry.oldestElementTimestamp)
+				return this._appendIndexEntriesToRow(transaction, metaData, metaData.rows[indexOfMetaEntry], toCurrentOne.map(p => p[0]))
+				           .then(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
+			}
+		} else {
+			// we have not found any entry which oldest id is lower than oldest id to add but there can be other entries
+			const firstEntry = metaData.rows[0]
+			// 1. We have a first entry.
+			//   i: We have a second entry. Check how much fits into the first block
+			//     a. It's not oversized. Write to it.
+			//     b. It is oversized. Create a new block.
+			//   ii: We don't have a second entry. Check if we can fit everything into the first block
+			//     a. It's not eversized. Write to it.
+			//     b. It's oversized. Create a new one.
+			// 2. We don't have a first entry. Just create a new row with everything.
+			if (firstEntry) {
+				const secondEntry = metaData.rows[1]
+				const [toFirstOne, toNextOnes] = secondEntry
+					? this._splitByTimestamp(entries, secondEntry.oldestElementTimestamp)
+					: [entries, []]
+				if (firstEntry.size + toFirstOne.length < SEARCH_INDEX_ROW_LENGTH) {
+					return this._appendIndexEntriesToRow(transaction, metaData, firstEntry, toFirstOne.map(p => p[0]))
+					           .then(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
+				} else {
+					const [toNewOne, toCurrentOne] = this._splitByTimestamp(toFirstOne, firstEntry.oldestElementTimestamp)
+					return this
+						._createNewRow(transaction, metaData, toNewOne.map(p => p[0]), oldestTimestamp, appId, typeId)
+						.then((newMetaEntry) => {
+							metaData.rows.unshift(newMetaEntry)
+						})
+						.then(() => this._writeEntries(transaction, toCurrentOne.concat(toNextOnes), metaData, appId, typeId))
+				}
+			}
+			//  else if (!firstEntry || newestTimestamp < firstEntry.oldestElementTimestamp) {
+			// 	return this._createNewRow(transaction, metaData, entries.map(p => p[0]), oldestTimestamp, appId, typeId)
+			// 	           .then(metaDataEntry => {
+			// 		           metaData.rows.unshift(metaDataEntry)
+			// 	           })
+			// }
+			else {
+				const [toNewOne, toNextOnes] = this._splitByTimestamp(entries, firstEntry.oldestElementTimestamp)
+				return this._createNewRow(transaction, metaData, toNewOne.map(p => p[0]), oldestTimestamp, appId, typeId)
+				           .then(metaDataEntry => {
+					           metaData.rows.unshift(metaDataEntry)
+				           })
+				           .then(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
+			}
 		}
 	}
+
+	_splitByTimestamp(entries: Array<[EncryptedSearchIndexEntry, number]>,
+	                  timestamp: number): [Array<EncSearchIndexEntryWithTimestamp>, Array<EncSearchIndexEntryWithTimestamp>] {
+		const indexOfSplit = entries.findIndex((pair) => pair[1] >= timestamp)
+		const below = entries.slice(0, indexOfSplit)
+		const above = entries.slice(indexOfSplit)
+		return [below, above]
+	}
+
+
+	_appendIndexEntriesToRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, metaEntry: SearchIndexMetadataEntry,
+	                         entries: Array<EncryptedSearchIndexEntry>): Promise<{metaData: SearchIndexMetaDataRow, newRowId: number}> {
+		return transaction
+			.get(SearchIndexOS, metaEntry.key)
+			.then((indexEntriesRow) => {
+				let safeRow = indexEntriesRow && indexEntriesRow[1] || new Uint8Array(0)
+				const resultRow = appendBinaryBlocks(entries, safeRow)
+				return transaction.put(SearchIndexOS, metaEntry.key, [metaData.id, resultRow])
+				                  .then(() => {
+					                  metaEntry.size += entries.length
+					                  return {metaData, newRowId: metaEntry.key}
+				                  })
+			})
+	}
+
+	_createNewRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, encryptedSearchIndexEntries: Array<EncryptedSearchIndexEntry>, oldestTimestamp: number, appId: number, typeId: number): Promise<SearchIndexMetadataEntry> {
+		const binaryRow = appendBinaryBlocks(encryptedSearchIndexEntries)
+		return transaction
+			.put(SearchIndexOS, null, [metaData.id, binaryRow])
+			.then(newRowId => {
+				// Oldest entries come in front
+				return {
+					key: newRowId,
+					size: encryptedSearchIndexEntries.length,
+					app: appId,
+					type: typeId,
+					oldestElementTimestamp: oldestTimestamp
+				}
+			})
+
+	}
+
+	_findMetaDataEntryByTimestamp(metaData: SearchIndexMetaDataRow, oldestTimestamp: number, appId: number, typeId: number) {
+		return findLastIndex(metaData.rows,
+			(r) => r.app === appId
+				&& r.type === typeId
+				&& r.oldestElementTimestamp < oldestTimestamp)
+	}
+
 
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey): Promise<SearchIndexMetaDataRow> {
 		return transaction

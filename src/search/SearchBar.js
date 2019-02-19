@@ -43,6 +43,7 @@ import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
 import Badge from "../gui/base/Badge"
+import {hasMoreResults} from "./SearchModel"
 
 assertMainOrNode()
 
@@ -346,7 +347,7 @@ export class SearchBar implements Component {
 				    this._results = newResults
 				    let resultCount = (searchResult.results.length)
 				    if (resultCount === 0
-					    || searchResult.moreResultsEntries.length > 0
+					    || hasMoreResults(searchResult)
 					    || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
 					    this._results.push({
 						    resultCount: resultCount,

@@ -4,7 +4,7 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 
 
 // db types
-export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encrypted app, attribute, type and positions
+export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encrypted attribute and positions
 
 export type SearchIndexRow = [
 	number, // Metadata reference
@@ -66,6 +66,8 @@ export type SearchIndexEntry = {
 	encId?: Uint8Array
 }
 
+export type EncSearchIndexEntryWithTimestamp = [EncryptedSearchIndexEntry, number]
+
 export type IndexUpdate = {
 	groupId: Id;
 	typeId: number; // index update must be unique for type and app
@@ -74,7 +76,7 @@ export type IndexUpdate = {
 	indexTimestamp: ?number;
 	create: {
 		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
-		indexMap: Map<B64EncIndexKey, Array<EncryptedSearchIndexEntry>>;
+		indexMap: Map<B64EncIndexKey, Array<EncSearchIndexEntryWithTimestamp>>;
 	};
 	move: {
 		encInstanceId: B64EncInstanceId;
@@ -104,6 +106,7 @@ export type SearchIndexMetadataEntry = {
 	size: number,
 	app: number,
 	type: number, // we have app and type in search index meta to filter for type (mail, contact, users) before loading and decrypting index rows.
+	oldestElementTimestamp: number
 }
 
 export type MoreResultsIndexEntry = {

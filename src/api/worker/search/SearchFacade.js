@@ -1,8 +1,5 @@
 //@flow
-import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
-import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
-import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
+import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
 import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
@@ -12,7 +9,8 @@ import type {
 	Db,
 	ElementData,
 	EncryptedSearchIndexEntry,
-	EncryptedSearchIndexEntryWithHash, EncryptedSearchIndexMetaDataRow,
+	EncryptedSearchIndexEntryWithHash,
+	EncryptedSearchIndexMetaDataRow,
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
 	MoreResultsIndexEntry,
@@ -26,7 +24,8 @@ import {
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
 	timeEnd,
-	timeStart, typeRefToTypeInfo
+	timeStart,
+	typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
@@ -75,15 +74,16 @@ export class SearchFacade {
 			let totalSearchTimeStart = getPerformanceTimestamp()
 			let timing = {}
 
-			let result = {
+			let result: SearchResult = {
 				query,
 				restriction,
 				results: [],
 				currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
-				moreResultsEntries: []
+				moreResultsEntries: [],
+				lastReadSearchIndexRow: searchTokens.map((token) => [token, null]),
+				matchWordOrder: searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
 			}
 			if (searchTokens.length > 0) {
-				let matchWordOrder = searchTokens.length > 1 && query.startsWith("\"") && query.endsWith("\"")
 				let isFirstWordSearch = searchTokens.length === 1
 				let before = getPerformanceTimestamp()
 				console.timeStamp && console.timeStamp("find suggestions")
@@ -92,30 +92,23 @@ export class SearchFacade {
 				let searchPromise
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
 					let addSuggestionBefore = getPerformanceTimestamp()
-					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
-					                    .then(() => {
-						                    timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
-						                    if (result.results.length < minSuggestionCount) {
-							                    // there may be fields that are not indexed with suggestions but which we can find with the normal search
-							                    // TODO: let suggestion facade and search facade know which fields are
-							                    // indexed with suggestions, so that we
-							                    // 1) know if we also have to search normally and
-							                    // 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
-							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-							                    return this._searchForTokens(searchTokens, matchWordOrder, result,
-								                    maxResults)
-							                               .then((result) => {
-								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
-									                               - searchForTokensAfterSuggestionsBefore
-								                               return result
-							                               })
-						                    }
-					                    })
+					timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
+					// there may be fields that are not indexed with suggestions but which we can find with the normal search
+					// TODO: let suggestion facade and search facade know which fields are
+					// indexed with suggestions, so that we
+					// 1) know if we also have to search normally and
+					// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+					let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
+					return this._searchForTokens(result, suggestionFacade.getSuggestions(searchTokens[0]), maxResults)
+					           .then(() => {
+						           timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
+							           - searchForTokensAfterSuggestionsBefore
+						           return result
+					           })
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
-					let suggestionToken = searchTokens[searchTokens.length - 1]
 					let beforeSearchTokens = getPerformanceTimestamp()
-					searchPromise = this._searchForTokens(searchTokens.slice(0, searchTokens.length - 1),
-						matchWordOrder, result).then(() => {
+					let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
+					searchPromise = this._searchForTokens(result, [suggestionToken]).then(() => {
 						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
@@ -130,7 +123,7 @@ export class SearchFacade {
 				} else {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					console.timeStamp && console.timeStamp("search for tokens")
-					searchPromise = this._searchForTokens(searchTokens, matchWordOrder, result, maxResults)
+					searchPromise = this._searchForTokens(result, [], maxResults)
 					                    .then((result) => {
 						                    timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						                    return result
@@ -229,75 +222,75 @@ export class SearchFacade {
 		}).then(found => found != null)
 	}
 
+
 	/**
 	 * Adds the found ids to the given search result
 	 */
-	_searchForTokens(searchTokens: string[], matchWordOrder: boolean, searchResult: SearchResult,
-	                 maxResults: ?number): Promise<void> {
-		const makeStamp = (name) => {
-			timeEnd(name)
-			timings[name] = getPerformanceTimestamp() - stamp
-			stamp = getPerformanceTimestamp()
-		}
-		let stamp = getPerformanceTimestamp()
-		let timings = {}
+	_searchForTokens(searchResult: SearchResult, suggestions: Array<string>, maxResults: ?number): Promise<void> {
 		timeStart("_tryExtendIndex")
+		// TODO take care of suggestions
 		return this._tryExtendIndex(searchResult.restriction).then(() => {
 				makeStamp("_tryExtendIndex")
-				timeStart("findIndexEntries")
-				return this._findIndexEntries(searchTokens, searchResult.restriction)
-				           .then(keyToEncryptedIndexEntries => {
-					           makeStamp("findIndexEntries")
-					           timeStart("_filterByEncryptedId")
-					           return this._filterByEncryptedId(keyToEncryptedIndexEntries)
-				           })
-				           .then(keyToEncryptedIndexEntries => {
-					           makeStamp("_filterByEncryptedId")
-					           timeStart("_decryptSearchResult")
-					           return this._decryptSearchResult(keyToEncryptedIndexEntries)
-				           })
-				           .then(keyToIndexEntries => {
-					           makeStamp("_decryptSearchResult")
-					           timeStart("_filterByTypeAndAttributeAndTime")
-					           return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
-				           })
-				           .then(keyToIndexEntries => {
-					           makeStamp("_filterByTypeAndAttributeAndTime")
-					           timeStart("_reduceWords")
-					           return this._reduceWords(keyToIndexEntries, matchWordOrder)
-				           })
-				           .then(searchIndexEntries => {
-					           makeStamp("_reduceWords")
-					           timeStart("_reduceToUniqueElementIds")
-					           return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
-				           })
-				           .then((searchIndexEntries: SearchIndexEntry[]) => {
-					           makeStamp("_reduceToUniqueElementIds")
-					           timeStart("_filterByListIdAndGroupSearchResults")
-					           return this._filterByListIdAndGroupSearchResults(downcast(searchIndexEntries), searchResult,
-						           maxResults)
-				           })
-				           .then((result) => {
-					           makeStamp("_filterByListIdAndGroupSearchResults")
-					           typeof self !== "undefined" && console.log(JSON.stringify(timings))
-					           return result
-				           })
+				return this._startOrContinueSearch(searchResult, maxResults)
 			}
 		)
+	}
+
+	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
+		timeStart("findIndexEntries")
+		return this._findIndexEntries(searchResult, maxResults)
+		           .then(keyToEncryptedIndexEntries => {
+			           makeStamp("findIndexEntries")
+			           timeStart("_filterByEncryptedId")
+			           return this._filterByEncryptedId(keyToEncryptedIndexEntries)
+		           })
+		           .then(keyToEncryptedIndexEntries => {
+			           makeStamp("_filterByEncryptedId")
+			           timeStart("_decryptSearchResult")
+			           return this._decryptSearchResult(keyToEncryptedIndexEntries)
+		           })
+		           .then(keyToIndexEntries => {
+			           makeStamp("_decryptSearchResult")
+			           timeStart("_filterByTypeAndAttributeAndTime")
+			           return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
+		           })
+		           .then(keyToIndexEntries => {
+			           makeStamp("_filterByTypeAndAttributeAndTime")
+			           timeStart("_reduceWords")
+			           return this._reduceWords(keyToIndexEntries, searchResult.matchWordOrder)
+		           })
+		           .then(searchIndexEntries => {
+			           makeStamp("_reduceWords")
+			           timeStart("_reduceToUniqueElementIds")
+			           return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
+		           })
+		           .then((searchIndexEntries: SearchIndexEntry[]) => {
+			           makeStamp("_reduceToUniqueElementIds")
+			           timeStart("_filterByListIdAndGroupSearchResults")
+			           return this._filterByListIdAndGroupSearchResults(downcast(searchIndexEntries), searchResult,
+				           maxResults)
+		           })
+		           .then((result) => {
+			           makeStamp("_filterByListIdAndGroupSearchResults")
+			           typeof self !== "undefined" && console.log(JSON.stringify(timings))
+			           return result
+		           })
+
 	}
 
 	/**
 	 * Adds suggestions for the given searchToken to the searchResult until at least minSuggestionCount results are existing
 	 */
-	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number,
-	                searchResult: SearchResult, maxResults: ?number): Promise<void> {
-		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		return Promise.each(suggestions, suggestion => {
-			if (searchResult.results.length < minSuggestionCount) {
-				return this._searchForTokens([suggestion], false, searchResult)
-			}
-		}).then(() => maxResults && searchResult.results.splice(maxResults)).return()
-	}
+	// _addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number,
+	//                 searchResult: SearchResult, maxResults: ?number): Promise<void> {
+	// 	let suggestions = suggestionFacade.getSuggestions(searchToken)
+	// 	return Promise.each(suggestions, suggestion => {
+	// 		if (searchResult.results.length < minSuggestionCount) {
+	//
+	// 			return this._searchForTokens([suggestion], false, searchResult)
+	// 		}
+	// 	}).then(() => maxResults && searchResult.results.splice(maxResults)).return()
+	// }
 
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
@@ -315,13 +308,15 @@ export class SearchFacade {
 		}
 	}
 
-	_findIndexEntries(searchTokens: string[], restriction: SearchRestriction): Promise<KeyToEncryptedIndexEntries[]> {
+	_findIndexEntries(searchResult: SearchResult, maxResults: ?number): Promise<KeyToEncryptedIndexEntries[]> {
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
 		           .then(transaction =>
-			           mapInCallContext(searchTokens, (token) => this._findEntriesForSearchToken(transaction, token, restriction)))
+			           mapInCallContext(
+				           searchResult.lastReadSearchIndexRow,
+				           (token) => this._findEntriesForSearchToken(transaction, token, searchResult, maxResults)))
 	}
 
-	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
+	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry, fromRow: ?number, maxResults: ?number): Promise<EncryptedSearchIndexEntry[]> {
 		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow) => {
 			if (!indexEntriesRow) return []
 			const indexEntriesBinary = indexEntriesRow[1]
@@ -333,15 +328,35 @@ export class SearchFacade {
 		})
 	}
 
-	_findEntriesForSearchToken(transaction: DbTransaction, searchToken: string, restriction: SearchRestriction): Promise<KeyToEncryptedIndexEntries> {
+	_findEntriesForSearchToken(transaction: DbTransaction, searchTokenInfo: [string, ?number], searchResult: SearchResult,
+	                           maxResults: ?number): Promise<KeyToEncryptedIndexEntries> {
+		const [searchToken, fromRow] = searchTokenInfo
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction
 			.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
 			.then((metaData: ?EncryptedSearchIndexMetaDataRow) => {
 				const safeRows = metaData ? decryptMetaData(this._db.key, metaData).rows : []
-				const typeInfo = typeRefToTypeInfo(restriction.type)
+				const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 				const filteredRows = safeRows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
-				return mapInCallContext(filteredRows, (entry) => this._findEntriesForMetadata(transaction, entry))
+				filteredRows.reverse()
+				let entitiesToRead = 0
+				let lastReadRowId = 0
+				const rowsToRead = filteredRows.filter(r => {
+					if (maxResults) {
+						if ((!fromRow || r.key < fromRow) && entitiesToRead < 1000) {
+							entitiesToRead += r.size
+							lastReadRowId = r.key
+							return true
+						}
+						return false
+					} else {
+						return true
+					}
+				})
+				console.log("maxresults", maxResults, "rowsToRead", rowsToRead)
+
+				searchTokenInfo[1] = lastReadRowId
+				return mapInCallContext(rowsToRead, (entry) => this._findEntriesForMetadata(transaction, entry))
 			})
 			.then((results: EncryptedSearchIndexEntry[][]) => flat(results))
 			.then((indexEntries: EncryptedSearchIndexEntry[]) => {
@@ -489,39 +504,33 @@ export class SearchFacade {
 	                                     maxResults: ?number): Promise<void> {
 		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
-		// downcast: Array of optional elements in not subtype of non-optional elements
-		const entriesCopy: Array<?MoreResultsIndexEntry> = downcast(indexEntries.slice())
 		const {resolve: stop, promise: whenToStop} = defer()
-		return this._db.dbFacade.createTransaction(true, [ElementDataOS])
-		           .then((transaction) =>
-			           Promise.race([
-				           whenToStop,
-				           Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
-					           if (maxResults && searchResult.results.length >= maxResults) {
-						           stop()
-						           return
-					           }
+		return this
+			._db.dbFacade.createTransaction(true, [ElementDataOS])
+			.then((transaction) =>
+				Promise.race([
+					whenToStop,
+					Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
+						if (maxResults && searchResult.results.length >= maxResults) {
+							stop()
+							return
+						}
 
-					           return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
-					                             .then((elementData: ?ElementData) => {
-						                             // mark result index id as processed to not query result in next load more operation
-						                             entriesCopy[index] = null
-						                             if (elementData
-							                             && (!searchResult.restriction.listId
-								                             || searchResult.restriction.listId === elementData[0])) {
-							                             searchResult.results.push([elementData[0], entry.id])
-						                             }
-					                             })
-				           }, {concurrency: 5})
-			           ]))
-		           .then(() => {
-			           searchResult.moreResultsEntries = entriesCopy.filter(indexEntry => indexEntry !== null)
-		           })
+						return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
+						                  .then((elementData: ?ElementData) => {
+							                  if (elementData
+								                  && (!searchResult.restriction.listId
+									                  || searchResult.restriction.listId === elementData[0])) {
+								                  searchResult.results.push([elementData[0], entry.id])
+							                  }
+						                  })
+					}, {concurrency: 5})
+				]))
+			.return()
 	}
 
 	getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<void> {
-		return this._filterByListIdAndGroupSearchResults(searchResult.moreResultsEntries, searchResult, (searchResult.results.length + moreResultCount))
-		           .then(() => {searchResult.results.sort(compareNewestFirst)})
+		return this._startOrContinueSearch(searchResult, moreResultCount)
 	}
 
 
@@ -536,5 +545,13 @@ export class SearchFacade {
 		}
 	}
 }
+
+const makeStamp = (name) => {
+	timeEnd(name)
+	timings[name] = getPerformanceTimestamp() - stamp
+	stamp = getPerformanceTimestamp()
+}
+let stamp = getPerformanceTimestamp()
+let timings = {}
 
 

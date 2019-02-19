@@ -18,6 +18,7 @@ import {defer, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
+import {hasMoreResults} from "./SearchModel"
 
 assertMainOrNode()
 
@@ -111,12 +112,12 @@ export class SearchListView {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0 && this._searchResult.moreResultsEntries.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0 && !hasMoreResults(this._searchResult)) {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
-					.then(results => results.map(instance => new SearchResultListEntry(instance)))
-					.finally(m.redraw)
+				           .then(results => results.map(instance => new SearchResultListEntry(instance)))
+				           .finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
 				if (this._searchResult) {
@@ -161,7 +162,8 @@ export class SearchListView {
 			},
 			elementsDraggable: false,
 			multiSelectionAllowed: true,
-			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController().isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))
+			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController()
+			                                                              .isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))
 		})
 	}
 
@@ -174,7 +176,7 @@ export class SearchListView {
 			return Promise.resolve([])
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
-		if (getMoreFromSearch && currentResult.moreResultsEntries.length > 0) {
+		if (getMoreFromSearch && hasMoreResults(currentResult)) {
 			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
@@ -196,17 +198,17 @@ export class SearchListView {
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
 					return this._loadAndFilterInstances(currentResult.restriction.type, moreResults.results, moreResults, 0)
-						.finally(() => {
-							this.list && this.list.setLoadedCompletely()
-							m.redraw()
-						})
+					           .finally(() => {
+						           this.list && this.list.setLoadedCompletely()
+						           m.redraw()
+					           })
 				} else {
 					// this type is not shown in the search view, e.g. group info
 					return Promise.resolve([])
 				}
 			})
 			.then(results => {
-				return results.length < count && neverNull(this._searchResult).moreResultsEntries.length > 0
+				return results.length < count && hasMoreResults(neverNull(this._searchResult))
 					// Recursively load more until we have enough or there are no more results.
 					// Otherwise List thinks that this is the end
 					? this._loadSearchResults(neverNull(this._searchResult), true, startId, count)
@@ -223,7 +225,7 @@ export class SearchListView {
 	}
 
 	_loadAndFilterInstances<T>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
-							   startIndex: number): Promise<T[]> {
+	                           startIndex: number): Promise<T[]> {
 		return Promise
 			.map(toLoad,
 				(id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
