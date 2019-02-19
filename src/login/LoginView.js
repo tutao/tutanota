@@ -121,13 +121,13 @@ export class LoginView {
 					}
 				}, [
 					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					m(".flex-center.pt-l", [
+					(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
 						m(optionsExpander),
-					]),
-					m("", [
+					]) : null,
+					(this._anyMoreItemVisible()) ? m("", [
 						m(optionsExpander.panel),
-					]),
-					(isApp() || isDesktop()) ? null : renderPrivacyAndImprintLinks()
+					]) : null,
+					(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
 				]),
 			])
 		}
@@ -171,6 +171,15 @@ export class LoginView {
 
 	_recoverLoginVisible(): boolean {
 		return isTutanotaDomain()
+	}
+
+	_anyMoreItemVisible(): boolean {
+		return this._signupLinkVisible()
+			|| this._loginAnotherLinkVisible()
+			|| this._deleteCredentialsLinkVisible()
+			|| this._knownCredentialsLinkVisible()
+			|| this._switchThemeLinkVisible()
+			|| this._recoverLoginVisible()
 	}
 
 	_expanderButton(): ExpanderButton {
