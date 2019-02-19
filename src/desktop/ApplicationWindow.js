@@ -166,7 +166,7 @@ export class ApplicationWindow {
 		 * dom-ready is after preload and after the index.html was loaded into the webContents,
 		 * but may be before any javascript ran
 		 */
-		this._browserWindow.webContents.once('dom-ready', () => {
+		this._browserWindow.webContents.on('dom-ready', () => {
 			lang.initialized.promise.then(() => this._browserWindow.webContents.send('setup-context-menu', []))
 			    .catch(noOp) //sometimes bowserWindow or webContents are not there anymore
 		})
