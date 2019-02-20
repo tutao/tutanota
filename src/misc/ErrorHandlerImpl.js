@@ -133,6 +133,7 @@ export function handleUncaughtError(e: Error) {
 		if (logins.isInternalUserLoggedIn()) {
 			Dialog.error("searchDisabled_msg")
 		}
+	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
@@ -147,6 +148,16 @@ export function handleUncaughtError(e: Error) {
 			}
 		}
 	}
+}
+
+function ignoredError(e: Error): boolean {
+	const ignoredMessages = [
+		"webkitExitFullScreen",
+		"googletag",
+		"avast_submit"
+	]
+
+	return e.message != null && ignoredMessages.some(s => e.message.includes(s))
 }
 
 export function promptForFeedbackAndSend(e: Error, justHappened: boolean): Promise<?FeedbackContent> {
