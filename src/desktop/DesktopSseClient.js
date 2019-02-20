@@ -10,7 +10,7 @@ import {SseError} from "../api/common/error/SseError"
 import {isMailAddress} from "../misc/FormatValidator"
 import {neverNull} from "../api/common/utils/Utils"
 import {notifier} from './DesktopNotifier.js'
-import {ApplicationWindow} from "./ApplicationWindow"
+import {wm} from "./DesktopWindowManager.js"
 import {NotificationResult} from "./DesktopNotifier"
 
 export type SseInfo = {|
@@ -148,7 +148,7 @@ class DesktopSseClient {
 		}
 
 		pushMessages.map(pm => pm.notificationInfos.forEach(ni => {
-			const w = ApplicationWindow.getAll().find(w => w.getUserId() === ni.userId)
+			const w = wm.getAll().find(w => w.getUserId() === ni.userId)
 			if (w && w.isVisible()) {
 				// no need for notification if user is looking right at the window
 				return
@@ -159,7 +159,7 @@ class DesktopSseClient {
 				ni.userId,
 				res => {
 					if (res === NotificationResult.Click) {
-						ApplicationWindow.openMailBox(ni.userId, ni.address)
+						wm.openMailBox({userId: ni.userId, mailAddress: ni.address})
 					}
 				}
 			)

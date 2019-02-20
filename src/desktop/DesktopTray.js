@@ -4,12 +4,12 @@ import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
 import path from 'path'
 import {lang} from './DesktopLocalizationProvider.js'
 import {conf} from './DesktopConfigHandler.js'
-import {ApplicationWindow} from "./ApplicationWindow.js"
+import {wm} from "./DesktopWindowManager.js"
+import {notifier} from "./DesktopNotifier.js"
 
 class DesktopTray {
 	_tray: Tray;
 	_icon: NativeImage;
-	_markedIcon: NativeImage;
 
 	/**
 	 * linux env: DESKTOP_SESSION XDG_SESSION_DESKTOP XDG_CURRENT_DESKTOP to detect WM
@@ -28,7 +28,7 @@ class DesktopTray {
 				if (!this._tray) {
 					this._tray = new Tray(this.getIcon())
 					this._tray.on('click', ev => {
-						ApplicationWindow.getLastFocused(true)
+						wm.getLastFocused(true)
 					})
 				}
 				this._tray.setContextMenu(this._getMenu())
@@ -51,12 +51,12 @@ class DesktopTray {
 
 	_getMenu(): Menu {
 		const m = new Menu()
-		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {new ApplicationWindow(true)}}))
-		if (ApplicationWindow.getAll().length > 0) {
+		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {wm.newWindow(true)}}))
+		if (wm.getAll().length > 0) {
 			m.append(new MenuItem({type: 'separator'}))
-			ApplicationWindow.getAll().forEach(w => {
+			wm.getAll().forEach(w => {
 				let label = w.getTitle()
-				if (w.hasNotifications()) {
+				if (notifier.hasNotificationsForWindow(w)) {
 					label = "• " + label
 				} else {
 					label = label + "  "

@@ -1,12 +1,12 @@
 // @flow
 import {app, dialog} from 'electron'
 import {lang} from './DesktopLocalizationProvider.js'
-import {ApplicationWindow} from "./ApplicationWindow"
 import {LOGIN_TITLE} from "../api/Env"
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import {ipc} from "./IPC"
+import {wm} from "./DesktopWindowManager.js"
 
 type ErrorLog = {|
 	name: string,
@@ -76,11 +76,11 @@ class DesktopErrorHandler {
 						app.relaunch({args: process.argv.slice(1)})
 						app.exit(0)
 					} else {
-						const loggedInWindow = ApplicationWindow.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
+						const loggedInWindow = wm.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
 						if (loggedInWindow) {
 							this.sendErrorReport(loggedInWindow.id)
 						} else {
-							this.sendErrorReport(ApplicationWindow.getLastFocused(true).id)
+							this.sendErrorReport(wm.getLastFocused(true).id)
 						}
 					}
 				}

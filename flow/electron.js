@@ -212,6 +212,7 @@ declare module 'electron' {
 		focus(): void;
 		hide(): void;
 		close(): void;
+		destroy(): void;
 		restore(): void;
 		show(): void;
 		maximize(): void;
@@ -219,9 +220,11 @@ declare module 'electron' {
 		isMaximized(): boolean;
 		loadFile(string): void;
 		loadURL(string): void;
+		minimize(): void;
 		isMinimized(): boolean;
 		isFocused(): boolean;
 		isFullScreen(): boolean;
+		setFullScreen(boolean): void;
 		isVisible(): boolean;
 		isSimpleFullScreen(): boolean;
 		setSimpleFullScreen(boolean): void;
@@ -229,6 +232,13 @@ declare module 'electron' {
 		openDevTools(): void;
 		getTitle(): string;
 		getBounds(): Rectangle;
+		setBounds(Rectangle): void;
+		getContentBounds(): Rectangle;
+		setContentBounds(Rectangle): void;
+		center(): void;
+		setMenuBarVisibility(boolean): void;
+		getPosition(): number[];
+		setPosition(x: number, y: number): void;
 		setMenu(menu: Menu | null): void;
 		webContents: WebContents;
 		id: Number;
@@ -290,7 +300,7 @@ declare module 'electron' {
 		setZoomFactor(factor: number): void;
 	}
 
-	declare export class ElectronSession {
+	declare export type ElectronSession = {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
 		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => void) => void;
 		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;

@@ -1,6 +1,6 @@
 // @flow
 import {BrowserWindow, dialog, ipcMain} from 'electron'
-import {ApplicationWindow} from './ApplicationWindow'
+import {wm} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
@@ -10,6 +10,7 @@ import DesktopUtils from "../desktop/DesktopUtils"
 import {conf} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
 import {sse} from './DesktopSseClient.js'
+import {notifier} from "./DesktopNotifier"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -36,7 +37,7 @@ class IPC {
 				break
 			case 'findInPage':
 				this.initialized(windowId).then(() => {
-					const w = ApplicationWindow.get(windowId)
+					const w = wm.get(windowId)
 					if (w) {
 						w.findInPage(args)
 					}
@@ -45,7 +46,7 @@ class IPC {
 				break
 			case 'stopFindInPage':
 				this.initialized(windowId).then(() => {
-					const w = ApplicationWindow.get(windowId)
+					const w = wm.get(windowId)
 					if (w) {
 						w.stopFindInPage()
 					}
@@ -96,12 +97,12 @@ class IPC {
 				conf.setDesktopConfig(null, args[0]).then(() => d.resolve())
 				break
 			case 'openNewWindow':
-				new ApplicationWindow(true)
+				wm.newWindow(true)
 				d.resolve()
 				break
 			case 'showWindow':
 				this.initialized(windowId).then(() => {
-					const w = ApplicationWindow.get(windowId)
+					const w = wm.get(windowId)
 					if (w) {
 						w.show()
 					}
@@ -114,10 +115,20 @@ class IPC {
 				disableAutoLaunch().then(() => d.resolve())
 				break
 			case 'getPushIdentifier':
+				const uInfo = {
+					userId: args[0].toString(),
+					mailAddress: args[1].toString()
+				}
 				// we know there's a logged in window
 				//first, send error report if there is one
 				err.sendErrorReport(windowId)
-				   .then(() => neverNull(ApplicationWindow.get(windowId)).setUserId(args[0].toString()))
+				   .then(() => {
+					   const w = neverNull(wm.get(windowId))
+					   w.setUserInfo(uInfo)
+					   if (!w.isHidden()) {
+						   notifier.resolveGroupedNotification(uInfo.userId)
+					   }
+				   })
 				   .then(() => d.resolve(sse.getPushIdentifier()))
 				break
 			case 'storePushIdentifierLocally':

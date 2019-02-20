@@ -22,7 +22,9 @@ class PushServiceApp {
 
 	register(): Promise<void> {
 		if (isAndroidApp() || isDesktop()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [logins.getUserController().user._id])).then(identifier => {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", [
+				logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
+			])).then(identifier => {
 				if (identifier) {
 					this._currentIdentifier = identifier
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {

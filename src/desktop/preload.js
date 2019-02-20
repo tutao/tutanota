@@ -42,7 +42,6 @@ function copy(copyLink: boolean) {
 }
 
 function setupContextMenu() {
-	console.log("context")
 	pasteItem = new MenuItem({label: lang.get("paste_action"), accelerator: "CmdOrCtrl+V", click() { document.execCommand('paste') }})
 	copyItem = new MenuItem({label: lang.get("copy_action"), accelerator: "CmdOrCtrl+C", click: () => copy(false)})
 	copyLinkItem = new MenuItem({label: lang.get("copyLink_action"), click: () => copy(true)})

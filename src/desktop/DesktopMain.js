@@ -3,13 +3,13 @@ import {err} from './DesktopErrorHandler.js'
 import {conf} from './DesktopConfigHandler'
 import {app} from 'electron'
 import {updater} from './ElectronUpdater.js'
-import {ApplicationWindow} from './ApplicationWindow.js'
 import DesktopUtils from './DesktopUtils.js'
 import {notifier} from "./DesktopNotifier.js"
 import {lang} from './DesktopLocalizationProvider.js'
 import {tray} from './DesktopTray.js'
 import {ipc} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
+import {wm} from "./DesktopWindowManager.js"
 
 PreloadImports.keep()
 app.setAppUserModelId(conf.get("appUserModelId"))
@@ -38,10 +38,10 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (!conf.getDesktopConfig('runAsTrayApp') && ApplicationWindow.getAll().length > 0) {
-				ApplicationWindow.getAll().forEach(w => w.show())
+			if (!conf.getDesktopConfig('runAsTrayApp') && wm.getAll().length > 0) {
+				wm.getAll().forEach(w => w.show())
 			} else {
-				new ApplicationWindow(true)
+				wm.newWindow(true)
 			}
 			handleArgv(args)
 		})
@@ -67,7 +67,7 @@ function onAppReady() {
 	err.init()
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = ApplicationWindow.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
+	const w = wm.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
 	   .then(() => lang.init(w.id))
@@ -81,7 +81,7 @@ function main() {
 		// MacOs
 		// this is fired for almost every interaction and on launch
 		// so set listener later to avoid the call on launch
-		ApplicationWindow.getLastFocused(true)
+		wm.getLastFocused(true)
 	})
 	notifier.start()
 	updater.start()
@@ -99,7 +99,7 @@ function handleArgv(argv: string[]) {
 function handleMailto(mailtoArg?: string) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
-		const w = ApplicationWindow.getLastFocused(true)
+		const w = wm.getLastFocused(true)
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }

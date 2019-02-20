@@ -1,47 +1,53 @@
 // @flow
 import {ipc} from './IPC.js'
-import type {ElectronPermission, Rectangle} from 'electron'
-import {app, BrowserWindow, dialog, Menu, screen, shell, WebContents} from 'electron'
+import type {ElectronPermission} from 'electron'
+import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
 import u2f from '../misc/u2f-api.js'
 import {tray} from './DesktopTray.js'
-import {conf} from './DesktopConfigHandler.js'
 import {lang} from './DesktopLocalizationProvider.js'
-import fs from 'fs'
+import {manageDownloadsForSession} from "./DesktopDownloadManager"
+import type {WindowBounds} from "./DesktopWindowManager"
+import {wm} from "./DesktopWindowManager"
 import {noOp} from "../api/common/utils/Utils"
-import {LOGIN_TITLE} from "../api/Env"
-import {notifier} from "./DesktopNotifier"
 
-type WindowBounds = {
-	rect: Rectangle,
-	fullscreen: ?boolean,
-}
-
-const windows: ApplicationWindow[] = []
-let fileManagersOpen: number = 0
-
-let forceQuit = false
-app.once('before-quit', () => {
-	forceQuit = true
-})
+export type UserInfo = {|
+	userId: string,
+	mailAddress: string
+|}
 
 export class ApplicationWindow {
 	_rewroteURL: boolean;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
-	_userId: ?string;
+	_userInfo: ?UserInfo;
+	_setBoundsTimeout: TimeoutID;
 	id: number;
 
-	constructor(showWhenReady: boolean) {
-		this._userId = null
-		this._createBrowserWindow(showWhenReady)
+	constructor() {
+		this._userInfo = null
+		this._createBrowserWindow()
 		this._browserWindow.loadURL(this._startFile)
 		Menu.setApplicationMenu(null)
 	}
 
+	//expose browserwindow api
+	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
+	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
+	getTitle = () => this._browserWindow.webContents.getTitle()
+	setZoomFactor = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
+	isFullScreen = () => this._browserWindow.isFullScreen()
+	isMinimized = () => this._browserWindow.isMinimized()
+	minimize = () => this._browserWindow.minimize()
+	hide = () => this._browserWindow.hide()
+	center = () => this._browserWindow.center()
+
 	show() {
+		if (!this._browserWindow) {
+			return
+		}
 		const contents = this._browserWindow.webContents
 		const devToolsState = contents.isDevToolsOpened()
 		this._browserWindow.show()
@@ -59,20 +65,14 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(showWhenReady: boolean) {
+	_createBrowserWindow() {
 		this._rewroteURL = false
 		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
 		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
 		console.log("startFile: ", this._startFile)
-		const startingBounds: WindowBounds = getStartingBounds()
 		this._browserWindow = new BrowserWindow({
 			icon: tray.getIcon(),
 			show: false,
-			width: startingBounds.fullscreen ? undefined : startingBounds.rect.width,
-			height: startingBounds.fullscreen ? undefined : startingBounds.rect.height,
-			x: startingBounds.fullscreen ? undefined : startingBounds.rect.x,
-			y: startingBounds.fullscreen ? undefined : startingBounds.rect.y,
-			fullscreen: startingBounds.fullscreen,
 			autoHideMenuBar: true,
 			webPreferences: {
 				nodeIntegration: false,
@@ -88,53 +88,20 @@ export class ApplicationWindow {
 				preload: path.join(__dirname, 'preload.js')
 			}
 		})
-
+		this._browserWindow.setMenuBarVisibility(false)
 		this.id = this._browserWindow.id
-		windows.push(this)
 		ipc.addWindow(this.id)
 
-		this._browserWindow.once('ready-to-show', () => {
-			this._browserWindow.webContents.setZoomFactor(1.0)
-			tray.update()
-			if (showWhenReady) {
-				this._browserWindow.show()
-			}
-		})
-
-		this._browserWindow.on('close', ev => {
-			if (conf.getDesktopConfig('runAsTrayApp') && typeof this.getUserId() === 'string' && !forceQuit) {
-				ev.preventDefault()
-				this._browserWindow.hide()
-			}
-
-			// save window position
-			const lastBounds = this._browserWindow.getBounds()
-			if (isContainedIn(screen.getDisplayMatching(lastBounds).bounds, lastBounds)) {
-				conf.setDesktopConfig('lastBounds', {
-					fullscreen: this._browserWindow.isFullScreen(),
-					rect: this._browserWindow.getBounds()
-				})
-			}
-		}).on('closed', ev => {
-			this.setUserId(null)
-			windows.splice(windows.indexOf(this), 1)
-			ipc.removeWindow(this.id)
-			tray.update()
-		}).on('focus', ev => {
-			localShortcut.enableAll(this._browserWindow)
-			windows.splice(windows.indexOf(this), 1)
-			windows.push(this)
-			this.setUserId(this.getUserId())
-		}).on('blur', ev => {
-			localShortcut.disableAll(this._browserWindow)
-		}).on('page-title-updated', ev => {
-			if (this.getTitle() === LOGIN_TITLE) {
-				this.setUserId(null)
-			}
-			tray.update()
-		})
-
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
+		manageDownloadsForSession(this._browserWindow.webContents.session)
+
+		this._browserWindow
+		    .on('closed', () => {
+			    this.setUserInfo(null)
+			    ipc.removeWindow(this.id)
+		    })
+		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
+		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
 		    .on('new-window', (e, url) => {
@@ -143,11 +110,7 @@ export class ApplicationWindow {
 			    shell.openExternal(url)
 			    e.preventDefault()
 		    })
-		    .on('will-attach-webview', (e: Event, webPreferences, params) => {
-			    // should never be called, but if somehow a webview gets created
-			    // we kill it
-			    e.preventDefault()
-		    })
+		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
 			    const newURL = this._rewriteURL(url, isInPlace)
 			    if (newURL !== url) {
@@ -158,6 +121,7 @@ export class ApplicationWindow {
 		    .on('context-menu', (e, params) => {
 			    this._browserWindow.webContents.send('context-menu', [{linkURL: params.linkURL}])
 		    })
+		    .on('crashed', e => wm.recreateWindow((this: any)))
 
 		/**
 		 * we need two conditions for the context menu to work on every window
@@ -171,67 +135,13 @@ export class ApplicationWindow {
 			    .catch(noOp) //sometimes bowserWindow or webContents are not there anymore
 		})
 
-		this._browserWindow.webContents.session
-		    .removeAllListeners('will-download') // all webContents use the same session
-		    .on('will-download', (ev, item) => {
-			    if (conf.getDesktopConfig('defaultDownloadPath')) {
-				    try {
-					    const fileName = path.basename(item.getFilename())
-					    const savePath = path.join(
-						    conf.getDesktopConfig('defaultDownloadPath'),
-						    DesktopUtils.nonClobberingFileName(
-							    fs.readdirSync(conf.getDesktopConfig('defaultDownloadPath')),
-							    fileName
-						    )
-					    )
-					    // touch file so it is already in the dir the next time sth gets dl'd
-					    fs.closeSync(fs.openSync(savePath, 'w'))
-					    item.setSavePath(savePath)
-
-					    // if the last dl ended more than 30s ago, open dl dir in file manager
-					    let fileManagerLock = noOp
-					    if (fileManagersOpen === 0) {
-						    fileManagersOpen = fileManagersOpen + 1
-						    fileManagerLock = () => {
-							    shell.openItem(path.dirname(savePath))
-							    setTimeout(() => fileManagersOpen = fileManagersOpen - 1, 30000)
-						    }
-					    }
-
-					    item.on('done', (event, state) => {
-						    if (state === 'completed') {
-							    fileManagerLock()
-						    }
-						    if (state === 'interrupted') {
-							    throw new Error('download interrupted')
-						    }
-					    })
-
-				    } catch (e) {
-					    dialog.showMessageBox(null, {
-						    type: 'error',
-						    buttons: [lang.get('ok_action')],
-						    defaultId: 0,
-						    title: lang.get('download_action'),
-						    message: lang.get('couldNotAttachFile_msg')
-							    + '\n'
-							    + item.getFilename()
-							    + '\n'
-							    + e.message
-					    })
-				    }
-			    } else {
-				    // if we do nothing, user will be prompted for destination
-			    }
-		    })
-
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow(true))
+		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
 		localShortcut.register(
 			this._browserWindow,
 			process.platform === 'darwin'
@@ -241,15 +151,20 @@ export class ApplicationWindow {
 		)
 	}
 
-	setUserId(userId: ?string) {
-		this._userId = userId
-		if (userId) {
-			notifier.resolveGroupedNotification(userId)
-		}
+	setUserInfo(info: ?UserInfo) {
+		this._userInfo = info
+	}
+
+	getUserInfo(): ?UserInfo {
+		return this._userInfo
 	}
 
 	getUserId(): ?string {
-		return this._userId
+		return this._userInfo ? this._userInfo.userId : null
+	}
+
+	getPath(): string {
+		return this._browserWindow.webContents.getURL().substring(this._startFile.length)
 	}
 
 	// filesystem paths work differently than URLs
@@ -283,14 +198,6 @@ export class ApplicationWindow {
 		this._browserWindow.webContents.stopFindInPage('keepSelection')
 	}
 
-	getTitle(): string {
-		return this._browserWindow.webContents.getTitle()
-	}
-
-	hasNotifications(): boolean {
-		return !!this._userId && notifier.hasNotificationForId(this._userId)
-	}
-
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
 		return callback(false)
 	}
@@ -320,59 +227,29 @@ export class ApplicationWindow {
 		return this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
 	}
 
-	static get(id: number): ?ApplicationWindow {
-		const w = windows.find(w => w.id === id)
-		return w
-			? w
-			: null
+	// browserWindow.hide() was called (or it was created with showWhenReady = false)
+	isHidden(): boolean {
+		return !this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
 	}
 
-	static getAll(): ApplicationWindow[] {
-		return windows
+	setBounds(bounds: WindowBounds) {
+		this._browserWindow.setFullScreen(bounds.fullscreen)
+		if (bounds.fullscreen) return
+		this._browserWindow.setBounds(bounds.rect)
+		if (process.platform !== 'linux') return
+		clearTimeout(this._setBoundsTimeout)
+		this._setBoundsTimeout = setTimeout(() => {
+			const newRect = this._browserWindow.getBounds()
+			if (bounds.rect.y !== newRect.y) {
+				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
+			}
+		}, 200)
 	}
 
-	static getLastFocused(show: boolean): ApplicationWindow {
-		const w = windows[windows.length - 1]
-		if (w && show) {
-			w.show()
-			return w
-		} else {
-			return new ApplicationWindow(show)
+	getBounds(): WindowBounds {
+		return {
+			fullscreen: this._browserWindow.isFullScreen(),
+			rect: this._browserWindow.getBounds()
 		}
 	}
-
-	static openMailBox(userId: Id, mailAddress: string) {
-		let w = windows.find(w => w.getUserId() === userId)
-			|| windows.find(w => w.getUserId() === null)
-			|| new ApplicationWindow(true)
-		ipc.initialized(w.id).then(() => {
-			ipc.sendRequest(w.id, 'openMailbox', [userId, mailAddress])
-			w.show()
-		})
-	}
-}
-
-function getStartingBounds(): WindowBounds {
-	const defaultBounds = {
-		rect: {
-			width: 1280,
-			height: 800,
-			x: undefined,
-			y: undefined
-		},
-		fullscreen: undefined
-	}
-	const lastBounds: WindowBounds = conf.getDesktopConfig("lastBounds")
-	if (!lastBounds || !isContainedIn(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-		return (defaultBounds: any)
-	} else {
-		return lastBounds
-	}
-}
-
-function isContainedIn(closestRect: Rectangle, lastBounds: Rectangle): boolean {
-	return lastBounds.x >= closestRect.x - 10
-		&& lastBounds.y >= closestRect.y - 10
-		&& lastBounds.width + lastBounds.x <= closestRect.width + 10
-		&& lastBounds.height + lastBounds.y <= closestRect.height + 10
 }

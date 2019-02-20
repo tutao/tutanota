@@ -2,6 +2,8 @@
 import type {NativeImage} from 'electron'
 import {Notification} from 'electron'
 import {tray} from "./DesktopTray"
+import {ApplicationWindow} from "./ApplicationWindow"
+import {neverNull} from "../api/common/utils/Utils"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
 export const NotificationResult = {
@@ -12,7 +14,7 @@ export const NotificationResult = {
 class DesktopNotifier {
 	_canShow: boolean = false;
 	pendingNotifications: Array<Function> = [];
-	_notificationCloseFunctions: {[string]: ()=>void} = {};
+	_notificationCloseFunctions: {[?string]: ()=>void} = {};
 
 	/**
 	 * signal that notifications can now be shown. also start showing notifications that came
@@ -65,13 +67,17 @@ class DesktopNotifier {
 		tray.update()
 	}
 
-	resolveGroupedNotification(id: string) {
+	resolveGroupedNotification(id: ?string) {
 		if ('function' === typeof this._notificationCloseFunctions[id]) {
 			this._notificationCloseFunctions[id]()
 			tray.update()
 		}
 		delete this._notificationCloseFunctions[id]
 
+	}
+
+	hasNotificationsForWindow(w: ApplicationWindow): boolean {
+		return !!w.getUserInfo && notifier.hasNotificationForId(neverNull(w.getUserId()))
 	}
 
 	hasNotificationForId(id: string): boolean {
