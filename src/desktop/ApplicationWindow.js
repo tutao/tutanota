@@ -43,6 +43,8 @@ export class ApplicationWindow {
 	minimize = () => this._browserWindow.minimize()
 	hide = () => this._browserWindow.hide()
 	center = () => this._browserWindow.center()
+	showInactive = () => this._browserWindow.showInactive()
+	isFocused = () => this._browserWindow.isFocused()
 
 	show() {
 		if (!this._browserWindow) {

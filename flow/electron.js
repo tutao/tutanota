@@ -215,6 +215,7 @@ declare module 'electron' {
 		destroy(): void;
 		restore(): void;
 		show(): void;
+		showInactive(): void;
 		maximize(): void;
 		unmaximize(): void;
 		isMaximized(): boolean;
@@ -229,6 +230,7 @@ declare module 'electron' {
 		isSimpleFullScreen(): boolean;
 		setSimpleFullScreen(boolean): void;
 		setFullScreen(boolean): void;
+		isFocused(): boolean;
 		openDevTools(): void;
 		getTitle(): string;
 		getBounds(): Rectangle;

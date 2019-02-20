@@ -99,27 +99,30 @@ class WindowManager {
 		const lastPath = w.getPath()
 		const userInfo = w.getUserInfo()
 		const isMinimized = w.isMinimized()
+		const isFocused = w.isFocused()
 		const isHidden = w.isHidden()
 		const bounds = w.getBounds()
 		w._browserWindow.destroy() // drastic, but still fires the closed event
 
 		w = this.newWindow(false)
 		w.setBounds(bounds)
-		if (isMinimized) {
-			w.minimize()
-		}
-		if (!isHidden) {
-			w.show()
-		}
-
+		let p = Promise.resolve()
 		if (userInfo) {
-			ipc.initialized(w.id).then(() => {
-				ipc.sendRequest(w.id, 'openMailbox', [userInfo.userId, userInfo.mailAddress, lastPath])
-				if (!isHidden) {
-					w.show()
-				}
-			})
+			p = ipc.initialized(w.id)
+			       .then(() => {
+				       ipc.sendRequest(w.id, 'openMailbox', [userInfo.userId, userInfo.mailAddress, lastPath])
+			       })
 		}
+		p.then(() => {
+			if (isFocused) {
+				w.show()
+			} else if (!isHidden) {
+				if (isMinimized) {
+					w.minimize()
+				}
+				w.showInactive()
+			}
+		})
 	}
 }
 
