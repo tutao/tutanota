@@ -24,6 +24,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import stream from "mithril/stream/stream.js"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 type IdentifierRowAttrs = {|
 	name: string,
@@ -33,10 +34,6 @@ type IdentifierRowAttrs = {|
 	formatIdentifier: boolean,
 	removeClicked: () => void,
 	disableClicked: () => void
-|}
-
-export type IdentifierListViewerAttrs = {|
-	user: ?User
 |}
 
 class IdentifierRow implements MComponent<IdentifierRowAttrs> {
@@ -81,14 +78,17 @@ class IdentifierRow implements MComponent<IdentifierRowAttrs> {
 	}
 }
 
-class _IdentifierListViewer {
-	_identifiers: PushIdentifier[];
+export class IdentifierListViewer {
 	_currentIdentifier: ?string;
+	_user: ?User;
+	_identifiers: Stream<PushIdentifier[]>;
 	_expanded: stream<boolean>
 
-	constructor() {
+	constructor(user: ?User) {
 		this._expanded = stream(false)
-		this._identifiers = []
+		this._identifiers = stream([])
+		this._user = user
+		this._loadPushIdentifiers()
 	}
 
 	_disableIdentifier(identifier: PushIdentifier) {
@@ -96,10 +96,7 @@ class _IdentifierListViewer {
 		update(identifier).then(m.redraw)
 	}
 
-	view(vnode: Vnode<IdentifierListViewerAttrs>) {
-		const a = vnode.attrs
-		this.loadPushIdentifiers(a.user)
-
+	view() {
 		const pushIdentifiersExpanderAttrs: ExpanderAttrs = {
 			label: "show_action",
 			expanded: this._expanded
@@ -109,7 +106,7 @@ class _IdentifierListViewer {
 			view: (): Children => {
 				const buttonAddAttrs: ButtonAttrs = {
 					label: "emailPushNotification_action",
-					click: () => this._showAddNotificationEmailAddressDialog(a.user),
+					click: () => this._showAddNotificationEmailAddressDialog(this._user),
 					icon: () => Icons.Add
 				}
 
@@ -117,7 +114,7 @@ class _IdentifierListViewer {
 					lang.get("emailPushNotification_action"), m(ButtonN, buttonAddAttrs)
 				])
 
-				const rows = this._identifiers.map(identifier => {
+				const rows = this._identifiers().map(identifier => {
 					const current = isApp() && identifier.identifier === this._currentIdentifier
 					return m(IdentifierRow, {
 						name: this._identifierTypeName(current, identifier.pushServiceType),
@@ -143,18 +140,19 @@ class _IdentifierListViewer {
 		]
 	}
 
-	loadPushIdentifiers(user: ?User) {
-		if (!user) {
+	_loadPushIdentifiers() {
+		if (!this._user) {
 			return
 		}
 		this._currentIdentifier = pushServiceApp.getPushIdentifier()
-		const list = user.pushIdentifierList
+		const list = neverNull(this._user).pushIdentifierList
 		if (list) {
 			loadAll(PushIdentifierTypeRef, list.list)
 				.then((identifiers) => {
-					this._identifiers = identifiers
+					this._identifiers(identifiers)
 				})
 		}
+		m.redraw()
 	}
 
 	_identifierTypeName(current: boolean, type: NumberString): string {
@@ -217,6 +215,10 @@ class _IdentifierListViewer {
 			? "mailAddressInvalid_msg"
 			: null // TODO check if it is a Tutanota mail address
 	}
-}
 
-export const IdentifierListViewer: Class<MComponent<IdentifierListViewerAttrs>> = _IdentifierListViewer
+	entityEventReceived(update: EntityUpdateData): void {
+		if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
+			this._loadPushIdentifiers()
+		}
+	}
+}

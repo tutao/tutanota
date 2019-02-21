@@ -34,7 +34,7 @@ import {TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {IdentifierListViewer} from "./IdentifierListViewer.js"
+import {IdentifierListViewer} from "./IdentifierListViewer"
 
 assertMainOrNode()
 
@@ -49,6 +49,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>;
 	_inboxRulesExpanded: Stream<boolean>;
 	_indexStateWatch: ?Stream<any>;
+	_identifierListViewer: IdentifierListViewer;
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser())
@@ -61,6 +62,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesExpanded = stream(false)
 		this._inboxRulesTableLines = stream([])
 		this._indexStateWatch = null
+		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 
 		this._updateInboxRules(logins.getUserController().props)
 	}
@@ -227,7 +229,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(ExpanderPanelN, {expanded: this._inboxRulesExpanded}, m(TableN, inboxRulesTableAttrs)),
 					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
 				],
-				m(IdentifierListViewer, {user: logins.getUserController().user})
+				m(this._identifierListViewer)
 			])
 		]
 	}
@@ -288,6 +290,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m.redraw()
 				})
 			}
+
+			this._identifierListViewer.entityEventReceived(update)
 		}
 	}
 }
