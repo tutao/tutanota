@@ -6,7 +6,14 @@ import {random} from "../crypto/Randomizer"
 import type {EncryptedSearchIndexEntry, EncryptedSearchIndexMetaDataRow, IndexUpdate, SearchIndexEntry, SearchIndexMetaDataRow} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
-import {calculateNeededSpaceForNumber, decodeNumberBlock, decodeNumbers, encodeNumberBlock, encodeNumbers} from "./SearchIndexEncoding"
+import {
+	calculateNeededSpaceForNumber,
+	calculateNeededSpaceForNumbers,
+	decodeNumberBlock,
+	decodeNumbers,
+	encodeNumberBlock,
+	encodeNumbers
+} from "./SearchIndexEncoding"
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
@@ -20,6 +27,10 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Ui
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length)
+}
+
+export function decryptIndexKeyBase64(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): Base64 {
+	return uint8ArrayToBase64(aes256Decrypt(key, concat(dbIv, encIndexKey), true, false))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
@@ -68,8 +79,7 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 		numbers[offset + 3] = entry.size
 		numbers[offset + 4] = entry.oldestElementTimestamp
 	}
-	const spaceForRows = numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
-	const numberBlock = new Uint8Array(spaceForRows)
+	const numberBlock = new Uint8Array(calculateNeededSpaceForNumbers(numbers))
 	encodeNumbers(numbers, numberBlock)
 	const encryptedRows = aes256Encrypt(key, numberBlock, random.generateRandomData(IV_BYTE_LENGTH), true, false)
 	return {id: metaData.id, word: metaData.word, rows: encryptedRows}
@@ -173,7 +183,7 @@ export function _createNewIndexUpdate(groupId: Id, typeInfo: TypeInfo): IndexUpd
 			indexMap: new Map(),
 		},
 		move: [],
-		delete: {searchIndexRowToEncInstanceIds: new Map(), encInstanceIds: []},
+		delete: {searchMetaRowToEncInstanceIds: new Map(), encInstanceIds: []},
 	}
 }
 

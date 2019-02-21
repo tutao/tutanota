@@ -281,7 +281,7 @@
 //
 // 		let encWord = uint8ArrayToBase64(new Uint8Array([7, 8, 23]))
 // 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(1, [instanceId])
+// 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(1, [instanceId])
 // 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 //
 // 		const metaData = Object.freeze({id: metaId, word: encWord, rows: [{app: 1, type: 1, key: 1, size: 2}, {app: 1, type: 1, key: 2, size: 1}]})
@@ -329,7 +329,7 @@
 // 		let entry: EncryptedSearchIndexEntry = concat(instanceId, (new Uint8Array([4, 7, 6])))
 //
 // 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(1, [instanceId])
+// 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(1, [instanceId])
 // 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 //
 // 		const core = makeCore()
@@ -360,7 +360,7 @@
 // 		let groupId = "my-group"
 // 		let indexUpdate = _createNewIndexUpdate(groupId)
 // 		let entry: EncryptedSearchIndexEntry = concat(new Uint8Array([8]), new Uint8Array([4, 7, 6]))
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(1, [getIdFromEncSearchIndexEntry(entry)])
+// 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(1, [getIdFromEncSearchIndexEntry(entry)])
 // 		indexUpdate.delete.encInstanceIds.push(uint8ArrayToBase64(getIdFromEncSearchIndexEntry(entry)))
 //
 // 		let transaction: any = {
@@ -660,16 +660,16 @@
 // 		const encInstanceId = encryptIndexKeyBase64(core.db.key, instanceIdB64, core.db.iv)
 //
 // 		const otherId = new Uint8Array(16).fill(88)
-// 		indexUpdate.delete.searchIndexRowToEncInstanceIds.set(searchIndexRowId, [otherId])
+// 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(searchIndexRowId, [otherId])
 //
 // 		await core._processDeleted(event, indexUpdate)
 // 		o(indexUpdate.delete.encInstanceIds).deepEquals([encInstanceId])
-// 		o(indexUpdate.delete.searchIndexRowToEncInstanceIds.size).equals(1)
-// 		o(JSON.stringify(indexUpdate.delete.searchIndexRowToEncInstanceIds.get(searchIndexRowId)))
+// 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(1)
+// 		o(JSON.stringify(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(searchIndexRowId)))
 // 			.equals(JSON.stringify([otherId, base64ToUint8Array(encInstanceId)]))
 //
 // 		let encWord2 = encryptIndexKeyBase64(core.db.key, "two", core.db.iv)
-// 		let ids2 = neverNull(indexUpdate.delete.searchIndexRowToEncInstanceIds.get(encWord2))
+// 		let ids2 = neverNull(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(encWord2))
 // 		o(ids2.length).equals(1)
 // 		o(Array.from(ids2[0])).deepEquals(Array.from(base64ToUint8Array(encInstanceId)))
 //
@@ -700,7 +700,7 @@
 // 		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
 //
 // 		core._processDeleted(event, indexUpdate).then(() => {
-// 			o(indexUpdate.delete.searchIndexRowToEncInstanceIds.size).equals(0)
+// 			o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 // 			o(indexUpdate.delete.encInstanceIds.length).equals(0)
 // 			done()
 // 		})

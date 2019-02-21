@@ -17,7 +17,7 @@ export type EncryptedSearchIndexMetaDataRow = {
 	rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...]
 }
 
-export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc search index row keys, third is owner group id
+export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc meta row keys, third is owner group id
 
 export type EncryptedSearchIndexEntryWithHash = {
 	encEntry: EncryptedSearchIndexEntry,
@@ -42,11 +42,11 @@ export type AttributeHandler = {
 	value: lazy<string>;
 }
 
-export type ElementDataSurrogate = {
+export type ElementDataSurrogate = {|
 	listId: Id, // we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail
 	encWordsB64: Array<B64EncIndexKey>,
 	ownerGroup: Id
-}
+|}
 
 export type KeyToIndexEntries = {
 	indexKey: Base64;
@@ -66,7 +66,15 @@ export type SearchIndexEntry = {
 	encId?: Uint8Array
 }
 
-export type EncSearchIndexEntryWithTimestamp = [EncryptedSearchIndexEntry, number]
+export type EncSearchIndexEntryWithTimestamp = {|
+	entry: EncryptedSearchIndexEntry,
+	timestamp: number,
+	encodedId: Base64
+|}
+
+export type EncWordToMetaRow = {[Base64]: number}
+
+export type EncInstanceIdWithTimestamp = {encInstanceId: Uint8Array, timestamp: number, appId: number, typeId: number}
 
 export type IndexUpdate = {
 	groupId: Id;
@@ -83,7 +91,7 @@ export type IndexUpdate = {
 		newListId: Id;
 	}[];
 	delete: {
-		searchIndexRowToEncInstanceIds: Map<number, Uint8Array[]>;
+		searchMetaRowToEncInstanceIds: Map<number, Array<EncInstanceIdWithTimestamp>>;
 		encInstanceIds: B64EncInstanceId[];
 	};
 }

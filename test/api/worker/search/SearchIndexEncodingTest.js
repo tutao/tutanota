@@ -3,9 +3,11 @@ import o from "ospec/ospec.js"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpace,
-	encodeBinaryBlock, iterateBinaryBlocks,
-	numberOfBytes,
 	decodeBinaryBlock,
+	encodeBinaryBlock,
+	encodeNumberBlock,
+	iterateBinaryBlocks,
+	numberOfBytes,
 	removeBinaryBlockRanges
 } from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {spy as makeSpy} from "../../TestUtils"
@@ -141,6 +143,21 @@ o.spec("SearchIndexEncoding test", function () {
 			const expected = concat(new Uint8Array([0x01, 0x02]), new Uint8Array([0x82, 0x01, 0x00]), newDataOne, new Uint8Array([0x01, 0x01]))
 
 			o(JSON.stringify(appendBinaryBlocks([newDataOne, newDataTwo], row))).equals(JSON.stringify(expected))
+		})
+	})
+
+	o.spec("encodeNumberBlock", function () {
+		o("encodes small numbers", function () {
+			const block = new Uint8Array(1)
+			encodeNumberBlock(3, block, 0)
+			o(Array.from(block)).deepEquals([3])
+		})
+
+		o("encodes big numbers", function () {
+			const number = 1550759936805
+			const block = new Uint8Array(1 + 6)
+			encodeNumberBlock(number, block, 0)
+			o(Array.from(block)).deepEquals([0x80 | 0x6, 0x1, 0x69, 0x10, 0x7e, 0xc3, 0x25])
 		})
 	})
 })

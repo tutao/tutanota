@@ -306,9 +306,7 @@ export class MailIndexer {
 				                          this._core._stats.mailcount += mailWithBodyAndFiles.length
 				                          return Promise.each(mailWithBodyAndFiles, element => {
 					                          let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
-					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries,
-
-						                          indexUpdate)
+					                          this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 				                          }).then(() => this._core.writeIndexUpdate(indexUpdate))
 			                          })
 			                          .then(() => {

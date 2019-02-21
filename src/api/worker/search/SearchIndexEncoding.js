@@ -157,14 +157,15 @@ export function encodeNumberBlock(value: number, target: Uint8Array, offset: num
 		// Set highest bit to 1
 		target[offset] = length | 0x80
 		for (let i = 0; i < length; i++) {
+			const bytePosition = offset + length - i
 			// If what's left doesn't fit into this byte, split it
 			if (remainingValue > 0xff) {
 				// like shifting right by 8 but without overflows
-				target[offset + i + 1] = remainingValue / 256
-				remainingValue = remainingValue % 256
+				target[bytePosition] = remainingValue % 256
+				remainingValue = Math.floor(remainingValue / 256)
 			} else {
 				// if it does fit, write it
-				target[offset + i + 1] = remainingValue
+				target[bytePosition] = remainingValue
 			}
 		}
 		// One bit for length
@@ -233,6 +234,10 @@ export function calculateNeededSpaceForNumber(value: number): number {
 	return value <= 0x7f
 		? 1
 		: numberOfBytes(value) + 1
+}
+
+export function calculateNeededSpaceForNumbers(numbers: Array<number>): number {
+	return numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
 }
 
 /**
