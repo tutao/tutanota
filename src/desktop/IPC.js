@@ -1,5 +1,5 @@
 // @flow
-import {BrowserWindow, dialog, ipcMain} from 'electron'
+import {dialog, ipcMain} from 'electron'
 import {wm} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
@@ -158,8 +158,10 @@ class IPC {
 				type: type,
 				args: args,
 			}
-
-			BrowserWindow.fromId(windowId).webContents.send(`${windowId}`, request)
+			const w = wm.get(windowId)
+			if (w) {
+				w.sendMessageToWebContents(windowId, request)
+			}
 			const d = defer()
 			this._queue[requestId] = d.resolve;
 			return d.promise;
@@ -195,7 +197,10 @@ class IPC {
 						    type: "response",
 						    value: result,
 					    }
-					    BrowserWindow.fromId(id).webContents.send(`${id}`, response)
+					    const w = wm.get(id)
+					    if (w) {
+						    w.sendMessageToWebContents(id, response)
+					    }
 				    })
 				    .catch((e) => {
 					    const response = {
@@ -203,8 +208,10 @@ class IPC {
 						    type: "requestError",
 						    error: errorToObj(e),
 					    }
-
-					    BrowserWindow.fromId(id).webContents.send(`${id}`, response)
+					    const w = wm.get(id)
+					    if (w) {
+						    w.sendMessageToWebContents(id, response)
+					    }
 				    })
 			}
 		})

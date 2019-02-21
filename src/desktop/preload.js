@@ -53,7 +53,7 @@ function setupContextMenu() {
 	contextMenu.append(new MenuItem({label: lang.get("undo_action"), accelerator: "CmdOrCtrl+Z", click() { document.execCommand('undo') }}))
 	contextMenu.append(new MenuItem({label: lang.get("redo_action"), accelerator: "CmdOrCtrl+Shift+Z", click() { document.execCommand('redo') }}))
 
-	ipcRenderer.on('context-menu', (e, params) => {
+	ipcRenderer.on('open-context-menu', (e, params) => {
 		console.log(params[0])
 		const linkURL = params[0].linkURL
 		copyLinkItem.enabled = !!linkURL

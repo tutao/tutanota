@@ -225,6 +225,7 @@ declare module 'electron' {
 		isMinimized(): boolean;
 		isFocused(): boolean;
 		isFullScreen(): boolean;
+		isDestroyed(): boolean;
 		setFullScreen(boolean): void;
 		isVisible(): boolean;
 		isSimpleFullScreen(): boolean;
@@ -289,6 +290,7 @@ declare module 'electron' {
 		setZoomFactor(factor: number): void;
 		openDevTools(opts?: {|mode: string|}): void;
 		isDevToolsOpened(): boolean;
+		isDestroyed(): boolean;
 		closeDevTools(): void;
 		print(): void;
 		toggleDevTools(): void;

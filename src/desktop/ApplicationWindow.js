@@ -121,7 +121,7 @@ export class ApplicationWindow {
 			    }
 		    })
 		    .on('context-menu', (e, params) => {
-			    this._browserWindow.webContents.send('context-menu', [{linkURL: params.linkURL}])
+			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
 		    .on('crashed', e => wm.recreateWindow((this: any)))
 
@@ -133,8 +133,7 @@ export class ApplicationWindow {
 		 * but may be before any javascript ran
 		 */
 		this._browserWindow.webContents.on('dom-ready', () => {
-			lang.initialized.promise.then(() => this._browserWindow.webContents.send('setup-context-menu', []))
-			    .catch(noOp) //sometimes bowserWindow or webContents are not there anymore
+			lang.initialized.promise.then(() => this.sendMessageToWebContents('setup-context-menu', []))
 		})
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
@@ -151,6 +150,18 @@ export class ApplicationWindow {
 				: 'F11',
 			() => this._toggleFullScreen()
 		)
+	}
+
+	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
+		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
+			console.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
+			return
+		}
+		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
+			console.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
+			return
+		}
+		this._browserWindow.webContents.send(message.toString(), args)
 	}
 
 	setUserInfo(info: ?UserInfo) {
