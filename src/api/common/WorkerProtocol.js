@@ -41,6 +41,7 @@ import {CancelledError} from "./error/CancelledError"
 import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 import {FileNotFoundError} from "./error/FileNotFoundError"
 import {FileOpenError} from "./error/FileOpenError"
+import {SseError} from "./error/SseError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -197,6 +198,7 @@ const ErrorNameToType = {
 	InsufficientStorageError,
 	CryptoError,
 	SessionKeyNotFoundError,
+	SseError,
 	ProgrammingError,
 	RecipientsNotFoundError,
 	RecipientNotResolvedError,

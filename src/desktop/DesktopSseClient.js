@@ -118,7 +118,7 @@ class DesktopSseClient {
 			this._reschedule()
 			return
 		}
-		data = data.substring(6)
+		data = data.substring(6) // throw away 'data: '
 		if (data.startsWith('heartbeatTimeout')) {
 			this._timeoutInSeconds = Number(data.split(':')[1])
 			conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._timeoutInSeconds)
@@ -138,6 +138,7 @@ class DesktopSseClient {
 			.filter(Boolean)
 
 		if (pushMessages.length === 0) {
+			//no reschedule, something went wrong with the events sent from the server
 			return
 		}
 

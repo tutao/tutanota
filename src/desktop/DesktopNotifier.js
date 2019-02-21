@@ -14,7 +14,7 @@ export const NotificationResult = {
 class DesktopNotifier {
 	_canShow: boolean = false;
 	pendingNotifications: Array<Function> = [];
-	_notificationCloseFunctions: {[?string]: ()=>void} = {};
+	_notificationCloseFunctions: {[userId: ?string]: ()=>void} = {};
 
 	/**
 	 * signal that notifications can now be shown. also start showing notifications that came
