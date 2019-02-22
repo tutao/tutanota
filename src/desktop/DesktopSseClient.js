@@ -20,8 +20,8 @@ export type SseInfo = {|
 |}
 
 // how long should we wait to retry after failing to get a response?
-const INITIAL_CONNECT_TIMEOUT = 60
-const MAX_CONNECT_TIMEOUT = 2400
+const INITIAL_CONNECT_TIMEOUT = conf.get("initialSseConnectTimeoutInSeconds")
+const MAX_CONNECT_TIMEOUT = conf.get("maxSseConnectTimeoutInSeconds")
 
 class DesktopSseClient {
 	_connectedSseInfo: ?SseInfo;
@@ -85,7 +85,8 @@ class DesktopSseClient {
 		}
 		const sseInfo = this._connectedSseInfo
 
-		// now actually try to connect
+		// now actually try to connect. cleaning up any old
+		// connection because us getting here means we timed out or had an error
 		this._connectTimeoutInSeconds = Math.min(this._connectTimeoutInSeconds * 2, MAX_CONNECT_TIMEOUT)
 		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
 		this._cleanup()

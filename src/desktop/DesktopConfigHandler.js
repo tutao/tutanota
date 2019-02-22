@@ -28,13 +28,13 @@ class DesktopConfigHandler {
 			process.exit(1)
 		}
 		try {
-			if (fs.existsSync(this._desktopConfigPath)) {
-				this._desktopConfig = JSON.parse(fs.readFileSync(this._desktopConfigPath).toString())
-			} else { //create default user config file
-				this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
-				fs.mkdirp(path.join(app.getPath('userData')))
-				fs.writeFileSync(this._desktopConfigPath, JSON.stringify(this._desktopConfig))
-			}
+			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
+			const userConf = fs.existsSync(this._desktopConfigPath)
+				? fs.readJSONSync(this._desktopConfigPath)
+				: {}
+			this._desktopConfig = Object.assign(this._desktopConfig, userConf)
+			fs.mkdirp(path.join(app.getPath('userData')))
+			fs.writeJSONSync(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
 		} catch (e) {
 			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
 			console.error("Could not create or load desktop config:", e.message)

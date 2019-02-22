@@ -22,6 +22,8 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
+			"initialSseConnectTimeoutInSeconds": 60,
+			"maxSseConnectTimeoutInSeconds": 2400,
 			"defaultDesktopConfig": {
 				"heartbeatTimeoutInSeconds": 30,
 				"defaultDownloadPath": null,
