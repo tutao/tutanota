@@ -4,20 +4,21 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 
 
 // db types
-export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encrypted attribute and positions
+export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encoded and encrypted attribute and positions
 
-export type SearchIndexRow = [
-	number, // Metadata reference
-	Uint8Array // Binary encoded EncryptedSearchIndexEntries (see SearchIndexEncoding.js)
-	]
+export type SearchIndexDbRow = Uint8Array // Binary encoded EncryptedSearchIndexEntries (see SearchIndexEncoding.js).
 
-export type EncryptedSearchIndexMetaDataRow = {
+export type SearchIndexMetaDataDbRow = {
 	id: number,
 	word: string,
-	rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...]
+	rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...] encoded and encrypted SearchIndexMetadataEntry
 }
 
-export type ElementData = [Id, Uint8Array, Id] //first list id, second is enc meta row keys, third is owner group id
+export type ElementDataDbRow = [
+	Id,  //first list id
+	Uint8Array,  // second is enc meta row keys encoded in binary format
+	Id // third is owner group id
+	]
 
 export type EncryptedSearchIndexEntryWithHash = {
 	encEntry: EncryptedSearchIndexEntry,

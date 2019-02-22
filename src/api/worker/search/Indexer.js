@@ -37,7 +37,7 @@ import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
-import {getOrInsert} from "../../common/utils/MapUtils"
+import {getFromMap} from "../../common/utils/MapUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -446,15 +446,15 @@ export class Indexer {
 				let indexUpdates = []
 				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
 					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
-						getOrInsert(all, MailTypeRef, () => []).push(update)
+						getFromMap(all, MailTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
-						getOrInsert(all, ContactTypeRef, () => []).push(update)
+						getFromMap(all, ContactTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
-						getOrInsert(all, GroupInfoTypeRef, () => []).push(update)
+						getFromMap(all, GroupInfoTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
-						getOrInsert(all, UserTypeRef, () => []).push(update)
+						getFromMap(all, UserTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
-						getOrInsert(all, WhitelabelChildTypeRef, () => []).push(update)
+						getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
 					}
 					return all
 				}, new Map())

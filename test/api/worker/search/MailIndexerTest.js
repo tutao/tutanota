@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
-import type {Db, ElementData, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
+import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {MailStateEnum, OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
@@ -193,7 +193,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processMovedMail", function (done) {
 		let event: EntityUpdate = ({instanceListId: "new-list-id", instanceId: "eid"}: any)
-		let elementData: ElementData = ["old-list-id", new Uint8Array(0), "owner-group-id"]
+		let elementData: ElementDataDbRow = ["old-list-id", new Uint8Array(0), "owner-group-id"]
 		let db: Db = ({
 			key: aes256RandomKey(),
 			iv: fixedIv,
@@ -803,7 +803,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 
 	let transaction = {
 		get: (os, id) => {
-			let elementData: ElementData = [getListId(mail), new Uint8Array(0), "group-id"]
+			let elementData: ElementDataDbRow = [getListId(mail), new Uint8Array(0), "group-id"]
 			return Promise.resolve(elementData)
 		}
 	}

@@ -3,17 +3,10 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
-import type {EncryptedSearchIndexEntry, EncryptedSearchIndexMetaDataRow, IndexUpdate, SearchIndexEntry, SearchIndexMetaDataRow} from "./SearchTypes"
+import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry, SearchIndexMetaDataDbRow, SearchIndexMetaDataRow} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
-import {
-	calculateNeededSpaceForNumber,
-	calculateNeededSpaceForNumbers,
-	decodeNumberBlock,
-	decodeNumbers,
-	encodeNumberBlock,
-	encodeNumbers
-} from "./SearchIndexEncoding"
+import {calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers} from "./SearchIndexEncoding"
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
@@ -21,8 +14,7 @@ import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelC
 import {TypeRef} from "../../common/EntityFunctions"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
-	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false)
-		.slice(dbIv.length))
+	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length))
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
@@ -33,16 +25,16 @@ export function decryptIndexKeyBase64(key: Aes256Key, encIndexKey: Uint8Array, d
 	return uint8ArrayToBase64(aes256Decrypt(key, concat(dbIv, encIndexKey), true, false))
 }
 
+export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
+	return utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encIndexKey), true, false))
+}
+
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
-	const neededSpace = calculateNeededSpaceForNumber(entry.attribute)
-		+ entry.positions.reduce((acc, position) => acc + calculateNeededSpaceForNumber(position), 0)
+	let searchIndexEntryNumberValues = [entry.attribute].concat(entry.positions)
+	const neededSpace = calculateNeededSpaceForNumbers(searchIndexEntryNumberValues)
 	const block = new Uint8Array(neededSpace)
-	let offset = 0
-	offset += encodeNumberBlock(entry.attribute, block, offset)
-	encodeNumbers(entry.positions, block, offset)
-
+	encodeNumbers(searchIndexEntryNumberValues, block, 0)
 	const encData = aes256Encrypt(key, block, random.generateRandomData(IV_BYTE_LENGTH), true, false)
-
 	const resultArray = new Uint8Array(encryptedInstanceId.length + encData.length)
 	resultArray.set(encryptedInstanceId)
 	resultArray.set(encData, 16)
@@ -68,7 +60,7 @@ export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIn
 
 const metaEntryFieldsNumber = 5
 
-export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): EncryptedSearchIndexMetaDataRow {
+export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow): SearchIndexMetaDataDbRow {
 	const numbers = new Array(metaData.rows.length * metaEntryFieldsNumber)
 	for (let i = 0; i < metaData.rows.length; i++) {
 		const entry = metaData.rows[i]
@@ -85,7 +77,7 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 	return {id: metaData.id, word: metaData.word, rows: encryptedRows}
 }
 
-export function decryptMetaData(key: Aes256Key, encryptedMeta: EncryptedSearchIndexMetaDataRow): SearchIndexMetaDataRow {
+export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDataDbRow): SearchIndexMetaDataRow {
 	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []

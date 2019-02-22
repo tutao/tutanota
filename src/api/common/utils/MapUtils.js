@@ -18,7 +18,7 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 	}, new Map())
 }
 
-export function getOrInsert<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
+export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
 	let value = map.get(key)
 	if (!value) {
 		value = byDefault()

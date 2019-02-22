@@ -6,7 +6,7 @@
 // import {createUser} from "../../../../src/api/entities/sys/User"
 // import {encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId} from "../../../../src/api/worker/search/IndexUtils"
 // import type {
-// 	ElementData,
+// 	ElementDataDbRow,
 // 	EncryptedSearchIndexEntry,
 // 	KeyToIndexEntries,
 // 	SearchIndexEntry,
@@ -62,7 +62,7 @@
 // 					throw new Error()
 // 				}
 // 			},
-// 			get: (os, key): Promise<ElementData | Uint8Array> => {
+// 			get: (os, key): Promise<ElementDataDbRow | Uint8Array> => {
 // 				if (os === ElementDataOS) {
 // 					const id = neverNull(fullIds.find(id => {
 // 						let encId = encryptIndexKeyBase64(dbKey, id[1], fixedIv)

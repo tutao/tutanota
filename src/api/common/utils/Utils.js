@@ -180,17 +180,3 @@ export function noOp() {}
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
 	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
 }
-
-export function newObject(): {} {
-	return {}
-}
-
-export function getOrSet<K, V>(obj: {[K]: V}, key: K, byDefault: () => V): V {
-	let value = obj[key]
-	if (!value) {
-		value = byDefault()
-		obj[key] = value
-	}
-
-	return value
-}

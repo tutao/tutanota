@@ -7,14 +7,14 @@ import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
 import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
 import type {
 	Db,
-	ElementData,
+	ElementDataDbRow,
 	EncryptedSearchIndexEntry,
 	EncryptedSearchIndexEntryWithHash,
-	EncryptedSearchIndexMetaDataRow,
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
 	MoreResultsIndexEntry,
 	SearchIndexEntry,
+	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry
 } from "./SearchTypes"
 import {
@@ -319,9 +319,8 @@ export class SearchFacade {
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry, fromRow: ?number, maxResults: ?number): Promise<EncryptedSearchIndexEntry[]> {
 		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow) => {
 			if (!indexEntriesRow) return []
-			const indexEntriesBinary = indexEntriesRow[1]
 			const result = new Array(entry.size)
-			iterateBinaryBlocks(indexEntriesBinary, (block, s, e, iteration) => {
+			iterateBinaryBlocks(indexEntriesRow, (block, s, e, iteration) => {
 				result[iteration] = block
 			})
 			return result
@@ -334,7 +333,7 @@ export class SearchFacade {
 		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 		return transaction
 			.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
-			.then((metaData: ?EncryptedSearchIndexMetaDataRow) => {
+			.then((metaData: ?SearchIndexMetaDataDbRow) => {
 				const safeRows = metaData ? decryptMetaData(this._db.key, metaData).rows : []
 				const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 				const filteredRows = safeRows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
@@ -517,7 +516,7 @@ export class SearchFacade {
 						}
 
 						return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
-						                  .then((elementData: ?ElementData) => {
+						                  .then((elementData: ?ElementDataDbRow) => {
 							                  if (elementData
 								                  && (!searchResult.restriction.listId
 									                  || searchResult.restriction.listId === elementData[0])) {
