@@ -8,7 +8,7 @@ import https from 'https'
 import {base64ToBase64Url} from "../api/common/utils/Encoding"
 import {SseError} from "../api/common/error/SseError"
 import {isMailAddress} from "../misc/FormatValidator"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, randomIntFromInterval} from "../api/common/utils/Utils"
 import {notifier} from './DesktopNotifier.js'
 import {wm} from "./DesktopWindowManager.js"
 import {NotificationResult} from "./DesktopNotifier"
@@ -19,21 +19,28 @@ export type SseInfo = {|
 	userIds: Array<string>
 |}
 
+// how long should we wait to retry after failing to get a response?
+const INITIAL_CONNECT_TIMEOUT = 60
+const MAX_CONNECT_TIMEOUT = 2400
+
 class DesktopSseClient {
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
-	_timeoutInSeconds: number;
+	_readTimeoutInSeconds: number;
+	_connectTimeoutInSeconds: number;
 	_nextReconnect: ?TimeoutID;
+	_tryToReconnect: boolean;
 
 	constructor() {
-		this._connectedSseInfo = this.getSseInfo();
-		this._timeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
+		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
+		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
+		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
+		this._tryToReconnect = true
 		this._reschedule(1)
 
 		app.on('will-quit', () => {
-			if (this._connection) {
-				this._connection.abort()
-			}
+			this._cleanup()
+			this._tryToReconnect = false
 		})
 	}
 
@@ -54,7 +61,7 @@ class DesktopSseClient {
 			           this._connectedSseInfo = sseInfo
 			           if (this._connection) {
 				           this._connection.abort()
-				           this._reschedule(1)
+				           this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			           }
 		           })
 	}
@@ -66,25 +73,23 @@ class DesktopSseClient {
 			: null
 	}
 
-	getSseInfo(): SseInfo {
-		return conf.getDesktopConfig('pushIdentifier')
-	}
-
 	clear() {
 		conf.setDesktopConfig('pushIdentifier', null)
 	}
 
 	connect() {
 		this._reschedule(10)
-		if (this._connection) {
-			this._connection.abort()
-			this._connection = null
-		}
 		if (!this._connectedSseInfo) {
 			console.log("sse info not available, skip reconnect")
 			return
 		}
 		const sseInfo = this._connectedSseInfo
+
+		// now actually try to connect
+		this._connectTimeoutInSeconds = Math.min(this._connectTimeoutInSeconds * 2, MAX_CONNECT_TIMEOUT)
+		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
+		this._cleanup()
+
 		const url = sseInfo.sseOrigin + "/sse?_body=" + requestJson(sseInfo)
 		console.log(
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
@@ -101,9 +106,20 @@ class DesktopSseClient {
 			                       method: "GET",
 		                       })
 		                       .on('response', res => {
+			                       if (res.statusCode === 403) { // invalid userids
+				                       console.log('sse: got 403, deleting identifier')
+				                       this._connectedSseInfo = null
+				                       conf.setDesktopConfig('pushIdentifier', null)
+				                       this._cleanup()
+			                       }
 			                       res.setEncoding('utf8')
 			                       res.on('data', d => this._processSseData(d))
-			                          .on('close', () => console.log('sse response closed'))
+			                          .on('close', () => {
+				                          console.log('sse response closed')
+				                          this._cleanup()
+				                          this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
+				                          this._reschedule(INITIAL_CONNECT_TIMEOUT)
+			                          })
 			                          .on('error', e => console.log('sse response error:', e))
 		                       })
 		                       .on('information', e => console.log('sse information:', e))
@@ -120,8 +136,8 @@ class DesktopSseClient {
 		}
 		data = data.substring(6) // throw away 'data: '
 		if (data.startsWith('heartbeatTimeout')) {
-			this._timeoutInSeconds = Number(data.split(':')[1])
-			conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._timeoutInSeconds)
+			this._readTimeoutInSeconds = Number(data.split(':')[1])
+			conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._readTimeoutInSeconds)
 			this._reschedule()
 			return
 		}
@@ -184,14 +200,25 @@ class DesktopSseClient {
 		    .end()
 	}
 
+	_cleanup() {
+		if (this._connection) {
+			this._connection.abort()
+			this._connection = null
+		}
+	}
+
 	_reschedule(delay?: number) {
-		delay = delay ? delay : Math.floor(this._timeoutInSeconds * 1.2)
+		delay = delay ? delay : Math.floor(this._readTimeoutInSeconds * 1.2)
 		console.log('scheduling to reconnect sse in', delay, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
 		clearTimeout(neverNull(this._nextReconnect))
+		if (!this._tryToReconnect) return
 		this._nextReconnect = setTimeout(() => this.connect(), delay * 1000)
 	}
 
+	/**
+	 * http can't do https, https can't do http. saves typing while testing locally.
+	 */
 	_getProtocolModule(): typeof http | typeof https {
 		return neverNull(this._connectedSseInfo).sseOrigin.startsWith('http:') ? http : https
 	}
