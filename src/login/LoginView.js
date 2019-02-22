@@ -4,7 +4,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
-import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -127,7 +127,7 @@ export class LoginView {
 					m("", [
 						m(optionsExpander.panel),
 					]),
-					(!isApp()) ? renderPrivacyAndImprintLinks() : null
+					(isApp() || isDesktop()) ? null : renderPrivacyAndImprintLinks()
 				]),
 			])
 		}
@@ -251,7 +251,7 @@ export class LoginView {
 					}, lang.get("recoverAccountAccess_action"))
 					: null
 			])),
-			!isApp() && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
+			!(isApp() || isDesktop()) && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
 	}
 
