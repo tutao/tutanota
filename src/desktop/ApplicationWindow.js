@@ -210,12 +210,18 @@ export class ApplicationWindow {
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
-		localShortcut.register(this._browserWindow, 'F11', () => this._toggleMaximize())
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => new ApplicationWindow(true))
+		localShortcut.register(
+			this._browserWindow,
+			process.platform === 'darwin'
+				? 'Command+Control+F'
+				: 'F11',
+			() => this._toggleFullScreen()
+		)
 	}
 
 	// filesystem paths work differently than URLs
@@ -270,12 +276,8 @@ export class ApplicationWindow {
 		}
 	}
 
-	_toggleMaximize(): void {
-		if (this._browserWindow.isMaximized()) {
-			this._browserWindow.unmaximize()
-		} else {
-			this._browserWindow.maximize()
-		}
+	_toggleFullScreen(): void {
+		this._browserWindow.setFullScreen(!this._browserWindow.isFullScreen())
 	}
 
 	_printMail() {

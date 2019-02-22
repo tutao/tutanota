@@ -222,6 +222,9 @@ declare module 'electron' {
 		loadURL(string): void;
 		isMinimized(): boolean;
 		isFullScreen(): boolean;
+		isSimpleFullScreen(): boolean;
+		setSimpleFullScreen(boolean): void;
+		setFullScreen(boolean): void;
 		openDevTools(): void;
 		getTitle(): string;
 		getBounds(): Rectangle;
