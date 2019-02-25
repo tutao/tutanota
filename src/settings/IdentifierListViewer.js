@@ -115,14 +115,12 @@ export class IdentifierListViewer {
 				])
 
 				const rows = this._identifiers().map(identifier => {
-					const current = (isApp() || isDesktop()) && identifier.identifier === this._currentIdentifier
+					const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this._currentIdentifier
 					return m(IdentifierRow, {
-						name: current
-							? lang.get("pushIdentifierCurrentDevice_label")
-							: identifier.displayName,
+						name: this._identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
 						disabled: identifier.disabled,
 						identifier: identifier.identifier,
-						current: current,
+						current: isCurrentDevice,
 						removeClicked: () => {erase(identifier).catch(NotFoundError, noOp)},
 						formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 						disableClicked: () => this._disableIdentifier(identifier)
@@ -142,6 +140,18 @@ export class IdentifierListViewer {
 		]
 	}
 
+	_identifierDisplayName(current: boolean, type: NumberString, displayName: string): string {
+		if (current) {
+			return lang.get("pushIdentifierCurrentDevice_label")
+		} else if (displayName) {
+			return displayName
+		} else {
+			return [
+				"Android FCM", "iOS", lang.get("adminEmailSettings_action"), "Android Tutanota"
+			][Number(type)]
+		}
+	}
+
 	_loadPushIdentifiers() {
 		if (!this._user) {
 			return
@@ -152,9 +162,9 @@ export class IdentifierListViewer {
 			loadAll(PushIdentifierTypeRef, list.list)
 				.then((identifiers) => {
 					this._identifiers(identifiers)
+					m.redraw()
 				})
 		}
-		m.redraw()
 	}
 
 	_showAddNotificationEmailAddressDialog(user: ?User) {
