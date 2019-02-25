@@ -542,7 +542,7 @@ o.spec("IndexerCore test", () => {
 				id: 1,
 				word: encWord,
 				rows: [
-					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 100}, // new entry dos not fit into row so create new row
+					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 100},
 					{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 200} // different app id, new entries should not be added to this row
 				]
 			}
@@ -564,7 +564,7 @@ o.spec("IndexerCore test", () => {
 				id: 1,
 				word: encWord,
 				rows: [
-					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 300}, // new entry dos not fit into row so create new row
+					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 300},
 					{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 200} // different app id, new entries should not be added to this row
 				]
 			}
@@ -581,34 +581,46 @@ o.spec("IndexerCore test", () => {
 		})
 
 		o.only("split row", async function () {
+			// Split the row.
 			const newEntries = makeEntries(core.db.key, core.db.iv, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
 				word: encWord,
 				rows: [
-					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 1000}, // new entry dos not fit into row so create new row
-					{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 200}, // different app id, new entries should not be added to this row
-					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 3, size: 800, oldestElementTimestamp: 2000}, // new entry dos not fit into row so create new row
-					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 4, size: 600, oldestElementTimestamp: 3000}, // new entry dos not fit into row so create new row
+					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 1000},
+					{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 200},
+					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 3, size: 800, oldestElementTimestamp: 2000}, // Split this row
+					{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 4, size: 600, oldestElementTimestamp: 3000},
 				]
 			}
-			const existingEntries = makeEntries(core.db.key, core.db.iv, 800, 2000).map(e => e.entry)
-			const existingRow = appendBinaryBlocks(existingEntries.slice().reverse())
+			const existingEntries = makeEntries(core.db.key, core.db.iv, 800, 2000)
+			const existingRow = appendBinaryBlocks(existingEntries.map(e => e.entry).reverse())
 			transaction.put(SearchIndexOS, 3, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
 			dbStub.getObjectStore(SearchIndexOS).lastId = 4
 
 			await core._insertNewIndexEntries(indexUpdate, transaction)
 
-
-			let firstRowEntries = [existingEntries[0]]
-			for (let i = 0; i < 24; i++) {
-				firstRowEntries.push(existingEntries[i + 1])
-				firstRowEntries.push(newEntries[i].entry)
-			}
-			compareBinaryBlocks(transaction.getSync(SearchIndexOS, 3), appendBinaryBlocks(firstRowEntries))
-			// compareBinaryBlocks(transaction.getSync(SearchIndexOS, 5), appendBinaryBlocks(existingEntries.slice(50).concat(newEntries.map(e => e.entry))))
+			const allEntries = existingEntries.concat(newEntries).sort((l, r) => l.timestamp - r.timestamp)
+			const firstRowEntries = allEntries.slice(0, -999)
+			const secondRowEntries = allEntries.slice(-999)
+			compareBinaryBlocks(transaction.getSync(SearchIndexOS, 3), appendBinaryBlocks(firstRowEntries.map(e => e.entry)))
+			compareBinaryBlocks(transaction.getSync(SearchIndexOS, 5), appendBinaryBlocks(secondRowEntries.map(e => e.entry)))
+			searchIndexMeta.rows = [
+				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 600, oldestElementTimestamp: 1000},
+				{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 200},
+				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 3, size: firstRowEntries.length, oldestElementTimestamp: 2000},
+				{
+					app: mailTypeInfo.appId,
+					type: mailTypeInfo.typeId,
+					key: 5,
+					size: secondRowEntries.length,
+					oldestElementTimestamp: secondRowEntries[0].timestamp
+				},
+				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 4, size: 600, oldestElementTimestamp: 3000},
+			]
+			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 	})
 

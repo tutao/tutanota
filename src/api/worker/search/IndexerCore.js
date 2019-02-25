@@ -532,10 +532,12 @@ export class IndexerCore {
 		const secondRow = []
 		const firstRowOldestTimestamp = sortedTimestamps[0]
 		let secondRowOldestTimestamp = Number.MAX_SAFE_INTEGER
+		let switchedRow = false
 		if (preferFirst) {
 			sortedTimestamps.forEach((id) => {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
-				if (firstRow.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
+				switchedRow = switchedRow || firstRow.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH
+				if (switchedRow) {
 					secondRow.push(...encryptedEntries)
 					secondRowOldestTimestamp = Math.min(secondRowOldestTimestamp, id)
 				} else {
@@ -547,7 +549,8 @@ export class IndexerCore {
 			secondRowOldestTimestamp = Number.MAX_SAFE_INTEGER
 			reveresId.forEach((id) => {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
-				if (secondRow.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
+				switchedRow = switchedRow || secondRow.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH
+				if (switchedRow) {
 					firstRow.unshift(...encryptedEntries)
 				} else {
 					secondRow.unshift(...encryptedEntries)
