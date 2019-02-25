@@ -1,5 +1,6 @@
 //@flow
-import {DbTransaction, ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
+import type {DbTransaction} from "./DbFacade"
+import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
 import {elementIdPart, firstBiggerThanSecond, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"

@@ -13,11 +13,32 @@ export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
-export opaque type IndexName = string
+export opaque type IndexName: string = string
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 export const indexName = (indexName: IndexName): string => indexName
 
 const DB_VERSION = 3
+
+
+export interface DbTransaction {
+	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]>;
+
+	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T>;
+
+	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]>;
+
+	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any>;
+
+
+	delete(objectStore: ObjectStoreName, key: string | number): Promise<void>;
+
+	abort(): void;
+
+	wait(): Promise<void>;
+
+	aborted: boolean
+}
+
 
 export class DbFacade {
 	_id: string;
@@ -132,7 +153,7 @@ export class DbFacade {
 	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
 		return this._db.getAsync().then(db => {
 			try {
-				const transaction = new DbTransaction(db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite"))
+				const transaction = new IndexedDbTransaction(db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite"))
 				this._activeTransactions++
 				transaction.wait().finally(() => {
 					this._activeTransactions--
@@ -156,7 +177,7 @@ type DbRequest = {
  * returned results handled, and no new requests have been placed against the transaction.
  * @see https://w3c.github.io/IndexedDB/#ref-for-transaction-finish
  */
-export class DbTransaction {
+export class IndexedDbTransaction implements DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
 	aborted: boolean;
@@ -176,7 +197,7 @@ export class DbTransaction {
 		})
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{key: string, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []

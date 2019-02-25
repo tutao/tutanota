@@ -14,15 +14,11 @@ import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelC
 import {TypeRef} from "../../common/EntityFunctions"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
-	return uint8ArrayToBase64(aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length))
+	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length)
-}
-
-export function decryptIndexKeyBase64(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): Base64 {
-	return uint8ArrayToBase64(aes256Decrypt(key, concat(dbIv, encIndexKey), true, false))
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
