@@ -251,13 +251,6 @@ export class SearchListView {
 		return false
 	}
 
-	deleteLoadedEntity(elementId: Id): Promise<void> {
-		if (this.list) {
-			return this.list._deleteLoadedEntity(elementId)
-		}
-		return Promise.resolve()
-	}
-
 	getSelectedEntities(): SearchResultListEntry[] {
 		if (this.list) {
 			return this.list.getSelectedEntities()
@@ -308,29 +301,24 @@ export class SearchListView {
 				let selectedMails = selected.map(m => ((m.entry: any): Mail))
 				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
 					if (confirmed) {
-						mailModel.deleteMails(selectedMails).then(() => {
-							selected.forEach((sm) => this.deleteLoadedEntity(sm._id[1]))
-						}).then(() => {
-							if (selected.length > 1) {
-								// is needed for correct selection behavior on mobile
-								this.selectNone()
-							}
-						})
-
+						if (selected.length > 1) {
+							// is needed for correct selection behavior on mobile
+							this.selectNone()
+						}
+						mailModel.deleteMails(selectedMails)
 					}
 				})
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
 				let selectedContacts = selected.map(m => ((m.entry: any): Contact))
 				Dialog.confirm("deleteContacts_msg").then(confirmed => {
 					if (confirmed) {
-						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
-							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}))
-						selected.forEach((sc) => this.deleteLoadedEntity(sc._id[1]))
 						if (selected.length > 1) {
 							// is needed for correct selection behavior on mobile
 							this.selectNone()
 						}
+						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}))
 					}
 				})
 			}

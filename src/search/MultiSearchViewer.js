@@ -157,13 +157,11 @@ export class MultiSearchViewer {
 					.map(f => {
 						return new Button(() => getFolderName(f), () => {
 								let groupedMails = groupBy(selectedMails, mail => mail._id[0])
+								//is needed for correct selection behavior on mobile
+								this._searchListView.selectNone()
 								// move all groups in parallel
 								Array.from(groupedMails.values()).forEach(mails => {
-									mailModel.moveMails(mails, f).then(() => {
-										mails.forEach(mail => this._searchListView.deleteLoadedEntity(mail._id[1]))
-									}).then(() => {//is needed for correct selection behavior on mobile
-										this._searchListView.selectNone()
-									})
+									mailModel.moveMails(mails, f)
 								})
 							}, getFolderIcon(f)
 						).setType(ButtonType.Dropdown)
