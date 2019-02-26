@@ -51,7 +51,7 @@ export type ElementDataSurrogate = {|
 
 export type KeyToIndexEntries = {
 	indexKey: Base64;
-	indexEntries: SearchIndexEntry[];
+	indexEntries: DecryptedSearchIndexEntry[];
 }
 
 export type KeyToEncryptedIndexEntries = {
@@ -63,8 +63,11 @@ export type SearchIndexEntry = {
 	id: Id,
 	attribute: number,
 	positions: number[],
-	// encId and is only set for entries that are retrived from the db (see decryptSearchIndexEntry)
-	encId?: Uint8Array
+
+}
+
+export type DecryptedSearchIndexEntry = SearchIndexEntry & {
+	encId: Uint8Array
 }
 
 export type EncSearchIndexEntryWithTimestamp = {|

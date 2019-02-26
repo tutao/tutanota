@@ -52,7 +52,8 @@ export class SearchModel {
 				currentIndexTimestamp: this.indexState().currentMailIndexTimestamp,
 				lastReadSearchIndexRow: [],
 				maxResults: 0,
-				matchWordOrder: false
+				matchWordOrder: false,
+				moreResults: []
 			}
 			this.result(result)
 			return Promise.resolve(result)

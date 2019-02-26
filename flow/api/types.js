@@ -302,7 +302,8 @@ type SearchResult = {
 	restriction: SearchRestriction,
 	results: IdTuple[];
 	currentIndexTimestamp: number;
-	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRow) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	moreResults: Array<MoreResultsIndexEntry>,
+	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
 	matchWordOrder: boolean;
 }
 

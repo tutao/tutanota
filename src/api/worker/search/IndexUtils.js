@@ -3,7 +3,14 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
-import type {EncryptedSearchIndexEntry, IndexUpdate, SearchIndexEntry, SearchIndexMetaDataDbRow, SearchIndexMetaDataRow} from "./SearchTypes"
+import type {
+	DecryptedSearchIndexEntry,
+	EncryptedSearchIndexEntry,
+	IndexUpdate,
+	SearchIndexEntry,
+	SearchIndexMetaDataDbRow,
+	SearchIndexMetaDataRow
+} from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {noOp} from "../../common/utils/Utils"
 import {calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers} from "./SearchIndexEncoding"
@@ -37,9 +44,9 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 	return resultArray
 }
 
-export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): SearchIndexEntry {
+export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): DecryptedSearchIndexEntry {
 	const encId = getIdFromEncSearchIndexEntry(entry)
-	let id = utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encId), true, false))
+	let id = decryptIndexKey(key, encId, dbIv)
 	const data = aes256Decrypt(key, entry.subarray(16), true, false)
 	let offset = 0
 	const attribute = decodeNumberBlock(data, offset)

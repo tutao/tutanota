@@ -197,7 +197,7 @@ export function decodeNumberBlock(source: Uint8Array, offset: number): number {
 	// Check the first bit. If it's 1, it's a long number, if it's not it's
 	// a short one.
 	const markerBit = source[offset] & 0x80
-	if (markerBit) {
+	if (markerBit === 0x80) {
 		// Clear the first bit to get the length of number
 		const numberLength = source[offset] & 0x7F
 		let value = 0
