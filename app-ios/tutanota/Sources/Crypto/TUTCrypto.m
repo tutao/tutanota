@@ -49,13 +49,13 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		// seeds the PRNG (pseudorandom number generator)
 		NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
 		RAND_seed([seed bytes], (int) [seed length]);
-		
-		
+
+
 		RSA* rsaKey = RSA_new();
 		NSString * publicExponent = @"65537";
 		BIGNUM * e = BN_new();
 		BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
-		
+
 		// generate rsa key
 		int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
 		if (status > 0){
@@ -253,7 +253,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 - (void)aesEncryptFileWithKey:(NSString *)keyBase64
 					   atPath:(NSString *)filePath
-				   completion:(void(^)(NSString * _Nullable filePath, NSError * _Nullable error))completion {
+				   completion:(void(^ _Nonnull)(NSDictionary<NSString *, NSString *> * _Nullable fileInfo, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSError *error;
 		NSData *keyData = [TUTEncodingConverter base64ToBytes:keyBase64];
@@ -277,6 +277,10 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		let aesFacade = [TUTAes128Facade new];
 		let plainTextData = [NSData dataWithContentsOfFile:filePath];
 		let outputData = [aesFacade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
+		let resultDict = @{
+			@"uri": encryptedFilePath,
+			@"unencSize": [NSString stringWithFormat:@"%lu", (unsigned long)plainTextData.length]
+		};
 		if (error) {
 			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES encrypt file" error:error]);
 			return;
@@ -285,7 +289,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 			completion(nil, [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"Failed to write decrypted file"]);
 			return;
 		}
-		completion(encryptedFilePath, nil);
+		completion(resultDict, nil);
 	});
 };
 
