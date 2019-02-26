@@ -480,7 +480,6 @@ export class IndexerCore {
 				const isLastEntry = this._nextEntryOfType(metaData, metaEntryIndex + 1, metaEntry.app, metaEntry.type) == null
 				const {firstRow, secondRow, firstRowOldestTimestamp, secondRowOldestTimestamp} = this._distributeEntities(timestampToEntries, isLastEntry)
 
-				console.log("splitting rows: first ", firstRow.length, "second:", secondRow.length, "isLastEntry", isLastEntry)
 				const firstRowBinary = appendBinaryBlocks(firstRow)
 				const secondRowBinary = appendBinaryBlocks(secondRow)
 				return Promise.all([
@@ -492,7 +491,6 @@ export class IndexerCore {
 						           }),
 						transaction.put(SearchIndexOS, null, secondRowBinary)
 						           .then((newSearchIndexRowId) => {
-							           console.log("rows before splice: " + JSON.stringify(metaData.rows))
 							           metaData.rows.splice(metaEntryIndex + 1, 0, {
 								           key: newSearchIndexRowId,
 								           size: secondRow.length,
@@ -500,7 +498,6 @@ export class IndexerCore {
 								           type: metaEntry.type,
 								           oldestElementTimestamp: secondRowOldestTimestamp
 							           })
-							           console.log("rows after splice: " + JSON.stringify(metaData.rows))
 							           return newSearchIndexRowId
 						           })
 					]
@@ -657,17 +654,4 @@ export class IndexerCore {
 			+ this._stats.encryptionTime
 		console.log(JSON.stringify(this._stats), "total time: ", totalTime)
 	}
-}
-
-export function measure(names: string[]) {
-	const measures = {}
-	for (let name of names) {
-		try {
-			measures[name] = performance.getEntriesByName(name, "measure")
-			                            .reduce((acc, entry) => acc + entry.duration, 0)
-		} catch (e) {
-		}
-	}
-	performance.clearMeasures()
-	console.log(JSON.stringify(measures))
 }

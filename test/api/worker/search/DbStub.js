@@ -1,7 +1,15 @@
 //@flow
 
 import type {IndexName, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
-import {DbTransaction, indexName, osName, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "../../../../src/api/worker/search/DbFacade"
+import {
+	DbTransaction,
+	ElementDataOS,
+	indexName,
+	osName,
+	SearchIndexMetaDataOS,
+	SearchIndexOS,
+	SearchIndexWordsIndex
+} from "../../../../src/api/worker/search/DbFacade"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 
 export type Index = {[indexName: string]: string}
@@ -13,7 +21,6 @@ export type TableStub = {
 	keyPath: ?string,
 	lastId: ?number
 }
-
 
 export class DbStub {
 	_objectStores: {[name: string]: TableStub}
@@ -45,6 +52,7 @@ export function createSearchIndexDbStub(): DbStub {
 	const dbStub = new DbStub()
 	dbStub.addObjectStore(SearchIndexOS, true)
 	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", {[indexName(SearchIndexWordsIndex)]: "word"})
+	dbStub.addObjectStore(ElementDataOS, false)
 	return dbStub
 }
 
@@ -102,14 +110,14 @@ export class DbStubTransaction implements DbTransaction {
 				value[table.keyPath] = lastId
 			}
 			return Promise.resolve(lastId)
-		} else if (key) {
+		} else if (key != null) {
 			if (table.keyPath && table.autoIncrement) {
 				table.lastId = Math.max(table.lastId || 0, Number(key))
 			}
 			table.content[key] = value
 			return Promise.resolve(key)
 		} else {
-			return Promise.reject("Cannot put: no key provided")
+			return Promise.reject("Cannot put: no key provided, os: " + osName(objectStore) + ", value: " + JSON.stringify(value))
 		}
 	}
 

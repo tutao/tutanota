@@ -1,20 +1,11 @@
 // @flow
 import o from "ospec/ospec.js"
-import {
-	_TypeModel as GroupInfoModel,
-	createGroupInfo,
-	GroupInfoTypeRef
-} from "../../../../src/api/entities/sys/GroupInfo"
+import {_TypeModel as GroupInfoModel, createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	GroupType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../../../../src/api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
@@ -298,14 +289,14 @@ o.spec("GroupInfoIndexer test", function () {
 		})
 	})
 
-	o("processEntityEvents new groupInfo", function (done) {
+	o("processEntityEvents new groupInfo", async function () {
 		let db: any = {key: aes256RandomKey(), iv: fixedIv}
 		let core: any = new IndexerCore(db, ({queueEvents: false}: any), browserDataStub)
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
 		let groupInfo = createGroupInfo()
-		groupInfo._id = ["groupInfo-list", "1"]
+		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
 				if (type == GroupInfoTypeRef && isSameId(id, groupInfo._id)) return Promise.resolve(groupInfo)
@@ -315,28 +306,26 @@ o.spec("GroupInfoIndexer test", function () {
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
-		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "1")]
+		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "L-dNNLe----0")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Admin
 
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
-			// nothing changed
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-			o(indexUpdate.move.length).equals(0)
-			o(core._processDeleted.callCount).equals(0)
-			done()
-		})
+		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
+		// nothing changed
+		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+		o(indexUpdate.move.length).equals(0)
+		o(core._processDeleted.callCount).equals(0)
 	})
 
-	o("processEntityEvents update groupInfo", function (done) {
+	o("processEntityEvents update groupInfo", async function () {
 		let db: any = {key: aes256RandomKey(), iv: fixedIv}
 		let core: any = new IndexerCore(db, ({queueEvents: false}: any), browserDataStub)
 		core.writeIndexUpdate = o.spy()
 		core._processDeleted = o.spy()
 
 		let groupInfo = createGroupInfo()
-		groupInfo._id = ["groupInfo-list", "1"]
+		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
 				if (type == GroupInfoTypeRef && isSameId(id, groupInfo._id)) return Promise.resolve(groupInfo)
@@ -346,21 +335,19 @@ o.spec("GroupInfoIndexer test", function () {
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
-		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "1")]
+		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "L-dNNLe----0")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Admin
 
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
-			// nothing changed
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-			o(indexUpdate.move.length).equals(0)
-			o(core._processDeleted.callCount).equals(1)
-			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
-			o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
-			o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
-			done()
-		})
+		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
+		// nothing changed
+		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+		o(indexUpdate.move.length).equals(0)
+		o(core._processDeleted.callCount).equals(1)
+		o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
+		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
+		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 	})
 
 	o("processEntityEvents delete groupInfo", function (done) {

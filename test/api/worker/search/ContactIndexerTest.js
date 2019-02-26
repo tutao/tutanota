@@ -8,21 +8,15 @@ import {createContactPhoneNumber} from "../../../../src/api/entities/tutanota/Co
 import {createContactSocialId} from "../../../../src/api/entities/tutanota/ContactSocialId"
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
 import {ContactListTypeRef, createContactList} from "../../../../src/api/entities/tutanota/ContactList"
-import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
+import type {IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {DbTransaction, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../../../../src/api/common/TutanotaConstants"
-import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
-import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
-import {browserDataStub, makeCore} from "../../TestUtils"
+import {makeCore} from "../../TestUtils"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 
 
@@ -293,14 +287,14 @@ o.spec("ContactIndexer test", () => {
 		}).then(done)
 	})
 
-	o("processEntityEvents new contact", function (done) {
+	o("processEntityEvents new contact", async function () {
 		const core = makeCore({}, (mocked) => {
 			mocked.writeIndexUpdate = o.spy()
 			mocked._processDeleted = o.spy()
 		})
 
 		let contact = createContact()
-		contact._id = ["contact-list", "1"]
+		contact._id = ["contact-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
 				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
@@ -310,14 +304,12 @@ o.spec("ContactIndexer test", () => {
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
-		let events = [createUpdate(OperationType.CREATE, "contact-list", "1")]
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
-			// nothing changed
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-			o(indexUpdate.move.length).equals(0)
-			o(core._processDeleted.callCount).equals(0)
-			done()
-		})
+		let events = [createUpdate(OperationType.CREATE, "contact-list", "L-dNNLe----0")]
+		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+		// nothing changed
+		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+		o(indexUpdate.move.length).equals(0)
+		o(core._processDeleted.callCount).equals(0)
 	})
 
 	o("processEntityEvents update contact", function (done) {
@@ -327,7 +319,7 @@ o.spec("ContactIndexer test", () => {
 		})
 
 		let contact = createContact()
-		contact._id = ["contact-list", "1"]
+		contact._id = ["contact-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
 				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
@@ -337,7 +329,7 @@ o.spec("ContactIndexer test", () => {
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
-		let events = [createUpdate(OperationType.UPDATE, "contact-list", "1")]
+		let events = [createUpdate(OperationType.UPDATE, "contact-list", "L-dNNLe----0")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)

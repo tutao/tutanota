@@ -36,6 +36,7 @@ import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 const dbMock: any = {iv: fixedIv}
 const emptyFutureActions: FutureBatchActions = {deleted: new Map(), moved: new Map()}
 const emptyFutureActionsObj = {deleted: {}, moved: {}}
+const mailId = "L-dNNLe----0"
 
 o.spec("MailIndexer test", () => {
 	o("createMailIndexEntries without entries", function () {
@@ -455,7 +456,7 @@ o.spec("MailIndexer test", () => {
 
 		o("new mail", async function () {
 			const indexer = _prepareProcessEntityTests(true)
-			let events = [createUpdate(OperationType.CREATE, "new-mail-list", "1")]
+			let events = [createUpdate(OperationType.CREATE, "new-mail-list", mailId)]
 
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions)
 			// nothing changed
@@ -468,8 +469,8 @@ o.spec("MailIndexer test", () => {
 		o("moved mail", async function () {
 			const indexer = _prepareProcessEntityTests(true)
 			let events = [
-				createUpdate(OperationType.CREATE, "new-mail-list", "1"),
-				createUpdate(OperationType.DELETE, "old-mail-list", "1")
+				createUpdate(OperationType.CREATE, "new-mail-list", mailId),
+				createUpdate(OperationType.DELETE, "old-mail-list", mailId)
 			]
 
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions)
@@ -483,7 +484,7 @@ o.spec("MailIndexer test", () => {
 
 		o("deleted mail", async function () {
 			const indexer = _prepareProcessEntityTests(true)
-			let events = [createUpdate(OperationType.DELETE, "mail-list", "1")]
+			let events = [createUpdate(OperationType.DELETE, "mail-list", mailId)]
 
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
@@ -494,7 +495,7 @@ o.spec("MailIndexer test", () => {
 
 		o("update draft", async function () {
 			const indexer = _prepareProcessEntityTests(true, MailState.DRAFT)
-			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", "1")]
+			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", mailId)]
 
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
@@ -505,7 +506,7 @@ o.spec("MailIndexer test", () => {
 
 		o("don't update non-drafts", async function () {
 			const indexer = _prepareProcessEntityTests(true, MailState.RECEIVED)
-			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", "1")]
+			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", mailId)]
 
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, emptyFutureActions)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
@@ -626,7 +627,7 @@ o.spec("MailIndexer test", () => {
 
 		o("update + move == update* + move", async function () {
 			indexer = _prepareProcessEntityTests(true, MailState.DRAFT)
-			const instanceId = "1"
+			const instanceId = mailId
 			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", instanceId, "u1")
 			// Two parts of the "move" event in the second batch
 			const deleteEvent = createUpdate(OperationType.DELETE, "new-mail-list", instanceId, "u2")
@@ -819,7 +820,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 	})
 
 	let mail = createMail()
-	mail._id = ["new-mail-list", "1"]
+	mail._id = ["new-mail-list", mailId]
 	mail.attachments = []
 	mail.body = "body-id"
 	mail.state = mailState

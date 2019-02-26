@@ -7,7 +7,7 @@ import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
-import {defer, neverNull, noOp} from "../../common/utils/Utils"
+import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
@@ -22,7 +22,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
-import {IndexerCore, measure} from "./IndexerCore"
+import {IndexerCore} from "./IndexerCore"
 import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
@@ -280,9 +280,10 @@ export class Indexer {
 			return {id: m.group, type: neverNull(m.groupType)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id, value: GroupData}[]) => {
-				let oldGroups = loadedGroups.map((group: {key: Id, value: GroupData}) => {
-					return {id: group.key, type: group.value.groupType}
+			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id | number, value: GroupData}[]) => {
+				let oldGroups = loadedGroups.map((group) => {
+					const id: Id = downcast(group.key)
+					return {id, type: group.value.groupType}
 				})
 				let deletedGroups = oldGroups.filter(oldGroup => currentGroups.find(m => m.id === oldGroup.id) == null)
 				let newGroups = currentGroups.filter(m => oldGroups.find(oldGroup => m.id === oldGroup.id) == null)
@@ -461,9 +462,13 @@ export class Indexer {
 
 				performance.mark("processEvent-start")
 				return Promise.each(groupedEvents.entries(), ([key, value]) => {
-					const indexUpdate = _createNewIndexUpdate(groupId, typeRefToTypeInfo((key)))
-					indexUpdate.batchId = [groupId, batchId]
 					let promise = Promise.resolve()
+					if (isSameTypeRef(UserTypeRef, key)) {
+						return this._processUserEntityEvents(value)
+					}
+					const indexUpdate = _createNewIndexUpdate(groupId, typeRefToTypeInfo(key))
+					indexUpdate.batchId = [groupId, batchId]
+
 					if (isSameTypeRef(MailTypeRef, key)) {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate, futureActions)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {
@@ -485,9 +490,11 @@ export class Indexer {
 						performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
 						performance.mark("processEntityEvents-end")
 						performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
-						measure([
-							"processEntityEvents", "processEvent", "writeIndexUpdate"
-						])
+						if (!env.dist && env.mode !== "Test") {
+							measure([
+								"processEntityEvents", "processEvent", "writeIndexUpdate"
+							])
+						}
 					})
 
 				})
@@ -517,9 +524,17 @@ export class Indexer {
 			return Promise.resolve()
 		})).return()
 	}
-
 }
 
-
-
-
+export function measure(names: string[]) {
+	const measures = {}
+	for (let name of names) {
+		try {
+			measures[name] = performance.getEntriesByName(name, "measure")
+			                            .reduce((acc, entry) => acc + entry.duration, 0)
+		} catch (e) {
+		}
+	}
+	performance.clearMeasures()
+	console.log(JSON.stringify(measures))
+}

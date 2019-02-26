@@ -83,7 +83,7 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDa
 	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }
 
-type TypeInfo = {
+export type TypeInfo = {
 	appId: number;
 	typeId: number;
 	attributeIds: number[];
@@ -124,6 +124,14 @@ function getAttributeIds(model: TypeModel) {
 }
 
 export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
+	const app = typeInfos[typeRef.app]
+	if (!app) {
+		throw new Error("No TypeInfo for app: " + app)
+	}
+	const typeInfo = app[typeRef.type]
+	if (!typeInfo) {
+		throw new Error(`No TypeInfo for TypeRef ${typeRef.app} : ${typeRef.type}`)
+	}
 	return typeInfos[typeRef.app][typeRef.type]
 }
 

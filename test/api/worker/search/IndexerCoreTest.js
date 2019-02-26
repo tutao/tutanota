@@ -38,7 +38,7 @@ import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
 
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
@@ -67,64 +67,64 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 
 o.spec("IndexerCore test", () => {
 
-	// o("createIndexEntriesForAttributes", function () {
-	// 	let core = makeCore()
-	//
-	// 	let contact = createContact()
-	// 	contact._id = ["", "L-dNNLe----0"]
-	// 	contact.firstName = "Max Tim"
-	// 	contact.lastName = "Meier" // not indexed
-	// 	contact.company = (undefined: any) // indexed but not defined
-	// 	contact.comment = "Friend of Tim"
-	// 	let entries = core.createIndexEntriesForAttributes(ContactModel, contact, [
-	// 		{
-	// 			attribute: ContactModel.values["firstName"],
-	// 			value: () => contact.firstName
-	// 		},
-	// 		{
-	// 			attribute: ContactModel.values["company"],
-	// 			value: () => contact.company
-	// 		},
-	// 		{
-	// 			attribute: ContactModel.values["comment"],
-	// 			value: () => contact.comment
-	// 		},
-	// 	])
-	// 	o(entries.size).equals(4)
-	// 	o(entries.get("max")).deepEquals([
-	// 		{
-	// 			id: "L-dNNLe----0",
-	// 			attribute: ContactModel.values["firstName"].id,
-	// 			positions: [0]
-	// 		}
-	// 	])
-	// 	o(entries.get("tim")).deepEquals([
-	// 		{
-	// 			id: "L-dNNLe----0",
-	// 			attribute: ContactModel.values["firstName"].id,
-	// 			positions: [1]
-	// 		},
-	// 		{
-	// 			id: "L-dNNLe----0",
-	// 			attribute: ContactModel.values["comment"].id,
-	// 			positions: [2]
-	// 		}
-	// 	])
-	// 	o(entries.get("friend")).deepEquals([
-	// 		{
-	// 			id: "L-dNNLe----0",
-	// 			attribute: ContactModel.values["comment"].id,
-	// 			positions: [0]
-	// 		}
-	// 	])
-	// 	o(entries.get("of")).deepEquals([
-	// 		{
-	// 			id: "L-dNNLe----0",
-	// 			attribute: ContactModel.values["comment"].id,
-	// 			positions: [1]
-	// 		}
-	// 	])
-	// })
+	o("createIndexEntriesForAttributes", function () {
+		let core = makeCore()
+
+		let contact = createContact()
+		contact._id = ["", "L-dNNLe----0"]
+		contact.firstName = "Max Tim"
+		contact.lastName = "Meier" // not indexed
+		contact.company = (undefined: any) // indexed but not defined
+		contact.comment = "Friend of Tim"
+		let entries = core.createIndexEntriesForAttributes(ContactModel, contact, [
+			{
+				attribute: ContactModel.values["firstName"],
+				value: () => contact.firstName
+			},
+			{
+				attribute: ContactModel.values["company"],
+				value: () => contact.company
+			},
+			{
+				attribute: ContactModel.values["comment"],
+				value: () => contact.comment
+			},
+		])
+		o(entries.size).equals(4)
+		o(entries.get("max")).deepEquals([
+			{
+				id: "L-dNNLe----0",
+				attribute: ContactModel.values["firstName"].id,
+				positions: [0]
+			}
+		])
+		o(entries.get("tim")).deepEquals([
+			{
+				id: "L-dNNLe----0",
+				attribute: ContactModel.values["firstName"].id,
+				positions: [1]
+			},
+			{
+				id: "L-dNNLe----0",
+				attribute: ContactModel.values["comment"].id,
+				positions: [2]
+			}
+		])
+		o(entries.get("friend")).deepEquals([
+			{
+				id: "L-dNNLe----0",
+				attribute: ContactModel.values["comment"].id,
+				positions: [0]
+			}
+		])
+		o(entries.get("of")).deepEquals([
+			{
+				id: "L-dNNLe----0",
+				attribute: ContactModel.values["comment"].id,
+				positions: [1]
+			}
+		])
+	})
 
 
 	o("encryptSearchIndexEntries", function () {
@@ -580,7 +580,7 @@ o.spec("IndexerCore test", () => {
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
 		})
 
-		o.only("split row", async function () {
+		o("split row", async function () {
 			// Split the row.
 			const newEntries = makeEntries(core.db.key, core.db.iv, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
