@@ -247,6 +247,7 @@ type AccountingInfo = {
 	_errors: Object;
 	_format: NumberString;
 	_id: Id;
+	_modified: Date;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
