@@ -110,7 +110,7 @@ typedef void(^VoidCallback)(void);
 	NSString *type = json[@"type"];
 	NSString *requestId = json[@"id"];
 	NSArray *arguments = json[@"args"];
-	
+
 	void (^sendResponseBlock)(id, NSError *) = [self responseBlockForRequestId:requestId];
 
 	if ([@"response" isEqualToString:type]) {

@@ -89,9 +89,9 @@ export class FileFacade {
 	 */
 	uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
 		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
-			.then(encryptedFileLocation => {
+			.then(encryptedFileInfo => {
 				let fileData = createFileDataDataPost()
-				fileData.size = fileReference.size + ""
+				fileData.size = encryptedFileInfo.unencSize.toString()
 				fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
 				return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
 					.then(fileDataPostReturn => {
@@ -99,7 +99,7 @@ export class FileFacade {
 						let headers = this._login.createAuthHeaders()
 						headers['v'] = FileDataDataReturnTypeModel.version
 						let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
-						return fileApp.upload(encryptedFileLocation, url, headers).then(({statusCode, statusMessage}) => {
+						return fileApp.upload(encryptedFileInfo.uri, url, headers).then(({statusCode, statusMessage}) => {
 							if (statusCode === 200) {
 								return fileDataId;
 							} else {
