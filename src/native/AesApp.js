@@ -16,7 +16,6 @@ export type EncryptedFileInfo = {|
 export function aesEncryptFile(key: Aes128Key, fileUrl: string, iv: Uint8Array): Promise<EncryptedFileInfo> {
 	let encodedKey = keyToBase64(key)
 	return nativeApp.invokeNative(new Request('aesEncryptFile', [encodedKey, fileUrl, uint8ArrayToBase64(iv)]))
-	                .then(json => JSON.parse(json))
 }
 
 /**
