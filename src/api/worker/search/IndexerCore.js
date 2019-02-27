@@ -5,7 +5,7 @@ import {elementIdPart, firstBiggerThanSecond, listIdPart, TypeRef} from "../../c
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {base64ToUint8Array, generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
 	byteLength,
@@ -108,6 +108,8 @@ export class IndexerCore {
 		}
 	}
 
+	/****************************************** Preparing the update ***********************************************/
+
 	/**
 	 * Converts an instances into a map from words to a list of SearchIndexEntries.
 	 */
@@ -137,6 +139,13 @@ export class IndexerCore {
 		return mergeMaps(indexEntries)
 	}
 
+	/**
+	 * Encrypt search index entries created by {@link createIndexEntriesForAttributes} and put them into the {@param indexUpdate}.
+	 * @param id of the instance
+	 * @param ownerGroup of the instance
+	 * @param keyToIndexEntries map from search index keys (words which you can search for) to index entries
+	 * @param indexUpdate IndexUpdate for which {@code create} fields will be populated
+	 */
 	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
 		const listId = listIdPart(id)
 		const encInstanceId = encryptIndexKeyUint8Array(this.db.key, elementIdPart(id), this.db.iv)
@@ -146,13 +155,12 @@ export class IndexerCore {
 		const encryptionTimeStart = getPerformanceTimestamp()
 		const encWordsB64 = []
 		keyToIndexEntries.forEach((value, indexKey) => {
-			let encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
+			const encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
 			encWordsB64.push(encWordB64)
 			const encIndexEntries = getFromMap(indexUpdate.create.indexMap, encWordB64, () => [])
 			value.forEach(indexEntry => encIndexEntries.push({
 				entry: encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId),
-				timestamp: elementIdTimestamp,
-				encodedId: encInstanceIdB64
+				timestamp: elementIdTimestamp
 			}))
 		})
 
@@ -166,34 +174,59 @@ export class IndexerCore {
 		this._stats.encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
 
+	/**
+	 * Process delete event before applying to the index.
+	 */
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		const encInstanceIdB64 = encryptIndexKeyBase64(this.db.key, event.instanceId, this.db.iv)
-		const encInstanceIdPlain = base64ToUint8Array(encInstanceIdB64)
+		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, event.instanceId, this.db.iv)
+		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
 		const {appId, typeId} = typeRefToTypeInfo(new TypeRef(event.application, event.type))
 		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceIdB64).then(elementData => {
 				if (!elementData) {
 					return
 				}
+				// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
+				// corresponding SearchIndex row in it.
 				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true, false)
+				// For every word we have a metadata reference and we want to update them all.
 				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
 				metaDataRowKeys.forEach(metaDataRowKey => {
+					// We add current instance into list of instances to delete for each word
 					const ids = getFromMap(indexUpdate.delete.searchMetaRowToEncInstanceIds, metaDataRowKey, () => [])
-					ids.push({encInstanceId: encInstanceIdPlain, appId, typeId, timestamp: generatedIdToTimestamp(event.instanceId),})
+					ids.push({encInstanceId: encInstanceIdPlain, appId, typeId, timestamp: generatedIdToTimestamp(event.instanceId)})
 				})
 				indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 			})
 		})
 	}
 
-	/*********************************************** Write index update ***********************************************/
+	/********************************************* Manipulating the state ***********************************************/
 
-	_cancelIfNeeded() {
-		if (this._isStopped) {
-			throw new CancelledError("indexing cancelled")
+	stopProcessing() {
+		this._isStopped = true;
+		this.queue.clear()
+	}
+
+	isStoppedProcessing(): boolean {
+		return this._isStopped
+	}
+
+	startProcessing() {
+		this._isStopped = false;
+	}
+
+	addBatchesToQueue(batches: QueuedBatch[]): void {
+		if (!this._isStopped) {
+			this.queue.addBatches(batches)
 		}
 	}
 
+	/*********************************************** Writing index update ***********************************************/
+
+	/**
+	 * Apply populated {@param indexUpdate} to the database.
+	 */
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		let startTimeStorage = getPerformanceTimestamp()
 		if (this._isStopped) {
@@ -217,25 +250,6 @@ export class IndexerCore {
 			})
 	}
 
-	stopProcessing() {
-		this._isStopped = true;
-		this.queue.clear()
-	}
-
-	isStoppedProcessing(): boolean {
-		return this._isStopped
-	}
-
-	startProcessing() {
-		this._isStopped = false;
-	}
-
-	addBatchesToQueue(batches: QueuedBatch[]): void {
-		if (!this._isStopped) {
-			this.queue.addBatches(batches)
-		}
-	}
-
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		this._cancelIfNeeded()
 		if (indexUpdate.move.length === 0) return null // keep transaction context open (only for Safari)
@@ -250,19 +264,29 @@ export class IndexerCore {
 		})).return()
 	}
 
+	/**
+	 * Apply "delete" updates to the database
+	 * @private
+	 */
 	_deleteIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
 		this._cancelIfNeeded()
 
-		if (indexUpdate.delete.searchMetaRowToEncInstanceIds.size === 0) return null // keep transaction context open (only in Safari)
+		if (indexUpdate.delete.searchMetaRowToEncInstanceIds.size === 0) return null // keep transaction context open
 		let deleteElementDataPromise = Promise.all(indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId)))
+		// For each word we have list of instances we want to remove
 		return Promise.all(Array.from(indexUpdate.delete.searchMetaRowToEncInstanceIds)
 		                        .map(([metaRowKey, encInstanceIds]) => this._deleteSearchIndexEntries(transaction, metaRowKey, encInstanceIds)))
 		              .then(() => deleteElementDataPromise)
 		              .return()
 	}
 
+	/**
+	 * Remove all {@param instanceInfos} from the SearchIndex entries and metadata entreis specified by the {@param metaRowKey}.
+	 * @private
+	 */
 	_deleteSearchIndexEntries(transaction: DbTransaction, metaRowKey: number, instanceInfos: EncInstanceIdWithTimestamp[]): Promise<*> {
 		this._cancelIfNeeded()
+		// Collect hashes of all instances we want to delete to check it faster later
 		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHash(e.encInstanceId)))
 		return transaction
 			.get(SearchIndexMetaDataOS, metaRowKey)
@@ -274,6 +298,7 @@ export class IndexerCore {
 				// add meta data to set to only update meta data once when deleting multiple instances
 				const metaDataEntriesSet = new Set()
 				instanceInfos.forEach((info) => {
+					// For each instance we find SearchIndex row it belongs to by timestamp
 					const entryIndex = this._findMetaDataEntryByTimestamp(metaDataRow, info.timestamp, info.appId, info.typeId)
 					if (entryIndex === -1) {
 						console.warn("could not find MetaDataEntry, info:", info, "rows: ", metaDataRow.rows.map(r => JSON.stringify(r)),)
@@ -281,11 +306,13 @@ export class IndexerCore {
 						metaDataEntriesSet.add(metaDataRow.rows[entryIndex])
 					}
 				})
+				// For each SearchIndex row we need to update...
 				const updateSearchIndex = this._promiseMapCompat(Array.from(metaDataEntriesSet), metaEntry => {
 					return transaction
 						.get(SearchIndexOS, metaEntry.key)
 						.then((indexEntriesRow) => {
 							if (!indexEntriesRow) return
+							// Find all entries we need to remove by hash of the encrypted ID
 							const rangesToRemove = []
 							iterateBinaryBlocks(indexEntriesRow, ((block, start, end) => {
 								if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
@@ -371,6 +398,19 @@ export class IndexerCore {
 			})
 	}
 
+	/**
+	 * Insert {@param entries} into the database for the corresponding {@param metaData}.
+	 * Metadata entries for each type are sorted from oldest to newest. Each metadata entry has oldest element timestamp. Timestamps of newer entries make a
+	 * time border for the newest. Timestamp for entry is considered fixed (unless it's the first entry).
+	 * The strategy is following:
+	 * First, try to find matching row by the oldest id of the entries we want to insert.
+	 * If we've found one, put everything that matches time frame of this row into it (it's bounded by the next row, if present). Put the rest into newer
+	 * rows.
+	 * If we didn't find one, we may try to extend the oldest row, because it's not bounded by the other row.
+	 * When we append something to the row, we check if its size would exceed {@link SEARCH_INDEX_ROW_LENGTH}. If it is, we do splitting,
+	 * {@see _appendIndexEntriesToRow}.
+	 * @private
+	 */
 	_writeEntries(transaction: DbTransaction, entries: Array<EncSearchIndexEntryWithTimestamp>, metaData: SearchIndexMetaDataRow, appId: number,
 	              typeId: number): Promise<*> {
 		if (entries.length === 0) {
@@ -435,7 +475,10 @@ export class IndexerCore {
 		return null
 	}
 
-
+	/**
+	 * Split {@param entries} (must be sorted!) into two arrays: before and after the timestamp.
+	 * @private
+	 */
 	_splitByTimestamp(entries: Array<EncSearchIndexEntryWithTimestamp>,
 	                  timestamp: number): [Array<EncSearchIndexEntryWithTimestamp>, Array<EncSearchIndexEntryWithTimestamp>] {
 		const indexOfSplit = entries.findIndex((entry) => entry.timestamp >= timestamp)
@@ -448,6 +491,11 @@ export class IndexerCore {
 	}
 
 
+	/**
+	 * Append {@param entries} to the row specified by the {@param metaEntryIndex}. If the row size exceeds {@link SEARCH_INDEX_ROW_LENGTH}, then
+	 * split it into two rows.
+	 * @private
+	 */
 	_appendIndexEntriesToRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, metaEntryIndex: number,
 	                         entries: Array<EncSearchIndexEntryWithTimestamp>): Promise<Array<number>> {
 		if (entries.length === 0) {
@@ -466,6 +514,7 @@ export class IndexerCore {
 
 				const timestampToEntries: Map<number, Array<Uint8Array>> = new Map()
 				const existingIds = new Set()
+				// Iterate all entries in a block, decrypt id of each and put it into the map
 				iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 					const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)
 					existingIds.add(arrayHash(encId))
@@ -473,10 +522,13 @@ export class IndexerCore {
 					const timeStamp = generatedIdToTimestamp(decId)
 					getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)
 				})
+				// Also add new entries
 				entries.forEach(({entry, timestamp}) => {
 					getFromMap(timestampToEntries, timestamp, () => []).push(entry)
 				})
 
+				// Prefer to put entries into the first row if it's not initial indexing (we are likely to grow second row in the future)
+				// Prefer to put entries into the second row if it's initial indexing (we are likely to grow the first row because we move back in time)
 				const isLastEntry = this._nextEntryOfType(metaData, metaEntryIndex + 1, metaEntry.app, metaEntry.type) == null
 				const {firstRow, secondRow, firstRowOldestTimestamp, secondRowOldestTimestamp} = this._distributeEntities(timestampToEntries, isLastEntry)
 
@@ -491,6 +543,7 @@ export class IndexerCore {
 						           }),
 						transaction.put(SearchIndexOS, null, secondRowBinary)
 						           .then((newSearchIndexRowId) => {
+							           // Insert new entry into correct position
 							           metaData.rows.splice(metaEntryIndex + 1, 0, {
 								           key: newSearchIndexRowId,
 								           size: secondRow.length,
@@ -522,7 +575,8 @@ export class IndexerCore {
 		}
 	}
 
-	_distributeEntities(timestampToEntries: Map<number, Array<EncryptedSearchIndexEntry>>, preferFirst: boolean): {firstRow: Array<Uint8Array>, secondRow: Array<Uint8Array>, firstRowOldestTimestamp: number, secondRowOldestTimestamp: number} {
+	_distributeEntities(timestampToEntries: Map<number, Array<EncryptedSearchIndexEntry>>, preferFirst: boolean
+	): {firstRow: Array<Uint8Array>, secondRow: Array<Uint8Array>, firstRowOldestTimestamp: number, secondRowOldestTimestamp: number} {
 		const sortedTimestamps = Array.from(timestampToEntries.keys()).sort((l, r) => l - r)
 		// If we append to the newest IDs, then try to saturate older rows
 		const firstRow = []
@@ -647,6 +701,12 @@ export class IndexerCore {
 			|| browserData.browserType === BrowserType.WATERFOX
 			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
 			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
+	}
+
+	_cancelIfNeeded() {
+		if (this._isStopped) {
+			throw new CancelledError("indexing cancelled")
+		}
 	}
 
 	printStatus() {

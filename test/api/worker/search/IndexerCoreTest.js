@@ -53,8 +53,7 @@ function makeEntries(key: Aes256Key, iv: Uint8Array, n: number, baseTimestamp: n
 
 		newEntries.push({
 				entry: concat(encId, new Uint8Array(0)),
-				timestamp,
-				encodedId: instanceIdB64
+				timestamp
 			}
 		)
 	}
@@ -455,7 +454,7 @@ o.spec("IndexerCore test", () => {
 		o("new word", async function () {
 			let encInstanceId = new Uint8Array(16)
 			let entry: EncryptedSearchIndexEntry = concat(encInstanceId, new Uint8Array(0))
-			indexUpdate.create.indexMap.set(encWord, [{encodedId: uint8ArrayToBase64(encInstanceId), timestamp: 1, entry}])
+			indexUpdate.create.indexMap.set(encWord, [{timestamp: 1, entry}])
 
 			await core._insertNewIndexEntries(indexUpdate, transaction)
 
@@ -478,7 +477,7 @@ o.spec("IndexerCore test", () => {
 			const metaId = 3
 			const existingBlock = appendBinaryBlocks([new Uint8Array([2, 0])])
 			const searchIndexKey = 1
-			indexUpdate.create.indexMap.set(encWord, [{encodedId: uint8ArrayToBase64(encInstanceId), entry: newEntry, timestamp: 1}])
+			indexUpdate.create.indexMap.set(encWord, [{entry: newEntry, timestamp: 1}])
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: metaId,
 				word: encWord,

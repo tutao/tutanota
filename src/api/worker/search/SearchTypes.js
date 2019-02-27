@@ -4,9 +4,16 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 
 
 // db types
-export type EncryptedSearchIndexEntry = Uint8Array // first part encrypted element id (16 bytes), second part encoded and encrypted attribute and positions
 
-export type SearchIndexDbRow = Uint8Array // Binary encoded EncryptedSearchIndexEntries (see SearchIndexEncoding.js).
+/**
+ * First part encrypted element id (16 bytes), second part encoded and encrypted attribute and positions
+ */
+export type EncryptedSearchIndexEntry = Uint8Array
+
+/**
+ * Binary encoded EncryptedSearchIndexEntries SearchIndexEncoding).
+ */
+export type SearchIndexDbRow = Uint8Array
 
 export type SearchIndexMetaDataDbRow = {
 	id: number,
@@ -15,7 +22,7 @@ export type SearchIndexMetaDataDbRow = {
 }
 
 export type ElementDataDbRow = [
-	Id,  //first list id
+	Id,  // first list id
 	Uint8Array,  // second is enc meta row keys encoded in binary format
 	Id // third is owner group id
 	]
@@ -66,14 +73,12 @@ export type SearchIndexEntry = {
 
 }
 
-export type DecryptedSearchIndexEntry = SearchIndexEntry & {
-	encId: Uint8Array
-}
+export type DecryptedSearchIndexEntry = SearchIndexEntry & {encId: Uint8Array}
 
+// We calculate timestamp upfront because we need it for sorting when inserting
 export type EncSearchIndexEntryWithTimestamp = {|
 	entry: EncryptedSearchIndexEntry,
-	timestamp: number,
-	encodedId: Base64
+	timestamp: number
 |}
 
 export type EncWordToMetaRow = {[Base64]: number}
@@ -88,13 +93,12 @@ export type IndexUpdate = {
 	indexTimestamp: ?number;
 	create: {
 		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
+		// For each word there's a list of entries we want to insert
 		indexMap: Map<B64EncIndexKey, Array<EncSearchIndexEntryWithTimestamp>>;
 	};
-	move: {
-		encInstanceId: B64EncInstanceId;
-		newListId: Id;
-	}[];
+	move: Array<{encInstanceId: B64EncInstanceId; newListId: Id}>;
 	delete: {
+		// For each metadata row there's a list of entries we want to delete
 		searchMetaRowToEncInstanceIds: Map<number, Array<EncInstanceIdWithTimestamp>>;
 		encInstanceIds: B64EncInstanceId[];
 	};

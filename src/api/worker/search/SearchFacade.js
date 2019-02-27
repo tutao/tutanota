@@ -94,38 +94,42 @@ export class SearchFacade {
 				let searchPromise
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
 					let addSuggestionBefore = getPerformanceTimestamp()
-					timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
-					// there may be fields that are not indexed with suggestions but which we can find with the normal search
-					// TODO: let suggestion facade and search facade know which fields are
-					// indexed with suggestions, so that we
-					// 1) know if we also have to search normally and
-					// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
-					let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-					return this._searchForTokens(result, suggestionFacade.getSuggestions(searchTokens[0]), maxResults)
-					           .then(() => {
-						           timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
-							           - searchForTokensAfterSuggestionsBefore
-						           return result
-					           })
+					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
+					                    .then(() => {
+						                    timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
+						                    if (result.results.length < minSuggestionCount) {
+							                    // there may be fields that are not indexed with suggestions but which we can find with the normal search
+							                    // TODO: let suggestion facade and search facade know which fields are
+							                    // indexed with suggestions, so that we
+							                    // 1) know if we also have to search normally and
+							                    // 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
+							                    return this._searchForTokens(result)
+							                               .then((result) => {
+								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
+									                               - searchForTokensAfterSuggestionsBefore
+								                               return result
+							                               })
+						                    }
+					                    })
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
-					searchPromise = this._searchForTokens(result, [suggestionToken]).then(() => {
+					searchPromise = this._searchForTokens(result).then(() => {
 						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
 						result.results.sort(compareNewestFirst)
 						let beforeLoadAndReduce = getPerformanceTimestamp()
-						return this._loadAndReduce(restriction, result.results, suggestionToken, minSuggestionCount)
-						           .then(filteredResults => {
+						return this._loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
+						           .then(() => {
 							           timing._loadAndReduceTime = getPerformanceTimestamp() - beforeLoadAndReduce
-							           result.results = filteredResults
 						           })
 					})
 				} else {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					console.timeStamp && console.timeStamp("search for tokens")
-					searchPromise = this._searchForTokens(result, [], maxResults)
+					searchPromise = this._searchForTokens(result, maxResults)
 					                    .then((result) => {
 						                    timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						                    return result
@@ -144,34 +148,21 @@ export class SearchFacade {
 		})
 	}
 
-	_loadAndReduce(restriction: SearchRestriction, results: IdTuple[], suggestionToken: string, minSuggestionCount: number): Promise<IdTuple[]> {
-		if (results.length > 0) {
+	_loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
+		if (result.results.length > 0) {
 			return resolveTypeReference(restriction.type).then(model => {
-				// TODO enable when loadMultiple is supported by cache
-				// if (restriction.listId) {
-				// 	let result: IdTuple[] = []
-				// 	// we can load multiple at once because they have the same list id
-				// 	return executeInGroups(results, minSuggestionCount, idTuples => {
-				// 		return loadMultiple(restriction.type, idTuples[0][0], idTuples.map(t => t[1])).filter(entity => {
-				// 			return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionToken)
-				// 		}).then(filteredEntityGroup => {
-				// 			addAll(result, filteredEntityGroup.map(entity => entity._id))
-				// 			return result.length < minSuggestionCount
-				// 		})
-				// 	}).then(() => {
-				// 		return result
-				// 	})
-				// } else {
-				// load one by one
-				return Promise.reduce(results, (finalResults, result) => {
+				// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
+				// for other cases we only check that an attribute contains a word that starts with suggestion word
+				const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
+				return Promise.reduce(result.results, (finalResults, id) => {
 					if (finalResults.length >= minSuggestionCount) {
 						return finalResults
 					} else {
-						return load(restriction.type, result).then(entity => {
-							return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionToken)
+						return load(restriction.type, id).then(entity => {
+							return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionQuery, result.matchWordOrder)
 							           .then(found => {
 								           if (found) {
-									           finalResults.push(result)
+									           finalResults.push(id)
 								           }
 								           return finalResults
 							           })
@@ -181,11 +172,12 @@ export class SearchFacade {
 							return finalResults
 						})
 					}
-				}, [])
-				// }
+				}, []).then((reducedResults) => {
+					result.results = reducedResults
+				})
 			})
 		} else {
-			return Promise.resolve([])
+			return Promise.resolve()
 		}
 	}
 
@@ -193,7 +185,7 @@ export class SearchFacade {
 	 * Looks for a word in any of the entities string values or aggregations string values that starts with suggestionToken.
 	 * @param attributeIds Only looks in these attribute ids (or all its string values if it is an aggregation attribute id. If null, looks in all string values and aggregations.
 	 */
-	_containsSuggestionToken(entity: Object, model: TypeModel, attributeIds: ?number[], suggestionToken: string): Promise<boolean> {
+	_containsSuggestionToken(entity: Object, model: TypeModel, attributeIds: ?number[], suggestionToken: string, matchWordOrder: boolean): Promise<boolean> {
 		let attributeNames: string[]
 		if (!attributeIds) {
 			attributeNames = Object.keys(model.values).concat(Object.keys(model.associations))
@@ -204,18 +196,19 @@ export class SearchFacade {
 			))
 		}
 		return asyncFind(attributeNames, attributeName => {
-			if (model.values[attributeName] && model.values[attributeName].type === ValueType.String
-				&& entity[attributeName]) {
-				let words = tokenize(entity[attributeName])
-				return Promise.resolve((words.find(w => w.startsWith(suggestionToken))) != null)
-			} else if (model.associations[attributeName]
-				&& model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
-				let aggregates = (model.associations[attributeName].cardinality === Cardinality.Any) ?
-					entity[attributeName] : [entity[attributeName]]
+			if (model.values[attributeName] && model.values[attributeName].type === ValueType.String && entity[attributeName]) {
+				if (matchWordOrder) {
+					return Promise.resolve(normalizeQuery(entity[attributeName]).indexOf(suggestionToken) !== -1)
+				} else {
+					let words = tokenize(entity[attributeName])
+					return Promise.resolve(words.find(w => w.startsWith(suggestionToken)) != null)
+				}
+			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
+				let aggregates = (model.associations[attributeName].cardinality === Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
 				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType))
 					.then(refModel => {
 						return asyncFind(aggregates, aggregate => {
-							return this._containsSuggestionToken(aggregate, refModel, null, suggestionToken)
+							return this._containsSuggestionToken(aggregate, refModel, null, suggestionToken, matchWordOrder)
 						}).then(found => found != null)
 					})
 			} else {
@@ -228,9 +221,8 @@ export class SearchFacade {
 	/**
 	 * Adds the found ids to the given search result
 	 */
-	_searchForTokens(searchResult: SearchResult, suggestions: Array<string>, maxResults: ?number): Promise<void> {
+	_searchForTokens(searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		timeStart("_tryExtendIndex")
-		// TODO take care of suggestions
 		return this._tryExtendIndex(searchResult.restriction).then(() => {
 				makeStamp("_tryExtendIndex")
 				return this._startOrContinueSearch(searchResult, maxResults)
@@ -290,16 +282,26 @@ export class SearchFacade {
 	/**
 	 * Adds suggestions for the given searchToken to the searchResult until at least minSuggestionCount results are existing
 	 */
-	// _addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number,
-	//                 searchResult: SearchResult, maxResults: ?number): Promise<void> {
-	// 	let suggestions = suggestionFacade.getSuggestions(searchToken)
-	// 	return Promise.each(suggestions, suggestion => {
-	// 		if (searchResult.results.length < minSuggestionCount) {
-	//
-	// 			return this._searchForTokens([suggestion], false, searchResult)
-	// 		}
-	// 	}).then(() => maxResults && searchResult.results.splice(maxResults)).return()
-	// }
+	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<*> {
+		let suggestions = suggestionFacade.getSuggestions(searchToken)
+		return Promise.each(suggestions, suggestion => {
+			if (searchResult.results.length < minSuggestionCount) {
+				const suggestionResult: SearchResult = {
+					query: suggestion,
+					restriction: searchResult.restriction,
+					results: [],
+					currentIndexTimestamp: searchResult.currentIndexTimestamp,
+					moreResultsEntries: [],
+					lastReadSearchIndexRow: [[suggestion, null]],
+					matchWordOrder: false,
+					moreResults: []
+				}
+				return this._searchForTokens(suggestionResult).then(() => {
+					searchResult.results.push(...suggestionResult.results)
+				})
+			}
+		})
+	}
 
 
 	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
@@ -559,6 +561,11 @@ export class SearchFacade {
 			return FULL_INDEXED_TIMESTAMP
 		}
 	}
+}
+
+
+function normalizeQuery(query: string): string {
+	return tokenize(query).join(" ")
 }
 
 const makeStamp = (name) => {
