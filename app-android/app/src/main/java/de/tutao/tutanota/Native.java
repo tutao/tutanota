@@ -174,7 +174,7 @@ public final class Native {
                     break;
                 case "aesEncryptFile":
                     Crypto.EncryptedFileInfo efi = crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2)));
-                    promise.resolve(efi.toJSON().toString());
+                    promise.resolve(efi.toJSON());
                     break;
                 case "aesDecryptFile": {
                     final byte[] key = Utils.base64ToBytes(args.getString(0));
