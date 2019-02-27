@@ -59,12 +59,12 @@ export const languages: Language[] = [
 
 const infoLinks = {
 	"recoverCode_link": {
-		"de": "https://tutanota.com/de/faq/#access-lost",
-		"en": "https://tutanota.com/faq/#access-lost"
+		"de": "https://tutanota.com/de/howto/#reset",
+		"en": "https://tutanota.com/howto/#reset"
 	},
 	"2FA_link": {
-		"de": "https://tutanota.com/de/faq/#2fa",
-		"en": "https://tutanota.com/faq/#2fa"
+		"de": "https://tutanota.com/de/howto#2fa",
+		"en": "https://tutanota.com/howto#2fa"
 	},
 	"spamRules_link": {
 		"de": "https://tutanota.com/de/howto#spam",
@@ -73,6 +73,14 @@ const infoLinks = {
 	"domainInfo_link": {
 		"de": "https://tutanota.com/de/howto/#custom-domain",
 		"en": "https://tutanota.com/howto#custom-domain"
+	},
+	"whitelabel_link": {
+		"de": "https://tutanota.com/de/howto#whitelabel",
+		"en": "https://tutanota.com/howto#whitelabel"
+	},
+	"webview_link": {
+		"de": "https://tutanota.com/howto/#webview",
+		"en": "https://tutanota.com/de/howto/#webview"
 	}
 }
 

@@ -167,7 +167,7 @@ class DesktopSseClient {
 
 		pushMessages.map(pm => pm.notificationInfos.forEach(ni => {
 			const w = wm.getAll().find(w => w.getUserId() === ni.userId)
-			if (w && w.isVisible()) {
+			if (w && w.isFocused()) {
 				// no need for notification if user is looking right at the window
 				return
 			}
