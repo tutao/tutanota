@@ -5,7 +5,7 @@ import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {neverNull} from "../api/common/utils/Utils"
-import {errorToObj} from "../api/common/WorkerProtocol"
+import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import {conf} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
@@ -162,9 +162,9 @@ class IPC {
 			if (w) {
 				w.sendMessageToWebContents(windowId, request)
 			}
-			const d = defer()
-			this._queue[requestId] = d.resolve;
-			return d.promise;
+			return Promise.fromCallback(cb => {
+				this._queue[requestId] = cb
+			});
 		})
 	}
 
@@ -188,8 +188,12 @@ class IPC {
 		ipcMain.on(`${id}`, (ev: Event, msg: string) => {
 			const request = JSON.parse(msg)
 			if (request.type === "response") {
-				this._queue[request.id](request.value);
+				this._queue[request.id](null, request.value);
+			} else if (request.type === "requestError") {
+				this._queue[request.id](objToError((request: any).error), null)
+				delete this._queue[request.id]
 			} else {
+				const w = wm.get(id)
 				this._invokeMethod(id, request.type, request.args)
 				    .then(result => {
 					    const response = {
@@ -197,10 +201,7 @@ class IPC {
 						    type: "response",
 						    value: result,
 					    }
-					    const w = wm.get(id)
-					    if (w) {
-						    w.sendMessageToWebContents(id, response)
-					    }
+					    if (w) w.sendMessageToWebContents(id, response)
 				    })
 				    .catch((e) => {
 					    const response = {
@@ -208,10 +209,7 @@ class IPC {
 						    type: "requestError",
 						    error: errorToObj(e),
 					    }
-					    const w = wm.get(id)
-					    if (w) {
-						    w.sendMessageToWebContents(id, response)
-					    }
+					    if (w) w.sendMessageToWebContents(id, response)
 				    })
 			}
 		})
