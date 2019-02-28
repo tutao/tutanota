@@ -16,7 +16,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2019-01-28T12:46:59Z",
+	"updated_at": "2019-02-28T08:43:32Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Tafadhali kulemaza hifadhi ya kiganjani kwa kupitia au lakabu mfuko na kulemaza lakabu wote wa barua pepe kabla ya kubadilisha aina ya akaunti.",
@@ -316,7 +316,6 @@ const translation = {
 		"languageRussian_label": "Kirusi",
 		"languageSerbian_label": "Kisabia",
 		"languageSlovak_label": "Kislovakia",
-		"languageSlovene_label": "Kislovenia",
 		"languageSpanish_label": "Kihispania",
 		"languageSwedish_label": "Kiswidi",
 		"languageTamil_label": "Kitamili",
@@ -425,8 +424,7 @@ const translation = {
 		"paymentMethodCreditCard_label": "Kadi ya mkopo",
 		"paymentMethodOnAccount_label": "Nunua kwa akaunti",
 		"paymentMethod_label": "Njia ya malipo",
-		"paymentProviderNotAvailableError_msg": "Mtoaji wa malipo haipatikani. Tafadhali jaribu tena baadaye.",
-		"paymentProviderNotAvailable_msg": "Mtoa malipo haipatikani kwa sasa. Tafadhali jaribu tena baadae.",
+		"paymentProviderNotAvailableError_msg": "Mtoa malipo haipatikani kwa sasa. Tafadhali jaribu tena baadae.",
 		"paymentProviderTransactionFailedError_msg": "Shughuli ya malipo imeshindwa. Tafadhali jaribu tena baadaye au kusasisha data yako ya malipo.",
 		"phone_label": "Simu",
 		"photoLibraryUsageDescription_msg": "Ongeza picha kutoka maktaba yako kama kiambatanisho.",

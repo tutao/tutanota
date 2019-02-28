@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2019-01-14T08:59:46Z",
+	"updated_at": "2019-02-28T08:43:32Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Silakan nonaktifkan semua pengguna tambahan sebelum berganti tipe langganan.",
@@ -288,7 +288,6 @@ const translation = {
 		"languageRussian_label": "Rusia",
 		"languageSerbian_label": "Serbia",
 		"languageSlovak_label": "Slovakia",
-		"languageSlovene_label": "Slovenia",
 		"languageSpanish_label": "Spanyol",
 		"languageSwedish_label": "Swedia",
 		"languageTamil_label": "Tamil",
@@ -388,8 +387,7 @@ const translation = {
 		"paymentMethodCreditCard_label": "Kartu kredit",
 		"paymentMethodOnAccount_label": "Pembelian pada akun",
 		"paymentMethod_label": "Metode pembayaran",
-		"paymentProviderNotAvailableError_msg": "Penyedia layanan pembayaran tidak tersedia. Silakan coba lagi nanti.",
-		"paymentProviderNotAvailable_msg": "Penyedia layanan pembayaran saat ini tidak tersedia. Silakan coba lagi nanti.",
+		"paymentProviderNotAvailableError_msg": "Penyedia layanan pembayaran saat ini tidak tersedia. Silakan coba lagi nanti.",
 		"paymentProviderTransactionFailedError_msg": "Transaksi pembayaran gagal. Silakan coba lagi nanti atau perbarui data pembayaran Anda.",
 		"phone_label": "Telepon",
 		"pleaseEnterValidPath_msg": "Silakan masukkan jalur yang valid. Karakter yang diizinkan adalah a-z, A-Z, '-' dan '_'.",

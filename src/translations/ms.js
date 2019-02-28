@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2019-01-28T12:46:59Z",
+	"updated_at": "2019-02-28T08:43:32Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Sila nyahaktifkan pakej penyimpanan atau alias yang ditempah dan matikan semua alias email sebelum menukar jenis akaun.",
@@ -341,7 +341,6 @@ const translation = {
 		"languageRussian_label": "Rusia",
 		"languageSerbian_label": "Serbia",
 		"languageSlovak_label": "Slovak",
-		"languageSlovene_label": "Slovenia",
 		"languageSpanish_label": "Sepanyol",
 		"languageSwedish_label": "Sweden",
 		"languageTamil_label": "Tamil",
@@ -454,8 +453,7 @@ const translation = {
 		"paymentMethodCreditCard_label": "Kad kredit",
 		"paymentMethodOnAccount_label": "Pembelian atas akaun",
 		"paymentMethod_label": "Kaedah pembayaran",
-		"paymentProviderNotAvailableError_msg": "Pembekal pembayaran tidak tersedia. Sila cuba sebentar lagi.",
-		"paymentProviderNotAvailable_msg": "Penyedia pembayaran tidak tersedia pada masa ini. Sila cuba sebentar lagi.",
+		"paymentProviderNotAvailableError_msg": "Penyedia pembayaran tidak tersedia pada masa ini. Sila cuba sebentar lagi.",
 		"paymentProviderTransactionFailedError_msg": "Transaksi pembayaran gagal. Sila cuba sebentar lagi atau kemas kini data pembayaran anda.",
 		"phone_label": "Telefon",
 		"photoLibraryUsageDescription_msg": "Tambah gambar dari pustaka anda sebagai lampiran.",
