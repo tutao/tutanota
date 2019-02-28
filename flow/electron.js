@@ -357,8 +357,8 @@ declare module 'electron-localshortcut' {
 
 
 declare class AutoUpdater {
-	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => void;
-	logger: {
+	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => AutoUpdater;
+	logger: ?{
 		info: (string) => void,
 		debug: (string) => void,
 		verbose: (string) => void,

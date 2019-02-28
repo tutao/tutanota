@@ -34,10 +34,10 @@ class WindowManager {
 			}
 			saveBounds(w)
 		}).on('closed', ev => {
-			windows.splice(windows.indexOf(this), 1)
+			windows.splice(windows.indexOf(w), 1)
 			tray.update()
 		}).on('focus', ev => {
-			windows.splice(windows.indexOf(this), 1)
+			windows.splice(windows.indexOf(w), 1)
 			windows.push(w)
 			notifier.resolveGroupedNotification(w.getUserId())
 		}).on('page-title-updated', ev => {

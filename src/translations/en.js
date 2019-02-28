@@ -932,7 +932,8 @@ const translation = {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
 		"acceptPrivacyPolicy_msg": "I have read and agree to the {privacyPolicy}.",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
-		"permanentAliasWarning_msg": "This is a Tutanota domain alias, which, in contrast to custom domain aliases, can only not be deleted, but only deactivated. It will permanently count towards your alias limit."
+		"permanentAliasWarning_msg": "This is a Tutanota domain alias, which, in contrast to custom domain aliases, can only not be deleted, but only deactivated. It will permanently count towards your alias limit.",
+		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later."
 	}
 }
 export default translation

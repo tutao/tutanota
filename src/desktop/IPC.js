@@ -94,7 +94,7 @@ class IPC {
 				}
 				break
 			case 'updateDesktopConfig':
-				conf.setDesktopConfig(null, args[0]).then(() => d.resolve())
+				conf.setDesktopConfig('any', args[0]).then(() => d.resolve())
 				break
 			case 'openNewWindow':
 				wm.newWindow(true)
