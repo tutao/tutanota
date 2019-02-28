@@ -1,7 +1,8 @@
 // @flow
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "./utils/Encoding"
 import EC from "./EntityConstants"
-import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {asyncImport} from "./utils/Utils"
+import {last} from "./utils/ArrayUtils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -212,22 +213,36 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
-export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
+                                                         rangeItemLimit: number): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target)
-			.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
-			.then(entities => {
-				if (entities.length === RANGE_ITEM_LIMIT) {
-					return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length
-					- 1])[1], end, target).then(remainingEntities => {
-						return entities.concat(remainingEntities)
-					})
+		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target)
+			.then(loadedEntities => {
+				const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
+				if (filteredEntities.length === rangeItemLimit) {
+					const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
+					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit)
+						.then(({elements: remainingEntities, loadedCompletely}) => {
+							return {elements: filteredEntities.concat(remainingEntities), loadedCompletely}
+						})
 				} else {
-					return entities
+					return {elements: filteredEntities, loadedCompletely: loadedReverseRangeCompletely(rangeItemLimit, loadedEntities, filteredEntities)}
 				}
 			})
 	})
+}
+
+function loadedReverseRangeCompletely<T:ListElement>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>): boolean {
+	if (loadedEntities.length < rangeItemLimit) {
+		const lastLoaded = last(loadedEntities)
+		const lastFiltered = last(filteredEntities)
+		if (!lastLoaded) {
+			return true
+		}
+		return lastLoaded === lastFiltered
+	}
+	return false
 }
 
 export function _verifyType(typeModel: TypeModel) {

@@ -223,11 +223,11 @@ export class SearchFacade {
 	 */
 	_searchForTokens(searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		timeStart("_tryExtendIndex")
-		return this._tryExtendIndex(searchResult.restriction).then(() => {
-				makeStamp("_tryExtendIndex")
-				return this._startOrContinueSearch(searchResult, maxResults)
-			}
-		)
+		//return this._tryExtendIndex(searchResult.restriction).then(() => {
+		//makeStamp("_tryExtendIndex")
+		return this._startOrContinueSearch(searchResult, maxResults)
+		//	}
+		//)
 	}
 
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {

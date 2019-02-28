@@ -96,7 +96,7 @@ export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>)
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last(theArray: Array<any>): ?any {
+export function last<T>(theArray: Array<T>): ?T {
 	if (theArray.length === 0) {
 		return null;
 	} else {

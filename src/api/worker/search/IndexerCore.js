@@ -77,7 +77,7 @@ export class IndexerCore {
 	_stats: {
 		indexingTime: number,
 		storageTime: number,
-		downloadingTime: number,
+		preparingTime: number,
 		mailcount: number,
 		storedBytes: number,
 		encryptionTime: number,
@@ -97,14 +97,14 @@ export class IndexerCore {
 		this._stats = {
 			indexingTime: 0,
 			storageTime: 0,
-			downloadingTime: 0,
+			preparingTime: 0,
 			mailcount: 0,
 			storedBytes: 0,
 			encryptionTime: 0,
 			writeRequests: 0,
 			largestColumn: 0,
 			words: 0,
-			indexedBytes: 0,
+			indexedBytes: 0
 		}
 	}
 
@@ -147,12 +147,11 @@ export class IndexerCore {
 	 * @param indexUpdate IndexUpdate for which {@code create} fields will be populated
 	 */
 	encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): void {
+		const encryptionTimeStart = getPerformanceTimestamp()
 		const listId = listIdPart(id)
 		const encInstanceId = encryptIndexKeyUint8Array(this.db.key, elementIdPart(id), this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
 		const elementIdTimestamp = generatedIdToTimestamp(elementIdPart(id))
-
-		const encryptionTimeStart = getPerformanceTimestamp()
 		const encWordsB64 = []
 		keyToIndexEntries.forEach((value, indexKey) => {
 			const encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
@@ -362,7 +361,7 @@ export class IndexerCore {
 		const encWordToMetaRow: EncWordToMetaRow = {}
 		const result = this._promiseMapCompat(keys, (encWordB64) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
-			return this._putEncryptedEntity(indexUpdate.groupId, indexUpdate.appId, indexUpdate.typeId, transaction, encWordB64,
+			return this._putEncryptedEntity(indexUpdate.groupId, indexUpdate.typeInfo.appId, indexUpdate.typeInfo.typeId, transaction, encWordB64,
 				encWordToMetaRow, encryptedEntries)
 		}, {concurrency: 2})
 
@@ -710,8 +709,10 @@ export class IndexerCore {
 	}
 
 	printStatus() {
-		const totalTime = this._stats.indexingTime + this._stats.storageTime + this._stats.downloadingTime
-			+ this._stats.encryptionTime
-		console.log(JSON.stringify(this._stats), "total time: ", totalTime)
+		const totalTime = this._stats.storageTime + this._stats.preparingTime
+		const statsWithDownloading = Object.assign({}, this._stats, {
+			downloadingTime: this._stats.preparingTime - this._stats.indexingTime - this._stats.encryptionTime
+		})
+		console.log(JSON.stringify(statsWithDownloading), "total time: ", totalTime)
 	}
 }

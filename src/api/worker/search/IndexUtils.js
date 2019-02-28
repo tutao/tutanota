@@ -177,8 +177,7 @@ export function byteLength(str: ?string) {
 export function _createNewIndexUpdate(groupId: Id, typeInfo: TypeInfo): IndexUpdate {
 	return {
 		groupId,
-		appId: typeInfo.appId,
-		typeId: typeInfo.typeId,
+		typeInfo,
 		batchId: null,
 		indexTimestamp: null,
 		create: {

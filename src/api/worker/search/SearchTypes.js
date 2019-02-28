@@ -1,6 +1,7 @@
 //@flow
 import type {DbFacade} from "./DbFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
+import type {TypeInfo} from "./IndexUtils"
 
 
 // db types
@@ -87,8 +88,7 @@ export type EncInstanceIdWithTimestamp = {encInstanceId: Uint8Array, timestamp: 
 
 export type IndexUpdate = {
 	groupId: Id;
-	typeId: number; // index update must be unique for type and app
-	appId: number;
+	typeInfo: TypeInfo;// index update must be unique for type
 	batchId: ?IdTuple;
 	indexTimestamp: ?number;
 	create: {

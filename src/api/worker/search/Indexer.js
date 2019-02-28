@@ -80,7 +80,7 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
-		this._entity = new EntityWorker()
+		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)

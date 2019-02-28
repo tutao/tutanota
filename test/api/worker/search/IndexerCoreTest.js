@@ -473,7 +473,7 @@ o.spec("IndexerCore test", () => {
 		o("existing word, growing the first row", async function () {
 			let encInstanceId = new Uint8Array(16)
 			let newEntry: EncryptedSearchIndexEntry = concat(encInstanceId, new Uint8Array(0))
-			const {appId, typeId} = indexUpdate
+			const {appId, typeId} = indexUpdate.typeInfo
 			const metaId = 3
 			const existingBlock = appendBinaryBlocks([new Uint8Array([2, 0])])
 			const searchIndexKey = 1
@@ -739,8 +739,8 @@ o.spec("IndexerCore test", () => {
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(metaRowId, [
 			{
 				encInstanceId: otherId,
-				appId: indexUpdate.appId,
-				typeId: indexUpdate.typeId,
+				appId: indexUpdate.typeInfo.appId,
+				typeId: indexUpdate.typeInfo.typeId,
 				timestamp: 1
 			}
 		])
@@ -750,8 +750,13 @@ o.spec("IndexerCore test", () => {
 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(2)
 		o(JSON.stringify(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(metaRowId)))
 			.equals(JSON.stringify([
-				{encInstanceId: otherId, appId: indexUpdate.appId, typeId: indexUpdate.typeId, timestamp: 1},
-				{encInstanceId: base64ToUint8Array(encInstanceId), appId: indexUpdate.appId, typeId: indexUpdate.typeId, timestamp: instanceIdTimestamp}
+				{encInstanceId: otherId, appId: indexUpdate.typeInfo.appId, typeId: indexUpdate.typeInfo.typeId, timestamp: 1},
+				{
+					encInstanceId: base64ToUint8Array(encInstanceId),
+					appId: indexUpdate.typeInfo.appId,
+					typeId: indexUpdate.typeInfo.typeId,
+					timestamp: instanceIdTimestamp
+				}
 			]))
 
 		let ids2 = neverNull(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(anotherMetaRowId))
