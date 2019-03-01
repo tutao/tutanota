@@ -1,5 +1,4 @@
 // @flow
-import {ipc} from './IPC.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer} from "../api/common/utils/Utils"
 
@@ -13,10 +12,9 @@ class DesktopLocalizationProvider {
 	staticTranslations: Object;
 	formats: Object;
 
-	init = (windowId: number): Promise<void> => {
-		return ipc.sendRequest(windowId, 'sendTranslations', [])
-		          .then(this._setTranslations)
-		          .then(() => this.initialized.resolve())
+	init(p: Promise<any>): Promise<void> {
+		return p.then(this._setTranslations)
+		        .then(() => this.initialized.resolve())
 	}
 
 	_setTranslations = (translations: any) => {

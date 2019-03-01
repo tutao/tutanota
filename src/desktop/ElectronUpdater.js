@@ -4,25 +4,30 @@ import {net} from 'electron'
 import forge from 'node-forge'
 import {NotificationResult, notifier} from './DesktopNotifier.js'
 import {lang} from './DesktopLocalizationProvider.js'
-import {conf} from './DesktopConfigHandler'
+import type {DesktopConfigHandler} from './DesktopConfigHandler'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import {handleRestError} from "../api/common/error/RestError"
 import {UpdateError} from "../api/common/error/UpdateError"
+import {DesktopTray} from "./DesktopTray.js"
 
-class ElectronUpdater {
+export class ElectronUpdater {
+	_conf: DesktopConfigHandler;
+
 	_updatePollInterval: ?IntervalID;
 	_keyRetrievalTimeout: ?TimeoutID;
 	_foundKey: DeferredObject<void>;
 	_checkUpdateSignature: boolean;
 	_pubKey: string;
-	_logger = {
-		info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
-		warn: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater warn:\n", m].concat(args)),
-		error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
-	};
+	_logger: {info(string): void, warn(string): void, error(string): void}
 
-	constructor() {
+	constructor(conf: DesktopConfigHandler) {
+		this._conf = conf
+		this._logger = {
+			info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
+			warn: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater warn:\n", m].concat(args)),
+			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
+		}
 		this._foundKey = defer()
 		autoUpdater.logger = null
 		autoUpdater.on('update-available', updateInfo => {
@@ -41,9 +46,9 @@ class ElectronUpdater {
 	}
 
 	start() {
-		conf.removeListener('enableAutoUpdate', this.start)
+		this._conf.removeListener('enableAutoUpdate', this.start)
 		    .on('enableAutoUpdate', this.start)
-		if (!conf.getDesktopConfig("enableAutoUpdate")) {
+		if (!this._conf.getDesktopConfig("enableAutoUpdate")) {
 			this._stopPolling()
 			return
 		}
@@ -52,10 +57,10 @@ class ElectronUpdater {
 			return
 		}
 
-		this._checkUpdateSignature = conf.get('checkUpdateSignature')
+		this._checkUpdateSignature = this._conf.get('checkUpdateSignature')
 		autoUpdater.autoDownload = !this._checkUpdateSignature
 		if (this._checkUpdateSignature) {
-			this._trackPublicKey(conf.get("pubKeyUrl"))
+			this._trackPublicKey(this._conf.get("pubKeyUrl"))
 		} else {
 			this._foundKey.resolve()
 		}
@@ -95,7 +100,7 @@ class ElectronUpdater {
 		this._logger.info("trying to retrieve public key from", url)
 		if (!url.startsWith('https://')) {
 			this._logger.error('invalid public key URL')
-			this._retryKeyRetrieval(conf.get("pollingInterval"))
+			this._retryKeyRetrieval(this._conf.get("pollingInterval"))
 			return
 		}
 		this._requestFile(url).then((result) => {
@@ -104,7 +109,7 @@ class ElectronUpdater {
 					.split(':NEWURL:')
 					.find(part => part.startsWith(' https://'))
 				if (newUrl === undefined) { // nonsense, try again in a few hours
-					this._retryKeyRetrieval(conf.get("pollingInterval"))
+					this._retryKeyRetrieval(this._conf.get("pollingInterval"))
 				} else { // key moved to a new location
 					this._trackPublicKey(newUrl.trim())
 				}
@@ -115,7 +120,7 @@ class ElectronUpdater {
 			}
 		}).catch(e => {
 			this._logger.error("public key retrieval failed:", e)
-			this._retryKeyRetrieval(conf.get("pollingInterval"))
+			this._retryKeyRetrieval(this._conf.get("pollingInterval"))
 		})
 	}
 
@@ -141,13 +146,13 @@ class ElectronUpdater {
 	_retryKeyRetrieval(when: ?number) {
 		this._logger.info("retrying key retrieval in", when)
 		clearTimeout(neverNull(this._keyRetrievalTimeout))
-		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(conf.get("pubKeyUrl")), when || 1000000)
+		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || 1000000)
 	}
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
 			this._checkUpdate()
-			this._updatePollInterval = setInterval(this._checkUpdate, conf.get("pollingInterval") || 1000000)
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || 1000000)
 		}
 	}
 
@@ -177,6 +182,7 @@ class ElectronUpdater {
 			.showOneShot({
 				title: lang.get('updateAvailable_label', {"{version}": info.version}),
 				body: lang.get('clickToUpdate_msg'),
+				icon: DesktopTray.getIcon()
 			})
 			.then((res) => {
 				if (res === NotificationResult.Click) {
@@ -193,5 +199,3 @@ class ElectronUpdater {
 		}).catch(e => this._logger.error("Notification failed,", e.message))
 	}
 }
-
-export const updater = new ElectronUpdater()

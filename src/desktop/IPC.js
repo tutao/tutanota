@@ -1,26 +1,36 @@
 // @flow
 import {dialog, ipcMain} from 'electron'
-import {wm} from "./DesktopWindowManager.js"
+import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {neverNull} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
-import {conf} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
-import {sse} from './DesktopSseClient.js'
-import {notifier} from "./DesktopNotifier"
+import type {DesktopSseClient} from './DesktopSseClient.js'
+import type {DesktopNotifier} from "./DesktopNotifier"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
  */
-class IPC {
+export class IPC {
+	_conf: DesktopConfigHandler;
+	_sse: DesktopSseClient;
+	_wm: WindowManager;
+	_notifier: DesktopNotifier;
+
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	constructor() {
+	constructor(conf: DesktopConfigHandler, sse: DesktopSseClient, wm: WindowManager, notifier: DesktopNotifier) {
+		this._conf = conf
+		this._sse = sse
+		this._wm = wm
+		this._notifier = notifier
+
 		this._initialized = []
 		this._queue = {}
 	}
@@ -37,7 +47,7 @@ class IPC {
 				break
 			case 'findInPage':
 				this.initialized(windowId).then(() => {
-					const w = wm.get(windowId)
+					const w = this._wm.get(windowId)
 					if (w) {
 						w.findInPage(args)
 					}
@@ -46,7 +56,7 @@ class IPC {
 				break
 			case 'stopFindInPage':
 				this.initialized(windowId).then(() => {
-					const w = wm.get(windowId)
+					const w = this._wm.get(windowId)
 					if (w) {
 						w.stopFindInPage()
 					}
@@ -78,7 +88,7 @@ class IPC {
 					DesktopUtils.checkIsMailtoHandler(),
 					isAutoLaunchEnabled(),
 					(isMailtoHandler, autoLaunchEnabled) => {
-						const config = conf.getDesktopConfig()
+						const config = this._conf.getDesktopConfig()
 						config.isMailtoHandler = isMailtoHandler
 						config.runOnStartup = autoLaunchEnabled
 						return config
@@ -94,15 +104,15 @@ class IPC {
 				}
 				break
 			case 'updateDesktopConfig':
-				conf.setDesktopConfig('any', args[0]).then(() => d.resolve())
+				this._conf.setDesktopConfig('any', args[0]).then(() => d.resolve())
 				break
 			case 'openNewWindow':
-				wm.newWindow(true)
+				this._wm.newWindow(true)
 				d.resolve()
 				break
 			case 'showWindow':
 				this.initialized(windowId).then(() => {
-					const w = wm.get(windowId)
+					const w = this._wm.get(windowId)
 					if (w) {
 						w.show()
 					}
@@ -123,17 +133,17 @@ class IPC {
 				//first, send error report if there is one
 				err.sendErrorReport(windowId)
 				   .then(() => {
-					   const w = neverNull(wm.get(windowId))
+					   const w = neverNull(this._wm.get(windowId))
 					   w.setUserInfo(uInfo)
 					   if (!w.isHidden()) {
-						   notifier.resolveGroupedNotification(uInfo.userId)
+						   this._notifier.resolveGroupedNotification(uInfo.userId)
 					   }
 				   })
-				   .then(() => d.resolve(sse.getPushIdentifier()))
+				   .then(() => d.resolve(this._sse.getPushIdentifier()))
 				break
 			case 'storePushIdentifierLocally':
-				sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString())
-				   .then(() => d.resolve())
+				this._sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString())
+				    .then(() => d.resolve())
 				break
 			case 'initPushNotifications':
 				// no need to react, we start push service with node
@@ -158,7 +168,7 @@ class IPC {
 				type: type,
 				args: args,
 			}
-			const w = wm.get(windowId)
+			const w = this._wm.get(windowId)
 			if (w) {
 				w.sendMessageToWebContents(windowId, request)
 			}
@@ -193,7 +203,7 @@ class IPC {
 				this._queue[request.id](objToError((request: any).error), null)
 				delete this._queue[request.id]
 			} else {
-				const w = wm.get(id)
+				const w = this._wm.get(id)
 				this._invokeMethod(id, request.type, request.args)
 				    .then(result => {
 					    const response = {
@@ -220,5 +230,3 @@ class IPC {
 		delete this._initialized[id]
 	}
 }
-
-export const ipc = new IPC()

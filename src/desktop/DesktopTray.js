@@ -3,19 +3,29 @@ import type {NativeImage} from 'electron'
 import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
 import path from 'path'
 import {lang} from './DesktopLocalizationProvider.js'
-import {conf} from './DesktopConfigHandler.js'
-import {wm} from "./DesktopWindowManager.js"
-import {notifier} from "./DesktopNotifier.js"
+import type {DesktopConfigHandler} from './DesktopConfigHandler.js'
+import type {WindowManager} from "./DesktopWindowManager.js"
+import type {DesktopNotifier} from "./DesktopNotifier.js"
 
-class DesktopTray {
+let icon: NativeImage
+
+export class DesktopTray {
+	_conf: DesktopConfigHandler;
+	_wm: WindowManager;
+	_notifier: DesktopNotifier;
+
 	_tray: Tray;
-	_icon: NativeImage;
+
+	constructor(config: DesktopConfigHandler, notifier: DesktopNotifier) {
+		this._conf = config
+		this._notifier = notifier
+	}
 
 	/**
 	 * linux env: DESKTOP_SESSION XDG_SESSION_DESKTOP XDG_CURRENT_DESKTOP to detect WM
 	 */
 	update(): void {
-		if (!conf.getDesktopConfig('runAsTrayApp')) {
+		if (!this._conf.getDesktopConfig('runAsTrayApp')) {
 			return
 		}
 		lang.initialized.promise.then(() => {
@@ -26,9 +36,9 @@ class DesktopTray {
 				}
 			} else {
 				if (!this._tray) {
-					this._tray = new Tray(this.getIcon())
+					this._tray = new Tray(DesktopTray.getIcon())
 					this._tray.on('click', ev => {
-						wm.getLastFocused(true)
+						this._wm.getLastFocused(true)
 					})
 				}
 				this._tray.setContextMenu(this._getMenu())
@@ -36,27 +46,27 @@ class DesktopTray {
 		})
 	}
 
-	getIcon(): NativeImage {
-		if (this._icon) {
-			return this._icon
+	static getIcon(): NativeImage {
+		if (icon) {
+			return icon
 		} else if (process.platform === 'darwin') {
-			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
 		} else if (process.platform === 'win32') {
-			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
 		} else {
-			this._icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
 		}
-		return this._icon
+		return icon
 	}
 
 	_getMenu(): Menu {
 		const m = new Menu()
-		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {wm.newWindow(true)}}))
-		if (wm.getAll().length > 0) {
+		m.append(new MenuItem({label: lang.get("openNewWindow_action"), click: () => {this._wm.newWindow(true)}}))
+		if (this._wm.getAll().length > 0) {
 			m.append(new MenuItem({type: 'separator'}))
-			wm.getAll().forEach(w => {
+			this._wm.getAll().forEach(w => {
 				let label = w.getTitle()
-				if (notifier.hasNotificationsForWindow(w)) {
+				if (this._notifier.hasNotificationsForWindow(w)) {
 					label = "• " + label
 				} else {
 					label = label + "  "
@@ -73,6 +83,8 @@ class DesktopTray {
 		}
 		return m
 	}
-}
 
-export const tray = new DesktopTray()
+	setWindowManager(wm: WindowManager) {
+		this._wm = wm
+	}
+}

@@ -1,8 +1,8 @@
 // @flow
 import path from 'path'
+import {promisify} from 'util'
 import {app, dialog} from 'electron'
 import fs from 'fs-extra'
-import {promisify} from 'util'
 
 export type DesktopConfigKey
 	= 'any'
@@ -25,7 +25,7 @@ export type BuildConfigKey
 /**
  * manages build and user config
  */
-class DesktopConfigHandler {
+export class DesktopConfigHandler {
 	_buildConfig: any;
 	_desktopConfig: any; // user preferences as set for this installation
 	_desktopConfigPath: string;
@@ -113,5 +113,3 @@ class DesktopConfigHandler {
 		this._onValueSetListeners[key].forEach(cb => cb(val))
 	}
 }
-
-export const conf = new DesktopConfigHandler()

@@ -1,17 +1,14 @@
 // @flow
-import {ipc} from './IPC.js'
 import type {ElectronPermission} from 'electron'
 import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import path from 'path'
 import u2f from '../misc/u2f-api.js'
-import {tray} from './DesktopTray.js'
+import {DesktopTray} from './DesktopTray.js'
 import {lang} from './DesktopLocalizationProvider.js'
-import {manageDownloadsForSession} from "./DesktopDownloadManager"
-import type {WindowBounds} from "./DesktopWindowManager"
-import {wm} from "./DesktopWindowManager"
-import {noOp} from "../api/common/utils/Utils"
+import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
+import type {IPC} from "./IPC"
 
 export type UserInfo = {|
 	userId: string,
@@ -19,6 +16,7 @@ export type UserInfo = {|
 |}
 
 export class ApplicationWindow {
+	_ipc: IPC;
 	_rewroteURL: boolean;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
@@ -26,9 +24,10 @@ export class ApplicationWindow {
 	_setBoundsTimeout: TimeoutID;
 	id: number;
 
-	constructor() {
+	constructor(wm: WindowManager) {
 		this._userInfo = null
-		this._createBrowserWindow()
+		this._ipc = wm.ipc
+		this._createBrowserWindow(wm)
 		this._browserWindow.loadURL(this._startFile)
 		Menu.setApplicationMenu(null)
 	}
@@ -67,13 +66,13 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow() {
+	_createBrowserWindow(wm: WindowManager) {
 		this._rewroteURL = false
 		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
 		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
 		console.log("startFile: ", this._startFile)
 		this._browserWindow = new BrowserWindow({
-			icon: tray.getIcon(),
+			icon: DesktopTray.getIcon(),
 			show: false,
 			autoHideMenuBar: true,
 			webPreferences: {
@@ -92,15 +91,15 @@ export class ApplicationWindow {
 		})
 		this._browserWindow.setMenuBarVisibility(false)
 		this.id = this._browserWindow.id
-		ipc.addWindow(this.id)
+		this._ipc.addWindow(this.id)
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
-		manageDownloadsForSession(this._browserWindow.webContents.session)
+		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
 
 		this._browserWindow
 		    .on('closed', () => {
 			    this.setUserInfo(null)
-			    ipc.removeWindow(this.id)
+			    this._ipc.removeWindow(this.id)
 		    })
 		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
 		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
@@ -123,8 +122,7 @@ export class ApplicationWindow {
 		    .on('context-menu', (e, params) => {
 			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
-		    .on('crashed', e => wm.recreateWindow((this: any)))
-
+		    .on('crashed', () => wm.recreateWindow(this))
 		/**
 		 * we need two conditions for the context menu to work on every window
 		 * 1. the preload script must have run already on this window
@@ -150,6 +148,12 @@ export class ApplicationWindow {
 				: 'F11',
 			() => this._toggleFullScreen()
 		)
+	}
+
+	openMailBox(info: UserInfo, path?: string): Promise<void> {
+		return this._ipc.initialized(this.id).then(() =>
+			this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
+		).then(() => this.show())
 	}
 
 	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
@@ -229,11 +233,11 @@ export class ApplicationWindow {
 	}
 
 	_printMail() {
-		ipc.sendRequest(this.id, 'print', [])
+		this._ipc.sendRequest(this.id, 'print', [])
 	}
 
 	_openFindInPage(): void {
-		ipc.sendRequest(this.id, 'openFindInPage', [])
+		this._ipc.sendRequest(this.id, 'openFindInPage', [])
 	}
 
 	isVisible(): boolean {

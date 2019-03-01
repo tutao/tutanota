@@ -1,6 +1,6 @@
 // @flow
 
-import {conf} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {app} from 'electron'
 import crypto from 'crypto'
 import http from 'http'
@@ -9,8 +9,8 @@ import {base64ToBase64Url} from "../api/common/utils/Encoding"
 import {SseError} from "../api/common/error/SseError"
 import {isMailAddress} from "../misc/FormatValidator"
 import {neverNull, randomIntFromInterval} from "../api/common/utils/Utils"
-import {notifier} from './DesktopNotifier.js'
-import {wm} from "./DesktopWindowManager.js"
+import type {DesktopNotifier} from './DesktopNotifier.js'
+import type {WindowManager} from "./DesktopWindowManager.js"
 import {NotificationResult} from "./DesktopNotifier"
 
 export type SseInfo = {|
@@ -20,10 +20,14 @@ export type SseInfo = {|
 |}
 
 // how long should we wait to retry after failing to get a response?
-const INITIAL_CONNECT_TIMEOUT = conf.get("initialSseConnectTimeoutInSeconds")
-const MAX_CONNECT_TIMEOUT = conf.get("maxSseConnectTimeoutInSeconds")
+let INITIAL_CONNECT_TIMEOUT: number
+let MAX_CONNECT_TIMEOUT: number
 
-class DesktopSseClient {
+export class DesktopSseClient {
+	_conf: DesktopConfigHandler
+	_wm: WindowManager
+	_notifier: DesktopNotifier
+
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
 	_readTimeoutInSeconds: number;
@@ -31,7 +35,14 @@ class DesktopSseClient {
 	_nextReconnect: ?TimeoutID;
 	_tryToReconnect: boolean;
 
-	constructor() {
+	constructor(conf: DesktopConfigHandler, wm: WindowManager, notifier: DesktopNotifier) {
+		this._conf = conf
+		this._wm = wm
+		this._notifier = notifier
+
+		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
+		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
+
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
 		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
@@ -56,7 +67,7 @@ class DesktopSseClient {
 			}
 		}
 		const sseInfo = {identifier, sseOrigin, userIds}
-		return conf.setDesktopConfig('pushIdentifier', sseInfo)
+		return this._conf.setDesktopConfig('pushIdentifier', sseInfo)
 		           .then(() => {
 			           this._connectedSseInfo = sseInfo
 			           if (this._connection) {
@@ -67,14 +78,14 @@ class DesktopSseClient {
 	}
 
 	getPushIdentifier(): ?string {
-		const pushIdentifier = conf.getDesktopConfig('pushIdentifier')
+		const pushIdentifier = this._conf.getDesktopConfig('pushIdentifier')
 		return pushIdentifier
 			? pushIdentifier.identifier
 			: null
 	}
 
 	clear() {
-		conf.setDesktopConfig('pushIdentifier', null)
+		this._conf.setDesktopConfig('pushIdentifier', null)
 	}
 
 	connect() {
@@ -110,7 +121,7 @@ class DesktopSseClient {
 			                       if (res.statusCode === 403) { // invalid userids
 				                       console.log('sse: got 403, deleting identifier')
 				                       this._connectedSseInfo = null
-				                       conf.setDesktopConfig('pushIdentifier', null)
+				                       this._conf.setDesktopConfig('pushIdentifier', null)
 				                       this._cleanup()
 			                       }
 			                       res.setEncoding('utf8')
@@ -138,7 +149,7 @@ class DesktopSseClient {
 		data = data.substring(6) // throw away 'data: '
 		if (data.startsWith('heartbeatTimeout')) {
 			this._readTimeoutInSeconds = Number(data.split(':')[1])
-			conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._readTimeoutInSeconds)
+			this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._readTimeoutInSeconds)
 			this._reschedule()
 			return
 		}
@@ -166,18 +177,18 @@ class DesktopSseClient {
 		}
 
 		pushMessages.map(pm => pm.notificationInfos.forEach(ni => {
-			const w = wm.getAll().find(w => w.getUserId() === ni.userId)
+			const w = this._wm.getAll().find(w => w.getUserId() === ni.userId)
 			if (w && w.isFocused()) {
 				// no need for notification if user is looking right at the window
 				return
 			}
-			notifier.submitGroupedNotification(
+			this._notifier.submitGroupedNotification(
 				pm.title,
 				`${ni.address} (${ni.counter})`,
 				ni.userId,
 				res => {
 					if (res === NotificationResult.Click) {
-						wm.openMailBox({userId: ni.userId, mailAddress: ni.address})
+						this._wm.openMailBox({userId: ni.userId, mailAddress: ni.address})
 					}
 				}
 			)
@@ -275,5 +286,3 @@ function requestJson(sseInfo: SseInfo): string {
 function generateId(byteLength: number): string {
 	return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
 }
-
-export const sse = new DesktopSseClient()

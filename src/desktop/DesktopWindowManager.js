@@ -4,11 +4,12 @@ import type {Rectangle} from "electron"
 import {app, screen} from "electron"
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
-import {ipc} from "./IPC"
-import {conf} from "./DesktopConfigHandler"
-import {tray} from "./DesktopTray"
-import {notifier} from "./DesktopNotifier.js"
+import type {DesktopConfigHandler} from "./DesktopConfigHandler"
+import type {DesktopTray} from "./DesktopTray"
+import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
+import {DesktopDownloadManager} from "./DesktopDownloadManager"
+import type {IPC} from "./IPC"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -21,39 +22,55 @@ app.once('before-quit', () => {
 	forceQuit = true
 })
 
-class WindowManager {
+export class WindowManager {
+	_conf: DesktopConfigHandler
+	_tray: DesktopTray
+	_notifier: DesktopNotifier
+	ipc: IPC
+	dl: DesktopDownloadManager
+
+	constructor(conf: DesktopConfigHandler, tray: DesktopTray, notifier: DesktopNotifier) {
+		this._conf = conf
+		this._tray = tray
+		this._notifier = notifier
+		this.dl = new DesktopDownloadManager(conf)
+	}
+
+	setIPC(ipc: IPC) {
+		this.ipc = ipc
+	}
 
 	newWindow(showWhenReady: boolean): ApplicationWindow {
-		const w = new ApplicationWindow()
+		const w = new ApplicationWindow(this)
 		windows.push(w)
 
 		w.on('close', ev => {
-			if (conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
+			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
 				ev.preventDefault()
 				w.hide()
 			}
-			saveBounds(w)
+			this.saveBounds(w)
 		}).on('closed', ev => {
 			windows.splice(windows.indexOf(w), 1)
-			tray.update()
+			this._tray.update()
 		}).on('focus', ev => {
 			windows.splice(windows.indexOf(w), 1)
 			windows.push(w)
-			notifier.resolveGroupedNotification(w.getUserId())
+			this._notifier.resolveGroupedNotification(w.getUserId())
 		}).on('page-title-updated', ev => {
 			if (w.getTitle() === LOGIN_TITLE) {
 				w.setUserInfo(null)
 			}
-			tray.update()
+			this._tray.update()
 		}).once('ready-to-show', () => {
 			w.setZoomFactor(1.0)
-			tray.update()
+			this._tray.update()
 			if (showWhenReady) {
 				w.show()
 			}
 		})
 
-		const startingBounds: ?WindowBounds = getStartingBounds()
+		const startingBounds: ?WindowBounds = this.getStartingBounds()
 		if (startingBounds) {
 			w.setBounds(startingBounds)
 		} else {
@@ -88,10 +105,7 @@ class WindowManager {
 		let w = windows.find(w => w.getUserId() === info.userId)
 			|| windows.find(w => w.getUserInfo() === null)
 			|| this.newWindow(true)
-		ipc.initialized(w.id).then(() => {
-			ipc.sendRequest(w.id, 'openMailbox', [info.userId, info.mailAddress, null])
-			w.show()
-		})
+		w.openMailBox(info, null)
 	}
 
 	recreateWindow(w: ApplicationWindow): void {
@@ -108,10 +122,7 @@ class WindowManager {
 		w.setBounds(bounds)
 		let p = Promise.resolve()
 		if (userInfo) {
-			p = ipc.initialized(w.id)
-			       .then(() => {
-				       ipc.sendRequest(w.id, 'openMailbox', [userInfo.userId, userInfo.mailAddress, lastPath])
-			       })
+			p = w.openMailBox(userInfo, lastPath)
 		}
 		p.then(() => {
 			if (isFocused) {
@@ -124,30 +135,29 @@ class WindowManager {
 			}
 		})
 	}
-}
 
-function saveBounds(w: ApplicationWindow): void {
-	const lastBounds = w.getBounds()
-	console.log("saving bounds:", lastBounds)
-	if (isContainedIn(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-		conf.setDesktopConfig('lastBounds', lastBounds)
+
+	saveBounds(w: ApplicationWindow): void {
+		const lastBounds = w.getBounds()
+		console.log("saving bounds:", lastBounds)
+		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
+			this._conf.setDesktopConfig('lastBounds', lastBounds)
+		}
+	}
+
+	getStartingBounds(): ?WindowBounds {
+		const lastBounds: WindowBounds = this._conf.getDesktopConfig("lastBounds")
+		if (!lastBounds || !this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
+			return null
+		} else {
+			return lastBounds
+		}
+	}
+
+	isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
+		return lastBounds.x >= closestRect.x - 10
+			&& lastBounds.y >= closestRect.y - 10
+			&& lastBounds.width + lastBounds.x <= closestRect.width + 10
+			&& lastBounds.height + lastBounds.y <= closestRect.height + 10
 	}
 }
-
-function getStartingBounds(): ?WindowBounds {
-	const lastBounds: WindowBounds = conf.getDesktopConfig("lastBounds")
-	if (!lastBounds || !isContainedIn(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-		return null
-	} else {
-		return lastBounds
-	}
-}
-
-function isContainedIn(closestRect: Rectangle, lastBounds: Rectangle): boolean {
-	return lastBounds.x >= closestRect.x - 10
-		&& lastBounds.y >= closestRect.y - 10
-		&& lastBounds.width + lastBounds.x <= closestRect.width + 10
-		&& lastBounds.height + lastBounds.y <= closestRect.height + 10
-}
-
-export const wm = new WindowManager()
