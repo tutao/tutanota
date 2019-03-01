@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-18T10:48:25Z",
-	"updated_at": "2018-12-12T12:05:58Z",
+	"updated_at": "2019-02-12T09:08:08Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "கணக்கு வகையை மாற்றும் முன் அனைத்து கூடுதல் பயனர்களை நீக்குங்கள்.",

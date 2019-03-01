@@ -1,4 +1,12 @@
+NSCameraUsageDescription = "Направете снимка или видеоклип, за да ги добавите като прикачен файл.";
+NSPhotoLibraryUsageDescription = "Добавете снимка от библиотеката си като прикачен файл.";
+NSPhotoLibraryAddUsageDescription = "Добавете снимка от библиотеката си като прикачен файл.";
 NSMicrophoneUsageDescription = "Използва се при запис на видео за прикачване.";
+NSContactsUsageDescription = "Добавете имейл адреса в контактите";
 NSRemindersUsageDescription = "Показва известие, когато пристигне ново писмо.";
+TutaoShowCameraAction = "Камера";
+TutaoChoosePhotosAction = "Снимки";
+TutaoNoPermissionTitle = "Непозволено";
+TutaoChangePermissionMsg = "За да предоставите достъп, трябва да промените разрешенията за това устройство.";
 TutaoCancelAction = "Откажи";
 TutaoSettingsAction = "Настройки";

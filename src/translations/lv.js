@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2019-01-28T12:46:59Z",
+	"updated_at": "2019-02-28T08:43:32Z",
 	"source_locale": null,
 	"keys": {
 		"action_label": "Darbība",
@@ -355,7 +355,6 @@ const translation = {
 		"languageRussian_label": "Krievu",
 		"languageSerbian_label": "Serbu",
 		"languageSlovak_label": "Slovāku",
-		"languageSlovene_label": "Slovēņu",
 		"languageSpanish_label": "Spāņu",
 		"languageSwahili_label": "Svahili",
 		"languageSwedish_label": "Zviedru",
@@ -474,7 +473,6 @@ const translation = {
 		"paymentMethodOnAccount_label": "Pirkt ar pārskaitījumus",
 		"paymentMethodOnAccount_msg": "Jums jāsamaksā rēķini ar pārskaitījumu un jārūpējas par to laicīgu samaksu. Rēķinā norādītā summa netiks norakstīta automātiski. ",
 		"paymentMethod_label": "Maksājuma veids",
-		"paymentProviderNotAvailableError_msg": "Maksājuma pakalpojuma sniedzējs nav pieejams. Lūdzu, mēģiniet vēlāk. ",
 		"paymentProviderTransactionFailedError_msg": "Notikusi maksājuma transakcijas kļūda. Lūdzu, mēģiniet vēlāk vai izmainiet savus maksāšanas datus. ",
 		"payPalRedirect_msg": "Jūs tiksiet nosūtīts uz PayPal tīmekļa lapu.",
 		"periodOfTime_label": "Laika periods",
