@@ -313,6 +313,7 @@ type SearchIndexStateInfo = {
 	mailIndexEnabled: boolean;
 	progress: number;
 	currentMailIndexTimestamp: number;
+	indexedMailCount: number;
 }
 
 type CreditCardData = {

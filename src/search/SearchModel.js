@@ -23,7 +23,8 @@ export class SearchModel {
 			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
-			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP
+			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+			indexedMailCount: 0
 		})
 		this.indexState.map(state => {
 			if (state && !state.indexingSupported) {
@@ -63,7 +64,6 @@ export class SearchModel {
 				return result
 			}).catch(DbError, (e) => {
 				console.log("DBError while search", e)
-				const lastQuery = this.lastQuery()
 				if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
 					console.log("Mail indexing was disabled, ignoring DBError")
 					this.result(null)

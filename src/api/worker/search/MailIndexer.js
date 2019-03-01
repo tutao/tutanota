@@ -8,7 +8,7 @@ import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {isSameId, TypeRef} from "../../common/EntityFunctions"
+import {getElementId, getListId, isSameId, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
@@ -24,6 +24,7 @@ import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUt
 import * as promises from "../../common/utils/PromiseUtils"
 import type {FutureBatchActions} from "./EventQueue"
 import {DbError} from "../../common/error/DbError"
+import {EntityRestCache} from "../rest/EntityRestCache"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -40,14 +41,18 @@ export class MailIndexer {
 
 	_core: IndexerCore;
 	_db: Db;
-	_entity: EntityWorker;
 	_worker: WorkerImpl;
 	_entityRestClient: EntityRestClient;
+	_cachingEntity: EntityWorker;
+	_noncachingEntity: EntityWorker;
+	_entityCache: EntityRestCache;
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker, worker: WorkerImpl, entityRestClient: EntityRestClient) {
+	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestClient) {
 		this._core = core
 		this._db = db
-		this._entity = entity
+		this._entityCache = new EntityRestCache(entityRestClient)
+		this._cachingEntity = new EntityWorker(this._entityCache)
+		this._noncachingEntity = new EntityWorker(entityRestClient)
 		this._worker = worker
 
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
@@ -94,10 +99,10 @@ export class MailIndexer {
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+		return this._noncachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 			return Promise.all([
-				Promise.map(mail.attachments, attachmentId => this._entity.load(FileTypeRef, attachmentId)),
-				this._entity.load(MailBodyTypeRef, mail.body)
+				Promise.map(mail.attachments, attachmentId => this._noncachingEntity.load(FileTypeRef, attachmentId)),
+				this._noncachingEntity.load(MailBodyTypeRef, mail.body)
 			]).spread((files, body) => {
 				let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
 				return {mail, keyToIndexEntries}
@@ -192,14 +197,15 @@ export class MailIndexer {
 			indexingSupported: this._core.indexingSupported,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
-			currentMailIndexTimestamp: this.currentIndexTimestamp
+			currentMailIndexTimestamp: this.currentIndexTimestamp,
+			indexedMailCount: this._core._stats.mailcount
 		})
 		let memberships = filterMailMemberships(user)
 		this._core.queue.pause()
 		this.mailboxIndexingPromise = Promise.each(memberships, (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
-			return this._entity.load(MailboxGroupRootTypeRef, mailGroupId)
-			           .then(mailGroupRoot => this._entity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			return this._noncachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
+			           .then(mailGroupRoot => this._noncachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			           .then(mbox => {
 				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
@@ -242,7 +248,8 @@ export class MailIndexer {
 				    indexingSupported: this._core.indexingSupported,
 				    mailIndexEnabled: this.mailIndexingEnabled,
 				    progress: 0,
-				    currentMailIndexTimestamp: this.currentIndexTimestamp
+				    currentMailIndexTimestamp: this.currentIndexTimestamp,
+				    indexedMailCount: this._core._stats.mailcount
 			    }))
 		})
 		return this.mailboxIndexingPromise.return()
@@ -256,7 +263,8 @@ export class MailIndexer {
 				indexingSupported: this._core.indexingSupported,
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress,
-				currentMailIndexTimestamp: this.currentIndexTimestamp
+				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				indexedMailCount: this._core._stats.mailcount
 			})
 		})
 		const indexUpdate = _createNewIndexUpdate(mailGroupId, typeRefToTypeInfo(MailTypeRef))
@@ -324,17 +332,20 @@ export class MailIndexer {
 	 * @private
 	 */
 	_prepareMailDataForTimeBatch(mbox: MailBox, mailLists: Array<Id>, [rangeStart, rangeEnd]: TimeRange, indexUpdate: IndexUpdate): Promise<void> {
-		// For each mail list download a chunk
 		const startTimeLoad = getPerformanceTimestamp()
 		return Promise
 			.map(mailLists.slice(), (mailListId) => {
-				return this._entity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart), timestampToGeneratedId(rangeEnd),
-					MAIL_INDEXER_CHUNK)
+				// We use caching here because we may load same emails twice
+				return this._cachingEntity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
+					timestampToGeneratedId(rangeEnd), MAIL_INDEXER_CHUNK)
 				           .then(({elements: mails, loadedCompletely}) => {
+					           // If we loaded mail list completely, don't try to load from it anymore
 					           if (loadedCompletely) {
 						           mailLists.splice(mailLists.indexOf(mailListId), 1)
 					           }
 					           this._core._stats.mailcount += mails.length
+					           // Remove all processed entities from cache
+					           mails.forEach((m) => this._entityCache._tryRemoveFromCache(MailTypeRef, getListId(m), getElementId(m)))
 					           return this._processIndexMails(mails, indexUpdate)
 				           })
 			}, {concurrency: 2})
@@ -384,11 +395,11 @@ export class MailIndexer {
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
 	}
 
-	_loadInChunks<I, T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
+	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return Promise.map(byChunk, (chunk) => {
 			return chunk.length > 0
-				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
+				? this._noncachingEntity.loadMultipleEntities(typeRef, listId, chunk)
 				: Promise.resolve([])
 		}, {concurrency: 2})
 		              .then(entityResults => flat(entityResults))
@@ -427,7 +438,7 @@ export class MailIndexer {
 					mailListIds.push(folder.mails)
 				})
 			})
-			.then(() => mailListIds)
+			.return(mailListIds)
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
@@ -498,7 +509,7 @@ export class MailIndexer {
 					return Promise.resolve()
 				}
 
-				return this._entity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+				return this._noncachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
 					if (mail.state === MailState.DRAFT) {
 						return Promise.all([
 							this._core._processDeleted(event, indexUpdate),
@@ -568,5 +579,4 @@ class ProgressMonitor {
 		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
 		this.updater(Math.min(100, result))
 	}
-
 }

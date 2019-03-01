@@ -83,7 +83,7 @@ export class Indexer {
 		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
-		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
+		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 	}
@@ -168,10 +168,8 @@ export class Indexer {
 	enableMailIndexing(): Promise<void> {
 		return this.db.initialized.then(() => {
 			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
-				this._mail.mailboxIndexingPromise.catch(CancelledError, () => {
-					// Disable mail indexing if the user cancelled the initial mail indexing.
-					this.disableMailIndexing()
-				})
+				// We don't have to disable mail indexing when it's stopped now
+				this._mail.mailboxIndexingPromise.catch(CancelledError, noOp)
 			})
 		})
 	}
@@ -190,7 +188,6 @@ export class Indexer {
 	cancelMailIndexing(): Promise<void> {
 		return this._mail.cancelMailIndexing()
 	}
-
 
 	addBatchesToQueue(batches: QueuedBatch[]) {
 		this._core.addBatchesToQueue(batches)
