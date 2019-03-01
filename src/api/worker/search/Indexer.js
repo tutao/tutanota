@@ -117,7 +117,8 @@ export class Indexer {
 					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					indexedMailCount: 0
 				})
 				this._core.startProcessing()
 				return this._contact.indexFullContactList(user.userGroup.group)
@@ -147,7 +148,8 @@ export class Indexer {
 						indexingSupported: false,
 						mailIndexEnabled: false,
 						progress: 0,
-						currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+						currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+						indexedMailCount: 0
 					})
 					throw e
 				}
@@ -160,7 +162,8 @@ export class Indexer {
 				indexingSupported: this._core.indexingSupported,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
-				currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+				indexedMailCount: 0
 			})
 		})
 	}

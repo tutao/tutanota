@@ -1,5 +1,8 @@
 //@flow
 
+import {identity, neverNull} from "./Utils"
+import {getFromMap} from "./MapUtils"
+
 export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
@@ -96,12 +99,19 @@ export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>)
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last<T>(theArray: Array<T>): ?T {
-	if (theArray.length === 0) {
-		return null;
-	} else {
-		return theArray[theArray.length - 1];
+export function last<T>(theArray: $ReadOnlyArray<T>): ?T {
+	return theArray[theArray.length - 1];
+}
+
+export function isEmpty<T>(array: $ReadOnlyArray<T>): boolean {
+	return array.length === 0
+}
+
+export function lastThrow<T>(array: $ReadOnlyArray<T>): T {
+	if (isEmpty(array)) {
+		throw new RangeError("Array is empty")
 	}
+	return neverNull(last(array))
 }
 
 export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {
@@ -135,15 +145,17 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
 	})
 }
 
-export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
+export function groupByAndMap<T, R, E>(iterable: Iterable<T>, separator: (T) => R, mapper: (T) => E): Map<R, Array<E>> {
 	const map = new Map()
 	for (let el of iterable) {
 		const key = separator(el)
-		const list = map.get(key) || []
-		list.push(el)
-		map.set(key, list)
+		getFromMap(map, key, () => []).push(mapper(el))
 	}
 	return map
+}
+
+export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
+	return groupByAndMap(iterable, separator, identity)
 }
 
 export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Array<T>> {
