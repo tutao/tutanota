@@ -16,7 +16,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-02-28T13:20:14Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Tafadhali kulemaza hifadhi ya kiganjani kwa kupitia au lakabu mfuko na kulemaza lakabu wote wa barua pepe kabla ya kubadilisha aina ya akaunti.",
@@ -300,13 +300,11 @@ const translation = {
 		"languageHebrew_label": "Kiebrania",
 		"languageHindi_label": "Kihindi",
 		"languageHungarian_label": "Kihangaria",
-		"languageIcelandic_label": "Kiaislandi",
 		"languageIndonesian_label": "Kiindoneshia",
 		"languageItalian_label": "Kiitaliano",
 		"languageJapanese_label": "Kijapani",
 		"languageKorean_label": "Kikorea",
 		"languageLithuanian_label": "Kilithuania",
-		"languageMacedonian_label": "Kimasedonia",
 		"languageNorwegian_label": "Kinowiji",
 		"languagePersian_label": "Kipersian",
 		"languagePolish_label": "Kipolishi",
