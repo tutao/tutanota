@@ -32,12 +32,10 @@ import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/Tu
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
-import {getStartOfDay} from "../../common/utils/DateUtils"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {CancelledError} from "../../common/error/CancelledError"
 import {mapInCallContext} from "../../common/utils/PromiseUtils"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 
@@ -104,7 +102,7 @@ export class SearchFacade {
 							                    // 1) know if we also have to search normally and
 							                    // 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
 							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-							                    return this._searchForTokens(result)
+							                    return this._startOrContinueSearch(result)
 							                               .then((result) => {
 								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
 									                               - searchForTokensAfterSuggestionsBefore
@@ -115,7 +113,7 @@ export class SearchFacade {
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
-					searchPromise = this._searchForTokens(result).then(() => {
+					searchPromise = this._startOrContinueSearch(result).then(() => {
 						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
@@ -129,7 +127,7 @@ export class SearchFacade {
 				} else {
 					let beforeSearchTokens = getPerformanceTimestamp()
 					console.timeStamp && console.timeStamp("search for tokens")
-					searchPromise = this._searchForTokens(result, maxResults)
+					searchPromise = this._startOrContinueSearch(result, maxResults)
 					                    .then((result) => {
 						                    timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						                    return result
@@ -218,18 +216,6 @@ export class SearchFacade {
 	}
 
 
-	/**
-	 * Adds the found ids to the given search result
-	 */
-	_searchForTokens(searchResult: SearchResult, maxResults: ?number): Promise<void> {
-		timeStart("_tryExtendIndex")
-		return this._tryExtendIndex(searchResult.restriction).then(() => {
-				makeStamp("_tryExtendIndex")
-				return this._startOrContinueSearch(searchResult, maxResults)
-			}
-		)
-	}
-
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		timeStart("findIndexEntries")
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
@@ -296,28 +282,13 @@ export class SearchFacade {
 					matchWordOrder: false,
 					moreResults: []
 				}
-				return this._searchForTokens(suggestionResult).then(() => {
+				return this._startOrContinueSearch(suggestionResult).then(() => {
 					searchResult.results.push(...suggestionResult.results)
 				})
 			}
 		})
 	}
 
-
-	_tryExtendIndex(restriction: SearchRestriction): Promise<void> {
-		if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			return this._mailIndexer.mailboxIndexingPromise.then(() => {
-				if (this._mailIndexer.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && restriction.end
-					&& this._mailIndexer.currentIndexTimestamp > restriction.end) {
-					this._mailIndexer.indexMailboxes(this._loginFacade.getLoggedInUser(), getStartOfDay(new Date(neverNull(restriction.end)))
-						.getTime()).catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
-					return this._mailIndexer.mailboxIndexingPromise
-				}
-			}).catch(CancelledError, e => {console.log("extend mail index has been cancelled", e)})
-		} else {
-			return Promise.resolve()
-		}
-	}
 
 	_findIndexEntries(searchResult: SearchResult, maxResults: ?number): Promise<KeyToEncryptedIndexEntries[]> {
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
@@ -327,7 +298,7 @@ export class SearchFacade {
 				           (token) => this._findEntriesForSearchToken(transaction, token, searchResult, maxResults)))
 	}
 
-	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry, fromRow: ?number, maxResults: ?number): Promise<EncryptedSearchIndexEntry[]> {
+	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
 		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow) => {
 			if (!indexEntriesRow) return []
 			const result = new Array(entry.size)

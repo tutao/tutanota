@@ -8,7 +8,7 @@ import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {getElementId, getListId, isSameId, TypeRef} from "../../common/EntityFunctions"
+import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
@@ -43,15 +43,11 @@ export class MailIndexer {
 	_db: Db;
 	_worker: WorkerImpl;
 	_entityRestClient: EntityRestClient;
-	_cachingEntity: EntityWorker;
 	_noncachingEntity: EntityWorker;
-	_entityCache: EntityRestCache;
 
 	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestClient) {
 		this._core = core
 		this._db = db
-		this._entityCache = new EntityRestCache(entityRestClient)
-		this._cachingEntity = new EntityWorker(this._entityCache)
 		this._noncachingEntity = new EntityWorker(entityRestClient)
 		this._worker = worker
 
@@ -268,15 +264,17 @@ export class MailIndexer {
 			})
 		})
 		const indexUpdate = _createNewIndexUpdate(mailGroupId, typeRefToTypeInfo(MailTypeRef))
+		const indexLoader = new IndexLoader(this._entityRestClient)
 		return this._loadMailListIds(mbox)
-		           .then((mailListIds) => this._indexMailListsInTimeBatches(mbox, mailListIds, timeRange, indexUpdate, progress))
+		           .then((mailListIds) => this._indexMailListsInTimeBatches(mbox, mailListIds, timeRange, indexUpdate, progress, indexLoader))
 	}
 
 	_processedEnough(indexUpdate: IndexUpdate): boolean {
 		return indexUpdate.create.encInstanceIdToElementData.size > 500
 	}
 
-	_indexMailListsInTimeBatches(mbox: MailBox, mailListIds: Array<Id>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor): Promise<void> {
+	_indexMailListsInTimeBatches(mbox: MailBox, mailListIds: Array<Id>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor,
+	                             indexLoader: IndexLoader): Promise<void> {
 		const [rangeStart, rangeEnd] = timeRange
 		const batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
 		const batchRange = [rangeStart, batchEnd]
@@ -289,7 +287,7 @@ export class MailIndexer {
 				           console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
 			           })
 		}
-		return this._prepareMailDataForTimeBatch(mbox, mailListIds, batchRange, indexUpdate).then((processed) => {
+		return this._prepareMailDataForTimeBatch(mbox, mailListIds, batchRange, indexUpdate, indexLoader).then(() => {
 			const nextRange = [batchEnd, rangeEnd]
 			if (this._processedEnough(indexUpdate)) { // only write to database if we have collected enough entities
 				return this._writeIndexUpdate(indexUpdate)
@@ -298,12 +296,12 @@ export class MailIndexer {
 					           progress.workDone(rangeStart - batchEnd)
 					           const newIndexUpdate = _createNewIndexUpdate(indexUpdate.groupId, indexUpdate.typeInfo)
 					           console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
-					           return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, newIndexUpdate, progress)
+					           return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, newIndexUpdate, progress, indexLoader)
 				           })
 			} else {
 				progress.workDone(rangeStart - batchEnd)
 				console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
-				return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, indexUpdate, progress)
+				return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, indexUpdate, progress, indexLoader)
 			}
 		})
 	}
@@ -331,32 +329,33 @@ export class MailIndexer {
 	 * @return Number of processed emails?
 	 * @private
 	 */
-	_prepareMailDataForTimeBatch(mbox: MailBox, mailLists: Array<Id>, [rangeStart, rangeEnd]: TimeRange, indexUpdate: IndexUpdate): Promise<void> {
+	_prepareMailDataForTimeBatch(mbox: MailBox, mailLists: Array<Id>, timeRange: TimeRange, indexUpdate: IndexUpdate,
+	                             indexLoader: IndexLoader): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
 		return Promise
 			.map(mailLists.slice(), (mailListId) => {
 				// We use caching here because we may load same emails twice
-				return this._cachingEntity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
-					timestampToGeneratedId(rangeEnd), MAIL_INDEXER_CHUNK)
-				           .then(({elements: mails, loadedCompletely}) => {
-					           // If we loaded mail list completely, don't try to load from it anymore
-					           if (loadedCompletely) {
-						           mailLists.splice(mailLists.indexOf(mailListId), 1)
-					           }
-					           this._core._stats.mailcount += mails.length
-					           // Remove all processed entities from cache
-					           mails.forEach((m) => this._entityCache._tryRemoveFromCache(MailTypeRef, getListId(m), getElementId(m)))
-					           return this._processIndexMails(mails, indexUpdate)
-				           })
+				return indexLoader.loadMailsWithCache(mailListId, timeRange)
+				                  .then(({elements: mails, loadedCompletely}) => {
+					                  // If we loaded mail list completely, don't try to load from it anymore
+					                  if (loadedCompletely) {
+						                  mailLists.splice(mailLists.indexOf(mailListId), 1)
+					                  }
+					                  this._core._stats.mailcount += mails.length
+					                  // Remove all processed entities from cache
+					                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
+					                  return this._processIndexMails(mails, indexUpdate, indexLoader)
+				                  })
 			}, {concurrency: 2})
 			.then(() => {
 				this._core._stats.preparingTime += (getPerformanceTimestamp() - startTimeLoad)
 			})
 	}
 
-	_processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate): Promise<number> {
-		const bodies = this._loadMailBodies(mails)
-		const files = this._loadAttachments(mails)
+	_processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
+		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
+		const bodies = indexLoader.loadMailBodies(mails)
+		const files = indexLoader.loadAttachments(mails)
 		return promises.all(mails, bodies, files)
 		               .then(([mails, bodies, files]) => mails.map(mail => ({
 			               mail: mail,
@@ -376,34 +375,6 @@ export class MailIndexer {
 		return this._core.writeIndexUpdate(indexUpdate)
 	}
 
-	_loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
-		const ids = mails.map(m => m.body)
-		return this._loadInChunks(MailBodyTypeRef, null, ids)
-	}
-
-	_loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
-		const attachmentIds = []
-		mails.forEach(mail => {
-			attachmentIds.push(...mail.attachments)
-		})
-		const filesByList = groupBy(attachmentIds, a => a[0])
-		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
-		filesByList.forEach((fileIds, listId) => {
-			fileLoadingPromises.push(this._loadInChunks(FileTypeRef, listId, fileIds.map(f => f[1])))
-		})
-		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
-		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
-	}
-
-	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
-		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
-		return Promise.map(byChunk, (chunk) => {
-			return chunk.length > 0
-				? this._noncachingEntity.loadMultipleEntities(typeRef, listId, chunk)
-				: Promise.resolve([])
-		}, {concurrency: 2})
-		              .then(entityResults => flat(entityResults))
-	}
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
@@ -578,5 +549,55 @@ class ProgressMonitor {
 		this.workCompleted += amount
 		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
 		this.updater(Math.min(100, result))
+	}
+}
+
+class IndexLoader {
+	_entityCache: EntityRestCache;
+	_entity: EntityWorker;
+	_cachingEntity: EntityWorker;
+
+	constructor(restClient: EntityRestClient) {
+		this._entityCache = new EntityRestCache(restClient)
+		this._entity = new EntityWorker(restClient)
+		this._cachingEntity = new EntityWorker(this._entityCache)
+	}
+
+	loadMailsWithCache(mailListId: Id, [rangeStart, rangeEnd]: TimeRange): Promise<{elements: Array<Mail>, loadedCompletely: boolean}> {
+		return this._cachingEntity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
+			timestampToGeneratedId(rangeEnd), MAIL_INDEXER_CHUNK)
+	}
+
+	removeFromCache(id: IdTuple) {
+		this._entityCache._tryRemoveFromCache(MailTypeRef, listIdPart(id), elementIdPart(id))
+	}
+
+	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
+		const ids = mails.map(m => m.body)
+		return this._loadInChunks(MailBodyTypeRef, null, ids)
+	}
+
+	loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
+		const attachmentIds = []
+		mails.forEach(mail => {
+			attachmentIds.push(...mail.attachments)
+		})
+		const filesByList = groupBy(attachmentIds, a => a[0])
+		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
+		filesByList.forEach((fileIds, listId) => {
+			fileLoadingPromises.push(this._loadInChunks(FileTypeRef, listId, fileIds.map(f => f[1])))
+		})
+		// if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
+		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
+	}
+
+	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
+		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
+		return Promise.map(byChunk, (chunk) => {
+			return chunk.length > 0
+				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
+				: Promise.resolve([])
+		}, {concurrency: 2})
+		              .then(entityResults => flat(entityResults))
 	}
 }

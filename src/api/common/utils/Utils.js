@@ -180,3 +180,20 @@ export function noOp() {}
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
 	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
 }
+
+/**
+ * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
+ * Executes function with the last passed arguments
+ * @return {Function}
+ */
+export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+	let timeoutId
+	let toInvoke: (...args: A) => void;
+	return (...args: A) => {
+		if (timeoutId) {
+			clearTimeout(timeoutId)
+		}
+		toInvoke = toThrottle.bind(null, ...args)
+		timeoutId = setTimeout(toInvoke, timeout)
+	}
+}

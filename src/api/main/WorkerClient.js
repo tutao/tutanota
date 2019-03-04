@@ -383,6 +383,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('disableMailIndexing', arguments))
 	}
 
+	extendMailIndex(newEndTimestamp: number): Promise<void> {
+		return this._postRequest(new Request('extendMailIndex', arguments))
+	}
+
 	cancelMailIndexing(): Promise<void> {
 		return this._postRequest(new Request('cancelMailIndexing', arguments))
 	}

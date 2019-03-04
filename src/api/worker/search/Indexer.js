@@ -1,6 +1,6 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -38,6 +38,7 @@ import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
+import {getStartOfDay} from "../../common/utils/DateUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -186,6 +187,18 @@ export class Indexer {
 				                      .then(() => this.init(this._initParams.user, this._initParams.groupKey))
 			           }
 		           })
+	}
+
+
+	extendMailIndex(newEndTimestamp: number): Promise<void> {
+		return this._mail.mailboxIndexingPromise.then(() => {
+			if (this._mail.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && newEndTimestamp
+				&& this._mail.currentIndexTimestamp > newEndTimestamp) {
+				this._mail.indexMailboxes(this._initParams.user, getStartOfDay(new Date(newEndTimestamp))
+					.getTime()).catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
+				return this._mail.mailboxIndexingPromise
+			}
+		}).catch(CancelledError, e => {console.log("extend mail index has been cancelled", e)})
 	}
 
 	cancelMailIndexing(): Promise<void> {

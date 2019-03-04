@@ -227,6 +227,10 @@ export class WorkerImpl {
 			disableMailIndexing: (message: Request) => {
 				return locator.indexer.disableMailIndexing()
 			},
+
+			extendMailIndex: (message: Request) => {
+				return locator.indexer.extendMailIndex.apply(locator.indexer, message.args)
+			},
 			cancelMailIndexing: (message: Request) => {
 				return locator.indexer.cancelMailIndexing()
 			},
