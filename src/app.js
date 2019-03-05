@@ -142,7 +142,8 @@ let initialized = lang.init(en).then(() => {
 					}
 					promise.then(view => {
 						view.updateUrl(args, requestedPath)
-						routeChange({args, requestedPath})
+						const currentPath = m.route.get()
+						routeChange({args, requestedPath, currentPath})
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})

@@ -19,7 +19,6 @@ import {keyManager, Keys} from "../misc/KeyManager"
 import type {ListElement} from "../api/common/EntityFunctions"
 import {getElementId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
-import {getFirstPathComponent, routeChange} from "../misc/RouteChange"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
@@ -38,6 +37,7 @@ import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
 import {hasMoreResults} from "./SearchModel"
 import {SearchBarOverlay} from "./SearchBarOverlay"
+import {routeChange} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -119,6 +119,10 @@ export class SearchBar implements Component {
 
 		const navBtn = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
 		this.dropdown = new Dropdown(() => [navBtn], 250)
+		let indexStateStream
+		let routeChangeStream
+		let lastQueryStream
+		let shortcuts
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
 				m(".search-bar.flex-end.items-center", {
@@ -139,22 +143,37 @@ export class SearchBar implements Component {
 							}
 							m.redraw()
 						})
-						// Reset results When first part of URL changes
-						routeChangeStream = stream.scan((prevPath, event) => {
-							if (!event.requestedPath.startsWith(prevPath)) {
-								this._updateState({searchResult: null, entities: []})
-								return getFirstPathComponent(event.requestedPath)
+
+						routeChangeStream = routeChange.map(newRoute => {
+							try {
+								if (locator.search.isNewSearch(this._state().query, getRestriction(newRoute.requestedPath))) {
+									this._updateState({searchResult: null, entities: []})
+								}
+							} catch (e) {
+								// ignore error here because it might be called with settings url
+								// because routeChange is updated before SearchBar is removed from the DOM
 							}
-							return prevPath
-						}, getFirstPathComponent(m.route.get()), routeChange)
+						})
+
+						lastQueryStream = locator.search.lastQuery.map((value) => {
+							// Set value from the model when we it's set from the URL e.g. reloading the page on the search screen
+							if (value) {
+								this._updateState({query: value})
+								this.expanded = true
+							}
+						})
+
 					},
-					onbeforeremove: () => {
+					onremove: () => {
 						shortcuts && keyManager.unregisterShortcuts(shortcuts)
 						if (indexStateStream) {
 							indexStateStream.end(true)
 						}
 						if (routeChangeStream) {
 							routeChangeStream.end(true)
+						}
+						if (lastQueryStream) {
+							lastQueryStream.end(true)
 						}
 						this._closeOverlay()
 					},
@@ -232,10 +251,6 @@ export class SearchBar implements Component {
 				(vnode.attrs.spacer ? m(".nav-bar-spacer") : null)
 			])
 		}
-		let shortcuts = null
-
-		let indexStateStream
-		let routeChangeStream
 	}
 
 	inputWrapperWidth(alwaysExpanded: boolean): ?string {
@@ -355,7 +370,7 @@ export class SearchBar implements Component {
 
 	search() {
 		let {query} = this._state()
-		let restriction = getRestriction(m.route.get())
+		let restriction = this._getRestriction()
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
 			restriction.listId = this._groupInfoRestrictionListId
 		}
@@ -373,7 +388,7 @@ export class SearchBar implements Component {
 			if (!locator.search.isNewSearch(query, restriction)) {
 				const result = locator.search.result()
 				if (this._isQuickSearch() && result) {
-					this._updateState({})
+					this._showResultsInOverlay(result)
 				}
 				this.busy = false
 			} else {
@@ -398,25 +413,7 @@ export class SearchBar implements Component {
 			       this._updateState({searchResult: result})
 			       if (!result) return
 			       if (this._isQuickSearch()) {
-				       return this._downloadResults(result)
-				                  .then((entries) => {
-					                  if (!locator.search.isNewSearch(query, restriction)) {
-						                  const filteredResults = this._filterResults(entries, restriction)
-						                  if (query.trim() !== ""
-							                  && (filteredResults.length === 0
-								                  || hasMoreResults(result)
-								                  || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)) {
-							                  filteredResults.push({
-								                  resultCount: result.results.length,
-								                  shownCount: filteredResults.length,
-								                  indexTimestamp: result.currentIndexTimestamp,
-								                  allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
-									                  && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef)
-							                  })
-						                  }
-						                  this._updateState({entities: filteredResults})
-					                  }
-				                  })
+				       this._showResultsInOverlay(result)
 			       } else {
 				       // instances will be displayed as part of the list of the search view, when the search view is displayed
 				       setSearchUrl(getSearchUrl(query, restriction))
@@ -435,6 +432,29 @@ export class SearchBar implements Component {
 			locator.search.result(null)
 			this._updateSearchUrl("")
 		}
+	}
+
+	_showResultsInOverlay(result: SearchResult) {
+		return this._downloadResults(result)
+		           .then((entries) => {
+			           // If there was no new search while we've been downloading the result
+			           if (!locator.search.isNewSearch(result.query, result.restriction)) {
+				           const filteredResults = this._filterResults(entries, result.restriction)
+				           if (result.query.trim() !== ""
+					           && (filteredResults.length === 0
+						           || hasMoreResults(result)
+						           || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)) {
+					           filteredResults.push({
+						           resultCount: result.results.length,
+						           shownCount: filteredResults.length,
+						           indexTimestamp: result.currentIndexTimestamp,
+						           allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
+							           && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef)
+					           })
+				           }
+				           this._updateState({entities: filteredResults, selected: filteredResults[0]})
+			           }
+		           })
 	}
 
 	_isQuickSearch(): boolean {
