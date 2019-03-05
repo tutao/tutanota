@@ -931,6 +931,7 @@ const translation = {
 		"privacyPolicyUrl_label": "Link to privacy policy",
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
 		"acceptPrivacyPolicy_msg": "I have read and agree to the {privacyPolicy}.",
+		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search."
 	}
 }
 export default translation

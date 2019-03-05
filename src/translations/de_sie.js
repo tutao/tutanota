@@ -930,7 +930,8 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt."
 	}
 }
 export default translation

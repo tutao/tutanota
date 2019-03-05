@@ -73,7 +73,9 @@ export class Indexer {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
 		this.db = {
-			dbFacade: new DbFacade(indexedDbSupported),
+			dbFacade: new DbFacade(indexedDbSupported, () => {
+				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
+			}),
 			key: neverNull(null),
 			iv: neverNull(null),
 			initialized: deferred.promise

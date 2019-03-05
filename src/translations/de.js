@@ -935,6 +935,7 @@ const translation = {
 		"privacyPolicyUrl_label": "Link zur Datenschutzerklärung",
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
 		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
+		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt."
 	}
 }
 export default translation

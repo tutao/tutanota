@@ -45,7 +45,7 @@ export class DbFacade {
 	_db: LazyLoaded<IDBDatabase>;
 	_activeTransactions: number;
 
-	constructor(supported: boolean) {
+	constructor(supported: boolean, onupgrade?: () => void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
@@ -66,6 +66,8 @@ export class DbFacade {
 							//console.log("upgrade db", event)
 							let db = event.target.result
 							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
+								if (onupgrade) onupgrade()
+
 								this._deleteObjectStores(db,
 									SearchIndexOS,
 									ElementDataOS,

@@ -16,6 +16,7 @@ import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
+import type {InfoMessage} from "../common/CommonTypes"
 
 assertWorkerOrNode()
 
@@ -331,6 +332,10 @@ export class WorkerImpl {
 
 	updateCounter(update: WebsocketCounterData): Promise<void> {
 		return this._queue.postMessage(new Request("counterUpdate", [update]))
+	}
+
+	infoMessage(message: InfoMessage) {
+		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
 }
 

@@ -231,6 +231,10 @@ let initialized = lang.init(en).then(() => {
 
 	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
 		.then(module => module.worker)
+	workerPromise.then(() => {
+		_asyncImport("src/gui/InfoMessageHandler.js")
+	})
+
 
 	setupExceptionHandling()
 })
