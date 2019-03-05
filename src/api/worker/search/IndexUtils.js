@@ -9,6 +9,7 @@ import type {
 	IndexUpdate,
 	SearchIndexEntry,
 	SearchIndexMetaDataDbRow,
+	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow
 } from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
@@ -340,4 +341,8 @@ export const timeEnd: (string) => void =
 
 export function getIdFromEncSearchIndexEntry(entry: Uint8Array): Uint8Array {
 	return entry.subarray(0, 16)
+}
+
+export function compareMetaEntriesOldest(left: SearchIndexMetadataEntry, right: SearchIndexMetadataEntry): number {
+	return left.oldestElementTimestamp - right.oldestElementTimestamp
 }

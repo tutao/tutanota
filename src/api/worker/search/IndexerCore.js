@@ -9,6 +9,7 @@ import {generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Enc
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
 	byteLength,
+	compareMetaEntriesOldest,
 	decryptIndexKey,
 	decryptMetaData,
 	encryptIndexKeyBase64,
@@ -393,7 +394,6 @@ export class IndexerCore {
 				this._stats.storedBytes += encryptedEntries.reduce((sum, e) =>
 					sum + e.entry.length, 0)
 				encWordToMetaRow[encWordB64] = metaData.id
-				metaData.rows.sort((l, r) => l.oldestElementTimestamp - r.oldestElementTimestamp)
 				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
 			})
 	}
@@ -525,7 +525,7 @@ export class IndexerCore {
 				// Prefer to put entries into the second row if it's initial indexing (we are likely to grow the first row because we move back in time)
 				const isLastEntry = this._nextEntryOfType(metaData, metaEntryIndex + 1, metaEntry.app, metaEntry.type) == null
 				const rows = this._distributeEntities(timestampToEntries, isLastEntry)
-				const [appendRow, newRows] = isLastEntry ? [rows[0], rows.slice(1)] : [lastThrow(rows), rows.slice(0, -1)]
+				const [appendRow, newRows] = [rows[0], rows.slice(1)]
 				const firstRowBinary = appendBinaryBlocks(appendRow.row)
 				return Promise.all([
 					transaction.put(SearchIndexOS, metaEntry.key, firstRowBinary)
@@ -548,7 +548,9 @@ export class IndexerCore {
 							                  })
 						                  })
 					}, {concurrency: 2})
-				)).return()
+				)).then(() => {
+					metaData.rows.sort(compareMetaEntriesOldest)
+				})
 			})
 		} else {
 			return transaction
@@ -617,8 +619,9 @@ export class IndexerCore {
 						})
 					})
 			}, {concurrency: 2})
-			.return()
-
+			.then(() => {
+				metaData.rows.sort(compareMetaEntriesOldest)
+			})
 	}
 
 	_findMetaDataEntryByTimestamp(metaData: SearchIndexMetaDataRow, oldestTimestamp: number, appId: number, typeId: number): number {
