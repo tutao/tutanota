@@ -525,6 +525,7 @@ export class IndexerCore {
 				// Prefer to put entries into the second row if it's initial indexing (we are likely to grow the first row because we move back in time)
 				const isLastEntry = this._nextEntryOfType(metaData, metaEntryIndex + 1, metaEntry.app, metaEntry.type) == null
 				const rows = this._distributeEntities(timestampToEntries, isLastEntry)
+				// keep the oldest timestamp in the existing meta data entry to ensure that when continuing search we don't get the same meta data entry twice.
 				const [appendRow, newRows] = [rows[0], rows.slice(1)]
 				const firstRowBinary = appendBinaryBlocks(appendRow.row)
 				return Promise.all([
