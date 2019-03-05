@@ -21,7 +21,7 @@ export class ElectronUpdater {
 	_foundKey: DeferredObject<void>;
 	_checkUpdateSignature: boolean;
 	_pubKey: string;
-	_logger: {info(string): void, warn(string): void, error(string): void}
+	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
 
 	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier) {
 		this._conf = conf

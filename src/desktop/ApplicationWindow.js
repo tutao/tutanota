@@ -150,7 +150,7 @@ export class ApplicationWindow {
 		)
 	}
 
-	openMailBox(info: UserInfo, path?: string): Promise<void> {
+	openMailBox(info: UserInfo, path?: ?string): Promise<void> {
 		return this._ipc.initialized(this.id).then(() =>
 			this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
 		).then(() => this.show())

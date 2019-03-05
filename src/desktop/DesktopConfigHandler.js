@@ -46,6 +46,7 @@ export class DesktopConfigHandler {
 				message: `Couldn't load config: \n ${e.message}`
 			})
 			process.exit(1)
+			return // for testing
 		}
 		try {
 			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]

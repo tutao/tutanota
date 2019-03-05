@@ -1,4 +1,5 @@
 const Promise = require('bluebird')
+const chalk = require('chalk')
 const path = require("path")
 const Builder = require('../buildSrc/Builder.js').Builder
 const babelCompile = require('../buildSrc/Builder.js').babelCompile
@@ -45,6 +46,13 @@ promise.then(() => fs.copyAsync(path.join(__dirname, '../libs'), path.join(__dir
 	       } else {
 		       // If it's not watch, exit with the same exit code as test process so we can tell if tests failed
 		       process.exit(code)
+	       }
+       })
+       .catch(Error, e => {
+	       if (e.message.startsWith('ENOENT')) {
+		       console.log(`${chalk.red(e.message)}`)
+		       console.log(`${chalk.green.bold("> Did you call make?")}`)
+		       process.exit(1)
 	       }
        })
 
