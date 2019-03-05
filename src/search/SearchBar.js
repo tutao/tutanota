@@ -16,10 +16,10 @@ import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import type {ListElement} from "../api/common/EntityFunctions"
+import {getElementId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
-import type {RouteChangeEvent} from "../misc/RouteChange"
-import {routeChange} from "../misc/RouteChange"
+import {getFirstPathComponent, routeChange} from "../misc/RouteChange"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
@@ -27,7 +27,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {Button} from "../gui/base/Button"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
@@ -140,12 +139,14 @@ export class SearchBar implements Component {
 							}
 							m.redraw()
 						})
-						routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
-							if (e.requestedPath.startsWith("/search/mail")) {
-								let indexState = locator.search.indexState()
-								this.showIndexingProgress(indexState, e.requestedPath)
+						// Reset results When first part of URL changes
+						routeChangeStream = stream.scan((prevPath, event) => {
+							if (!event.requestedPath.startsWith(prevPath)) {
+								this._updateState({searchResult: null, entities: []})
+								return getFirstPathComponent(event.requestedPath)
 							}
-						})
+							return prevPath
+						}, getFirstPathComponent(m.route.get()), routeChange)
 					},
 					onbeforeremove: () => {
 						shortcuts && keyManager.unregisterShortcuts(shortcuts)
@@ -245,15 +246,6 @@ export class SearchBar implements Component {
 		}
 	}
 
-	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
-		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail"))
-			|| (route.startsWith("/search/mail") && newState.progress <= 100))) {
-			let cancelButton = new Button("cancel_action", () => {
-				worker.cancelMailIndexing()
-			}, () => Icons.Cancel)
-		}
-	}
-
 	/**
 	 * Replace contents of the overlay if it was shown or display a new one
 	 * if it wasn't
@@ -331,14 +323,12 @@ export class SearchBar implements Component {
 			let type: ?TypeRef = result._type ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
-					setSearchUrl(getSearchUrl(query, getRestriction(m.route.get())))
+					this._updateSearchUrl(query)
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				let mail: Mail = downcast(result)
-				setSearchUrl(getSearchUrl(query, getRestriction(m.route.get()), mail._id[1]))
+				this._updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				let contact: Contact = downcast(result)
-				setSearchUrl(getSearchUrl(query, getRestriction(m.route.get()), contact._id[1]))
+				this._updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
 				this.lastSelectedGroupInfoResult(downcast(result))
 			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
@@ -353,6 +343,14 @@ export class SearchBar implements Component {
 		} else {
 			this.search()
 		}
+	}
+
+	_getRestriction(): SearchRestriction {
+		return getRestriction(m.route.get())
+	}
+
+	_updateSearchUrl(query: string, selected: ?ListElement) {
+		setSearchUrl(getSearchUrl(query, this._getRestriction(), selected && getElementId(selected)))
 	}
 
 	search() {
@@ -390,7 +388,7 @@ export class SearchBar implements Component {
 		}
 	}
 
-	_doSearch = debounce(500, (query: string, restriction: SearchRestriction, cb: () => void) => {
+	_doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
 		let useSuggestions = m.route.get().startsWith("/settings")
 		const limit = isSameTypeRef(MailTypeRef, restriction.type)
 			? this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
@@ -435,7 +433,7 @@ export class SearchBar implements Component {
 		}
 		if (m.route.get().startsWith("/search")) {
 			locator.search.result(null)
-			setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
+			this._updateSearchUrl("")
 		}
 	}
 
@@ -537,7 +535,6 @@ export class SearchBar implements Component {
 			setTimeout(() => {
 				this._domInput.select()
 				this._domInput.focus()
-				this.showIndexingProgress(locator.search.indexState(), m.route.get())
 				this.search()
 			}, client.browser === BrowserType.SAFARI ? 200 : 0)
 		}

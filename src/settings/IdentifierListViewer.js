@@ -84,7 +84,7 @@ class IdentifierRow implements MComponent<IdentifierRowAttrs> {
 class _IdentifierListViewer {
 	_identifiers: PushIdentifier[];
 	_currentIdentifier: ?string;
-	_expanded: stream<boolean>
+	_expanded: Stream<boolean>
 
 	constructor() {
 		this._expanded = stream(false)

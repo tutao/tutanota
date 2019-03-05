@@ -33,59 +33,66 @@ type SearchBarOverlayAttrs = {
 }
 
 export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
-	view(vnode: Vnode<SearchBarOverlayAttrs>) {
-		const state = vnode.attrs.state
+	view({attrs}: Vnode<SearchBarOverlayAttrs>) {
+		const {state} = attrs
 		return [
-			state.indexState.progress !== 0 && (vnode.attrs.isFocused || !vnode.attrs.isQuickSearch)
-				? m(".flex.col.rel", [
-					m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s", {
-						style: {
-							height: px(52),
-							borderLeft: `${px(size.border_selection)} solid transparent`,
-						}
-					}, [
-						m(".top.flex-space-between.col",
-							m(".name", lang.get("createSearchIndex_msg", {"{progress}": state.indexState.progress}),
-							),
-							m(".bottom.flex-space-between",
-								m("small", "Indexed mails: " + state.indexState.indexedMailCount)
-							)
-						),
-						state.indexState.progress !== 100
-							? m("div", {onmousedown: e => vnode.attrs.skipNextBlur(true)}, m(ButtonN, {
-								label: "cancel_action",
-								click: () => worker.cancelMailIndexing(),
-								//icon: () => Icons.Cancel
-								type: ButtonType.Secondary
-							}))
-							: null // avoid closing overlay before the click event can be received
-					]),
-					m(".abs", {
-						style: {
-							backgroundColor: theme.content_accent,
-							height: "2px",
-							width: state.indexState.progress + "%",
-							bottom: 0
-						}
-					})
-				])
+			state.indexState.progress !== 0 && (attrs.isFocused || !attrs.isQuickSearch)
+				? this._renderProgress(state, attrs)
 				: null,
-			state.entities && !isEmpty(state.entities) && vnode.attrs.isQuickSearch && vnode.attrs.isExpanded && vnode.attrs.isFocused
-				? m("ul.list.click.mail-list", [
-					state.entities.map(result => {
-						return m("li.plr-l.flex-v-center.", {
-							style: {
-								height: px(52),
-								'border-left': px(size.border_selection) + " solid transparent",
-							},
-							onmousedown: e => vnode.attrs.skipNextBlur(true), // avoid closing overlay before the click event can be received
-							onclick: e => vnode.attrs.selectResult(result),
-							class: state.selected === result ? "row-selected" : "",
-						}, this.renderResult(state, result))
-					}),
-				])
+			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isExpanded && attrs.isFocused
+				? this.renderResults(state, attrs)
 				: null,
 		]
+	}
+
+	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs) {
+		return m("ul.list.click.mail-list", [
+			state.entities.map(result => {
+				return m("li.plr-l.flex-v-center.", {
+					style: {
+						height: px(52),
+						'border-left': px(size.border_selection) + " solid transparent",
+					},
+					onmousedown: e => attrs.skipNextBlur(true), // avoid closing overlay before the click event can be received
+					onclick: e => attrs.selectResult(result),
+					class: state.selected === result ? "row-selected" : "",
+				}, this.renderResult(state, result))
+			}),
+		])
+	}
+
+	_renderProgress(state: SearchBarState, attrs: SearchBarOverlayAttrs) {
+		return m(".flex.col.rel", [
+			m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s", {
+				style: {
+					height: px(52),
+					borderLeft: `${px(size.border_selection)} solid transparent`,
+				}
+			}, [
+				m(".top.flex-space-between.col",
+					m(".name", lang.get("createSearchIndex_msg", {"{progress}": state.indexState.progress})),
+					m(".bottom.flex-space-between",
+						m("small", "Indexed mails: " + state.indexState.indexedMailCount)
+					)
+				),
+				state.indexState.progress !== 100
+					? m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
+						label: "cancel_action",
+						click: () => worker.cancelMailIndexing(),
+						//icon: () => Icons.Cancel
+						type: ButtonType.Secondary
+					}))
+					: null // avoid closing overlay before the click event can be received
+			]),
+			m(".abs", {
+				style: {
+					backgroundColor: theme.content_accent,
+					height: "2px",
+					width: state.indexState.progress + "%",
+					bottom: 0
+				}
+			})
+		])
 	}
 
 	renderResult(state: SearchBarState, result: Entry) {

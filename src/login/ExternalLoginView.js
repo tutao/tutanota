@@ -41,8 +41,8 @@ assertMainOrNode()
 
 export class ExternalLoginView {
 
-	_password: stream<string>;
-	_savePassword: stream<boolean>;
+	_password: Stream<string>;
+	_savePassword: Stream<boolean>;
 	_helpText: TranslationKey;
 	_errorMessageId: ?TranslationKey;
 	_userId: Id;

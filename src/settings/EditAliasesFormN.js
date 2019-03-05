@@ -30,7 +30,7 @@ export type EditAliasesFormAttrs = {
 
 class _EditAliasesForm {
 	_nbrOfAliases: number;
-	_expanded: stream<boolean>;
+	_expanded: Stream<boolean>;
 
 	constructor() {
 		this._nbrOfAliases = 0

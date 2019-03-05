@@ -15,3 +15,12 @@ export function throttleRoute() {
 		lastCall = now
 	}
 }
+
+export function getFirstPathComponent(url: string): string {
+	const index = url.indexOf("/", 1)
+	if (index === -1) {
+		return ""
+	} else {
+		return url.substring(index)
+	}
+}
