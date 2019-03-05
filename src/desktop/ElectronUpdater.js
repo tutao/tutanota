@@ -2,7 +2,7 @@
 import {autoUpdater} from 'electron-updater'
 import {net} from 'electron'
 import forge from 'node-forge'
-import {NotificationResult, notifier} from './DesktopNotifier.js'
+import {NotificationResult} from './DesktopNotifier.js'
 import {lang} from './DesktopLocalizationProvider.js'
 import type {DesktopConfigHandler} from './DesktopConfigHandler'
 import type {DeferredObject} from "../api/common/utils/Utils"
@@ -10,9 +10,11 @@ import {defer, neverNull} from "../api/common/utils/Utils"
 import {handleRestError} from "../api/common/error/RestError"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./DesktopTray.js"
+import type {DesktopNotifier} from "./DesktopNotifier"
 
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
+	_notifier: DesktopNotifier;
 
 	_updatePollInterval: ?IntervalID;
 	_keyRetrievalTimeout: ?TimeoutID;
@@ -21,8 +23,10 @@ export class ElectronUpdater {
 	_pubKey: string;
 	_logger: {info(string): void, warn(string): void, error(string): void}
 
-	constructor(conf: DesktopConfigHandler) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier) {
 		this._conf = conf
+		this._notifier = notifier
+
 		this._logger = {
 			info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
 			warn: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater warn:\n", m].concat(args)),
@@ -178,22 +182,22 @@ export class ElectronUpdater {
 	}
 
 	_notifyAndInstall(info: UpdateInfo): void {
-		notifier
-			.showOneShot({
-				title: lang.get('updateAvailable_label', {"{version}": info.version}),
-				body: lang.get('clickToUpdate_msg'),
-				icon: DesktopTray.getIcon()
-			})
-			.then((res) => {
-				if (res === NotificationResult.Click) {
-					autoUpdater.quitAndInstall(false, true)
-				}
-			})
-			.catch((e: Error) => this._logger.error("Notification failed,", e.message))
+		this._notifier
+		    .showOneShot({
+			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
+			    body: lang.get('clickToUpdate_msg'),
+			    icon: DesktopTray.getIcon()
+		    })
+		    .then((res) => {
+			    if (res === NotificationResult.Click) {
+				    autoUpdater.quitAndInstall(false, true)
+			    }
+		    })
+		    .catch((e: Error) => this._logger.error("Notification failed,", e.message))
 	}
 
 	_notifyUpdateError() {
-		notifier.showOneShot({
+		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
 		}).catch(e => this._logger.error("Notification failed,", e.message))

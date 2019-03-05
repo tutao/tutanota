@@ -35,7 +35,7 @@ export class DesktopSseClient {
 	_nextReconnect: ?TimeoutID;
 	_tryToReconnect: boolean;
 
-	constructor(conf: DesktopConfigHandler, wm: WindowManager, notifier: DesktopNotifier) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager) {
 		this._conf = conf
 		this._wm = wm
 		this._notifier = notifier

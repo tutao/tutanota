@@ -83,7 +83,7 @@ export class DesktopNotifier {
 	}
 
 	hasNotificationsForWindow(w: ApplicationWindow): boolean {
-		return !!w.getUserInfo && notifier.hasNotificationForId(neverNull(w.getUserId()))
+		return !!w.getUserInfo && this.hasNotificationForId(neverNull(w.getUserId()))
 	}
 
 	hasNotificationForId(id: string): boolean {
@@ -116,5 +116,3 @@ export class DesktopNotifier {
 
 	}
 }
-
-export const notifier = new DesktopNotifier()

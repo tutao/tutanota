@@ -25,7 +25,7 @@ export class IPC {
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	constructor(conf: DesktopConfigHandler, sse: DesktopSseClient, wm: WindowManager, notifier: DesktopNotifier) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager) {
 		this._conf = conf
 		this._sse = sse
 		this._wm = wm

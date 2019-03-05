@@ -14,12 +14,12 @@ import {DesktopSseClient} from "./DesktopSseClient"
 
 const conf = new DesktopConfigHandler()
 const notifier = new DesktopNotifier()
-const updater = new ElectronUpdater(conf)
+const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(conf, wm, notifier)
-const ipc = new IPC(conf, sse, wm, notifier)
+const sse = new DesktopSseClient(conf, notifier, wm)
+const ipc = new IPC(conf, notifier, sse, wm)
 wm.setIPC(ipc)
 
 PreloadImports.keep()
