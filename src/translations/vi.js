@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-02-28T13:20:14Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Vui lòng huỷ các gói lưu trữ đã đặt và huỷ các bí danh email trước khi chuyển đổi loại tài khoản.",
@@ -236,13 +236,11 @@ const translation = {
 		"languageHebrew_label": "Tiếng Hê-brơ",
 		"languageHindi_label": "Tiếng Hin-đi",
 		"languageHungarian_label": "Tiếng Hung-ga-ri",
-		"languageIcelandic_label": "Tiếng Ai-xơ-len",
 		"languageIndonesian_label": "Tiếng In-đô-nê-xi-a",
 		"languageItalian_label": "Tiếng Ý",
 		"languageJapanese_label": "Tiếng Nhật",
 		"languageKorean_label": "Tiếng Hàn Quốc",
 		"languageLithuanian_label": "Tiếng Lít-va",
-		"languageMacedonian_label": "Tiếng Mác-xê-đô-ni-a",
 		"languageNorwegian_label": "Tiếng Na Uy",
 		"languagePersian_label": "Tiếng Ba Tư",
 		"languagePolish_label": "Tiếng Ba Lan",

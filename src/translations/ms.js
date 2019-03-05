@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-02-28T13:20:14Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Sila nyahaktifkan pakej penyimpanan atau alias yang ditempah dan matikan semua alias email sebelum menukar jenis akaun.",
@@ -325,13 +325,11 @@ const translation = {
 		"languageHebrew_label": "Ibrani",
 		"languageHindi_label": "Hindi",
 		"languageHungarian_label": "Hungary",
-		"languageIcelandic_label": "Iceland",
 		"languageIndonesian_label": "Indonesia",
 		"languageItalian_label": "Itali",
 		"languageJapanese_label": "Jepun",
 		"languageKorean_label": "Korea",
 		"languageLithuanian_label": "Lithuania",
-		"languageMacedonian_label": "Macedonia",
 		"languageNorwegian_label": "Norway",
 		"languagePersian_label": "Persia",
 		"languagePolish_label": "Poland",

@@ -16,7 +16,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-03-01T09:50:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",
@@ -436,13 +436,12 @@ const translation = {
 		"languageHebrew_label": "Hebreo",
 		"languageHindi_label": "Hindú",
 		"languageHungarian_label": "Húngaro",
-		"languageIcelandic_label": "Islandés",
 		"languageIndonesian_label": "Indonesio",
 		"languageItalian_label": "Italiano",
 		"languageJapanese_label": "Xaponés",
 		"languageKorean_label": "Coreano",
 		"languageLithuanian_label": "Lituano",
-		"languageMacedonian_label": "Macedonio",
+		"languageMalay_label": "Malaio",
 		"languageNorwegian_label": "Noruego",
 		"languagePersian_label": "Persa",
 		"languagePolish_label": "Polaco",
