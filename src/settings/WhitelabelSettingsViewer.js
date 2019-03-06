@@ -106,7 +106,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				m("#global-settings.fill-absolute.scroll.plr-l", (this._brandingDomainField) ? [
 					m(".h4.mt-l", lang.get('whitelabel_label')),
 					m("small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
-					m("small.text-break", [m(`a[href=${this._getBrandingLink()}][target=_blank]`, this._getBrandingLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`, lang.getInfoLink("whitelabel_link"))]),
 					m(this._brandingDomainField),
 					m(this._customLogoField),
 					m(this._customColorsField),
@@ -141,12 +141,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			this._customerInfo.getLoaded().domainInfos.find(info => info.certificate) &&
 			this._whitelabelCodeField &&
 			this._whitelabelRegistrationDomains
-	}
-
-	_getBrandingLink(): string {
-		return (lang.code === "de" || lang.code === "de_sie") ?
-			"http://tutanota.uservoice.com/knowledgebase/articles/1180321" :
-			"http://tutanota.uservoice.com/knowledgebase/articles/1180318"
 	}
 
 	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {

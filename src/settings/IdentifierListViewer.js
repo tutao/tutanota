@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {isApp} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll, update} from "../api/main/Entity"
@@ -24,6 +24,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import stream from "mithril/stream/stream.js"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 type IdentifierRowAttrs = {|
 	name: string,
@@ -33,10 +34,6 @@ type IdentifierRowAttrs = {|
 	formatIdentifier: boolean,
 	removeClicked: () => void,
 	disableClicked: () => void
-|}
-
-export type IdentifierListViewerAttrs = {|
-	user: ?User
 |}
 
 class IdentifierRow implements MComponent<IdentifierRowAttrs> {
@@ -81,14 +78,17 @@ class IdentifierRow implements MComponent<IdentifierRowAttrs> {
 	}
 }
 
-class _IdentifierListViewer {
-	_identifiers: PushIdentifier[];
+export class IdentifierListViewer {
 	_currentIdentifier: ?string;
 	_expanded: Stream<boolean>
+	_user: ?User;
+	_identifiers: Stream<PushIdentifier[]>;
 
-	constructor() {
+	constructor(user: ?User) {
 		this._expanded = stream(false)
-		this._identifiers = []
+		this._identifiers = stream([])
+		this._user = user
+		this._loadPushIdentifiers()
 	}
 
 	_disableIdentifier(identifier: PushIdentifier) {
@@ -96,10 +96,7 @@ class _IdentifierListViewer {
 		update(identifier).then(m.redraw)
 	}
 
-	view(vnode: Vnode<IdentifierListViewerAttrs>) {
-		const a = vnode.attrs
-		this.loadPushIdentifiers(a.user)
-
+	view() {
 		const pushIdentifiersExpanderAttrs: ExpanderAttrs = {
 			label: "show_action",
 			expanded: this._expanded
@@ -109,7 +106,7 @@ class _IdentifierListViewer {
 			view: (): Children => {
 				const buttonAddAttrs: ButtonAttrs = {
 					label: "emailPushNotification_action",
-					click: () => this._showAddNotificationEmailAddressDialog(a.user),
+					click: () => this._showAddNotificationEmailAddressDialog(this._user),
 					icon: () => Icons.Add
 				}
 
@@ -117,13 +114,13 @@ class _IdentifierListViewer {
 					lang.get("emailPushNotification_action"), m(ButtonN, buttonAddAttrs)
 				])
 
-				const rows = this._identifiers.map(identifier => {
-					const current = isApp() && identifier.identifier === this._currentIdentifier
+				const rows = this._identifiers().map(identifier => {
+					const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this._currentIdentifier
 					return m(IdentifierRow, {
-						name: this._identifierTypeName(current, identifier.pushServiceType),
+						name: this._identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
 						disabled: identifier.disabled,
 						identifier: identifier.identifier,
-						current: current,
+						current: isCurrentDevice,
 						removeClicked: () => {erase(identifier).catch(NotFoundError, noOp)},
 						formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 						disableClicked: () => this._disableIdentifier(identifier)
@@ -143,27 +140,30 @@ class _IdentifierListViewer {
 		]
 	}
 
-	loadPushIdentifiers(user: ?User) {
-		if (!user) {
-			return
-		}
-		this._currentIdentifier = pushServiceApp.getPushIdentifier()
-		const list = user.pushIdentifierList
-		if (list) {
-			loadAll(PushIdentifierTypeRef, list.list)
-				.then((identifiers) => {
-					this._identifiers = identifiers
-				})
-		}
-	}
-
-	_identifierTypeName(current: boolean, type: NumberString): string {
+	_identifierDisplayName(current: boolean, type: NumberString, displayName: string): string {
 		if (current) {
 			return lang.get("pushIdentifierCurrentDevice_label")
+		} else if (displayName) {
+			return displayName
 		} else {
 			return [
 				"Android FCM", "iOS", lang.get("adminEmailSettings_action"), "Android Tutanota"
 			][Number(type)]
+		}
+	}
+
+	_loadPushIdentifiers() {
+		if (!this._user) {
+			return
+		}
+		this._currentIdentifier = pushServiceApp.getPushIdentifier()
+		const list = neverNull(this._user).pushIdentifierList
+		if (list) {
+			loadAll(PushIdentifierTypeRef, list.list)
+				.then((identifiers) => {
+					this._identifiers(identifiers)
+					m.redraw()
+				})
 		}
 	}
 
@@ -191,6 +191,7 @@ class _IdentifierListViewer {
 			let addNotificationEmailAddressOkAction = (dialog) => {
 				user = neverNull(user)
 				let pushIdentifier = createPushIdentifier()
+				pushIdentifier.displayName = lang.get("adminEmailSettings_action")
 				pushIdentifier.identifier = neverNull(getCleanedMailAddress(mailAddress()))
 				pushIdentifier.language = lang.code
 				pushIdentifier.pushServiceType = PushServiceType.EMAIL
@@ -217,6 +218,10 @@ class _IdentifierListViewer {
 			? "mailAddressInvalid_msg"
 			: null // TODO check if it is a Tutanota mail address
 	}
-}
 
-export const IdentifierListViewer: Class<MComponent<IdentifierListViewerAttrs>> = _IdentifierListViewer
+	entityEventReceived(update: EntityUpdateData): void {
+		if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
+			this._loadPushIdentifiers()
+		}
+	}
+}

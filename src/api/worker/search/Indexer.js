@@ -283,7 +283,9 @@ export class Indexer {
 		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
 		           .then(indexedGroupIds => {
 			           if (indexedGroupIds.length === 0) {
-				           throw new InvalidDatabaseStateError("no group ids in database")
+				           // tried to index twice, this is probably not our fault
+				           console.log("no group ids in database, disabling indexer")
+				           this.disableMailIndexing()
 			           }
 			           this._indexedGroupIds = indexedGroupIds
 		           })

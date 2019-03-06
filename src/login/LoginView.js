@@ -4,7 +4,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
-import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -121,13 +121,13 @@ export class LoginView {
 					}
 				}, [
 					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					m(".flex-center.pt-l", [
+					(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
 						m(optionsExpander),
-					]),
-					m("", [
+					]) : null,
+					(this._anyMoreItemVisible()) ? m("", [
 						m(optionsExpander.panel),
-					]),
-					(!isApp()) ? renderPrivacyAndImprintLinks() : null
+					]) : null,
+					(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
 				]),
 			])
 		}
@@ -171,6 +171,15 @@ export class LoginView {
 
 	_recoverLoginVisible(): boolean {
 		return isTutanotaDomain()
+	}
+
+	_anyMoreItemVisible(): boolean {
+		return this._signupLinkVisible()
+			|| this._loginAnotherLinkVisible()
+			|| this._deleteCredentialsLinkVisible()
+			|| this._knownCredentialsLinkVisible()
+			|| this._switchThemeLinkVisible()
+			|| this._recoverLoginVisible()
 	}
 
 	_expanderButton(): ExpanderButton {
@@ -251,7 +260,7 @@ export class LoginView {
 					}, lang.get("recoverAccountAccess_action"))
 					: null
 			])),
-			!isApp() && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
+			!(isApp() || isDesktop()) && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
 	}
 

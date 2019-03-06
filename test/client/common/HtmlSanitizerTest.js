@@ -113,6 +113,21 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(result.text.includes("data:image/svg+xml;utf8,")).equals(false);
 	})
 
+	o("background attribute", function () {
+		const plainHtml = "<table><tr><td background=\"https://tutanota.com/image.jpg\"> ....</td></tr></table>"
+		const cleanHtml = htmlSanitizer.sanitize(plainHtml, true)
+		o(cleanHtml.externalContent.length).equals(1)
+		o(cleanHtml.text.includes("background=")).equals(false) // background attribute is removed when writing node
+		o(htmlSanitizer.sanitize(plainHtml, false).text.includes("background=")).equals(true)
+	})
+	o("srcset attribute", function () {
+		const plainHtml = "<img srcset=\"https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x\" src=\"https://tutanota.com/image.jpg\">"
+		const cleanHtml = htmlSanitizer.sanitize(plainHtml, true)
+		o(cleanHtml.externalContent.length).equals(2)
+		o(cleanHtml.text.includes("srcSet")).equals(false)
+		o(cleanHtml.text.includes("srcset")).equals(false) // srcSet attribute is removed when writing node
+		o(cleanHtml.text.includes("src=\"data:image/svg+xml;utf8,")).equals(true)
+	})
 	o("detect images", function () {
 		let result = htmlSanitizer.sanitize('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', true)
 		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/510828b5a8f43ab5")

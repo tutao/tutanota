@@ -10,7 +10,7 @@ import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {downcast, identity, neverNull} from "../common/utils/Utils"
+import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
@@ -208,7 +208,7 @@ export class EventBusClient {
 				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false, false);
 			}
-			setTimeout(() => this.tryReconnect(false, false), 1000 * this._randomIntFromInterval(10, 30));
+			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(10, 30));
 		}
 	}
 
@@ -232,10 +232,6 @@ export class EventBusClient {
 			&& this._login.isLoggedIn()) {
 			this.connect(true);
 		}
-	}
-
-	_randomIntFromInterval(min: number, max: number): number {
-		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 
 	/**

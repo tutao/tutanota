@@ -1,15 +1,16 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "./Dialog"
-import {DialogHeaderBar} from "./DialogHeaderBar"
 import {assertMainOrNode} from "../../api/Env"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Keys} from "../../misc/KeyManager"
-import {Button, ButtonType} from "./Button"
+import type {ButtonAttrs} from "./ButtonN"
+import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {lang} from "../../misc/LanguageViewModel"
+import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -40,8 +41,6 @@ export class WizardDialog<T> {
 	dialog: Dialog;
 	_pages: Array<WizardPage<T>>;
 	_currentPage: WizardPage<T>;
-	_backButton: Button;
-	_nextButton: Button;
 	_closeAction: () => Promise<void>;
 
 	constructor(wizardPages: Array<WizardPage<T>>, closeAction: () => Promise<void>) {
@@ -64,20 +63,28 @@ export class WizardDialog<T> {
 				this._close()
 			}
 		}
-		this._backButton = new Button(() => {
-			return this._getEnabledPages().indexOf(this._currentPage) === 0 ? lang.get("cancel_action") : lang.get("back_action")
-		}, backAction).setType(ButtonType.Secondary)
+		const backButtonAttrs: ButtonAttrs = {
+			label: () => this._getEnabledPages().indexOf(this._currentPage) === 0
+				? lang.get("cancel_action")
+				: lang.get("back_action"),
+			click: backAction,
+			type: ButtonType.Secondary
+		}
 
-		this._nextButton = new Button("next_action", () => this._nextAction())
-			.setType(ButtonType.Secondary)
-			.setIsVisibleHandler(() => this._currentPage.isNextAvailable()
+		const nextButtonAttrs: ButtonAttrs = {
+			label: "next_action",
+			click: () => this._nextAction(),
+			type: ButtonType.Secondary,
+			isVisible: () => this._currentPage.isNextAvailable()
 				&& this._getEnabledPages().indexOf(this._currentPage)
-				!== (this._getEnabledPages().length - 1))
+				!== (this._getEnabledPages().length - 1)
+		}
 
-		let headerBar = new DialogHeaderBar()
-			.addLeft(this._backButton)
-			.setMiddle(() => this._currentPage.headerTitle())
-			.addRight(this._nextButton)
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [backButtonAttrs],
+			right: [nextButtonAttrs],
+			middle: () => this._currentPage.headerTitle()
+		}
 
 		this.view = () => m("#wizardDialogContent.pt", [
 				m("#wizard-paging.flex-space-around.border-top", {
@@ -93,12 +100,12 @@ export class WizardDialog<T> {
 				m(this._currentPage),
 			]
 		)
-		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: () => this._close(),
-				help: "close_alt"
-			}).setCloseHandler(backAction)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: () => this._close(),
+			                    help: "close_alt"
+		                    }).setCloseHandler(backAction)
 	}
 
 	_getEnabledPages(): WizardPage<T>[] {

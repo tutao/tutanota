@@ -37,6 +37,7 @@ import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
+import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -126,6 +127,9 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		migrationData.symEncSessionKey = groupEncSessionKey
 		return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData)
 			.then(() => (data: any))
+	} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
+		// set sessionKey for allowing encryption when old instance (< v43) is updated
+		data._ownerEncSessionKey = encryptKey(locator.login.getUserGroupKey(), aes128RandomKey())
 	}
 	return Promise.resolve(data)
 }

@@ -1,3 +1,5 @@
+import {IncomingMessage} from "electron"
+
 /**
  * this file is highly inaccurate, check the docs at electronjs.org
  */
@@ -39,12 +41,7 @@ declare module 'electron' {
 		y: number,
 		width: number,
 		height: number
-	|}
-
-	declare export type ClientRequest = {
-		on('error' | 'response', (Error & IncomingMessage)=>void): ClientRequest,
-		end(): void,
-	}
+	|};
 
 	declare export type IncomingMessage = {
 		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
@@ -61,6 +58,7 @@ declare module 'electron' {
 
 	declare export class App {
 		on(AppEvent, (Event, ...Array<any>) => void): App,
+		once(AppEvent, (Event, ...Array<any>) => void): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
@@ -158,6 +156,7 @@ declare module 'electron' {
 	declare export type Dock = {
 		setMenu(Menu): void,
 		bounce(): void,
+		isVisible(): boolean;
 		hide(): void,
 		show(): void,
 	}
@@ -213,18 +212,36 @@ declare module 'electron' {
 		focus(): void;
 		hide(): void;
 		close(): void;
+		destroy(): void;
 		restore(): void;
 		show(): void;
+		showInactive(): void;
 		maximize(): void;
 		unmaximize(): void;
 		isMaximized(): boolean;
 		loadFile(string): void;
 		loadURL(string): void;
+		minimize(): void;
 		isMinimized(): boolean;
+		isFocused(): boolean;
 		isFullScreen(): boolean;
+		isDestroyed(): boolean;
+		setFullScreen(boolean): void;
+		isVisible(): boolean;
+		isSimpleFullScreen(): boolean;
+		setSimpleFullScreen(boolean): void;
+		setFullScreen(boolean): void;
+		isFocused(): boolean;
 		openDevTools(): void;
 		getTitle(): string;
 		getBounds(): Rectangle;
+		setBounds(Rectangle): void;
+		getContentBounds(): Rectangle;
+		setContentBounds(Rectangle): void;
+		center(): void;
+		setMenuBarVisibility(boolean): void;
+		getPosition(): number[];
+		setPosition(x: number, y: number): void;
 		setMenu(menu: Menu | null): void;
 		webContents: WebContents;
 		id: Number;
@@ -268,10 +285,12 @@ declare module 'electron' {
 		send(string, any): void;
 		session: ElectronSession;
 		getURL(): string;
+		getTitle(): string;
 		getZoomFactor((factor: number) => void): void;
 		setZoomFactor(factor: number): void;
 		openDevTools(opts?: {|mode: string|}): void;
 		isDevToolsOpened(): boolean;
+		isDestroyed(): boolean;
 		closeDevTools(): void;
 		print(): void;
 		toggleDevTools(): void;
@@ -285,7 +304,7 @@ declare module 'electron' {
 		setZoomFactor(factor: number): void;
 	}
 
-	declare export class ElectronSession {
+	declare export type ElectronSession = {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
 		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => void) => void;
 		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;
@@ -313,6 +332,13 @@ declare module 'electron' {
 		= 'will-download';
 }
 
+
+declare type ClientRequest = {
+	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage)=>void): ClientRequest,
+	end(): void,
+	abort(): void,
+};
+
 declare module 'electron-updater' {
 	declare export var autoUpdater: AutoUpdater
 }
@@ -331,8 +357,8 @@ declare module 'electron-localshortcut' {
 
 
 declare class AutoUpdater {
-	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => void;
-	logger: {
+	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => AutoUpdater;
+	logger: ?{
 		info: (string) => void,
 		debug: (string) => void,
 		verbose: (string) => void,
@@ -524,6 +550,18 @@ declare module 'bluebird' {
 
 declare module 'request' {
 	declare export default any;
+}
+
+declare module 'https' {
+	declare module .exports: {
+		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+	}
+}
+
+declare module 'http' {
+	declare module .exports: {
+		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+	}
 }
 
 declare module 'node-forge' {

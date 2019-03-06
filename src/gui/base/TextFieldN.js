@@ -5,21 +5,22 @@ import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonN} from "./ButtonN"
 import {Dialog} from "./Dialog"
 import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
+	preventAutofill?: boolean,
 	type?: TextFieldTypeEnum,
-	helpLabel?: lazy<string>,
-	style?: Object,
-	injectionsLeft?: Function, // only used by the BubbleTextField to display bubbles
-	injectionsRight?: Function,
+	helpLabel?: ?lazy<Children>,
+	alignRight?: boolean,
+	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles
+	injectionsRight?: lazy<Children>,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
 	onblur?: Function,
 	maxWidth?: number,
@@ -96,7 +97,7 @@ export class _TextField {
 					a.injectionsLeft ? a.injectionsLeft() : null,
 					m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 						a.type !== Type.Area ? this._getInputField(a) : this._getTextArea(a),
-						a.injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", a.injectionsRight()) : null
+						a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null
 					])
 				]),
 			]),
@@ -117,7 +118,21 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m("input.input", {
+
+			/**
+			 * due to modern browser's 'smart' password managers that try to autofill everything
+			 * that remotely resembles a password field, we prepend invisible inputs to password fields
+			 * that shouldn't be autofilled.
+			 * since the autofill algorithm looks at inputs that come before and after the password field we need
+			 * three dummies.
+			 */
+			const autofillGuard = a.preventAutofill ? [
+				m("input", {style: {display: 'none'}, type: Type.Text}),
+				m("input", {style: {display: 'none'}, type: Type.Password}),
+				m("input", {style: {display: 'none'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow', autofillGuard.concat(m("input.input" + (a.alignRight ? ".right" : ""), {
 				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {
@@ -157,7 +172,7 @@ export class _TextField {
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					lineHeight: px(inputLineHeight),
 				}
-			})
+			})))
 		}
 	}
 

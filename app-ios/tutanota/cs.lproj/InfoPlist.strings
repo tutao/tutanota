@@ -1,3 +1,4 @@
+NSCameraUsageDescription = "Odfoťte fotku nebo natočte video, které chcete přidat jako přílohu.";
 NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
 NSPhotoLibraryAddUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
 NSMicrophoneUsageDescription = "Používáno při nahrávání video přílohy.";

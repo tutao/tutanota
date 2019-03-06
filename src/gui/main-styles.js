@@ -817,7 +817,7 @@ styles.registerStyle('main', () => {
 			margin: 0, // for safari browser
 			background: 'transparent',
 			outline: 'none',
-			width: '100%',
+			width: "100%",
 			overflow: 'hidden',
 			color: theme.content_fg,
 		},

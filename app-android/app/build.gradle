@@ -20,7 +20,7 @@ android {
         debugDist {
             initWith debug
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             applicationIdSuffix ".debugdist"
         }
         releaseTest {

@@ -4,7 +4,7 @@ import SquireEditor from "squire-rte"
 import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
-import {isMailAddress} from '../../misc/Formatter.js'
+import {isMailAddress} from '../../misc/FormatValidator'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -47,7 +47,11 @@ export class Editor {
 		this.initialized = defer()
 		this.onbeforeupdate = () => !(this._squire != null)  // do not update the dom part managed by squire
 		this.onremove = () => {
-			if (this._squire) this._squire.destroy()
+			if (this._squire) {
+				this._squire.destroy()
+				this._squire = null
+				this.initialized = defer()
+			}
 		}
 
 		this._styleActions = Object.freeze({

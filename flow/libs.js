@@ -96,6 +96,11 @@ declare module 'mithril/stream/stream.js' {
 declare module 'ospec/ospec.js' {
 	declare export default any;
 }
+
+declare module 'mockery' {
+	declare export default any;
+}
+
 declare module 'faker' {
 	declare var faker: any;
 }

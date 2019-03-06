@@ -103,9 +103,9 @@ export class DropdownN {
 					},
 					onscroll: (ev) => {
 						// needed here to prevent flickering on ios
-						if(ev.target.scrollTop < 0 ) {
+						if (ev.target.scrollTop < 0) {
 							ev.redraw = true
-						} else if ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight ){
+						} else if ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight) {
 							ev.redraw = true
 						} else {
 							ev.redraw = false
@@ -313,7 +313,8 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAtt
 }
 
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
-	return ((e) => {
+	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument
+	return ((e, dom) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
 			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
@@ -324,11 +325,8 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 		}
 		buttonPromise.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)
-			if (e.currentTarget) {
-				let buttonRect: ClientRect = e.currentTarget.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.displayUnique(dropdown)
-			}
+			dropdown.setOrigin(dom.getBoundingClientRect())
+			modal.displayUnique(dropdown)
 		})
 	}: clickHandler)
 }
@@ -356,7 +354,7 @@ export function attachDropdown(
 		click: (e, dom) => {
 			if (showDropdown()) {
 				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
-				dropDownFn({currentTarget: dom})
+				dropDownFn(e, dom)
 			} else if (oldClick) {
 				oldClick(e)
 			}

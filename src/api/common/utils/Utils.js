@@ -197,3 +197,7 @@ export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => vo
 		timeoutId = setTimeout(toInvoke, timeout)
 	}
 }
+
+export function randomIntFromInterval(min: number, max: number): number {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}

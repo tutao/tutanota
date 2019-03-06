@@ -11,6 +11,8 @@ import {lang} from "../../misc/LanguageViewModel"
 import {transform} from "../animation/Animations"
 import {nativeApp} from "../../native/NativeWrapper.js"
 import {ButtonN, ButtonType} from "./ButtonN"
+import type {DeferredObject} from "../../api/common/utils/Utils"
+import {defer} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -22,9 +24,11 @@ export class SearchInPageOverlay {
 	_closeFunction: (() => void) | null;
 	_domInput: HTMLInputElement;
 	_matchCase = false;
+	_ready: DeferredObject<void>;
 
 	constructor() {
 		this._closeFunction = null
+		this._ready = defer()
 	}
 
 	open() {
@@ -38,7 +42,7 @@ export class SearchInPageOverlay {
 				)
 			}
 			m.redraw()
-			this._domInput.focus()
+			this._ready.promise.then(() => this._domInput.focus())
 		}
 	}
 
@@ -65,6 +69,7 @@ export class SearchInPageOverlay {
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
+					this._ready.resolve()
 				},
 				oninput: e => {
 					nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {foward: true, matchCase: this._matchCase}]))

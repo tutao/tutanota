@@ -11,7 +11,7 @@ import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {isDomainName} from "../misc/Formatter"
+import {isDomainName} from "../misc/FormatValidator"
 
 assertMainOrNode()
 

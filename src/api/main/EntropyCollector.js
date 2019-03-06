@@ -44,12 +44,14 @@ export class EntropyCollector {
 		}
 
 		this._accelerometer = (e: any) => { // DeviceMotionEvent
-			let value = e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y
-				^ e.accelerationIncludingGravity.z
 			if (window.orientation && typeof window.orientation === "number") {
 				this._addEntropy(window.orientation, 0, EntropySrc.accelerometer)
 			}
-			this._addEntropy(value, 2, EntropySrc.accelerometer)
+			if (!!e.accelerationIncludingGravity) {
+				this._addEntropy(
+					e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z,
+					2, EntropySrc.accelerometer)
+			}
 		}
 	}
 

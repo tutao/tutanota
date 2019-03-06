@@ -28,13 +28,13 @@ export type TableAttrs = {
 	columnHeadingTextIds: TranslationKey[],
 	columnWidths: ColumnWidthEnum[],
 	showActionButtonColumn: boolean,
-	addButtonAttrs: ?ButtonAttrs,
+	addButtonAttrs?: ?ButtonAttrs,
 	lines: ?TableLineAttrs[]
 }
 
 export type TableLineAttrs = {
 	cells: string[],
-	actionButtonAttrs: ?ButtonAttrs
+	actionButtonAttrs?: ?ButtonAttrs
 }
 
 /**

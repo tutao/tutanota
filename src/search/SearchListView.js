@@ -7,7 +7,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {load} from "../api/main/Entity"
+import {erase, load} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
@@ -19,6 +19,9 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
+import {showDeleteConfirmationDialog} from "../mail/MailUtils"
+import {mailModel} from "../mail/MailModel"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -249,13 +252,6 @@ export class SearchListView {
 		return false
 	}
 
-	deleteLoadedEntity(elementId: Id): Promise<void> {
-		if (this.list) {
-			return this.list._deleteLoadedEntity(elementId)
-		}
-		return Promise.resolve()
-	}
-
 	getSelectedEntities(): SearchResultListEntry[] {
 		if (this.list) {
 			return this.list.getSelectedEntities()
@@ -299,6 +295,36 @@ export class SearchListView {
 		return this.list != null && this.list.ready
 	}
 
+	deleteSelected(): void {
+		let selected = this.getSelectedEntities()
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMails = selected.map(m => ((m.entry: any): Mail))
+				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
+					if (confirmed) {
+						if (selected.length > 1) {
+							// is needed for correct selection behavior on mobile
+							this.selectNone()
+						}
+						mailModel.deleteMails(selectedMails)
+					}
+				})
+			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
+				let selectedContacts = selected.map(m => ((m.entry: any): Contact))
+				Dialog.confirm("deleteContacts_msg").then(confirmed => {
+					if (confirmed) {
+						if (selected.length > 1) {
+							// is needed for correct selection behavior on mobile
+							this.selectNone()
+						}
+						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}))
+					}
+				})
+			}
+		}
+	}
 }
 
 export class SearchResultListRow {

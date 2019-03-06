@@ -21,6 +21,7 @@ import o from "ospec/ospec.js"
 
 node(() => {
 	require("./desktop/DesktopUtilsTest.js")
+	require("./desktop/DesktopConfigHandlerTest")
 })()
 
 o.run()
