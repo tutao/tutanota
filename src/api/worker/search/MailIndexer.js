@@ -181,6 +181,16 @@ export class MailIndexer {
 		return Promise.resolve()
 	}
 
+	extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
+		return this.mailboxIndexingPromise.then(() => {
+			if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
+				this.indexMailboxes(user, getStartOfDay(new Date(newOldestTimestamp)).getTime())
+				    .catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
+				return this.mailboxIndexingPromise
+			}
+		}).catch(CancelledError, e => {console.log("extend mail index has been cancelled", e)})
+	}
+
 	/**
 	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
 	 */

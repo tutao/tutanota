@@ -20,7 +20,7 @@ import {getElementId, getListId} from "../../../../src/api/common/EntityFunction
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {browserDataStub, mock, replaceAllMaps, spy} from "../../TestUtils"
+import {browserDataStub, makeCore, mock, replaceAllMaps, spy} from "../../TestUtils"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import type {FutureBatchActions} from "../../../../src/api/worker/search/EventQueue"
@@ -360,8 +360,7 @@ o.spec("MailIndexer test", () => {
 		return folder
 	}
 
-	o("_indexMailList", function () {
-
+	o("_indexMailLists", function () {
 		let rangeStart = 1513033200000
 		let rangeEnd = getDayShifted(new Date(1513033200000), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 		let mailGroup = "mail-group-id"
@@ -679,6 +678,49 @@ o.spec("MailIndexer test", () => {
 		o(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
 		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
 		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+	})
+
+	o.spec("extendIndexIfNeeded", async function () {
+		o("not extends if fully indexed", function () {
+			const core = makeCore()
+			const db = (null: any)
+			const worker = (null: any)
+			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+			const user = (null: any)
+			indexer.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
+
+			// Would blow up if we started indexing because we passed nulls
+			return indexer.extendIndexIfNeeded(user, Date.now())
+		})
+
+		o("not extends if already indexed range", function () {
+			const core = makeCore()
+			const db = (null: any)
+			const worker = (null: any)
+			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+			const user = (null: any)
+			const newOldTimestamp = Date.now()
+			indexer.currentIndexTimestamp = newOldTimestamp - 1000
+
+			// Would blow up if we started indexing because we passed nulls
+			return indexer.extendIndexIfNeeded(user, newOldTimestamp)
+		})
+
+		o("extends", async function () {
+			const user = createUser()
+			const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock), (mocked) => {
+				mocked.indexMailboxes = spy(() => Promise.resolve())
+			})
+			const currentIndexTimestamp = 1551884510318
+			indexer.currentIndexTimestamp = currentIndexTimestamp
+
+			await indexer.extendIndexIfNeeded(user, currentIndexTimestamp - INITIAL_MAIL_INDEX_INTERVAL_DAYS)
+
+			o(indexer.indexMailboxes.invocations).deepEquals([
+				// Start of the day
+				[user, 1551826800000]
+			])
+		})
 	})
 })
 
