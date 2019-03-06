@@ -34,10 +34,15 @@ export class TutanotaError extends ExtendableError() {
 			this.stack = this.name + ". " + this.message;
 			if (error.stack) { // not existing in IE9
 				let stackLines = error.stack.split("\n")
-				while (!stackLines[0].match(this.name)) {
+
+				while (stackLines[0] && !stackLines[0].match(this.name)) {
 					stackLines = stackLines.slice(1) // removes line from stack
 				}
-				this.stack += "\n" + stackLines.join("\n")
+				if (stackLines.length === 0) {
+					this.stack = error.stack
+				} else {
+					this.stack += "\n" + stackLines.join("\n")
+				}
 			}
 		}
 	}

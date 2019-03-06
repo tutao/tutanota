@@ -1,17 +1,18 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
+import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {addFlash, removeFlash} from "./Flash"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
+import {px} from "../size"
 
 export type ExpanderAttrs = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	expanded: Stream<boolean>,
 	showWarning?: boolean,
 	style?: Object,
@@ -28,8 +29,8 @@ class _ExpanderButton {
 
 	view(vnode: Vnode<ExpanderAttrs>) {
 		const a = vnode.attrs
-		return m(".pr-expander.flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.mr-s", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
 					this.toggle(a.expanded)
@@ -42,11 +43,14 @@ class _ExpanderButton {
 					icon: Icons.Warning,
 					style: {fill: a.color ? a.color : theme.content_button}
 				}) : null,
-				m("small.b.text-ellipsis", (a.label instanceof Function ? a.label() : lang.get(a.label)).toUpperCase()),
+				m("small.b.text-ellipsis", lang.getMaybeLazy(a.label).toUpperCase()),
 				m(Icon, {
 					icon: BootIcons.Expand,
 					class: "flex-center items-center",
-					style: {fill: a.color ? a.color : theme.content_button},
+					style: {
+						fill: a.color ? a.color : theme.content_button,
+						'margin-right': px(-4) // icon is has 4px whitespace to the right
+					},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
 						if (!a.expanded()) vnode.dom.style.transform = 'rotateZ(180deg)'
@@ -70,7 +74,7 @@ class _ExpanderPanel {
 	_domPanel: HTMLElement;
 
 	view(vnode: Vnode<ExpanderPanelAttrs>) {
-		return m(".expander-panel.overflow-hidden", [
+		return m(".expander-panel.overflow-hidden.no-shrink", [
 			vnode.attrs.expanded() ? m("div", {
 				oncreate: vnode => {
 					this._domPanel = vnode.dom

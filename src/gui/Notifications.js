@@ -1,16 +1,18 @@
 //@flow
 
 import {noOp} from "../api/common/utils/Utils"
-import {isApp} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 
-function _showNotification(title: string, options: ?NotificationOptions): ?Notification {
+function _showNotification(title: string, options: ?NotificationOptions, onclick: clickHandler): ?Notification {
 	if (Notification.permission === "granted") {
 		try {
 			const actualOptions: NotificationOptions = Object.assign({}, {
 				icon: NotificationIcon
 			}, options)
-			return new Notification(title, actualOptions)
+			const notification = new Notification(title, actualOptions)
+			notification.onclick = onclick
+			return notification
 		} catch (e) {
 			// new Notification() throws an error in new chrome browsers on android devices.
 			// According to the error message ServiceWorkerRegistration.showNotification() should be used instead.
@@ -24,7 +26,7 @@ function _showNotification(title: string, options: ?NotificationOptions): ?Notif
 
 export class Notifications {
 
-	showNotification: (title: string, options?: NotificationOptions) => ?Notification
+	showNotification: (title: string, options?: NotificationOptions, onclick: clickHandler) => ?Notification
 
 	constructor() {
 		this.showNotification = (isApp() || typeof Notification === "undefined") ? noOp : _showNotification
@@ -35,7 +37,7 @@ export class Notifications {
 	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
 	 */
 	requestPermission(): void {
-		if (isApp() || typeof Notification === "undefined") {
+		if (isDesktop() || isApp() || typeof Notification === "undefined") {
 			return
 		}
 		try {

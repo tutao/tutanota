@@ -1,11 +1,12 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {TextField} from "../gui/base/TextField"
 import {getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
-import {isDomainName, isMailAddress} from "../misc/Formatter"
+import {isDomainName, isMailAddress} from "../misc/FormatValidator"
 import {SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
@@ -57,7 +58,7 @@ export function show(emailAddressOrDomainName: ?string) {
 	})
 }
 
-function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?string {
+function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?TranslationKey {
 	let currentValue = value.toLowerCase().trim()
 
 	if (!existingRules || !customDomains) {

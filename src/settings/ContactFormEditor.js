@@ -3,7 +3,6 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {load, loadAll, setup, update} from "../api/main/Entity"
@@ -37,6 +36,7 @@ import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {Keys} from "../misc/KeyManager"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -161,9 +161,12 @@ export class ContactFormEditor {
 		this._language = stream(language)
 		this._languageField = new TextField("language_label").setDisabled()
 		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
-			let buttons = this._languages.map(l => new Button(() => getLanguageName(l.code),
-				e => this._language(l)).setType(ButtonType.Dropdown))
-			                  .sort((a, b) => a.getLabel().localeCompare(b.getLabel()))
+			let buttons: Array<Button> = this._languages.map(l => {
+				return new Button(
+					() => getLanguageName(l.code),
+					e => this._language(l)
+				).setType(ButtonType.Dropdown)
+			}).sort((a: Button, b: Button) => a.getLabel().localeCompare(b.getLabel()))
 			buttons.push(new Button("addLanguage_action", e => {
 				let additionalLanguages = languages.filter(t => {
 					if (t.code.endsWith('_sie')) {
@@ -240,10 +243,13 @@ export class ContactFormEditor {
 
 
 		let cancelAction = () => this._close()
-		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', cancelAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label"))
-			.addRight(new Button('save_action', () => this._save()).setType(ButtonType.Primary))
+
+		let headerBarAttrs : DialogHeaderBarAttrs =  {
+			left:[{label: 'cancel_action', click: cancelAction, type: ButtonType.Secondary}],
+			right:[{label: 'save_action', click: () => this._save(), type: ButtonType.Primary}],
+			middle:() => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label")
+		}
+
 		this.view = () => m("#contact-editor.pb", [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
@@ -263,7 +269,7 @@ export class ContactFormEditor {
 			m(".h4.mt-l", lang.get("statisticsFields_label")),
 			m(this._statisticsFieldsTable)
 		])
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: cancelAction,
@@ -275,7 +281,12 @@ export class ContactFormEditor {
 		language.pageTitle = this._pageTitleField.value()
 		language.headerHtml = this._headerField.getValue()
 		language.footerHtml = this._footerField.getValue()
-		language.helpHtml = this._helpField.getValue()
+		// the help html might contain <div> and <br> although no content was added, so remove it to avoid displaying the help link in the contact form
+		if (this._helpField.getValue().replace("<div>", "").replace("</div>", "").replace("<br>", "").trim() === "") {
+			language.helpHtml = ""
+		} else {
+			language.helpHtml = this._helpField.getValue()
+		}
 		language.statisticsFields = this._statisticsFields
 	}
 

@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isIOSApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -28,7 +28,7 @@ import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
 import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
-import * as UpgradeWizard from "./UpgradeSubscriptionWizard"
+import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -39,8 +39,17 @@ import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {Dialog} from "../gui/base/Dialog"
+import {
+	getIncludedAliases,
+	getIncludedStorageCapacity,
+	getSubscriptionType,
+	getTotalAliases,
+	getTotalStorageCapacity,
+	isWhitelabelActive, SubscriptionType
+} from "./SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -66,6 +75,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_periodEndDate: Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
+	_customerInfo: ?CustomerInfo;
 	_accountingInfo: ?AccountingInfo;
 	_lastBooking: ?Booking;
 	_orderAgreement: ?OrderProcessingAgreement;
@@ -76,20 +86,42 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo) {
-				showSwitchDialog(this._accountingInfo, this._isPro)
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else if (this._accountingInfo && this._customer && this._customerInfo) {
+				showSwitchDialog(this._accountingInfo,
+					this._isPro,
+					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
+					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
+					getIncludedStorageCapacity(neverNull(this._customerInfo)),
+					getIncludedAliases(neverNull(this._customerInfo)),
+					isWhitelabelActive(this._lastBooking))
 			}
 		}, () => Icons.Edit)
-		let upgradeAction = new Button("upgrade_action", () => UpgradeWizard.show(), () => Icons.Edit)
+
+		let upgradeAction = new Button("upgrade_action", () => {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				showUpgradeWizard()
+			}
+		}, () => Icons.Edit)
+
 		this._subscriptionField._injectionsRight = () => (
-			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-		                                                                            .isPremiumAccount()
-		&& !this._isCancelled ? [m(subscriptionAction)] : null)
+			logins.getUserController().isFreeAccount())
+			? m(upgradeAction)
+			: (logins.getUserController().isPremiumAccount() && !this._isCancelled
+				? [m(subscriptionAction)]
+				: null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
 			.setDisabled()
-		let usageTypeAction = new Button("businessUse_label", () => {
-			this._switchToBusinessUse()
+		let usageTypeAction = new Button("pricing.businessUse_label", () => {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				this._switchToBusinessUse()
+			}
 		}, () => Icons.Edit)
 		this._usageTypeField._injectionsRight = () => this._accountingInfo
 		&& !this._accountingInfo.business ? m(usageTypeAction) : null
@@ -120,8 +152,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		//this._usageTypeField._injectionsRight = () => m(usageTypeAction)
 
 		let subscriptionPeriods = [
-			{name: lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
-			{name: lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
+			{name: lang.get("pricing.yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
+			{name: lang.get("pricing.monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
 		]
 		this._selectedSubscriptionInterval = stream()
 		this._subscriptionIntervalField = new DropDownSelector("subscriptionPeriod_label",
@@ -221,7 +253,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this._updateOrderProcessingAgreement(customer)
 				return load(CustomerInfoTypeRef, customer.customerInfo)
 			})
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+			.then(customerInfo => {
+				this._customerInfo = customerInfo
+				return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+			})
 			.then(accountingInfo => {
 				this._updateAccountInfoData(accountingInfo)
 			})
@@ -257,13 +292,13 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			let accountingInfo = neverNull(this._accountingInfo)
 			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 			InvoiceDataDialog.show({
-				businessUse: true,
-				paymentInterval: Number(accountingInfo.paymentInterval),
+				businessUse: stream(true),
+				paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 			}, {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: ""
-			}, "businessUse_label", "businessChangeInfo_msg")
+			}, "pricing.businessUse_label", "businessChangeInfo_msg")
 		}
 	}
 
@@ -295,7 +330,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._usageTypeField.setValue(accountingInfo.business ? lang.get("businessUse_label") : lang.get("privateUse_label"))
+		this._usageTypeField.setValue(accountingInfo.business ? lang.get("pricing.businessUse_label") : lang.get("pricing.privateUse_label"))
 		this._selectedSubscriptionInterval(Number(accountingInfo.paymentInterval))
 
 		m.redraw()
@@ -308,12 +343,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			+ cancelledText).setDisabled()
 	}
 
-	_updatePro(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking) {
-		let aliases = getTotalAliases(customer, customerInfo, lastBooking)
-		let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
-		this._isPro = this._isWhitelabelActive() && aliases >= 20 && storage >= 10
-	}
-
 	_updateBookings() {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			load(CustomerInfoTypeRef, customer.customerInfo)
@@ -322,11 +351,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					if (!customerInfo) {
 						return
 					}
+					this._customerInfo = customerInfo
 					loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 							this._isCancelled = customer.canceledPremiumAccount
-							this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+							this._isPro = getSubscriptionType(this._lastBooking, customer, customerInfo) === SubscriptionType.Pro
 							this._updateSubscriptionField(this._isCancelled)
 							Promise.all([
 									this._updateUserField(),
@@ -380,15 +410,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateGroupsField(): Promise<void> {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount > 0 ? localAdminCount + " " + lang.get("localAdminGroup_label") : ""
+		const localAdminText = localAdminCount + " " + lang.get((localAdminCount == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = lang.get("sharedMailbox_label") + " " + sharedMailCount
-		if (localAdminCount === 0 && sharedMailCount === 0) {
+		const sharedMailText = sharedMailCount + " " + lang.get((sharedMailCount == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
+		if (localAdminCount === 0) { // also show the shared mailboxes text if no groups exists at all
 			this._groupsField.setValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
 			this._groupsField.setValue(sharedMailText + ", " + localAdminText)
 		} else {
-			this._groupsField.setValue(sharedMailText + localAdminText)
+			this._groupsField.setValue(localAdminText)
 		}
 		return Promise.resolve()
 	}
@@ -400,16 +430,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateWhitelabelField(): Promise<void> {
-		if (this._isWhitelabelActive()) {
+		if (isWhitelabelActive(this._lastBooking)) {
 			this._whitelabelField.setValue(lang.get("active_label"))
 		} else {
 			this._whitelabelField.setValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
-	}
-
-	_isWhitelabelActive(): boolean {
-		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) !== 0
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
@@ -435,29 +461,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 }
 
-
-/**
- * Returns the available storage capacity for the customer in GB
- */
-function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeStorageCapacity = Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
-	} else {
-		return freeStorageCapacity
-	}
-}
-
-function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
-	} else {
-		return freeAliases
-	}
-}
-
-
 function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
 	if (type === AccountType.PREMIUM && isPro) {
 		return "Pro"
@@ -469,10 +472,7 @@ function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
 export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
 		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-		worker.updatePaymentData({
-				businessUse: accountingInfo.business,
-				paymentInterval: paymentInterval,
-			}, {
+		worker.updatePaymentData(accountingInfo.business, paymentInterval, {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: accountingInfo.invoiceVatIdNo

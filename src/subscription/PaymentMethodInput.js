@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Country} from "../api/common/CountryList"
 import {CountryType} from "../api/common/CountryList"
@@ -14,7 +15,8 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -29,11 +31,11 @@ export class PaymentMethodInput {
 	_selectedPaymentMethod: PaymentMethodTypeEnum;
 	_subscriptionOptions: SubscriptionOptions;
 	_payPalRequestUrl: LazyLoaded<string>;
-	_accountingInfo: AccountingInfo;
+	_accountingInfo: ?AccountingInfo;
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
+	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: ?AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()
@@ -88,22 +90,22 @@ export class PaymentMethodInput {
 		this._currentPaymentMethodComponent = this._creditCardComponent
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard
 		this.view = () => m(this._currentPaymentMethodComponent)
-		this.oncreate = () => locator.entityEvent.addListener(accountingInfoListener)
-		this.onremove = () => locator.entityEvent.removeListener(accountingInfoListener)
+		this.oncreate = () => locator.eventController.addEntityListener(accountingInfoListener)
+		this.onremove = () => locator.eventController.removeEntityListener(accountingInfoListener)
 	}
 
 	isPaypalAssigned() {
 		return this._accountingInfo && this._accountingInfo.paypalBillingAgreement != null
 	}
 
-	validatePaymentData(): ?string {
+	validatePaymentData(): ?TranslationKey {
 		const country = this._selectedCountry()
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			if (this._subscriptionOptions.businessUse && country && country.t === CountryType.OTHER) {
+			if (this._subscriptionOptions.businessUse() && country && country.t === CountryType.OTHER) {
 				return "paymentMethodNotAvailable_msg"
-			} else if (!this._subscriptionOptions.businessUse) {
+			} else if (!this._subscriptionOptions.businessUse()) {
 				return "paymentMethodNotAvailable_msg"
 			}
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
@@ -154,7 +156,7 @@ export class PaymentMethodInput {
 			{name: "PayPal", value: PaymentMethodType.Paypal}
 		]
 
-		if (this._subscriptionOptions.businessUse) {
+		if (this._subscriptionOptions.businessUse()) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodOnAccount_label"),
 				value: PaymentMethodType.Invoice

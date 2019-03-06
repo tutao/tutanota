@@ -26,6 +26,7 @@ import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {lazyIcon} from "../gui/base/Icon"
+import {endsWith} from "../api/common/utils/StringUtils"
 
 assertMainOrNode()
 
@@ -134,7 +135,11 @@ export function getDisplayText(name: string, mailAddress: string, preferNameOnly
 
 export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
 	if (mail.state === MailState.RECEIVED) {
-		return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		if (isExcludedMailAddress(mail.sender.address)) {
+			return ""
+		} else {
+			return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		}
 	} else {
 		let allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 		if (allRecipients.length > 0) {
@@ -144,6 +149,22 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 			return ""
 		}
 	}
+}
+
+export function getSenderOrRecipientHeadingTooltip(mail: Mail): string {
+	if (isTutanotaTeamMail(mail) && !isExcludedMailAddress(mail.sender.address)) {
+		return lang.get("tutaoInfo_msg")
+	} else {
+		return ""
+	}
+}
+
+export function isTutanotaTeamMail(mail: Mail): boolean {
+	return mail.confidential && (mail.state === MailState.RECEIVED) && endsWith(mail.sender.address, "@tutao.de")
+}
+
+export function isExcludedMailAddress(mailAddress: string) {
+	return mailAddress === "no-reply@tutao.de"
 }
 
 export function getDefaultSenderFromUser(): string {
@@ -180,10 +201,16 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 	}
 
 	addresses.forEach((address) => {
-		address ? toRecipients.push(neverNull(createMailAddressFromString(decodeURIComponent(address)))) : null
+		if (address) {
+			const decodedAddress = decodeURIComponent(address)
+			if (decodedAddress) {
+				const mailAddressObject = createMailAddressFromString(decodedAddress)
+				mailAddressObject && toRecipients.push(mailAddressObject)
+			}
+		}
 	})
 
-	if (url.searchParams) { // not supported in Edge
+	if (url.searchParams && typeof url.searchParams.entries === "function") { // not supported in Edge
 		for (let pair of url.searchParams.entries()) {
 			let paramName = pair[0].toLowerCase()
 			let paramValue = pair[1]
@@ -193,16 +220,28 @@ export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailA
 				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
 			} else if (paramName === "cc") {
 				paramValue.split(",")
-				          .forEach((ccAddress) => ccAddress
-					          && ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))))
+				          .forEach((ccAddress) => {
+					          if (ccAddress) {
+						          const addressObject = createMailAddressFromString(ccAddress)
+						          addressObject && ccRecipients.push(addressObject)
+					          }
+				          })
 			} else if (paramName === "bcc") {
 				paramValue.split(",")
-				          .forEach((bccAddress) => bccAddress
-					          && bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))))
+				          .forEach((bccAddress) => {
+					          if (bccAddress) {
+						          const addressObject = createMailAddressFromString(bccAddress)
+						          addressObject && bccRecipients.push(addressObject)
+					          }
+				          })
 			} else if (paramName === "to") {
 				paramValue.split(",")
-				          .forEach((toAddress) => toAddress
-					          && toRecipients.push(neverNull(createMailAddressFromString(toAddress))))
+				          .forEach((toAddress) => {
+					          if (toAddress) {
+						          const addressObject = createMailAddressFromString(toAddress)
+						          addressObject && toRecipients.push(addressObject)
+					          }
+				          })
 			}
 		}
 	}

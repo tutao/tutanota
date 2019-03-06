@@ -14,8 +14,10 @@ const DB_VERSION = 2
 export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
+	_activeTransactions: number;
 
 	constructor(supported: boolean) {
+		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
 			// ask the main thread if indexedDB is supported.
@@ -28,7 +30,7 @@ export class DbFacade {
 
 						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
 						DBOpenRequest.onerror = (error) => {
-							callback(new DbError(`could not open indexeddb ${this._id}`, error), null)
+							callback(new DbError(`could not open indexeddb ${this._id}`, error))
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
@@ -60,12 +62,15 @@ export class DbFacade {
 						DBOpenRequest.onsuccess = (event) => {
 							//console.log("opened db", event)
 							DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
-							DBOpenRequest.result.onclose = (event) => console.log("db closed", event)
+							DBOpenRequest.result.onclose = (event) => {
+								console.log("db closed", event)
+								this._db.reset()
+							}
 							DBOpenRequest.result.onerror = (event) => console.log("db error", event)
 							callback(null, DBOpenRequest.result)
 						}
 					} catch (e) {
-						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e), null)
+						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e))
 					}
 				})
 			}
@@ -92,17 +97,21 @@ export class DbFacade {
 	 */
 	deleteDatabase(): Promise<void> {
 		if (this._db.isLoaded()) {
-			this._db.getLoaded().close()
-			return Promise.fromCallback(cb => {
-				let deleteRequest = indexedDB.deleteDatabase(this._db.getLoaded().name)
-				deleteRequest.onerror = (event) => {
-					cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
-				}
-				deleteRequest.onsuccess = (event) => {
-					this._db.reset()
-					cb()
-				}
-			})
+			if (this._activeTransactions > 0) {
+				return Promise.delay(150).then(() => this.deleteDatabase())
+			} else {
+				this._db.getLoaded().close()
+				return Promise.fromCallback(cb => {
+					let deleteRequest = indexedDB.deleteDatabase(this._db.getLoaded().name)
+					deleteRequest.onerror = (event) => {
+						cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
+					}
+					deleteRequest.onsuccess = (event) => {
+						this._db.reset()
+						cb()
+					}
+				})
+			}
 		} else {
 			return Promise.resolve()
 		}
@@ -114,7 +123,12 @@ export class DbFacade {
 	createTransaction(readOnly: boolean, objectStores: string[]): Promise<DbTransaction> {
 		return this._db.getAsync().then(db => {
 			try {
-				return new DbTransaction(db.transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+				const transaction = new DbTransaction(db.transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+				this._activeTransactions++
+				transaction.wait().finally(() => {
+					this._activeTransactions--
+				})
+				return transaction
 			} catch (e) {
 				throw new DbError("could not create transaction", e)
 			}
@@ -162,7 +176,7 @@ export class DbTransaction {
 					callback(new DbError("IDB Unable to retrieve data from database!", event))
 				}
 				request.onsuccess = (event) => {
-					let cursor = event.target.result
+					let cursor = request.result
 					if (cursor) {
 						keys.push({key: cursor.key, value: cursor.value})
 						cursor.continue() // onsuccess is called again

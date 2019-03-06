@@ -43,7 +43,7 @@ interface EntityRestInterface {
 	 * @param queryParams
 	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
 	 */
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<?T | T[] | Id>
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id>
 
 }
 

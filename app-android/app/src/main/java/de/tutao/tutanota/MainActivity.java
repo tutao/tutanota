@@ -3,8 +3,10 @@ package de.tutao.tutanota;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -17,7 +19,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -29,26 +30,30 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import org.jdeferred.Deferred;
-import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
@@ -57,6 +62,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
     public static final String THEME_PREF = "theme";
+    private static final int SUPPORTED_WEBVIEW_VERSION = 63;
     private static HashMap<Integer, Deferred> requests = new HashMap<>();
     private static int requestId = 0;
     private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
@@ -87,10 +93,14 @@ public class MainActivity extends Activity {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         WebSettings settings = webView.getSettings();
+
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setAllowUniversalAccessFromFileURLs(true);
+        // Reject cookies by external content
+        CookieManager.getInstance().setAcceptCookie(false);
+        CookieManager.getInstance().removeAllCookies(null);
 
         this.nativeImpl.getWebAppInitialized().then(result -> {
             if (!firstLoaded) {
@@ -106,10 +116,17 @@ public class MainActivity extends Activity {
                     nativeImpl.setup();
                     return false;
                 }
+
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(MainActivity.this, "Could not open link", Toast.LENGTH_SHORT)
+                            .show();
+                }
                 return true;
             }
+
         });
 
         // Handle long click on links in the WebView
@@ -167,8 +184,10 @@ public class MainActivity extends Activity {
     private void handleIntent(Intent intent) {
         if (intent.getAction() != null) {
             switch (intent.getAction()) {
+                // See descriptions of actions in AndroidManifest.xml
                 case Intent.ACTION_SEND:
                 case Intent.ACTION_SEND_MULTIPLE:
+                case Intent.ACTION_SENDTO:
                 case Intent.ACTION_VIEW:
                     share(intent);
                     break;
@@ -372,17 +391,12 @@ public class MainActivity extends Activity {
 
     @NonNull
     private JSONArray getFilesFromIntent(@NonNull Intent intent) {
-        Debug.waitForDebugger();
         ClipData clipData = intent.getClipData();
         final JSONArray filesArray = new JSONArray();
         if (clipData != null) {
             for (int i = 0; i < clipData.getItemCount(); i++) {
-                ClipData.Item item = clipData.getItemAt(0);
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, item.getUri()));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + item.getUri());
-                }
+                ClipData.Item item = clipData.getItemAt(i);
+                filesArray.put(item.getUri().toString());
             }
         } else {
             // Intent documentation claims that data is copied to ClipData if it's not there
@@ -393,27 +407,15 @@ public class MainActivity extends Activity {
                 ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
                 if (uris != null) {
                     for (Uri uri : uris) {
-                        try {
-                            filesArray.put(FileUtil.uriToFile(this, uri));
-                        } catch (FileNotFoundException e) {
-                            Log.w(TAG, "Could not find file " + uri);
-                        }
+                        filesArray.put(uri.toString());
                     }
                 }
             } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
                 Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, uri));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + uri);
-                }
+                filesArray.put(uri.toString());
             } else if (intent.getData() != null) {
                 Uri uri = intent.getData();
-                try {
-                    filesArray.put(FileUtil.uriToFile(this, uri));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not find file " + uri);
-                }
+                filesArray.put(uri.toString());
             } else {
                 Log.w(TAG, "Did not find files in the intent");
             }

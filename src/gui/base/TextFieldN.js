@@ -5,6 +5,7 @@ import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonN} from "./ButtonN"
 import {Dialog} from "./Dialog"
@@ -12,15 +13,17 @@ import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
 
 export type TextFieldAttrs = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
-	type?: TextFieldTypeEnum;
-	helpLabel?: lazy<string>,
-	style?: Object,
-	injectionsLeft?: Function; // only used by the BubbleTextField to display bubbles
-	injectionsRight?: Function;
-	keyHandler?: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
-	onblur?: Function;
+	preventAutofill?: boolean,
+	type?: TextFieldTypeEnum,
+	helpLabel?: ?lazy<Children>,
+	alignRight?: boolean,
+	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles
+	injectionsRight?: lazy<Children>,
+	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
+	onblur?: Function,
+	maxWidth?: number,
 	class?: string,
 	disabled?: boolean,
 }
@@ -82,19 +85,19 @@ export class _TextField {
 						this._domLabel.style.transform = 'translateY(' + 0 + "px)"
 					}
 				},
-			}, a.label instanceof Function ? a.label() : lang.get(a.label)),
+			}, lang.getMaybeLazy(a.label)),
 			m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
 				m(".flex.items-end.flex-wrap", {
 					style: {
 						'min-height': px(size.button_height + 2), // 2 px border
 						'padding-bottom': this.active ? px(0) : px(1),
-						'border-bottom': a.disabled ? '1px solid transparent' : this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
+						'border-bottom': this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
 					},
 				}, [
 					a.injectionsLeft ? a.injectionsLeft() : null,
 					m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 						a.type !== Type.Area ? this._getInputField(a) : this._getTextArea(a),
-						a.injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", a.injectionsRight()) : null
+						a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null
 					])
 				]),
 			]),
@@ -106,7 +109,7 @@ export class _TextField {
 		])
 	}
 
-	_getInputField(a: TextFieldAttrs): VirtualElement {
+	_getInputField(a: TextFieldAttrs): Vnode<any> {
 		if (a.disabled) {
 			return m(".text-break.selectable", {
 				style: {
@@ -115,7 +118,21 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m("input.input", {
+
+			/**
+			 * due to modern browser's 'smart' password managers that try to autofill everything
+			 * that remotely resembles a password field, we prepend invisible inputs to password fields
+			 * that shouldn't be autofilled.
+			 * since the autofill algorithm looks at inputs that come before and after the password field we need
+			 * three dummies.
+			 */
+			const autofillGuard = a.preventAutofill ? [
+				m("input", {style: {display: 'none'}, type: Type.Text}),
+				m("input", {style: {display: 'none'}, type: Type.Password}),
+				m("input", {style: {display: 'none'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow', autofillGuard.concat(m("input.input" + (a.alignRight ? ".right" : ""), {
 				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
 				value: a.value(),
 				oncreate: (vnode) => {
@@ -155,7 +172,7 @@ export class _TextField {
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					lineHeight: px(inputLineHeight),
 				}
-			})
+			})))
 		}
 	}
 
@@ -275,7 +292,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 				let dateValue = stream(value ? formatDate(value) : "")
 				dateValue.map(newDate => {
 					try {
-						if (newDate.trim().length>0) {
+						if (newDate.trim().length > 0) {
 							let timestamp = parseDate(newDate)
 							isNaN(timestamp) ? null : new Date(timestamp)
 						}
@@ -284,7 +301,7 @@ export function editableDateField(label: string, value: ?Date, updateHandler: ha
 						invalidDate = true
 					}
 				})
-				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : null
+				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : ""
 				let dialog = Dialog.showActionDialog({
 					title: lang.get("edit_action"),
 					child: {

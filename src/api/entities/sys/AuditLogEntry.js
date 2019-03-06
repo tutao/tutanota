@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 		"_ownerGroup": {"name": "_ownerGroup", "id": 1106, "since": 22, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"_permissions": {"name": "_permissions", "id": 1104, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"action": {"name": "action", "id": 1110, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"actorIpAddress": {"name": "actorIpAddress", "id": 1109, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"actorIpAddress": {"name": "actorIpAddress", "id": 1109, "since": 22, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
 		"actorMailAddress": {"name": "actorMailAddress", "id": 1108, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
 		"date": {"name": "date", "id": 1112, "since": 22, "type": "Date", "cardinality": "One", "final": true, "encrypted": true},
 		"modifiedEntity": {"name": "modifiedEntity", "id": 1111, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createAuditLogEntry(): AuditLogEntry {

@@ -1,16 +1,18 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {NavButton} from "../gui/base/NavButton"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {CurrentView} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
+import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -30,8 +32,12 @@ import {locator} from "../api/main/MainLocator"
 import {WhitelabelChildrenListView} from "./WhitelabelChildrenListView"
 import {SubscriptionViewer} from "../subscription/SubscriptionViewer"
 import {PaymentViewer} from "../subscription/PaymentViewer"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {showUserImportDialog} from "./UserViewer"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {getAvailableDomains} from "./AddUserDialog"
+import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 
@@ -47,12 +53,18 @@ export class SettingsView implements CurrentView {
 	_selectedFolder: SettingsFolder;
 	_currentViewer: ?UpdatableSettingsViewer;
 	detailsViewer: ?UpdatableSettingsViewer; // the component for the details column. can be set by settings views
+	_customDomains: LazyLoaded<string[]>;
 
 	constructor() {
 		this._userFolders = [
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 		]
+
+		if (isDesktop()) {
+			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => new DesktopSettingsViewer()))
+		}
+
 		this._adminFolders = []
 
 		this._adminFolders.push(new SettingsFolder("adminUserList_action", () => BootIcons.Contacts, "users", () => new UserListView(this)))
@@ -70,11 +82,11 @@ export class SettingsView implements CurrentView {
 		}
 		if (!logins.isEnabled(FeatureType.WhitelabelChild)) {
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
-			if (logins.getUserController().isGlobalAdmin() && !isIOSApp()) {
-				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer()))
-				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer()).setIsVisibleHandler(() => {
-					return !logins.getUserController().isFreeAccount()
-				}))
+			if (logins.getUserController().isGlobalAdmin()) {
+				this._adminFolders.push(new SettingsFolder("adminSubscription_action", () => BootIcons.Premium, "subscription", () => new SubscriptionViewer())
+					.setIsVisibleHandler(() => !isIOSApp() || !logins.getUserController().isFreeAccount()))
+				this._adminFolders.push(new SettingsFolder("adminPayment_action", () => Icons.Cash, "invoice", () => new PaymentViewer())
+					.setIsVisibleHandler(() => !logins.getUserController().isFreeAccount()))
 			}
 		}
 
@@ -84,11 +96,12 @@ export class SettingsView implements CurrentView {
 		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", [
 				m(".plr-l", m(userFolderExpander)),
 				m(userFolderExpander.panel),
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
-				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null
+				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
+				isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 			])
 		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
 
@@ -121,12 +134,21 @@ export class SettingsView implements CurrentView {
 					m(newAction) : null
 			])
 		}
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			this.entityEventsReceived(updates)
 		})
+
+		this._customDomains = new LazyLoaded(() => {
+			return getAvailableDomains(true)
+		})
+		this._customDomains.getAsync().then(() => m.redraw())
 	}
 
-	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {
+	_createFolderExpander(textId: TranslationKey, folders: SettingsFolder[]): ExpanderButton {
+		let importUsersButton = new Button('importUsers_action',
+			() => showUserImportDialog(this._customDomains.getLoaded()),
+			() => Icons.ContactImport
+		).setColors(ButtonColors.Nav)
 		let buttons = folders.map(folder => {
 			let button = new NavButton(folder.nameTextId, folder.icon, () => folder.url, folder.url)
 				.setColors(ButtonColors.Nav)
@@ -138,7 +160,14 @@ export class SettingsView implements CurrentView {
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
 			view: () => m(".folders", buttons.map(fb => fb.isVisible() ?
-				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [m(fb)]) : null))
+				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
+					m(fb),
+					!isApp() && fb.isSelected() && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+					&& this._customDomains.getLoaded().length > 0
+						? m(importUsersButton)
+						: null
+				])
+				: null))
 		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander
@@ -170,6 +199,8 @@ export class SettingsView implements CurrentView {
 				this._selectedFolder = folder
 				this._currentViewer = null
 				this.detailsViewer = null
+				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
+				this._getCurrentViewer()
 				header.settingsUrl = folder.url
 				m.redraw()
 			}
@@ -202,6 +233,10 @@ export class SettingsView implements CurrentView {
 					m.redraw()
 				})
 			}
+			if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+				this._customDomains.reset()
+				this._customDomains.getAsync().then(() => m.redraw())
+			}
 		}
 		if (this._currentViewer) {
 			this._currentViewer.entityEventsReceived(updates)
@@ -213,5 +248,24 @@ export class SettingsView implements CurrentView {
 
 	getViewSlider(): ?IViewSlider {
 		return this.viewSlider
+	}
+
+	_aboutThisSoftwareLink(): Vnode<any> {
+		const pltf = isAndroidApp()
+			? 'android-'
+			: isIOSApp()
+				? 'ios-'
+				: ''
+		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
+		return m(".pb-s.pt-l.flex-no-shrink.flex.col.justify-end", [
+			m("a.text-center.small.no-text-decoration", {
+					href: lnk,
+					target: '_blank',
+				}, [
+					m("", `Tutanota v${env.versionNumber}`),
+					m(".underline", lang.get('releaseNotes_action'))
+				]
+			)
+		])
 	}
 }

@@ -50,9 +50,12 @@ type PublicKey = {
 }
 
 type WorkerRequestType = 'setup'
+	| 'generateSignupKeys'
 	| 'signup'
 	| 'createSession'
 	| 'createExternalSession'
+	| 'loadExternalPasswordChannels'
+	| 'sendExternalPasswordSms'
 	| 'reset'
 	| 'resumeSession'
 	| 'testEcho'
@@ -116,12 +119,17 @@ type WorkerRequestType = 'setup'
 	| 'readCounterValue'
 	| 'getMoreSearchResults'
 	| 'cancelCreateSession'
+	| 'getRecoveryCode'
+	| 'createRecoveryCode'
+	| 'recoverLogin'
+	| 'resetSecondFactors'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
 	| 'progress'
 	| 'updateIndexState'
 	| 'updateWebSocketState'
+	| 'counterUpdate'
 type NativeRequestType = 'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -148,12 +156,30 @@ type NativeRequestType = 'init'
 	| 'changeTheme'
 	| 'saveBlob'
 	| 'putFileIntoDownloads'
+	| 'findInPage'
+	| 'stopFindInPage'
+	| 'registerMailto'
+	| 'unregisterMailto'
+	| 'openNewWindow'
+	| 'showWindow'
+	| 'sendDesktopConfig'
+	| 'updateDesktopConfig'
+	| 'enableAutoLaunch'
+	| 'disableAutoLaunch'
+
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
 	| 'showAlertDialog'
 	| 'openMailbox'
 	| 'keyboardSizeChanged'
+	| 'sendTranslations'
+	| 'print'
+	| 'openFindInPage'
+	| 'reportError'
 
+type WebContentsMessage
+	= 'setup-context-menu'
+	| 'open-context-menu'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>
@@ -197,7 +223,7 @@ type ModelAssociation = {
 type EnvType = {
 	staticUrl: ?string, // if null the url from the browser is used
 	mode: "Browser" | "App" | "Test" | "Playground",
-	platformId: ?"ios" | ?"android",
+	platformId: ?"ios" | ?"android" | ?"darwin" | ?"linux" | ?"win32",
 	dist: boolean,
 	versionNumber: string,
 	timeout: number,
@@ -213,6 +239,8 @@ type WhitelabelCustomizations = {
 	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
 	germanLanguageCode: string,
 	registrationDomains: ?string[],
+	imprintUrl: ?string,
+	privacyStatementUrl: ?string,
 }
 
 declare var whitelabelCustomizations: ?WhitelabelCustomizations
@@ -285,11 +313,6 @@ type SearchIndexStateInfo = {
 	mailIndexEnabled: boolean;
 	progress: number;
 	currentMailIndexTimestamp: number;
-}
-
-type SubscriptionOptions = {
-	businessUse: boolean,
-	paymentInterval: number,
 }
 
 type CreditCardData = {

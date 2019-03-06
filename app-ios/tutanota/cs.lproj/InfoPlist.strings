@@ -1,0 +1,12 @@
+NSCameraUsageDescription = "Odfoťte fotku nebo natočte video, které chcete přidat jako přílohu.";
+NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
+NSPhotoLibraryAddUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
+NSMicrophoneUsageDescription = "Používáno při nahrávání video přílohy.";
+NSContactsUsageDescription = "Najít adresu příjemce v kontaktech";
+NSRemindersUsageDescription = "Zobrazit upozornění při doručení nového e-mailu.";
+TutaoShowCameraAction = "Fotoaparát";
+TutaoChoosePhotosAction = "Fotky";
+TutaoNoPermissionTitle = "Žádný přístup.";
+TutaoChangePermissionMsg = "K umožnění přístupu musíte upravit povolení pro toto zařízení.";
+TutaoCancelAction = "Zrušit";
+TutaoSettingsAction = "Nastavení";

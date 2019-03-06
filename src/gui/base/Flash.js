@@ -9,11 +9,11 @@ const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in el
 const PREVENT = (e) => e.preventDefault()
 
 const eventListenerArgs = client.passive() ? {passive: true} : false
-window.document.addEventListener("mouseup", () => flashedIn.forEach((computedOpacity: number, target: HTMLElement) => flashOutElement(target, computedOpacity)), eventListenerArgs)
 
 export function addFlash(target: any) {
 	if (client.isDesktopDevice()) {
 		target.addEventListener("mousedown", flashIn, eventListenerArgs)
+		target.addEventListener("mouseup", flashOut, eventListenerArgs)
 		target.addEventListener("dragstart", PREVENT, client.passive() ? {passive: false} : false)
 	} else {
 		target.addEventListener("touchstart", flashIn, eventListenerArgs)
@@ -25,6 +25,7 @@ export function addFlash(target: any) {
 export function removeFlash(target: any) {
 	if (client.isDesktopDevice()) {
 		target.removeEventListener("mousedown", flashIn, eventListenerArgs)
+		target.removeEventListener("mouseup", flashOut, eventListenerArgs)
 		target.removeEventListener("dragstart", PREVENT)
 	} else {
 		target.removeEventListener("touchstart", flashIn, eventListenerArgs)
@@ -51,7 +52,7 @@ export function flashOutElement(target: HTMLElement, computedOpacity: ?number) {
 	if (computedOpacity) {
 		flashedIn.delete(target)
 		// don't keep the opacity value after the animation. hover on elements won't work otherwise.
-		animations.add(target, opacity(0.4, computedOpacity, false), {delay: 300})
+		animations.add(target, opacity(0.4, computedOpacity, false), {delay: 300}).then(() => target.style.opacity = '')
 	}
 }
 

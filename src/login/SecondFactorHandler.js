@@ -11,12 +11,13 @@ import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fError, U2fWrongDeviceError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
-import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../api/common/error/RestError"
+import {AccessBlockedError, BadRequestError, NotAuthenticatedError, NotFoundError} from "../api/common/error/RestError"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import * as RecoverLoginDialog from "./RecoverLoginDialog"
 
 assertMainOrNode()
 
@@ -44,59 +45,70 @@ export class SecondFactorHandler {
 			return
 		}
 		this._otherLoginListenerInitialized = true
-		locator.entityEvent.addListener((updates) => Promise
+		locator.eventController.addEntityListener((updates) => Promise
 			.each(updates, (update) => {
 				let sessionId = [neverNull(update.instanceListId), update.instanceId];
 				if (isUpdateForTypeRef(SessionTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
-						return load(SessionTypeRef, sessionId).then(session => {
-							if (session.state === SessionState.SESSION_STATE_PENDING) {
-								if (this._otherLoginDialog != null) {
-									this._otherLoginDialog.close()
-								}
-								this._otherLoginSessionId = session._id
-								let text = lang.get("secondFactorConfirmLogin_msg", {
-									"{clientIdentifier}": session.clientIdentifier,
-									"{ipAddress}": session.loginIpAddress
-								})
-								this._otherLoginDialog = Dialog.showActionDialog({
-									title: lang.get("secondFactorConfirmLogin_label"),
-									child: {view: () => m(".text-break.pt", text)},
-									okAction: () => {
-										let serviceData = createSecondFactorAuthData()
-										serviceData.session = session._id
-										serviceData.type = null
-										serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST,
-											serviceData)
-										if (this._otherLoginDialog) {
+						return load(SessionTypeRef, sessionId)
+							.then(session => {
+								if (session.state === SessionState.SESSION_STATE_PENDING) {
+									if (this._otherLoginDialog != null) {
+										this._otherLoginDialog.close()
+									}
+									this._otherLoginSessionId = session._id
+									let text
+									if (session.loginIpAddress) {
+										text = lang.get("secondFactorConfirmLogin_msg", {
+											"{clientIdentifier}": session.clientIdentifier,
+											"{ipAddress}": session.loginIpAddress
+										})
+									} else {
+										text = lang.get("secondFactorConfirmLoginNoIp_msg", {
+											"{clientIdentifier}": session.clientIdentifier
+										})
+									}
+									this._otherLoginDialog = Dialog.showActionDialog({
+										title: lang.get("secondFactorConfirmLogin_label"),
+										child: {view: () => m(".text-break.pt", text)},
+										okAction: () => {
+											let serviceData = createSecondFactorAuthData()
+											serviceData.session = session._id
+											serviceData.type = null
+											serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST,
+												serviceData)
+											if (this._otherLoginDialog) {
+												this._otherLoginDialog.close()
+												this._otherLoginSessionId = null
+												this._otherLoginDialog = null
+											}
+										}
+									})
+									// close the dialog manually after 1 min because the session is not updated if the other client is closed
+									let sessionId = session._id
+									setTimeout(() => {
+										if (this._otherLoginDialog
+											&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
 											this._otherLoginDialog.close()
 											this._otherLoginSessionId = null
 											this._otherLoginDialog = null
 										}
-									}
-								})
-								// close the dialog manually after 1 min because the session is not updated if the other client is closed
-								let sessionId = session._id
-								setTimeout(() => {
-									if (this._otherLoginDialog
-										&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
-										this._otherLoginDialog.close()
-										this._otherLoginSessionId = null
-										this._otherLoginDialog = null
-									}
-								}, 60 * 1000)
-							}
-						})
+									}, 60 * 1000)
+								}
+							})
+							.catch(NotFoundError, (e) => console.log("Failed to load session", e))
 					} else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId
 						&& isSameId(this._otherLoginSessionId, sessionId)) {
-						return load(SessionTypeRef, sessionId).then(session => {
-							if (session.state !== SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
-								&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
-								this._otherLoginDialog.close()
-								this._otherLoginSessionId = null
-								this._otherLoginDialog = null
-							}
-						})
+						return load(SessionTypeRef, sessionId)
+							.then(session => {
+								if (session.state !== SessionState.SESSION_STATE_PENDING && this._otherLoginDialog
+									&& isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
+									this._otherLoginDialog.close()
+									this._otherLoginSessionId = null
+									this._otherLoginDialog = null
+								}
+							})
+							.catch(NotFoundError, (e) => console.log("Failed to load session", e))
 					}
 				}
 			})
@@ -110,7 +122,7 @@ export class SecondFactorHandler {
 		}
 	}
 
-	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
+	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[], mailAddress: ?string) {
 		if (!this._waitingForSecondFactorDialog) {
 			let u2fChallenge = challenges.find(challenge => challenge.type === SecondFactorType.u2f)
 			let otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
@@ -154,6 +166,18 @@ export class SecondFactorHandler {
 								? m("a", {
 									href: "https://" + otherLoginDomain
 								}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain}))
+								: null,
+							(mailAddress)
+								? m(".small.right", [
+									m(`a[href=#]`, {
+										onclick: (e) => {
+											cancelAction()
+											this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
+											RecoverLoginDialog.show(mailAddress, "secondFactor")
+											e.preventDefault()
+										}
+									}, lang.get("recoverAccountAccess_action"))
+								])
 								: null
 						])
 					},

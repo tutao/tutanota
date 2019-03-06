@@ -12,7 +12,7 @@ assertMainOrNode()
 /**
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.
  */
-export function showDatePickerDialog<T>(start: ?Date, end: ?Date, startBeforeEnd: boolean): Promise<{start: ?Date, end: ?Date}> {
+export function showDatePickerDialog<T>(start: ?Date, end: ?Date): Promise<{start: ?Date, end: ?Date}> {
 	let dateStart = new DatePicker("dateFrom_label", "unlimited_label")
 	if (start) {
 		dateStart.setDate(start)
@@ -36,10 +36,8 @@ export function showDatePickerDialog<T>(start: ?Date, end: ?Date, startBeforeEnd
 			okAction: () => {
 				let start = (dateStart.invalidDate) ? null : dateStart.date()
 				let end = dateEnd.invalidDate ? null : dateEnd.date()
-				if (startBeforeEnd && start && end && start.getTime() > end.getTime()) {
+				if (start && end && start.getTime() > end.getTime()) {
 					Dialog.error("startAfterEnd_label")
-				} else if (!startBeforeEnd && start && end && start.getTime() < end.getTime()) {
-					Dialog.error("endAfterStart_label")
 				} else {
 					dialog.close()
 					cb(null, {start, end})

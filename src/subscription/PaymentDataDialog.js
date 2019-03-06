@@ -32,8 +32,8 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 	}
 
 	const subscriptionOptions = {
-		businessUse: accountingInfo.business,
-		paymentInterval: Number(accountingInfo.paymentInterval)
+		businessUse: stream(accountingInfo.business),
+		paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 	}
 
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo, payPalRequestUrl)

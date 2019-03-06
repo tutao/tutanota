@@ -17,7 +17,7 @@ import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFaca
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/CreateCustomerServerPropertiesReturn"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
-import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
+import {generateRsaKey, hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {SysService} from "../../entities/sys/Services"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {createCustomerAccountCreateData} from "../../entities/tutanota/CustomerAccountCreateData"
@@ -159,7 +159,7 @@ export class CustomerFacade {
 				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 				let data = createCreateCustomerServerPropertiesData()
 				data.adminGroupEncSessionKey = groupEncSessionKey
-				p = serviceRequest("createcustomerserverproperties", HttpMethod.POST, data,
+				p = serviceRequest(SysService.CreateCustomerServerProperties, HttpMethod.POST, data,
 					CreateCustomerServerPropertiesReturnTypeRef)
 					.then(returnData => {
 						return returnData.id
@@ -183,7 +183,23 @@ export class CustomerFacade {
 		})
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string) {
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		return generateRsaKey().then(k1 => {
+			return this._worker.sendProgress(33).then(() => {
+				return generateRsaKey().then(k2 => {
+					return this._worker.sendProgress(66).then(() => {
+						return generateRsaKey().then(k3 => {
+							return this._worker.sendProgress(100).then(() => {
+								return [k1, k2, k3]
+							})
+						})
+					})
+				})
+			})
+		})
+	}
+
+	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 			.then(keyData => {
 				let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -199,39 +215,26 @@ export class CustomerFacade {
 				// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
 				return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
 					.then(systemAdminPubEncAccountingInfoSessionKey => {
-						return this._worker.sendProgress(5).then(() => {
-							return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-							           .then(userGroupData => {
-								           return this._worker.sendProgress(35).then(() => {
-									           return this._groupManagement.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-									                      .then(adminGroupData => {
-										                      return this._worker.sendProgress(65).then(() => {
-											                      return this._groupManagement.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-											                                 .then(customerGroupData => {
-												                                 return this._worker.sendProgress(95)
-												                                            .then(() => {
-													                                            let data = createCustomerAccountCreateData()
-													                                            data.authToken = authToken
-													                                            data.date = Const.CURRENT_DATE
-													                                            data.lang = currentLanguage
-													                                            data.code = registrationCode
-													                                            data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "")
-													                                            data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
-													                                            data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
-													                                            data.userGroupData = userGroupData
-													                                            data.adminGroupData = adminGroupData
-													                                            data.customerGroupData = customerGroupData
-													                                            data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
-													                                            data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
-													                                            data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
-													                                            return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
-												                                            })
-											                                 })
-										                      })
-									                      })
-								           })
-							           })
-						})
+						let userGroupData = this._groupManagement.generateInternalGroupData(keyPairs[0], userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+						let adminGroupData = this._groupManagement.generateInternalGroupData(keyPairs[1], adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+						let customerGroupData = this._groupManagement.generateInternalGroupData(keyPairs[2], customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+						const recoverData = this._login.generateRecoveryCode(userGroupKey)
+						let data = createCustomerAccountCreateData()
+						data.authToken = authToken
+						data.date = Const.CURRENT_DATE
+						data.lang = currentLanguage
+						data.code = registrationCode
+						data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "", recoverData)
+						data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
+						data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
+						data.userGroupData = userGroupData
+						data.adminGroupData = adminGroupData
+						data.customerGroupData = customerGroupData
+						data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
+						data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
+						data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
+						return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
+							.return(recoverData.hexCode)
 					})
 			})
 	}
@@ -239,11 +242,11 @@ export class CustomerFacade {
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this._groupManagement.generateInternalGroupData(userGroupKey,
-			userGroupInfoSessionKey, null, userGroupKey, userGroupKey)
-		                                    .then(userGroupData => {
-			                                    return {userGroupKey, userGroupData}
-		                                    })
+		this.contactFormUserGroupData = generateRsaKey()
+			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
+			.then(userGroupData => {
+				return {userGroupKey, userGroupData}
+			})
 		return Promise.resolve()
 	}
 
@@ -324,8 +327,9 @@ export class CustomerFacade {
 				})
 			})
 			.catch(e => {
+				e.message = e.message + " error switching free to premium group"
 				console.log(e)
-				throw new Error("error switching free to premium group")
+				throw e
 			})
 	}
 
@@ -345,20 +349,20 @@ export class CustomerFacade {
 				})
 			})
 			.catch(e => {
+				e.message = e.message + " error switching premium to free group"
 				console.log(e)
-				throw new Error("error switching free to premium group")
+				throw e
 			})
 	}
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
-						//service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
-						service.business = subscriptionOptions.businessUse
-						service.paymentInterval = subscriptionOptions.paymentInterval.toString()
+						service.business = businessUse
+						service.paymentInterval = paymentInterval.toString()
 						service.invoiceName = ""
 						service.invoiceAddress = invoiceData.invoiceAddress
 						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""

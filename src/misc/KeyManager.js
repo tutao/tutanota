@@ -1,12 +1,11 @@
 //@flow
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/Env"
-import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonType} from "../gui/base/ButtonN"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
@@ -17,18 +16,19 @@ assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
 
-export function focusNext(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+export function focusPrevious(dom: HTMLElement) {
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		console.log(window.getSelection().focusNode.parentNode.nodeName)
 		//work around for squire so tabulator actions are executed properly
 		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+		const selection = window.getSelection()
+		if (selection && selection.focusNode
+			&& (selection.focusNode.nodeName === "LI"
+				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection if selection is in list
-		}
-		else {
+		} else {
 			tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
 			return false
 		}
@@ -38,18 +38,19 @@ export function focusNext(dom: HTMLElement) {
 	}
 }
 
-export function focusPrevious(dom: HTMLElement) {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE))
+export function focusNext(dom: HTMLElement) {
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
-		console.log(window.getSelection().focusNode.parentNode.nodeName)
 		//work around for squire so tabulator actions are executed properly
 		//squiere makes a list which can be indented and manages this with tab and shift tab
-		if (window.getSelection().focusNode.parentNode.nodeName == "LI" || window.getSelection().focusNode.nodeName == "LI") {
+		const selection = window.getSelection()
+		if (selection && selection.focusNode
+			&& (selection.focusNode.nodeName === "LI"
+				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection
-		}
-		else {
+		} else {
 			tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
 			return false
 		}
@@ -97,9 +98,9 @@ export const Keys = {
 
 class KeyManager {
 	_shortcuts: Shortcut[];
-	_keyToShortcut: { [id: string]: Shortcut };
+	_keyToShortcut: {[id: string]: Shortcut};
 	_modalShortcuts: Shortcut[]; // override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
-	_keyToModalShortcut: { [id: string]: Shortcut };
+	_keyToModalShortcut: {[id: string]: Shortcut};
 	_helpDialog: ?any;
 
 	constructor() {
@@ -115,15 +116,15 @@ class KeyManager {
 						let shortcuts = ((this._modalShortcuts.length
 							> 1) ? this._modalShortcuts : this._shortcuts).slice() // we do not want to show a dialog with the shortcuts of the help dialog
 						let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-							.map(shortcut => {
-								return new TextField(() => this._getShortcutName(shortcut))
-									.setValue(lang.get(shortcut.help))
-									.setDisabled()
-							})
-						this._helpDialog = module.Dialog.largeDialog(new DialogHeaderBar()
-							.addRight(new Button('close_alt', () => neverNull(this._helpDialog)
-								.close()).setType(ButtonType.Secondary))
-							.setMiddle(() => lang.get("keyboardShortcuts_title")), {
+						                          .map(shortcut => {
+							                          return new TextField(() => this._getShortcutName(shortcut))
+								                          .setValue(lang.get(shortcut.help))
+								                          .setDisabled()
+						                          })
+						this._helpDialog = module.Dialog.largeDialog({
+							right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
+							middle: () => lang.get("keyboardShortcuts_title")
+						}, {
 							view: () => {
 								return m("div.pb", textFields.map(t => m(t)))
 							}
@@ -131,8 +132,7 @@ class KeyManager {
 							key: Keys.ESC,
 							exec: () => neverNull(this._helpDialog).close(),
 							help: "close_alt"
-						})
-						this._helpDialog.show()
+						}).show()
 					})
 			},
 			help: "showHelp_action"

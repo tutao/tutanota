@@ -20,7 +20,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createPriceItemData(): PriceItemData {

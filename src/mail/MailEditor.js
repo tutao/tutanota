@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {lang, languages} from "../misc/LanguageViewModel"
-import {formatStorageSize, isMailAddress, stringToNameAndMailAddress} from "../misc/Formatter"
+import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
+import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
@@ -19,7 +18,6 @@ import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, Mode} from "../api/Env"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {neverNull} from "../api/common/utils/Utils"
@@ -46,7 +44,7 @@ import {isSameId} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
-import {contactApp} from "../native/ContactApp"
+import {findRecipients} from "../native/ContactApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {logins} from "../api/main/LoginController"
@@ -61,13 +59,20 @@ import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
-import {modal} from "../gui/base/Modal"
-import type {PosRect} from "../gui/base/Dropdown"
-import {Dropdown} from "../gui/base/Dropdown"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import type {EntityEventsListener} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityEventsListener} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {RichTextToolbar} from "../gui/base/RichTextToolbar"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {attachDropdown} from "../gui/base/DropdownN"
+import {styles} from "../gui/styles"
+import {FileOpenError} from "../api/common/error/FileOpenError"
 
 assertMainOrNode()
 
@@ -75,7 +80,7 @@ export class MailEditor {
 	dialog: Dialog;
 	draft: ?Mail;
 	_senderField: DropDownSelector<string>;
-	_languageCodeField: DropDownSelector<string>;
+	_selectedNotificationLanguage: Stream<string>
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
@@ -88,15 +93,16 @@ export class MailEditor {
 	_tempBody: ?string; // only defined till the editor is initialized
 	view: Function;
 	_domElement: HTMLElement;
+	_domCloseButton: HTMLElement;
 	_loadingAttachments: boolean;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_mailChanged: boolean;
-	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
+	_showToolbar: boolean;
 	_previousMail: ?Mail;
 	_entityEventReceived: EntityEventsListener;
-	_attachFilesButton: Button;
 	_mailboxDetails: MailboxDetail;
 	_replyTos: RecipientInfo[];
+	_richTextToolbar: RichTextToolbar;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -112,11 +118,11 @@ export class MailEditor {
 		this._mailAddressToPasswordField = new Map()
 		this._attachments = []
 		this._mailChanged = false
-		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._previousMail = null
 		this.draft = null
 		this._mailboxDetails = mailboxDetails
+		this._showToolbar = false
 
 		let props = logins.getUserController().props
 
@@ -128,63 +134,82 @@ export class MailEditor {
 
 		let sortedLanguages = languages.slice()
 		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-		this._languageCodeField = new DropDownSelector("notificationMailLanguage_label", null, sortedLanguages.map(language => {
-			return {name: lang.get(language.textId), value: language.code}
-		}), stream(props.notificationMailLanguage || lang.code), 250)
+		this._selectedNotificationLanguage = stream(getAvailableLanguageCode(props.notificationMailLanguage || lang.code))
+		const languageDropDownAttrs: DropDownSelectorAttrs<string> = {
+			label: "notificationMailLanguage_label",
+			items: sortedLanguages.map(language => {
+				return {name: lang.get(language.textId), value: language.code}
+			}),
+			selectedValue: this._selectedNotificationLanguage,
+			dropdownWidth: 250
+		}
 
 		this._confidentialButtonState = !props.defaultUnconfidential
 		this.subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
-		let confidentialButton = new Button("confidential_action", () => this._confidentialButtonState = false, () => Icons.Lock)
-			.setSelected(() => true)
-			.disableBubbling()
-		let nonConfidentialButton = new Button("nonConfidential_action", () => this._confidentialButtonState = true, () => Icons.Unlock)
-			.disableBubbling()
 
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
+		let confidentialButtonAttrs = {
+			label: "confidential_action",
+			click: (event, attrs) => this._confidentialButtonState = !this._confidentialButtonState,
+			icon: () => this._confidentialButtonState ? Icons.Lock : Icons.Unlock,
+			isSelected: () => this._confidentialButtonState,
+			noBubble: true,
+		}
+
+		let attachFilesButtonAttrs = {
+			label: "attachFiles_action",
+			click: (ev, attrs) => this._showFileChooserForAttachments(ev.target.getBoundingClientRect()),
+			icon: () => Icons.Attachment,
+			noBubble: true
+		}
+
+		const toolbarButton = () => (styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly)
+			? m(ButtonN, {
+				label: 'showRichTextToolbar_action',
+				icon: () => Icons.FontSize,
+				click: () => this._showToolbar = !this._showToolbar,
+				isSelected: () => this._showToolbar,
+				noBubble: true
+			})
+			: null
 
 		this.subject._injectionsRight = () => {
-			if (this._allRecipients().find(r => r.type === recipientInfoType.external)) {
-				return [
-					this._confidentialButtonState ? m(confidentialButton) : m(nonConfidentialButton),
-					m(this._attachFilesButton)
-				]
-			} else {
-				return [m(this._attachFilesButton)]
-			}
+			return this._allRecipients().find(r => r.type === recipientInfoType.external)
+				? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+				: [m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
 		}
 		this.subject.onUpdate(v => this._mailChanged = true)
 
-		// close button needed changes so it was possible to show different outcomes
-		// if nothing changed in the editor in comparison to after it was created just close the editor onclick
-		// show drop down button if an input was made to choose closing or draft saving
-		let closeButton = new Button('close_alt', () => {
-			if (!this._mailChanged) {
-				this._close()
-			} else {
-				let dropdown = new Dropdown(() => [
-					new Button('discardChanges_action', () => this._close()).setType(ButtonType.Secondary),
-					new Button('saveDraft_action', () => this.saveDraft(true, true)
-					                                         .then(() => this._close())).setType(ButtonType.Secondary)
-				], 250)
-				let buttonRect: PosRect = closeButton._domButton.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
+		let closeButtonAttrs = attachDropdown({
+			label: "close_alt",
+			click: () => this._close(),
+			type: ButtonType.Secondary,
+			oncreate: vnode => this._domCloseButton = vnode.dom
+		}, () => [
+			{
+				label: "discardChanges_action",
+				click: () => this._close(),
+				type: ButtonType.Dropdown
+			},
+			{
+				label: "saveDraft_action",
+				click: () => this.saveDraft(true, true).then(() => this._close()),
+				type: ButtonType.Dropdown
 			}
-		}).setType(ButtonType.Secondary)
-		createDropDownButton('close_alt', null, () => {
-			return
-		}, 250).setType(ButtonType.Secondary)
+		], () => this._mailChanged, 250)
 
-
-		let headerBar = new DialogHeaderBar()
-			.addLeft(closeButton)
-			.setMiddle(() => lang.get(this._conversationTypeToTitleTextId()))
-			.addRight(new Button('send_action', () => this.send()).setType(ButtonType.Primary))
-
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [closeButtonAttrs],
+			right: [{label: "send_action", click: () => this.send(), type: ButtonType.Primary}],
+			middle: () => lang.get(this._conversationTypeToTitleTextId())
+		}
+		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
-
+		this._richTextToolbar = new RichTextToolbar(this._editor)
 		if (logins.isInternalUserLoggedIn()) {
-			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)
+			this.toRecipients.textField._injectionsRight = () => m(ExpanderButtonN, {
+				label: "show_action",
+				expanded: detailsExpanded,
+			})
 			this._editor.initialized.promise.then(() => {
 				this._mailChanged = false
 				this._editor.addChangeListener(() => this._mailChanged = true)
@@ -197,25 +222,14 @@ export class MailEditor {
 			})
 		}
 
-		let detailsExpander = new ExpanderButton("show_action", new ExpanderPanel({
-			view: () =>
-				m(".details", [
-					m(this.ccRecipients),
-					m(this.bccRecipients),
-					m(".wrapping-row", [
-						m(this._senderField),
-						m("", (this._confidentialButtonState && this._containsExternalRecipients()) ? m("", {
-							oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-							onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-						}, m(this._languageCodeField)) : null)
-					]),
-				])
-		}), false)
-
-
 		this.view = () => {
+			let unsubscribeFunction = () => {}
 			return m("#mail-editor.full-height.text.touch-callout", {
-				oncreate: vnode => this._domElement = vnode.dom,
+				oncreate: vnode => {
+					this._domElement = vnode.dom
+					unsubscribeFunction = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
+				},
+				onremove: vnode => unsubscribeFunction(),
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this._editor.focus()
@@ -225,12 +239,11 @@ export class MailEditor {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
 					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
 				},
 				ondrop: (ev) => {
 					if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 						fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
-							this._attachFiles((dataFiles: any))
+							this.attachFiles((dataFiles: any))
 							m.redraw()
 						}).catch(e => {
 							console.log(e)
@@ -242,7 +255,22 @@ export class MailEditor {
 				}
 			}, [
 				m(this.toRecipients),
-				m(detailsExpander.panel),
+				m(ExpanderPanelN, {expanded: detailsExpanded},
+					m(".details", [
+						m(this.ccRecipients),
+						m(this.bccRecipients),
+						m(".wrapping-row", [
+							m(this._senderField),
+							m("", (this._confidentialButtonState && this._containsExternalRecipients())
+								? m("", {
+									oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+									onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+								}, m(DropDownSelectorN, languageDropDownAttrs))
+								: null
+							)
+						]),
+					])
+				),
 				this._confidentialButtonState ? m(".external-recipients.overflow-hidden", {
 					oncreate: vnode => this.animate(vnode.dom, true),
 					onbeforeremove: vnode => this.animate(vnode.dom, false)
@@ -253,13 +281,13 @@ export class MailEditor {
 					       onbeforeremove: vnode => this.animate(vnode.dom, false)
 				       }))) : null,
 				m(".row", m(this.subject)),
-				m(".flex-start.flex-wrap.ml-negative-bubble",
-					(!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [
-						m(".flex-v-center", progressIcon()),
-						m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
-					]),
-				this._attachmentButtons.length > 0 ? m("hr.hr") : null,
-				m(".pt-l.text.scroll-x", {onclick: () => this._editor.focus()}, m(this._editor)),
+				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
+					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
+					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
+				),
+				this._attachments.length > 0 ? m("hr.hr") : null,
+				this._showToolbar ? m(this._richTextToolbar) : null,
+				m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this._editor.focus()}, m(this._editor)),
 				m(".pb")
 			])
 		}
@@ -270,10 +298,10 @@ export class MailEditor {
 			}
 		}
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
-			                    exec: () => closeButton.clickHandler(),
+			                    exec: () => closeButtonAttrs.click(null, this._domCloseButton),
 			                    help: "close_alt"
 		                    })
 		                    .addShortcut({
@@ -305,6 +333,7 @@ export class MailEditor {
 			                    ctrl: true,
 			                    exec: () => {
 				                    this.saveDraft(true, true)
+				                        .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
 			                    },
 			                    help: "save_action"
 		                    })
@@ -316,7 +345,7 @@ export class MailEditor {
 				                    this.send()
 			                    },
 			                    help: "send_action"
-		                    }).setCloseHandler(() => closeButton.clickHandler())
+		                    }).setCloseHandler(() => closeButtonAttrs.click(null, this._domCloseButton))
 		this._mailChanged = false
 	}
 
@@ -326,7 +355,7 @@ export class MailEditor {
 		})
 	}
 
-	_conversationTypeToTitleTextId(): string {
+	_conversationTypeToTitleTextId(): TranslationKey {
 		switch (this.conversationType) {
 			case ConversationType.NEW:
 				return "newMail_action"
@@ -351,7 +380,8 @@ export class MailEditor {
 		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
 			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
-			textField.setType(Type.ExternalPassword)
+				.setType(Type.ExternalPassword)
+				.setPreventAutofill(true)
 
 			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
 				textField.setValue(recipientInfo.contact.presharedPassword)
@@ -373,7 +403,7 @@ export class MailEditor {
 
 	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
 		if (addSignature) {
-			bodyText = "<br><br><br>" + bodyText
+			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()
 			if (logins.getUserController().isInternalUser() && signature) {
 				bodyText = signature + bodyText
@@ -468,7 +498,7 @@ export class MailEditor {
 		this._attachments = []
 		this._tempBody = body
 
-		this._attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
+		this.attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this._editor.initialized.promise.then(() => {
@@ -492,7 +522,7 @@ export class MailEditor {
 	}
 
 	show() {
-		locator.entityEvent.addListener(this._entityEventReceived)
+		locator.eventController.addEntityListener(this._entityEventReceived)
 		this.dialog.show()
 		windowFacade.checkWindowClosing(true)
 	}
@@ -500,16 +530,16 @@ export class MailEditor {
 
 	_close() {
 		windowFacade.checkWindowClosing(false)
-		locator.entityEvent.removeListener(this._entityEventReceived)
+		locator.eventController.removeEntityListener(this._entityEventReceived)
 		this.dialog.close()
 	}
 
-	_showFileChooserForAttachments() {
+	_showFileChooserForAttachments(boundingRect: ClientRect) {
 		if (env.mode === Mode.App) {
 			return fileApp
-				.openFileChooser(this._attachFilesButton._domButton.getBoundingClientRect())
+				.openFileChooser(boundingRect)
 				.then(files => {
-					this._attachFiles((files: any))
+					this.attachFiles((files: any))
 					m.redraw()
 				})
 				.catch(PermissionError, () => {
@@ -520,13 +550,13 @@ export class MailEditor {
 				})
 		} else {
 			return fileController.showFileChooser(true).then(files => {
-				this._attachFiles((files: any))
+				this.attachFiles((files: any))
 				m.redraw()
 			})
 		}
 	}
 
-	_attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
+	attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
 		let totalSize = 0
 		this._attachments.forEach(file => {
 			totalSize += Number(file.size)
@@ -540,39 +570,50 @@ export class MailEditor {
 				this._attachments.push(file)
 			}
 		})
-		this._updateAttachmentButtons()
 		if (tooBigFiles.length > 0) {
 			Dialog.error(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "));
 		}
 		this._mailChanged = true
+		m.redraw()
 	}
 
-	_updateAttachmentButtons() {
-		this._attachmentButtons = this._attachments.map(file => {
-			let lazyButtons: Button[] = []
-			lazyButtons.push(new Button("download_action", () => {
+	_getAttachmentButtons(): Array<ButtonAttrs> {
+		return this._attachments.map(file => {
+			let lazyButtonAttrs: ButtonAttrs[] = []
+
+			lazyButtonAttrs.push({
+				label: "download_action",
+				type: ButtonType.Secondary,
+				click: () => {
 					if (file._type === 'FileReference') {
 						return fileApp.open((file: FileReference))
+						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					} else if (file._type === "DataFile") {
 						return fileController.open(file)
 					} else {
 						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					}
 
-				}, null).setType(ButtonType.Secondary)
-			)
+				}
+			})
 
-			lazyButtons.push(new Button("remove_action", () => {
+			lazyButtonAttrs.push({
+				label: "remove_action",
+				type: ButtonType.Secondary,
+				click: () => {
 					remove(this._attachments, file)
-					this._updateAttachmentButtons()
 					this._mailChanged = true
 					m.redraw()
-				}, null).setType(ButtonType.Secondary)
-			)
+				}
+			})
 
-			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons)
-				.setType(ButtonType.Bubble)
-				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return attachDropdown({
+				label: () => file.name,
+				icon: () => Icons.Attachment,
+				type: ButtonType.Bubble,
+				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+			}, () => lazyButtonAttrs)
 		})
 	}
 
@@ -580,6 +621,7 @@ export class MailEditor {
 	 * Saves the draft.
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
+	 * @throws FileNotFoundError when one of the attachments could not be opened
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
@@ -601,8 +643,7 @@ export class MailEditor {
 				                console.log("draft has been deleted, creating new one")
 				                return createMailDraft()
 			                })
-		}
-		else {
+		} else {
 			promise = createMailDraft()
 		}
 
@@ -610,7 +651,7 @@ export class MailEditor {
 			this.draft = draft
 			return Promise.map(draft.attachments, fileId => load(FileTypeRef, fileId)).then(attachments => {
 				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
-				this._attachFiles(attachments)
+				this.attachFiles(attachments)
 				this._mailChanged = false
 			})
 		})
@@ -685,7 +726,7 @@ export class MailEditor {
 									           .then(() => worker.sendMailDraft(
 										           neverNull(this.draft),
 										           resolvedRecipients,
-										           this._languageCodeField.selectedValue()))
+										           this._selectedNotificationLanguage()))
 									           .then(() => this._updatePreviousMail())
 									           .then(() => this._updateExternalLanguage())
 									           .then(() => this._close())
@@ -693,7 +734,7 @@ export class MailEditor {
 							})
 						})
 						.catch(RecipientNotResolvedError, e => {
-							return Dialog.error("recipientNotResolvedTooManyRequests_msg")
+							return Dialog.error("tooManyAttempts_msg")
 						})
 						.catch(RecipientsNotFoundError, e => {
 							let invalidRecipients = e.message.join("\n")
@@ -722,8 +763,8 @@ export class MailEditor {
 
 	_updateExternalLanguage() {
 		let props = logins.getUserController().props
-		if (props.notificationMailLanguage !== this._languageCodeField.selectedValue) {
-			props.notificationMailLanguage = this._languageCodeField.selectedValue()
+		if (props.notificationMailLanguage !== this._selectedNotificationLanguage()) {
+			props.notificationMailLanguage = this._selectedNotificationLanguage()
 			update(props)
 		}
 	}
@@ -748,8 +789,7 @@ export class MailEditor {
 			return update(this._previousMail).catch(NotFoundError, e => {
 				// ignore
 			})
-		}
-		else {
+		} else {
 			return Promise.resolve();
 		}
 	}
@@ -809,7 +849,11 @@ export class MailEditor {
 		this._mailChanged = true
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
-		bubbleWrapper.button = createAsyncDropDownButton(() => getDisplayText(recipientInfo.name, mailAddress, false), null, () => {
+		bubbleWrapper.buttonAttrs = attachDropdown({
+			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+			type: ButtonType.TextBubble,
+			isSelected: () => false,
+		}, () => {
 			if (recipientInfo.resolveContactPromise) {
 				return recipientInfo.resolveContactPromise.then(contact => {
 					return this._createBubbleContextButtons(recipientInfo.name, mailAddress, contact, () => bubbleWrapper.bubble)
@@ -817,7 +861,7 @@ export class MailEditor {
 			} else {
 				return Promise.resolve(this._createBubbleContextButtons(recipientInfo.name, mailAddress, contact, () => bubbleWrapper.bubble))
 			}
-		}, 250).setType(ButtonType.TextBubble)
+		})
 
 		resolveRecipientInfo(recipientInfo)
 			.then(() => m.redraw())
@@ -825,38 +869,47 @@ export class MailEditor {
 				// we are offline but we want to show the error dialog only when we click on send.
 			})
 			.catch(TooManyRequestsError, e => {
-				Dialog.error("recipientNotResolvedTooManyRequests_msg")
+				Dialog.error("tooManyAttempts_msg")
 			})
-		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.button), mailAddress)
+		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
 		return bubbleWrapper.bubble
 	}
 
-	_createBubbleContextButtons(name: string, mailAddress: string, contact: ? Contact, bubbleResolver: Function): (Button | string)[] {
-		let buttons = [mailAddress]
+	_createBubbleContextButtons(name: string, mailAddress: string, contact: ? Contact, bubbleResolver: Function): Array<ButtonAttrs | string> {
+		let buttonAttrs = [mailAddress]
 		if (logins.getUserController().isInternalUser()) {
 			if (contact && contact._id) { // the contact may be new contact, in this case do not edit it
-				buttons.push(new Button("editContact_label", () => {
-					new ContactEditor(contact).show()
-				}, null).setType(ButtonType.Secondary))
+				buttonAttrs.push({
+					label: "editContact_label",
+					type: ButtonType.Secondary,
+					click: () => new ContactEditor(contact).show()
+				})
 			} else {
-				buttons.push(new Button("createContact_action", () => {
-					LazyContactListId.getAsync().then(contactListId => {
-						new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
-							let bubbles = [
-								this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
-							].find(b => contains(b, bubbleResolver()))
-							if (bubbles) {
-								this._updateBubble(bubbles, bubbleResolver(), [contactListId, contactElementId])
-							}
-						}).show()
-					})
-				}, null).setType(ButtonType.Secondary))
+				buttonAttrs.push({
+					label: "createContact_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						LazyContactListId.getAsync().then(contactListId => {
+							new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
+								let bubbles = [
+									this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
+								].find(b => contains(b, bubbleResolver()))
+								if (bubbles) {
+									this._updateBubble(bubbles, bubbleResolver(), [contactListId, contactElementId])
+								}
+							}).show()
+						})
+					}
+				})
 			}
-			buttons.push(new Button("remove_action", () => {
-				this._removeBubble(bubbleResolver())
-			}, null).setType(ButtonType.Secondary))
+			buttonAttrs.push({
+				label: "remove_action",
+				type: ButtonType.Secondary,
+				click: () => this._removeBubble(bubbleResolver())
+			})
 		}
-		return buttons
+
+		return buttonAttrs
 	}
 
 	_handleEntityEvent(update: EntityUpdateData): void {
@@ -952,6 +1005,9 @@ class MailBubbleHandler {
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
+		if (isMailAddress(query, false)) {
+			return Promise.resolve([])
+		}
 		let contactsPromise = (locator.search.indexState().indexingSupported) ?
 			searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync()
 			                                                             .then(listId => loadAll(ContactTypeRef, listId))
@@ -969,7 +1025,7 @@ class MailBubbleHandler {
 		}).reduce((a, b) => a.concat(b), [])
 		                      .then(suggestions => {
 			                      if (env.mode === Mode.App) {
-				                      return contactApp.findRecipients(query, 10, suggestions).then(() => suggestions)
+				                      return findRecipients(query, 10, suggestions).then(() => suggestions)
 			                      } else {
 				                      return suggestions
 			                      }

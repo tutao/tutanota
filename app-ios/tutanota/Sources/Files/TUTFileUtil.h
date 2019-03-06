@@ -15,6 +15,8 @@
 - (void)openFileAtPath:(NSString * _Nonnull)filePath
 			completion:(void (^ _Nonnull)(NSError * _Nullable))completion;
 
+- (void) openFile:(NSString*) name fileData:(NSData*) fileData completion:(void(^)(NSError * error))completion;
+
 - (void)deleteFileAtPath:(NSString * _Nonnull)filePath
 			  completion:(void (^ _Nonnull)(void))completion;
 
@@ -30,13 +32,14 @@
 - (void)uploadFileAtPath:(NSString * _Nonnull)filePath
 				   toUrl:(NSString * _Nonnull)urlString
 			 withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
-			  completion:(void (^ _Nonnull)(NSNumber * _Nullable responseCode, NSError * _Nullable error))completion;
+			  completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion;
 
 - (void)downloadFileFromUrl:(NSString * _Nonnull)urlString
 					forName:(NSString * _Nonnull)fileName
 				withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
-				 completion:(void (^ _Nonnull)(NSString * _Nullable filePath, NSError * _Nullableerror))completion;
-//- (void)clearFileData:(CDVInvokedUrlCommand*)command;
+				 completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion;
+
+- (void)clearFileData;
 
 
 /** Helper functions for file access. */

@@ -9,6 +9,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
+import {throttleRoute} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -37,9 +38,11 @@ export const SEARCH_MAIL_FIELDS = [
 	{textId: "attachmentName_label", field: "attachment", attributeIds: [MailModel.associations["attachments"].id]}
 ]
 
+const routeSetThrottled = throttleRoute()
+
 export function setSearchUrl(url: string) {
 	if (url !== m.route.get()) {
-		m.route.set(url)
+		routeSetThrottled(url)
 	}
 }
 
@@ -61,7 +64,7 @@ export function getSearchUrl(query: ?string, restriction: SearchRestriction, sel
 	return url
 }
 
-export function getFreeSearchEndDate(): Date {
+export function getFreeSearchStartDate(): Date {
 	return getStartOfDay(getDayShifted(new Date(), -FIXED_FREE_SEARCH_DAYS))
 }
 
@@ -71,7 +74,7 @@ export function getFreeSearchEndDate(): Date {
 export function createRestriction(searchCategory: string, start: ?number, end: ?number, field: ?string, listId: ?string): SearchRestriction {
 	if (logins.getUserController().isFreeAccount() && searchCategory === "mail") {
 		start = null
-		end = getFreeSearchEndDate().getTime()
+		end = getFreeSearchStartDate().getTime()
 		field = null
 		listId = null
 	}

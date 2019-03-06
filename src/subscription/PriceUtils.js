@@ -2,13 +2,13 @@
 import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
-import {formatPrice} from "../misc/Formatter"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {Button} from "../gui/base/Button"
 import {neverNull} from "../api/common/utils/Utils"
 import type {lazyIcon} from "../gui/base/Icon"
-
+import {isIOSApp} from "../api/Env"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -23,7 +23,6 @@ export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): str
 		return "<" + lang.get("comboBoxSelectionNone_msg") + ">"
 	}
 }
-
 
 export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {
@@ -41,7 +40,7 @@ export function formatPriceDataWithInfo(priceData: PriceData): string {
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
 	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("perYear_label") : lang.get("perMonth_label")
+	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
 	return formatPrice(price, true) + " " + yearlyOrMonthly + " (" + netOrGross + ")"
 }
 
@@ -88,7 +87,7 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 
 export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): Button {
 	return new Button(labelId, () => {
-		if (logins.getUserController().isFreeAccount()) {
+		if (logins.getUserController().isFreeAccount() || isIOSApp()) {
 			showNotAvailableForFreeDialog(isInPremiumIncluded)
 		} else {
 			buyAction()

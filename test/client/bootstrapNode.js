@@ -80,6 +80,8 @@ global.node = function (func: Function) {
 	return func
 }
 
+global.requestAnimationFrame = global.requestAnimationFrame || (callback => setTimeout(callback, 10))
+
 process.on("unhandledRejection", function (e) {
 	console.log("Uncaught (in promise) " + e.stack)
 })

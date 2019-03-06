@@ -22,6 +22,7 @@ import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
+import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 
 const ValueType = EC.ValueType
 
@@ -88,19 +89,19 @@ export class EntityRestCache implements EntityRestInterface {
 		this._listEntities = {}
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			StatisticLogEntryTypeRef, SecondFactorTypeRef
+			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef
 		]
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
 		if (method === HttpMethod.GET && !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))) {
 			if ((typeRef.app === "monitor") || (queryParameter && queryParameter["version"])) {
 				// monitor app and version requests are never cached
-				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
+				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 			} else if (!id && queryParameter && queryParameter["ids"]) {
 				// load multiple entities
 				// TODO: load multiple is not used yet. implement providing from cache when used
-				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
+				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 				           .each(entity => {
 					           this._putIntoCache(entity)
 				           })
@@ -115,7 +116,7 @@ export class EntityRestCache implements EntityRestInterface {
 							=== "true")
 					} else {
 						// we currently only store ranges for generated ids
-						return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
+						return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 					}
 				})
 			} else if (id) {
@@ -123,7 +124,7 @@ export class EntityRestCache implements EntityRestInterface {
 				if (this._isInCache(typeRef, listId, id)) {
 					return Promise.resolve(this._getFromCache(typeRef, listId, id))
 				} else {
-					return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
+					return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 					           .then(entity => {
 						           this._putIntoCache(entity)
 						           return entity
@@ -134,7 +135,7 @@ export class EntityRestCache implements EntityRestInterface {
 					+ JSON.stringify(queryParameter))
 			}
 		} else {
-			return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter)
+			return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 		}
 	}
 

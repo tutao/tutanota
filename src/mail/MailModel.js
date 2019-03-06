@@ -21,10 +21,11 @@ import {module as replaced} from "@hot"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {locator} from "../api/main/MainLocator"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -33,18 +34,32 @@ export type MailboxDetail = {
 	mailGroup: Group
 }
 
+export type MailboxCounters = {
+	// mail group
+	[Id]: {
+		// mailListId and counter
+		[string]: number
+	}
+}
+
 export class MailModel {
 	mailboxDetails: Stream<MailboxDetail[]>
+	mailboxCounters: Stream<MailboxCounters>
 	_initialization: ?Promise<void>
 	_notifications: Notifications
 
 	constructor(notifications: Notifications) {
 		this.mailboxDetails = stream([])
+		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
 
-		locator.entityEvent.addListener((updates) => {
+		locator.eventController.addEntityListener((updates) => {
 			this.entityEventsReceived(updates)
+		})
+
+		locator.eventController.countersStream().map((update) => {
+			this._mailboxCountersUpdates(update)
 		})
 	}
 
@@ -145,24 +160,37 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes the given mails if they are already in the trash or spam folders, otherwise moves them to the trash folder.
+	 * Finally deletes the given mails if they are already in the trash or spam folders,
+	 * otherwise moves them to the trash folder.
 	 * A deletion confirmation must have been show before.
 	 */
 	deleteMails(mails: Mail[]): Promise<void> {
-		let groupedMails = mails.reduce((all, mail) => {
-			isFinalDelete(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
-			return all
-		}, {trash: [], move: []})
+		const moveMap: Map<IdTuple, Mail[]> = new Map()
+		let mailBuckets = mails.reduce((buckets, mail) => {
+			const folder = mailModel.getMailFolder(mail._id[0])
+			if (!folder) {
+				throw new ProgrammingError("tried to delete mail without folder")
+			} else if (isFinalDelete(folder)) {
+				buckets.trash.push(mail)
+			} else if (buckets.move.has(folder._id)) {
+				neverNull(buckets.move.get(folder._id)).push(mail)
+			} else {
+				buckets.move.set(folder._id, [mail])
+			}
+			return buckets
+		}, {trash: [], move: moveMap})
 
 		let promises = []
-		if (groupedMails.trash.length > 0) {
+		if (mailBuckets.trash.length > 0) {
 			let deleteMailData = createDeleteMailData()
-			deleteMailData.mails.push(...groupedMails.trash.map(m => m._id))
+			deleteMailData.mails.push(...mailBuckets.trash.map(m => m._id))
 			promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
 				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
 		}
-		if (groupedMails.move.length > 0) {
-			promises.push(mailModel.moveMails(groupedMails.move, getTrashFolder(mailModel.getMailboxFolders(groupedMails.move[0]))))
+		if (mailBuckets.move.size > 0) {
+			for (const [folderId, mails] of mailBuckets.move) {
+				promises.push(mailModel.moveMails(mails, getTrashFolder(mailModel.getMailboxFolders(mails[0]))))
+			}
 		}
 		return Promise.all(promises).return()
 	}
@@ -200,13 +228,21 @@ export class MailModel {
 		}
 	}
 
+	_mailboxCountersUpdates(counters: WebsocketCounterData) {
+		const normalized = this.mailboxCounters() || {}
+		const group = normalized[counters.mailGroup] || {}
+		counters.counterValues.forEach((value) => {
+			group[value.mailListId] = Number(value.count) || 0
+		})
+		normalized[counters.mailGroup] = group
+		this.mailboxCounters(normalized)
+	}
+
 	_showNotification(update: EntityUpdateData) {
-		this._notifications.showNotification(lang.get("newMails_msg"), {
-			onclick: () => {
-				// TODO: handle the case where the mail has been moved to a different folder
-				//m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
-				window.focus()
-			}
+		this._notifications.showNotification(lang.get("newMails_msg"), {}, (e) => {
+			// TODO: handle the case where the mail has been moved to a different folder
+			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+			window.focus()
 		})
 	}
 }

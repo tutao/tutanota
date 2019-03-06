@@ -17,8 +17,8 @@ import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {formatDateTimeFromYesterdayOn, formatDateWithMonth, formatDateWithWeekday} from "../misc/Formatter"
-import {getFolderIcon, getSenderOrRecipientHeading} from "../mail/MailUtils"
+import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
+import {getFolderIcon, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/MailUtils"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import type {RouteChangeEvent} from "../misc/RouteChange"
@@ -42,6 +42,7 @@ import {downcast} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
+import Badge from "../gui/base/Badge"
 
 assertMainOrNode()
 
@@ -365,7 +366,7 @@ export class SearchBar implements Component {
 				    this._showOverlay(() =>
 					    m("ul.list.click.mail-list", [
 						    this._results.map(result => {
-							    return m("li.plr-l.pt-s.pb-s", {
+							    return m("li.plr-l.flex-v-center.", {
 								    style: {
 									    height: px(52),
 									    'border-left': px(size.border_selection) + " solid transparent",
@@ -387,8 +388,12 @@ export class SearchBar implements Component {
 		if (!type) { // show more action
 			let showMoreAction = ((result: any): ShowMoreAction)
 			let infoText
+			let indexInfo
 			if (showMoreAction.resultCount === 0) {
 				infoText = lang.get("searchNoResults_msg")
+				if (logins.getUserController().isFreeAccount()) {
+					indexInfo = lang.get("changeTimeFrame_msg")
+				}
 			} else if (showMoreAction.allowShowMore) {
 				infoText = lang.get("showMore_action")
 			} else {
@@ -396,12 +401,11 @@ export class SearchBar implements Component {
 					"{1}": showMoreAction.resultCount - showMoreAction.shownCount
 				})
 			}
-
-			let indexInfo
-			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP) {
+			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
 				indexInfo = lang.get("searchedUntil_msg") + " "
-					+ formatDateWithWeekday(new Date(showMoreAction.indexTimestamp))
+					+ formatDate(new Date(showMoreAction.indexTimestamp))
 			}
+
 			return indexInfo ? [
 				m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)
 			] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
@@ -409,7 +413,8 @@ export class SearchBar implements Component {
 		} else if (isSameTypeRef(MailTypeRef, type)) {
 			let mail = ((result: any): Mail)
 			return [
-				m(".top.flex-space-between", [
+				m(".top.flex-space-between.badge-line-height", [
+					isTutanotaTeamMail(mail) ? m(Badge, {classes: ".small.mr-s"}, "Tutanota Team") : null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
 					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
 				]),
@@ -570,7 +575,11 @@ export class SearchBar implements Component {
 									       this.busy = false
 									       setSearchUrl(getSearchUrl(value, restriction))
 								       } else {
-									       this.showDropdown(result)
+									       if (result) {
+										       this.showDropdown(result)
+									       } else {
+										       this._closeOverlay()
+									       }
 								       }
 							       })
 							       .finally(() => {

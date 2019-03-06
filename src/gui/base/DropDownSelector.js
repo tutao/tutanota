@@ -4,6 +4,8 @@ import {Button, ButtonType, createDropDownButton} from "./Button"
 import {TextField} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -14,7 +16,7 @@ export class DropDownSelector<T> {
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>,
+	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, helpLabel: ?lazy<string>,
 	            items: {name: string, value: T}[], selectedValue: Stream<T>,
 	            dropdownWidth: ?number) {
 		this.selectedValue = selectedValue
@@ -26,8 +28,7 @@ export class DropDownSelector<T> {
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
-				console.log(`Dropdown ${this._field.label instanceof Function ?
-					this._field.label() : this._field.label} couldn't find element for value: ${String(value)}`)
+				console.log(`Dropdown ${lazyStringValue(this._field.label)} couldn't find element for value: ${String(value)}`)
 				return ''
 			}
 		})

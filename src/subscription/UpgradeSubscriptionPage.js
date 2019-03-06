@@ -1,54 +1,83 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import type {WizardPageActionHandler, WizardPage} from "../gui/base/WizardDialog"
+import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SubscriptionSelector} from "./SubscriptionSelector"
-import {AccountType} from "../api/common/TutanotaConstants"
-
+import {isApp, isTutanotaDomain} from "../api/Env"
+import {client} from "../misc/ClientDetector"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {getUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {Dialog} from "../gui/base/Dialog"
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
-	_businessUse: Stream<SegmentControlItem<boolean>>;
 	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
 	_upgradeData: UpgradeSubscriptionData;
-	_selector: SubscriptionSelector;
 
-
-	constructor(upgradeData: UpgradeSubscriptionData) {
+	constructor(upgradeData: UpgradeSubscriptionData, currentSubscription: ?SubscriptionTypeEnum) {
 		this._upgradeData = upgradeData
-
-		const freeHandler = () => this._pageActionHandler.cancel()
-		const createPremiumProHandler = (proUpgrade: boolean) => {
-			return () => {
-				let upgradeBox = proUpgrade ? this._selector._proUpgradeBox : this._selector._premiumUpgradeBox
-				this._upgradeData.subscriptionOptions = {
-					businessUse: this._businessUse().value,
-					paymentInterval: upgradeBox.paymentInterval().value
-				}
-				this._upgradeData.proUpgrade = proUpgrade
-				this._upgradeData.price = upgradeBox.buyOptionBox.value()
-				this._pageActionHandler.showNext(this._upgradeData)
-			}
-		}
-
-		let businessUseItems = [
-			{name: lang.get("privateUse_label"), value: false},
-			{name: lang.get("businessUse_label"), value: true}
-		]
-		this._businessUse = stream(businessUseItems[0])
-		this._selector = new SubscriptionSelector(AccountType.FREE, freeHandler, createPremiumProHandler(false), createPremiumProHandler(true), this._businessUse.map(business => business.value ? true : false))
-
-		let privateBusinesUseControl = new SegmentControl(businessUseItems, this._businessUse).setSelectionChangedHandler(businessUseItem => {
-			this._businessUse(businessUseItem)
-		})
-
 		this.view = () => m("#upgrade-account-dialog.pt", [
-				m(privateBusinesUseControl),
-				m(this._selector)
+				m(SubscriptionSelector, {
+					options: this._upgradeData.options,
+					campaignInfoTextId: upgradeData.campaignInfoTextId,
+					boxWidth: 230,
+					boxHeight: 250,
+					highlightPremium: true,
+					premiumPrices: upgradeData.premiumPrices,
+					proPrices: upgradeData.proPrices,
+					isInitialUpgrade: upgradeData.isInitialUpgrade,
+					currentlyActive: currentSubscription,
+					freeActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									Dialog.confirm("signupOneFreeAccountConfirm_msg").then(confirmed => {
+										if (confirmed) {
+											this._upgradeData.type = SubscriptionType.Free
+											this._upgradeData.price = "0"
+											this._upgradeData.priceNextYear = "0"
+											this._pageActionHandler.showNext(this._upgradeData)
+										}
+									})
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					premiumActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Premium
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					proActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Pro
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					}
+				})
 			]
 		)
 	}
@@ -77,6 +106,10 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 
 	getUncheckedWizardData(): UpgradeSubscriptionData {
 		return this._upgradeData
+	}
+
+	isEnabled(data: UpgradeSubscriptionData) {
+		return isTutanotaDomain() && !(isApp() && client.isIos())
 	}
 
 }

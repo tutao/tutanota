@@ -1,16 +1,15 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonType} from "../gui/base/ButtonN"
 import type {Theme} from "../gui/theme"
-import {updateCustomTheme, defaultTheme, theme} from "../gui/theme"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {update} from "../api/main/Entity"
+import {defaultTheme, theme, updateCustomTheme} from "../gui/theme"
 import {Keys} from "../misc/KeyManager"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {update} from "../api/main/Entity"
 
 assertMainOrNode()
 
@@ -64,11 +63,8 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 		}
 	}
 
-	let actionBar = new DialogHeaderBar()
-	let cancelAction = () => dialog.close()
-	actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-	actionBar.setMiddle(stream(lang.get("customColors_label")))
-	actionBar.addRight(new Button("ok_action", () => {
+	const cancelAction = () => dialog.close()
+	const okAction = () => {
 		let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
 		for (let i = 0; i < colorFields.length; i++) {
 			let colorValue = colorFields[i].value().trim()
@@ -85,9 +81,15 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 		update(whitelabelConfig)
 		updateCustomTheme(newTheme)
 		dialog.close()
-	}).setType(ButtonType.Primary))
+	}
 
-	let dialog = Dialog.largeDialog(actionBar, form)
+	let actionBarAttrs: DialogHeaderBarAttrs = {
+		left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
+		right: [{label: "ok_action", click: okAction, type: ButtonType.Primary}],
+		middle: () => lang.get("customColors_label")
+	}
+
+	let dialog = Dialog.largeDialog(actionBarAttrs, form)
 	                   .addShortcut({
 		                   key: Keys.ESC,
 		                   exec: cancelAction,

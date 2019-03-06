@@ -7,22 +7,21 @@ import {animations, opacity} from "../gui/animation/Animations"
 import {NotFoundError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {NavBar} from "../gui/base/NavBar"
+import {getLanguage, lang} from "../misc/LanguageViewModel"
 import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {renderPrivacyAndImprintLinks} from "./LoginView"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
-export class ContactFormView {
+class ContactFormView {
 
 	view: Function;
-	buttonBar: NavBar;
 	_contactForm: ?ContactForm;
 	_createRequestButton: Button;
 	_moreInformationButton: Button;
@@ -46,11 +45,12 @@ export class ContactFormView {
 
 		let closeAction = () => this._moreInformationDialog.close()
 
-		let moreInfoHeaderBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("moreInformation_action"))
+		const moreInfoHeaderBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("moreInformation_action")
+		}
 
-		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBar, {
+		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBarAttrs, {
 			view: () => {
 				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
 			}
@@ -84,11 +84,11 @@ export class ContactFormView {
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(this._createRequestButton)),
 						m(".pt-l", m(this._readResponseButton)),
-						m(".pt-l.flex-center", m(this._moreInformationButton)),
+						(this._helpHtml) ? m(".pt-l.flex-center", m(this._moreInformationButton)) : null,
 					])
 				]),
 				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
-				m(".pb")
+				renderPrivacyAndImprintLinks()
 			])
 		} else {
 			return m(new InfoView(() => "404", () => [
@@ -104,13 +104,13 @@ export class ContactFormView {
 			this._loading = true
 			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {
 				this._contactForm = contactForm
-				lang.setLanguage(lang.getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
+				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
 
-					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
 					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, false).text
 					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, false).text
+					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
 
 					this._loading = false
 					m.redraw()

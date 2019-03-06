@@ -16,8 +16,9 @@ import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
+import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 
-export const LogoutUrl = '/login?noAutoLogin=true'
+export const LogoutUrl = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : '/login?noAutoLogin=true'
 
 assertMainOrNodeBoot()
 
@@ -47,8 +48,12 @@ class Header {
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
+		const isNotSignup = () => {
+			return !m.route.get().startsWith("/signup")
+		}
+
 		let searchViewButton = new NavButton("search_label", () => BootIcons.Search, "/search", "/search") // the href is just a dummy value here
-			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
+			.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
 			.setClickHandler(() => {
 				const route = m.route.get()
 				let url
@@ -61,29 +66,29 @@ class Header {
 			})
 
 		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
-			.setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
+			.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn())
 
 		this.buttonBar = new NavBar()
 			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
+				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount())
+				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount())
 				.setClickHandler(() => this._showUpgradeDialog()), 0, false)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn())
+				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
 			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn()), 0, true)
+				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()), 0, false)
+				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn()), 0, false)
 			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
-				.setIsVisibleHandler(() => logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
-				                                                                       .isPremiumAccount())
+				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController()
+				                                                                                        .isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
-				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
+				.setIsVisibleHandler(() => isNotSignup() && logins.isUserLoggedIn()), 0, true)
 
 
 		this._setupShortcuts()
@@ -169,7 +174,7 @@ class Header {
 		this._createMailEditor().then(editor => {
 			let username = logins.getUserController().userGroupInfo.name;
 			let body = lang.get("invitationMailBody_msg", {
-				'{registrationLink}': "https://app.tutanota.com/#register",
+				'{registrationLink}': "https://mail.tutanota.com/signup",
 				'{username}': username,
 				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
@@ -183,7 +188,9 @@ class Header {
 		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
 			.then(upgradeWizard => {
-					return upgradeWizard.show()
+					// To not import constant
+					let subscriptionType: SubscriptionTypeEnum = 'Free'
+					return upgradeWizard.showUpgradeWizard(subscriptionType)
 				}
 			)
 	}
@@ -207,9 +214,9 @@ class Header {
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
 			asyncImport(typeof module !== "undefined" ?
 				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
-			(mailEditorModule, mailModelModule) => {
-				return new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
-			}
+			(mailEditorModule, mailModelModule) =>
+				mailModelModule.mailModel.init()
+				               .then(() => new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails()))
 		)
 	}
 
@@ -276,8 +283,7 @@ class Header {
 	_getViewSlider(): ?IViewSlider {
 		if (this._currentView && this._currentView.getViewSlider) {
 			return this._currentView.getViewSlider()
-		}
-		else {
+		} else {
 			return null
 		}
 	}

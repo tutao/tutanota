@@ -7,7 +7,6 @@ import {lang} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
-import {styles} from "./gui/styles"
 import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button, ButtonType} from "./gui/base/Button"
@@ -20,9 +19,15 @@ import {asyncImport, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
+import {Const} from "./api/common/TutanotaConstants"
+import {DeviceType} from "./misc/ClientConstants"
+import {styles} from "./gui/styles.js"
 
 assertMainOrNodeBoot()
 bootFinished()
+
+// TODO: define type definition for top-level views. Maybe it's CurrentView?
+type View = Object
 
 Promise.config({
 	longStackTraces: false,
@@ -43,6 +48,7 @@ window.tutao = {
 	logins,
 	currentView,
 	themeId,
+	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
 
@@ -52,10 +58,13 @@ function _asyncImport(path: string) {
 
 
 client.init(navigator.userAgent, navigator.platform)
-styles.init()
 
 _asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
-
+if (client.isIE()) {
+	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
+		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
+	}, "close_alt", []))
+}
 
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
 	? deletedModule.module.state : {prefix: null}
@@ -74,21 +83,40 @@ if (navigator.registerProtocolHandler) {
 }
 
 let initialized = lang.init(en).then(() => {
+	styles.init()
 	if (!client.isSupported()) {
-		m.render(document.body, m(root, m(new InfoView(() => "Tutanota", () => [
-			m("p", lang.get("unsupportedBrowser_msg")),
-			m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
-			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
-			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
-			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
-			m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
-		]))))
+		if (isApp() && client.device === DeviceType.ANDROID) {
+
+			const androidVersion = Number(/Android (0-9)*\./.exec(client.userAgent))
+			m.render(document.body, m(new InfoView(
+				() => "Tutanota",
+				() => [
+					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
+					m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
+					m("p", m("a", {href: lang.getInfoLink("webview_link")}, "Learn more"))
+				].concat(androidVersion >= 7
+					? [
+						m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),
+						m("p", m("a", {href: "market://details?id=com.android.chrome"}, "Update Chrome"))
+					]
+					: []))))
+		} else {
+			m.render(document.body, m(new InfoView(() => "Tutanota", () => [
+				m("p", lang.get("unsupportedBrowser_msg")),
+				m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
+				m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
+				m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
+				m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
+				m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
+			])))
+		}
+
 		return;
 	}
 
-	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true,
+	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
-		let cache = {view: null}
+		let cache: {view: ?View} = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
 				if (requireLogin && !logins.isUserLoggedIn()) {
@@ -134,15 +162,13 @@ let initialized = lang.init(en).then(() => {
 	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js")
 		.then(module => new module.ExternalLoginView()), false)
 	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js")
-		.then(module => new module.LoginView()), false)
+		.then(module => module.login), false)
 	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js")
 		.then(module => new module.SettingsView()))
 	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js")
 		.then(module => new module.SearchView()))
-	let registerViewResolver = createViewResolver(() => _asyncImport("src/register/RegisterView.js")
-		.then(module => new module.RegisterView()), false, true)
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
-		.then(module => new module.ContactFormView()), false)
+		.then(module => module.contactFormView), false)
 
 	let start = "/"
 	if (!state.prefix) {
@@ -173,6 +199,8 @@ let initialized = lang.init(en).then(() => {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 		"/login": loginViewResolver,
+		"/signup": loginViewResolver,
+		"/recover": loginViewResolver,
 		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
@@ -185,7 +213,6 @@ let initialized = lang.init(en).then(() => {
 		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
-		"/signup": registerViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
@@ -207,13 +234,16 @@ let initialized = lang.init(en).then(() => {
 	setupExceptionHandling()
 })
 
-
 function forceLogin(args: {[string]: string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
+	} else if (requestedPath.startsWith("/#")) {
+		// we do not allow any other hashes except "#mail". this prevents login loops.
+		m.route.set("/login")
 	} else {
-		let pathWithoutParameter = requestedPath.indexOf("?")
-		> 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0
+			? requestedPath.substring(0, requestedPath.indexOf("?"))
+			: requestedPath
 		if (pathWithoutParameter.trim() === '/') {
 			let newQueryString = m.buildQueryString(args)
 			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))

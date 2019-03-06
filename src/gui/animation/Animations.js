@@ -2,6 +2,7 @@
 import {client} from "../../misc/ClientDetector"
 import {ease} from "./Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import {downcast} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -17,7 +18,7 @@ type DomTransform = {
 type AlphaEnum = 'backgroundColor' | 'color'
 type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ'
 type TransformValues = {
-	[key: TransformEnum]: { begin: number, end: number }
+	[key: TransformEnum]: {begin: number, end: number}
 }
 
 
@@ -29,6 +30,8 @@ const InitializedOptions = {
 	easing: ease.linear,
 	duration: DefaultAnimationTime
 }
+
+type AnimationPromise = {animations?: Array<Animation>} & Promise<void>
 
 class Animations {
 	activeAnimations: Animation[];
@@ -61,7 +64,7 @@ class Animations {
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
-	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{ stagger?: number, delay?: number, easing?: EasingFunction, duration?: number }): Promise<void> {
+	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): AnimationPromise {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
@@ -75,23 +78,36 @@ class Animations {
 		}
 		let verifiedOptions = Animations.verifiyOptions(options)
 		if (!targetArrayOrCollection) target = [target]
-		return Promise.fromCallback(resolve => {
+		const animations = []
+		const promise = new Promise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
 			for (let i = 0; i < target.length; i++) {
 				let delay = verifiedOptions.delay
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				this.activeAnimations.push(new Animation(target[i], mutation,
-					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
+				const animation = new Animation(target[i], mutation,
+					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration)
+
+				animations.push(animation)
+				this.activeAnimations.push(animation)
 			}
 			if (start) {
 				window.requestAnimationFrame(this._animate)
 			}
 		})
+		downcast(promise).animations = animations
+		return promise
 	}
 
-	static verifiyOptions(options: ?{ stagger?: number, delay?: number, easing?: EasingFunction }): { stagger: number, delay: number, easing: EasingFunction, duration: number } {
+	cancel(animation: Animation) {
+		this.activeAnimations.splice(this.activeAnimations.indexOf(animation), 1)
+		if (animation.resolve) {
+			animation.resolve()
+		}
+	}
+
+	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration: number} {
 		return Object.assign({}, InitializedOptions, options)
 	}
 
@@ -188,7 +204,7 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
  *
  * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
  */
-export function hexToRgb(hexColor: string): { r: number, g: number, b: number } {
+export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
 	hexColor = hexColor.substring(1)
 	let split = hexColor.match(/.{1,2}/g)
 	if (split && split.length === 3) {
@@ -201,7 +217,7 @@ export function hexToRgb(hexColor: string): { r: number, g: number, b: number } 
 	throw new Error("illegal color definition")
 }
 
-export function rgbToHex(color: { r: number, g: number, b: number }) {
+export function rgbToHex(color: {r: number, g: number, b: number}) {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
 }
 
@@ -229,16 +245,16 @@ alpha.type = {
  * Only use on small elements. You should use Alpha for fading large backgrounds which is way faster on mobiles.
  */
 export function opacity(begin: number, end: number, keepValue: boolean): DomMutation {
-	let initialOpacity = '';
+	let initialOpacity = null;
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
-			if (percent === 0) {
+			if (percent === 0 && initialOpacity === null) {
 				initialOpacity = target.style.opacity
 			}
 			let opacity = calculateValue(percent, begin, end, easing)
 			if (percent === 1 && !keepValue) {
 				// on some elements the value hast to be set to the initial value because hover using opacity won't work otherwise.
-				target.style.opacity = initialOpacity
+				target.style.opacity = initialOpacity ? initialOpacity : ''
 			} else {
 				target.style.opacity = opacity + ''
 			}

@@ -6,7 +6,7 @@ assertWorkerOrNode()
 
 const sha256 = new sjcl.hash.sha256()
 
-export const HASH_LENGTH = 32
+export const HASH_LENGTH_BYTES = 32
 
 /**
  * Create the hash of the given data.

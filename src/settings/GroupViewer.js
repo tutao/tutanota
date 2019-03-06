@@ -19,7 +19,6 @@ import {worker} from "../api/main/WorkerClient"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import TableLine from "../gui/base/TableLine"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
@@ -28,8 +27,9 @@ import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 import stream from "mithril/stream/stream.js"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
 
 assertMainOrNode()
 
@@ -65,7 +65,7 @@ export class GroupViewer {
 		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
 		let editNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.Team && newName.trim()
+				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim()
 					=== "") {
 					return "enterName_msg"
 				} else {
@@ -119,24 +119,33 @@ export class GroupViewer {
 			{name: lang.get("deactivated_label"), value: true}
 		], stream(this.groupInfo.deleted != null)).setSelectionChangedHandler(deactivate => {
 			this._members.getAsync().then(members => {
-				if (deactivate && this._members.getLoaded().length > 0) {
-					Dialog.error("groupNotEmpty_msg")
-				} else {
-					let bookingItemType = (this.groupInfo.groupType
-						=== GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
-					return showProgressDialog("pleaseWait_msg",
-						BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate)
-						         .then(confirmed => {
-							         if (confirmed) {
-								         return this._group.getAsync()
-								                    .then(group => worker.deactivateGroup(group, !deactivate)
-								                                         .catch(PreconditionFailedError, e => {
-									                                         Dialog.error("localAdminGroupAssignedError_msg")
-								                                         }))
-							         }
-						         }))
+					if (deactivate && this._members.getLoaded().length > 0) {
+						Dialog.error("groupNotEmpty_msg")
+					} else {
+						let bookingItemType = (this.groupInfo.groupType
+							=== GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
+						return showProgressDialog("pleaseWait_msg",
+							BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate)
+							         .then(confirmed => {
+								         if (confirmed) {
+									         return this._group.getAsync()
+									                    .then(group => worker.deactivateGroup(group, !deactivate)
+									                                         .catch(PreconditionFailedError, e => {
+											                                         if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+												                                         Dialog.error("localAdminGroupAssignedError_msg")
+											                                         } else if (!deactivate) {
+												                                         Dialog.error("emailAddressInUse_msg")
+											                                         } else {
+												                                         Dialog.error("stillReferencedFromContactForm_msg")
+											                                         }
+										                                         }
+									                                         ))
+								         }
+							         })
+						)
+					}
 				}
-			})
+			)
 		})
 
 		let addUserButton = new Button("addUserToGroup_label", () => this._showAddMember(), () => Icons.Add)
@@ -197,40 +206,40 @@ export class GroupViewer {
 
 	_showAddMember(): void {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			return loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
-				// remove all users that are already member
-				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
-				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-				let availableUserGroupInfos = userGroupInfos.filter(g => {
-					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
-						return false
-					} else {
-						return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
+				return loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
+					// remove all users that are already member
+					let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+					let availableUserGroupInfos = userGroupInfos.filter(g => {
+						if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
+							return false
+						} else {
+							return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
+						}
+					})
+					if (availableUserGroupInfos.length > 0) {
+						availableUserGroupInfos.sort(compareGroupInfos)
+						let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
+							return {name: getGroupInfoDisplayName(g), value: g}
+						}), stream(availableUserGroupInfos[0]), 250)
+						let addUserToGroupOkAction = (dialog) => {
+							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
+								.then(userGroup => {
+									return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+										worker.addUserToGroup(user, this.groupInfo.group)
+									})
+								}))
+							dialog.close()
+						}
+
+						Dialog.showActionDialog({
+							title: lang.get("addUserToGroup_label"),
+							child: {view: () => m(dropdown)},
+							okAction: addUserToGroupOkAction
+						})
 					}
 				})
-				if (availableUserGroupInfos.length > 0) {
-					availableUserGroupInfos.sort(compareGroupInfos)
-					let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
-						return {name: getGroupInfoDisplayName(g), value: g}
-					}), stream(availableUserGroupInfos[0]), 250)
-					let addUserToGroupOkAction = (dialog) => {
-						showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
-							.then(userGroup => {
-								return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-									worker.addUserToGroup(user, this.groupInfo.group)
-								})
-							}))
-						dialog.close()
-					}
-
-					Dialog.showActionDialog({
-						title: lang.get("addUserToGroup_label"),
-						child: {view: () => m(dropdown)},
-						okAction: addUserToGroupOkAction
-					})
-				}
 			})
-		})
 	}
 
 	_updateMembers(): void {

@@ -82,7 +82,7 @@ class DeviceConfig {
 
 	getAllInternal(): Credentials[] {
 		// make a copy to avoid changes from outside influencing the local array
-		return this.getAll().filter(credential => credential.mailAddress.indexOf("@") > 0, true)
+		return this.getAll().filter(credential => credential.mailAddress.indexOf("@") > 0)
 	}
 
 	getTheme(): ThemeId {

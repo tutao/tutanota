@@ -8,11 +8,10 @@ import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
-import type {IconAttrs, lazyIcon} from "./Icon"
+import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
-import type {AllIconsEnum} from "./Icon"
 
 assertMainOrNodeBoot()
 
@@ -36,9 +35,9 @@ export const ButtonColors = {
 }
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
+const TRUE_CLOSURE: lazy<boolean> = () => true
 
-const FALSE_CLOSURE = (): lazy<boolean> => false
+const FALSE_CLOSURE: lazy<boolean> = () => false
 
 function getColors(buttonColors: ButtonColorEnum) {
 	switch (buttonColors) {
@@ -68,8 +67,9 @@ export class Button {
 	_type: ButtonTypeEnum;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
-	icon: ?lazy<Vnode<IconAttrs>>;
+	icon: ?lazyIcon;
 	isVisible: lazy<boolean>;
+	isActive: boolean;
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
 	_domButton: HTMLElement;
@@ -77,7 +77,7 @@ export class Button {
 	_staticRightText: ?string;
 	_colors: ButtonColorEnum;
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
+	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
@@ -86,9 +86,10 @@ export class Button {
 		this._staticRightText = null
 
 		this.isVisible = TRUE_CLOSURE
+		this.isActive = true
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
-		this.getLabel = labelTextIdOrTextFunction instanceof Function
+		this.getLabel = typeof labelTextIdOrTextFunction === "function"
 			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
@@ -299,17 +300,20 @@ export class Button {
 }
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
-                                     lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200,
+                                     lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
-                                          lazyButtons: lazyAsync<Array<string | NavButton | Button>>,
+                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | NavButton | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
+		if (!mainButton.isActive) {
+			return
+		}
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
 		if (!resultPromise.isFulfilled()) {
@@ -328,7 +332,11 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 						return module.Dialog.error("selectionNotAvailable_msg")
 					})
 			} else {
+				mainButton.isActive = false
 				let dropdown = new Dropdown(() => buttons, width)
+				dropdown.closeHandler = () => {
+					mainButton.isActive = true
+				}
 				if (mainButton._domButton) {
 					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 					if (originOverride) {

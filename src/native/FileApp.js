@@ -2,12 +2,11 @@
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import type {Dialog} from "../gui/base/Dialog"
-import {asyncImport} from "../api/common/utils/Utils"
 
 
 export const fileApp = {
 	openFileChooser,
+	openFolderChooser,
 	download,
 	upload,
 	open,
@@ -25,16 +24,6 @@ export const fileApp = {
  */
 function open(file: FileReference): Promise<void> {
 	return nativeApp.invokeNative(new Request("open", [file.location, file.mimeType]))
-	                .catch(e => {
-		                if (e.name && e.name.indexOf("ActivityNotFoundException") !== -1) {
-			                asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-				                `${env.rootPathPrefix}src/gui/base/Dialog`).then(dialogModule => {
-				                (dialogModule.Dialog: Class<Dialog>).error("canNotOpenFileOnDevice_msg")
-			                })
-		                } else {
-			                throw e
-		                }
-	                })
 }
 
 /**
@@ -53,7 +42,11 @@ function openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>
 		"height": boundingRect.height
 	}
 
-	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect])).map(uriToFileRef)
+	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect, false])).map(uriToFileRef)
+}
+
+function openFolderChooser(): Promise<Array<string>> {
+	return nativeApp.invokeNative(new Request("openFileChooser", [null, true]))
 }
 
 /**
@@ -97,15 +90,14 @@ export function putFileIntoDownloadsFolder(localFileUri: string): Promise<string
 	return nativeApp.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
 }
 
-function saveBlob(data: DataFile): Promise<FileReference> {
+function saveBlob(data: DataFile): Promise<void> {
 	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
-	                .then(uriToFileRef)
 }
 
 /**
  * Uploads the binary data of a file to tutadb
  */
-function upload(fileUrl: string, targetUrl: string, headers: Object): Promise<number> {
+function upload(fileUrl: string, targetUrl: string, headers: Object): Promise<{statusCode: number, statusMessage: string}> {
 	return nativeApp.invokeNative(new Request("upload", [fileUrl, targetUrl, headers]))
 }
 
@@ -113,7 +105,7 @@ function upload(fileUrl: string, targetUrl: string, headers: Object): Promise<nu
  * Downloads the binary data of a file from tutadb and stores it in the internal memory.
  * @returns Resolves to the URI of the downloaded file
  */
-function download(sourceUrl: string, filename: string, headers: Object): Promise<string> {
+function download(sourceUrl: string, filename: string, headers: Object): Promise<{statusCode: number, statusMessage: string, encryptedFileUri: ?string}> {
 	return nativeApp.invokeNative(new Request("download", [sourceUrl, filename, headers]))
 }
 

@@ -15,7 +15,7 @@ import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
-import type {BrowserData} from "../../misc/ClientDetector"
+import type {BrowserData} from "../../misc/ClientConstants"
 
 assertWorkerOrNode()
 
@@ -48,6 +48,9 @@ export class WorkerImpl {
 				let ErrorType = errorTypes[message.args[0].errorType]
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
 			},
+			generateSignupKeys: (message: Request) => {
+				return locator.customer.generateSignupKeys.apply(locator.customer, message.args)
+			},
 			signup: (message: Request) => {
 				return locator.customer.signup.apply(locator.customer, message.args)
 			},
@@ -62,6 +65,12 @@ export class WorkerImpl {
 			},
 			createExternalSession: (message: Request) => {
 				return locator.login.createExternalSession.apply(locator.login, message.args)
+			},
+			loadExternalPasswordChannels: (message: Request) => {
+				return locator.login.loadExternalPasswordChannels.apply(locator.login, message.args)
+			},
+			sendExternalPasswordSms: (message: Request) => {
+				return locator.login.sendExternalPasswordSms.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
 				return resetLocator()
@@ -244,6 +253,18 @@ export class WorkerImpl {
 			},
 			getMoreSearchResults: (message: Request) => {
 				return locator.search.getMoreSearchResults.apply(locator.search, message.args).return(message.args[0])
+			},
+			getRecoveryCode: (message: Request) => {
+				return locator.login.getRecoverCode.apply(locator.login, message.args)
+			},
+			createRecoveryCode: (message: Request) => {
+				return locator.login.createRecoveryCode.apply(locator.login, message.args)
+			},
+			recoverLogin: (message: Request) => {
+				return locator.login.recoverLogin.apply(locator.login, message.args)
+			},
+			resetSecondFactors: (message: Request) => {
+				return locator.login.resetSecondFactors.apply(locator.login, message.args)
 			}
 		})
 
@@ -299,6 +320,10 @@ export class WorkerImpl {
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
 		console.log("ws state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
+	}
+
+	updateCounter(update: WebsocketCounterData): Promise<void> {
+		return this._queue.postMessage(new Request("counterUpdate", [update]))
 	}
 }
 

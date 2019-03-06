@@ -8,62 +8,77 @@ import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
+import {BrowserType} from "../misc/ClientConstants"
+import {client} from "../misc/ClientDetector"
+import {ConnectionError} from "../api/common/error/RestError"
+import {splitInChunks} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
 export class FileController {
 
+	/**
+	 * Temporary files are deleted afterwards in apps.
+	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (isAndroidApp() && !open && file._type === 'FileReference') {
-					// move the file to download folder on android app.
-					return putFileIntoDownloadsFolder(file.location)
+				if (file._type === "FileReference") {
+					return (isAndroidApp() && !open
+						? putFileIntoDownloadsFolder(file.location)
+						: this.open(file))
+						.finally(() => this._deleteFile(file.location))
 				} else {
+					// Data file. No cleanup needed.
 					return this.open(file)
 				}
-			}).catch(err => {
-				if (err instanceof CryptoError) {
-					return Dialog.error("corrupted_msg")
-				} else {
-					return Dialog.error("couldNotAttachFile_msg")
-				}
+			}).catch(CryptoError, e => {
+				console.log(e)
+				return Dialog.error("corrupted_msg")
+			}).catch(ConnectionError, e => {
+				console.log(e)
+				return Dialog.error("couldNotAttachFile_msg")
 			})
 		)
 	}
 
+	/**
+	 * Temporary files are deleted afterwards in apps.
+	 */
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
-		return showProgressDialog("pleaseWait_msg",
-			Promise.map(tutanotaFiles, (tutanotaFile) => {
+		return Promise
+			.map(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
-				             .catch(err => {
-					             if (err instanceof CryptoError) {
-						             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-					             } else {
-						             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " "
-							             + tutanotaFile.name)
-					             }
+				             // We're returning dialogs here so they don't overlap each other
+				             // We're returning null to say that this file is not present.
+				             // (it's void by default and doesn't satisfy type checker)
+				             .catch(CryptoError, e => {
+					             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+					                          .return(null)
 				             })
-			}, {concurrency: (isAndroidApp() ? 1 : 5)}).each((file) => {
-				if (isAndroidApp()) {
-					return putFileIntoDownloadsFolder(file.location)
-				} else {
-					return fileController.open(file)
-				}
-			})
-		).return()
-		 .catch(() => Dialog.error("couldNotAttachFile_msg"))
+				             .catch(ConnectionError, e => {
+					             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+					                          .return(null)
+				             })
+			}, {concurrency: (isAndroidApp() ? 1 : 5)})
+			.then((files) => files.filter(Boolean)) // filter out failed files
+			.then((files) => {
+				return Promise.each(files, (file) =>
+					(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
+						.finally(() => this._deleteFile(file.location)))
+			}).return()
+	}
+
+	downloadBatched(attachments: TutanotaFile[], batchSize: number, delay: number) {
+		return splitInChunks(batchSize, attachments).reduce((p, chunk) => {
+			return p.then(() => this.downloadAll(chunk)).delay(delay)
+		}, Promise.resolve())
 	}
 
 	/**
 	 * @param allowedExtensions Array of extensions strings without "."
 	 */
 	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
-		// if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE) {
-		// 	return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
-		// 		return []
-		// 	})
-		// }
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 
@@ -126,11 +141,15 @@ export class FileController {
 		})
 	}
 
+	/**
+	 * Does not delete temporary file in app.
+	 */
 	open(file: DataFile | FileReference): Promise<void> {
-		if (file._type === 'FileReference') {
-			return fileApp.open(file)
+		const _file = file
+		if (_file._type === 'FileReference') {
+			return fileApp.open(_file)
 		} else {
-			let dataFile: DataFile = file
+			let dataFile: DataFile = _file
 			if (isApp()) {
 				return fileApp.saveBlob(dataFile)
 				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
@@ -171,43 +190,31 @@ export class FileController {
 						body.removeChild(a)
 						window.URL.revokeObjectURL(url)
 					} else {
-						// if the download attribute is not supported try to open the link in a new tab.
-						return Dialog.legacyDownload(dataFile.name, url)
+						if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === 'function') {
+							var reader = new FileReader()
+							reader.onloadend = function () {
+								let url = (reader.result: any)
+								return Dialog.legacyDownload(dataFile.name, url)
+							}
+							reader.readAsDataURL(blob)
+						} else {
+							// if the download attribute is not supported try to open the link in a new tab.
+							return Dialog.legacyDownload(dataFile.name, url)
+						}
 					}
 					return Promise.resolve()
 				} catch (e) {
 					console.log(e)
 					return Dialog.error("canNotOpenFileOnDevice_msg")
 				}
-				// let url
-				// FIXME: test in Safari mobile and android
-				// android browser and safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
-				// if ((tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7)) {
-				// 	let base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()))
-				// 	url = "data:" + mimeType + ";base64," + base64
-				// } else {
-				// let blob = new Blob([fileContent], {"type": mimeType})
-				// url = URL.createObjectURL(blob)
-				// }
-				// firefox on android, safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text
-				// FIXME test attachments
-				// if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI) {
-				// 	let textId = 'saveDownloadNotPossibleSafariDesktop_msg'
-				// 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-				// 		textId = 'saveDownloadNotPossibleSafariMobile_msg'
-				// 	}
-				// 	return tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId).then(function () {
-				// 		// the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
-				// 		setTimeout(function () {
-				// 			URL.revokeObjectURL(url)
-				// 		}, 1)
-				// 	})
-				// } else {
-				// 	fileSaverSaveAs(new Blob([dataFile.getData()], {type: mimeType}), dataFile.getName())
-
-				// return Promise.resolve()
-				// }
 			}
+		}
+	}
+
+	_deleteFile(filePath: string) {
+		if (isApp()) {
+			fileApp.deleteFile(filePath)
+			       .catch((e) => console.log("failed to delete file", filePath, e))
 		}
 	}
 }

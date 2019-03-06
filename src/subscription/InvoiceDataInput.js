@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -10,6 +11,7 @@ import {serviceRequest} from "../api/main/Entity"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {SysService} from "../api/entities/sys/Services"
 import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 export class InvoiceDataInput {
 	view: Function;
@@ -67,9 +69,9 @@ export class InvoiceDataInput {
 		}
 	}
 
-	validateInvoiceData(): ? string {
+	validateInvoiceData(): ? TranslationKey {
 		let address = this._getAddress()
-		if (this._subscriptionOptions.businessUse) {
+		if (this._subscriptionOptions.businessUse()) {
 			if (address.trim() === "" || address.split('\n').length > 5) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
@@ -90,7 +92,7 @@ export class InvoiceDataInput {
 
 	_isVatIdFieldVisible(): boolean {
 		const selectedCountry = this.selectedCountry()
-		return this._subscriptionOptions.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
+		return this._subscriptionOptions.businessUse() && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
 	getInvoiceData(): InvoiceData {
@@ -99,7 +101,7 @@ export class InvoiceDataInput {
 		return {
 			invoiceAddress: address,
 			country: selectedCountry,
-			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU) ? this._vatNumberField.value() : ""
+			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU && this._subscriptionOptions.businessUse()) ? this._vatNumberField.value() : ""
 		}
 	}
 

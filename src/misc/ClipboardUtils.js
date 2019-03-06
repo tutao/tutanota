@@ -1,25 +1,52 @@
 //@flow
-function fallbackCopyTextToClipboard(text) {
-	const textArea = document.createElement("textarea");
-	textArea.value = text;
-	window.document.body.appendChild(textArea);
-	textArea.focus();
-	textArea.select();
+import {client} from  "./ClientDetector"
 
-	try {
-		const successful = document.execCommand('copy');
-	} catch (err) {
-		console.error('Fallback: Oops, unable to copy', err);
-	}
-	window.document.body.removeChild(textArea);
+function fallbackCopyToClipboard(text: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const textArea = document.createElement("textarea")
+		textArea.value = text
+		window.document.body.appendChild(textArea)
+		textArea.focus()
+		textArea.select()
+		try {
+			document.execCommand('copy')
+		} catch (err) {
+			reject("fallback copy failed")
+		}
+		window.document.body.removeChild(textArea)
+		console.log('fallback copy successful')
+		resolve()
+	})
 }
 
-export function copyToClipboard(text: string): void {
-	if (!navigator.clipboard) {
-		fallbackCopyTextToClipboard(text);
-		return;
-	}
-	(navigator: any).clipboard.writeText(text).catch((err) => {
-		console.error('Async: Could not copy text: ', err);
-	})
+function iosCopyToClipboard(text:string) {
+	const el = document.createElement("textarea")
+	el.value = text
+	el.contentEditable = "true";
+	el.readOnly = true
+	window.document.body.appendChild(el)
+
+	const range = document.createRange()
+	range.selectNodeContents(el);
+
+	const s = window.getSelection();
+	s.removeAllRanges();
+	s.addRange(range);
+
+	el.setSelectionRange(0, 999999); // A big number, to cover anything that could be inside the element.
+
+	window.document.execCommand('copy');
+	window.document.body.removeChild(el)
+}
+
+export function copyToClipboard(text: string): Promise<void> {
+	return Promise.try(()=> navigator.clipboard.writeText(text))
+		         .catch(() => {
+			         console.log('copy failed, trying fallback')
+			         if (client.isIos()) {
+			         	return iosCopyToClipboard(text)
+			         } else {
+				         return fallbackCopyToClipboard(text)
+			         }
+		         })
 }

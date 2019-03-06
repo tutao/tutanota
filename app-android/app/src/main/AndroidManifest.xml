@@ -22,24 +22,30 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
             android:launchMode="singleInstance"
             android:theme="@style/SplashTheme">
+            <!--Main intent for launching from home screen-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--Handler for "share" event or when another app wants to send an email-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <action android:name="android.intent.action.SENDTO" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="*/*" />
             </intent-filter>
+            <!--Handler for "mailto:" links-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="mailto" />
             </intent-filter>
+            <!--Another handler for mailto links, when user pressed them in browser-->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <data android:scheme="mailto"/>

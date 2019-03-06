@@ -11,7 +11,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -35,8 +35,9 @@ import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {throttleRoute} from "../misc/RouteChange"
 
 
 assertMainOrNode()
@@ -53,9 +54,11 @@ export class ContactView implements CurrentView {
 	view: Function;
 	oncreate: Function;
 	onbeforeremove: Function;
+	_throttledSetUrl: (string) => void;
 
 	constructor() {
 		let expander = this.createContactFoldersExpander()
+		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
@@ -98,7 +101,7 @@ export class ContactView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener(updates => {
+		locator.eventController.addEntityListener(updates => {
 			updates.forEach((update) => this._processEntityUpdate(update))
 		})
 	}
@@ -140,7 +143,7 @@ export class ContactView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => this.createNewContact(),
-				enabled: () => this._contactList,
+				enabled: () => this._contactList != null,
 				help: "newContact_action"
 			},
 		]
@@ -275,6 +278,7 @@ export class ContactView implements CurrentView {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
 					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
+						.catch(NotFoundError, noOp)
 				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -349,7 +353,7 @@ export class ContactView implements CurrentView {
 		header.contactsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/contact")) {
-			m.route.set(url)
+			this._throttledSetUrl(url)
 		}
 	}
 
@@ -378,11 +382,10 @@ export class ContactView implements CurrentView {
 				return Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
-						return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
-							return erase(goodbyeContact).catch(NotFoundError, e => {
-								// ignore
-							})
-						}))
+						return showProgressDialog("pleaseWait_msg",
+							update(keptContact)
+								.then(() => erase(goodbyeContact)))
+							.catch(NotFoundError, noOp)
 					}
 				})
 			} else {

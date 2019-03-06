@@ -7,8 +7,8 @@ android {
         applicationId "de.tutao.tutanota"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 337020
-        versionName "3.37.2"
+        versionCode 347020
+        versionName "3.47.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -20,11 +20,17 @@ android {
         debugDist {
             initWith debug
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             applicationIdSuffix ".debugdist"
         }
+        releaseTest {
+            initWith release
+            manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.test']
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+            applicationIdSuffix ".test"
+        }
         release {
-            minifyEnabled false
+            minifyEnabled true
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
             buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -33,7 +39,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = new File(output.outputFile.name.replace("app-release.apk", "tutanota-${variant.versionName}.apk"))
+            outputFileName = output.outputFileName.replace("app-release.apk", "tutanota-${variant.versionName}.apk")
         }
     }
 

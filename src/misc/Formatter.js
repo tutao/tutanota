@@ -1,10 +1,11 @@
 // @flow
 import {lang} from "./LanguageViewModel"
-import {startsWith, pad} from "../api/common/utils/StringUtils"
+import {pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {isMailAddress} from "./FormatValidator"
 
 assertMainOrNode()
 
@@ -187,18 +188,6 @@ export function _cleanupAndSplit(dateString: string): number[] {
 	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
 }
 
-export function formatPrice(value: number, includeCurrency: boolean): string {
-	if (includeCurrency) {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithCurrency.format(value)
-			: lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
-	} else {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithoutCurrency.format(value)
-			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
-	}
-}
-
 /**
  * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
  * Additionally, whitespaces at any positions outside name and mailAddress are ignored.
@@ -210,27 +199,27 @@ export function stringToNameAndMailAddress(string: string): ?{name: string, mail
 	if (string === "") {
 		return null
 	}
-	var startIndex = string.indexOf("<")
+	let startIndex = string.indexOf("<")
 	if (startIndex !== -1) {
-		var endIndex = string.indexOf(">", startIndex)
+		const endIndex = string.indexOf(">", startIndex)
 		if (endIndex === -1) {
 			return null
 		}
-		var cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
+		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
 
 		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
 			return null
 		}
-		var name = string.substring(0, startIndex).trim()
+		const name = string.substring(0, startIndex).trim()
 		return {name: name, mailAddress: cleanedMailAddress}
 	} else {
-		var startIndex = string.lastIndexOf(" ")
+		startIndex = string.lastIndexOf(" ")
 		startIndex++
-		var cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
+		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
 		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
 			return null
 		}
-		var name = string.substring(0, startIndex).trim()
+		const name = string.substring(0, startIndex).trim()
 		return {name: name, mailAddress: cleanedMailAddress}
 	}
 }
@@ -249,60 +238,6 @@ export function getCleanedMailAddress(mailAddress: string): ?string {
 	}
 	return null
 }
-
-
-/**
- * Checks if the given string is a valid email address format.
- * @param string The string to check.
- * @param strictUserName If true checks that the part before the @ is not longer than 64 characters and does not contain special characters.
- * @return If the string is an email address.
- */
-export function isMailAddress(string: string, strictUserName: boolean): boolean {
-	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
-	// check trailing whitespaces because they are not covered by the following regexp
-	// allow uppercase addresses in input check, convert them before sending to server.
-	if (string == null || string !== string.trim()) {
-		return false
-	}
-	if (string.indexOf("-") === 0) {
-		return false
-	}
-	// check lengths (see https://tools.ietf.org/html/rfc5321#section-4.5.3)
-	if (string.length > 254) { // 256 minus "<" and ">" of the path
-		return false
-	}
-	if (strictUserName) {
-		if (string.indexOf("@") > 64) {
-			return false
-		}
-		// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-		return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string)
-	} else {
-		// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-		return /^[^\s\@]+\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string)
-	}
-}
-
-/**
- * Checks if the given string is a valid domain name.
- * @param {string} domainName The string to check.
- * @return {boolean} If the string is a domain name.
- */
-export function isDomainName(domainName: string): boolean {
-	if (domainName == null || domainName !== domainName.trim()) {
-		return false
-	}
-	if (startsWith(domainName, "-")) {
-		return false
-	}
-	return /^[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(domainName)
-}
-
-
-export function isRegularExpression(value: string) {
-	return /^\/.*\/$/.test(value)
-}
-
 
 /**
  * Parses the given string for a fist name and a last name separated by whitespace. If there is only one part it is regarded as first name. If there are more than two parts, only the first one is regarded as first name.

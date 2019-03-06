@@ -1,2 +1,10 @@
-TutaoCancelAction = "Odustati";
+NSPhotoLibraryUsageDescription = "Dodajte sliku iz Vaše zbirke kao dodatak.";
+NSPhotoLibraryAddUsageDescription = "Dodajte sliku iz Vaše zbirke kao dodatak.";
+NSMicrophoneUsageDescription = "Koristi se prilikom snimanja video privitka.";
+NSContactsUsageDescription = "Nađi email adresu primatelja u kontaktima.";
+NSRemindersUsageDescription = "Prikaz obavijesti kad stigne novi email.";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Slike";
+TutaoNoPermissionTitle = "Nema odobrenja";
+TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";

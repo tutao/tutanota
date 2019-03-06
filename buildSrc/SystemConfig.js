@@ -8,13 +8,17 @@ const baseDependencies = [
 	"libs/bluebird.js",
 ]
 
-const baseDevDependencies = baseDependencies.concat(["libs/system.src.js"])
-const baseProdDependencies = baseDependencies.concat(["libs/system-production.src.js"]).map(relative => path.join(__dirname, '/..', relative).replace("/libs/", "/libs/minified/"))
+const baseDevDependencies = baseDependencies
+	.concat(["libs/system.src.js"])
+const baseProdDependencies = baseDependencies
+	.concat(["libs/system-production.src.js"])
+	.map(relative => path.join(__dirname, '/..', relative).replace("/libs/", "/libs/minified/"))
 
 const dependencyMap = {
 	"mithril": "./libs/mithril.js",
 	"mithril/stream/stream.js": "./libs/stream.js",
 	"squire-rte": "./libs/squire-raw.js",
+	"bluebird": "./libs/bluebird.js",
 	"dompurify": "./libs/purify.js",
 	"autolinker": "./libs/Autolinker.js",
 	"qrcode": "./libs/qrcode.js",

@@ -13,10 +13,12 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
 import type {Button} from "./Button"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
-const TRUE_CLOSURE = (): lazy<boolean> => true
+const TRUE_CLOSURE: lazy<boolean> = () => true
 
 export class NavButton {
 	icon: lazyIcon;
@@ -36,7 +38,7 @@ export class NavButton {
 	_hideLabel: boolean;
 
 
-	constructor(label: string | lazy<string>, icon: lazyIcon, href: string | Function, selectedPrefix: ?string) {
+	constructor(label: TranslationKey | lazy<string>, icon: lazyIcon, href: string | Function, selectedPrefix: ?string) {
 		this._hideLabel = false
 		this.icon = icon
 		this.href = href
@@ -52,7 +54,7 @@ export class NavButton {
 				return false
 			}
 		}
-		this.getLabel = label instanceof Function ? label : lang.get.bind(lang, label)
+		this.getLabel = typeof label === "function" ? label : lang.get.bind(lang, label)
 
 		this._dropCounter = 0
 
@@ -87,7 +89,7 @@ export class NavButton {
 	}
 
 	_getUrl(): string {
-		return (this.href instanceof Function) ? this.href() : this.href
+		return lazyStringValue(this.href)
 	}
 
 	_isExternalUrl() {
@@ -225,7 +227,7 @@ function getColors(buttonColors: NavButtonColorEnum) {
 	}
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string | lazy<string>, icon: lazyIcon, lazyButtons: lazy<Array<string | NavButton | Button>>, width: number = 200): NavButton {
+export function createDropDownNavButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: lazyIcon, lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200): NavButton {
 	let dropdown = new Dropdown(lazyButtons, width)
 	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
 		.setClickHandler((() => {

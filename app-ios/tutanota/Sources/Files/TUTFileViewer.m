@@ -6,6 +6,8 @@
 //
 //
 
+#import "swiftier.h"
+
 #import <Foundation/Foundation.h>
 #import "TUTFileViewer.h"
 #import <QuickLook/QuickLook.h>
@@ -29,23 +31,18 @@
     return self;
 }
 
-- (void) openFileAtPath:(NSString*) filePath completion:(void(^)(NSError * error))completion {
+- (void) openFileAtPath:(NSString*)filePath completion:(void(^)(NSError * error))completion {
 	_completionHandler = completion;
     _previewController= [[QLPreviewController alloc] init];
     _previewController.dataSource = self;
     _previewController.delegate = self;
 	_fileUrl = [TUTFileUtil urlFromPath:filePath];
-	if ([QLPreviewController canPreviewItem:_fileUrl]) {
-		// ensure that ui related operations run in main thread
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self->_sourceController presentViewController:self->_previewController
-												  animated:YES
-												completion:nil];
-			self->_completionHandler(nil);
-		});
-	} else {
-		completion([TUTErrorFactory createError:@"cannot display files"]);
-	}
+	// ensure that ui related operations run in main thread
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[self->_sourceController presentViewController:self->_previewController
+											  animated:YES
+											completion:nil];
+	});
 }
 
 /*!
@@ -71,7 +68,7 @@
  * @abstract Invoked after the preview controller is closed.
  */
 - (void)previewControllerDidDismiss:(QLPreviewController *)controller{
-//	_completionHandler(nil);
+	_completionHandler(nil);
 }
 
 /*!

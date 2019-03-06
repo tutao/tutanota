@@ -18,7 +18,7 @@ export type IconAttrs = {
 
 export type AllIconsEnum = BootIconsEnum | IconsEnum
 
-export type lazyIcon = () => AllIconsEnum;
+export type lazyIcon = lazy<AllIconsEnum>;
 
 let IconsSvg = {}
 asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/icons/Icons.js`).then(IconsModule => {

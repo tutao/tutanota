@@ -24,6 +24,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -76,12 +77,12 @@ public final class PushNotificationService extends JobService {
     private volatile SseInfo connectedSseInfo;
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
+    private volatile JobParameters jobParameters;
 
     private final Map<String, LocalNotificationInfo> aliasNotification =
             new ConcurrentHashMap<>();
 
     private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
-
     private final ThreadPoolExecutor confirmationThreadPool = new ThreadPoolExecutor(
             2, // initial pool size
             2, // max pool size
@@ -250,6 +251,7 @@ public final class PushNotificationService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
+        jobParameters = params;
         return true;
     }
 
@@ -303,6 +305,7 @@ public final class PushNotificationService extends JobService {
                     timeoutInSeconds = Integer.parseInt(event.split(":")[1]);
                     PreferenceManager.getDefaultSharedPreferences(this).edit()
                             .putInt(HEARTBEAT_TIMEOUT_IN_SECONDS_KEY, timeoutInSeconds).apply();
+                    scheduleJobFinish();
                     continue;
                 }
 
@@ -333,14 +336,9 @@ public final class PushNotificationService extends JobService {
                     int notificationId = notificationId(notificationInfo.getAddress());
 
 
-                    Notification.Builder notificationBuilder;
-                    if (atLeastOreo()) {
-                        notificationBuilder =
-                                new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID);
-                    } else {
-                        notificationBuilder = new Notification.Builder(this)
-                                .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
-                    }
+                    NotificationCompat.Builder notificationBuilder =
+                            new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
+                                    .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
                     ArrayList<String> addresses = new ArrayList<>();
                     addresses.add(notificationInfo.getAddress());
                     notificationBuilder.setContentTitle(pushMessage.getTitle())
@@ -351,12 +349,9 @@ public final class PushNotificationService extends JobService {
                             .setDeleteIntent(this.intentForDelete(addresses))
                             .setContentIntent(intentOpenMailbox(notificationInfo, false))
                             .setGroup(NOTIFICATION_EMAIL_GROUP)
-                            .setAutoCancel(true);
+                            .setAutoCancel(true)
+                            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY);
 
-                    if (i == 0) {
-                        notificationBuilder.setSound(ringtoneUri);
-                        notificationBuilder.setVibrate(VIBRATION_PATTERN);
-                    }
                     //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
 
@@ -367,6 +362,9 @@ public final class PushNotificationService extends JobService {
                     confirmationThreadPool.execute(
                             () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 }
+
+                Log.d(TAG, "Executing jobFinished after receiving notifications");
+                finishJobIfNeeded();
             }
         } catch (Exception ignored) {
             HttpURLConnection httpURLConnection = httpsURLConnectionRef.get();
@@ -401,6 +399,27 @@ public final class PushNotificationService extends JobService {
         }
     }
 
+    private void scheduleJobFinish() {
+        if (jobParameters != null) {
+            new Thread(() -> {
+                Log.d(TAG, "Scheduling jobFinished");
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException ignored) {
+                }
+                Log.d(TAG, "Executing scheduled jobFinished");
+                finishJobIfNeeded();
+            }, "FinishJobThread");
+        }
+    }
+
+    private void finishJobIfNeeded() {
+        if (jobParameters != null) {
+            jobFinished(jobParameters, true);
+            jobParameters = null;
+        }
+    }
+
     private int notificationId(String address) {
         return Math.abs(address.hashCode());
     }
@@ -410,7 +429,7 @@ public final class PushNotificationService extends JobService {
                                          PushMessage.NotificationInfo notificationInfo) {
         int summaryCounter = 0;
         ArrayList<String> addresses = new ArrayList<>();
-        Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
+        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
 
         for (Map.Entry<String, LocalNotificationInfo> entry : aliasNotification.entrySet()) {
             int count = entry.getValue().counter;
@@ -421,13 +440,8 @@ public final class PushNotificationService extends JobService {
             }
         }
 
-        Notification.Builder builder;
-        if (atLeastOreo()) {
-            builder = new Notification.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
-                    .setBadgeIconType(Notification.BADGE_ICON_SMALL);
-        } else {
-            builder = new Notification.Builder(this);
-        }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL);
 
         Notification notification = builder.setContentTitle(title)
                 .setContentText(notificationContent(notificationInfo.getAddress()))
@@ -440,6 +454,7 @@ public final class PushNotificationService extends JobService {
                 .setContentIntent(intentOpenMailbox(notificationInfo, true))
                 .setDeleteIntent(intentForDelete(addresses))
                 .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
                 .build();
         notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
     }

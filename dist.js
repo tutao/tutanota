@@ -1,5 +1,5 @@
 "use strict"
-
+const options = require('commander')
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const Builder = require('systemjs-builder')
@@ -20,12 +20,13 @@ let start = Date.now()
 
 const DistDir = 'build/dist'
 
-const bundles = {}
+let bundles = {}
+const bundlesCache = "build/bundles.json"
 
 
 function getAsyncImports(file) {
 	let appSrc = fs.readFileSync(path.resolve(__dirname, file), 'utf-8')
-	const regExp = /_asyncImport\(["|'](.*)["|']\)/g
+	const regExp = /_asyncImport\(["|'](.*?)["|']\)/g
 	let match = regExp.exec(appSrc)
 	let asyncImports = []
 	while (match != null) {
@@ -38,78 +39,47 @@ function getAsyncImports(file) {
 
 const distLoc = (filename) => `${DistDir}/${filename}`
 
+options
+	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
+	.arguments('[stage] [host]')
+	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
+	.option('-w --win', 'Build desktop client for windows')
+	.option('-l --linux', 'Build desktop client for linux')
+	.option('-m --mac', 'Build desktop client for mac')
+	.option('-d, --deb', 'Build .deb package')
+	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
+	.action((stage, host) => {
+		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
+			|| (stage !== "host" && host)
+			|| (stage === "host" && !host)
+			|| stage !== "release" && options.publish) {
+			options.outputHelp()
+			process.exit(1)
+		}
+		options.stage = stage || "release"
+		options.host = host
+		options.deb = options.deb || options.publish
+
+		options.desktop = {
+			win: options.win ? [] : undefined,
+			linux: options.linux ? [] : undefined,
+			mac: options.mac ? [] : undefined
+		}
+		options.desktop = Object.values(options.desktop).some(Boolean)
+			? options.desktop
+			: undefined
+	})
+	.parse(process.argv)
+
 Promise.resolve()
-       .then(() => console.log("started cleaning", measure()))
-       .then(() => clean())
-       .then(() => console.log("started copying images", measure()))
-       .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
-       .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
-       .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
-	       let lines = bootstrap.split("\n")
-	       lines[0] = `importScripts('libs.js')`
-	       let code = babelCompile(lines.join("\n")).code
-	       return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
-       }))
+       .then(buildWebapp)
+       .then(buildDesktopClient)
+       .then(packageDeb)
+       .then(publish)
        .then(() => {
-	       console.log("started tracing", measure())
-	       return Promise.all([
-		       builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
-		       builder.trace('src/app.js + src/system-resolve.js'),
-		       builder.trace('src/gui/theme.js - libs/stream.js'),
-		       builder.trace(getAsyncImports('src/app.js')
-			       .concat(getAsyncImports('src/native/NativeWrapper.js'))
-			       .concat([
-				       "src/login/LoginViewController.js",
-				       "src/gui/base/icons/Icons.js",
-				       "src/search/SearchBar.js",
-				       "src/register/terms.js"
-			       ]).join(" + "))
-	       ]).then(([workerTree, bootTree, themeTree, mainTree]) => {
-		       let commonTree = builder.intersectTrees(workerTree, mainTree)
-		       console.log("started bundling", measure())
-		       return Promise.all([
-			       bundle(commonTree, distLoc("common.js"), bundles),
-			       bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
-			       bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
-			       bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
-			       bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
-		       ])
-	       })
+	       const now = new Date(Date.now()).toTimeString().substr(0, 5)
+	       console.log(`\nBuild time: ${measure()}s (${now})`)
        })
-       .then(() => console.log("creating language bundles"))
-       .then(() => createLanguageBundles(bundles))
-       .then(() => {
-	       if (process.argv.indexOf("test") !== -1) {
-		       return Promise.all([
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
-		       ])
-	       } else if (process.argv.indexOf("prod") !== -1) {
-		       return Promise.all([
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
-		       ])
-	       } else if (process.argv.indexOf("host") !== -1) {
-		       const hostname = process.argv[process.argv.indexOf("host") + 1]
-		       return Promise.all([
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), hostname, version, "App", true), bundles)
-		       ])
-	       } else {
-		       const [major, minor] = version.split(".")
-		       version = process.argv.indexOf("deb") === -1 ? [major, minor, String(new Date().getTime())].join(".") : version
-		       return Promise.all([
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
-			       createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
-				       "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
-		       ])
-	       }
-       })
-       .then(() => bundleSW(bundles))
-       .then(copyDependencies)
-       .then(deb)
-       .then(release)
-       .then(() => console.log(`\nBuild time: ${measure()}s`))
        .catch(e => {
 	       console.log("\nBuild error:", e)
 	       process.exit(1)
@@ -122,6 +92,113 @@ function measure() {
 function clean() {
 	return fs.removeAsync("build")
 	         .then(() => fs.ensureDirAsync(DistDir + "/translations"))
+}
+
+function buildWebapp() {
+	if (options.existing) {
+		console.log("Found existing option (-e). Skipping Webapp build.")
+		return fs.readFileAsync(path.join(__dirname, bundlesCache)).then(bundlesCache => {
+			bundles = JSON.parse(bundlesCache)
+		})
+	}
+	return Promise.resolve()
+	              .then(() => console.log("started cleaning", measure()))
+	              .then(() => clean())
+	              .then(() => console.log("started copying images", measure()))
+	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
+	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
+	              .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
+		              let lines = bootstrap.split("\n")
+		              lines[0] = `importScripts('libs.js')`
+		              let code = babelCompile(lines.join("\n")).code
+		              return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
+	              }))
+	              .then(() => {
+		              console.log("started tracing", measure())
+		              return Promise.all([
+			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js + libs/polyfill.js'),
+			              builder.trace('src/app.js + src/system-resolve.js'),
+			              builder.trace('src/gui/theme.js - libs/stream.js'),
+			              builder.trace(getAsyncImports('src/app.js')
+				              .concat(getAsyncImports('src/native/NativeWrapper.js'))
+				              .concat(getAsyncImports('src/native/NativeWrapperCommands.js'))
+				              .concat([
+					              "src/login/LoginViewController.js",
+					              "src/gui/base/icons/Icons.js",
+					              "src/search/SearchBar.js",
+					              "src/subscription/terms.js"
+				              ]).join(" + "))
+		              ])
+	              })
+	              .then(([workerTree, bootTree, themeTree, mainTree]) => {
+		              console.log("started bundling", measure())
+		              let commonTree = builder.intersectTrees(workerTree, mainTree)
+		              return Promise.all([
+			              bundle(commonTree, distLoc("common.js"), bundles),
+			              bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
+			              bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
+			              bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
+			              bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
+		              ])
+	              })
+	              .then(() => console.log("creating language bundles"))
+	              .then(() => createLanguageBundles(bundles))
+	              .then(() => {
+		              let restUrl
+		              if (options.stage === 'test') {
+			              restUrl = 'https://test.tutanota.com'
+		              } else if (options.stage === 'prod') {
+			              restUrl = 'https://mail.tutanota.com'
+		              } else if (options.stage === 'local') {
+			              restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		              } else if (options.stage === 'release') {
+			              restUrl = undefined
+		              } else { // host
+			              restUrl = options.host
+		              }
+		              return Promise.all([
+			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
+				              (options.stage === 'release' || options.stage === 'local')
+					              ? null
+					              : restUrl, version, "Browser", true), bundles),
+			              (options.stage !== 'release')
+				              ? createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), restUrl, version, "App", true), bundles)
+				              : null,
+		              ])
+	              })
+	              .then(() => bundleServiceWorker(bundles))
+	              .then(copyDependencies)
+	              .then(() => _writeFile(path.join(__dirname, bundlesCache), JSON.stringify(bundles)))
+}
+
+function buildDesktopClient() {
+	if (options.desktop) {
+		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
+		if (options.stage === "release") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", ""))
+				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop-test", "-test"))
+				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles))
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`, options.desktop, "https://next.tutao.de/desktop-snapshot", "-snapshot"))
+		} else if (options.stage === "local") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000", "-snapshot"))
+		} else if (options.stage === "test") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop-test", "-test"))
+		} else if (options.stage === "prod") {
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop", ""))
+		} else { // stage = host
+			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host, version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
+					options.desktop, "http://localhost:9000/desktop-snapshot", "-snapshot"))
+		}
+	}
 }
 
 const buildConfig = {
@@ -143,7 +220,7 @@ function bundle(src, targetFile, bundles) {
 	})
 }
 
-function bundleSW(bundles) {
+function bundleServiceWorker(bundles) {
 	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
@@ -164,8 +241,18 @@ function copyDependencies() {
 	return fs.writeFileSync('build/dist/libs.js', libs, 'utf-8')
 }
 
-function createHtml(env, bundles) {
-	let filenamePrefix = (env.mode == "App") ? "app" : "index"
+function createHtml(env) {
+	let filenamePrefix
+	switch (env.mode) {
+		case "App":
+			filenamePrefix = "app"
+			break
+		case "Browser":
+			filenamePrefix = "index"
+			break
+		case "Desktop":
+			filenamePrefix = "desktop"
+	}
 	let imports = ["libs.js", "main-boot.js", `${filenamePrefix}.js`]
 	return Promise.all([
 		_writeFile(`./build/dist/${filenamePrefix}.js`, [
@@ -179,7 +266,10 @@ function createHtml(env, bundles) {
 }
 
 function createLanguageBundles(bundles) {
-	return Promise.all(glob.sync('src/translations/*.js').map(translation => {
+	const languageFiles = options.stage === 'release'
+		? glob.sync('src/translations/*.js')
+		: ['src/translations/en.js', 'src/translations/de.js', 'src/translations/de_sie.js', 'src/translations/ru.js']
+	return Promise.all(languageFiles.map(translation => {
 		let filename = path.basename(translation)
 		return builder.bundle(translation, {
 			minify: false,
@@ -202,25 +292,31 @@ function _writeFile(targetFile, content) {
 
 let debName = `tutanota-next-${version}_1_amd64.deb`
 
-function deb() {
-	if (process.argv.indexOf("deb") !== -1) {
-		console.log("create" + debName)
+function packageDeb() {
+	if (options.deb) {
+		// create a symlink to all desktop files that does not include the version to not change the download link
+		const target = `/opt/releases/tutanota-next-${version}`
+		let desktopPaths = ""
+		if (fs.existsSync('./build/desktop') && fs.existsSync('./build/desktop-test')) {
+			desktopPaths = ` desktop/=${target}/desktop desktop-test/=${target}/desktop-test`
+		}
+
+		console.log("create " + debName)
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=/opt/releases/tutanota-next-${version}`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=${target}${desktopPaths}`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
-
 	}
 }
 
-function release() {
-	if (process.argv.indexOf("release") !== -1) {
-		console.log("create git tag and copy .deb")
+function publish() {
+	if (options.publish) {
+		console.log("Create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
@@ -243,7 +339,7 @@ function release() {
 }
 
 function exitOnFail(result) {
-	if (result.status != 0) {
+	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 }

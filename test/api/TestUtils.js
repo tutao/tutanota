@@ -51,7 +51,12 @@ export function spy(producer?: (...any) => any): Spy {
 	return s
 }
 
-
+/**
+ * Create partial mock, i.e. allows mocking attributes or functions on actual instances
+ * @param obj The base mock object on which mocker may overwrite attributes or functions
+ * @param mocker This function receives obj and can overwrite attributes or functions.
+ * @returns {T}
+ */
 export const mock = <T>(obj: T, mocker: any => any): T => {
 	mocker(obj)
 	return obj

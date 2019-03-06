@@ -3,14 +3,13 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {TextField} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {Button, ButtonType} from "../gui/base/Button"
-import {DialogType, Dialog} from "../gui/base/Dialog"
+import {ButtonType} from "../gui/base/ButtonN"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
-import {BookingItemFeatureType, AccountType} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {formatDate, formatPrice} from "../misc/Formatter"
+import {formatDate} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -18,6 +17,9 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {getPriceItem} from "./PriceUtils"
+import {formatPrice} from "./SubscriptionUtils"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -42,13 +44,7 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 								if (accountingInfo && !accountingInfo.invoiceCountry) {
 									return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
 										if (confirm) {
-											return Dialog.confirm(() => "Updating payment data is not yet available in the beta client. A window with the old client will be opened now.")
-											             .then(ok => {
-												             if (ok) {
-													             window.open("https://app.tutanota.com/", null, null, false)
-												             }
-												             return false
-											             })
+											m.route.set("/settings/invoice")
 										}
 										return false
 									})
@@ -65,31 +61,29 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 										.setValue(_getPriceText(price, featureType))
 										.setDisabled()
 
-									return Promise.fromCallback(cb => {
-										let actionBar = new DialogHeaderBar()
-										let cancelAction = () => {
+									return new Promise(resolve => {
+										let dialog: Dialog
+										const doAction = res => {
 											dialog.close()
-											cb(null, false)
+											resolve(res)
 										}
-										actionBar.setMiddle(() => lang.get("bookingSummary_label"))
-										actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-										actionBar.addRight(new Button(buy ? "buy_action" : "order_action", () => {
-											dialog.close()
-											cb(null, true)
-										}).setType(ButtonType.Primary))
 
-										let dialog = new Dialog(DialogType.EditSmall, {
+										let actionBarAttrs: DialogHeaderBarAttrs = {
+											left: [{label: "cancel_action", click: () => doAction(false), type: ButtonType.Secondary}],
+											right: [{label: buy ? "buy_action" : "order_action", click: () => doAction(true), type: ButtonType.Primary}],
+											middle: () => lang.get("bookingSummary_label")
+										}
+
+										dialog = new Dialog(DialogType.EditSmall, {
 											view: (): Children => [
-												m(".dialog-header.plr-l", m(actionBar)),
+												m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 												m(".plr-l.pb", m("", [
 													m(orderField),
 													buyField ? m(buyField) : null,
 													m(priceField),
 												]))
 											]
-										})
-										dialog.setCloseHandler(cancelAction)
-										dialog.show()
+										}).setCloseHandler(() => doAction(false)).show()
 									})
 								}
 							})
@@ -129,13 +123,13 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			}
 		} else if (featureType === BookingItemFeatureType.SharedMailGroup) {
 			if (count > 0) {
-				return count + " " + lang.get("sharedMailbox_label")
+				return count + " " + lang.get((count == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
 			} else {
 				return lang.get("cancelSharedMailbox_label")
 			}
 		} else if (featureType === BookingItemFeatureType.LocalAdminGroup) {
 			if (count > 0) {
-				return count + " " + lang.get("localAdminGroup_label")
+				return count + " " + lang.get((count == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
 			} else {
 				return lang.get("cancelLocalAdminGroup_label")
 			}
@@ -171,9 +165,9 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 function _getSubscriptionText(price: PriceServiceReturn): string {
 	if (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") {
-		return lang.get("yearly_label") + ', ' + lang.get('automaticRenewal_label')
+		return lang.get("pricing.yearly_label") + ', ' + lang.get('automaticRenewal_label')
 	} else {
-		return lang.get("monthly_label") + ', ' + lang.get('automaticRenewal_label')
+		return lang.get("pricing.monthly_label") + ', ' + lang.get('automaticRenewal_label')
 	}
 }
 
@@ -184,7 +178,7 @@ function _getSubscriptionInfoText(price: PriceServiceReturn): string {
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
 	let netGrossText = neverNull(price.futurePriceNextPeriod).taxIncluded ? lang.get("gross_label") : lang.get("net_label")
 	let periodText = (neverNull(price.futurePriceNextPeriod).paymentInterval === "12")
-		? lang.get('perYear_label') : lang.get('perMonth_label')
+		? lang.get('pricing.perYear_label') : lang.get('pricing.perMonth_label')
 	let futurePriceNextPeriod = _getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 	let currentPriceNextPeriod = _getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 

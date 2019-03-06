@@ -25,8 +25,9 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
-import type {BrowserData} from "../../../misc/ClientDetector"
+import type {BrowserData} from "../../../misc/ClientConstants"
 import {BrowserType} from "../../../misc/ClientConstants"
+import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 
 const SEARCH_INDEX_ROW_LENGTH = 10000
@@ -398,7 +399,7 @@ export class IndexerCore {
 			// update group data
 			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: ?GroupData) => {
 				if (!groupData) {
-					throw new Error("GroupData not available for group " + indexUpdate.groupId)
+					throw new InvalidDatabaseStateError("GroupData not available for group " + indexUpdate.groupId)
 				}
 				if (indexUpdate.indexTimestamp != null) {
 					groupData.indexTimestamp = indexUpdate.indexTimestamp
@@ -432,8 +433,11 @@ export class IndexerCore {
 
 
 	_needsMicrotaskHack(browserData: BrowserData): boolean {
-		return browserData.browserType === BrowserType.SAFARI && browserData.browserVersion < 12.1
-			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60;
+		return browserData.browserType === BrowserType.SAFARI
+			|| browserData.browserType === BrowserType.PALEMOON
+			|| browserData.browserType === BrowserType.WATERFOX
+			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
+			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
 	}
 
 	printStatus() {

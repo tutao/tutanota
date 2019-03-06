@@ -30,8 +30,8 @@ const inputMarginTop = size.font_size_small + size.hpad_small + 3
  * A text input field.
  */
 export class TextField {
-	label: string | lazy<string>; // The labelId visible on the button. The labelId is not shown, if it is not provided.
-	helpLabel: ?lazy<string>; // returns the translated and formatted help labelId
+	label: TranslationKey | lazy<string>; // The labelId visible on the button. The labelId is not shown, if it is not provided.
+	helpLabel: ?lazy<Children>; // returns the translated and formatted help labelId
 	value: Stream<string>;
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
@@ -49,10 +49,11 @@ export class TextField {
 	skipNextBlur: boolean;
 	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
+	_preventAutofill: boolean;
 
 	isEmpty: Function;
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<string>) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<Children>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
 		this.webkitAutofill = false
@@ -73,6 +74,7 @@ export class TextField {
 		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
+		this._preventAutofill = false
 
 		this.view = (): VirtualElement => {
 			return m(".text-field.rel.overflow-hidden.pt", {
@@ -93,7 +95,7 @@ export class TextField {
 							this._domLabel.style.transform = 'translateY(' + 0 + "px)"
 						}
 					},
-				}, this.label instanceof Function ? this.label() : lang.get(this.label)),
+				}, lang.getMaybeLazy(this.label)),
 				m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
 					m(".flex.items-end.flex-wrap", {
 						style: {
@@ -103,17 +105,19 @@ export class TextField {
 						},
 					}, [
 						this._injectionsLeft ? this._injectionsLeft() : null,
-						m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
+						m(".inputWrapper.flex-space-between.items-end", {}, [ // a  dditional wrapper element for bubble input field. input field should always be in one line with right injections
 							this.type !== Type.Area ? this._getInputField() : this._getTextArea(),
 							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-fixed", this._injectionsRight()) : null
 						])
 					]),
 				]),
-				this.helpLabel ? m("div.small.noselect.click", {
-					onclick: () => {
-						if (this._domInput) this._domInput.focus()
-					}
-				}, this.helpLabel()) : []
+				this.helpLabel
+					? m("div.small.noselect.click", {
+						onclick: () => {
+							if (this._domInput) this._domInput.focus()
+						}
+					}, this.helpLabel())
+					: []
 			])
 		}
 
@@ -131,62 +135,84 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			return m("input.input" + (this._alignRight ? ".right" : ""), {
-				type: (this.type === Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
-				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-					if (this.type !== Type.Area) {
-						vnode.dom.addEventListener('animationstart', e => {
-							if (e.animationName === "onAutoFillStart") {
-								this.webkitAutofill = true
-								this.animate()
-							} else if (e.animationName === "onAutoFillCancel") {
-								this.webkitAutofill = false
+			const typeAttr = (this.type === Type.ExternalPassword)
+				? Type.Password
+				: this.type
+			/**
+			 * due to modern browser's 'smart' password managers that try to autofill everything
+			 * that remotely resembles a password field, we prepend invisible inputs to password fields
+			 * that shouldn't be autofilled.
+			 * since the autofill algorithm looks at inputs that come before and after the password field we need
+			 * three dummies.
+			 */
+			const autofillGuard = this._preventAutofill ? [
+				m("input", {style: {display: 'none'}, type: Type.Text}),
+				m("input", {style: {display: 'none'}, type: Type.Password}),
+				m("input", {style: {display: 'none'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow', autofillGuard.concat(
+				m("input.input" + (this._alignRight ? ".right" : ""), {
+					type: typeAttr,
+					oncreate: (vnode) => {
+						this._domInput = vnode.dom
+						if (this.type !== Type.Area) {
+							vnode.dom.addEventListener('animationstart', e => {
+								if (e.animationName === "onAutoFillStart") {
+									this.webkitAutofill = true
+									this.animate()
+								} else if (e.animationName === "onAutoFillCancel") {
+									this.webkitAutofill = false
+									this.animate()
+								}
+							})
+						}
+						if (this.type !== Type.Password) {
+							vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+						}
+					},
+					onfocus: (e) => this.focus(),
+					onblur: e => this.blur(e),
+					onkeydown: e => {
+						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
+						let key = {keyCode: e.which, ctrl: e.ctrlKey}
+						const input = this._domInput
+						if (input && input.value !== this.value()) {
+							this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
+							if (input.value !== "" && !this.active) {
 								this.animate()
 							}
-						})
-					}
-					if (this.type !== Type.Password) {
-						vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
-					}
-				},
-				onfocus: (e) => this.focus(),
-				onblur: e => this.blur(e),
-				onkeydown: e => {
-					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-					let key = {keyCode: e.which, ctrl: e.ctrlKey}
-					const input = this._domInput
-					if (input && input.value !== this.value()) {
-						this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
-						if (input.value !== "" && !this.active) {
-							this.animate()
 						}
-					}
-					return this._keyHandler != null ? this._keyHandler(key) : true
-				},
-				onremove: e => {
-					// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
-					// TODO test if still needed with newer mithril releases
-					if (this._domInput) {
-						this._domInput.onblur = null
-					}
-					this._domInput = null
-				},
-				oninput: e => {
-					const input = this._domInput
-					if (input) {
-						if (this.isEmpty() && input.value !== "" && !this.active && !this.webkitAutofill) {
-							this.animate() // animate in case of browser autocompletion (non-webkit)
+						return this._keyHandler != null ? this._keyHandler(key) : true
+					},
+					onremove: e => {
+						// fix for mithril bug that occurs on login, if the cursor is positioned in the password
+						// field and enter is pressed to invoke the login action
+						// ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer
+						// a child of this node. Perhaps it was moved in a 'blur' event handler?")
+						// TODO test if still needed with newer mithril releases
+						if (this._domInput) {
+							this._domInput.onblur = null
 						}
-						this.value(input.value) // update the input on each change
+						this._domInput = null
+					},
+					oninput: e => {
+						const input = this._domInput
+						if (input) {
+							if (this.isEmpty() && input.value !== "" && !this.active && !this.webkitAutofill) {
+								this.animate() // animate in case of browser autocompletion (non-webkit)
+							}
+							this.value(input.value) // update the input on each change
+						}
+					},
+					style: {
+						"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+						"line-height": px(inputLineHeight),
+						"min-height": px(inputLineHeight),
 					}
-				},
-				style: {
-					"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
-					"line-height": px(inputLineHeight),
-					"min-height": px(inputLineHeight),
-				}
-			})
+				})
+				)
+			)
 		}
 	}
 
@@ -234,6 +260,11 @@ export class TextField {
 
 	setType(type: TextFieldTypeEnum): TextField {
 		this.type = type
+		return this
+	}
+
+	setPreventAutofill(prevent: boolean): TextField {
+		this._preventAutofill = prevent
 		return this
 	}
 

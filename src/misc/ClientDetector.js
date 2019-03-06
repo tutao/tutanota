@@ -1,5 +1,8 @@
+//@flow
 import {assertMainOrNodeBoot, Mode} from "../api/Env"
+import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
 import {BrowserType, DeviceType} from "./ClientConstants"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -23,7 +26,6 @@ class ClientDetector {
 		this._setDeviceInfo()
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
-
 	}
 
 	/**
@@ -37,8 +39,8 @@ class ClientDetector {
 			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
-			this.randomNumbers() &&
-			this.notIE()
+			this.supportsFocus() &&
+			this.notOldFirefox()
 	}
 
 	isMobileDevice(): boolean {
@@ -54,7 +56,7 @@ class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/flexbox.js
 	 */
 	flexbox(): boolean {
-		return typeof document.documentElement.style.flexBasis === 'string'
+		return typeof neverNull(document.documentElement).style.flexBasis === 'string'
 	}
 
 	/**
@@ -77,6 +79,11 @@ class ClientDetector {
 		} else {
 			return false
 		}
+	}
+
+	supportsFocus(): boolean {
+		return typeof HTMLInputElement !== "undefined"
+			&& typeof HTMLInputElement.prototype.focus === "function"
 	}
 
 	dateFormat(): boolean {
@@ -164,8 +171,11 @@ class ClientDetector {
 		var operaIndex1 = this.userAgent.indexOf("Opera")
 		var operaIndex2 = this.userAgent.indexOf("OPR/")
 		var firefoxIndex = this.userAgent.indexOf("Firefox/")
+		var paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
 		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
+		var waterfoxIndex = this.userAgent.indexOf("Waterfox/")
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
+		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
 		var ieIndex = this.userAgent.indexOf("MSIE")
 		var edgeIndex = this.userAgent.indexOf("Edge")
@@ -191,6 +201,12 @@ class ClientDetector {
 		} else if (operaIndex2 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
+		} else if (paleMoonIndex !== -1) {
+			this.browser = BrowserType.PALEMOON
+			versionIndex = paleMoonIndex + 9
+		} else if (waterfoxIndex !== -1) {
+			this.browser = BrowserType.WATERFOX
+			versionIndex = waterfoxIndex + 9
 		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
@@ -211,6 +227,9 @@ class ClientDetector {
 				this.browser = BrowserType.ANDROID
 				versionIndex = androidIndex + 8
 			}
+		} else if (chromeIosIndex !== -1) {
+			this.browser = BrowserType.CHROME
+			versionIndex = chromeIosIndex + 6
 		} else if (safariIndex !== -1 && chromeIndex === -1 && blackBerryIndex === -1) {
 			// Chrome and black berry pretends to be Safari, so it is skipped
 			this.browser = BrowserType.SAFARI
@@ -218,24 +237,17 @@ class ClientDetector {
 			versionIndex = this.userAgent.indexOf("Version/")
 			if (versionIndex !== -1) {
 				versionIndex += 8
+			} else {
+				// Other browsers on iOS do not usually send Version/ and we can assume that they're Safari
+				this.extractIosVersion()
+				return
 			}
 		} else if (this.userAgent.match(/iPad.*AppleWebKit/) || this.userAgent.match(/iPhone.*AppleWebKit/)) {
-			// homescreen detection is only available when in app mode otherwise it is deactivated because of problems in iOS
-			if (env.mode === Mode.App) {
-				// ipad and iphone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
-				// after "OS" the iOS version is sent, so use that one
-				versionIndex = this.userAgent.indexOf(" OS ")
-				if (versionIndex !== -1) {
-					this.browser = BrowserType.SAFARI
-					try {
-						// Support two digit numbers for iOS iPhone6 Simulator
-						var numberString = this.userAgent.substring(versionIndex + 4, versionIndex + 6)
-						this.browserVersion = Number(numberString.replace("_", ""))
-					} catch (e) {
-					}
-					return
-				}
-			}
+			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
+			// after "OS" the iOS version is sent, so use that one
+			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
+			this.extractIosVersion()
+			return
 		} else if (ieIndex !== -1) {
 			this.browser = BrowserType.IE
 			versionIndex = ieIndex + 5
@@ -261,6 +273,31 @@ class ClientDetector {
 		// if the version is not valid, the browser type is not valid, so set it to other
 		if (this.browserVersion === 0) {
 			this.browser = BrowserType.OTHER
+		}
+	}
+
+	extractIosVersion() {
+		const versionIndex = this.userAgent.indexOf(" OS ")
+		if (versionIndex !== -1) {
+			this.browser = BrowserType.SAFARI
+			try {
+				// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
+				let pos = versionIndex + 4
+				let hadNan = false
+				while (pos < this.userAgent.length) {
+					pos++
+					if (isNaN(Number(this.userAgent.charAt(pos)))) {
+						if (hadNan) {
+							break
+						} else {
+							hadNan = true
+						}
+					}
+				}
+				const numberString = this.userAgent.substring(versionIndex + 4, pos)
+				this.browserVersion = Number(numberString.replace(/_/g, "."))
+			} catch (e) {
+			}
 		}
 	}
 
@@ -291,6 +328,10 @@ class ClientDetector {
 		return 'ontouchstart' in window
 	}
 
+	isIos() {
+		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
+	}
+
 
 	cssPropertyValueSupported(prop: string, value: string) {
 		let d = (document.createElement('div'): any)
@@ -298,13 +339,40 @@ class ClientDetector {
 		return d.style[prop] === value
 	}
 
-	getIdentifier() {
-		return env.mode === "App" ? client.device + " App" : client.browser + " " + client.device
+	getIdentifier(): string {
+		if (env.mode === Mode.App) {
+			return client.device + " App"
+		} else if (env.mode === Mode.Browser) {
+			return client.browser + " Browser"
+		} else if (env.platformId === 'linux') {
+			return 'Linux Desktop'
+		} else if (env.platformId === 'darwin') {
+			return 'Mac Desktop'
+		} else if (env.platformId === 'win32') {
+			return 'Windows Desktop'
+		}
+		return 'Unknown'
 	}
 
 
-	notIE() {
-		return this.browser !== BrowserType.IE
+	isIE() {
+		return this.browser === BrowserType.IE
+	}
+
+	notOldFirefox() {
+		// issue only occurs for old Firefox browsers
+		// https://github.com/tutao/tutanota/issues/835
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
+	}
+
+	canDownloadMultipleFiles(): boolean {
+		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion < 65
+	}
+
+	needsDownloadBatches(): boolean {
+		// chrome limits multiple automatic downloads to 10
+		return client.browser === BrowserType.CHROME
 	}
 
 	browserData(): BrowserData {

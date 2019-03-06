@@ -15,8 +15,9 @@ import {CustomerFacade} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../Env"
-import {CloseEventBusOption} from "../common/TutanotaConstants"
+import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
+import {downcast} from "../common/utils/Utils"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -34,16 +35,21 @@ type WorkerLocatorType = {
 	eventBusClient: EventBusClient;
 	_indexedDbSupported: boolean;
 	_browserData: BrowserData;
+	Const: Object;
 }
 
 export const locator: WorkerLocatorType = ({}: any)
 
 export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, browserData: BrowserData) {
+
+	const getAuthHeaders = () => locator.login.createAuthHeaders()
+	const restClient = new EntityRestClient(getAuthHeaders)
+
 	locator._browserData = browserData
 	locator._indexedDbSupported = indexedDbSupported
+	locator.indexer = new Indexer(restClient, worker, indexedDbSupported, browserData)
+	locator.cache = isAdminClient() ? downcast(restClient) : new EntityRestCache(restClient) // we don't wont to cache within the admin area
 	locator.login = new LoginFacade(worker)
-	locator.indexer = new Indexer(new EntityRestClient(locator.login), worker, indexedDbSupported, browserData)
-	locator.cache = isAdminClient() ? (new EntityRestClient(locator.login): any) : new EntityRestCache(new EntityRestClient(locator.login)) // we don't wont to cache within the admin area
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, [
 		locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade
@@ -57,6 +63,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)
+	locator.Const = Const
 }
 
 export function resetLocator(): Promise<void> {

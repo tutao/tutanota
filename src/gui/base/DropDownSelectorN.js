@@ -1,19 +1,22 @@
 // @flow
 import m from "mithril"
+import type Stream from "mithril/stream/stream.js"
+import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonType} from "./Button"
 import {TextFieldN} from "./TextFieldN"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, createDropDown} from "./ButtonN"
+import {ButtonN} from "./ButtonN"
+import {createDropdown} from "./DropdownN.js"
 import {Icons} from "./icons/Icons"
-import type Stream from "mithril/stream/stream.js"
-import stream from "mithril/stream/stream.js"
 import type {AllIconsEnum} from "./Icon"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
 export type DropDownSelectorAttrs<T> = {
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	items: {name: string, value: T}[],
 	selectedValue: Stream<?T>,
 	/**
@@ -27,6 +30,7 @@ export type DropDownSelectorAttrs<T> = {
 }
 
 class _DropDownSelector<T> {
+
 	view(vnode: Vnode<DropDownSelectorAttrs<T>>) {
 		const a = vnode.attrs
 		return m(TextFieldN, {
@@ -43,7 +47,7 @@ class _DropDownSelector<T> {
 	}
 
 	createDropdown(a: DropDownSelectorAttrs<T>): ButtonAttrs {
-		return createDropDown(() => {
+		return createDropdown(() => {
 			return a.items.map(item => {
 				return {
 					label: () => item.name,
@@ -68,8 +72,7 @@ class _DropDownSelector<T> {
 			if (selectedItem) {
 				return selectedItem.name
 			} else {
-				console.log(`Dropdown ${a.label
-				instanceof Function ? a.label() : a.label} couldn't find element for value: ${JSON.stringify(value)}`)
+				console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
 			}
 		}
 		return null

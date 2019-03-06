@@ -25,8 +25,18 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"imprintUrl": {"name": "imprintUrl", "id": 1425, "since": 37, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"jsonTheme": {"name": "jsonTheme", "id": 1133, "since": 22, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"metaTags": {"name": "metaTags", "id": 1281, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"metaTags": {"name": "metaTags", "id": 1281, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"privacyStatementUrl": {
+			"name": "privacyStatementUrl",
+			"id": 1496,
+			"since": 42,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"bootstrapCustomizations": {
@@ -40,7 +50,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createWhitelabelConfig(): WhitelabelConfig {

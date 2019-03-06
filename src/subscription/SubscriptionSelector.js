@@ -1,172 +1,146 @@
 //@flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
-import {Dialog} from "../gui/base/Dialog"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {BuyOptionBox} from "./BuyOptionBox"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
-import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
-import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {worker} from "../api/main/WorkerClient"
-import {neverNull} from "../api/common/utils/Utils"
-import {formatPrice} from "../misc/Formatter"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {getPriceFromPriceData} from "./PriceUtils"
-import {isApp} from "../api/Env"
+import type {BuyOptionBoxAttr} from "./BuyOptionBox"
+import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
+import {SegmentControl} from "./SegmentControl"
+import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {size} from "../gui/size"
 
-type UpgradePrices = {
-	premiumPrice: number,
-	proPrice: number
-}
+export type SubscriptionSelectorAttr = {|
+	options: SubscriptionOptions,
+	campaignInfoTextId: ?TranslationKey,
+	freeActionButton: Component,
+	premiumActionButton: Component,
+	proActionButton: Component,
+	boxWidth: number,
+	boxHeight: number,
+	highlightPremium?: boolean,
+	currentlyActive?: ?SubscriptionTypeEnum,
+	isInitialUpgrade: boolean,
+	premiumPrices: PlanPrices,
+	proPrices: PlanPrices
+|}
 
-type UpgradeBox = {
-	buyOptionBox: BuyOptionBox;
-	paymentInterval: Stream<SegmentControlItem<number>>
-}
+class _SubscriptionSelector {
 
-export class SubscriptionSelector {
-	_premiumUpgradeBox: UpgradeBox;
-	_proUpgradeBox: UpgradeBox;
-	_monthlyPrice: LazyLoaded<UpgradePrices>;
-	_yearlyPrice: LazyLoaded<UpgradePrices>;
-	view: Function;
-
-	constructor(current: AccountTypeEnum, freeAction: clickHandler, premiumAction: clickHandler, proAction: clickHandler, business: Stream<boolean>) {
-
-		let freeTypeBox = new BuyOptionBox(() => "Free", "select_action",
-			freeAction,
-			() => this._getOptions([
-				"comparisonUsers", "comparisonStorage", "comparisonDomain", "comparisonSearch"
-			], "Free"), 230, 240)
-		freeTypeBox.setValue("0 €")
-		freeTypeBox.setHelpLabel(lang.get("upgradeLater_msg"))
-
-		//"comparisonAlias", ""comparisonInboxRules"", "comparisonDomain", "comparisonLogin"
-		this._premiumUpgradeBox = this._createUpgradeBox(false, premiumAction, () => [
-			this._premiumUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
-			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
-			"comparisonSupport"
-		])
-		this._proUpgradeBox = this._createUpgradeBox(true, proAction, () => [
-			this._proUpgradeBox.paymentInterval().value === 1 ? "comparisonUsersMonthlyPayment" : "comparisonUsers",
-			"comparisonStorage", "comparisonDomain", "comparisonSearch", "comparisonAlias", "comparisonInboxRules",
-			"comparisonSupport", "comparisonLogin", "comparisonTheme", "comparisonContactForm"
-		])
-
-		this._yearlyPrice = new LazyLoaded(() => this._getPrices(current, 12), null)
-		this._monthlyPrice = new LazyLoaded(() => {
-			Dialog.error("twoMonthsForFreeYearly_msg")
-			return this._getPrices(current, 1)
-		}, null)
-
-		// initial help label and price
-		this._yearlyPrice.getAsync().then(yearlyPrice => {
-			this._premiumUpgradeBox.buyOptionBox.setValue(yearlyPrice.premiumPrice + " €")
-			this._proUpgradeBox.buyOptionBox.setValue(yearlyPrice.proPrice + " €")
-
-			const helpLabel = lang.get(business() ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
-			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
-			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
-			m.redraw()
-		})
-		business.map(business => {
-			const helpLabel = lang.get(business ? "basePriceExcludesTaxes_msg" : "basePriceIncludesTaxes_msg")
-			this._premiumUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
-			this._proUpgradeBox.buyOptionBox.setHelpLabel(helpLabel)
-		})
-
-		this.view = () => m(".flex-center.flex-wrap", [
-			!business() ? m(freeTypeBox) : null,
-			m(this._premiumUpgradeBox.buyOptionBox),
-			m(this._proUpgradeBox.buyOptionBox)
-		])
-	}
-
-
-	_createUpgradeBox(proUpgrade: boolean, action: clickHandler, featurePrefixes: lazy<string[]>, fixedPaymentInterval: ?number): UpgradeBox {
-		let title = proUpgrade ? "Pro" : "Premium"
-		let buyOptionBox = new BuyOptionBox(() => title, "select_action",
-			action,
-			() => {
-				return this._getOptions(featurePrefixes(), title)
-			}, 230, 240)
-
-		if (!proUpgrade) {
-			buyOptionBox.selected = true
-		}
-
-		buyOptionBox.setValue(lang.get("emptyString_msg"))
-		buyOptionBox.setHelpLabel(lang.get("emptyString_msg"))
-
-		let paymentIntervalItems = [
-			{name: lang.get("yearly_label"), value: 12},
-			{name: lang.get("monthly_label"), value: 1}
+	view(vnode: Vnode<SubscriptionSelectorAttr>) {
+		//shows different order of BuyBoxes if screen with is smaller than 810 px. Changes order of BuyBoxes to Premium Pro Free, needed for mobile view
+		let freeBuyBox = !vnode.attrs.options.businessUse() ? m(BuyOptionBox, this._createFreeUpgradeBoxAttr(vnode.attrs)) : null
+		let buyBoxesViewPlacement = [
+			m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
+			m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs)),
 		]
-		let upgradeBox: UpgradeBox = {
-			buyOptionBox: buyOptionBox,
-			paymentInterval: stream(paymentIntervalItems[0])
+		if (window.innerWidth < (size.desktop_layout_width + 90)) {
+			buyBoxesViewPlacement.push(freeBuyBox)
+		} else {
+			buyBoxesViewPlacement.splice(0, 0, freeBuyBox)
 		}
-
-		let subscriptionControl = new SegmentControl(paymentIntervalItems, upgradeBox.paymentInterval).setSelectionChangedHandler(paymentIntervalItem => {
-			if (paymentIntervalItem.value === 12) {
-				this._yearlyPrice.getAsync()
-					.then(upgradePrice => buyOptionBox.setValue((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice)
-						+ " €"))
-					.then(() => m.redraw())
-			} else {
-				this._monthlyPrice.getAsync()
-					.then(upgradePrice => buyOptionBox.setValue(formatPrice((proUpgrade ? upgradePrice.proPrice : upgradePrice.premiumPrice), false)
-						+ " €"))
-					.then(() => m.redraw())
-			}
-			upgradeBox.paymentInterval(paymentIntervalItem)
-		})
-		buyOptionBox.setInjection(subscriptionControl)
-		return upgradeBox
+		return [
+			vnode.attrs.isInitialUpgrade ? m(SegmentControl, {
+				selectedValue: vnode.attrs.options.businessUse,
+				items: BusinessUseItems
+			}) : null,
+			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
+			m(".flex.center-horizontally.wrap", buyBoxesViewPlacement)
+		]
 	}
 
-	_getPrices(current: AccountTypeEnum, paymentInterval: number): Promise<UpgradePrices> {
-		return Promise.join(
-			worker.getPrice(BookingItemFeatureType.Users, current
-			=== AccountType.FREE ? 1 : 0, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Alias, 20, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Storage, 10, false, paymentInterval, AccountType.PREMIUM),
-			worker.getPrice(BookingItemFeatureType.Branding, 1, false, paymentInterval, AccountType.PREMIUM),
-			(userReturn, aliasReturn, storageReturn, brandingReturn) => {
-				return {
-					premiumPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users)),
-					proPrice: Number(getPriceFromPriceData(userReturn.futurePriceNextPeriod, BookingItemFeatureType.Users))
-					+ Number(getPriceFromPriceData(aliasReturn.futurePriceNextPeriod, BookingItemFeatureType.Alias))
-					+ Number(getPriceFromPriceData(storageReturn.futurePriceNextPeriod, BookingItemFeatureType.Storage))
-					+ Number(neverNull(getPriceFromPriceData(brandingReturn.futurePriceNextPeriod, BookingItemFeatureType.Branding)))
-				}
-			})
+	_createFreeUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
+		return {
+			heading: 'Free',
+			// TODO add action button in website
+			// actionButton: m(".text-center", m(Link, {
+			// 	label: "pricing.select_action",
+			// 	href: "https://mail.tutanota.com/signup",
+			// 	type: LinkType.NavBtnRedBg
+			// })),
+			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Free
+				? getActiveSubscriptionActionButtonReplacement()
+				: selectorAttrs.freeActionButton,
+			price: formatPrice(0, true),
+			originalPrice: formatPrice(0, true),
+			helpLabel: "pricing.upgradeLater_msg",
+			features: () => [
+				lang.get("pricing.comparisonUsersFree_msg"),
+				lang.get("pricing.comparisonStorage_msg", {"{amount}": 1}),
+				lang.get("pricing.comparisonDomainFree_msg"),
+				lang.get("pricing.comparisonSearchFree_msg"),
+			],
+			width: selectorAttrs.boxWidth,
+			height: selectorAttrs.boxHeight,
+			paymentInterval: null,
+			showReferenceDiscount: selectorAttrs.isInitialUpgrade
+		}
 	}
 
-	_getOptions(featurePrefixes: Array<string>, type: string): Array<string> {
-		let featureTexts = featurePrefixes.map((f) => {
-			let fullMessage = f + type + "_msg"
-			//workaround for removing prices from translations
-			switch (fullMessage) {
-				case "comparisonUsersMonthlyPaymentPremium_msg":
-					return lang.get(f + type + "_msg", {"{1}": formatPrice(1.2, true)})
-				case "comparisonUsersMonthlyPaymentPro_msg":
-					return lang.get(f + type + "_msg", {"{1}": formatPrice(2.4, true)})
-				case "comparisonUsersPremium_msg":
-					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
-				case "comparisonUsersPro_msg":
-					return lang.get(f + type + "_msg", {"{1}": formatPrice(12, true)})
-				default:
-					return lang.get(f + type + "_msg")
-			}
-		})
-		let MAX_FEATURE_COUNT = 10
-		if (!isApp()) {
-			let len = featureTexts.length
-			featureTexts.length = MAX_FEATURE_COUNT
-			featureTexts.fill("--", len, MAX_FEATURE_COUNT)
+	_createPremiumUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
+		return {
+			heading: 'Premium',
+			// TODO add action button in website
+			// actionButton: m(".text-center", m(Link, {
+			// 	label: "pricing.select_action",
+			// 	href: "https://mail.tutanota.com/signup",
+			// 	type: LinkType.NavBtnRedBg
+			// })),
+			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Premium
+				? getActiveSubscriptionActionButtonReplacement()
+				: selectorAttrs.premiumActionButton,
+			price: getFormattetUpgradePrice(selectorAttrs, true, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattetUpgradePrice(selectorAttrs, true, UpgradePriceType.PlanReferencePrice),
+			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
+			features: () => [
+				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattetUpgradePrice(selectorAttrs, true, UpgradePriceType.AdditionalUserPrice)}),
+				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.premiumPrices.includedStorage}),
+				lang.get("pricing.comparisonDomainPremium_msg"),
+				lang.get("pricing.comparisonSearchPremium_msg"),
+				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.premiumPrices.includedAliases}),
+				lang.get("pricing.comparisonInboxRulesPremium_msg"),
+				lang.get("pricing.comparisonSupportPremium_msg"),
+			],
+			width: selectorAttrs.boxWidth,
+			height: selectorAttrs.boxHeight,
+			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
+			highlighted: !selectorAttrs.options.businessUse() && selectorAttrs.highlightPremium,
+			showReferenceDiscount: selectorAttrs.isInitialUpgrade
 		}
-		return featureTexts
+	}
+
+	_createProUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
+		return {
+			heading: 'Pro',
+			// TODO add action button in website
+			// actionButton: m(".text-center", m(Link, {
+			// 	label: "pricing.select_action",
+			// 	href: "https://mail.tutanota.com/signup",
+			// 	type: LinkType.NavBtnRedBg
+			// })),
+			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Pro
+				? getActiveSubscriptionActionButtonReplacement()
+				: selectorAttrs.proActionButton,
+			price: getFormattetUpgradePrice(selectorAttrs, false, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattetUpgradePrice(selectorAttrs, false, UpgradePriceType.PlanReferencePrice),
+			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
+			features: () => [
+				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattetUpgradePrice(selectorAttrs, false, UpgradePriceType.AdditionalUserPrice)}),
+				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.proPrices.includedStorage}),
+				lang.get("pricing.comparisonDomainPremium_msg"),
+				lang.get("pricing.comparisonSearchPremium_msg"),
+				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.proPrices.includedAliases}),
+				lang.get("pricing.comparisonInboxRulesPremium_msg"),
+				lang.get("pricing.comparisonSupportPro_msg"),
+				lang.get("pricing.comparisonLoginPro_msg"),
+				lang.get("pricing.comparisonThemePro_msg"),
+				lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattetUpgradePrice(selectorAttrs, false, UpgradePriceType.ContactFormPrice)}),
+			],
+			width: selectorAttrs.boxWidth,
+			height: selectorAttrs.boxHeight,
+			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
+			showReferenceDiscount: selectorAttrs.isInitialUpgrade
+		}
 	}
 }
+
+export const SubscriptionSelector: Class<MComponent<SubscriptionSelectorAttr>> = _SubscriptionSelector

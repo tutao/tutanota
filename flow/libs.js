@@ -34,7 +34,7 @@ declare module 'mithril' {
 
 		route: {
 			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
-			set(path: string): void;
+			set(path: string, data?: ?{[string]: mixed}, options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
 			get(): string;
 			param(): Object;
 			prefix(prefix: string): void;
@@ -51,7 +51,7 @@ declare module 'mithril' {
 
 		parseQueryString(queryString: string): {[string]: string};
 
-		render(element: HTMLElement, vnodes: VirtualElement | Array<VirtualElement>): void;
+		render(element: HTMLElement, vnodes: Children): void;
 	}
 
 	declare export default Mithril;
@@ -63,6 +63,11 @@ declare module 'mithril/stream/stream.js' {
 declare module 'ospec/ospec.js' {
 	declare export default any;
 }
+
+declare module 'mockery' {
+	declare export default any;
+}
+
 declare module 'faker' {
 	declare var faker: any;
 }
@@ -176,12 +181,13 @@ interface Lifecycle<Attrs> {
 	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
 }
 
+type LifecycleAttrs<T> = T & Lifecycle<T>
 
 type $Attrs<T> = $ReadOnly<$Exact<T>>
 
 interface MComponent<Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */
-	view(vnode: Vnode<Attrs>): Children | null | void;
+	view(vnode: Vnode<Attrs>): ?Children;
 }
 
 export type Child = Vnode<any> | string | number | boolean | null;

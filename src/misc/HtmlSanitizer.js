@@ -6,6 +6,7 @@ import {ReplacementImage} from "../gui/base/icons/Icons"
 // '#' character is reserved in URL and FF won't display SVG otherwise
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
+const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
 
 class HtmlSanitizer {
 
@@ -28,10 +29,12 @@ class HtmlSanitizer {
 				}
 
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
+				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
+				let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
-						if (cl[0] !== "tutanota_quote") {
+						if (allowedClasses.indexOf(cl[0]) == -1) {
 							cl.remove(cl[0]);
 						}
 					}
@@ -88,7 +91,7 @@ class HtmlSanitizer {
 
 	_preventExternalImageLoading(htmlNode) {
 		if (htmlNode.attributes) {
-			this._replaceSrcAttributes(htmlNode);
+			this._replaceAttributeValue(htmlNode);
 		}
 		if (htmlNode.style) {
 			if (htmlNode.style.backgroundImage) {
@@ -112,14 +115,16 @@ class HtmlSanitizer {
 	}
 
 
-	_replaceSrcAttributes(htmlNode) {
-		let imageSrcAttr = htmlNode.attributes.getNamedItem('src') || htmlNode.attributes.getNamedItem('poster');
-		if (imageSrcAttr) {
-			this._externalContent.push(imageSrcAttr.value)
-			imageSrcAttr.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-			htmlNode.attributes.setNamedItem(imageSrcAttr);
-			htmlNode.style["max-width"] = "100px"
-		}
+	_replaceAttributeValue(htmlNode) {
+		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
+			let attribute = htmlNode.attributes.getNamedItem(attrName)
+			if (attribute) {
+				this._externalContent.push(attribute.value)
+				attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+				htmlNode.attributes.setNamedItem(attribute)
+				htmlNode.style["max-width"] = "100px"
+			}
+		})
 	}
 
 	_removeStyleImage(htmlNode, styleAttributeName: string) {

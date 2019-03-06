@@ -9,7 +9,7 @@ import {
 	utf8Uint8ArrayToString
 } from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
@@ -37,6 +37,7 @@ import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
+import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -80,6 +81,14 @@ export function encrypt256Key(encryptionKey: Aes128Key, key: Aes256Key): Uint8Ar
 	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
 }
 
+export function aes256EncryptKey(encryptionKey: Aes256Key, key: Aes128Key): Uint8Array {
+	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+}
+
+export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Aes128Key {
+	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false))
+}
+
 export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
 	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
 }
@@ -118,6 +127,9 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		migrationData.symEncSessionKey = groupEncSessionKey
 		return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData)
 			.then(() => (data: any))
+	} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
+		// set sessionKey for allowing encryption when old instance (< v43) is updated
+		data._ownerEncSessionKey = encryptKey(locator.login.getUserGroupKey(), aes128RandomKey())
 	}
 	return Promise.resolve(data)
 }

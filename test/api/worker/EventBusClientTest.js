@@ -2,6 +2,7 @@
 import o from "ospec/ospec.js"
 import {EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
+import {spy} from "../TestUtils"
 
 o.spec("EventBusClient test", () => {
 
@@ -45,6 +46,9 @@ o.spec("EventBusClient test", () => {
 		let workerMock: any = {
 			entityEventsReceived: () => {
 				return Promise.resolve()
+			},
+			updateCounter: () => {
+				return Promise.resolve()
 			}
 		}
 		let indexerMock: any = {
@@ -84,8 +88,8 @@ o.spec("EventBusClient test", () => {
 		let messageData2 = _createMessageData(2)
 
 		// call twice as if it was received in parallel
-		let p1 = ebc._message(({data: JSON.stringify(messageData1)}: any))
-		let p2 = ebc._message(({data: JSON.stringify(messageData2)}: any))
+		let p1 = ebc._message({data: messageData1})
+		let p2 = ebc._message({data: messageData2})
 		Promise.all([p1, p2]).then(() => {
 			// make sure the second queued event was also processed
 			o(cacheMock.cacheCallState).equals("secondFinished")
@@ -93,19 +97,35 @@ o.spec("EventBusClient test", () => {
 		})
 	}))
 
-	let _createMessageData = function (eventBatchId: number) {
-		return {
+	o("counter update", node((done, timeout) => {
+		let counterUpdate = _createCounterData("group1", 4, "list1")
+		ebc._worker.updateCounter = spy(ebc._worker.updateCounter)
+		ebc._message({data: counterUpdate}).then(() => {
+			o(ebc._worker.updateCounter.invocations).deepEquals([
+				[
+					{
+						_format: "0",
+						mailGroup: "group1",
+						counterValues: [
+							{
+								_id: "counterupdateid",
+								count: 4,
+								mailListId: "list1"
+							}
+						]
+					}
+				]
+			])
+			done()
+		})
+	}))
+
+
+	let _createMessageData = function (eventBatchId: number): string {
+		const event = {
 			_format: "0",
-			clientVersion: "1",
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
-			modelVersions: "1,1",
-			msgId: "1",
-			type: "entityUpdate",
-			authentication: null,
-			chat: null,
-			entityUpdate: null,
-			exception: null,
 			eventBatch: [
 				{
 					_id: "eventbatchid",
@@ -117,6 +137,22 @@ o.spec("EventBusClient test", () => {
 				}
 			]
 		}
+		return "entityUpdate;" + JSON.stringify(event)
+	}
+
+	let _createCounterData = function (mailGroupId: Id, counterValue: number, listId: Id): string {
+		const event = {
+			_format: "0",
+			mailGroup: mailGroupId,
+			counterValues: [
+				{
+					_id: "counterupdateid",
+					count: counterValue,
+					mailListId: listId
+				}
+			]
+		}
+		return "unreadCounterUpdate;" + JSON.stringify(event)
 	}
 
 })

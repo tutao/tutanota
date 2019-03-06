@@ -1,23 +1,18 @@
 //@flow
 import {restClient} from "./RestClient"
-import {
-	decryptAndMapToInstance,
-	encryptAndMapToLiteral,
-	applyMigrations,
-	resolveSessionKey,
-	setNewOwnerEncSessionKey
-} from "../crypto/CryptoFacade"
+import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral, resolveSessionKey, setNewOwnerEncSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef, HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
-import type {LoginFacade} from "../facades/LoginFacade"
 
 assertWorkerOrNode()
 
 export function typeRefToPath(typeRef: TypeRef<any>): string {
 	return `/rest/${typeRef.app}/${typeRef.type.toLowerCase()}`
 }
+
+export type AuthHeadersProvider = () => Params
 
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
@@ -29,14 +24,14 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
  *
  */
 export class EntityRestClient implements EntityRestInterface {
-	_login: LoginFacade;
+	_authHeadersProvider: AuthHeadersProvider;
 
-	constructor(login: LoginFacade) {
-		this._login = login
+	constructor(authHeadersProvider: AuthHeadersProvider) {
+		this._authHeadersProvider = authHeadersProvider
 	}
 
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
 		return resolveTypeReference(typeRef).then(model => {
 			let path = typeRefToPath(typeRef)
 			if (listId) {
@@ -46,7 +41,8 @@ export class EntityRestClient implements EntityRestInterface {
 				path += '/' + id
 			}
 			let queryParams = queryParameter == null ? {} : queryParameter
-			let headers = this._login.createAuthHeaders()
+			const authHeaders = this._authHeadersProvider()
+			const headers = Object.assign(authHeaders, extraHeaders)
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity: any))

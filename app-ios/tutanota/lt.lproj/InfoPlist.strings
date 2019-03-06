@@ -1,0 +1,7 @@
+NSMicrophoneUsageDescription = "Naudojamas įrašant video kaip prisegamą failą.";
+NSRemindersUsageDescription = "Rodomas pranešimas, kai gaunamas naujas el.laiškas.";
+TutaoChoosePhotosAction = "Nuotraukos";
+TutaoNoPermissionTitle = "Nėra Priėjimo";
+TutaoChangePermissionMsg = "Norint įgyti prieigą, jūs turite pakeisti leidimus šiame įrenginyje.";
+TutaoCancelAction = "Atšaukti";
+TutaoSettingsAction = "Nustatymai";

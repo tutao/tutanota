@@ -1,4 +1,5 @@
-import type {EntityUpdateData} from "../src/api/main/EntityEventController"
+import type {EntityUpdateData} from "../src/api/main/EventController"
+import type {TranslationKey} from "../src/misc/LanguageViewModel"
 
 // FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
 declare function finder(any): boolean
@@ -9,9 +10,9 @@ declare function validator(): ?string;
 
 declare function progressUpdater(number): void;
 
-declare function lazy<T>(): T;
+declare type lazy<T> = () => T;
 
-declare function lazyAsync<T>(): Promise<T>;
+declare type lazyAsync<T> = () => Promise<T>;
 
 declare function action(): Promise<void>;
 
@@ -37,8 +38,8 @@ declare interface Shortcut {
 	meta?: boolean; // undefined == false
 	enabled?: lazy<boolean>;
 
-	exec(key: KeyPress): ?boolean; // must return true, if preventDefault should not be invoked
-	help: string;
+	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
+	help: TranslationKey;
 }
 
 /**
@@ -151,7 +152,7 @@ declare interface View {
 declare interface ModalComponent {
 	hideAnimation(): Promise<void>;
 
-	onClose(): void;
+	onClose(e: Event): void;
 
 	shortcuts(): Shortcut[];
 
@@ -191,7 +192,7 @@ type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'
 
 type Status = {
 	type: StatusTypeEnum,
-	text: string
+	text: TranslationKey
 }
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}

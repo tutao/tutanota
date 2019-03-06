@@ -9,8 +9,6 @@ const isTutanotaDomain = () =>
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
 	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
 
-type RequestHandler = (Request | string) => Promise<?Response>
-
 const urlWithoutQuery = (urlString) => {
 	const queryIndex = urlString.indexOf("?")
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
@@ -25,6 +23,7 @@ class ServiceWorker {
 	_applicationPaths: string[]
 	_isTutanotaDomain: boolean
 	_urlsToCache: string[]
+	_isBuggyChrome: boolean
 
 	constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
 	            isTutanotaDomain: boolean) {
@@ -35,11 +34,28 @@ class ServiceWorker {
 		this._possibleRest = selfLocation + "rest"
 		this._applicationPaths = applicationPaths
 		this._isTutanotaDomain = isTutanotaDomain
+		this._isBuggyChrome = false
+
+		if (typeof navigator !== "undefined") {
+			const results = navigator.userAgent.match(/Chrome\/([0-9]*)\./)
+			if (results != null && results.length > 0) {
+				const numberVersion = Number(results[1])
+				if (!isNaN(numberVersion) && numberVersion < 50) {
+					// Chrome 44-49 has weird bug where ByteStreams from cache are not interpreted correctly
+					console.log("Buggy Chrome version detected. Deferring to no-op sw.js")
+					this._isBuggyChrome = true
+				}
+			}
+		}
 	}
 
 	respond(evt: FetchEvent): void {
+		if (this._isBuggyChrome) {
+			// Defer to default browser behavior
+			return
+		}
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
-		if (this._urlsToCache.includes(urlWithoutParams) || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
+		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
 			evt.respondWith(this._fromCache(urlWithoutParams))
 		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
 			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
@@ -86,6 +102,9 @@ class ServiceWorker {
 		return this._caches
 		           .open(this._cacheName)
 		           .then(cache => cache.match(requestUrl))
+		           // Cache magically disappears on iOS 12.1 after the browser restart.
+		           // See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
+		           .then(r => r || fetch(requestUrl))
 	}
 
 	// needed because FF fails to cache.addAll()
@@ -100,7 +119,8 @@ class ServiceWorker {
 	}
 
 	_redirectToDefaultPage(url: string): Response {
-		const withoutBasePath = url.substring(this._selfLocation.length)
+		let hash = url.indexOf('#')
+		const withoutBasePath = url.substring(this._selfLocation.length, hash != -1 ? hash : url.length)
 		const params = new URLSearchParams({r: withoutBasePath})
 		return Response.redirect(`${this._selfLocation}?${params.toString()}`)
 	}
@@ -117,8 +137,6 @@ class ServiceWorker {
 		const pathElements = url.substring(this._selfLocation.length).split("/")
 		return pathElements.length > 0 ? pathElements[0] : ""
 	}
-
-
 }
 
 const init = (sw: ServiceWorker) => {
@@ -132,12 +150,22 @@ const init = (sw: ServiceWorker) => {
 	self.addEventListener('fetch', (evt) => {
 		sw.respond(evt)
 	})
-
 	self.addEventListener("message", (event) => {
 		console.log("sw message", event)
 		if (event.data === "update") {
 			self.skipWaiting()
 		}
+	})
+
+	self.addEventListener("error", ({error}) => {
+		const serializedError = {
+			name: error.name,
+			message: error.message,
+			stack: error.stack,
+			data: error.data
+		}
+		return self.clients.matchAll()
+		           .then((allClients) => allClients.forEach((c) => c.postMessage({type: "error", value: serializedError})))
 	})
 }
 
@@ -152,7 +180,7 @@ if (typeof env !== "undefined" && env.mode === "Test") {
 		? filesToCache()
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
-	const applicationPaths = ["login", "signup", "mail", "contact", "settings", "search", "contactform"]
+	const applicationPaths = ["login", "signup", "recover", "mail", "contact", "settings", "search", "contactform"]
 	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
 	init(sw)
 }

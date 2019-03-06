@@ -41,8 +41,8 @@ import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/Unen
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {getCurrentCount} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -56,6 +56,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_customLogoField: TextField;
 	_customColorsField: TextField;
 	_customMetaTagsField: TextField;
+	_whitelabelImprintUrl: TextField;
+	_whitelabelPrivacyUrl: TextField;
 	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
@@ -104,11 +106,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				m("#global-settings.fill-absolute.scroll.plr-l", (this._brandingDomainField) ? [
 					m(".h4.mt-l", lang.get('whitelabel_label')),
 					m("small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
-					m("small.text-break", [m(`a[href=${this._getBrandingLink()}][target=_blank]`, this._getBrandingLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`, lang.getInfoLink("whitelabel_link"))]),
 					m(this._brandingDomainField),
 					m(this._customLogoField),
 					m(this._customColorsField),
 					m(this._customMetaTagsField),
+					m(this._whitelabelImprintUrl),
+					m(this._whitelabelPrivacyUrl),
 					this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
 					(this._isWhitelabelRegistrationVisible()) ? m("", [
 						m(this._whitelabelRegistrationDomains),
@@ -139,13 +143,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			this._whitelabelRegistrationDomains
 	}
 
-	_getBrandingLink(): string {
-		return (lang.code === "de" || lang.code === "de_sie") ?
-			"http://tutanota.uservoice.com/knowledgebase/articles/1180321" :
-			"http://tutanota.uservoice.com/knowledgebase/articles/1180318"
-	}
-
-	_tryLoadCustomJsonTheme(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
+	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
 		if (domainInfo && domainInfo.whitelabelConfig) {
 			return load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig)
 		} else {
@@ -190,7 +188,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
 			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
-			return this._tryLoadCustomJsonTheme(brandingDomainInfo).then(whitelabelConfig => {
+			return this._tryLoadWhitelabelConfig(brandingDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
 						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding,
@@ -314,6 +312,10 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						}
 
 						let customMetaTagsDefined = whitelabelConfig ? whitelabelConfig.metaTags.length > 0 : false
+						this._whitelabelImprintUrl = new TextField("imprintUrl_label", null).setValue((whitelabelConfig
+							&& whitelabelConfig.imprintUrl) ? whitelabelConfig.imprintUrl : "").setDisabled()
+						this._whitelabelPrivacyUrl = new TextField("privacyPolicyUrl_label", null).setValue((whitelabelConfig
+							&& whitelabelConfig.privacyStatementUrl) ? whitelabelConfig.privacyStatementUrl : "").setDisabled()
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                       .setDisabled()
 						if (whitelabelConfig) {
@@ -334,6 +336,39 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								})
 							}, () => Icons.Edit)
 							this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+
+							let editImprintUrlButton = new Button("edit_action", () => {
+								let imprintUrl = new TextField("imprintUrl_label")
+									.setValue(neverNull(whitelabelConfig).imprintUrl)
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("imprintUrl_label"),
+									child: {view: () => m(imprintUrl)},
+									okAction: (ok) => {
+										if (ok) {
+											neverNull(whitelabelConfig).imprintUrl = imprintUrl.value() ? imprintUrl.value() : null
+											update(whitelabelConfig)
+											dialog.close()
+										}
+									}
+								})
+							}, () => Icons.Edit)
+							let editPrivacyUrlButton = new Button("edit_action", () => {
+								let privacyUrl = new TextField("privacyPolicyUrl_label")
+									.setValue(neverNull(whitelabelConfig).privacyStatementUrl)
+								let dialog = Dialog.showActionDialog({
+									title: lang.get("privacyLink_label"),
+									child: {view: () => m(privacyUrl)},
+									okAction: (ok) => {
+										if (ok) {
+											neverNull(whitelabelConfig).privacyStatementUrl = privacyUrl.value() ? privacyUrl.value() : null
+											update(whitelabelConfig)
+											dialog.close()
+										}
+									}
+								})
+							}, () => Icons.Edit)
+							this._whitelabelImprintUrl._injectionsRight = () => m(editImprintUrlButton)
+							this._whitelabelPrivacyUrl._injectionsRight = () => m(editPrivacyUrlButton)
 						}
 
 						let customGermanLanguageFileDefined = whitelabelConfig
@@ -343,7 +378,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							{name: "Deutsch (Sie)", value: "de_sie"}
 						]
 						if (whitelabelConfig && (lang.code === 'de' || lang.code === 'de_sie')) {
-							const streamValue = stream(customGermanLanguageFileDefined ? neverNull(whitelabelConfig).germanLanguageCode : items[0].value)
+							const streamValue = stream(customGermanLanguageFileDefined
+								? neverNull(whitelabelConfig.germanLanguageCode)
+								: items[0].value)
 							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, streamValue, 250).setSelectionChangedHandler(v => {
 								if (v) {
 									neverNull(whitelabelConfig).germanLanguageCode = v

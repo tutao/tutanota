@@ -1,4 +1,6 @@
 
+#import "Swiftier.h"
+
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "TUTFileViewer.h"
 #import "TUTFileUtil.h"
@@ -9,7 +11,6 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 @interface TUTFileUtil ()
 @property (readonly) TUTFileChooser *attachmentChooser;
 @property (readonly) TUTFileViewer *viewer;
-@property (readonly) NSMutableSet<NSString*> *attachmentsForUpload;
 @end
 
 @implementation TUTFileUtil
@@ -20,7 +21,6 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
     if (self) {
         _attachmentChooser = [[TUTFileChooser alloc] init];
 		_viewer = [[TUTFileViewer alloc] initWithViewController:viewController];
-		_attachmentsForUpload = [[NSMutableSet alloc] init];
     }
     return self;
 }
@@ -28,18 +28,28 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
 - (void)openFileAtPath:(NSString * _Nonnull)filePath
 			completion:(void (^ _Nonnull)(NSError * _Nullable))completion {
-	[self->_viewer openFileAtPath:filePath completion:^(NSError * _Nullable error) {
+	[self->_viewer openFileAtPath:filePath completion:completion];
+}
+
+- (void) openFile:(NSString*) name fileData:(NSData*) fileData completion:(void(^)(NSError * error))completion{
+	NSError* error;
+	let decryptedFolder = [TUTFileUtil getDecryptedFolder:&error];
+	NSString *filePath = [decryptedFolder stringByAppendingPathComponent:name];
+	[fileData writeToFile:filePath options: NSDataWritingAtomic error:&error];
+	if (!error) {
+		[self openFileAtPath:filePath completion:^(NSError * error){
+			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+			completion(error);
+		}];
+	} else {
 		completion(error);
-	}];
+	}
 }
 
 - (void)deleteFileAtPath:(NSString *)filePath
 			  completion:(void (^)(void))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		// do not delete files if they haven't been uploaded yet.
-		if (![self->_attachmentsForUpload containsObject:filePath]) {
-			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-		}
+		[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
 		completion();
 	 });
 }
@@ -60,13 +70,10 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 - (void)getMimeTypeForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
-		if (mimeType) {
-			completion(mimeType, nil);
-		} else {
-			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
-												code:1
-												userInfo:@{@"message":@"Could not determine MIME type"}]);
+		if (mimeType == nil) {
+			mimeType = @"application/octet-stream";
 		}
+		completion(mimeType, nil);
 	});
 }
 
@@ -89,10 +96,10 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 }
 
 
-- (void)uploadFileAtPath:(NSString *)filePath
-				   toUrl:(NSString *)urlString
-			 withHeaders:(NSDictionary<NSString *, NSString *> *)headers
-			  completion:(void (^)(NSNumber *, NSError *))completion {
+- (void)uploadFileAtPath:(NSString * _Nonnull)filePath
+				   toUrl:(NSString * _Nonnull)urlString
+			 withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
+			  completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSURL *url = [NSURL URLWithString:urlString];
 		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
@@ -111,17 +118,28 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 															completion(nil, error);
 															return;
 														}
-														NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-														completion([NSNumber numberWithInteger:httpResponse.statusCode], nil);
+
+														const NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+														NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
+														[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
+
+														const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
+														if (errorId == nil) {
+															[responseDict setValue:NSNull.null forKey:@"statusMessage"];
+														} else {
+															[responseDict setValue:errorId forKey:@"statusMessage"];
+														}
+
+														completion(responseDict, nil);
 													}];
 		[task resume];
 	});
 }
 
-- (void)downloadFileFromUrl:(NSString *)urlString
-					forName:(NSString *)fileName
-				withHeaders:(NSDictionary<NSString *, NSString *> *)headers
-				 completion:(void (^)(NSString * filePath, NSError * error))completion {
+- (void)downloadFileFromUrl:(NSString * _Nonnull)urlString
+					forName:(NSString * _Nonnull)fileName
+				withHeaders:(NSDictionary<NSString *, NSString *> * _Nonnull)headers
+				 completion:(void (^ _Nonnull)(NSDictionary<NSString *, id> * _Nullable response, NSError * _Nullable error))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 			NSURL * url = [NSURL URLWithString:urlString];
 			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -134,28 +152,41 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
 			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-                if (error){
+                if (error) {
 					completion(nil, error);
                     return;
                 }
+				NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
+				[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
+				const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
+				if (errorId == nil) {
+					[responseDict setValue:NSNull.null forKey:@"statusMessage"];
+				} else {
+					[responseDict setValue:errorId forKey:@"statusMessage"];
+				}
+
 				if ([httpResponse statusCode] == 200) {
                     NSError *error = nil;
 					NSString *encryptedPath = [TUTFileUtil getEncryptedFolder: &error];
                     if (error) {
 						completion(nil, error);
-                        return;
-                    }
-                    NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
+						return;
+					}
+					NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
 					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
 					if (!error) {
-						completion(filePath, nil);
+						if (filePath == nil) {
+							[responseDict setValue:NSNull.null forKey:@"encryptedFileUri"];
+						} else {
+							[responseDict setValue:filePath forKey:@"encryptedFileUri"];
+						}
+
+						completion(responseDict, nil);
 					} else {
 						completion(nil, error);
 					}
 				} else {
-					NSString *message = [NSString stringWithFormat:@"Response code: %ld", (long) httpResponse.statusCode];
-					NSError *error = [NSError errorWithDomain:FILES_ERROR_DOMAIN code:15 userInfo:@{@"message":message}];
-					completion(nil, error);
+					completion(responseDict, nil);
 				}
 			}] resume];
 		});
@@ -201,7 +232,28 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 };
 
 
+- (void)clearFileData{
+	NSError* error;
+	[self clearDirectory:[TUTFileUtil getEncryptedFolder: &error]];
+	[self clearDirectory:[TUTFileUtil getDecryptedFolder: &error]];
+	[self clearDirectory:NSTemporaryDirectory()];
+}
 
+
+-(void) clearDirectory:(NSString*) dirToDelete {
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSError* error;
+	NSURL* folderUrl = [NSURL fileURLWithPath:dirToDelete];
+	NSArray<NSURL *> *files = [fileManager contentsOfDirectoryAtURL:folderUrl includingPropertiesForKeys:nil options: 0 error:&error];
+	if (error) {
+		return;
+	}
+	for (NSURL *file in files) {
+		if (!file.hasDirectoryPath){
+			[fileManager removeItemAtURL:file error:&error];
+		}
+	}
+}
 
 @end
 

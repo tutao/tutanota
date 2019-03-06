@@ -13,6 +13,16 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {"_id": {"name": "_id", "id": 1207, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
+		"recoverCode": {
+			"name": "recoverCode",
+			"id": 1416,
+			"since": 36,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "RecoverCode",
+			"final": false,
+			"external": false
+		},
 		"secondFactors": {
 			"name": "secondFactors",
 			"id": 1209,
@@ -35,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createUserAuthentication(): UserAuthentication {

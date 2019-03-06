@@ -247,6 +247,7 @@ type AccountingInfo = {
 	_errors: Object;
 	_format: NumberString;
 	_id: Id;
+	_modified: Date;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
@@ -376,16 +377,8 @@ type MailAddressAvailabilityReturn = {
 type RegistrationServiceData = {
 	_type: TypeRef<RegistrationServiceData>;
 	_format: NumberString;
-	accountType: NumberString;
-	company: ?string;
-	domain: string;
-	groupName: string;
-	language: string;
-	mailAddress: string;
-	mobilePhoneNumber: string;
+	starterDomain: string;
 	source: ?NumberString;
-	specialPriceUserSingle: ?NumberString;
-	specialPriceUserTotal: ?NumberString;
 	state: NumberString;
 
 }
@@ -625,23 +618,6 @@ type Exception = {
 
 }
 
-type WebsocketWrapper = {
-	_type: TypeRef<WebsocketWrapper>;
-	_format: NumberString;
-	clientVersion: string;
-	eventBatchId: ?Id;
-	eventBatchOwner: ?Id;
-	modelVersions: string;
-	msgId: NumberString;
-	type: string;
-
-	authentication: ?Authentication;
-	chat: ?Chat;
-	entityUpdate: ?EntityUpdate;
-	eventBatch: EntityUpdate[];
-	exception: ?Exception;
-}
-
 type Version = {
 	_type: TypeRef<Version>;
 	_id: Id;
@@ -691,8 +667,9 @@ type ChangePasswordData = {
 	_type: TypeRef<ChangePasswordData>;
 	_format: NumberString;
 	code: ?string;
-	oldVerifier: Uint8Array;
+	oldVerifier: ?Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: ?Uint8Array;
 	salt: Uint8Array;
 	verifier: Uint8Array;
 
@@ -756,12 +733,16 @@ type RegistrationConfigReturn = {
 
 type PushIdentifier = {
 	_type: TypeRef<PushIdentifier>;
+	_errors: Object;
 	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	disabled: boolean;
+	displayName: string;
 	identifier: string;
 	language: string;
 	lastNotificationDate: ?Date;
@@ -803,6 +784,7 @@ type CustomerProperties = {
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: ?Date;
+
 	bigLogo: ?SysFile;
 	smallLogo: ?SysFile;
 }
@@ -974,6 +956,7 @@ type SwitchAccountTypeData = {
 	_type: TypeRef<SwitchAccountTypeData>;
 	_format: NumberString;
 	accountType: NumberString;
+	campaign: ?string;
 	date: ?Date;
 	proUpgrade: boolean;
 
@@ -1050,6 +1033,7 @@ type PriceRequestData = {
 type PriceServiceData = {
 	_type: TypeRef<PriceServiceData>;
 	_format: NumberString;
+	campaign: ?string;
 	date: ?Date;
 
 	priceRequest: ?PriceRequestData;
@@ -1199,7 +1183,7 @@ type AuditLogEntry = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	action: string;
-	actorIpAddress: string;
+	actorIpAddress: ?string;
 	actorMailAddress: string;
 	date: Date;
 	modifiedEntity: string;
@@ -1222,8 +1206,10 @@ type WhitelabelConfig = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	germanLanguageCode: ?string;
+	imprintUrl: ?string;
 	jsonTheme: string;
 	metaTags: string;
+	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
 }
@@ -1318,6 +1304,7 @@ type UserAuthentication = {
 	_type: TypeRef<UserAuthentication>;
 	_id: Id;
 
+	recoverCode: ?Id;
 	secondFactors: Id;
 	sessions: Id;
 }
@@ -1327,9 +1314,10 @@ type CreateSessionData = {
 	_format: NumberString;
 	accessKey: ?Uint8Array;
 	authToken: ?string;
-	authVerifier: string;
+	authVerifier: ?string;
 	clientIdentifier: string;
 	mailAddress: ?string;
+	recoverCodeVerifier: ?string;
 
 	user: ?Id;
 }
@@ -1501,4 +1489,89 @@ type SseConnectData = {
 	identifier: string;
 
 	userIds: GeneratedIdWrapper[];
+}
+
+type RecoverCode = {
+	_type: TypeRef<RecoverCode>;
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	userEncRecoverCode: Uint8Array;
+	verifier: Uint8Array;
+
+}
+
+type ResetFactorsDeleteData = {
+	_type: TypeRef<ResetFactorsDeleteData>;
+	_format: NumberString;
+	authVerifier: string;
+	mailAddress: string;
+	recoverCodeVerifier: string;
+
+}
+
+type UpgradePriceServiceData = {
+	_type: TypeRef<UpgradePriceServiceData>;
+	_format: NumberString;
+	campaign: ?string;
+	date: ?Date;
+
+}
+
+type PlanPrices = {
+	_type: TypeRef<PlanPrices>;
+	_id: Id;
+	additionalUserPriceMonthly: NumberString;
+	contactFormPriceMonthly: NumberString;
+	firstYearDiscount: NumberString;
+	includedAliases: NumberString;
+	includedStorage: NumberString;
+	monthlyPrice: NumberString;
+	monthlyReferencePrice: NumberString;
+
+}
+
+type UpgradePriceServiceReturn = {
+	_type: TypeRef<UpgradePriceServiceReturn>;
+	_format: NumberString;
+	business: boolean;
+	messageTextId: ?string;
+
+	premiumPrices: PlanPrices;
+	proPrices: PlanPrices;
+}
+
+type RegistrationCaptchaServiceGetData = {
+	_type: TypeRef<RegistrationCaptchaServiceGetData>;
+	_format: NumberString;
+	mailAddress: string;
+	token: ?string;
+
+}
+
+type WebsocketEntityData = {
+	_type: TypeRef<WebsocketEntityData>;
+	_format: NumberString;
+	eventBatchId: Id;
+	eventBatchOwner: Id;
+
+	eventBatch: EntityUpdate[];
+}
+
+type WebsocketCounterValue = {
+	_type: TypeRef<WebsocketCounterValue>;
+	_id: Id;
+	count: NumberString;
+	mailListId: Id;
+
+}
+
+type WebsocketCounterData = {
+	_type: TypeRef<WebsocketCounterData>;
+	_format: NumberString;
+	mailGroup: Id;
+
+	counterValues: WebsocketCounterValue[];
 }

@@ -21,11 +21,12 @@ import {TutanotaService} from "../../entities/tutanota/Services"
 import {random} from "../crypto/Randomizer"
 import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacade, RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
+import {generateRsaKey} from "../crypto/Rsa"
 
 assertWorkerOrNode()
 
@@ -44,21 +45,18 @@ export class UserManagementFacade {
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
-		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			this._groupManagement.getAdminGroupKey(userGroup).then(adminGroupKey => {
-				let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-				let salt = generateRandomSalt()
-				let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-				let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
-				let passwordVerifier = createAuthVerifier(passwordKey)
+		return this._groupManagement.getGroupKeyAsAdmin(user.userGroup.group).then(userGroupKey => {
+			let salt = generateRandomSalt()
+			let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+			let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+			let passwordVerifier = createAuthVerifier(passwordKey)
 
-				let data = createResetPasswordData()
-				data.user = neverNull(userGroup.user)
-				data.salt = salt
-				data.verifier = passwordVerifier
-				data.pwEncUserGroupKey = pwEncUserGroupKey
-				return serviceRequestVoid("resetpasswordservice", HttpMethod.POST, data)
-			})
+			let data = createResetPasswordData()
+			data.user = user._id
+			data.salt = salt
+			data.verifier = passwordVerifier
+			data.pwEncUserGroupKey = pwEncUserGroupKey
+			return serviceRequestVoid(SysService.ResetPasswordService, HttpMethod.POST, data)
 		})
 	}
 
@@ -75,7 +73,7 @@ export class UserManagementFacade {
 						addAccountGroup.user = user._id
 						addAccountGroup.group = accountGroupMembership.group
 						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), accountGroupMembership.symEncGKey))
-						return serviceRequestVoid("membershipservice", HttpMethod.POST, addAccountGroup)
+						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
 					})
 				} else {
 					return this._groupManagement.removeUserFromGroup(user._id, adminGroupId).then(() => {
@@ -87,8 +85,7 @@ export class UserManagementFacade {
 	}
 
 	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (this._login.getLoggedInUser().accountType
-			=== AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
+		let mailAddress = (this._login.getLoggedInUser().accountType === AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
 		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
 			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
 				return (groupInfo.mailAddress === mailAddress)
@@ -147,7 +144,7 @@ export class UserManagementFacade {
 		data.user = user._id
 		data.restore = restore
 		data.date = Const.CURRENT_DATE
-		return serviceRequestVoid("userservice", HttpMethod.DELETE, data)
+		return serviceRequestVoid(SysService.UserService, HttpMethod.DELETE, data)
 	}
 
 	_getGroupId(user: User, groupType: GroupTypeEnum): Id {
@@ -173,24 +170,27 @@ export class UserManagementFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
-		           .then(userGroupData => {
-			           return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
-			                      .then(() => {
-				                      let data = createUserAccountCreateData()
-				                      data.date = Const.CURRENT_DATE
-				                      data.userGroupData = userGroupData
-				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, name)
-				                      return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
-					                      .then(() => {
-						                      return this._worker.sendProgress((userIndex + 1)
-							                      / overallNbrOfUsersToCreate * 100)
-					                      })
-			                      })
-		           })
+		return generateRsaKey()
+			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey))
+			.then(userGroupData => {
+				return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
+				           .then(() => {
+					           let data = createUserAccountCreateData()
+					           data.date = Const.CURRENT_DATE
+					           data.userGroupData = userGroupData
+					           data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
+						           password, name, this._login.generateRecoveryCode(userGroupKey))
+					           return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
+						           .then(() => {
+							           return this._worker.sendProgress((userIndex + 1)
+								           / overallNbrOfUsersToCreate * 100)
+						           })
+				           })
+			})
 	}
 
-	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string, userName: string): UserAccountUserData {
+	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string,
+	                        userName: string, recoverData: RecoverData): UserAccountUserData {
 		let salt = generateRandomSalt()
 		let userPassphraseKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
 
@@ -227,7 +227,9 @@ export class UserManagementFacade {
 		userData.customerEncMailGroupInfoSessionKey = encryptKey(customerGroupKey, mailGroupInfoSessionKey)
 		userData.customerEncContactGroupInfoSessionKey = encryptKey(customerGroupKey, contactGroupInfoSessionKey)
 		userData.customerEncFileGroupInfoSessionKey = encryptKey(customerGroupKey, fileGroupInfoSessionKey)
-
+		userData.userEncRecoverCode = recoverData.userEncRecoverCode
+		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
+		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
 	}
 

@@ -14,6 +14,7 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 147, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 145, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_modified": {"name": "_modified", "id": 1499, "since": 43, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
 			"id": 1010,
@@ -101,7 +102,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createAccountingInfo(): AccountingInfo {

@@ -36,6 +36,7 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
+import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -76,7 +77,7 @@ export class Indexer {
 			initialized: deferred.promise
 		} // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db, new EventQueue((batch, futureActions) => this._processEntityEvents(batch, futureActions)),
+		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
 		this._entity = new EntityWorker()
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
@@ -89,7 +90,7 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	init(user: User, userGroupKey: Aes128Key) {
+	init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true) {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,
@@ -128,20 +129,27 @@ export class Indexer {
 					           console.log("out of sync - delete database and disable mail indexing")
 					           return this.disableMailIndexing()
 				           })
-			}).catch(MembershipRemovedError, e => {
-				// mail or contact group has been removed from user, disable mail indexing and init index again
-				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
-				// initialized promise will be resolved in this.init later.
-				console.log("cancelled init, disable mail indexing and init again")
-				let mailIndexingEnabled = this._mail.mailIndexingEnabled;
-				return this._mail.disableMailIndexing().then(() => {
-					return this.init(this._initParams.user, this._initParams.groupKey).then(() => {
-						if (mailIndexingEnabled) {
-							return this.enableMailIndexing()
-						}
+			}).catch(e => {
+				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
+					// in case of MembershipRemovedError mail or contact group has been removed from user.
+					// in case of InvalidDatabaseError no group id has been stored to the database.
+					// disable mail indexing and init index again in both cases.
+					// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
+					// initialized promise will be resolved in this.init later.
+					console.log("disable mail indexing and init again", e)
+					return this._reCreateIndex()
+				} else {
+					// disable storage if it fails to inititalize
+					this._core.indexingSupported = false
+					this._worker.sendIndexState({
+						initializing: false,
+						indexingSupported: false,
+						mailIndexEnabled: false,
+						progress: 0,
+						currentMailIndexTimestamp: this._mail.currentIndexTimestamp
 					})
-
-				})
+					throw e
+				}
 			})
 		}).catch(DbError, e => {
 			console.log("Indexing not supported", e)
@@ -191,6 +199,17 @@ export class Indexer {
 		this._core.queue.start()
 	}
 
+	_reCreateIndex(): Promise<void> {
+		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled;
+		return this._mail.disableMailIndexing().then(() => {
+			// do not try to init again on error
+			return this.init(this._initParams.user, this._initParams.groupKey, false).then(() => {
+				if (mailIndexingWasEnabled) {
+					return this.enableMailIndexing()
+				}
+			})
+		})
+	}
 
 	_createIndexTables(user: User, userGroupKey: Aes128Key): Promise<void> {
 		return this._loadGroupData(user)
@@ -247,6 +266,11 @@ export class Indexer {
 		           .then(t => t.getAll(GroupDataOS)
 		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
 		           .then(indexedGroupIds => {
+			           if (indexedGroupIds.length === 0) {
+				           // tried to index twice, this is probably not our fault
+				           console.log("no group ids in database, disabling indexer")
+				           this.disableMailIndexing()
+			           }
 			           this._indexedGroupIds = indexedGroupIds
 		           })
 	}
@@ -332,15 +356,13 @@ export class Indexer {
 		return Promise
 			.each(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
-					let lastBatchId = groupIdToEventBatch.eventBatchIds[groupIdToEventBatch.eventBatchIds.length - 1] // start from lowest id
-					// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
-					let startId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let startId = this._getStartIdForLoadingMissedEventBatches(groupIdToEventBatch.eventBatchIds)
 					return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
 					           .then(eventBatchesOnServer => {
 						           const batchesToQueue: QueuedBatch[] = []
 						           for (let batch of eventBatchesOnServer) {
 							           const batchId = getElementId(batch)
-							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, lastBatchId)) {
+							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, startId)) {
 								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
 							           }
 						           }
@@ -373,6 +395,20 @@ export class Indexer {
 			.then(() => this.startProcessing())
 	}
 
+	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds: Id[]): Id {
+		let newestBatchId = lastEventBatchIds[0]
+		let oldestBatchId = lastEventBatchIds[lastEventBatchIds.length - 1]
+		// load all EntityEventBatches which are not older than 1 minute before the newest batch
+		// to be able to get batches that were overtaken by the newest batch and therefore missed before
+		let startId = timestampToGeneratedId(generatedIdToTimestamp(newestBatchId) - 1000 * 60)
+		// do not load events that are older than the stored events
+		if (!firstBiggerThanSecond(startId, oldestBatchId)) {
+			// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
+			startId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
+		}
+		return startId
+	}
+
 	/**
 	 * @private a map from group id to event batches
 	 */
@@ -386,7 +422,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw Error("no group data for group " + membership.group)
+						throw new Error("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 					}
 				})
 			}))
@@ -463,6 +499,11 @@ export class Indexer {
 			           } else {
 				           throw e
 			           }
+		           })
+		           .catch(InvalidDatabaseStateError, (e) => {
+			           console.log("InvalidDatabaseStateError during _processEntityEvents")
+			           this._core.stopProcessing()
+			           return this._reCreateIndex()
 		           })
 	}
 

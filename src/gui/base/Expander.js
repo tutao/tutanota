@@ -1,12 +1,14 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
+import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {addFlash, removeFlash} from "./Flash"
+import {px} from "../size"
 
 export class ExpanderButton {
 	panel: ExpanderPanel;
@@ -15,16 +17,15 @@ export class ExpanderButton {
 	view: Function;
 	_showWarning: boolean;
 
-	constructor(labelTextIdOrLabelFunction: string | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
+	constructor(labelTextIdOrLabelFunction: TranslationKey | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
 		this.panel = panel
-		this.getLabel = labelTextIdOrLabelFunction
-		instanceof Function ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
+		this.getLabel = typeof labelTextIdOrLabelFunction === "function" ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
 		if (typeof style.color === 'undefined') {
 			style.color = color
 		}
 		this._showWarning = showWarning
 
-		this.view = (): VirtualElement => m(".pr-expander.flex.limit-width", [ // .limit-width does not work without .flex in IE11
+		this.view = (): VirtualElement => m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style,
 				onclick: (event: MouseEvent) => {
@@ -42,7 +43,10 @@ export class ExpanderButton {
 				m(Icon, {
 					icon: BootIcons.Expand,
 					class: "flex-center items-center",
-					style: {fill: color},
+					style: {
+						fill: color,
+						'margin-right': px(-4) // icon is has 4px whitespace to the right
+					},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
 						if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
@@ -76,15 +80,17 @@ export class ExpanderPanel {
 	constructor(child: Component) {
 		this.child = child
 		this.expanded = false
-		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden", [
-			this.expanded ? m("div", {
-				oncreate: vnode => {
-					this._domPanel = vnode.dom
-					vnode.dom.style.height = 0
-					this._animate(true)
-				},
-				onbeforeremove: vnode => this._animate(false),
-			}, m(this.child)) : null
+		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden.no-shrink", [
+			this.expanded
+				? m("div", {
+					oncreate: vnode => {
+						this._domPanel = vnode.dom
+						vnode.dom.style.height = 0
+						this._animate(true)
+					},
+					onbeforeremove: vnode => this._animate(false),
+				}, m(this.child))
+				: null
 		])
 	}
 
@@ -101,11 +107,12 @@ export class ExpanderPanel {
 		                 })
 	}
 
-	setExpanded(expanded: boolean) {
+	setExpanded(expanded: boolean): ExpanderPanel {
 		this.expanded = expanded
 		let c = (this.child: any)
 		if (c['setExpanded']) {
 			c['setExpanded'](expanded)
 		}
+		return this
 	}
 }

@@ -1,7 +1,0 @@
-NSCameraUsageDescription = "上傳照片或影片至附加檔案";
-NSPhotoLibraryUsageDescription = "新增來自你資料庫的照片作為附件。";
-NSPhotoLibraryAddUsageDescription = "新增來自你資料庫的照片作為附件。";
-TutaoChoosePhotosAction = "照片";
-TutaoNoPermissionTitle = "無權限";
-TutaoCancelAction = "取消";
-TutaoSettingsAction = "設定";

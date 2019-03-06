@@ -4,14 +4,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 export const _TypeModel: TypeModel = {
-	"name": "User",
-	"since": 1,
-	"type": "ELEMENT_TYPE",
-	"id": 84,
-	"rootId": "A3N5cwBU",
-	"versioned": false,
-	"encrypted": false,
-	"values": {
+	"name": "User", "since": 1, "type": "ELEMENT_TYPE", "id": 84, "rootId": "A3N5cwBU", "versioned": false, "encrypted": false, "values": {
 		"_format": {"name": "_format", "id": 88, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 86, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 996, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
@@ -30,17 +23,8 @@ export const _TypeModel: TypeModel = {
 		"salt": {"name": "salt", "id": 90, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"userEncClientKey": {"name": "userEncClientKey", "id": 89, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
 		"verifier": {"name": "verifier", "id": 91, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
-	},
-	"associations": {
-		"auth": {
-			"name": "auth",
-			"id": 1210,
-			"since": 23,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "UserAuthentication",
-			"final": true
-		},
+	}, "associations": {
+		"auth": {"name": "auth", "id": 1210, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "UserAuthentication", "final": true},
 		"authenticatedDevices": {
 			"name": "authenticatedDevices",
 			"id": 97,
@@ -111,9 +95,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	},
-	"app": "sys",
-	"version": "35"
+	}, "app": "sys", "version": "43"
 }
 
 export function createUser(): User {

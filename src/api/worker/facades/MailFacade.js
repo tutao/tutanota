@@ -30,7 +30,7 @@ import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {defer, downcast, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
+import {defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -43,12 +43,13 @@ import {createNewDraftAttachment} from "../../entities/tutanota/NewDraftAttachme
 import {_TypeModel as FileTypeModel, FileTypeRef} from "../../entities/tutanota/File"
 import type {FileFacade} from "./FileFacade"
 import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode, isApp} from "../../Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
+import {fileApp} from "../../../native/FileApp"
 
 assertWorkerOrNode()
 
@@ -189,8 +190,8 @@ export class MailFacade {
 			let attachments = neverNull(providedFiles)
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
-				if (!attachments.find(attachment => (attachment._type !== "DataFile")
-					&& isSameId(getLetId(downcast(attachment)), fileId))) {
+				if (!attachments.find(attachment =>
+					(attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId)))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})
@@ -203,33 +204,42 @@ export class MailFacade {
 	 */
 	_createAddedAttachments(providedFiles: ?Array<TutanotaFile | DataFile | FileReference>, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
 		if (providedFiles) {
-			return Promise.map((providedFiles: any), providedFile => {
-				// check if this is a new attachment or an existing one
-				if (providedFile._type === "DataFile") {
-					// user added attachment
-					let fileSessionKey = aes128RandomKey()
-					let dataFile = ((providedFile: any): DataFile)
-					return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
-						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
-					})
-				} else if (providedFile._type === "FileReference") {
-					let fileSessionKey = aes128RandomKey()
-					let fileRef = ((providedFile: any): FileReference)
-					return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
-						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
-					})
-				} else if (!containsId((existingFileIds: any), getLetId(providedFile))) {
-					// forwarded attachment which was not in the draft before
-					return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
-						let attachment = createDraftAttachment();
-						attachment.existingFile = getLetId(providedFile)
-						attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
-						return attachment
-					})
-				} else {
-					return null
-				}
-			}).filter(attachment => (attachment != null))
+			return Promise
+				.map((providedFiles: any), providedFile => {
+					// check if this is a new attachment or an existing one
+					if (providedFile._type === "DataFile") {
+						// user added attachment
+						let fileSessionKey = aes128RandomKey()
+						let dataFile = ((providedFile: any): DataFile)
+						return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+						})
+					} else if (providedFile._type === "FileReference") {
+						let fileSessionKey = aes128RandomKey()
+						let fileRef = ((providedFile: any): FileReference)
+						return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+						})
+					} else if (!containsId((existingFileIds: any), getLetId(providedFile))) {
+						// forwarded attachment which was not in the draft before
+						return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
+							let attachment = createDraftAttachment();
+							attachment.existingFile = getLetId(providedFile)
+							attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
+							return attachment
+						})
+					} else {
+						return null
+					}
+				}, {concurrency: 1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+				.filter(attachment => (attachment != null))
+				.tap(() => {
+					// only delete the temporary files after all attachments have been uploaded
+					if (isApp()) {
+						fileApp.clearFileData()
+						       .catch((e) => console.warn("Failed to clear files", e))
+					}
+				})
 		} else {
 			return Promise.resolve([])
 		}

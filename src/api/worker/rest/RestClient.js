@@ -1,6 +1,6 @@
 // @flow
-import {getHttpOrigin, assertWorkerOrNode} from "../../Env"
-import {handleRestError, ConnectionError} from "../../common/error/RestError"
+import {assertWorkerOrNode, getHttpOrigin} from "../../Env"
+import {ConnectionError, handleRestError} from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
@@ -29,9 +29,9 @@ export class RestClient {
 			xhr.responseType = responseType === MediaType.Json ? "text" : 'arraybuffer'
 
 			let timeout = setTimeout(() => xhr.abort(), env.timeout)
-			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
+			xhr.onload = () => { // XMLHttpRequestProgressEvent, but not needed
 				clearTimeout(timeout)
-				if (this.status === 200 || method === HttpMethod.POST && this.status === 201) {
+				if (xhr.status === 200 || method === HttpMethod.POST && xhr.status === 201) {
 					if (responseType === MediaType.Json) {
 						resolve(xhr.response)
 					} else if (responseType === MediaType.Binary) {
@@ -40,8 +40,16 @@ export class RestClient {
 						resolve()
 					}
 				} else {
-					console.log("failed request", method, url, headers, body)
-					reject(handleRestError(xhr.status, `${xhr.statusText} | ${method} ${path}`))
+					let retryAfter = xhr.getResponseHeader("Retry-After")
+					if (xhr.status == 429 && retryAfter) {
+						setTimeout(() => {
+							resolve(this.request(path, method, queryParams, headers, body, responseType, progressListener))
+						}, Number(retryAfter) * 1000)
+						console.log(`rate limited request to ${path}, retry after ${retryAfter}s`)
+					} else {
+						console.log("failed request", method, url, headers, body)
+						reject(handleRestError(xhr.status, `${xhr.statusText} | ${method} ${path}`))
+					}
 				}
 			}
 			xhr.onerror = function () {
@@ -83,6 +91,7 @@ export class RestClient {
 	}
 
 	_setHeaders(xhr: XMLHttpRequest, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum) {
+		headers['cv'] = env.versionNumber
 		if (body instanceof Uint8Array) {
 			headers["Content-Type"] = MediaType.Binary
 		} else if (typeof body === 'string') {

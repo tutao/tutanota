@@ -36,7 +36,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			getAll: (os) => {
-				return Promise.resolve([])
+				// So that we don't run into "no group ids' check
+				return Promise.resolve([{key: "key", value: "value"}])
 			},
 			put: (os, key, value) => {
 				o(os).equals(MetaDataOS)
@@ -100,7 +101,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			getAll: (os) => {
-				return Promise.resolve([])
+				// So that we don't run into "no group ids' check
+				return Promise.resolve([{key: "key", value: "value"}])
 			},
 			wait: () => Promise.resolve()
 		}
@@ -164,7 +166,8 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(null)
 			},
 			wait: () => Promise.resolve(),
-			getAll: () => Promise.resolve([])
+			// So that we don't run into "no group ids' check
+			getAll: () => Promise.resolve([{key: "key", value: "value"}])
 		}
 
 		let groupDiff = [{groupDiff: "dummy"}]
@@ -214,7 +217,7 @@ o.spec("Indexer test", () => {
 		user.memberships[1].group = "constant-group-id"
 
 		let deletedGroupId = "deleted-group-id"
-		let groupData = {groupType: GroupType.Team}
+		let groupData = {groupType: GroupType.MailingList}
 		let transaction = {
 			getAll: (os) => {
 				o(os).equals(GroupDataOS)
@@ -233,7 +236,7 @@ o.spec("Indexer test", () => {
 
 		indexer._loadGroupDiff(user).then(result => {
 			o(result).deepEquals({
-				deletedGroups: [{id: 'deleted-group-id', type: GroupType.Team}],
+				deletedGroups: [{id: 'deleted-group-id', type: GroupType.MailingList}],
 				newGroups: [{id: 'new-group-id', type: GroupType.Mail}]
 			})
 			done()
@@ -274,7 +277,7 @@ o.spec("Indexer test", () => {
 		})
 
 		let user = createUser()
-		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Team}], newGroups: []}
+		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.MailingList}], newGroups: []}
 		indexer._updateGroups(user, groupDiff).then(() => {
 			done()
 		})
@@ -337,7 +340,7 @@ o.spec("Indexer test", () => {
 		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		user.memberships[2].groupType = GroupType.Contact
 		user.memberships[2].group = "group-contact"
@@ -390,7 +393,7 @@ o.spec("Indexer test", () => {
 		user.memberships = [createGroupMembership(), createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		let indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			let count = 0
@@ -455,19 +458,20 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities", async function () {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		const groupId = "group-mail"
 		let groupIdToEventBatches = [
 			{
 				groupId,
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
 		let batches = [createEntityEventBatch(), createEntityEventBatch()]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
-		batches[1]._id = ["group-mail", lastBatchId]
+		batches[1]._id = ["group-mail", oldestBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer = new Indexer(restClientMock, (null: any), true, browserDataStub)
@@ -475,7 +479,7 @@ o.spec("Indexer test", () => {
 			loadAll: (type, groupIdA, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
 				o(groupIdA).equals(groupId)
-				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+				let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 				o(startId).equals(expectedStartId)
 				return Promise.resolve(batches)
 			}
@@ -494,16 +498,17 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities batch already processed", function (done) {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
 			{
 				groupId: "group-mail",
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
 		let batches = [createEntityEventBatch()]
-		batches[0]._id = ["group-mail", lastBatchId]
+		batches[0]._id = ["group-mail", oldestBatchId]
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
 		let indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
@@ -511,7 +516,7 @@ o.spec("Indexer test", () => {
 				loadAll: (type, groupId, startId) => {
 					o(type).deepEquals(EntityEventBatchTypeRef)
 					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 					o(startId).equals(expectedStartId)
 					return Promise.resolve(batches)
 				}
@@ -526,11 +531,12 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadNewEntities out of sync", function (done) {
-		const lastBatchId = "L0JcCmw----0"
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
 			{
 				groupId: "group-mail",
-				eventBatchIds: ["newest-batch-id", lastBatchId],
+				eventBatchIds: [newestBatchId, oldestBatchId],
 			}
 		]
 
@@ -543,7 +549,7 @@ o.spec("Indexer test", () => {
 				loadAll: (type, groupId, startId) => {
 					o(type).deepEquals(EntityEventBatchTypeRef)
 					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(lastBatchId) - 1)
+					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
 					o(startId).equals(expectedStartId)
 					return Promise.resolve(batches)
 				}
@@ -572,7 +578,7 @@ o.spec("Indexer test", () => {
 		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
-		user.memberships[1].groupType = GroupType.Team
+		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		user.memberships[2].groupType = GroupType.Contact
 		user.memberships[2].group = "group-contact"
@@ -601,7 +607,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_processEntityEvents", async function () {
+	o("_processEntityEvents_1", async function () {
 		const groupId = "group-id"
 		const batchId = "batch-id"
 
@@ -656,7 +662,7 @@ o.spec("Indexer test", () => {
 	o("processEntityEvents non indexed group", function (done) {
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
-		user.memberships[0].groupType = GroupType.Team
+		user.memberships[0].groupType = GroupType.MailingList
 		user.memberships[0].group = "group-id"
 		const indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			mock.db.initialized = Promise.resolve()
@@ -689,7 +695,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_processEntityEvents", async function () {
+	o("_processEntityEvents_2", async function () {
 		const doneDeferred = defer()
 		const indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			mock.db.initialized = Promise.resolve()
@@ -745,5 +751,28 @@ o.spec("Indexer test", () => {
 		o(indexer._mail.processEntityEvents.callCount).equals(2)
 		o(indexer._contact.processEntityEvents.callCount).equals(2)
 		o(indexer._groupInfo.processEntityEvents.callCount).equals(2)
+	})
+
+	o("_getStartIdForLoadingMissedEventBatches", function () {
+		let indexer = new Indexer(restClientMock, (null: any), true, browserDataStub)
+
+		// one batch that is very young, so its id is returned minus 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1-----"])).equals("L0JcCm0-----") // - 1 ms
+		// two batches that are very young, so the oldest id is returned minus 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm2-----", "L0JcCm1-----"])).equals("L0JcCm0-----") // - 1 ms
+
+		// two batches of which the oldest is exactly one minute old, so the oldest id is returned minus 1 ms. this tests the inner limit
+		let oneMinuteOld = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
+		let oneMinuteOldMinusOneMS = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1) // - 1 ms
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", oneMinuteOld])).equals(oneMinuteOldMinusOneMS)
+
+		// two batches of which the oldest is exactly one minute and one ms old, so the newest id is returned minus 1 ms. this tests the outer limit
+		let olderThanOneMinute = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 - 1)
+		let newestMinusOneMinute = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60)
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", olderThanOneMinute])).equals(newestMinusOneMinute)
+
+		// two batches of which the oldest is very old, so the newest id is returned minus 1 ms.
+		let veryOld = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 * 10)
+		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", veryOld])).equals(newestMinusOneMinute)
 	})
 })

@@ -1,80 +1,103 @@
 // @flow
 import m from "mithril"
-import {Button} from "../gui/base/Button.js"
-import {lang} from "../misc/LanguageViewModel.js"
-import {ButtonType} from "../gui/base/Button"
-import stream from "mithril/stream/stream.js"
-import {inputLineHeight, px} from "../gui/size"
+import {px} from "../gui/size"
+import {SegmentControl} from "./SegmentControl"
+import type {TranslationKey} from "../misc/LanguageViewModel"
+import {lang} from "../misc/LanguageViewModel"
+import {PaymentIntervalItems} from "./SubscriptionUtils"
+import {neverNull} from "../api/common/utils/Utils"
+import {Icons} from "../gui/base/icons/Icons"
+import {Icon} from "../gui/base/Icon"
 
-export class BuyOptionBox {
 
-	_headingIdOrFunction: string;
-	_actionId: string;
-	_button: Button;
-	view: Function;
-	value: Stream<string>;
-	_helpLabel: string;
-	_features: lazy<string[]>;
-	_injection: ?Component;
-	selected: boolean;
+export type BuyOptionBoxAttr = {|
+	heading: string,
+	actionButton: ?Component,
+	price: string,
+	originalPrice: string,
+	helpLabel: TranslationKey | lazy<string>,
+	features: () => string[],
+	width: number,
+	height: number,
+	paymentInterval: ?Stream<number>,
+	highlighted?: boolean,
+	showReferenceDiscount: boolean,
+|}
 
-	constructor(headingIdOrFunction: string | lazy<string>, actionTextId: string, actionClickHandler: clickHandler, features: lazy<string[]>, width: number, height: number) {
-		this._headingIdOrFunction = headingIdOrFunction
-		this._actionId = actionTextId
-		this._button = new Button(actionTextId, actionClickHandler).setType(ButtonType.Login)
-		this.value = stream(lang.get("emptyString_msg"))
-		this._helpLabel = lang.get("emptyString_msg")
-		this._features = features
-		this.selected = false
-
-		this.view = (): ?VirtualElement => {
-			return m("", {
+export function getActiveSubscriptionActionButtonReplacement() {
+	return {
+		view: () => {
+			return m(".buyOptionBox.content-accent-fg.center-vertically.text-center", {
 				style: {
-					margin: "10px",
-					width: px(width),
-					padding: "10px"
+					'border-radius': '3px'
 				}
-			}, [
-				m(".buyOptionBox" + (this.selected ? ".selected" : ""), {
-					style: {height: px(height)}
-				}, [
-					m(".h4.center.dialog-header.dialog-header-line-height", this._headingIdOrFunction
-					instanceof Function ? this._headingIdOrFunction() : lang.get(this._headingIdOrFunction)),
-					m(".h1.center.pt", this.value()),
-					m(".small.center", this._helpLabel),
-					this._injection ? m(this._injection) : null,
-					m(".button-min-height", {
-						style: {
-							position: "absolute",
-							bottom: px(10),
-							left: px(10),
-							right: px(10)
-						}
-					}, m(this._button))
-				]), m(".flex.flex-column.pt", {
-					style: {lineHeight: px(inputLineHeight)}
-				}, this._features().map(f => m(".center.dialog-header.dialog-header-line-height.text-ellipsis",
-					// {style: {borderBottom: `1px solid ${theme.content_border}`}},
-					f)))
-			])
+			}, lang.get("pricing.currentPlan_label"))
 		}
-	}
-
-	setValue(value: string): BuyOptionBox {
-		this.value(value)
-		return this
-	}
-
-	setHelpLabel(value: string): BuyOptionBox {
-		this._helpLabel = value
-		return this
-	}
-
-	setInjection(injection: Component) {
-		this._injection = injection
 	}
 }
 
+class _BuyOptionBox {
+
+	constructor() {
+
+	}
+
+	view(vnode: Vnode<BuyOptionBoxAttr>) {
+
+		return m("", {
+			style: {
+				margin: "10px",
+				width: px(vnode.attrs.width),
+				padding: "10px"
+			}
+		}, [
+			m(".buyOptionBox" + (vnode.attrs.highlighted ? ".highlighted" : ""), {
+				style: {
+					height: px(vnode.attrs.height),
+					'border-radius': '3px'
+				}
+			}, [
+				(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
+					? m(".ribbon-vertical", m(".text-center.b.h4", {style: {'padding-top': px(22)}}, "%"))
+					: null,
+				m(".h4.text-center.dialog-header.dialog-header-line-height", vnode.attrs.heading),
+				m(".text-center.pt.flex.center-vertically.center-horizontally", [
+					m("span.h1", vnode.attrs.price),
+					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
+						?
+						m("span.strike.pl", "(" + vnode.attrs.originalPrice + ")")
+						:
+						null
+				]),
+				m(".small.text-center.pb-s", lang.getMaybeLazy(vnode.attrs.helpLabel)),
+				(vnode.attrs.paymentInterval) ? m(SegmentControl, {
+					selectedValue: vnode.attrs.paymentInterval,
+					items: PaymentIntervalItems
+				}) : null,
+				vnode.attrs.actionButton ? m(".button-min-height", {
+					style: {
+						position: "absolute",
+						bottom: px(10),
+						left: px(10),
+						right: px(10)
+					}
+				}, m(neverNull(vnode.attrs.actionButton))) : null
+			]), m("div.mt-m.pl", vnode.attrs.features().map(f => m(".flex",
+				[
+					m(Icon, {
+						icon: Icons.Checkmark,
+						style: {
+							'padding-top': '5px'
+						}
+					}),
+					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {title: window.innerWidth > 809 ? f : ""}, f)
+				]
+			)))
+		])
+	}
+}
+
+export const BuyOptionBox: Class<MComponent<BuyOptionBoxAttr>> = _BuyOptionBox
 
 
 

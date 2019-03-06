@@ -6,7 +6,6 @@ import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
-import {EditAliasesForm} from "./EditAliasesForm"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/EntityFunctions"
@@ -33,13 +32,18 @@ import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {MailSettingNotificationViewer} from "./MailSettingNotificationViewer"
-import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import stream from "mithril/stream/stream.js"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
+import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
+import {checkAndImportUserData} from "./ImportUsersViewer"
+import {IdentifierListViewer} from "./IdentifierListViewer"
+import {EditAliasesFormN} from "./EditAliasesFormN"
 
 assertMainOrNode()
+export const CSV_USER_FORMAT = "username;user@domain.com;password"
 
 export class UserViewer {
 	view: Function;
@@ -50,14 +54,12 @@ export class UserViewer {
 	_senderName: TextField;
 	_groupsTable: ?Table;
 	_contactFormsTable: ?Table;
-	_aliases: EditAliasesForm;
 	_usedStorage: TextField;
 	_admin: DropDownSelector<boolean>;
 	_administratedBy: DropDownSelector<?Id>;
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
-	_notificationViewer: MailSettingNotificationViewer;
 
 	constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
 		this.userGroupInfo = userGroupInfo
@@ -68,20 +70,20 @@ export class UserViewer {
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
-			.then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
+		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
 		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
-				.then(newName => {
-					this.userGroupInfo.name = newName
-					update(this.userGroupInfo)
-				})
+			      .then(newName => {
+				      this.userGroupInfo.name = newName
+				      update(this.userGroupInfo)
+			      })
 		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
 		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created))
-			.setDisabled()
+		                                            .setDisabled()
 		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._admin = new DropDownSelector("globalAdmin_label", null, [
@@ -96,7 +98,7 @@ export class UserViewer {
 				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync()
-					.then(user => worker.changeAdminFlag(user, makeAdmin)))
+				                                         .then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -117,7 +119,6 @@ export class UserViewer {
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
-		this._aliases = new EditAliasesForm(this.userGroupInfo)
 
 		this._teamGroupInfos.getAsync().then(availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {
@@ -127,7 +128,7 @@ export class UserViewer {
 				], true, addGroupButton)
 				this._updateGroups()
 
-				let adminGroupIdToName: { name: string, value: ?Id }[] = [
+				let adminGroupIdToName: {name: string, value: ?Id}[] = [
 					{
 						name: lang.get("globalAdmin_label"),
 						value: null
@@ -149,10 +150,10 @@ export class UserViewer {
 						} else {
 							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController()
-									.user
-									.memberships
-									.find(gm => gm.groupType
-										=== GroupType.Admin)).group
+								                                                                    .user
+								                                                                    .memberships
+								                                                                    .find(gm => gm.groupType
+									                                                                    === GroupType.Admin)).group
 								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
@@ -176,10 +177,6 @@ export class UserViewer {
 			})
 		})
 
-		this._notificationViewer = new MailSettingNotificationViewer()
-		this._user.getAsync().then(user => this._notificationViewer.loadPushIdentifiers(user))
-
-
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -199,16 +196,16 @@ export class UserViewer {
 						m(this._deactivated)
 					]),
 					(logins.getUserController().isPremiumAccount() || logins.getUserController()
-						.isFreeAccount()) ? m(this._secondFactorsForm) : null,
+					                                                        .isFreeAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 					(this._groupsTable) ? m(this._groupsTable) : null,
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
-					m(this._aliases),
+					m(EditAliasesFormN, {userGroupInfo: this.userGroupInfo}),
 					!logins.getUserController().isPremiumAccount() ? null : [
 						m(".h4.mt-l", lang.get('mailSettings_label')),
 						(this._whitelistProtection) ? m(this._whitelistProtection) : null,
-						m(this._notificationViewer),
+						m(IdentifierListViewer, {user: this._user.getSync()}),
 					]
 				]),
 			]
@@ -316,7 +313,6 @@ export class UserViewer {
 		}
 	}
 
-
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			if (this.userGroupInfo.deleted) {
@@ -326,7 +322,9 @@ export class UserViewer {
 				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
 				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
 				let availableGroupInfos = this._teamGroupInfos.getLoaded().filter(g => {
-					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
+					if (!globalAdmin // global admins may add all groups
+						&& localAdminGroupIds.indexOf(g.localAdmin) === -1 // local admins may only add groups they either are the admin of
+						&& localAdminGroupIds.indexOf(g.group) === -1) {  // or it is their own local admin group
 						return false
 					} else {
 						return !g.deleted && user.memberships.find(m => isSameId(m.groupInfo, g._id)) == null
@@ -358,24 +356,26 @@ export class UserViewer {
 		this._user.getAsync().then(user => {
 			this._customer.getAsync().then(customer => {
 				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
-					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
-						let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
-							return {name: cf.path, value: cf}
-						}), stream(contactForms[0]), 250)
+					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(allContactForms => {
+						filterContactFormsForLocalAdmin(allContactForms).then(contactForms => {
+							let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
+								return {name: cf.path, value: cf}
+							}), stream(contactForms[0]), 250)
 
-						let addUserToContactFormOkAction = (dialog) => {
-							let cf = (dropdown.selectedValue(): ContactForm)
-							if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
-								cf.participantGroupInfos.push(user.userGroup.groupInfo)
+							let addUserToContactFormOkAction = (dialog) => {
+								let cf = (dropdown.selectedValue(): ContactForm)
+								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
+									cf.participantGroupInfos.push(user.userGroup.groupInfo)
+								}
+								showProgressDialog("pleaseWait_msg", update(cf))
+								dialog.close()
 							}
-							showProgressDialog("pleaseWait_msg", update(cf))
-							dialog.close()
-						}
 
-						Dialog.showActionDialog({
-							title: lang.get("responsiblePersons_label"),
-							child: {view: () => m(dropdown)},
-							okAction: addUserToContactFormOkAction
+							Dialog.showActionDialog({
+								title: lang.get("responsiblePersons_label"),
+								child: {view: () => m(dropdown)},
+								okAction: addUserToContactFormOkAction
+							})
 						})
 					})
 				})
@@ -406,19 +406,21 @@ export class UserViewer {
 	}
 
 	_deleteUser(restore: boolean): Promise<void> {
-		return showProgressDialog("pleaseWait_msg", load(GroupTypeRef, this.userGroupInfo.group).then(group => {
-			return showProgressDialog("pleaseWait_msg",
-				BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore)
-					.then(confirmed => {
-						if (confirmed) {
-							return this._user.getAsync().then(user => {
-								return worker.deleteUser(user, restore)
-							})
-						}
-					})).catch(PreconditionFailedError, e => {
-				Dialog.error("emailAddressInUse_msg")
+		return showProgressDialog("pleaseWait_msg",
+			BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
+				if (confirmed) {
+					return this._user.getAsync().then(user => {
+						return worker.deleteUser(user, restore)
+					})
+				}
 			})
-		}))
+		).catch(PreconditionFailedError, e => {
+			if (restore) {
+				Dialog.error("emailAddressInUse_msg")
+			} else {
+				Dialog.error("stillReferencedFromContactForm_msg")
+			}
+		})
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
@@ -445,11 +447,43 @@ export class UserViewer {
 				this._createOrUpdateWhitelistProtectionField()
 			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
 				this._updateContactForms()
-			} else if (isUpdateForTypeRef(PushIdentifierTypeRef, update) && this._user.isLoaded()) {
-				this._notificationViewer.loadPushIdentifiers(this._user.getLoaded())
 			}
 			this._secondFactorsForm.entityEventReceived(update)
-			this._aliases.entityEventReceived(update)
+		}
+		m.redraw()
+	}
+}
+
+/**
+ * Show editor for adding the csv values of the users.
+ */
+export function showUserImportDialog(customDomains: string[]) {
+	let editor = new Editor("enterAsCSV_msg")
+		.showBorders()
+		.setMode(Mode.HTML)
+		.setValue(CSV_USER_FORMAT)
+		.setMinHeight(200)
+
+	let form = {
+		view: () => {
+			return [
+				m(editor)
+			]
 		}
 	}
+
+	Dialog.showActionDialog({
+		title: lang.get("importUsers_action"),
+		child: form,
+		okAction: (csvDialog) => {
+			if (logins.getUserController().isFreeAccount()) {
+				showNotAvailableForFreeDialog(false)
+			} else {
+				let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)
+				if (closeCsvDialog) {
+					csvDialog.close()
+				}
+			}
+		}
+	})
 }

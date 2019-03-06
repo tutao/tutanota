@@ -11,21 +11,16 @@ import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {
-	getArchiveFolder,
-	getInboxFolder,
-	getSenderOrRecipientHeading,
-	getTrashFolder,
-	showDeleteConfirmationDialog
-} from "./MailUtils"
+import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
-import {size} from "../gui/size"
+import {px, size} from "../gui/size"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
+import Badge from "../gui/base/Badge"
 
 assertMainOrNode()
 
@@ -42,7 +37,7 @@ const iconMap: {[MailFolderTypeEnum]: string} = {
 }
 
 
-export class MailListView {
+export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
@@ -56,13 +51,6 @@ export class MailListView {
 			rowHeight: size.list_row_height,
 			fetch: (start, count) => {
 				return this._loadMailRange(start, count)
-				// return new Promise((resolve, reject) => {
-				// 	setTimeout(() => {
-				// 		this._loadMailRange(start, count).then(mails => {
-				// 			resolve(mails)
-				// 		})
-				// 	}, 10000)
-				// })
 			},
 			loadSingle: (elementId) => {
 				return load(MailTypeRef, [this.listId, elementId]).then((entity) => {
@@ -88,9 +76,9 @@ export class MailListView {
 					m(Icon, {icon: Icons.Folder}),
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
-				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO test finalDelete_action if the mail is deleted from trash
+				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed == true) {
+					if (confirmed === true) {
 						mailModel.deleteMails([listElement])
 					} else {
 						return Promise.resolve()
@@ -111,10 +99,10 @@ export class MailListView {
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")
 		})
+	}
 
-		this.view = (): VirtualElement => {
-			return m(this.list)
-		}
+	view(): Children {
+		return m(this.list)
 	}
 
 	targetInbox() {
@@ -160,8 +148,10 @@ export class MailRow {
 	_domSender: HTMLElement;
 	_domDate: HTMLElement;
 	_iconsDom: HTMLElement;
+	_domUnread: HTMLElement;
 	_showFolderIcon: boolean;
 	_domFolderIcons: {[key: MailFolderTypeEnum]: HTMLElement};
+	_domTeamLabel: HTMLElement;
 
 	constructor(showFolderIcon: boolean) {
 		this.top = 0
@@ -182,8 +172,10 @@ export class MailRow {
 	update(mail: Mail, selected: boolean): void {
 		if (selected) {
 			this.domElement.classList.add("row-selected")
+			this._iconsDom.classList.add("secondary")
 		} else {
 			this.domElement.classList.remove("row-selected")
+			this._iconsDom.classList.remove("secondary")
 		}
 
 		this._iconsDom.textContent = this._iconsText(mail)
@@ -192,11 +184,20 @@ export class MailRow {
 		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
 		this._domSubject.textContent = mail.subject
 		if (mail.unread) {
+			this._domUnread.classList.remove("hidden")
 			this._domSubject.classList.add("b")
 		} else {
+			this._domUnread.classList.add("hidden")
 			this._domSubject.classList.remove("b")
 		}
+
+		if (isTutanotaTeamMail(mail)) {
+			this._domTeamLabel.style.display = ''
+		} else {
+			this._domTeamLabel.style.display = 'none'
+		}
 	}
+
 
 	_iconsText(mail: Mail): string {
 		let iconText = "";
@@ -230,20 +231,32 @@ export class MailRow {
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		return [
-			m(".top.flex-space-between", [
-				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
-				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
-			]),
-			m(".bottom.flex-space-between", [
-					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-					m("span.ion.ml-s.list-font-icons", {
-						oncreate: (vnode) => this._iconsDom = vnode.dom
-					})
+		return m(".flex", [
+			m(".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs", m(".circle.bg-accent-fg.hidden", {
+					oncreate: vnode => this._domUnread = vnode.dom,
+				})
+			),
+			m(".flex-grow.min-width-0", [
+				m(".top.flex.badge-line-height", [
+					m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
+					m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
+					m(".flex-grow"),
+					m("small.text-ellipsis.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
+				]),
+				m(".bottom.flex-space-between", {
+						style: {
+							marginTop: px(2)
+						}
+					}, [
+						m(".text-ellipsis.flex-grow", {oncreate: (vnode) => this._domSubject = vnode.dom}),
+						m("span.ion.ml-s.list-font-icons.secondary", {
+							oncreate: (vnode) => this._iconsDom = vnode.dom
+						})
 
-				]
-			)
-		]
+					]
+				)
+			])
+		])
 	}
 
 	_getFolderIcon(type: MailFolderTypeEnum): string {

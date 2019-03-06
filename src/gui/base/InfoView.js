@@ -14,7 +14,7 @@ export class InfoView {
 	}
 
 	view() {
-		return m(".main-view.flex.items-center.justify-center", {
+		return m(".main-view.flex.items-center.justify-center.mlr", {
 			style: {
 				'max-height': px(450),
 			}

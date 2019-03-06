@@ -3,7 +3,7 @@
 export const GroupType = {
 	User: "0",
 	Admin: "1",
-	Team: "2",
+	MailingList: "2",
 	Customer: "3",
 	External: "4",
 	Mail: "5",
@@ -103,7 +103,8 @@ export const BookingItemFeatureType = {
 	Branding: '4',
 	ContactForm: '5',
 	WhitelabelChild: '6',
-	LocalAdminGroup: '7'
+	LocalAdminGroup: '7',
+	Discount: '8'
 }
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
@@ -313,6 +314,11 @@ export const CloseEventBusOption = {
 	Terminate: "terminate",
 	Reconnect: "reconnect",
 	Pause: "pause"
+}
+
+export const Announcement = {
+	None: '0',
+	StorageDeletion: '1'
 }
 
 export type CloseEventBusOptionEnum = $Values<typeof InvoiceStatus>;

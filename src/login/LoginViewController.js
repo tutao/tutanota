@@ -10,9 +10,9 @@ import {
 	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {load, update} from "../api/main/Entity"
-import {assertMainOrNode, isAdminClient, isApp, Mode} from "../api/Env"
-import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
+import {load, serviceRequestVoid, update} from "../api/main/Entity"
+import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
+import {Announcement, CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -28,16 +28,22 @@ import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mailModel} from "../mail/MailModel"
-import * as UpgradeWizard from "../subscription/UpgradeSubscriptionWizard"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
-import {formatPrice} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
+import {fileApp} from "../native/FileApp"
+import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
+import {HttpMethod} from "../api/common/EntityFunctions"
+import {TutanotaService} from "../api/entities/tutanota/Services"
+import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
+import {show} from "../gui/base/NotificationOverlay"
 
 assertMainOrNode()
 
-export class LoginViewController {
+export class LoginViewController implements ILoginViewController {
 	view: LoginView;
 	_loginPromise: Promise<void>;
 
@@ -68,17 +74,19 @@ export class LoginViewController {
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
 		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
-				.then(userPw => {
-					return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
-						.then(newCredentials => {
-							deviceConfig.set(newCredentials)
-						})
-						.finally(() => worker.logout(false))
-				})
-				.catch(ignored => {
-					console.log(ignored)
-					// prevent reloading the page by ErrorHandler
-				})
+			             .then(userPw => {
+				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users
+					             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+					                          .then(newCredentials => {
+						                          deviceConfig.set(newCredentials)
+					                          })
+					                          .finally(() => worker.logout(false))
+				             }
+			             })
+			             .catch(ignored => {
+				             console.log(ignored)
+				             // prevent reloading the page by ErrorHandler
+			             })
 		})).return()
 	}
 
@@ -90,67 +98,85 @@ export class LoginViewController {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
+			this.view.invalidCredentials = false
 			let persistentSession = this.view.savePassword.checked()
 			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
-				.then(newCredentials => {
-					let storedCredentials = deviceConfig.get(mailAddress)
-					if (persistentSession) {
-						deviceConfig.set(newCredentials)
-					}
-					if (storedCredentials) {
-						return worker.deleteSession(storedCredentials.accessToken)
-							.then(() => {
-								if (!persistentSession) {
-									deviceConfig.delete(mailAddress)
-								}
-							})
-							.catch(NotFoundError, e => console.log("session already deleted"))
-					}
-				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			                           .then(newCredentials => {
+				                           let storedCredentials = deviceConfig.get(mailAddress)
+				                           if (persistentSession) {
+					                           deviceConfig.set(newCredentials)
+				                           }
+				                           if (storedCredentials) {
+					                           return worker.deleteSession(storedCredentials.accessToken)
+					                                        .then(() => {
+						                                        if (!persistentSession) {
+							                                        deviceConfig.delete(mailAddress)
+						                                        }
+					                                        })
+					                                        .catch(NotFoundError, e => console.log("session already deleted"))
+				                           }
+			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
 	}
 
+
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void> {
+		return worker.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
+	}
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void> {
+		return worker.resetSecondFactors(mailAddress, password, recoverCode)
+	}
+
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
-			.then(() => logins.loadCustomizations())
-			.then(() => this._postLoginActions())
-			.then(() => {
-				m.route.set(this.view._requestedPath)
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-			})
-			.catch(AccessBlockedError, e => {
-				this.view.helpText = lang.get('loginFailedOften_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(NotAuthenticatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(AccessDeactivatedError, e => {
-				this.view.helpText = lang.get('loginFailed_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(TooManyRequestsError, e => {
-				this.view.helpText = lang.get('tooManyAttempts_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(CancelledError, () => {
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				return errorAction()
-			})
-			.catch(ConnectionError, e => {
-				this.view.helpText = lang.get('emptyString_msg')
-				m.redraw()
-				throw e;
-			})
+		            .then(() => logins.loadCustomizations())
+		            .then(() => this._postLoginActions())
+		            .then(() => {
+			            m.route.set(this.view._requestedPath)
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+		            })
+		            .catch(AccessBlockedError, e => {
+			            this.view.helpText = lang.get('loginFailedOften_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(NotAuthenticatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            this.view.invalidCredentials = true
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(AccessDeactivatedError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(TooManyRequestsError, e => {
+			            this.view.helpText = lang.get('tooManyAttempts_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(CancelledError, () => {
+			            this.view.helpText = lang.get('emptyString_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(ConnectionError, e => {
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this.view.helpText = lang.get('loginFailed_msg')
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this.view.helpText = lang.get('emptyString_msg')
+				            m.redraw()
+				            throw e;
+			            }
+		            })
 	}
 
 	_enforcePasswordChange() {
@@ -161,7 +187,9 @@ export class LoginViewController {
 
 	_postLoginActions() {
 		notifications.requestPermission()
-		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + document.title
+		// only show "Tutanota" after login if there is no custom title set
+		let postLoginTitle = (document.title === LOGIN_TITLE) ? "Tutanota" : document.title
+		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend - try reconnect\"")
@@ -175,9 +203,11 @@ export class LoginViewController {
 			console.log("offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		if (env.mode === Mode.App) {
+		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
 			pushServiceApp.register()
 		}
+		this._showStorageNotificationIfNeeded()
+
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
 			return this._showUpgradeReminder()
@@ -189,7 +219,18 @@ export class LoginViewController {
 			if (!isAdminClient()) {
 				return mailModel.init()
 			}
-		}).then(() => logins.loginComplete())
+		}).then(() => logins.loginComplete()).then(() => {
+			// don't wait for it, just invoke
+			if (isApp()) {
+				fileApp.clearFileData()
+				       .catch((e) => console.log("Failed to clean file data", e))
+			}
+		}).then(() => {
+			if (logins.isGlobalAdminUserLoggedIn()) {
+				let receiveInfoData = createReceiveInfoServiceData()
+				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
+			}
+		})
 	}
 
 	_showUpgradeReminder(): Promise<void> {
@@ -203,7 +244,7 @@ export class LoginViewController {
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
 								if (confirm) {
-									UpgradeWizard.show()
+									showUpgradeWizard()
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
@@ -246,11 +287,26 @@ export class LoginViewController {
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
 		return worker.initialized.then(() => {
 			worker.deleteSession(credentials.accessToken)
-				.then(() => {
-					// not authenticated error is caught in worker
-					deviceConfig.delete(credentials.mailAddress)
-					this.view.setKnownCredentials(deviceConfig.getAllInternal());
-				})
+			      .then(() => {
+				      // not authenticated error is caught in worker
+				      deviceConfig.delete(credentials.mailAddress)
+				      this.view.setKnownCredentials(deviceConfig.getAllInternal());
+			      })
 		})
+	}
+
+	loadSignupWizard(): Promise<{+show: () => any}> {
+		return worker.initialized.then(() => loadSignupWizard())
+	}
+
+	_showStorageNotificationIfNeeded() {
+		const userProps: TutanotaProperties = logins.getUserController().props
+		if (logins.getUserController().isGlobalOrLocalAdmin() && Number(userProps.lastSeenAnnouncement) < Number(Announcement.StorageDeletion)) {
+			userProps.lastSeenAnnouncement = Announcement.StorageDeletion
+			update(userProps)
+			show({
+				view: () => m("", lang.get("storageDeletionAnnouncement_msg"))
+			}, "close_alt", [])
+		}
 	}
 }

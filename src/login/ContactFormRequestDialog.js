@@ -3,7 +3,6 @@ import m from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
 import {ConversationType, InputFieldType, MAX_ATTACHMENT_SIZE, PushServiceType} from "../api/common/TutanotaConstants"
@@ -29,6 +28,9 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import stream from "mithril/stream/stream.js"
+import {CheckboxN} from "../gui/base/CheckboxN"
+import {getPrivacyStatementLink} from "./LoginView"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -43,9 +45,10 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean;
 	_contactForm: ContactForm;
 	_domElement: HTMLElement;
-	_statisticFields: Array<{component: Component, name: string, value: lazy<string>}>;
+	_statisticFields: Array<{component: Component, name: string, value: lazy<?string>}>;
 	_notificationEmailAddress: TextField;
 	_passwordForm: PasswordForm;
+	_privacyPolicyAccepted: Stream<boolean>;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -66,15 +69,13 @@ export class ContactFormRequestDialog {
 		this._statisticFields = this._createStatisticFields(contactForm)
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
+		this._privacyPolicyAccepted = stream(false)
 
-		let closeAction = () => this._close()
-
-		let closeButton = new Button('cancel_action', closeAction).setType(ButtonType.Secondary)
-		let sendButton = new Button('send_action', () => this.send()).setType(ButtonType.Primary)
-		let headerBar = new DialogHeaderBar()
-			.addLeft(closeButton)
-			.setMiddle(() => lang.get("createContactRequest_action"))
-			.addRight(sendButton)
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			right: [{label: "send_action", click: () => this.send(), type: ButtonType.Primary}],
+			middle: () => lang.get("createContactRequest_action")
+		}
 
 		this._editor = new HtmlEditor().showBorders().setPlaceholderId("contactFormPlaceholder_label").setMinHeight(200)
 
@@ -91,7 +92,6 @@ export class ContactFormRequestDialog {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
 					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
 				},
 				ondrop: (ev) => {
 					if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
@@ -120,13 +120,17 @@ export class ContactFormRequestDialog {
 				m(this._notificationEmailAddress),
 				this._statisticFields.length > 0 ? m(statisticFieldHeader) : null,
 				this._statisticFields.map(field => m(field.component)),
+				(getPrivacyStatementLink()) ? m(CheckboxN, {
+					label: () => this._getPrivacyPolicyCheckboxContent(),
+					checked: this._privacyPolicyAccepted
+				}) : null
 			])
 		}
 
-		this._dialog = Dialog.largeDialog(headerBar, this)
+		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                     .addShortcut({
 			                     key: Keys.ESC,
-			                     exec: closeAction,
+			                     exec: () => this._close(),
 			                     help: "close_alt"
 		                     })
 		                     .addShortcut({
@@ -137,10 +141,19 @@ export class ContactFormRequestDialog {
 				                     this.send()
 			                     },
 			                     help: "send_action"
-		                     }).setCloseHandler(closeAction)
+		                     }).setCloseHandler(() => this._close())
 	}
 
-	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<string>}> {
+	_getPrivacyPolicyCheckboxContent(): VirtualElement {
+		let parts = lang.get("acceptPrivacyPolicy_msg").split("{privacyPolicy}")
+		return m("", [
+			m("span", parts[0]),
+			m("span", m(`a[href=${neverNull(getPrivacyStatementLink())}][target=_blank]`, lang.get("privacyLink_label"))),
+			m("span", parts[1]),
+		])
+	}
+
+	_createStatisticFields(contactForm: ContactForm): Array<{component: Component, name: string, value: lazy<?string>}> {
 		let language = getDefaultContactFormLanguage(contactForm.languages)
 		return language.statisticsFields.map(field => {
 			if (field.type === InputFieldType.ENUM) {
@@ -235,8 +248,13 @@ export class ContactFormRequestDialog {
 	}
 
 	send() {
-		if (this._passwordForm.getErrorMessageId()) {
-			Dialog.error(this._passwordForm.getErrorMessageId())
+		const passwordErrorId = this._passwordForm.getErrorMessageId()
+		if (passwordErrorId) {
+			Dialog.error(passwordErrorId)
+			return
+		}
+		if (getPrivacyStatementLink() && !this._privacyPolicyAccepted()) {
+			Dialog.error("acceptPrivacyPolicyReminder_msg")
 			return
 		}
 		let passwordCheck = Promise.resolve(true)
@@ -269,6 +287,7 @@ export class ContactFormRequestDialog {
 						                                     let p = Promise.resolve()
 						                                     if (cleanedNotificationMailAddress) {
 							                                     let pushIdentifier = createPushIdentifier()
+							                                     pushIdentifier.displayName = client.getIdentifier()
 							                                     pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
 							                                     pushIdentifier.language = lang.code
 							                                     pushIdentifier.pushServiceType = PushServiceType.EMAIL

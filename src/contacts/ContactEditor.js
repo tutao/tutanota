@@ -4,9 +4,9 @@ import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress, parseBirthday} from "../misc/Formatter"
+import {parseBirthday} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import {
 	ContactMailAddressTypeToLabel,
 	ContactPhoneNumberTypeToLabel,
@@ -26,7 +26,7 @@ import {ContactAddressTypeRef, createContactAddress} from "../api/entities/tutan
 import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {clone, neverNull} from "../api/common/utils/Utils"
+import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
@@ -34,6 +34,8 @@ import {Keys} from "../misc/KeyManager"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {NotFoundError} from "../api/common/error/RestError"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 
 assertMainOrNode()
@@ -86,7 +88,9 @@ export class ContactEditor {
 			bday.day = "22"
 			bday.month = "9"
 			bday.year = "2000"
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
+			return this.invalidBirthday
+				? lang.get("invalidDateFormat_msg", {"{1}": formatBirthdayNumeric(bday)})
+				: ""
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
 			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")
@@ -131,14 +135,15 @@ export class ContactEditor {
 		this.socialEditors = this.contact.socialIds.map(p => new ContactAggregateEditor(p, e => remove(this.socialEditors, e)))
 		this.createNewSocialEditor()
 
-		let presharedPassword = this.contact.presharedPassword ? new TextField('password_label')
+		let presharedPassword = this.contact.presharedPassword || !c ? new TextField('password_label')
 			.setValue((this.contact.presharedPassword: any))
 			.onUpdate(value => this.contact.presharedPassword = value) : null
 
-		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))
-			.setMiddle(name)
-			.addRight(new Button('save_action', () => this.save()).setType(ButtonType.Primary))
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			middle: name,
+			right: [{label: 'save_action', click: () => this.save(), type: ButtonType.Primary}]
+		}
 		this.view = () => m("#contact-editor", [
 			m(".wrapping-row", [
 				m(firstName),
@@ -187,7 +192,7 @@ export class ContactEditor {
 
 			presharedPassword ? m(".wrapping-row", [
 				m(".passwords.mt-xl", [
-					m(".h4", lang.get('passwords_label')),
+					m(".h4", lang.get('presharedPassword_label')),
 					m(presharedPassword)
 				]),
 				m(".spacer")
@@ -195,7 +200,7 @@ export class ContactEditor {
 			m(".pb")
 		])
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: () => this._close(),
@@ -236,7 +241,9 @@ export class ContactEditor {
 
 		let promise
 		if (this.contact._id) {
-			promise = update(this.contact)  // FIXME error handling
+			// FIXME error handling
+			promise = update(this.contact)
+				.catch(NotFoundError, noOp)
 		} else {
 			this.contact._area = "0" // legacy
 			this.contact.autoTransmitPassword = "" // legacy
@@ -261,7 +268,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.mailAddressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -278,7 +286,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.number = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.phoneEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -295,7 +304,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.addressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -312,7 +322,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.socialId = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.socialEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -342,7 +353,7 @@ class ContactAggregateEditor {
 		this.aggregate = aggregate
 		this.isInitialized = allowCancel
 		this.animateCreate = animateCreate
-		this.id = aggregate._id
+		this.id = aggregate._id || String(Date.now())
 
 		let value = ""
 		let onUpdate = () => {
@@ -389,11 +400,6 @@ class ContactAggregateEditor {
 			            .map(key => {
 				            return new Button((TypeToLabelMap: any)[key], e => {
 					            if (isCustom(key)) {
-						            let tagDialogActionBar = new DialogHeaderBar()
-						            /* Unused Variable*/
-						            let tagName = new TextField("customLabel_label")
-							            .setValue(this.aggregate.customTypeName)
-
 						            setTimeout(() => {
 							            Dialog.showTextInputDialog("customLabel_label",
 								            "customLabel_label",
@@ -416,9 +422,15 @@ class ContactAggregateEditor {
 
 		this.textfield._injectionsRight = () => {
 			return [
-				m(typeButton), this.isInitialized ? m(cancelButton, {
-					oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
-				}) : null
+				m(typeButton),
+				this.isInitialized
+					? m(cancelButton, {
+						oncreate: vnode => {
+							vnode.dom.style.opacity = 0
+							return animations.add(vnode.dom, opacity(0, 1, true))
+						}
+					})
+					: null
 			]
 		}
 
@@ -433,6 +445,9 @@ class ContactAggregateEditor {
 
 	animate(domElement: HTMLElement, fadein: boolean) {
 		let childHeight = domElement.offsetHeight
+		if (fadein) {
+			domElement.style.opacity = "0"
+		}
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
 			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))

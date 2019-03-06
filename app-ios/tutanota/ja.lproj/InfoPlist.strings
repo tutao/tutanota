@@ -1,7 +1,12 @@
 NSCameraUsageDescription = "添付するために写真あるいはビデオを撮る。";
+NSPhotoLibraryUsageDescription = "ライブラリから添付ファイルとして写真を追加";
+NSPhotoLibraryAddUsageDescription = "ライブラリから添付ファイルとして写真を追加";
 NSMicrophoneUsageDescription = "添付ファイルとして動画を収録する際使われます。";
-NSContactsUsageDescription = "連絡先で受信者の電子メールアドレスを検索します。";
+NSContactsUsageDescription = "連絡先で受信者のメールアドレスを検索します。";
+NSRemindersUsageDescription = "新着メールが届いたときに通知を表示します。";
+TutaoShowCameraAction = "カメラ";
 TutaoChoosePhotosAction = "写真";
+TutaoNoPermissionTitle = "権限がありません";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
-TutaoCancelAction = "中止";
+TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";

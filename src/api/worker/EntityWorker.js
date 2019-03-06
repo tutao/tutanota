@@ -1,5 +1,5 @@
 // @flow
-import type {ListElement, HttpMethodEnum} from "../common/EntityFunctions"
+import type {HttpMethodEnum, ListElement} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -20,8 +20,8 @@ import {locator} from "./WorkerLocator"
 
 assertWorkerOrNode()
 
-export function setup<T>(listId: ?Id, instance: T): Promise<Id> {
-	return _setupEntity(listId, instance, locator.cache)
+export function setup<T>(listId: ?Id, instance: T, extraHeaders?: Params): Promise<Id> {
+	return _setupEntity(listId, instance, locator.cache, extraHeaders)
 }
 
 export function update<T>(instance: T): Promise<void> {
@@ -32,8 +32,8 @@ export function erase<T>(instance: T): Promise<void> {
 	return _eraseEntity(instance, locator.cache)
 }
 
-export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
-	return _loadEntity(typeRef, id, queryParams, locator.cache)
+export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params): Promise<T> {
+	return _loadEntity(typeRef, id, queryParams, locator.cache, extraHeaders)
 }
 
 export function loadMultiple<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
@@ -44,6 +44,7 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }
 
+//TODO: move version in Entity.js to EntityFunctions and use it from here. Remove this restricted version
 export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 	return _loadAll(typeRef, listId, (start) ? start : GENERATED_MIN_ID)
 }
@@ -80,12 +81,12 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 }
 
 
-export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
-	return _service(service, method, requestEntity, responseTypeRef, queryParams, sk)
+export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
+	return _service(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
-	return _service(service, method, requestEntity, null, queryParams, sk)
+export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
+	return _service(service, method, requestEntity, null, queryParams, sk, extraHeaders)
 }
 
 export class EntityWorker {

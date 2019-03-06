@@ -17,6 +17,7 @@ import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
+import {size} from "../size"
 
 assertMainOrNode()
 
@@ -36,7 +37,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 	_domListContainer: HTMLElement;
 	_domList: HTMLElement;
-	_domInitialized: { resolve: () => void, promise: Promise<void> };
+	_domInitialized: {resolve: () => void, promise: Promise<void>};
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
@@ -46,7 +47,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	lastUpdateTime: number;
 	updateLater: boolean; // if set, paint operations are executed later, when the scroll speed becomes slower
 	repositionTimeout: ?TimeoutID; // the id of the timeout to reposition if updateLater == true and scrolling stops abruptly (e.g. end of list or user touch)
-	_domStatus: { bufferUp: ?HTMLElement, bufferDown: ?HTMLElement, speed: ?HTMLElement, scrollDiff: ?HTMLElement, timeDiff: ?HTMLElement };
+	_domStatus: {bufferUp: ?HTMLElement, bufferDown: ?HTMLElement, speed: ?HTMLElement, scrollDiff: ?HTMLElement, timeDiff: ?HTMLElement};
 
 	_visibleElementsHeight: number;
 	bufferHeight: number;
@@ -68,7 +69,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_idOfEntityToSelectWhenReceived: ?Id;
 
 	_emptyMessageBox: MessageBox;
-	_renderCallback: ?{ type: 'timeout', id: TimeoutID } | ?{ type: 'frame', id: AnimationFrameID }
+	_renderCallback: ?{type: 'timeout', id: TimeoutID} | ?{type: 'frame', id: AnimationFrameID}
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
 	_mobileMultiSelectionActive: boolean = false;
 
@@ -103,7 +104,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 
 		let reset = () => {
-			this._cancelRenderCallback()
 			if (this._domListContainer) {
 				this._domListContainer.removeEventListener('scroll', this._scrollListener)
 			}
@@ -146,55 +146,75 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this.view = (vnode): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
-				oncreate: (vnode) => this._init(vnode.dom)
-			}, [
-				m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
-					oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
-					style: {
-						height: px(this._config.rowHeight),
-						transform: `translateY(-${this._config.rowHeight}px)`,
-						position: 'absolute',
-						'z-index': 1,
-						width: px(this._width),
+				oncreate: (vnode) => {
+					this._domListContainer = vnode.dom
+					this._width = this._domListContainer.clientWidth
+					this._createVirtualElements()
+					const render = () => {
+						m.render(vnode.dom, [
+							m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
+								oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
+								style: {
+									height: px(this._config.rowHeight),
+									transform: `translateY(-${this._config.rowHeight}px)`,
+									position: 'absolute',
+									'z-index': 1,
+									width: px(this._width),
+								}
+							}, this._config.swipe.renderLeftSpacer()),
+							m(".swipe-spacer.flex.items-center.pl-l.red", {
+								oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
+								style: {
+									height: px(this._config.rowHeight),
+									transform: `translateY(-${this._config.rowHeight}px)`,
+									position: 'absolute',
+									'z-index': 1,
+									width: px(this._width),
+								}
+							}, this._config.swipe.renderRightSpacer()),
+							m("ul.list.list-alternate-background.fill-absolute.click", {
+									oncreate: (vnode) => this._setDomList(vnode.dom),
+									style: {height: this._calculateListHeight()},
+									className: this._config.className
+								},
+								[
+									this._virtualList.map(virtualRow => {
+										return m("li.list-row.pl.pr-l"
+											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
+											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
+											style: {
+												transform: `translateY(-${this._config.rowHeight}px)`,
+												paddingTop: px(15),
+												paddingBottom: px(15)
+											},
+											ondragstart: (event) => this._dragstart(event, virtualRow)
+										}, virtualRow.render())
+									}),
+									// odd-row is switched directly on the dom element when the number of elements changes
+									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
+										oncreate: (vnode) => {
+											this._domLoadingRow = vnode.dom
+											this._domLoadingRow.style.display = 'none'
+										}
+									}, progressIcon())
+								]
+							),
+							m(this._emptyMessageBox)
+						])
+						this._domInitialized.resolve()
+						this._init()
 					}
-				}, this._config.swipe.renderLeftSpacer()),
-				m(".swipe-spacer.flex.items-center.pl-l.red", {
-					oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
-					style: {
-						height: px(this._config.rowHeight),
-						transform: `translateY(-${this._config.rowHeight}px)`,
-						position: 'absolute',
-						'z-index': 1,
-						width: px(this._width),
+					if (client.isMobileDevice()) {
+						// We want side menu animation to end before doing any heavy things so it's smooth
+						const id = window.setTimeout(() => render(), DefaultAnimationTime)
+						this._renderCallback = {type: 'timeout', id}
+					} else {
+						const id = window.requestAnimationFrame(() => render())
+						this._renderCallback = {type: 'frame', id}
 					}
-				}, this._config.swipe.renderRightSpacer()),
-				m("ul.list.list-alternate-background.fill-absolute.click", {
-						oncreate: (vnode) => this._setDomList(vnode.dom),
-						style: {height: this._calculateListHeight()},
-						className: this._config.className
-					},
-					[
-						this._virtualList.map(virtualRow => {
-							return m("li.list-row.plr-l.pt.pb"
-								+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
-								oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
-								style: {transform: `translateY(-${this._config.rowHeight}px)`},
-								ondragstart: (event) => this._dragstart(event, virtualRow)
-							}, virtualRow.render())
-						}),
-						// odd-row is switched directly on the dom element when the number of elements changes
-						m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
-							oncreate: (vnode) => {
-								this._domLoadingRow = vnode.dom
-								this._domLoadingRow.style.display = 'none'
-							}
-						}, progressIcon())
-					]
-				),
-				m(this._emptyMessageBox)
-			])
+				}
+			})
 			if (this._config.showStatus) {
-
 				return m(".status-wrapper", [
 					m(".status.flex.justify-between.fill-absolute", {
 						style: {
@@ -230,7 +250,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._loadedCompletely = false
 		if (this._domList) {
 			this._domList.style.height = this._calculateListHeight()
-			this._reposition()
+			for (let row of this._virtualList) {
+				if (row.domElement) {
+					row.domElement.style.display = 'none'
+				}
+			}
 		}
 	}
 
@@ -243,7 +267,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			}
 		}
 		let timeoutId: ?TimeoutID
-		let touchStartCoords: ?{ x: number, y: number }
+		let touchStartCoords: ?{x: number, y: number}
 		const dom: any = domElement
 		dom.ontouchstart = (e) => {
 			touchStartTime = Date.now()
@@ -251,7 +275,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				// Activate multi selection after pause
 				timeoutId = setTimeout(() => {
 					this._mobileMultiSelectionActive = true;
-					if (!this.isEntitySelected(virtualRow.entity._id[1])) {
+					// check that virtualRow.entity exists because we had error feedbacks about it
+					if (virtualRow.entity && !this.isEntitySelected(virtualRow.entity._id[1])) {
 						this._elementClicked(virtualRow.entity, e)
 					} else {
 						m.redraw() // only header changes we don't need reposition here
@@ -484,14 +509,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		let count = PageSize
 		this.displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
-			.then((newItems: T[]) => {
-				if (newItems.length < count) this.setLoadedCompletely()
-				for (let i = 0; i < newItems.length; i++) {
-					this._loadedEntities[start + i] = newItems[i]
-				}
-				this._loadedEntities.sort(this._config.sortCompare)
-			}).finally(() => {
-				// this._showSpinner = false
+		                    .then((newItems: T[]) => {
+			                    if (newItems.length < count) this.setLoadedCompletely()
+			                    this._loadedEntities.push(...newItems)
+			                    this._loadedEntities.sort(this._config.sortCompare)
+		                    }).finally(() => {
 				if (this.ready) {
 					this._domLoadingRow.style.display = 'none'
 					this._reposition()
@@ -517,40 +539,14 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
-		}, delayed ? DefaultAnimationTime : 5)
+			// Delay a little bit more than DefaultAnimationTime to execute after the dom is likely initialized
+		}, delayed ? DefaultAnimationTime + 16 : 5)
 	}
 
+	_init() {
+		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
-	/**
-	 *  updates the virtual elements that belong to the list entries between start and start + count
-	 */
-	// not used currently
-	// updateVirtualRows(start: number, count: number) {
-	//     let rowHeight = this._config.rowHeight
-	//     for (let ve of this._virtualList) {
-	//         let position = ve.top / rowHeight
-	//         if (start <= position && position < start + count) {
-	//             ve.update(this._getListElement(position), this.isEntitySelected(this._getListElement(position)))
-	//         }
-	//     }
-	// }
-
-	/**
-	 * retrieves a new page from the server, if the element is currently not initialized
-	 */
-	_getListElement(index: number): T {
-		let e = this._loadedEntities[index]
-		if (e === undefined) {
-			//this._loadMore(index)
-		}
-		return e
-	}
-
-	_doRender() {
-		this._createVirtualElements()
-		m.redraw()
 		window.requestAnimationFrame(() => {
-			this._domInitialized.resolve()
 			this._domList.style.height = this._calculateListHeight()
 			this._reposition()
 			this.ready = true
@@ -558,21 +554,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
 			}
 		})
-	}
-
-	_init(domElement: HTMLElement) {
-		this._domListContainer = domElement
-
-		this._width = this._domListContainer.clientWidth
-		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
-
-		if (client.isMobileDevice()) {
-			const id = window.setTimeout(() => this._doRender(), 200)
-			this._renderCallback = {type: 'timeout', id}
-		} else {
-			const id = window.requestAnimationFrame(() => this._doRender())
-			this._renderCallback = {type: 'frame', id}
-		}
 	}
 
 	_cancelRenderCallback() {
@@ -663,7 +644,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							+ "px)"
 					}
 					let pos = topElement.top / rowHeight
-					let entity = this._getListElement(pos)
+					let entity = this._loadedEntities[pos]
 					this._updateVirtualRow(topElement, entity, (pos % 2: any))
 					this._virtualList.push(this._virtualList.shift())
 					topElement = this._virtualList[0]
@@ -683,7 +664,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							+ bottomElement.top + "px)"
 					}
 					let pos = bottomElement.top / rowHeight
-					let entity = this._getListElement(pos)
+					let entity = this._loadedEntities[pos]
 					this._updateVirtualRow(bottomElement, entity, (pos % 2: any))
 					this._virtualList.unshift(this._virtualList.pop())
 					topElement = bottomElement
@@ -734,7 +715,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			row.domElement.style.transform = "translateY(" + row.top + "px)"
 
 			let pos = row.top / rowHeight
-			let entity = this._getListElement(pos)
+			let entity = this._loadedEntities[pos]
 			this._updateVirtualRow(row, entity, (pos % 2: any))
 
 		}
@@ -752,7 +733,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._reposition()
 	}
 
-	_updateVirtualRow(row: VirtualRow<T>, entity: T, odd: boolean) {
+	_updateVirtualRow(row: VirtualRow<T>, entity: ?T, odd: boolean) {
 		row.entity = entity
 		if (odd) {
 			row.domElement.classList.remove('odd-row')
@@ -767,7 +748,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 	}
 
-	updateStatus(status: { bufferUp: number, bufferDown: number, speed: number, scrollDiff: number, timeDiff: number }) {
+	updateStatus(status: {bufferUp: number, bufferDown: number, speed: number, scrollDiff: number, timeDiff: number}) {
 		if (this._domStatus.bufferUp) this._domStatus.bufferUp.textContent = status.bufferUp + ''
 		if (this._domStatus.bufferDown) this._domStatus.bufferDown.textContent = status.bufferDown + ''
 		if (this._domStatus.speed) this._domStatus.speed.textContent = status.speed + ''
@@ -831,8 +812,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				break;
 			}
 		}
-		this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
-		this._entitySelected(scrollTarget, addToSelection)
+
+		this._domInitialized.promise.then(() => {
+			this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
+			this._entitySelected(scrollTarget, addToSelection)
+		})
 	}
 
 	_loadTill(listElementId: Id): Promise<?T> {
@@ -923,11 +907,12 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			})
 			if (entity) {
 				let nextElementSelected = false
-				if (this._selectedEntities.length === 1 && this._selectedEntities[0] === entity
+				if (this._selectedEntities.length === 1
+					&& this._selectedEntities[0] === entity
 					&& this._loadedEntities.length > 1) {
-					let nextSelection = (entity
-						=== last(this._loadedEntities)) ? this._loadedEntities[this._loadedEntities.length
-					- 2] : this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
+					let nextSelection = (entity === last(this._loadedEntities))
+						? this._loadedEntities[this._loadedEntities.length - 2]
+						: this._loadedEntities[this._loadedEntities.indexOf(entity) + 1]
 					this._selectedEntities.push(nextSelection)
 					nextElementSelected = true
 				}
@@ -953,13 +938,20 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 const ActionDistance = 150
 
+const DirectionLock = Object.freeze({
+	Horizontal: 1,
+	Vertical: 2
+})
+type DirectionLockEnum = $Values<typeof DirectionLock>
+
 class SwipeHandler {
-	startPos: { x: number, y: number };
+	startPos: {x: number, y: number};
 	virtualElement: ?VirtualRow<*>;
 	list: List<*, *>;
 	xoffset: number;
 	touchArea: HTMLElement;
 	animating: Promise<any>;
+	directionLock: ?DirectionLockEnum;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
 		this.startPos = {x: 0, y: 0}
@@ -967,11 +959,11 @@ class SwipeHandler {
 		this.xoffset = 0
 		this.touchArea = touchArea
 		this.animating = Promise.resolve()
+		this.directionLock = null
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), client.passive() ? {passive: false} : false) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
 
 	start(e: TouchEvent) {
@@ -980,35 +972,51 @@ class SwipeHandler {
 	}
 
 	move(e: TouchEvent) {
-		let delta = this.getDelta(e)
-		if (this.animating.isFulfilled() && Math.abs(delta.y) > 40) {
-			window.requestAnimationFrame(() => {
-				if (this.animating.isFulfilled()) {
-					this.reset()
-				}
-			})
-		} else if (this.animating.isFulfilled() && Math.abs(delta.x) > 10 && Math.abs(delta.x) > Math.abs(delta.y)) {
-			e.preventDefault() // stop list scrolling when we are swiping
-			let ve = this.getVirtualElement()
-			window.requestAnimationFrame(() => {
-				// Do not animate the swipe gesture more than necessary
-				this.xoffset = delta.x < 0 ? Math.max(delta.x, -ActionDistance) : Math.min(delta.x, ActionDistance)
+		let {x, y} = this.getDelta(e)
+		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
+		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y) && Math.abs(x) > 14) {
+			this.directionLock = DirectionLock.Horizontal
+			// Do not scroll the list
+			e.preventDefault()
+			if (this.animating.isFulfilled()) {
+				let ve = this.getVirtualElement()
+				window.requestAnimationFrame(() => {
+					// Do not animate the swipe gesture more than necessary
+					this.xoffset = x < 0 ? Math.max(x, -ActionDistance) : Math.min(x, ActionDistance)
 
-				if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
-					ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
-					this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width)
-						+ 'px) translateY(' + ve.top + 'px)'
-					this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width)
-						+ 'px) translateY(' + ve.top + 'px)'
-				}
-			})
+					// Animate the row with following touch
+					if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
+						ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
+						this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
+						this.list._domSwipeSpacerRight.style.transform = `translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
+					}
+				})
+			}
+			// If we don't have a vertical lock yet but we would like to have it, lock vertically
+		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > size.list_row_height) {
+			this.directionLock = DirectionLock.Vertical
+			if (this.animating.isFulfilled()) {
+				// Reset the row
+				window.requestAnimationFrame(() => {
+					if (this.animating.isFulfilled()) {
+						this.reset()
+					}
+				})
+			}
 		}
 	}
 
 	end(e: TouchEvent) {
-		let delta = this.getDelta(e)
-		if (this.animating.isFulfilled() && this.virtualElement && this.virtualElement.entity && Math.abs(delta.x)
-			> ActionDistance && Math.abs(delta.y) < neverNull(this.virtualElement).domElement.offsetHeight) {
+		this.gestureEnd(e)
+	}
+
+	gestureEnd(e: TouchEvent) {
+		const delta = this.getDelta(e)
+		if (this.animating.isFulfilled()
+			&& this.virtualElement
+			&& this.virtualElement.entity
+			&& Math.abs(delta.x) > ActionDistance && this.directionLock === DirectionLock.Horizontal) {
+			// Gesture is completed
 			let entity = this.virtualElement.entity
 			let swipePromise
 			if (delta.x < 0) {
@@ -1018,8 +1026,10 @@ class SwipeHandler {
 			}
 			this.animating = this.finish(entity._id, swipePromise)
 		} else if (this.animating.isFulfilled()) {
+			// Gesture is not completed, reset row
 			this.animating = this.reset()
 		}
+		this.directionLock = null
 	}
 
 	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
@@ -1049,7 +1059,7 @@ class SwipeHandler {
 					duration: DefaultAnimationTime * 2
 				}),
 			]).then(() => this.xoffset = listTargetPosition)
-				.then(() => swipeActionPromise).then((success) => {
+			              .then(() => swipeActionPromise).then((success) => {
 					if (success) {
 						return this.list._deleteLoadedEntity(id).then(() => {
 							// fade out element
@@ -1079,7 +1089,6 @@ class SwipeHandler {
 			return Promise.resolve()
 		}
 	}
-
 
 	reset(): Promise<any> {
 		try {
@@ -1121,10 +1130,6 @@ class SwipeHandler {
 			x: e.changedTouches[0].clientX - this.startPos.x,
 			y: e.changedTouches[0].clientY - this.startPos.y
 		}
-	}
-
-	cancel(e: TouchEvent) {
-		this.reset()
 	}
 
 	updateWidth() {

@@ -1,9 +1,13 @@
 // @flow
 
+// keep in sync with LaunchHtml.js meta tag title
+export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up"
+
 export const Mode = {
 	Browser: "Browser",
 	App: "App",
 	Test: "Test",
+	Desktop: "Desktop"
 }
 
 export function getWebsocketOrigin(): string {
@@ -36,6 +40,15 @@ export function isApp(): boolean {
 	return env.mode === Mode.App
 }
 
+export function isDesktop(): boolean {
+	return env.mode === Mode.Desktop
+}
+
+export function ifDesktop<T>(obj: T | null): T | null {
+	return isDesktop()
+		? obj
+		: null
+}
 
 let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
 let node = (typeof process === 'object' && typeof process.versions === 'object'

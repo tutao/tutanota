@@ -1,3 +1,11 @@
-- Remember language choice for external recipients
-- Fixed bugs with opening attachments
-- Fixed bug when writing a recipient address
+New:
+- Disable push notificaiton for specific account on device
+
+Bugfixes:
+- Attachment download
+- Fix error after upgrading
+- File size dialog was not visible when file was shared from the outside
+- Select correct Chinese language
+- Search index error
+- Wrap long lines in mail viewer and editor
+- Prevent reconnecting when session has expired

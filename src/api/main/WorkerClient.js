@@ -45,7 +45,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.entityEvent.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -63,6 +63,10 @@ export class WorkerClient {
 			},
 			updateWebSocketState: (message: Message) => {
 				this._wsConnection(downcast(message.args[0]));
+				return Promise.resolve()
+			},
+			counterUpdate: (message: Message) => {
+				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			}
 		})
@@ -115,7 +119,11 @@ export class WorkerClient {
 		nativeApp.init()
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<void> {
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		return this.initialized.then(() => this._postRequest(new Request('generateSignupKeys', arguments)))
+	}
+
+	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
@@ -143,6 +151,14 @@ export class WorkerClient {
 		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
 			logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession))
 		})
+	}
+
+	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
+		return this.initialized.then(() => this._postRequest(new Request('loadExternalPasswordChannels', arguments)))
+	}
+
+	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
+		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
 	}
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
@@ -218,7 +234,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('switchPremiumToFreeGroup', arguments))
 	}
 
-	updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return this._postRequest(new Request('updatePaymentData', arguments))
 	}
 
@@ -246,7 +262,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('createLocalAdminGroup', arguments))
 	}
 
-	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+	getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
 		return this._postRequest(new Request('getPrice', arguments))
 	}
 
@@ -371,7 +387,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('readCounterValue', arguments))
 	}
 
-	cancelCreateSession() : Promise<void> {
+	cancelCreateSession(): Promise<void> {
 		return this._postRequest(new Request('cancelCreateSession', []))
 	}
 
@@ -423,6 +439,22 @@ export class WorkerClient {
 
 	getMoreSearchResults(existingResult: SearchResult, moreResultCount: number): Promise<SearchResult> {
 		return this._queue.postMessage(new Request("getMoreSearchResults", [existingResult, moreResultCount]))
+	}
+
+	getRecoveryCode(password: string): Promise<string> {
+		return this._queue.postMessage(new Request("getRecoveryCode", [password]))
+	}
+
+	createRecoveryCode(password: string): Promise<string> {
+		return this._queue.postMessage(new Request("createRecoveryCode", [password]))
+	}
+
+	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
+		return this._queue.postMessage(new Request("recoverLogin", [emailAddress, recoverCode, newPassword, clientIdentifier]))
+	}
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
+		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
 	}
 }
 

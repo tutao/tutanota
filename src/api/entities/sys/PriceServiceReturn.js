@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "35"
+	"version": "43"
 }
 
 export function createPriceServiceReturn(): PriceServiceReturn {

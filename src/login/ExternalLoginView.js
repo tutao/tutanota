@@ -1,62 +1,111 @@
 // @flow
 import m from "mithril"
-import {TextField, Type} from "../gui/base/TextField"
-import {Checkbox} from "../gui/base/Checkbox"
-import {Button, ButtonType} from "../gui/base/Button"
+import stream from "mithril/stream/stream.js"
+import {ButtonType} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {AccessBlockedError, AccessDeactivatedError, ConnectionError, NotAuthenticatedError} from "../api/common/error/RestError"
-import {createCustomerProperties} from "../api/entities/sys/CustomerProperties"
-import {GENERATED_MIN_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	BadRequestError,
+	ConnectionError,
+	InternalServerError,
+	NotAuthenticatedError,
+	NotFoundError,
+	TooManyRequestsError
+} from "../api/common/error/RestError"
+import {GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
-import {ExternalPropertiesReturnTypeRef} from "../api/entities/sys/ExternalPropertiesReturn"
-import {SysService} from "../api/entities/sys/Services"
-import {serviceRequest} from "../api/main/Entity"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
+import {progressIcon} from "../gui/base/Icon"
+import {ButtonN} from "../gui/base/ButtonN"
+import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
+import {CheckboxN} from "../gui/base/CheckboxN"
+import {CancelledError} from "../api/common/error/CancelledError"
+import {logins} from "../api/main/LoginController"
+import {MessageBoxN} from "../gui/base/MessageBoxN"
+import {Dialog} from "../gui/base/Dialog"
+import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
+import {renderPrivacyAndImprintLinks} from "./LoginView"
+
+assertMainOrNode()
 
 export class ExternalLoginView {
 
-	mailAddress: TextField;
-	password: TextField;
-	helpText: string;
-	savePassword: Checkbox;
-	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
-	_errorMessageId: ?string;
+	_password: stream<string>;
+	_savePassword: stream<boolean>;
+	_helpText: TranslationKey;
+	_errorMessageId: ?TranslationKey;
 	_userId: Id;
 	_salt: Uint8Array;
-	_saltHash: Base64Url;
 	view: Function;
-	_visibleCredentials: Credentials[];
-	_isDeleteCredentials: boolean;
-	_id: string;
 	oncreate: Function;
 	onremove: Function;
+	_loading: ?Promise<void>;
+	_phoneNumbers: PasswordChannelPhoneNumber[];
+	_symKeyForPasswordTransmission: ?Aes128Key;
+	_sendSmsAllowed: boolean;
+	_autologinInProgress: boolean;
 
 	constructor() {
+		this._loading = null
+		this._autologinInProgress = false
 		this._errorMessageId = null
-		this.helpText = lang.get('emptyString_msg')
-		this.password = new TextField("password_label", () => lang.get("enterPresharedPassword_msg"))
-			.setType(Type.Password)
-		this.savePassword = new Checkbox("storePassword_action", () => lang.get("onlyPrivateComputer_msg"))
+		this._helpText = 'emptyString_msg'
 
-		let loginButton = new Button('showMail_action', () => this._formLogin()).setType(ButtonType.Login)
+		this._password = stream("")
+		this._savePassword = stream(false)
+		this._phoneNumbers = []
+		this._symKeyForPasswordTransmission = null
+		this._sendSmsAllowed = false
+
 
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
 			return m(".main-view.flex-center.scroll.pt-responsive", [
-				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", !this._errorMessageId ? [
-					m(this.password),
-					m(this.savePassword),
-					m(".pt", m(loginButton)),
-					m("p.center.statusTextColor", m("small", this.helpText))
-				] : m("p.center", lang.get(this._errorMessageId)))
+				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView())
 			])
+		}
+	}
+
+	_getView() {
+		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
+			return m("p.center", progressIcon())
+		} else if (this._errorMessageId) {
+			return m("p.center", m(MessageBoxN, {label: this._errorMessageId}))
+		} else {
+			return [
+				this._phoneNumbers.length > 0 ? [
+					m("small", lang.get(this._phoneNumbers.length == 1 ? "clickNumber_msg" : "chooseNumber_msg")),
+					m(".mt", this._phoneNumbers.map((n: PhoneNumber) => m(ButtonN, {
+						label: () => n.number,
+						type: ButtonType.Login,
+						click: () => this._sendSms(n._id)
+					})))
+				] : null,
+				m(TextFieldN, {
+					type: TextFieldType.Password,
+					label: "password_label",
+					helpLabel: () => lang.get("enterPresharedPassword_msg"),
+					value: this._password
+				}),
+				m(CheckboxN, {
+					label: () => lang.get("storePassword_action"),
+					helpLabel: () => lang.get("onlyPrivateComputer_msg"),
+					checked: this._savePassword
+				}),
+				m(".pt", m(ButtonN, {label: 'showMail_action', click: () => this._formLogin(), type: ButtonType.Login})),
+				m("p.center.statusTextColor", m("small", lang.get(this._helpText))),
+				renderPrivacyAndImprintLinks()
+			]
 		}
 	}
 
@@ -71,81 +120,70 @@ export class ExternalLoginView {
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
 		this.onremove = () => {
-			this.password.value("")
+			this._password("")
 			keyManager.unregisterShortcuts(shortcuts)
 		}
 	}
 
 	updateUrl(args: Object) {
-		if (args.requestedPath) {
-			this._requestedPath = args.requestedPath
-		} else {
-			this._requestedPath = '/mail'
-		}
-
 		let userIdLength = GENERATED_MIN_ID.length
-		let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
-		this._userId = id.substring(0, userIdLength)
-		this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
-		//this._saltHash = base64ToBase64Url(uint8ArrayToBase64(hash(this._salt)))
+		try {
+			let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
+			this._userId = id.substring(0, userIdLength)
+			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
 
-		let credentials = deviceConfig.get(this._userId)
-		if (credentials) {
-			this._autologin(credentials)
+			this._loading = this._loadAndSetPhoneNumbers()
+			this._loading.then(() => {
+				let credentials = deviceConfig.get(this._userId)
+				if (credentials && args.noAutoLogin !== true) {
+					this._autologin(credentials)
+				} else {
+					m.redraw()
+				}
+			})
+		} catch (e) {
+			this._errorMessageId = "invalidLink_msg"
+			this._loading = Promise.reject()
+			m.redraw()
 		}
-	}
-
-	_showLoginForm(mailAddress: string) {
-		this._visibleCredentials = [];
-		m.redraw()
 	}
 
 	_autologin(credentials: Credentials): void {
+		this._autologinInProgress = true
 		showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials, this._salt), () => {
-				this._showLoginForm(credentials.mailAddress)
+				this._autologinInProgress = false
 			})
 		}))
 	}
 
 	_formLogin() {
-		let pw = this.password.value()
+		let pw = this._password()
 		if (pw === "") {
-			this.helpText = lang.get('loginFailed_msg')
+			this._helpText = 'loginFailed_msg'
 		} else {
-			this.helpText = lang.get('login_msg')
+			this._helpText = 'login_msg'
 			let clientIdentifier = client.browser + " " + client.device
-			let createSessionPromise = Promise.resolve()
-			                                  // TODO: put auth headers into body of password channel resource
-			                                  // serviceRequest(TutanotaService.PasswordChannelResource, HttpMethod.GET, null, PasswordChannelReturnTypeRef)
-			                                  // .catch(NotAuthenticatedError, e => {
-			                                  // 	this.helpText = lang.get('invalidLink_msg')
-			                                  // })
-			                                  // .catch(BadRequestError, e => {
-			                                  // 	this.helpText = lang.get('invalidLink_msg')
-			                                  // }).catch(ConnectionError, e => {
-			                                  // 	this.helpText = lang.get('emptyString_msg')
-			                                  // 	throw e;
-			                                  .then(passwordChannels => {
-				                                  // TODO add phone number handling
-				                                  return worker.createExternalSession(this._userId, pw, this._salt,
-					                                  clientIdentifier, this.savePassword.checked())
-			                                  }).then(newCredentials => {
-					this.password.value("")
-					let storedCredentials = deviceConfig.get(this._userId)
-					if (newCredentials) {
-						deviceConfig.set(newCredentials)
-					}
-					if (storedCredentials) {
-						return worker.deleteSession(storedCredentials.accessToken)
-						             .then(() => {
-							             if (!newCredentials) {
-								             deviceConfig.delete(this._userId)
-							             }
-						             })
-					}
-				})
+			let persistentSession = this._savePassword()
+			let createSessionPromise = worker.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
+			                                 .then(newCredentials => {
+				                                 this._password("")
+				                                 let storedCredentials = deviceConfig.get(this._userId)
+				                                 if (persistentSession) {
+					                                 deviceConfig.set(newCredentials)
+				                                 }
+				                                 if (storedCredentials) { // delete persistent session (saved in deviceConfig) if a new session is created
+					                                 return worker.deleteSession(storedCredentials.accessToken)
+					                                              .then(() => {
+						                                              if (!persistentSession) {
+							                                              deviceConfig.delete(this._userId)
+						                                              }
+					                                              })
+					                                              .catch(NotFoundError, e => console.log("session already deleted"))
+				                                 }
+			                                 })
 			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
+				// don't do anything additionally on errors
 			})
 		}
 	}
@@ -154,32 +192,51 @@ export class ExternalLoginView {
 		return login.then(() => this._postLoginActions())
 		            .then(() => {
 			            m.route.set(`/mail${location.hash}`)
-			            this.helpText = lang.get('emptyString_msg')
-			            m.redraw()
+			            this._helpText = 'emptyString_msg'
+		            })
+		            .catch(AccessExpiredError, e => {
+			            this._errorMessageId = 'expiredLink_msg'
+			            return errorAction()
 		            })
 		            .catch(AccessBlockedError, e => {
-			            this.helpText = lang.get('loginFailedOften_msg')
-			            m.redraw()
+			            this._helpText = 'loginFailedOften_msg'
 			            return errorAction()
 		            })
 		            .catch(NotAuthenticatedError, e => {
-			            this.helpText = lang.get('invalidPassword_msg')
-			            m.redraw()
+			            this._helpText = 'invalidPassword_msg'
 			            return errorAction()
 		            })
 		            .catch(AccessDeactivatedError, e => {
-			            this.helpText = lang.get('loginFailed_msg')
-			            m.redraw()
+			            this._helpText = 'loginFailed_msg'
+			            return errorAction()
+		            })
+		            .catch(TooManyRequestsError, e => {
+			            this._helpText = 'tooManyAttempts_msg'
+			            return errorAction()
+		            })
+		            .catch(CancelledError, () => {
+			            this._helpText = 'emptyString_msg'
 			            return errorAction()
 		            })
 		            .catch(ConnectionError, e => {
-			            this.helpText = lang.get('emptyString_msg')
-			            m.redraw()
-			            throw e;
-		            })
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this._helpText = 'loginFailed_msg'
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this._helpText = 'emptyString_msg'
+				            throw e;
+			            }
+		            }).finally(() => m.redraw())
 	}
 
 	_postLoginActions() {
+		// only show "Tutanota" after login if there is no custom title set
+		if (document.title === LOGIN_TITLE) {
+			document.title = "Tutanota"
+		}
+
 		windowFacade.addResumeAfterSuspendListener(() => {
 			console.log("resume after suspend")
 			worker.tryReconnectEventBus(true, true)
@@ -192,11 +249,58 @@ export class ExternalLoginView {
 			console.log("offline")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		return serviceRequest(SysService.ExternalPropertiesService, HttpMethod.GET, null, ExternalPropertiesReturnTypeRef)
-			.then(data => {
-				let props = createCustomerProperties()
-				//TODO: set welcome message
-			})
-
+		logins.loginComplete()
 	}
+
+	_loadAndSetPhoneNumbers(): Promise<void> {
+		return worker.loadExternalPasswordChannels(this._userId, this._salt)
+		             .then(passwordChannels => {
+			             this._phoneNumbers = passwordChannels.phoneNumberChannels
+			             this._sendSmsAllowed = true
+		             })
+		             .catch(AccessExpiredError, e => {
+			             this._errorMessageId = 'expiredLink_msg'
+		             })
+		             .catch(NotAuthenticatedError, e => {
+			             this._errorMessageId = 'invalidLink_msg'
+		             })
+		             .catch(BadRequestError, e => {
+			             this._errorMessageId = 'invalidLink_msg'
+		             })
+		             .catch(ConnectionError, e => {
+			             if (client.isIE()) {
+				             // IE says it's error code 0 fore some reason
+				             this._helpText = 'loginFailed_msg'
+				             m.redraw()
+			             } else {
+				             this._helpText = 'emptyString_msg'
+				             throw e;
+			             }
+		             }).finally(() => m.redraw())
+	}
+
+	_sendSms(phoneNumberId: Id): Promise<void> {
+		if (!this._sendSmsAllowed) {
+			return Dialog.error(this._helpText)
+		}
+		this._helpText = "sendingSms_msg"
+		this._sendSmsAllowed = false
+		m.redraw()
+		return worker.sendExternalPasswordSms(this._userId, this._salt, phoneNumberId, lang.code, this._symKeyForPasswordTransmission).then(result => {
+			this._symKeyForPasswordTransmission = result.symKeyForPasswordTransmission
+			this._helpText = "smsSent_msg"
+			setTimeout(() => {
+				this._sendSmsAllowed = true
+				this._helpText = "smsResent_msg"
+				m.redraw()
+			}, 60000)
+		}).catch(TooManyRequestsError, e => {
+			this._helpText = "smsSentOften_msg"
+		}).catch(AccessExpiredError, e => {
+			this._errorMessageId = "expiredLink_msg"
+		}).catch(InternalServerError, e => {
+			this._helpText = "smsError_msg"
+		}).finally(() => m.redraw())
+	}
+
 }

@@ -2,20 +2,19 @@
 import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
-export function defer<T>(): {resolve: (T) => void, reject: (Error) => void, promise: Promise<T>} {
-	let cb
-	let promise = Promise.fromCallback(pcb => {
-		cb = pcb
-	});
+export type DeferredObject<T> = {
+	resolve: (T) => void,
+	reject: (Error) => void,
+	promise: Promise<T>,
+}
 
-	const resolve = (a) => cb(null, a)
-	const reject = (e) => cb(e)
-
-	return ({
-		resolve,
-		reject,
-		promise
+export function defer<T>(): DeferredObject<T> {
+	let ret = {}
+	ret.promise = new Promise((resolve, reject) => {
+		ret.resolve = resolve
+		ret.reject = reject
 	})
+	return ret
 }
 
 export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<?T> {
@@ -180,4 +179,8 @@ export function noOp() {}
 
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
 	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
+}
+
+export function randomIntFromInterval(min: number, max: number): number {
+	return Math.floor(Math.random() * (max - min + 1) + min);
 }

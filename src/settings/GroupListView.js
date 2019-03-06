@@ -22,8 +22,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
 import {isAdministratedGroup} from "../search/SearchUtils"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

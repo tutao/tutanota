@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "28"
+	"version": "30"
 }
 
 export function createCreateExternalUserGroupData(): CreateExternalUserGroupData {

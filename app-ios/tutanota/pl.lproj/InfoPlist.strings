@@ -1,4 +1,4 @@
-NSCameraUsageDescription = "Zrób zdjęcie lub nagraj wideo, aby umieścić jako załącznik.";
+NSCameraUsageDescription = "Zrób zdjęcie lub nagraj wideo, aby umieścić je jako załącznik.";
 NSPhotoLibraryUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
 NSPhotoLibraryAddUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
 NSMicrophoneUsageDescription = "Używany podczas nagrywania wideo jako załącznik.";

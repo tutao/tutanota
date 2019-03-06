@@ -173,7 +173,8 @@ public final class Native {
                     promise.resolve(crypto.rsaDecrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1))));
                     break;
                 case "aesEncryptFile":
-                    promise.resolve(crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))));
+                    Crypto.EncryptedFileInfo efi = crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2)));
+                    promise.resolve(efi.toJSON());
                     break;
                 case "aesDecryptFile": {
                     final byte[] key = Utils.base64ToBytes(args.getString(0));
@@ -194,7 +195,7 @@ public final class Native {
                     promise.resolve(files.getName(args.getString(0)));
                     break;
                 case "getMimeType":
-                    promise.resolve(files.getMimeType(args.getString(0)));
+                    promise.resolve(files.getMimeType(Uri.parse(args.getString(0))));
                     break;
                 case "getSize":
                     promise.resolve(files.getSize(args.getString(0)) + "");
@@ -203,7 +204,8 @@ public final class Native {
                     promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
                     break;
                 case "download":
-                    return files.download(args.getString(0), args.getString(1), args.getJSONObject(2));
+                    promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
+                    break;
                 case "clearFileData":
                     files.clearFileData();
                     promise.resolve(null);

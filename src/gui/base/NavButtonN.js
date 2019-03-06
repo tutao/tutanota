@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
-import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../size"
 import {addFlash, removeFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
@@ -9,9 +8,10 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
-export type NavButtonAttrs = {
-	label: string | lazy<string>,
+export type NavButtonAttrs = {|
+	label: TranslationKey | lazy<string>,
 	icon: lazyIcon,
 	href: string | lazy<string>,
 	isSelectedPrefix?: string,
@@ -20,20 +20,24 @@ export type NavButtonAttrs = {
 	isVisible?: lazy<boolean>,
 	dropHandler?: dropHandler,
 	hideLabel?: boolean,
-}
+|}
 
 class _NavButton {
-	_isSelectedPrefix: ?string;
 	_domButton: HTMLElement;
 	_draggedOver: boolean;
 	_dropHandler: ?dropHandler;
 	_dropCounter: number; // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
 
 
-	constructor(vnode: Vnode<NavButtonAttrs>) {
-		this._isSelectedPrefix = vnode.attrs.isSelectedPrefix ? vnode.attrs.isSelectedPrefix : vnode.attrs.href
+	constructor() {
 		this._draggedOver = false
 		this._dropCounter = 0
+	}
+
+	_selectedPrefix(attrs: NavButtonAttrs): string {
+		return attrs.isSelectedPrefix
+			? attrs.isSelectedPrefix
+			: lazyStringValue(attrs.href)
 	}
 
 	view(vnode: Vnode<NavButtonAttrs>) {
@@ -44,7 +48,7 @@ class _NavButton {
 				icon: a.icon(),
 				class: this._getIconClass(a),
 				style: {
-					fill: (this.isSelected() || this._draggedOver) ?
+					fill: (this.isSelected(vnode.attrs) || this._draggedOver) ?
 						getColors(a.colors).button_selected : getColors(a.colors).button,
 				}
 			}) : null,
@@ -52,28 +56,24 @@ class _NavButton {
 		])
 	}
 
-	isSelected() {
-		if (this._isSelectedPrefix) {
-			let current = m.route.get()
-			return this._isSelectedPrefix && (current === this._isSelectedPrefix
-				|| (current.indexOf(this._isSelectedPrefix + "/") === 0))
-		}
-		return false
+	isSelected(attrs: NavButtonAttrs) {
+		let current = m.route.get()
+		return attrs.isSelectedPrefix && current === this._selectedPrefix(attrs) || current.indexOf(this._selectedPrefix(attrs) + "/") === 0
 	}
 
 	getLabel(label: string | lazy<string>) {
-		return label instanceof Function ? label() : lang.get(label)
+		return lazyStringValue(label)
 	}
 
 	_getUrl(href: string | lazy<string>): string {
-		return (href instanceof Function) ? href() : href
+		return lazyStringValue(href)
 	}
 
 	_getIconClass(a: NavButtonAttrs) {
 		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
-			return "flex-end items-center icon-xl" + (this.isSelected() ? " selected" : "")
+			return "flex-end items-center icon-xl" + (this.isSelected(a) ? " selected" : "")
 		} else {
-			return "flex-center items-center icon-large" + (this.isSelected() ? " selected" : "")
+			return "flex-center items-center icon-large" + (this.isSelected(a) ? " selected" : "")
 		}
 	}
 
@@ -86,7 +86,7 @@ class _NavButton {
 		let attr: any = {
 			href: this._getUrl(a.href),
 			style: {
-				color: (this.isSelected() || this._draggedOver) ?
+				color: (this.isSelected(a) || this._draggedOver) ?
 					getColors(a.colors).button_selected : getColors(a.colors).button
 			},
 			title: this.getLabel(a.label),

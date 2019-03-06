@@ -1,10 +1,10 @@
 // @flow
-import {uint8ArrayToBase64, stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {pad} from "../api/common/utils/StringUtils"
 import {load} from "../api/main/Entity"
-import {FileTypeRef, createFile} from "../api/entities/tutanota/File"
+import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
-import {getCleanedMimeType, createDataFile} from "../api/common/DataFile"
+import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
@@ -18,9 +18,13 @@ export function exportAsEml(mail: Mail, sanitizedHtmlBody: string) {
 		toEml(mail, sanitizedHtmlBody).then(emlString => {
 			let data = stringToUtf8Uint8Array(emlString)
 			let tmpFile = createFile()
-			let filename = formatSortableDateTime(mail.sentDate) + " " + mail.subject
-			if (filename.trim().length === 0) {
+			let filename = [...formatSortableDateTime(mail.sentDate).split(' '), mail.subject].join('-')
+			filename = filename.trim()
+			if (filename.length === 0) {
 				filename = "unnamed"
+			} else if (filename.length > 96) {
+				// windows MAX_PATH is 260, this should be fairly safe.
+				filename = filename.substring(0, 95) + '_'
 			}
 			tmpFile.name = filename + ".eml"
 			tmpFile.mimeType = "message/rfc822"

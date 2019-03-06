@@ -15,8 +15,8 @@ import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
 import {Button} from "../gui/base/Button"
 import stream from "mithril/stream/stream.js"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

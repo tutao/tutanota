@@ -1,10 +1,12 @@
 //@flow
-import {assertMainOrNodeBoot, isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
 import {ButtonType} from "../gui/base/ButtonN"
 import m from "mithril"
+import {handleUncaughtError} from "../misc/ErrorHandler"
+import {objToError} from "../api/common/WorkerProtocol"
 
 assertMainOrNodeBoot()
 
@@ -15,14 +17,16 @@ function showUpdateOverlay(onUpdate: () => void) {
 			return m("span", [
 				lang.get("updateFound_label"),
 				" ",
-				m("a", {
-					href: `https://github.com/tutao/tutanota/releases/`,
-					target: "_blank"
-				}, lang.get("releaseNotes_action"))
+				isTutanotaDomain()
+					? m("a", {
+						href: `https://github.com/tutao/tutanota/releases/`,
+						target: "_blank"
+					}, lang.get("releaseNotes_action"))
+					: null
 			])
 		}
 	}
-	notificationOverlay.show(notificationMessage, [
+	notificationOverlay.show(notificationMessage, "postpone_action", [
 		{
 			label: "refresh_action",
 			click: onUpdate,
@@ -46,9 +50,12 @@ function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
 export function init() {
 	const serviceWorker = navigator.serviceWorker
 	if (serviceWorker) {
-		if (env.dist && !isApp()) {
+		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
-			serviceWorker.register("sw.js")
+			let location = window.location.pathname.endsWith("/") || window.location.pathname.indexOf("contactform/") != -1
+				? "../sw.js"
+				: "sw.js"
+			serviceWorker.register(location)
 			             .then((registration) => {
 				             console.log("ServiceWorker has been installed")
 				             showUpdateMessageIfNeeded(registration)
@@ -66,18 +73,18 @@ export function init() {
 						             return
 					             }
 
-					             // Prevent losing user data, ask instead
-					             // Even if it is a new ServiceWorker already, all code should be loaded at this point.
-					             if (windowFacade.windowCloseConfirmation) {
-						             if (window.confirm(lang.get("closeWindowConfirmation_msg"))) {
-							             refreshing = true
-							             windowFacade.reload({})
-						             }
-					             } else {
-						             refreshing = true
-						             windowFacade.reload({})
-					             }
+					             windowFacade.windowCloseConfirmation = false
+					             refreshing = true
+					             windowFacade.reload({})
 				             })
+
+				             serviceWorker.addEventListener("message", (event) => {
+						             if (event.data.type === "error") {
+							             const unserializedError = objToError(event.data.value)
+							             handleUncaughtError(unserializedError)
+						             }
+					             }
+				             )
 			             })
 		}
 	} else {

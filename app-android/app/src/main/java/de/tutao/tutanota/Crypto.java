@@ -1,12 +1,16 @@
 package de.tutao.tutanota;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.support.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -83,8 +87,6 @@ public final class Crypto {
     }
 
 
-
-
     protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchProviderException, NoSuchAlgorithmException {
         this.randomizer.setSeed(seed);
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", PROVIDER);
@@ -142,12 +144,20 @@ public final class Crypto {
     /**
      * Encrypts an aes key with RSA to a byte array.
      */
-    String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws JSONException, NoSuchAlgorithmException,
-            NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        PublicKey publicKey = jsonToPublicKey(publicKeyJson);
-        this.randomizer.setSeed(random);
-        byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
-        return Utils.bytesToBase64(encrypted);
+    String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws CryptoError {
+        try {
+            PublicKey publicKey = jsonToPublicKey(publicKeyJson);
+            this.randomizer.setSeed(random);
+            byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
+            return Utils.bytesToBase64(encrypted);
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            // These types of errors are normal crypto errors and will be handled by the web part.
+            throw new CryptoError(e);
+        } catch (JSONException | NoSuchAlgorithmException |
+                NoSuchProviderException | NoSuchPaddingException e) {
+            // These types of errors are unexpected and fatal.
+            throw new RuntimeException(e);
+        }
     }
 
     private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -159,11 +169,20 @@ public final class Crypto {
     /**
      * Decrypts a byte array with RSA to an AES key.
      */
-    String rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, JSONException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException,
-            BadPaddingException {
-        byte[] decrypted = rsaDecrypt(jsonPrivateKey, encryptedKey, this.randomizer);
-        return Utils.bytesToBase64(decrypted);
+    String rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey) throws CryptoError {
+        try {
+            byte[] decrypted = rsaDecrypt(jsonPrivateKey, encryptedKey, this.randomizer);
+            return Utils.bytesToBase64(decrypted);
+        } catch (InvalidKeySpecException | BadPaddingException | InvalidKeyException
+                | IllegalBlockSizeException e) {
+            // These types of errors can happen and that's okay, they should be handled gracefully.
+            throw new CryptoError(e);
+        } catch (JSONException | NoSuchAlgorithmException | NoSuchProviderException |
+                NoSuchPaddingException e) {
+            // These errors are not expected, fatal for the whole application and should be 
+            // reported.
+            throw new RuntimeException("rsaDecrypt error", e);
+        }
     }
 
     private byte[] rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey, SecureRandom randomizer) throws JSONException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -187,17 +206,17 @@ public final class Crypto {
         return new SecretKeySpec(key, "AES");
     }
 
-    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
-        File inputFile = Utils.uriToFile(context, fileUrl);
+    EncryptedFileInfo aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
+        Uri fileUri = Uri.parse(fileUrl);
+        FileInfo file = Utils.getFileInfo(context, fileUri);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
-        File outputFile = new File(encryptedDir, inputFile.getName());
+        File outputFile = new File(encryptedDir, file.name);
 
-        InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
+        CountingInputStream in = new CountingInputStream(context.getContentResolver().openInputStream(fileUri));
         OutputStream out = new FileOutputStream(outputFile);
         aesEncrypt(key, in, out, iv, true);
-
-        return Utils.fileToUri(outputFile);
+        return new EncryptedFileInfo(Utils.fileToUri(outputFile), in.getByteCount());
     }
 
     public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv, boolean useMac) throws CryptoError, IOException {
@@ -220,8 +239,10 @@ public final class Crypto {
             } else {
                 out.write(tempOut.toByteArray());
             }
-        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
-           throw new CryptoError(e);
+        } catch (InvalidKeyException e) {
+            throw new CryptoError(e);
+        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(encrypted);
@@ -230,13 +251,14 @@ public final class Crypto {
     }
 
     String aesDecryptFile(final byte[] key, final String fileUrl) throws IOException, CryptoError {
-        File inputFile = Utils.uriToFile(context, fileUrl);
+        Uri fileUri = Uri.parse(fileUrl);
+        FileInfo file = Utils.getFileInfo(context, fileUri);
         File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
         decryptedDir.mkdirs();
-        File outputFile = new File(decryptedDir, inputFile.getName());
+        File outputFile = new File(decryptedDir, file.name);
         InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
         OutputStream out = new FileOutputStream(outputFile);
-        aesDecrypt(key, in, out, inputFile.length());
+        aesDecrypt(key, in, out, file.size);
         return Uri.fromFile(outputFile).toString();
     }
 
@@ -271,7 +293,10 @@ public final class Crypto {
             cipher.init(Cipher.DECRYPT_MODE, bytesToKey(cKey), params);
             decrypted = getCipherInputStream(in, cipher);
             IOUtils.copyLarge(decrypted, out, new byte[1024 * 1000]);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException
+                | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
             throw new CryptoError(e);
         } finally {
             IOUtils.closeQuietly(in);
@@ -320,6 +345,31 @@ public final class Crypto {
             return hmac.doFinal(data);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public class EncryptedFileInfo {
+        private String uri;
+        private long unencSize;
+
+        public EncryptedFileInfo(String uri, long unencSize) {
+            this.unencSize = unencSize;
+            this.uri = uri;
+        }
+
+        public String getUri() {
+            return this.uri;
+        }
+
+        public long getUnencSize() {
+            return this.unencSize;
+        }
+
+        public JSONObject toJSON() throws JSONException {
+            JSONObject json = new JSONObject();
+            json.put("uri", this.uri);
+            json.put("unencSize", this.unencSize);
+            return json;
         }
     }
 }

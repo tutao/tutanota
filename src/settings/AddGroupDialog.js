@@ -72,7 +72,7 @@ export function show() {
 function _validateAddGroupInput(type: string, name: string, mailAddressForm: SelectMailAddressForm): ?string {
 	if (type === GroupType.Mail) {
 		return mailAddressForm.getErrorMessageId()
-	} else if (type === GroupType.Team && name.trim() === "") {
+	} else if (type === GroupType.MailingList && name.trim() === "") {
 		return "enterName_msg"
 	} else {
 		return null

@@ -3,10 +3,10 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {BootIcons} from "./icons/BootIcons"
 import {Icon} from "./Icon"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 
 export type CheckboxAttrs = {
-	label: lazy<string>,
+	label: lazy<string | VirtualElement>,
 	checked: Stream<boolean>,
 	helpLabel?: lazy<string>,
 }

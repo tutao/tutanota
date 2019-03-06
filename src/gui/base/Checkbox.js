@@ -1,32 +1,29 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {removeFlash, addFlash} from "./Flash"
+import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNodeBoot()
 
-const FALSE_CLOSURE = () => {
-	return false
-}
 
 export class Checkbox {
-	getLabel: lazy<string>;
-	helpLabel: ?lazy<String>;
+	getChildren: lazy<Children>;
+	helpLabel: ?lazy<string>;
 	checked: Stream<boolean>;
 	focused: Stream<boolean>;
 	enabled: boolean;
 	_domInput: HTMLElement;
 	view: Function;
-	_disabledTextId: string;
+	_disabledTextId: TranslationKey;
 
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, helpLabel: lazy<String>) {
-		this.getLabel = labelTextIdOrTextFunction instanceof Function ?
-			labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+	constructor(lazyChildren: lazy<Children>, helpLabel?: lazy<string>) {
+		this.getChildren = lazyChildren
 		this.helpLabel = helpLabel
 		this.checked = stream(false)
 		this.focused = stream(false)
@@ -73,7 +70,7 @@ export class Checkbox {
 					}),
 					m(".pl", {
 						class: this.focused() ? "content-accent-fg" : "content-fg",
-					}, this.getLabel()),
+					}, this.getChildren()),
 				]),
 				this.helpLabel ? m("small.block.content-fg", this.enabled ? this.helpLabel() : lang.get(this._disabledTextId)) : [],
 			])
@@ -90,7 +87,7 @@ export class Checkbox {
 		event.stopPropagation()
 	}
 
-	setDisabled(disabledTextId: string) {
+	setDisabled(disabledTextId: TranslationKey) {
 		this.enabled = false
 		this._disabledTextId = disabledTextId
 	}

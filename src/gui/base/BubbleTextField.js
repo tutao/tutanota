@@ -2,12 +2,59 @@
 import {size} from "../size"
 import m from "mithril"
 import {TextField} from "./TextField"
-import {Button} from "./Button"
 import {animations, height} from "./../animation/Animations"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
+import type {ButtonAttrs} from "./ButtonN"
+import {ButtonN, isSelected} from "./ButtonN"
 
 assertMainOrNode()
+
+
+/**
+ * The BubbleInputField delegates certain tasks like retrieving suggestions and creating bubbles
+ * to the BubbleHandler.
+ */
+export interface BubbleHandler<T, S:Suggestion> {
+	/**
+	 * @param text The text to filter for.
+	 * @return A list of suggestions.
+	 */
+	getSuggestions(text: string): Promise<S[]>;
+
+	/**
+	 * Creates a new bubble for a suggestion.
+	 * @param suggestion The suggestion.
+	 * @return Returns the new bubble or null if none could be created.
+	 */
+	createBubbleFromSuggestion(suggestion: S): Bubble<T>;
+
+	/**
+	 * Creates a new bubble from the provided text.
+	 * @param text
+	 * @return Returns the new bubble or null if none could be created.
+	 */
+	createBubblesFromText(text: string): Bubble<T>[];
+
+	/**
+	 * Notifies the BubbleHandler that the given bubble was deleted.
+	 * @param bubble The bubble that was deleted.
+	 */
+	bubbleDeleted(bubble: Bubble<T>): void;
+
+	/**
+	 * Height of a suggestion in pixels
+	 */
+	suggestionHeight: number;
+}
+
+/**
+ * Suggestions are provided to the user whenever he writes text to the input field.
+ */
+export interface Suggestion {
+	view: Function;
+	selected: boolean;
+}
 
 export class BubbleTextField<T> {
 	loading: ?Promise<void>;
@@ -38,7 +85,7 @@ export class BubbleTextField<T> {
 
 		this.textField._injectionsLeft = () => this.bubbles.map((b, i) => {
 			return m("", [
-				m(b.button),
+				m(ButtonN, b.buttonAttrs),
 				(this.textField.isActive() || i < this.bubbles.length - 1) ? m("span.pr", ",") : null
 			])
 		})
@@ -180,12 +227,12 @@ export class BubbleTextField<T> {
 	}
 
 	handleDelete() {
-		let selected = this.bubbles.find(b => b.button.isSelected())
+		let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
 		if (selected) {
 			let selectedIndex = this.bubbles.indexOf((selected: any))
 			this.deleteSelectedBubbles()
 			if (selectedIndex >= 0 && selectedIndex < this.bubbles.length) {
-				this.bubbles[selectedIndex].button.setSelected(() => true)
+				this.bubbles[selectedIndex].buttonAttrs.isSelected = () => true
 			}
 			return false
 		}
@@ -193,12 +240,12 @@ export class BubbleTextField<T> {
 	}
 
 	handleLeftArrow() {
-		let selected = this.bubbles.find(b => b.button.isSelected())
+		let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
 		if (selected) {
 			let selectedIndex = this.bubbles.indexOf((selected: any))
 			if (selectedIndex > 0) {
-				selected.button.setSelected(() => false)
-				this.bubbles[selectedIndex - 1].button.setSelected(() => true)
+				selected.buttonAttrs.isSelected = () => false
+				this.bubbles[selectedIndex - 1].buttonAttrs.isSelected = () => true
 			}
 		} else if (this.textField._domInput
 			&& this.textField._domInput.selectionStart === 0
@@ -209,12 +256,12 @@ export class BubbleTextField<T> {
 	}
 
 	handleRightArrow() {
-		let selected = this.bubbles.find(b => b.button.isSelected())
+		let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
 		if (selected) {
 			let selectedIndex = this.bubbles.indexOf((selected: any))
-			selected.button.setSelected(() => false)
+			selected.buttonAttrs.isSelected = () => false
 			if (selectedIndex >= 0 && selectedIndex < this.bubbles.length - 1) {
-				this.bubbles[selectedIndex + 1].button.setSelected(() => true)
+				this.bubbles[selectedIndex + 1].buttonAttrs.isSelected = () => true
 			}
 			return false
 		}
@@ -251,17 +298,17 @@ export class BubbleTextField<T> {
 	}
 
 	selectAll() {
-		this.bubbles.forEach(b => b.button.setSelected(() => true))
+		this.bubbles.forEach(b => b.buttonAttrs.isSelected = () => true)
 		return true
 	}
 
 	removeBubbleSelection() {
-		this.bubbles.forEach(b => b.button.setSelected(() => false))
+		this.bubbles.forEach(b => b.buttonAttrs.isSelected = () => false)
 	}
 
 	deleteSelectedBubbles() {
 		for (var i = this.bubbles.length - 1; i >= 0; i--) {
-			if (this.bubbles[i].button.isSelected()) {
+			if (isSelected(this.bubbles[i].buttonAttrs)) {
 				var deletedBubble = this.bubbles.splice(i, 1)[0]
 				this.bubbleHandler.bubbleDeleted(deletedBubble)
 			}
@@ -269,24 +316,24 @@ export class BubbleTextField<T> {
 	}
 
 	isBubbleSelected() {
-		return this.bubbles.find(b => b.button.isSelected()) != null
+		return this.bubbles.find(b => isSelected(b.buttonAttrs)) != null
 	}
 
 	selectLastBubble() {
 		if (this.bubbles.length > 0) {
-			this.bubbles[this.bubbles.length - 1].button.setSelected(() => true)
+			this.bubbles[this.bubbles.length - 1].buttonAttrs.isSelected = () => true
 		}
 	}
 }
 
 export class Bubble<T> {
 	entity: T;
-	button: Button;
+	buttonAttrs: ButtonAttrs;
 	text: string;
 
-	constructor(entity: T, button: Button, text: string) {
+	constructor(entity: T, buttonAttrs: ButtonAttrs, text: string) {
 		this.entity = entity
-		this.button = button
+		this.buttonAttrs = buttonAttrs
 		this.text = text
 	}
 }

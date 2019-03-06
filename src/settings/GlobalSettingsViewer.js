@@ -31,8 +31,8 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -104,14 +104,14 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					]),
 					m(spamRulesExpander.panel),
 					m("small", lang.get("adminSpamRuleInfo_msg")),
-					m("small.text-break", [m(`a[href=${this._getSpamRulesInfoLink()}][target=_blank]`, this._getSpamRulesInfoLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink('spamRules_link')}][target=_blank]`, lang.getInfoLink('spamRules_link'))]),
 					m(".flex-space-between.items-center.mb-s.mt-l", [
 						m(".h4", lang.get('customEmailDomains_label')),
 						m(domainsExpander)
 					]),
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
-					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))]),
 					m(".mt-l", [
 						m(".h4", lang.get('security_title')),
 						m(saveIpAddressDropdown),
@@ -137,11 +137,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._updateDomains()
 		this._updateCustomerServerProperties()
 		this._updateAuditLog()
-	}
-
-	_getSpamRulesInfoLink(): string {
-		return (lang.code === "de" || lang.code
-			=== "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
 	}
 
 	_updateCustomerServerProperties(): void {
@@ -200,7 +195,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 											]),
 											m("tr", [
 												m("td", lang.get("IpAddress_label")),
-												m("td.pl", line.actorIpAddress)
+												m("td.pl", line.actorIpAddress ? line.actorIpAddress : "")
 											]),
 											m("tr", [
 												m("td", lang.get("modified_label")),
