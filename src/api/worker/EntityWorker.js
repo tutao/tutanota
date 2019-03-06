@@ -65,7 +65,7 @@ function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, ta
 }
 
 /**
- * Provides all entities with element ids between start (included) and end (excluded). This function may actually load more elements from the server, but just returns the requested ones.
+ * Provides all entities with element ids between start (exclued) and end (excluded). This function may actually load more elements from the server, but just returns the requested ones.
  */
 export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return _loadReverseRangeBetween(typeRef, listId, start, end, locator.cache, rangeItemLimit)

@@ -16,7 +16,6 @@ import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
-import {EntityRestClient} from "../rest/EntityRestClient"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -42,13 +41,15 @@ export class MailIndexer {
 	_core: IndexerCore;
 	_db: Db;
 	_worker: WorkerImpl;
-	_entityRestClient: EntityRestClient;
+	_entityRestClient: EntityRestInterface;
 	_noncachingEntity: EntityWorker;
+	_defaultCachingClient: EntityWorker;
 
-	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestClient) {
+	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestInterface, defaultCachingRestClient: EntityRestInterface) {
 		this._core = core
 		this._db = db
 		this._noncachingEntity = new EntityWorker(entityRestClient)
+		this._defaultCachingClient = new EntityWorker(defaultCachingRestClient)
 		this._worker = worker
 
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
@@ -151,8 +152,9 @@ export class MailIndexer {
 							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 							                         // create index in background, cancellation is handled in Indexer.enableMailIndexing
-							                         const start = getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime()
-							                         this.indexMailboxes(user, start)
+							                         const oldestTimestamp = getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))
+								                         .getTime()
+							                         this.indexMailboxes(user, oldestTimestamp)
 							                             .catch(CancelledError, (e) => {console.log("cancelled initial indexing", e)})
 							                         return t2.wait()
 						                         })
@@ -182,7 +184,7 @@ export class MailIndexer {
 	/**
 	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
 	 */
-	indexMailboxes(user: User, endIndexTimestamp: number): Promise<void> {
+	indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
 		if (!this.mailIndexingEnabled) {
 			return Promise.resolve()
 		}
@@ -200,19 +202,19 @@ export class MailIndexer {
 		this._core.queue.pause()
 		this.mailboxIndexingPromise = Promise.each(memberships, (mailGroupMembership) => {
 			let mailGroupId = mailGroupMembership.group
-			return this._noncachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
-			           .then(mailGroupRoot => this._noncachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			return this._defaultCachingClient.load(MailboxGroupRootTypeRef, mailGroupId)
+			           .then(mailGroupRoot => this._defaultCachingClient.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			           .then(mbox => {
 				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 					           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
 						           if (!groupData) {
 							           // group data is not available if group has been added. group will be indexed after login.
 						           } else {
-							           const startTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-								           ? Date.now()
+							           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+								           ? getDayShifted(getStartOfDay(new Date()), 1)
 								           : groupData.indexTimestamp
-							           if (startTimestamp > endIndexTimestamp) {
-								           return this._indexMailLists(mbox, mailGroupId, [startTimestamp, endIndexTimestamp])
+							           if (newestTimestamp > oldestTimestamp) {
+								           return this._indexMailLists(mbox, mailGroupId, [newestTimestamp, oldestTimestamp])
 							           }
 						           }
 
@@ -278,13 +280,11 @@ export class MailIndexer {
 		const [rangeStart, rangeEnd] = timeRange
 		const batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
 		const batchRange = [rangeStart, batchEnd]
-		console.time("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
 		if (batchEnd < rangeEnd) { // all ranges have been processed
 			return this._writeIndexUpdate(indexUpdate)
 			           .then(() => this._updateIndexTimeStamp(indexUpdate.groupId, mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : batchEnd))
 			           .then(() => {
 				           progress.workDone(rangeStart - batchEnd)
-				           console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
 			           })
 		}
 		return this._prepareMailDataForTimeBatch(mbox, mailListIds, batchRange, indexUpdate, indexLoader).then(() => {
@@ -295,12 +295,10 @@ export class MailIndexer {
 				           .then(() => {
 					           progress.workDone(rangeStart - batchEnd)
 					           const newIndexUpdate = _createNewIndexUpdate(indexUpdate.groupId, indexUpdate.typeInfo)
-					           console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
 					           return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, newIndexUpdate, progress, indexLoader)
 				           })
 			} else {
 				progress.workDone(rangeStart - batchEnd)
-				console.timeEnd("_indexMailListsInTimeBatches" + JSON.stringify(batchRange))
 				return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, indexUpdate, progress, indexLoader)
 			}
 		})
@@ -401,15 +399,15 @@ export class MailIndexer {
 	 */
 	_loadMailListIds(mailbox: MailBox): Promise<Id[]> {
 		let mailListIds = []
-		return loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
-			.filter(f => !contains(this._excludedListIds, f.mails))
-			.map(folder => {
-				mailListIds.push(folder.mails)
-				return loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
-					mailListIds.push(folder.mails)
-				})
-			})
-			.return(mailListIds)
+		return this._defaultCachingClient.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
+		           .filter(f => !contains(this._excludedListIds, f.mails))
+		           .map(folder => {
+			           mailListIds.push(folder.mails)
+			           return this._defaultCachingClient.loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
+				           mailListIds.push(folder.mails)
+			           })
+		           })
+		           .return(mailListIds)
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
@@ -557,7 +555,7 @@ class IndexLoader {
 	_entity: EntityWorker;
 	_cachingEntity: EntityWorker;
 
-	constructor(restClient: EntityRestClient) {
+	constructor(restClient: EntityRestInterface) {
 		this._entityCache = new EntityRestCache(restClient)
 		this._entity = new EntityWorker(restClient)
 		this._cachingEntity = new EntityWorker(this._entityCache)

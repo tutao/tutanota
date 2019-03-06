@@ -1,5 +1,6 @@
 // @flow
 import {CryptoError} from "../error/CryptoError"
+import {pad} from "./StringUtils"
 
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 
@@ -104,9 +105,9 @@ export function base64ExtToBase64(base64ext: Base64Ext): Base64 {
  * @param timestamp The timestamp of the GeneratedId
  * @return The GeneratedId as hex string.
  */
-export function timestampToHexGeneratedId(timestamp: number): Hex {
+export function timestampToHexGeneratedId(timestamp: number, serverId: number): Hex {
 	let id = timestamp * 4 // shifted 2 bits left, so the value covers 44 bits overall (42 timestamp + 2 shifted)
-	let hex = parseInt(id).toString(16) + "0000000" // add one zero for the missing 4 bits plus 6 more (3 bytes) to get 9 bytes
+	let hex = parseInt(id).toString(16) + "00000" + pad(serverId, 2) // add one zero for the missing 4 bits plus 4 more (2 bytes) plus 2 more for the server id to get 9 bytes
 	// add leading zeros to reach 9 bytes (GeneratedId length) = 18 hex
 	for (let length = hex.length; length < 18; length++) {
 		hex = "0" + hex
@@ -120,8 +121,8 @@ export function timestampToHexGeneratedId(timestamp: number): Hex {
  * @param timestamp The timestamp of the GeneratedId
  * @return The GeneratedId.
  */
-export function timestampToGeneratedId(timestamp: number): Id {
-	let hex = timestampToHexGeneratedId(timestamp)
+export function timestampToGeneratedId(timestamp: number, serverId: number = 0): Id {
+	let hex = timestampToHexGeneratedId(timestamp, serverId)
 	return base64ToBase64Ext(hexToBase64(hex))
 }
 

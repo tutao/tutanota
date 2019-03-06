@@ -3,7 +3,7 @@
 import type {IndexName, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
 import {
 	DbTransaction,
-	ElementDataOS,
+	ElementDataOS, GroupDataOS,
 	indexName,
 	osName,
 	SearchIndexMetaDataOS,
@@ -53,6 +53,7 @@ export function createSearchIndexDbStub(): DbStub {
 	dbStub.addObjectStore(SearchIndexOS, true)
 	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", {[indexName(SearchIndexWordsIndex)]: "word"})
 	dbStub.addObjectStore(ElementDataOS, false)
+	dbStub.addObjectStore(GroupDataOS, false)
 	return dbStub
 }
 

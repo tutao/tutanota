@@ -12,7 +12,7 @@ import {
 	encryptSearchIndexEntry,
 	typeRefToTypeInfo
 } from "../../../../src/api/worker/search/IndexUtils"
-import type {ElementDataDbRow, SearchIndexEntry, SearchIndexMetadataEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
+import type {ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
 import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/EntityFunctions"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
@@ -36,7 +36,6 @@ const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 o.spec("SearchFacade test", () => {
 
 	let user = createUser()
-	let indexMailBoxReceiver = {indexMailboxes: (user, endIndexTime) => Promise.resolve()}
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
@@ -51,8 +50,7 @@ o.spec("SearchFacade test", () => {
 			initialized: Promise.resolve()
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
-			currentIndexTimestamp: currentIndexTimestamp,
-			indexMailboxes: (user, endIndexTime) => indexMailBoxReceiver.indexMailboxes(user, endIndexTime)
+			currentIndexTimestamp: currentIndexTimestamp
 		}: any), [])
 	}
 
@@ -314,54 +312,6 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]]
 		)
 	})
-
-	o("index mailbox", () => {
-		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
-		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
-		let end = new Date(2017, 5, 7).getTime()
-
-		let indexCalled = false
-		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
-			o(user).deepEquals(user)
-			o(endIndexTime).equals(end)
-			indexCalled = true
-			return Promise.resolve()
-		}
-		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
-			[["listId1", id1]],
-			"test",
-			createMailRestriction(null, null, null, end),
-			[["listId1", id1]],
-			currentIndexTimestamp
-		).then(() => {
-			o(indexCalled).equals(true)
-			indexMailBoxReceiver.indexMailboxes = () => null
-		})
-	})
-
-	o("do not index mailbox", () => {
-		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
-		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
-		let end = new Date(2017, 5, 8).getTime()
-
-		let indexCalled = false
-		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
-			indexCalled = true
-		}
-		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
-			[["listId1", id1]],
-			"test",
-			createMailRestriction(null, null, null, end),
-			[["listId1", id1]],
-			currentIndexTimestamp
-		).then(() => {
-			o(indexCalled).equals(false)
-			indexMailBoxReceiver.indexMailboxes = () => null
-		})
-	})
-
 })
 
 

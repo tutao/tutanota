@@ -1,5 +1,5 @@
 // @flow
-import {EntityRestClient, typeRefToPath} from "./EntityRestClient"
+import {typeRefToPath} from "./EntityRestClient"
 import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
 import {
 	firstBiggerThanSecond,
@@ -51,7 +51,7 @@ export class EntityRestCache implements EntityRestInterface {
 
 	_ignoredTypes: TypeRef<any>[];
 
-	_entityRestClient: EntityRestClient;
+	_entityRestClient: EntityRestInterface;
 	/**
 	 * stores all contents that would be stored on the server, otherwise
 	 */
@@ -83,7 +83,7 @@ export class EntityRestCache implements EntityRestInterface {
 	//		},
 	//      // and so on
 	//	}
-	constructor(entityRestClient: EntityRestClient) {
+	constructor(entityRestClient: EntityRestInterface) {
 		this._entityRestClient = entityRestClient
 		this._entities = {}
 		this._listEntities = {}

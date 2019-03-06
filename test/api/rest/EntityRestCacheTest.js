@@ -1,22 +1,12 @@
 import o from "ospec/ospec.js"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
-import {MailBodyTypeRef, createMailBody} from "../../../src/api/entities/tutanota/MailBody"
+import {createMailBody, MailBodyTypeRef} from "../../../src/api/entities/tutanota/MailBody"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
-import {
-	isSameTypeRef,
-	GENERATED_MIN_ID,
-	GENERATED_MAX_ID,
-	stringToCustomId,
-	CUSTOM_MIN_ID,
-	HttpMethod
-} from "../../../src/api/common/EntityFunctions"
-import {MailTypeRef, createMail} from "../../../src/api/entities/tutanota/Mail"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, HttpMethod, isSameTypeRef, stringToCustomId} from "../../../src/api/common/EntityFunctions"
+import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {clone} from "../../../src/api/common/utils/Utils"
-import {
-	createExternalUserReference,
-	ExternalUserReferenceTypeRef
-} from "../../../src/api/entities/sys/ExternalUserReference"
+import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/ExternalUserReference"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 
 o.spec("entity rest cache", function () {

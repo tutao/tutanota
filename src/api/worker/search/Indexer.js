@@ -69,7 +69,7 @@ export class Indexer {
 	_indexedGroupIds: Array<Id>;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean,
-	            browserData: BrowserData) {
+	            browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
 		this.db = {
@@ -86,7 +86,7 @@ export class Indexer {
 		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
-		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient)
+		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient, defaultEntityRestCache)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 	}

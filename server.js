@@ -2,7 +2,7 @@
 
 // http2 server
 const port = 9000
-const root = "./build"
+const root = "./" // set to . to be able to run test cases
 const nodeStatic = require('node-static')
 const file = new nodeStatic.Server(root, {cache: false, gzip: true});
 const http = require('http')
