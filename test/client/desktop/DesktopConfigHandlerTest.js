@@ -47,7 +47,7 @@ o.spec('desktop config handler test', function () {
 		}
 	}
 
-	o.only("package.json & userConf", () => {
+	o("package.json & userConf", () => {
 		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
 		const fsExtraMock = n.mock('fs-extra', fsExtra).get()
 		const electronMock = n.mock('electron', electron).get()
@@ -78,7 +78,7 @@ o.spec('desktop config handler test', function () {
 		})
 	})
 
-	o.only("package.json & no userConf", () => {
+	o("package.json & no userConf", () => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
 		n.mock('electron', electron).get()
 		const fsExtraMock = n.mock('fs-extra', fsExtra)
@@ -111,7 +111,7 @@ o.spec('desktop config handler test', function () {
 		})
 	})
 
-	o.only("package.json unavailable", () => {
+	o("package.json unavailable", () => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), undefined).get()
 		n.mock('fs-extra', fsExtra).get()
 		n.mock('electron', electron).get()

@@ -26,7 +26,6 @@ export class DesktopNotifier {
 		this._tray = tray
 
 		setTimeout(() => {
-			console.log("popping")
 			this._canShow = true
 			while (this.pendingNotifications.length > 0) {
 				(this.pendingNotifications.pop())()
@@ -53,7 +52,6 @@ export class DesktopNotifier {
 		if (!this.isAvailable()) {
 			return Promise.resolve()
 		}
-		console.log("showing notification", this._canShow)
 		return this._canShow
 			? new Promise(resolve => this._makeNotification(props, res => resolve(res)))
 			: new Promise(resolve => this.pendingNotifications.push(resolve))
@@ -102,7 +100,6 @@ export class DesktopNotifier {
 		body?: string,
 		icon?: NativeImage
 	|}, onClick: (res: NotificationResultEnum) => void): () => void {
-		console.log("nope")
 
 		const {title, body, icon} =
 			Object.assign({}, {body: ""}, props)
