@@ -324,6 +324,7 @@ export class SearchBar implements Component {
 		if (results.length === 0) {
 			return Promise.resolve(([]))
 		}
+
 		return Promise.map(results, r => load(restriction.type, r)
 			.catch(NotFoundError, () => console.log("mail from search index not found"))
 			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index")))
@@ -440,21 +441,22 @@ export class SearchBar implements Component {
 			           // If there was no new search while we've been downloading the result
 			           if (!locator.search.isNewSearch(result.query, result.restriction)) {
 				           const filteredResults = this._filterResults(entries, result.restriction)
-				           const slicedResults = filteredResults.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
+				           const overlayEntries = filteredResults.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
 				           if (result.query.trim() !== ""
-					           && (slicedResults.length === 0
+					           && (overlayEntries.length === 0
 						           || hasMoreResults(result)
-						           || slicedResults.length < filteredResults.length
+						           || overlayEntries.length < filteredResults.length
 						           || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)) {
-					           slicedResults.push({
+					           const moreEntry: ShowMoreAction = {
 						           resultCount: result.results.length,
-						           shownCount: slicedResults.length,
+						           shownCount: overlayEntries.length,
 						           indexTimestamp: result.currentIndexTimestamp,
 						           allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
 							           && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef)
-					           })
+					           }
+					           overlayEntries.push(moreEntry)
 				           }
-				           this._updateState({entities: slicedResults, selected: slicedResults[0]})
+				           this._updateState({entities: overlayEntries, selected: overlayEntries[0]})
 			           }
 		           })
 	}

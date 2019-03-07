@@ -94,19 +94,7 @@ export class IndexerCore {
 		this.db = db
 		this._isStopped = false;
 		this._promiseMapCompat = promiseMapCompat(this._needsMicrotaskHack(browserData))
-
-		this._stats = {
-			indexingTime: 0,
-			storageTime: 0,
-			preparingTime: 0,
-			mailcount: 0,
-			storedBytes: 0,
-			encryptionTime: 0,
-			writeRequests: 0,
-			largestColumn: 0,
-			words: 0,
-			indexedBytes: 0
-		}
+		this.resetStats()
 	}
 
 	/****************************************** Preparing the update ***********************************************/
@@ -701,6 +689,21 @@ export class IndexerCore {
 	_cancelIfNeeded() {
 		if (this._isStopped) {
 			throw new CancelledError("indexing cancelled")
+		}
+	}
+
+	resetStats() {
+		this._stats = {
+			indexingTime: 0,
+			storageTime: 0,
+			preparingTime: 0,
+			mailcount: 0,
+			storedBytes: 0,
+			encryptionTime: 0,
+			writeRequests: 0,
+			largestColumn: 0,
+			words: 0,
+			indexedBytes: 0
 		}
 	}
 

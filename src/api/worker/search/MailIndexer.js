@@ -200,13 +200,14 @@ export class MailIndexer {
 		}
 		this._indexingCancelled = false
 
+		this._core.resetStats()
 		this._worker.sendIndexState({
 			initializing: false,
 			indexingSupported: this._core.indexingSupported,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
-			indexedMailCount: this._core._stats.mailcount
+			indexedMailCount: 0
 		})
 		let memberships = filterMailMemberships(user)
 		this._core.queue.pause()
