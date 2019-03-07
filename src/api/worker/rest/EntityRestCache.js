@@ -12,7 +12,7 @@ import {
 	TypeRef
 } from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {remove} from "../../common/utils/ArrayUtils"
+import {flat, remove} from "../../common/utils/ArrayUtils"
 import {clone, downcast, neverNull} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -99,12 +99,7 @@ export class EntityRestCache implements EntityRestInterface {
 				// monitor app and version requests are never cached
 				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 			} else if (!id && queryParameter && queryParameter["ids"]) {
-				// load multiple entities
-				// TODO: load multiple is not used yet. implement providing from cache when used
-				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
-				           .each(entity => {
-					           this._putIntoCache(entity)
-				           })
+				return this._getMultiple(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 			} else if (listId && !id && queryParameter && queryParameter["start"] !== null && queryParameter["start"]
 				!== undefined && queryParameter["count"] !== null && queryParameter["count"] !== undefined
 				&& queryParameter["reverse"]) { // check for null and undefined because "" and 0 are als falsy
@@ -137,6 +132,29 @@ export class EntityRestCache implements EntityRestInterface {
 		} else {
 			return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 		}
+	}
+
+	_getMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,
+	                extraHeaders?: Params): Promise<Array<T>> {
+		const ids = queryParameter["ids"].split(",")
+		const inCache = [], notInCache = []
+		ids.forEach((id) => {
+			if (this._isInCache(typeRef, listId, id)) {
+				inCache.push(id)
+			} else {
+				notInCache.push(id)
+			}
+		})
+		const newQuery = Object.assign({}, queryParameter, {ids: notInCache.join(",")})
+		return Promise.all([
+			this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, newQuery, extraHeaders)
+			    .then((response) => {
+				    const entities: Array<T> = downcast(response)
+				    entities.forEach((e) => this._putIntoCache(e))
+				    return entities
+			    }),
+			inCache.map(id => this._getFromCache(typeRef, listId, id))
+		]).then(flat)
 	}
 
 	_loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {

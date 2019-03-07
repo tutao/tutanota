@@ -1,6 +1,7 @@
 // @flow
 import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
+import {TypeRef} from "../EntityFunctions"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -74,8 +75,11 @@ export function clone<T>(instance: T): T {
 		return instance.map(i => clone(i))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
+	} else if (instance instanceof TypeRef) {
+		return instance
 	} else if (instance instanceof Object) {
-		let copy = {}
+		// Can only pass null or Object, cannot pass undefined
+		const copy = Object.create(instance.__proto__ || null)
 		Object.assign(copy, instance)
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
