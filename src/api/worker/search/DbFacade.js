@@ -3,7 +3,7 @@ import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
 
-export opaque type ObjectStoreName = string
+export type ObjectStoreName = string
 export const SearchIndexOS: ObjectStoreName = "SearchIndex"
 export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
 export const ElementDataOS: ObjectStoreName = "ElementData"
@@ -13,7 +13,7 @@ export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
-export opaque type IndexName: string = string
+export type IndexName = string
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 export const indexName = (indexName: IndexName): string => indexName
 
