@@ -94,5 +94,5 @@ export class SearchModel {
 }
 
 export function hasMoreResults(searchResult: SearchResult): boolean {
-	return searchResult.lastReadSearchIndexRow.some(([word, id]) => id !== 0)
+	return searchResult.moreResults.length > 0 || searchResult.lastReadSearchIndexRow.some(([word, id]) => id !== 0)
 }

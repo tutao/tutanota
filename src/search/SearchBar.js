@@ -320,12 +320,11 @@ export class SearchBar implements Component {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	_downloadResults(searchResult: SearchResult): Promise<Entries> {
-		if (searchResult.results.length === 0) {
+	_downloadResults({results, restriction}: SearchResult): Promise<Array<?Entry>> {
+		if (results.length === 0) {
 			return Promise.resolve(([]))
 		}
-		const toFetch = searchResult.results.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
-		return Promise.map(toFetch, r => load(searchResult.restriction.type, r)
+		return Promise.map(results, r => load(restriction.type, r)
 			.catch(NotFoundError, () => console.log("mail from search index not found"))
 			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index")))
 	}
@@ -405,6 +404,7 @@ export class SearchBar implements Component {
 
 	_doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
 		let useSuggestions = m.route.get().startsWith("/settings")
+		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type)
 			? this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
 			: null
@@ -440,19 +440,21 @@ export class SearchBar implements Component {
 			           // If there was no new search while we've been downloading the result
 			           if (!locator.search.isNewSearch(result.query, result.restriction)) {
 				           const filteredResults = this._filterResults(entries, result.restriction)
+				           const slicedResults = filteredResults.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
 				           if (result.query.trim() !== ""
-					           && (filteredResults.length === 0
+					           && (slicedResults.length === 0
 						           || hasMoreResults(result)
+						           || slicedResults.length < filteredResults.length
 						           || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)) {
-					           filteredResults.push({
+					           slicedResults.push({
 						           resultCount: result.results.length,
-						           shownCount: filteredResults.length,
+						           shownCount: slicedResults.length,
 						           indexTimestamp: result.currentIndexTimestamp,
 						           allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
 							           && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef)
 					           })
 				           }
-				           this._updateState({entities: filteredResults, selected: filteredResults[0]})
+				           this._updateState({entities: slicedResults, selected: slicedResults[0]})
 			           }
 		           })
 	}
@@ -461,18 +463,16 @@ export class SearchBar implements Component {
 		return !m.route.get().startsWith("/search")
 	}
 
-	_filterResults(instances: Entries, restriction: SearchRestriction): Entries {
+	_filterResults(instances: Array<?Entry>, restriction: SearchRestriction): Entries {
 		let filteredInstances = instances.filter(Boolean) // filter not found results
 
 		// filter group infos for local admins
-		if (isSameTypeRef(GroupInfoTypeRef, restriction.type)
-			&& !logins.getUserController().isGlobalAdmin()) {
-			let localAdminGroupIds = logins.getUserController()
-			                               .getLocalAdminGroupMemberships()
-			                               .map(gm => gm.group)
+		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !logins.getUserController().isGlobalAdmin()) {
+			const localAdminGroupIds = logins.getUserController()
+			                                 .getLocalAdminGroupMemberships()
+			                                 .map(gm => gm.group)
 			filteredInstances = filteredInstances.filter(gi => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
-		}
-		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) { // Sort contacts by name
 			filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
 		}
 		return filteredInstances
