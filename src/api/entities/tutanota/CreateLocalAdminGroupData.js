@@ -31,5 +31,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateLocalAdminGroupData(): CreateLocalAdminGroupData {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateLocalAdminGroupDataTypeRef)
 }

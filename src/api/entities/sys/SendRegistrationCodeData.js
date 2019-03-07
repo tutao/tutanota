@@ -24,5 +24,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSendRegistrationCodeData(): SendRegistrationCodeData {
-	return create(_TypeModel)
+	return create(_TypeModel, SendRegistrationCodeDataTypeRef)
 }

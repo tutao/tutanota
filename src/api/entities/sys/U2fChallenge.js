@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createU2fChallenge(): U2fChallenge {
-	return create(_TypeModel)
+	return create(_TypeModel, U2fChallengeTypeRef)
 }

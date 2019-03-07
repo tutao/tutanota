@@ -51,5 +51,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createUpdatePermissionKeyData(): UpdatePermissionKeyData {
-	return create(_TypeModel)
+	return create(_TypeModel, UpdatePermissionKeyDataTypeRef)
 }

@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPriceData(): PriceData {
-	return create(_TypeModel)
+	return create(_TypeModel, PriceDataTypeRef)
 }

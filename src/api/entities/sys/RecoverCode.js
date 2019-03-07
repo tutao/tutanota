@@ -34,5 +34,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createRecoverCode(): RecoverCode {
-	return create(_TypeModel)
+	return create(_TypeModel, RecoverCodeTypeRef)
 }

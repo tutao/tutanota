@@ -98,5 +98,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCustomerAccountCreateData(): CustomerAccountCreateData {
-	return create(_TypeModel)
+	return create(_TypeModel, CustomerAccountCreateDataTypeRef)
 }

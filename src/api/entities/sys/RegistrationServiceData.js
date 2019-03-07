@@ -23,5 +23,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createRegistrationServiceData(): RegistrationServiceData {
-	return create(_TypeModel)
+	return create(_TypeModel, RegistrationServiceDataTypeRef)
 }

@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSaltData(): SaltData {
-	return create(_TypeModel)
+	return create(_TypeModel, SaltDataTypeRef)
 }

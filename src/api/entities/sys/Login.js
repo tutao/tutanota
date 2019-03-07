@@ -24,5 +24,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createLogin(): Login {
-	return create(_TypeModel)
+	return create(_TypeModel, LoginTypeRef)
 }

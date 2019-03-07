@@ -82,5 +82,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailBox(): MailBox {
-	return create(_TypeModel)
+	return create(_TypeModel, MailBoxTypeRef)
 }

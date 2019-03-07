@@ -25,5 +25,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createEntityUpdate(): EntityUpdate {
-	return create(_TypeModel)
+	return create(_TypeModel, EntityUpdateTypeRef)
 }

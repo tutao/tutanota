@@ -41,5 +41,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateSessionReturn(): CreateSessionReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateSessionReturnTypeRef)
 }

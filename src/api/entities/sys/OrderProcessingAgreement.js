@@ -56,5 +56,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createOrderProcessingAgreement(): OrderProcessingAgreement {
-	return create(_TypeModel)
+	return create(_TypeModel, OrderProcessingAgreementTypeRef)
 }

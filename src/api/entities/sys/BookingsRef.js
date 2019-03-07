@@ -29,5 +29,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createBookingsRef(): BookingsRef {
-	return create(_TypeModel)
+	return create(_TypeModel, BookingsRefTypeRef)
 }

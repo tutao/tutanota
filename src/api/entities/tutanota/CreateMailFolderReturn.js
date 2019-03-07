@@ -29,5 +29,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateMailFolderReturn(): CreateMailFolderReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateMailFolderReturnTypeRef)
 }

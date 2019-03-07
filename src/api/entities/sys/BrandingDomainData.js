@@ -48,5 +48,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createBrandingDomainData(): BrandingDomainData {
-	return create(_TypeModel)
+	return create(_TypeModel, BrandingDomainDataTypeRef)
 }

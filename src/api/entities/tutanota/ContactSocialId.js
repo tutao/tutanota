@@ -23,5 +23,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createContactSocialId(): ContactSocialId {
-	return create(_TypeModel)
+	return create(_TypeModel, ContactSocialIdTypeRef)
 }

@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createGeneratedIdWrapper(): GeneratedIdWrapper {
-	return create(_TypeModel)
+	return create(_TypeModel, GeneratedIdWrapperTypeRef)
 }

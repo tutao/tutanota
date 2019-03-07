@@ -23,5 +23,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createEmailSenderListElement(): EmailSenderListElement {
-	return create(_TypeModel)
+	return create(_TypeModel, EmailSenderListElementTypeRef)
 }

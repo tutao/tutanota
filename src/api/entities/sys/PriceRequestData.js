@@ -26,5 +26,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPriceRequestData(): PriceRequestData {
-	return create(_TypeModel)
+	return create(_TypeModel, PriceRequestDataTypeRef)
 }

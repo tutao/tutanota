@@ -106,5 +106,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createAccountingInfo(): AccountingInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, AccountingInfoTypeRef)
 }

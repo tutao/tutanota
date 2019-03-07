@@ -31,5 +31,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createResetFactorsDeleteData(): ResetFactorsDeleteData {
-	return create(_TypeModel)
+	return create(_TypeModel, ResetFactorsDeleteDataTypeRef)
 }

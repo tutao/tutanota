@@ -62,5 +62,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDomainInfo(): DomainInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, DomainInfoTypeRef)
 }

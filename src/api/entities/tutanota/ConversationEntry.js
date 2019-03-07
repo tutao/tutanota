@@ -46,5 +46,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createConversationEntry(): ConversationEntry {
-	return create(_TypeModel)
+	return create(_TypeModel, ConversationEntryTypeRef)
 }

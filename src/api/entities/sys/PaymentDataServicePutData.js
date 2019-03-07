@@ -56,5 +56,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPaymentDataServicePutData(): PaymentDataServicePutData {
-	return create(_TypeModel)
+	return create(_TypeModel, PaymentDataServicePutDataTypeRef)
 }

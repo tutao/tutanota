@@ -29,5 +29,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createOtpChallenge(): OtpChallenge {
-	return create(_TypeModel)
+	return create(_TypeModel, OtpChallengeTypeRef)
 }

@@ -46,13 +46,13 @@ export const LOAD_MULTIPLE_LIMIT = 100
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
  */
 export class TypeRef<T> {
-
-	app: string;
-	type: string;
+	+app: string;
+	+type: string;
 
 	constructor(app: string, type: string) {
-		this.app = app;
-		this.type = type;
+		this.app = app
+		this.type = type
+		Object.freeze(this)
 	}
 }
 
@@ -77,9 +77,9 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		})
 }
 
-export function create(typeModel: TypeModel): any {
+export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	let i = {
-		_type: new TypeRef(typeModel.app, typeModel.name)
+		_type: typeRef
 	}
 	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
 		(i: any)._errors = {}
@@ -96,7 +96,7 @@ export function create(typeModel: TypeModel): any {
 			i[associationName] = null // set to null even if the cardinality is One
 		}
 	}
-	return i;
+	return (i: any);
 }
 
 function _getDefaultValue(value: ModelValue): any {

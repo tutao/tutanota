@@ -48,5 +48,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateGroupListData(): CreateGroupListData {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateGroupListDataTypeRef)
 }

@@ -18,5 +18,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createReceiveInfoServiceData(): ReceiveInfoServiceData {
-	return create(_TypeModel)
+	return create(_TypeModel, ReceiveInfoServiceDataTypeRef)
 }

@@ -36,5 +36,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSecondFactor(): SecondFactor {
-	return create(_TypeModel)
+	return create(_TypeModel, SecondFactorTypeRef)
 }

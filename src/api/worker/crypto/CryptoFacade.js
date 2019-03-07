@@ -16,7 +16,7 @@ import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {hexToPrivateKey, privateKeyToHex, rsaDecrypt} from "./Rsa"
 import {random} from "./Randomizer"
-import {HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
@@ -168,8 +168,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 		if (!typeModel.encrypted) {
 			return Promise.resolve(null)
-		} else if (isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailBodyTypeRef)
-			&& mailBodySessionKeyCache[instance._id]) {
+		} else if (isSameTypeRefByAttr(MailBodyTypeRef, typeModel.app, typeModel.name) && mailBodySessionKeyCache[instance._id]) {
 			let sessionKey = mailBodySessionKeyCache[instance._id]
 			// the mail body instance is cached, so the session key is not needed any more
 			delete mailBodySessionKeyCache[instance._id]
@@ -267,7 +266,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		}
 	}).then(sessionKey => {
 		// store the mail session key for the mail body because it is the same
-		if (sessionKey && isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailTypeRef)) {
+		if (sessionKey && isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)) {
 			mailBodySessionKeyCache[instance.body] = sessionKey
 		}
 		return sessionKey

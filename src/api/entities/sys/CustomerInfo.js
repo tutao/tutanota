@@ -127,5 +127,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCustomerInfo(): CustomerInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, CustomerInfoTypeRef)
 }

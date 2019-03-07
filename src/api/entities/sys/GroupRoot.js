@@ -53,5 +53,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createGroupRoot(): GroupRoot {
-	return create(_TypeModel)
+	return create(_TypeModel, GroupRootTypeRef)
 }

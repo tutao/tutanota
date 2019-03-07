@@ -31,5 +31,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createWebsocketCounterData(): WebsocketCounterData {
-	return create(_TypeModel)
+	return create(_TypeModel, WebsocketCounterDataTypeRef)
 }

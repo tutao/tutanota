@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDomainMailAddressAvailabilityData(): DomainMailAddressAvailabilityData {
-	return create(_TypeModel)
+	return create(_TypeModel, DomainMailAddressAvailabilityDataTypeRef)
 }

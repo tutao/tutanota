@@ -38,5 +38,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDraftUpdateData(): DraftUpdateData {
-	return create(_TypeModel)
+	return create(_TypeModel, DraftUpdateDataTypeRef)
 }

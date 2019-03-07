@@ -32,5 +32,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createUpgradePriceServiceReturn(): UpgradePriceServiceReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, UpgradePriceServiceReturnTypeRef)
 }

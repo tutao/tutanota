@@ -44,5 +44,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createUserData(): UserData {
-	return create(_TypeModel)
+	return create(_TypeModel, UserDataTypeRef)
 }

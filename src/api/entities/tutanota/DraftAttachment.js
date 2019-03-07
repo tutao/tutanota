@@ -49,5 +49,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDraftAttachment(): DraftAttachment {
-	return create(_TypeModel)
+	return create(_TypeModel, DraftAttachmentTypeRef)
 }

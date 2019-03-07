@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPasswordChannelPhoneNumber(): PasswordChannelPhoneNumber {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordChannelPhoneNumberTypeRef)
 }
