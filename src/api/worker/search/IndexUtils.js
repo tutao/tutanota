@@ -175,12 +175,9 @@ export function byteLength(str: ?string) {
 	return s;
 }
 
-export function _createNewIndexUpdate(groupId: Id, typeInfo: TypeInfo): IndexUpdate {
+export function _createNewIndexUpdate(typeInfo: TypeInfo): IndexUpdate {
 	return {
-		groupId,
 		typeInfo,
-		batchId: null,
-		indexTimestamp: null,
 		create: {
 			encInstanceIdToElementData: new Map(),
 			indexMap: new Map(),

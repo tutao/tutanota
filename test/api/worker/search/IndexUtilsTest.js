@@ -8,8 +8,12 @@ import {
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
-	encryptSearchIndexEntry, filterIndexMemberships, filterMailMemberships, htmlToText,
-	typeRefToTypeInfo, userIsGlobalAdmin,
+	encryptSearchIndexEntry,
+	filterIndexMemberships,
+	filterMailMemberships,
+	htmlToText,
+	typeRefToTypeInfo,
+	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
 import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
@@ -20,8 +24,8 @@ import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
+import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
@@ -179,10 +183,7 @@ o.spec("Index Utils", () => {
 	})
 
 	o("new index update", function () {
-		let indexUpdate = _createNewIndexUpdate("groupId", typeRefToTypeInfo(MailTypeRef))
-		o(indexUpdate.groupId).equals("groupId")
-		o(indexUpdate.batchId).equals(null)
-		o(indexUpdate.indexTimestamp).equals(null)
+		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
 		o(indexUpdate.create.indexMap instanceof Map).equals(true)
 		o(indexUpdate.move).deepEquals([])

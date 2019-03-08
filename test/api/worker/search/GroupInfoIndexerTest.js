@@ -2,7 +2,7 @@
 import o from "ospec/ospec.js"
 import {_TypeModel as GroupInfoModel, createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
-import type {Db, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
+import type {Db} from "../../../../src/api/worker/search/SearchTypes"
 import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
@@ -187,9 +187,9 @@ o.spec("GroupInfoIndexer test", function () {
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 		indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
 			o(core.writeIndexUpdate.callCount).equals(1)
-			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
-			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
-			o(indexUpdate.groupId).equals(customer.customerGroup)
+			const [[{groupId, indexTimestamp}], indexUpdate] = core.writeIndexUpdate.args
+			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
+			o(groupId).equals(customer.customerGroup)
 
 			let expectedKeys = [
 				encryptIndexKeyBase64(db.key, userGroupInfo._id[1], fixedIv),
@@ -269,7 +269,7 @@ o.spec("GroupInfoIndexer test", function () {
 
 		const indexer = new GroupInfoIndexer(core, db, (null: any), suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 		let events = [
 			createUpdate(OperationType.CREATE, "groupInfo-list", "1"),
 			createUpdate(OperationType.UPDATE, "groupInfo-list", "2"),
@@ -305,7 +305,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "L-dNNLe----0")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
@@ -334,7 +334,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "L-dNNLe----0")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
@@ -366,7 +366,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", groupTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]
 		let user = createUser()
 		user.memberships = [createGroupMembership()]

@@ -550,7 +550,9 @@ export class SearchBar implements Component {
 
 
 	focus() {
-		if (!this.focused) {
+		if (!this._state().indexState.indexingSupported) {
+			Dialog.error("searchDisabled_msg")
+		} else if (!this.focused) {
 			this.focused = true
 			this.expanded = true
 			// setTimeout to fix bug in current Safari with losing focus

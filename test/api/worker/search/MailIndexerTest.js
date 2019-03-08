@@ -199,7 +199,7 @@ o.spec("MailIndexer test", () => {
 
 		const indexer = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
 
-		let indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
+		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		indexer.processMovedMail(event, indexUpdate).then(() => {
 			o(indexUpdate.move.length).equals(1)
 			o(Array.from(indexUpdate.move[0].encInstanceId)).deepEquals(Array.from(encInstanceId))
@@ -231,7 +231,7 @@ o.spec("MailIndexer test", () => {
 		let result = {mail: {_id: 'mail-id', _ownerGroup: 'owner-group'}, keyToIndexEntries: new Map()}
 		indexer.processNewMail = o.spy(() => Promise.resolve(result))
 
-		let indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
+		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		indexer.processMovedMail(event, indexUpdate).then(() => {
 			o(indexUpdate.move.length).equals(0)
 			o(indexer.processNewMail.callCount).equals(1)
@@ -360,62 +360,105 @@ o.spec("MailIndexer test", () => {
 		return folder
 	}
 
-	o("_indexMailLists", function () {
-		let rangeStart = 1513033200000
-		let rangeEnd = getDayShifted(new Date(1513033200000), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
-		let mailGroup = "mail-group-id"
+	o.spec("_indexMailLists", function () {
+		const rangeStart = 1513033200000
+		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
+		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime()
+		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 
-		let mailbox = createMailBox()
-		mailbox._id = "mailbox-id"
-		const folderRef = createMailFolderRef()
-		folderRef.folders = entityMock.getNextId()
-		mailbox.systemFolders = folderRef
+		const mailGroup = "mail-group-id"
+		let mailbox: MailBox
+		let folder1, folder2
+		let mail0, body0, mail1, body1, mail2, body2, files, mail3, body3, mail4, body4;
+		let transaction, core, indexer, db
 
-		const folder1 = _addFolder(mailbox)
-		const folder2 = _addFolder(mailbox)
+		o.beforeEach(() => {
+			mailbox = createMailBox()
+			mailbox._id = "mailbox-id"
+			mailbox._ownerGroup = mailGroup
 
-		const {mail: mail0, body: body0} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd - 1, 1)], entityMock.getNextId())
-		const {mail: mail1, body: body1, files} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd + 1, 1)], entityMock.getNextId(),
-			["attachment-listId", entityMock.getNextId()],
-			["attachment-listId1", entityMock.getNextId()])
-		const {mail: mail2, body: body2} = createMailInstances([
-			folder1.mails, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)
-		], entityMock.getNextId())
-		const {mail: mail3, body: body3} = createMailInstances([folder2.mails, timestampToGeneratedId(rangeEnd + 5, 1)], entityMock.getNextId())
+			const folderRef = createMailFolderRef()
+			folderRef.folders = entityMock.getNextId()
+			mailbox.systemFolders = folderRef
+			folder1 = _addFolder(mailbox)
+			folder2 = _addFolder(mailbox)
 
-		entityMock.addElementInstances(body0, body1, body2, body3, mailbox)
-		entityMock.addListInstances(mail0, mail1, mail2, mail3, folder1, folder2, ...files)
+			;({mail: mail0, body: body0} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEndShifted2Days, 1)], entityMock.getNextId()))
+			;({mail: mail1, body: body1} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd - 1, 1)], entityMock.getNextId()))
+			;({mail: mail2, body: body2, files} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd + 1, 1)], entityMock.getNextId(),
+				["attachment-listId", entityMock.getNextId()],
+				["attachment-listId1", entityMock.getNextId()]))
+			;({mail: mail3, body: body3} = createMailInstances([
+				folder1.mails, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)
+			], entityMock.getNextId()))
+			;({mail: mail4, body: body4} = createMailInstances([folder2.mails, timestampToGeneratedId(rangeEnd + 5, 1)], entityMock.getNextId()))
 
-		const transaction = createSearchIndexDbStub().createTransaction()
-		transaction.put(GroupDataOS, mailGroup, {indexTimestamp: NOTHING_INDEXED_TIMESTAMP})
+			entityMock.addElementInstances(body0, body1, body2, body3, body4, mailbox)
+			entityMock.addListInstances(mail0, mail1, mail2, mail3, mail4, folder1, folder2, ...files)
 
-		let db: Db = ({key: aes256RandomKey(), iv: fixedIv, dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
-		let core = mock(new IndexerCore(db, ({queueEvents: false}: any), browserDataStub), (mocked) => {
-			mocked.writeIndexUpdate = o.spy(() => Promise.resolve())
+			transaction = createSearchIndexDbStub().createTransaction()
+			db = ({key: aes256RandomKey(), iv: fixedIv, dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
+			core = mock(new IndexerCore(db, ({queueEvents: false}: any), browserDataStub), (mocked) => {
+				mocked.writeIndexUpdate = o.spy(() => Promise.resolve())
+			})
+
+			const worker = ({sendIndexState: () => Promise.resolve()}: any)
+			indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
 		})
 
-		const worker = ({sendIndexState: () => Promise.resolve()}: any)
-		const indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+		o.only("one mailbox until certain point", async function () {
+			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: NOTHING_INDEXED_TIMESTAMP})
 
-		return indexer._indexMailLists(mailbox, mailGroup, [rangeStart, rangeEnd]).then(() => {
+			// initial indexing - first time range
+			await indexer._indexMailLists([{mbox: mailbox, newestTimestamp: rangeStart}], rangeEnd)
+
 			o(core.writeIndexUpdate.callCount).equals(1)
-			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(3)
-			const includedMails = [mail1, mail2, mail3]
-			includedMails.forEach((mail, index) => {
-				let encInstanceId = encryptIndexKeyBase64(db.key, getElementId(mail), fixedIv)
-				if (indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) == null) {
-					console.error("mail is not written", mail._id, index)
-				}
-				o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
-			})
+			const [mailboxesData1, indexUpdate1] = core.writeIndexUpdate.args
+			o(indexUpdate1.create.encInstanceIdToElementData.size).equals(3)
+			_checkMailsInIndexUpdate(db, indexUpdate1, mail2, mail3, mail4)
+			o(mailboxesData1).deepEquals([{groupId: mailGroup, indexTimestamp: rangeEnd}])
+
+		})
+
+		o.only("one mailbox extend once", async function () {
+			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: rangeEnd})
+
+			// next index update - continue indexing
+			await indexer._indexMailLists([{mbox: mailbox, newestTimestamp: rangeEnd}], rangeEnd2)
+
+			const [mailboxesData2, indexUpdateNew2] = core.writeIndexUpdate.args
+			_checkMailsInIndexUpdate(db, indexUpdateNew2, mail1)
+			o(mailboxesData2).deepEquals([{groupId: mailGroup, indexTimestamp: rangeEnd2}])
+		})
+
+		o.only("one mailbox extend till end", async function () {
+			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: rangeEnd2})
+
+			// next index update - finish indexing
+			const rangeEnd3 = getDayShifted(new Date(rangeEnd2), -1).getTime()
+
+			await indexer._indexMailLists([{mbox: mailbox, newestTimestamp: rangeEnd2}], rangeEnd3)
+			const [mailboxesData3, indexUpdateNew3] = core.writeIndexUpdate.args
+			_checkMailsInIndexUpdate(db, indexUpdateNew3, mail0)
+			o(mailboxesData3).deepEquals([{groupId: mailGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}])
 		})
 	})
+
+
+	function _checkMailsInIndexUpdate(db: Db, indexUpdate: IndexUpdate, ...includedMails: Array<Mail>) {
+		includedMails.forEach((mail, index) => {
+			let encInstanceId = encryptIndexKeyBase64(db.key, getElementId(mail), fixedIv)
+			if (indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) == null) {
+				console.error("mail is not written", mail._id, index)
+			}
+			o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
+		})
+	}
 
 	o.spec("processEntityEvents", function () {
 		let indexUpdate: IndexUpdate
 		o.beforeEach(function () {
-			indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
+			indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		})
 
 		o("do nothing if mailIndexing is disabled", async function () {
@@ -498,7 +541,7 @@ o.spec("MailIndexer test", () => {
 		let indexUpdate: IndexUpdate
 		o.beforeEach(function () {
 			indexer = _prepareProcessEntityTests(true)
-			indexUpdate = _createNewIndexUpdate("group-id", typeRefToTypeInfo(MailTypeRef))
+			indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		})
 
 		o("create & delete == delete", async function () {
@@ -764,7 +807,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 			mock.pause = spy(mock.pause.bind(mock))
 			mock.resume = spy(mock.resume.bind(mock))
 		}),
-		_stats: {}
+		_stats: {},
+		resetStats: () => {}
 	})
 	let db: Db = ({
 		key: aes256RandomKey(),
@@ -790,16 +834,16 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
 	if (indexMailList) {
 		o(indexer._indexMailLists.callCount).equals(1)
-		o(indexer._indexMailLists.args)
-			.deepEquals([
-				mailbox, groupId,
-				[
-					groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-						? getDayShifted(getStartOfDay(new Date()), 1)
-						: groupData.indexTimestamp,
-					endIndexTimstamp
-				]
-			])
+		const [mailData, oldestTimestamp] = indexer._indexMailLists.args
+		const expectedNewestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+			? getDayShifted(getStartOfDay(new Date()), 1)
+			: groupData.indexTimestamp
+		o(mailData).deepEquals([
+			{
+				mbox: mailbox, newestTimestamp: expectedNewestTimestamp
+			}
+		])
+		o(oldestTimestamp).deepEquals(endIndexTimstamp)
 	} else {
 		o(indexer._indexMailLists.callCount).equals(0)
 	}

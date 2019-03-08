@@ -215,7 +215,15 @@ export class IndexerCore {
 	/**
 	 * Apply populated {@param indexUpdate} to the database.
 	 */
-	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
+	writeIndexUpdate(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, indexUpdate: IndexUpdate): Promise<void> {
+		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataIndexTimestamp(dataPerGroup, t))
+	}
+
+	writeIndexUpdateWithBatchId(groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataBatchId(groupId, batchId, t))
+	}
+
+	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => Promise<void>): Promise<void> {
 		let startTimeStorage = getPerformanceTimestamp()
 		if (this._isStopped) {
 			return Promise.reject(new CancelledError("mail indexing cancelled"))
@@ -229,7 +237,7 @@ export class IndexerCore {
 				              .then(() => this._insertNewIndexEntries(indexUpdate, transaction))
 				              .then((rowKeys: ?EncWordToMetaRow) =>
 					              rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys))
-				              .then(() => this._updateGroupData(indexUpdate, transaction))
+				              .then(() => updateGroupData(transaction))
 				              .then(() => {
 					              return transaction.wait().then(() => {
 						              this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
@@ -350,7 +358,7 @@ export class IndexerCore {
 		const encWordToMetaRow: EncWordToMetaRow = {}
 		const result = this._promiseMapCompat(keys, (encWordB64) => {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
-			return this._putEncryptedEntity(indexUpdate.groupId, indexUpdate.typeInfo.appId, indexUpdate.typeInfo.typeId, transaction, encWordB64,
+			return this._putEncryptedEntity(indexUpdate.typeInfo.appId, indexUpdate.typeInfo.typeId, transaction, encWordB64,
 				encWordToMetaRow, encryptedEntries)
 		}, {concurrency: 2})
 
@@ -359,7 +367,7 @@ export class IndexerCore {
 			: null
 	}
 
-	_putEncryptedEntity(groupId: Id, appId: number, typeId: number, transaction: DbTransaction, encWordB64: B64EncIndexKey, encWordToMetaRow: EncWordToMetaRow,
+	_putEncryptedEntity(appId: number, typeId: number, transaction: DbTransaction, encWordB64: B64EncIndexKey, encWordToMetaRow: EncWordToMetaRow,
 	                    encryptedEntries: Array<EncSearchIndexEntryWithTimestamp>): ?Promise<*> {
 		this._cancelIfNeeded()
 		if (encryptedEntries.length <= 0) {
@@ -639,42 +647,41 @@ export class IndexerCore {
 			})
 	}
 
-	_updateGroupData(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
-		this._cancelIfNeeded()
-		if (indexUpdate.batchId || indexUpdate.indexTimestamp != null) { // check timestamp for != null here because "0" is a valid value to write
-			// update group data
-			return transaction.get(GroupDataOS, indexUpdate.groupId).then((groupData: ?GroupData) => {
+
+	_updateGroupDataIndexTimestamp(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, transaction: DbTransaction): Promise<void> {
+		return Promise.map(dataPerGroup, (data) => {
+			const {groupId, indexTimestamp} = data
+			return transaction.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
 				if (!groupData) {
-					throw new InvalidDatabaseStateError("GroupData not available for group " + indexUpdate.groupId)
+					throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
 				}
-				if (indexUpdate.indexTimestamp != null) {
-					groupData.indexTimestamp = indexUpdate.indexTimestamp
-				}
-				if (indexUpdate.batchId) {
-					let batchId = indexUpdate.batchId
-
-					if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId[1]) !== -1) { // concurrent indexing (multiple tabs)
-						transaction.abort()
-					} else {
-						let newIndex = groupData.lastBatchIds.findIndex(indexedBatchId => firstBiggerThanSecond(batchId[1], indexedBatchId))
-						if (newIndex !== -1) {
-							groupData.lastBatchIds.splice(newIndex, 0, batchId[1])
-						} else {
-							groupData.lastBatchIds.push(batchId[1]) // new batch is oldest of all stored batches
-						}
-						if (groupData.lastBatchIds.length > 1000) {
-							groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
-						}
-					}
-				}
-
-				if (!transaction.aborted) {
-					return transaction.put(GroupDataOS, indexUpdate.groupId, groupData)
-				}
+				groupData.indexTimestamp = indexTimestamp
+				return transaction.put(GroupDataOS, groupId, groupData)
 			})
-		} else {
-			return null
-		}
+		}).return()
+	}
+
+	_updateGroupDataBatchId(groupId: Id, batchId: Id, transaction: DbTransaction): Promise<void> {
+		return transaction.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
+			if (!groupData) {
+				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
+			}
+			if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId) !== -1) { // concurrent indexing (multiple tabs)
+				console.warn("Abort transaction on updating group data: concurrent access", groupId, batchId)
+				transaction.abort()
+			} else {
+				let newIndex = groupData.lastBatchIds.findIndex(indexedBatchId => firstBiggerThanSecond(batchId, indexedBatchId))
+				if (newIndex !== -1) {
+					groupData.lastBatchIds.splice(newIndex, 0, batchId)
+				} else {
+					groupData.lastBatchIds.push(batchId) // new batch is oldest of all stored batches
+				}
+				if (groupData.lastBatchIds.length > 1000) {
+					groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
+				}
+				return transaction.put(GroupDataOS, groupId, groupData)
+			}
+		})
 	}
 
 

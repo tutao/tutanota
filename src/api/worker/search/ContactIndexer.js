@@ -93,7 +93,7 @@ export class ContactIndexer {
 		return this._entity.loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
 			return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
 				let groupId = neverNull(contactList._ownerGroup)
-				let indexUpdate = _createNewIndexUpdate(groupId, typeRefToTypeInfo(ContactTypeRef))
+				let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 				return t.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
 					if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 						return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
@@ -101,9 +101,9 @@ export class ContactIndexer {
 								let keyToIndexEntries = this.createContactIndexEntries(contact)
 								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 							})
-							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 							return Promise.all([
-								this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+								this._core.writeIndexUpdate([{groupId, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+								this.suggestionFacade.store()
 							])
 						})
 					}

@@ -152,7 +152,7 @@ o.spec("IndexerCore test", () => {
 			]
 			],
 		])
-		let indexUpdate = _createNewIndexUpdate(ownerGroupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		core.encryptSearchIndexEntries(instanceId, ownerGroupId, keyToIndexEntries, indexUpdate)
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 
@@ -234,7 +234,7 @@ o.spec("IndexerCore test", () => {
 
 	o("writeIndexUpdate _moveIndexedInstance", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		let encInstanceId = uint8ArrayToBase64(new Uint8Array([8]))
 		indexUpdate.move.push({
 			encInstanceId,
@@ -261,7 +261,7 @@ o.spec("IndexerCore test", () => {
 
 	o("writeIndexUpdate _moveIndexedInstance instance already deleted", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		let encInstanceId = uint8ArrayToBase64(new Uint8Array([8]))
 		indexUpdate.move.push({
 			encInstanceId,
@@ -286,7 +286,7 @@ o.spec("IndexerCore test", () => {
 
 	o("writeIndexUpdate _deleteIndexedInstance", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		const instanceId = new Uint8Array(16).fill(1)
 		const metaId = 3
 		let entry: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([4, 7, 6]))
@@ -340,7 +340,7 @@ o.spec("IndexerCore test", () => {
 
 	o("writeIndexUpdate _deleteIndexedInstance last entry for word", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		const instanceId = new Uint8Array(16).fill(8)
 		const metaId = 3
 		const searchIndexEntryId = 1
@@ -381,7 +381,7 @@ o.spec("IndexerCore test", () => {
 
 	o("writeIndexUpdate _deleteIndexedInstance instance already deleted", function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		let entry: EncryptedSearchIndexEntry = concat(new Uint8Array(16), new Uint8Array([4, 7, 6]))
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(1, [
 			{
@@ -413,7 +413,7 @@ o.spec("IndexerCore test", () => {
 		const groupId = "my-group"
 		const listId = "list-id"
 		const core = makeCore()
-		const indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		const indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		const encInstanceId = uint8ArrayToBase64(new Uint8Array(16))
 		const encWord = uint8ArrayToBase64(new Uint8Array([1, 2, 3]))
 		const searchIndexRowKey = 3
@@ -444,8 +444,7 @@ o.spec("IndexerCore test", () => {
 		let core: IndexerCore
 
 		o.beforeEach(function () {
-			let groupId = "my-group"
-			indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+			indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 			dbStub = createSearchIndexDbStub()
 			transaction = dbStub.createTransaction()
 			core = makeCore()
@@ -461,12 +460,11 @@ o.spec("IndexerCore test", () => {
 			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks([entry])))
 			const decodedInsertedMeta = decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))
 
-			o(decodedInsertedMeta)
-				.deepEquals({
-					id: 1,
-					word: encWord,
-					rows: [{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 1, oldestElementTimestamp: 1}]
-				})
+			o(decodedInsertedMeta).deepEquals({
+				id: 1,
+				word: encWord,
+				rows: [{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 1, size: 1, oldestElementTimestamp: 1}]
+			})
 		})
 
 
@@ -695,10 +693,10 @@ o.spec("IndexerCore test", () => {
 		})
 	})
 
-	o("writeIndexUpdate _updateGroupData abort in case batch has been indexed already", function (done) {
+	o("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", function (done) {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
-		indexUpdate.batchId = [groupId, "last-batch-id"]
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
+		const batchId = "last-batch-id"
 
 		let transaction: any = {
 			get: (os, key) => {
@@ -714,13 +712,13 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = makeCore()
-		core._updateGroupData(indexUpdate, transaction)
+		core._updateGroupDataBatchId(groupId, batchId, transaction)
 	})
 
-	o("writeIndexUpdate _updateGroupData", function (done) {
+	o("writeIndexUpdate _updateGroupDataBatchId", function (done) {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
-		indexUpdate.batchId = [groupId, "2"]
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
+		const batchId = "2"
 
 		let transaction: any = {
 			get: (os, key) => {
@@ -739,13 +737,14 @@ o.spec("IndexerCore test", () => {
 		}
 
 		const core = makeCore()
-		core._updateGroupData(indexUpdate, transaction)
+		core._updateGroupDataBatchId(groupId, batchId, transaction)
 	})
 
 
 	o("writeIndexUpdate", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
+		const indexTimestamp = Date.now()
 
 		let waitForTransaction = false
 		let transaction: any = {
@@ -761,10 +760,11 @@ o.spec("IndexerCore test", () => {
 			mocked._deleteIndexedInstance = o.spy()
 			mocked._insertNewElementData = o.spy(() => Promise.resolve())
 			mocked._insertNewIndexEntries = o.spy(() => encWordToMetaRow)
-			mocked._updateGroupData = o.spy()
+			mocked._updateGroupDataIndexTimestamp = o.spy()
 		})
 
-		await core.writeIndexUpdate(indexUpdate)
+		const groupUpdate = [{groupId, indexTimestamp}]
+		await core.writeIndexUpdate(groupUpdate, indexUpdate)
 		o(core._moveIndexedInstance.callCount).equals(1)
 		o(core._moveIndexedInstance.args).deepEquals([indexUpdate, transaction])
 
@@ -777,14 +777,14 @@ o.spec("IndexerCore test", () => {
 		o(core._insertNewIndexEntries.callCount).equals(1)
 		o(core._insertNewIndexEntries.args).deepEquals([indexUpdate, transaction])
 
-		o(core._updateGroupData.callCount).equals(1)
-		o(core._updateGroupData.args).deepEquals([indexUpdate, transaction])
+		o(core._updateGroupDataIndexTimestamp.callCount).equals(1)
+		o(core._updateGroupDataIndexTimestamp.args).deepEquals([groupUpdate, transaction])
 		o(waitForTransaction).equals(true)
 	})
 
 	o("processDeleted", async function () {
 		const groupId = "my-group"
-		const indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		const indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		const instanceId = "L-dNNLe----1"
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
 		const event = createEntityUpdate()
@@ -841,7 +841,7 @@ o.spec("IndexerCore test", () => {
 
 	o("processDeleted already deleted", async function () {
 		let groupId = "my-group"
-		let indexUpdate = _createNewIndexUpdate(groupId, mailTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 		let instanceId = "123"
 		let event = createEntityUpdate()
 		event.instanceId = instanceId
@@ -882,7 +882,7 @@ o.spec("IndexerCore test", () => {
 			}
 		})
 
-		const result = core.writeIndexUpdate((null: any))
+		const result = core._writeIndexUpdate((null: any), (null: any))
 		core.stopProcessing()
 		o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
 
@@ -899,7 +899,7 @@ o.spec("IndexerCore test", () => {
 		const queue: EventQueue = downcast({_eventQueue: [1, 2, 3], clear: spy()})
 
 		const transaction: DbTransaction = downcast({
-			get: () => Promise.resolve(null),
+			get: () => Promise.resolve(() => ({indexTimestamp: Date.now()})),
 			put: () => Promise.resolve(null),
 			wait: () => Promise.resolve()
 		})
@@ -910,6 +910,6 @@ o.spec("IndexerCore test", () => {
 		core.startProcessing()
 
 		// Should not throw
-		await core.writeIndexUpdate(_createNewIndexUpdate("group-id", mailTypeInfo))
+		await core.writeIndexUpdate([{groupId: "group-id", indexTimestamp: 0}], _createNewIndexUpdate(mailTypeInfo))
 	})
 })

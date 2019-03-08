@@ -2,7 +2,7 @@
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker, load, loadAll} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
@@ -24,6 +24,7 @@ import * as promises from "../../common/utils/PromiseUtils"
 import type {FutureBatchActions} from "./EventQueue"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
+import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -211,62 +212,76 @@ export class MailIndexer {
 		})
 		let memberships = filterMailMemberships(user)
 		this._core.queue.pause()
-		this.mailboxIndexingPromise = Promise.each(memberships, (mailGroupMembership) => {
-			let mailGroupId = mailGroupMembership.group
-			return this._defaultCachingClient.load(MailboxGroupRootTypeRef, mailGroupId)
-			           .then(mailGroupRoot => this._defaultCachingClient.load(MailBoxTypeRef, mailGroupRoot.mailbox))
-			           .then(mbox => {
-				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-					           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
-						           if (!groupData) {
-							           // group data is not available if group has been added. group will be indexed after login.
-						           } else {
-							           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-								           ? getDayShifted(getStartOfDay(new Date()), 1)
-								           : groupData.indexTimestamp
-							           if (newestTimestamp > oldestTimestamp) {
-								           return this._indexMailLists(mbox, mailGroupId, [newestTimestamp, oldestTimestamp])
-							           }
-						           }
 
+
+		this.mailboxIndexingPromise = Promise
+			.map(memberships, (mailGroupMembership) => {
+				let mailGroupId = mailGroupMembership.group
+				return this._defaultCachingClient.load(MailboxGroupRootTypeRef, mailGroupId)
+				           .then(mailGroupRoot => this._defaultCachingClient.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+				           .then(mbox => {
+					           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+						           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
+							           if (!groupData) {
+								           // group data is not available if group has been added. group will be indexed after login.
+								           return null
+							           } else {
+								           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+									           ? getDayShifted(getStartOfDay(new Date()), 1)
+									           : groupData.indexTimestamp
+								           if (newestTimestamp > oldestTimestamp) {
+									           return {mbox, newestTimestamp}
+								           } else {
+									           return null
+								           }
+							           }
+						           })
 					           })
 				           })
-			           })
-		}).then(() => {
-			this._core.printStatus()
-			console.log("finished indexing")
-		}).catch(e => {
-			// avoid that a rejected promise is stored
-			this.mailboxIndexingPromise = Promise.resolve()
-			if (e instanceof DbError && this._core.isStoppedProcessing()) {
-				console.log("The database was closed, ignore indexing error", e)
-			} else {
-				throw e
-			}
-		}).finally(() => {
-			this._core.queue.resume()
-			// update our index timestamp and send the information to the main thread. this can be done async
-			this.updateCurrentIndexTimestamp(user)
-			    .catch((err) => {
-				    if (err instanceof DbError && this._core.isStoppedProcessing()) {
-					    console.log("The database was closed, do not write currentIndexTimestamp")
-				    }
-			    })
-			    .finally(() => this._worker.sendIndexState({
-				    initializing: false,
-				    indexingSupported: this._core.indexingSupported,
-				    mailIndexEnabled: this.mailIndexingEnabled,
-				    progress: 0,
-				    currentMailIndexTimestamp: this.currentIndexTimestamp,
-				    indexedMailCount: this._core._stats.mailcount
-			    }))
-		})
+			}).then((mailBoxes: Array<?{mbox: MailBox, newestTimestamp: number}>) => {
+				const filtered = mailBoxes.filter(Boolean)
+				if (filtered.length > 0) {
+					return this._indexMailLists(filtered, oldestTimestamp)
+				}
+			})
+			.then(() => {
+				this._core.printStatus()
+				console.log("finished indexing")
+			}).catch(e => {
+				// avoid that a rejected promise is stored
+				this.mailboxIndexingPromise = Promise.resolve()
+				if (e instanceof DbError && this._core.isStoppedProcessing()) {
+					console.log("The database was closed, ignore indexing error", e)
+				} else if (e instanceof ConnectionError) {
+					console.log("There was a connection error, stop index")
+				} else {
+					throw e
+				}
+			}).finally(() => {
+				this._core.queue.resume()
+				// update our index timestamp and send the information to the main thread. this can be done async
+				this.updateCurrentIndexTimestamp(user)
+				    .catch((err) => {
+					    if (err instanceof DbError && this._core.isStoppedProcessing()) {
+						    console.log("The database was closed, do not write currentIndexTimestamp")
+					    }
+				    })
+				    .finally(() => this._worker.sendIndexState({
+					    initializing: false,
+					    indexingSupported: this._core.indexingSupported,
+					    mailIndexEnabled: this.mailIndexingEnabled,
+					    progress: 0,
+					    currentMailIndexTimestamp: this.currentIndexTimestamp,
+					    indexedMailCount: this._core._stats.mailcount
+				    }))
+			})
 		return this.mailboxIndexingPromise.return()
 	}
 
 
-	_indexMailLists(mbox: MailBox, mailGroupId: Id, timeRange: TimeRange): Promise<void> {
-		const progress = new ProgressMonitor(timeRange[0] - timeRange[1], (progress) => {
+	_indexMailLists(mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}>, oldestTimestamp: number): Promise<void> {
+		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
+		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this._worker.sendIndexState({
 				initializing: false,
 				indexingSupported: this._core.indexingSupported,
@@ -276,41 +291,57 @@ export class MailIndexer {
 				indexedMailCount: this._core._stats.mailcount
 			})
 		})
-		const indexUpdate = _createNewIndexUpdate(mailGroupId, typeRefToTypeInfo(MailTypeRef))
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		const indexLoader = new IndexLoader(this._entityRestClient)
-		return this._loadMailListIds(mbox)
-		           .then((mailListIds) => this._indexMailListsInTimeBatches(mbox, mailListIds, timeRange, indexUpdate, progress, indexLoader))
+
+		return Promise.map(mailBoxes, (mBoxData => {
+			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
+				return {
+					mailListIds,
+					newestTimestamp: mBoxData.newestTimestamp,
+					ownerGroup: neverNull(mBoxData.mbox._ownerGroup)
+				}
+			})
+		})).then((mailboxData) => this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
 	}
 
 	_processedEnough(indexUpdate: IndexUpdate): boolean {
 		return indexUpdate.create.encInstanceIdToElementData.size > 500
 	}
 
-	_indexMailListsInTimeBatches(mbox: MailBox, mailListIds: Array<Id>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor,
+	_indexMailListsInTimeBatches(dataPerMailbox: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor,
 	                             indexLoader: IndexLoader): Promise<void> {
 		const [rangeStart, rangeEnd] = timeRange
 		const batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		const mailboxesToWrite = dataPerMailbox.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
 		const batchRange = [rangeStart, batchEnd]
+
 		if (batchEnd < rangeEnd) { // all ranges have been processed
-			return this._writeIndexUpdate(indexUpdate)
-			           .then(() => this._updateIndexTimeStamp(indexUpdate.groupId, mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : batchEnd))
+			const indexTimestampPerGroup = mailboxesToWrite.map(data => ({
+				groupId: data.ownerGroup,
+				indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : rangeStart
+			}))
+			return this._writeIndexUpdate(indexTimestampPerGroup, indexUpdate)
 			           .then(() => {
 				           progress.workDone(rangeStart - batchEnd)
 			           })
 		}
-		return this._prepareMailDataForTimeBatch(mbox, mailListIds, batchRange, indexUpdate, indexLoader).then(() => {
+		return this._prepareMailDataForTimeBatch(mailboxesToWrite, batchRange, indexUpdate, indexLoader).then(() => {
 			const nextRange = [batchEnd, rangeEnd]
 			if (this._processedEnough(indexUpdate)) { // only write to database if we have collected enough entities
-				return this._writeIndexUpdate(indexUpdate)
-				           .then(() => this._updateIndexTimeStamp(indexUpdate.groupId, batchEnd))
+				const indexTimestampPerGroup = mailboxesToWrite.map(data => ({
+					groupId: data.ownerGroup,
+					indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : batchEnd
+				}))
+				return this._writeIndexUpdate(indexTimestampPerGroup, indexUpdate)
 				           .then(() => {
 					           progress.workDone(rangeStart - batchEnd)
-					           const newIndexUpdate = _createNewIndexUpdate(indexUpdate.groupId, indexUpdate.typeInfo)
-					           return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, newIndexUpdate, progress, indexLoader)
+					           const newIndexUpdate = _createNewIndexUpdate(indexUpdate.typeInfo)
+					           return this._indexMailListsInTimeBatches(dataPerMailbox, nextRange, newIndexUpdate, progress, indexLoader)
 				           })
 			} else {
 				progress.workDone(rangeStart - batchEnd)
-				return this._indexMailListsInTimeBatches(mbox, mailListIds, nextRange, indexUpdate, progress, indexLoader)
+				return this._indexMailListsInTimeBatches(dataPerMailbox, nextRange, indexUpdate, progress, indexLoader)
 			}
 		})
 	}
@@ -325,7 +356,7 @@ export class MailIndexer {
 					           t2.put(GroupDataOS, mailGroupId, groupData)
 					           return t2.wait()
 				           } else {
-					           throw Error("no group data for mail group " + mailGroupId)
+					           throw new InvalidDatabaseStateError("no group data for mail group " + mailGroupId)
 				           }
 			           })
 		           })
@@ -338,27 +369,28 @@ export class MailIndexer {
 	 * @return Number of processed emails?
 	 * @private
 	 */
-	_prepareMailDataForTimeBatch(mbox: MailBox, mailLists: Array<Id>, timeRange: TimeRange, indexUpdate: IndexUpdate,
+	_prepareMailDataForTimeBatch(mboxDataList: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate,
 	                             indexLoader: IndexLoader): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
-		return Promise
-			.map(mailLists.slice(), (mailListId) => {
-				// We use caching here because we may load same emails twice
-				return indexLoader.loadMailsWithCache(mailListId, timeRange)
-				                  .then(({elements: mails, loadedCompletely}) => {
-					                  // If we loaded mail list completely, don't try to load from it anymore
-					                  if (loadedCompletely) {
-						                  mailLists.splice(mailLists.indexOf(mailListId), 1)
-					                  }
-					                  this._core._stats.mailcount += mails.length
-					                  // Remove all processed entities from cache
-					                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
-					                  return this._processIndexMails(mails, indexUpdate, indexLoader)
-				                  })
-			}, {concurrency: 2})
-			.then(() => {
-				this._core._stats.preparingTime += (getPerformanceTimestamp() - startTimeLoad)
-			})
+		return Promise.map(mboxDataList, mboxData => {
+			return Promise
+				.map(mboxData.mailListIds.slice(), (listId) => {
+					// We use caching here because we may load same emails twice
+					return indexLoader.loadMailsWithCache(listId, timeRange)
+					                  .then(({elements: mails, loadedCompletely}) => {
+						                  // If we loaded mail list completely, don't try to load from it anymore
+						                  if (loadedCompletely) {
+							                  mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
+						                  }
+						                  this._core._stats.mailcount += mails.length
+						                  // Remove all processed entities from cache
+						                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
+						                  return this._processIndexMails(mails, indexUpdate, indexLoader)
+					                  })
+				}, {concurrency: 2})
+		}).then(() => {
+			this._core._stats.preparingTime += (getPerformanceTimestamp() - startTimeLoad)
+		})
 	}
 
 	_processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
@@ -379,9 +411,8 @@ export class MailIndexer {
 		               }).return(mails.length)
 	}
 
-	_writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
-		console.log("write index update")
-		return this._core.writeIndexUpdate(indexUpdate)
+	_writeIndexUpdate(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, indexUpdate: IndexUpdate): Promise<void> {
+		return this._core.writeIndexUpdate(dataPerGroup, indexUpdate)
 	}
 
 
@@ -542,6 +573,8 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 }
 
 type TimeRange = [number, number]
+
+type MboxIndexData = {mailListIds: Array<Id>, newestTimestamp: number, ownerGroup: Id}
 
 class ProgressMonitor {
 	totalWork: number

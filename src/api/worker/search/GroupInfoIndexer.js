@@ -72,14 +72,14 @@ export class GroupInfoIndexer {
 								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
 								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
 							]).spread((allUserGroupInfos, allTeamGroupInfos) => {
-								let indexUpdate = _createNewIndexUpdate(customer.customerGroup, typeRefToTypeInfo(GroupInfoTypeRef))
+								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(GroupInfoTypeRef))
 								allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
 									let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
 									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
-								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
-									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+									this._core.writeIndexUpdate([{groupId: customer.customerGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this.suggestionFacade.store()
 								])
 							})
 						}

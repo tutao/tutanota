@@ -625,7 +625,7 @@ o.spec("Indexer test", () => {
 			indexerMock._whitelabelChildIndexer = {processEntityEvents: o.spy(() => Promise.resolve())}
 			indexerMock._processUserEntityEvents = o.spy(() => Promise.resolve())
 			indexerMock._initParams = {user: createUser()}
-			indexerMock._core.writeIndexUpdate = spy(() => Promise.resolve())
+			indexerMock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
 			indexerMock._initParams = {user}
 		})
 
@@ -644,24 +644,24 @@ o.spec("Indexer test", () => {
 		const futureActions: FutureBatchActions = {deleted: new Map(), moved: new Map()}
 		await indexer._processEntityEvents(batch, futureActions)
 
-		o(indexer._core.writeIndexUpdate.invocations.length).equals(4)
-		let indexUpdateMail = indexer._core.writeIndexUpdate.invocations[0][0]
+		o(indexer._core.writeIndexUpdateWithBatchId.invocations.length).equals(4)
+		let indexUpdateMail = indexer._core.writeIndexUpdateWithBatchId.invocations[0][2]
 
 		o(indexer._mail.processEntityEvents.callCount).equals(1)
 		o(indexer._mail.processEntityEvents.args)
 			.deepEquals([[events[0]], groupId, batchId, indexUpdateMail, futureActions])
 
-		let indexUpdateContact = indexer._core.writeIndexUpdate.invocations[1][0]
+		let indexUpdateContact = indexer._core.writeIndexUpdateWithBatchId.invocations[1][2]
 		o(indexer._contact.processEntityEvents.callCount).equals(1)
 		o(indexer._contact.processEntityEvents.args).deepEquals([[events[1]], groupId, batchId, indexUpdateContact])
 
-		let indexUpdateGroupInfo = indexer._core.writeIndexUpdate.invocations[2][0]
+		let indexUpdateGroupInfo = indexer._core.writeIndexUpdateWithBatchId.invocations[2][2]
 		o(indexer._groupInfo.processEntityEvents.callCount).equals(1)
 		o(indexer._groupInfo.processEntityEvents.args).deepEquals([[events[2]], groupId, batchId, indexUpdateGroupInfo, user])
 
 		// no index update for user type
 
-		let indexUpdateWhitelabel = indexer._core.writeIndexUpdate.invocations[3][0]
+		let indexUpdateWhitelabel = indexer._core.writeIndexUpdateWithBatchId.invocations[3][2]
 		o(indexer._whitelabelChildIndexer.processEntityEvents.callCount).equals(1)
 		o(indexer._whitelabelChildIndexer.processEntityEvents.args).deepEquals([[events[4]], groupId, batchId, indexUpdateWhitelabel, user])
 	})
@@ -711,7 +711,7 @@ o.spec("Indexer test", () => {
 			mock._groupInfo = {processEntityEvents: o.spy(() => Promise.resolve())}
 			mock._processUserEntityEvents = o.spy(() => Promise.resolve())
 			mock._initParams = {user: createUser()}
-			mock._core.writeIndexUpdate = o.spy(() => Promise.resolve())
+			mock._core.writeIndexUpdateWithBatchId = o.spy(() => Promise.resolve())
 			let user = createUser()
 			user.memberships = [createGroupMembership()]
 			user.memberships[0].groupType = GroupType.Mail
@@ -754,7 +754,7 @@ o.spec("Indexer test", () => {
 
 		await doneDeferred.promise
 
-		o(indexer._core.writeIndexUpdate.callCount).equals(2)
+		o(indexer._core.writeIndexUpdateWithBatchId.callCount).equals(2)
 		o(indexer._mail.processEntityEvents.callCount).equals(2)
 		o(indexer._contact.processEntityEvents.callCount).equals(0)
 		o(indexer._groupInfo.processEntityEvents.callCount).equals(0)

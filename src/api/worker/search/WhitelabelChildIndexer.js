@@ -72,14 +72,14 @@ export class WhitelabelChildIndexer {
 								children = this._entity.loadAll(WhitelabelChildTypeRef, customer.whitelabelChildren.items)
 							}
 							return children.then(allChildren => {
-								let indexUpdate = _createNewIndexUpdate(customer.adminGroup, typeRefToTypeInfo(WhitelabelChildTypeRef))
+								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(WhitelabelChildTypeRef))
 								allChildren.forEach(child => {
 									let keyToIndexEntries = this.createWhitelabelChildIndexEntries(child)
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
-								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
-									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+									this._core.writeIndexUpdate([{groupId: customer.adminGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this.suggestionFacade.store()
 								]).return()
 							})
 						}

@@ -5,7 +5,6 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {DbError} from "../api/common/error/DbError"
 
 assertMainOrNode()
@@ -25,11 +24,6 @@ export class SearchModel {
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 			indexedMailCount: 0
-		})
-		this.indexState.map(state => {
-			if (state && !state.indexingSupported) {
-				throw new IndexingNotSupportedError()
-			}
 		})
 	}
 

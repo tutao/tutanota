@@ -144,7 +144,7 @@ export class Indexer {
 					return this._reCreateIndex()
 				} else {
 					// disable storage if it fails to inititalize
-					this._core.indexingSupported = false
+					this._core.indexingSupported = e instanceof DbError
 					this._worker.sendIndexState({
 						initializing: false,
 						indexingSupported: false,
@@ -431,7 +431,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw new Error("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
+						throw new DbError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 					}
 				})
 			}))
@@ -475,9 +475,8 @@ export class Indexer {
 					if (isSameTypeRef(UserTypeRef, key)) {
 						return this._processUserEntityEvents(value)
 					}
-					const indexUpdate = _createNewIndexUpdate(groupId, typeRefToTypeInfo(key))
-					indexUpdate.batchId = [groupId, batchId]
-
+					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
+					
 					if (isSameTypeRef(MailTypeRef, key)) {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate, futureActions)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {
@@ -493,7 +492,7 @@ export class Indexer {
 						performance.mark("processEvent-end")
 						performance.measure("processEvent", "processEvent-start", "processEvent-end")
 						performance.mark("writeIndexUpdate-start")
-						return this._core.writeIndexUpdate(indexUpdate)
+						return this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
 					}).then(() => {
 						performance.mark("writeIndexUpdate-end")
 						performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")

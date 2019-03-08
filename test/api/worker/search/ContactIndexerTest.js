@@ -8,7 +8,6 @@ import {createContactPhoneNumber} from "../../../../src/api/entities/tutanota/Co
 import {createContactSocialId} from "../../../../src/api/entities/tutanota/ContactSocialId"
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
 import {ContactListTypeRef, createContactList} from "../../../../src/api/entities/tutanota/ContactList"
-import type {IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {DbTransaction, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
@@ -229,8 +228,9 @@ o.spec("ContactIndexer test", () => {
 		}: any)
 		const contactIndexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 		contactIndexer.indexFullContactList(userGroupId).then(() => {
-			let indexUpdate: IndexUpdate = core.writeIndexUpdate.args[0]
-			o(indexUpdate.indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
+			const [[{groupId, indexTimestamp}], indexUpdate] = core.writeIndexUpdate.args
+			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
+			o(groupId).equals(contactList._ownerGroup)
 			let expectedKeys = [
 				encryptIndexKeyBase64(core.db.key, contacts[0]._id[1], fixedIv),
 				encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv)
@@ -303,7 +303,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(contactTypeInfo)
 		let events = [createUpdate(OperationType.CREATE, "contact-list", "L-dNNLe----0")]
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 		// nothing changed
@@ -328,7 +328,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(contactTypeInfo)
 		let events = [createUpdate(OperationType.UPDATE, "contact-list", "L-dNNLe----0")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed
@@ -356,7 +356,7 @@ o.spec("ContactIndexer test", () => {
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
-		let indexUpdate = _createNewIndexUpdate("group-id", contactTypeInfo)
+		let indexUpdate = _createNewIndexUpdate(contactTypeInfo)
 		let events = [createUpdate(OperationType.DELETE, "contact-list", "1")]
 		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate).then(() => {
 			// nothing changed

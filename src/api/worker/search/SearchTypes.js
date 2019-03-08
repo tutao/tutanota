@@ -87,10 +87,7 @@ export type EncWordToMetaRow = {[Base64]: number}
 export type EncInstanceIdWithTimestamp = {encInstanceId: Uint8Array, timestamp: number, appId: number, typeId: number}
 
 export type IndexUpdate = {
-	groupId: Id;
 	typeInfo: TypeInfo;// index update must be unique for type
-	batchId: ?IdTuple;
-	indexTimestamp: ?number;
 	create: {
 		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>;
 		// For each word there's a list of entries we want to insert
