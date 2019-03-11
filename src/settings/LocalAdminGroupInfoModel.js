@@ -14,11 +14,7 @@ class LocalAdminGroupInfoModel {
 	groupInfos: GroupInfo[];
 
 	constructor() {
-		locator.eventController.addEntityListener(updates => {
-			for (let update of updates) {
-				this.entityEventReceived(update)
-			}
-		})
+
 		this._initialization = null
 		this.groupInfos = []
 	}
@@ -27,7 +23,15 @@ class LocalAdminGroupInfoModel {
 		if (this._initialization) {
 			return this._initialization
 		}
+		locator.eventController.addEntityListener(updates => {
+			for (let update of updates) {
+				this.entityEventReceived(update)
+			}
+		})
+		return this._init()
+	}
 
+	_init(): Promise<GroupInfo[]> {
 		this._initialization = logins.getUserController().loadCustomer().then(customer => {
 			return loadAll(GroupInfoTypeRef, customer.teamGroups)
 				.filter(gi => gi.groupType === GroupType.LocalAdmin)
@@ -36,14 +40,12 @@ class LocalAdminGroupInfoModel {
 					return groupInfos
 				})
 		})
-
 		return this._initialization
 	}
 
 	entityEventReceived<T>(update: EntityUpdateData): void {
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
-			this._initialization = null
-			this.init().then(() => m.redraw())
+			this._init().then(() => m.redraw())
 		}
 	}
 }
