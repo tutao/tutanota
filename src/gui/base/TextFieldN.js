@@ -119,14 +119,17 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m('.flex-grow', [
+			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
+			// This is mostly done to prevent autofill which happens if the field type="password".
+			return m('.flex-grow.rel', [
 				m("input.input" + (a.alignRight ? ".right" : ""), {
 					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
+						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						this._domInput.value = a.value()
 						if (a.type === Type.ExternalPassword) {
-							vnode.dom.style.opacity = '0'
+							vnode.dom.style.opacity = '0' // Setting it in style block doesn't work somehow
 						} else if (a.type === Type.Password) {
 							vnode.dom.addEventListener('animationstart', e => {
 								if (e.animationName === "onAutoFillStart") {
@@ -150,33 +153,34 @@ export class _TextField {
 						// TODO test if still needed with newer mithril releases
 						this._domInput.onblur = null
 					},
-					onupdate: () => {
-						this._domInput.style.opacity = a.type === Type.ExternalPassword && !this.active ? "0" : "1"
-					},
-					oninput: e => {
+					onupdate: () => this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1",
+					oninput: () => {
 						if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
 							&& !this.webkitAutofill) {
 							this.animate(true) // animate in case of browser autocompletion (non-webkit)
 						}
 						a.value(this._domInput.value) // update the input on each change
-						console.log("new value: ", a.value())
 					},
 					style: {
 						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 						lineHeight: px(inputLineHeight),
 					}
 				}),
-				a.type === Type.ExternalPassword && !this.active
+				this._shouldShowPasswordOverlay(a)
 					? m(".abs", {
 						style: {
-							bottom: px(2),
+							bottom: 0,
 							left: 0,
 							lineHeight: size.line_height
 						},
-					}, repeat("*", a.value().length))
+					}, repeat("•", a.value().length))
 					: null
 			])
 		}
+	}
+
+	_shouldShowPasswordOverlay(a: TextFieldAttrs) {
+		return a.type === Type.ExternalPassword && !this.active
 	}
 
 	_getTextArea(a: TextFieldAttrs): VirtualElement {

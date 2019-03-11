@@ -386,7 +386,7 @@ export class MailEditor {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
 			let textFieldAttrs = {
 				label: () => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}),
-				injectionsRight: () => m(passwordIndicator),
+				helpLabel: () => m(passwordIndicator),
 				value: stream(""),
 				type: Type.ExternalPassword
 			}
