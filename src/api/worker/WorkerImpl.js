@@ -318,7 +318,7 @@ export class WorkerImpl {
 	}
 
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws state: ", state)
+		console.log("ws displayed state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
 	}
 
