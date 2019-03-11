@@ -119,10 +119,23 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
+			// Due to modern browser's 'smart' password managers that try to autofill everything
+			// that remotely resembles a password field, we prepend invisible inputs to password fields
+			// that shouldn't be autofilled.
+			// since the autofill algorithm looks at inputs that come before and after the password field we need
+			// three dummies.
+			//
 			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
 			// This is mostly done to prevent autofill which happens if the field type="password".
-			return m('.flex-grow.rel', [
+			const autofillGuard = a.preventAutofill ? [
+				m("input", {style: {display: 'none'}, type: Type.Text}),
+				m("input", {style: {display: 'none'}, type: Type.Password}),
+				m("input", {style: {display: 'none'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow.rel', autofillGuard.concat([
 				m("input.input" + (a.alignRight ? ".right" : ""), {
+					autocomplete: a.preventAutofill ? "off" : "",
 					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
@@ -175,7 +188,7 @@ export class _TextField {
 						},
 					}, repeat("•", a.value().length))
 					: null
-			])
+			]))
 		}
 	}
 
