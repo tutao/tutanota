@@ -2,6 +2,7 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {TextField, Type} from "../gui/base/TextField"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
@@ -73,6 +74,8 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -84,7 +87,7 @@ export class MailEditor {
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
-	_mailAddressToPasswordField: Map<string, TextField>;
+	_mailAddressToPasswordField: Map<string, TextFieldAttrs>;
 	subject: TextField;
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
@@ -271,15 +274,17 @@ export class MailEditor {
 						]),
 					])
 				),
-				this._confidentialButtonState ? m(".external-recipients.overflow-hidden", {
-					oncreate: vnode => this.animate(vnode.dom, true),
-					onbeforeremove: vnode => this.animate(vnode.dom, false)
-				}, this._allRecipients()
-				       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
-				       .map(r => m(this.getPasswordField(r), {
-					       oncreate: vnode => this.animate(vnode.dom, true),
-					       onbeforeremove: vnode => this.animate(vnode.dom, false)
-				       }))) : null,
+				this._confidentialButtonState
+					? m(".external-recipients.overflow-hidden", {
+						oncreate: vnode => this.animate(vnode.dom, true),
+						onbeforeremove: vnode => this.animate(vnode.dom, false)
+					}, this._allRecipients()
+					       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
+					       .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
+						       oncreate: vnode => this.animate(vnode.dom, true),
+						       onbeforeremove: vnode => this.animate(vnode.dom, false)
+					       }))))
+					: null,
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
 					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
@@ -364,7 +369,7 @@ export class MailEditor {
 			case ConversationType.FORWARD:
 				return "forward_action"
 			default:
-				return ""
+				return "emptyString_msg"
 		}
 	}
 
@@ -376,17 +381,19 @@ export class MailEditor {
 		                 })
 	}
 
-	getPasswordField(recipientInfo: RecipientInfo): TextField {
+	getPasswordField(recipientInfo: RecipientInfo): TextFieldAttrs {
 		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
-			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
-				.setType(Type.ExternalPassword)
-				.setPreventAutofill(true)
-
-			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
-				textField.setValue(recipientInfo.contact.presharedPassword)
+			let textFieldAttrs = {
+				label: () => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}),
+				injectionsRight: () => m(passwordIndicator),
+				value: stream(""),
+				type: Type.ExternalPassword
 			}
-			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textField)
+			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
+				textFieldAttrs.value(recipientInfo.contact.presharedPassword)
+			}
+			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textFieldAttrs)
 		}
 		return neverNull(this._mailAddressToPasswordField.get(recipientInfo.mailAddress))
 	}
@@ -946,7 +953,7 @@ export class MailEditor {
 				replace(bubbles, oldBubble, newBubble)
 				if (updatedContact.presharedPassword && this._mailAddressToPasswordField.has(emailAddress)) {
 					neverNull(this._mailAddressToPasswordField.get(emailAddress))
-						.setValue(updatedContact.presharedPassword)
+						.value(updatedContact.presharedPassword || "")
 				}
 			}
 		})

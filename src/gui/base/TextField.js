@@ -135,7 +135,7 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			const typeAttr = (this.type === Type.ExternalPassword)
+			const typeAttr = (this.type === Type.Password)
 				? Type.Password
 				: this.type
 			/**
