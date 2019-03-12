@@ -45,7 +45,7 @@ const showAlertDialog = (msg: Request): Promise<void> => {
 
 const openMailbox = (msg: Request): Promise<void> => {
 	return _asyncImport('src/native/OpenMailboxHandler.js').then(module => {
-			return module.openMailbox(msg.args[0], msg.args[1])
+			return module.openMailbox(msg.args[0], msg.args[1], msg.args[2])
 		}
 	)
 }

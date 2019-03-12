@@ -1,5 +1,5 @@
 //@flow
-import {assertMainOrNodeBoot, isApp, isTutanotaDomain, isDesktop} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
@@ -52,7 +52,7 @@ export function init() {
 	if (serviceWorker) {
 		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
-			let location = window.location.pathname.endsWith("/")
+			let location = window.location.pathname.endsWith("/") || window.location.pathname.indexOf("contactform/") != -1
 				? "../sw.js"
 				: "sw.js"
 			serviceWorker.register(location)

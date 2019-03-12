@@ -70,7 +70,7 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {BrowserType} from "../misc/ClientConstants"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -94,6 +94,8 @@ export class MailViewer {
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
+	mailHeaderDialog: Dialog;
+	mailHeaderInfo: string;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		this.mail = mail
@@ -113,6 +115,22 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
+
+		let closeAction = () => this.mailHeaderDialog.close()
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("mailHeaders_title")
+		}
+		this.mailHeaderInfo = ""
+		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
+			view: () => {
+				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
+			}
+		}).addShortcut({
+			key: Keys.ESC,
+			exec: closeAction,
+			help: "close_alt"
+		}).setCloseHandler(closeAction)
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -393,6 +411,26 @@ export class MailViewer {
 				},
 				help: "editMail_action"
 			},
+			{
+				key: Keys.H,
+				exec: () => this._showHeaders(),
+				help: "showHeaders_action"
+			},
+			{
+				key: Keys.R,
+				exec: (key: KeyPress) => {
+					this._reply(false)
+				},
+				help: "reply_action"
+			},
+			{
+				key: Keys.R,
+				shift: true,
+				exec: (key: KeyPress) => {
+					this._reply(true)
+				},
+				help: "replyAll_action"
+			},
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
@@ -664,6 +702,21 @@ export class MailViewer {
 		})
 	}
 
+	_showHeaders() {
+		if (!this.mailHeaderDialog.visible) {
+			if (this.mail.headers) {
+				load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+						this.mailHeaderInfo = mailHeaders.headers
+						this.mailHeaderDialog.show()
+					}
+				).catch(NotFoundError, noOp)
+			} else {
+				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
+				this.mailHeaderDialog.show()
+			}
+		}
+	}
+
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
 		if (this._domBody) {
 			const dom = this._domBody
@@ -708,27 +761,20 @@ export class MailViewer {
 		}
 
 		if (buttons.length >= 3 && !isIOSApp()) {
-			if (client.browser === BrowserType.CHROME) {
-				buttons.push(new Button("saveAll_action", () => {
-					this._downloadAttachmentsBatched(this._attachments)
-				}).setType(ButtonType.Secondary))
-			} else {
-				buttons.push(new Button("saveAll_action",
-					() => showProgressDialog('pleaseWait_msg', fileController.downloadAll(this._attachments)), null)
-					.setType(ButtonType.Secondary))
+			let downloadStrategy = () => fileController.downloadAll(this._attachments)
+
+			if (client.needsDownloadBatches() && this._attachments.length > 10) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 10, 1000)
+			} else if (!client.canDownloadMultipleFiles()) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 1, 10)
 			}
+
+			buttons.push(new Button(
+				"saveAll_action",
+				() => showProgressDialog("pleaseWait_msg", downloadStrategy()),
+				null)
+				.setType(ButtonType.Secondary))
 		}
 		return buttons
-	}
-
-	_downloadAttachmentsBatched(attachments: TutanotaFile[]) {
-		let completedAttachments = 0, lastBatchSize = 0
-		let p = Promise.resolve()
-		while (completedAttachments < attachments.length) {
-			completedAttachments = completedAttachments + lastBatchSize
-			lastBatchSize = Math.min(10, attachments.length - completedAttachments)
-			p = p.delay(1000).then(() => fileController.downloadAll(attachments.slice(completedAttachments, lastBatchSize + completedAttachments)))
-		}
-		showProgressDialog('pleaseWait_msg', p)
 	}
 }

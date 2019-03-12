@@ -47,13 +47,13 @@ assertMainOrNode()
  */
 export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact, doNotResolveContact: boolean): RecipientInfo {
 	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
-	let recipientInfo = {
+	let recipientInfo: RecipientInfo = {
 		_type: 'RecipientInfo',
 		type,
 		mailAddress,
-		name: (name) ? name : "", // "" will be replaced as soon as a contact is found
+		name: name || "", // "" will be replaced as soon as a contact is found
 		contact: contact,
-		resolveContactPromise: neverNull(null) // strangely, flow does not allow null here
+		resolveContactPromise: null
 	}
 	if (!contact && !doNotResolveContact && logins.getUserController() && logins.getUserController().isInternalUser()) {
 		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {

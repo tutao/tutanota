@@ -1,5 +1,8 @@
-import {assertMainOrNodeBoot} from "../api/Env"
+//@flow
+import {assertMainOrNodeBoot, Mode} from "../api/Env"
+import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
 import {BrowserType, DeviceType} from "./ClientConstants"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -53,7 +56,7 @@ class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/flexbox.js
 	 */
 	flexbox(): boolean {
-		return typeof document.documentElement.style.flexBasis === 'string'
+		return typeof neverNull(document.documentElement).style.flexBasis === 'string'
 	}
 
 	/**
@@ -170,6 +173,7 @@ class ClientDetector {
 		var firefoxIndex = this.userAgent.indexOf("Firefox/")
 		var paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
 		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
+		var waterfoxIndex = this.userAgent.indexOf("Waterfox/")
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
 		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
@@ -200,6 +204,9 @@ class ClientDetector {
 		} else if (paleMoonIndex !== -1) {
 			this.browser = BrowserType.PALEMOON
 			versionIndex = paleMoonIndex + 9
+		} else if (waterfoxIndex !== -1) {
+			this.browser = BrowserType.WATERFOX
+			versionIndex = waterfoxIndex + 9
 		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && (operaIndex1 === -1) && (operaIndex2 === -1)) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
@@ -332,8 +339,19 @@ class ClientDetector {
 		return d.style[prop] === value
 	}
 
-	getIdentifier() {
-		return env.mode === "App" ? client.device + " App" : client.browser + " " + client.device
+	getIdentifier(): string {
+		if (env.mode === Mode.App) {
+			return client.device + " App"
+		} else if (env.mode === Mode.Browser) {
+			return client.browser + " Browser"
+		} else if (env.platformId === 'linux') {
+			return 'Linux Desktop'
+		} else if (env.platformId === 'darwin') {
+			return 'Mac Desktop'
+		} else if (env.platformId === 'win32') {
+			return 'Windows Desktop'
+		}
+		return 'Unknown'
 	}
 
 
@@ -347,8 +365,27 @@ class ClientDetector {
 		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
 	}
 
+	canDownloadMultipleFiles(): boolean {
+		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion < 65
+	}
+
+	needsDownloadBatches(): boolean {
+		// chrome limits multiple automatic downloads to 10
+		return client.browser === BrowserType.CHROME
+	}
+
+	needsMicrotaskHack(): boolean {
+		return this.isIos()
+			|| this.browser === BrowserType.SAFARI
+			|| this.browser === BrowserType.PALEMOON
+			|| this.browser === BrowserType.WATERFOX
+			|| this.browser === BrowserType.FIREFOX && this.browserVersion < 60
+			|| this.browser === BrowserType.CHROME && this.browserVersion < 59
+	}
+
 	browserData(): BrowserData {
-		return {browserType: this.browser, browserVersion: this.browserVersion}
+		return {needsMicrotaskHack: this.needsMicrotaskHack()}
 	}
 }
 

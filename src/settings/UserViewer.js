@@ -39,7 +39,6 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 import {checkAndImportUserData} from "./ImportUsersViewer"
-import {IdentifierListViewer} from "./IdentifierListViewer"
 import {EditAliasesFormN} from "./EditAliasesFormN"
 
 assertMainOrNode()
@@ -204,8 +203,7 @@ export class UserViewer {
 					m(EditAliasesFormN, {userGroupInfo: this.userGroupInfo}),
 					!logins.getUserController().isPremiumAccount() ? null : [
 						m(".h4.mt-l", lang.get('mailSettings_label')),
-						(this._whitelistProtection) ? m(this._whitelistProtection) : null,
-						m(IdentifierListViewer, {user: this._user.getSync()}),
+						(this._whitelistProtection) ? m(this._whitelistProtection) : null
 					]
 				]),
 			]

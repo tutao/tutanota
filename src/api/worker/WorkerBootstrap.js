@@ -1,4 +1,4 @@
-importScripts('../../../libs/polyfill.js', '../../../libs/bluebird.js', '../../../libs/system.src.js')
+importScripts('../../../libs/bluebird.js', '../../../libs/system.src.js')
 
 Promise.config({
 	longStackTraces: false,
@@ -13,7 +13,8 @@ self.onmessage = function (msg) {
 	if (data.type === 'setup') {
 		self.env = data.args[0]
 		System.config(self.env.systemConfig)
-		System.import("src/system-resolve.js")
+		System.import("libs/polyfill.js")
+		      .then(() => System.import("src/system-resolve.js"))
 		      .then(() => System.import('systemjs-hot-reloader'))
 		      .then((connect) => {
 			      if (connect instanceof Function && location.protocol !== "https:") {

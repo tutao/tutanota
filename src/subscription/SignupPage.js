@@ -24,11 +24,12 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 
 
 export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
@@ -198,27 +199,12 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 				let regDataId = captchaReturn.token
 				if (captchaReturn.challenge) {
 					return Promise.fromCallback(callback => {
-						let captchaInput = new TextField(() => lang.get("captchaInput_label") + ' (hh:mm)', () => lang.get("captchaInfo_msg"))
-						let actionBar = new DialogHeaderBar()
-						let dialog = new Dialog(DialogType.EditSmall, {
-							view: (): Children => [
-								m(".dialog-header.plr-l", m(actionBar)),
-								m(".plr-l.pb", [
-									m("img.mt-l", {
-										src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(captchaReturn.challenge)),
-										alt: lang.get("captchaDisplay_label")
-									}),
-									m(captchaInput)
-								])
-							]
-						})
-
-						let cancelAction = () => {
+						let dialog: Dialog
+						const cancelAction = () => {
 							dialog.close()
 							callback(null)
 						}
-						actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-						actionBar.addRight(new Button("ok_action", () => {
+						const okAction = () => {
 							let captchaTime = captchaInput.value().trim()
 							if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
 								let data = createRegistrationCaptchaServiceData()
@@ -247,10 +233,25 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 							} else {
 								Dialog.error("captchaEnter_msg")
 							}
-						}).setType(ButtonType.Primary))
-						         .setMiddle(() => lang.get("captchaDisplay_label"))
-						dialog.setCloseHandler(cancelAction)
-						dialog.show()
+						}
+						let actionBarAttrs: DialogHeaderBarAttrs = {
+							left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
+							right: [{label: "ok_action", click: okAction, type: ButtonType.Primary}],
+							middle: () => lang.get("captchaDisplay_label")
+						}
+						let captchaInput = new TextField(() => lang.get("captchaInput_label") + ' (hh:mm)', () => lang.get("captchaInfo_msg"))
+						dialog = new Dialog(DialogType.EditSmall, {
+							view: (): Children => [
+								m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
+								m(".plr-l.pb", [
+									m("img.mt-l", {
+										src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(captchaReturn.challenge)),
+										alt: lang.get("captchaDisplay_label")
+									}),
+									m(captchaInput)
+								])
+							]
+						}).setCloseHandler(cancelAction).show()
 					})
 				} else {
 					return regDataId
@@ -272,22 +273,28 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 		asyncImport(typeof module !== "undefined"
 			? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
 			.then(terms => {
+				let dialog: Dialog
 				let visibleLang = lang.code
 				let sanitizedTerms: string
-				let headerBar = new DialogHeaderBar()
-				headerBar.addLeft(new Button(() => "EN/DE", () => {
-					visibleLang = visibleLang === "de" ? "en" : "de"
-					sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
-					m.redraw()
-				}).setType(ButtonType.Secondary))
-				headerBar.setMiddle(() => "")
-				         .addRight(new Button('ok_action', () => dialog.close()).setType(ButtonType.Primary))
+				let headerBarAttrs: DialogHeaderBarAttrs = {
+					left: [
+						{
+							label: () => "EN/DE",
+							click: () => {
+								visibleLang = visibleLang === "de" ? "en" : "de"
+								sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+								m.redraw()
+							},
+							type: ButtonType.Secondary
+						}
+					],
+					right: [{label: 'ok_action', click: () => dialog.close(), type: ButtonType.Primary}]
+				}
 
 				sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
-				const dialog = Dialog.largeDialog(headerBar, {
+				dialog = Dialog.largeDialog(headerBarAttrs, {
 					view: () => m(".text-break", m.trust(sanitizedTerms))
-				})
-				dialog.show()
+				}).show()
 			})
 	}
 

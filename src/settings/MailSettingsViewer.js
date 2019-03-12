@@ -34,21 +34,22 @@ import {TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {IdentifierListViewer} from "./IdentifierListViewer.js"
+import {IdentifierListViewer} from "./IdentifierListViewer"
 
 assertMainOrNode()
 
 export class MailSettingsViewer implements UpdatableSettingsViewer {
-	_senderName: stream<string>;
-	_signature: stream<string>;
-	_defaultSender: stream<?string>;
-	_defaultUnconfidential: stream<?boolean>;
-	_sendPlaintext: stream<?boolean>;
-	_noAutomaticContacts: stream<?boolean>;
-	_enableMailIndexing: stream<?boolean>;
-	_inboxRulesTableLines: stream<?Array<TableLineAttrs>>;
-	_inboxRulesExpanded: stream<boolean>;
-	_indexStateWatch: stream<any>;
+	_senderName: Stream<string>;
+	_signature: Stream<string>;
+	_defaultSender: Stream<?string>;
+	_defaultUnconfidential: Stream<?boolean>;
+	_sendPlaintext: Stream<?boolean>;
+	_noAutomaticContacts: Stream<?boolean>;
+	_enableMailIndexing: Stream<?boolean>;
+	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>;
+	_inboxRulesExpanded: Stream<boolean>;
+	_indexStateWatch: ?Stream<any>;
+	_identifierListViewer: IdentifierListViewer;
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser())
@@ -59,8 +60,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._noAutomaticContacts = stream(logins.getUserController().props.noAutomaticContacts)
 		this._enableMailIndexing = stream(locator.search.indexState().mailIndexEnabled)
 		this._inboxRulesExpanded = stream(false)
-		this._inboxRulesTableLines = stream(null)
+		this._inboxRulesTableLines = stream([])
 		this._indexStateWatch = null
+		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 
 		this._updateInboxRules(logins.getUserController().props)
 	}
@@ -227,7 +229,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(ExpanderPanelN, {expanded: this._inboxRulesExpanded}, m(TableN, inboxRulesTableAttrs)),
 					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
 				],
-				m(IdentifierListViewer, {user: logins.getUserController().user})
+				m(this._identifierListViewer)
 			])
 		]
 	}
@@ -258,6 +260,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					}
 				}
 			}))
+			m.redraw()
 		})
 	}
 
@@ -284,8 +287,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
 				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this._senderName(groupInfo.name)
+					m.redraw()
 				})
 			}
+
+			this._identifierListViewer.entityEventReceived(update)
 		}
 		m.redraw()
 	}

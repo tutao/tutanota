@@ -231,7 +231,7 @@ export class MailFacade {
 					} else {
 						return null
 					}
-				}, {concurrency:1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+				}, {concurrency: 1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.filter(attachment => (attachment != null))
 				.tap(() => {
 					// only delete the temporary files after all attachments have been uploaded
@@ -312,11 +312,11 @@ export class MailFacade {
 				// otherwise load the key information from the server
 				if (recipientInfo.type === recipientInfoType.external && recipientInfo.contact) {
 					let password = recipientInfo.contact.presharedPassword
-					let preshared = true
+
 					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
 						password = recipientInfo.contact.autoTransmitPassword
-						let preshared = false
 					}
+
 					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
 						notFoundRecipients.push(recipientInfo.mailAddress)
 						return Promise.resolve()

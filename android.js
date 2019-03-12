@@ -14,7 +14,7 @@ options
 	.usage('[options] [test|prod|URL] ')
 	.arguments('<targetUrl>')
 	.option('-b, --buildtype <type>', 'gradle build type', /^(debugDist|debug|release|releaseTest)$/i, 'release')
-	.option('-w --webclient <client>', 'choose web client build', /^(build|dist)$/i, 'dist')
+	.option('-w --webclient <client>', 'choose web client build', /^(make|dist)$/i, 'dist')
 	.parse(process.argv)
 options.host = options.args[0] || 'prod'
 

@@ -8,18 +8,14 @@ const linuxDesktopPath = path.join(app.getPath('home'), `.config/autostart/${app
 const autoStartPath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
-	return promisify(fs.exists)(linuxDesktopPath)
-		.catch(e => {
-			console.error("could not check .desktop files:", e)
-			return false
-		})
+	return promisify(fs.access)(
+		linuxDesktopPath,
+		fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK
+	).then(() => true).catch(() => false)
 }
 
 export function enableAutoLaunch(): Promise<void> {
-	return isAutoLaunchEnabled().then(enabled => {
-		if (enabled) {
-			return
-		}
+	return new Promise(resolve => {
 		const desktopEntry = `[Desktop Entry]
 	Type=Application
 	Version=${app.getVersion()}
@@ -28,16 +24,18 @@ export function enableAutoLaunch(): Promise<void> {
 	Exec=${autoStartPath} -a
 	StartupNotify=false
 	Terminal=false`
-		fs.mkdirsSync(path.dirname(linuxDesktopPath))
+		fs.ensureDirSync(path.dirname(linuxDesktopPath))
 		fs.writeFileSync(linuxDesktopPath, desktopEntry, {encoding: 'utf-8'})
+		resolve()
 	})
 }
 
 export function disableAutoLaunch(): Promise<void> {
-	return isAutoLaunchEnabled().then(enabled => {
-		if (!enabled) {
-			return
-		}
-		return promisify(fs.unlink)(linuxDesktopPath)
-	})
+	return promisify(fs.unlink)(linuxDesktopPath)
+		.catch(e => {
+			// don't throw if file not found
+			if (e.code !== 'ENOENT') {
+				throw e
+			}
+		})
 }

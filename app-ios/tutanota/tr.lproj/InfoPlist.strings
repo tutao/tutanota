@@ -6,5 +6,6 @@ NSContactsUsageDescription = "Alıcının eposta adresine kişilerden eriş.";
 NSRemindersUsageDescription = "Yeni eposta geldiğinde bildirimde bulun.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotoğraflar";
+TutaoNoPermissionTitle = "İzin yok";
 TutaoCancelAction = "İptal et";
 TutaoSettingsAction = "Ayarlar";

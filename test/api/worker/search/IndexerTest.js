@@ -607,7 +607,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_processEntityEvents", async function () {
+	o("_processEntityEvents_1", async function () {
 		const groupId = "group-id"
 		const batchId = "batch-id"
 
@@ -695,7 +695,7 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_processEntityEvents", async function () {
+	o("_processEntityEvents_2", async function () {
 		const doneDeferred = defer()
 		const indexer = mock(new Indexer(restClientMock, (null: any), true, browserDataStub), (mock) => {
 			mock.db.initialized = Promise.resolve()

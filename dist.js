@@ -116,7 +116,7 @@ function buildWebapp() {
 	              .then(() => {
 		              console.log("started tracing", measure())
 		              return Promise.all([
-			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js'),
+			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js + libs/polyfill.js'),
 			              builder.trace('src/app.js + src/system-resolve.js'),
 			              builder.trace('src/gui/theme.js - libs/stream.js'),
 			              builder.trace(getAsyncImports('src/app.js')
@@ -266,7 +266,10 @@ function createHtml(env) {
 }
 
 function createLanguageBundles(bundles) {
-	return Promise.all(glob.sync('src/translations/*.js').map(translation => {
+	const languageFiles = options.stage === 'release'
+		? glob.sync('src/translations/*.js')
+		: ['src/translations/en.js', 'src/translations/de.js', 'src/translations/de_sie.js', 'src/translations/ru.js']
+	return Promise.all(languageFiles.map(translation => {
 		let filename = path.basename(translation)
 		return builder.bundle(translation, {
 			minify: false,

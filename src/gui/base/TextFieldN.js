@@ -5,21 +5,23 @@ import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonN} from "./ButtonN"
 import {Dialog} from "./Dialog"
 import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {repeat} from "../../api/common/utils/StringUtils"
 
 export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
+	preventAutofill?: boolean,
 	type?: TextFieldTypeEnum,
-	helpLabel?: lazy<string>,
-	style?: Object,
-	injectionsLeft?: Function, // only used by the BubbleTextField to display bubbles
-	injectionsRight?: Function,
+	helpLabel?: ?lazy<Children>,
+	alignRight?: boolean,
+	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles
+	injectionsRight?: lazy<Children>,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
 	onblur?: Function,
 	maxWidth?: number,
@@ -96,7 +98,7 @@ export class _TextField {
 					a.injectionsLeft ? a.injectionsLeft() : null,
 					m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 						a.type !== Type.Area ? this._getInputField(a) : this._getTextArea(a),
-						a.injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", a.injectionsRight()) : null
+						a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null
 					])
 				]),
 			]),
@@ -108,7 +110,7 @@ export class _TextField {
 		])
 	}
 
-	_getInputField(a: TextFieldAttrs): Vnode<any> {
+	_getInputField(a: TextFieldAttrs): Children {
 		if (a.disabled) {
 			return m(".text-break.selectable", {
 				style: {
@@ -117,48 +119,81 @@ export class _TextField {
 				}
 			}, a.value())
 		} else {
-			return m("input.input", {
-				type: (a.type === Type.ExternalPassword) ? (this.active ? Type.Text : Type.Password) : a.type,
-				value: a.value(),
-				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-					this._domInput.value = a.value()
-					if (a.type === Type.Password) {
-						vnode.dom.addEventListener('animationstart', e => {
-							if (e.animationName === "onAutoFillStart") {
-								this.animate(true)
-								this.webkitAutofill = true
-							} else if (e.animationName === "onAutoFillCancel") {
-								this.webkitAutofill = false
-							}
-						})
+			// Due to modern browser's 'smart' password managers that try to autofill everything
+			// that remotely resembles a password field, we prepend invisible inputs to password fields
+			// that shouldn't be autofilled.
+			// since the autofill algorithm looks at inputs that come before and after the password field we need
+			// three dummies.
+			//
+			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
+			// This is mostly done to prevent autofill which happens if the field type="password".
+			const autofillGuard = a.preventAutofill ? [
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
+			] : []
+
+			return m('.flex-grow.rel', autofillGuard.concat([
+				m("input.input" + (a.alignRight ? ".right" : ""), {
+					autocomplete: a.preventAutofill ? "off" : "",
+					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
+					oncreate: (vnode) => {
+						this._domInput = vnode.dom
+						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
+						this._domInput.value = a.value()
+						if (a.type === Type.ExternalPassword) {
+							vnode.dom.style.opacity = '0' // Setting it in style block doesn't work somehow
+						} else if (a.type === Type.Password) {
+							vnode.dom.addEventListener('animationstart', e => {
+								if (e.animationName === "onAutoFillStart") {
+									this.animate(true)
+									this.webkitAutofill = true
+								} else if (e.animationName === "onAutoFillCancel") {
+									this.webkitAutofill = false
+								}
+							})
+						}
+					},
+					onfocus: (e) => this.focus(e, a),
+					onblur: e => this.blur(e, a),
+					onkeydown: e => {
+						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
+						let key = {keyCode: e.which, ctrl: e.ctrlKey}
+						return a.keyHandler != null ? a.keyHandler(key) : true
+					},
+					onremove: e => {
+						// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
+						// TODO test if still needed with newer mithril releases
+						this._domInput.onblur = null
+					},
+					onupdate: () => this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1",
+					oninput: () => {
+						if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
+							&& !this.webkitAutofill) {
+							this.animate(true) // animate in case of browser autocompletion (non-webkit)
+						}
+						a.value(this._domInput.value) // update the input on each change
+					},
+					style: {
+						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+						lineHeight: px(inputLineHeight),
 					}
-				},
-				onfocus: (e) => this.focus(e, a),
-				onblur: e => this.blur(e, a),
-				onkeydown: e => {
-					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-					let key = {keyCode: e.which, ctrl: e.ctrlKey}
-					return a.keyHandler != null ? a.keyHandler(key) : true
-				},
-				onremove: e => {
-					// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
-					// TODO test if still needed with newer mithril releases
-					this._domInput.onblur = null
-				},
-				oninput: e => {
-					if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
-						&& !this.webkitAutofill) {
-						this.animate(true) // animate in case of browser autocompletion (non-webkit)
-					}
-					a.value(this._domInput.value) // update the input on each change
-				},
-				style: {
-					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
-					lineHeight: px(inputLineHeight),
-				}
-			})
+				}),
+				this._shouldShowPasswordOverlay(a)
+					? m(".abs", {
+						style: {
+							bottom: 0,
+							left: 0,
+							lineHeight: size.line_height
+						},
+					}, repeat("•", a.value().length))
+					: null
+			]))
 		}
+	}
+
+	_shouldShowPasswordOverlay(a: TextFieldAttrs) {
+		return a.type === Type.ExternalPassword && !this.active
 	}
 
 	_getTextArea(a: TextFieldAttrs): VirtualElement {

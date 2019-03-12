@@ -41,6 +41,7 @@ import {CancelledError} from "./error/CancelledError"
 import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 import {FileNotFoundError} from "./error/FileNotFoundError"
 import {FileOpenError} from "./error/FileOpenError"
+import {SseError} from "./error/SseError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -197,6 +198,7 @@ const ErrorNameToType = {
 	InsufficientStorageError,
 	CryptoError,
 	SessionKeyNotFoundError,
+	SseError,
 	ProgrammingError,
 	RecipientsNotFoundError,
 	RecipientNotResolvedError,
@@ -207,7 +209,9 @@ const ErrorNameToType = {
 	CancelledError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
+	"java.net.ConnectException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,
+	"javax.net.ssl.SSLHandshakeException": ConnectionError,
 	"java.io.EOFException": ConnectionError,
 	"java.net.UnknownHostException": ConnectionError,
 	"java.lang.SecurityException": PermissionError,

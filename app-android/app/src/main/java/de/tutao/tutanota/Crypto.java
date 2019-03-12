@@ -10,6 +10,7 @@ import android.provider.OpenableColumns;
 import android.support.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -205,18 +206,17 @@ public final class Crypto {
         return new SecretKeySpec(key, "AES");
     }
 
-    String aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
+    EncryptedFileInfo aesEncryptFile(final byte[] key, final String fileUrl, final byte[] iv) throws IOException, CryptoError {
         Uri fileUri = Uri.parse(fileUrl);
         FileInfo file = Utils.getFileInfo(context, fileUri);
         File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
         encryptedDir.mkdirs();
         File outputFile = new File(encryptedDir, file.name);
 
-        InputStream in = context.getContentResolver().openInputStream(fileUri);
+        CountingInputStream in = new CountingInputStream(context.getContentResolver().openInputStream(fileUri));
         OutputStream out = new FileOutputStream(outputFile);
         aesEncrypt(key, in, out, iv, true);
-
-        return Utils.fileToUri(outputFile);
+        return new EncryptedFileInfo(Utils.fileToUri(outputFile), in.getByteCount());
     }
 
     public void aesEncrypt(final byte[] key, InputStream in, OutputStream out, final byte[] iv, boolean useMac) throws CryptoError, IOException {
@@ -345,6 +345,31 @@ public final class Crypto {
             return hmac.doFinal(data);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public class EncryptedFileInfo {
+        private String uri;
+        private long unencSize;
+
+        public EncryptedFileInfo(String uri, long unencSize) {
+            this.unencSize = unencSize;
+            this.uri = uri;
+        }
+
+        public String getUri() {
+            return this.uri;
+        }
+
+        public long getUnencSize() {
+            return this.unencSize;
+        }
+
+        public JSONObject toJSON() throws JSONException {
+            JSONObject json = new JSONObject();
+            json.put("uri", this.uri);
+            json.put("unencSize", this.unencSize);
+            return json;
         }
     }
 }

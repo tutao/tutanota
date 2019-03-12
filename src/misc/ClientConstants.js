@@ -4,6 +4,7 @@ export const BrowserType = Object.freeze({
 	CHROME: "Chrome",
 	FIREFOX: "Firefox",
 	PALEMOON: "PaleMoon",
+	WATERFOX: "Waterfox",
 	IE: "Internet Explorer",
 	EDGE: "Edge",
 	SAFARI: "Safari",
@@ -26,7 +27,13 @@ export const DeviceType = Object.freeze({
 })
 export type DeviceTypeEnum = $Values<typeof DeviceType>;
 
+/**
+ * Some information about the environment which might be useful to the worker part
+ */
 export type BrowserData = {
-	browserType: BrowserTypeEnum,
-	browserVersion: number
+	/**
+	 * If true then should work around browsers not scheduling microtasks correctly (problems with IndexedDB).
+	 * {@see PromiseUtils.js}
+	 * */
+	needsMicrotaskHack: boolean
 }

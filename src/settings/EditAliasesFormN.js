@@ -21,6 +21,7 @@ import {TableN} from "../gui/base/TableN"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {attachDropdown} from "../gui/base/DropdownN"
+import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -126,22 +127,26 @@ class _EditAliasesForm {
 			}
 		} else {
 			getAvailableDomains().then(domains => {
-				let form = new SelectMailAddressForm(domains)
-				let addEmailAliasOkAction = (dialog) => {
-					let p = worker.addMailAlias(groupInfo.group, form.getCleanMailAddress())
-					              .catch(InvalidDataError, () => {
-						              Dialog.error("mailAddressNA_msg")
-					              })
-					              .catch(LimitReachedError, () => {
-						              Dialog.error("adminMaxNbrOfAliasesReached_msg")
-					              })
-					showProgressDialog("pleaseWait_msg", p)
+				const form = new SelectMailAddressForm(domains)
+				const addEmailAliasOkAction = (dialog) => {
+					const alias = form.cleanMailAddress()
+					showProgressDialog("pleaseWait_msg", worker.addMailAlias(groupInfo.group, alias))
+						.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg"))
+						.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg"))
 					dialog.close()
 				}
 
 				Dialog.showActionDialog({
 					title: lang.get("addEmailAlias_label"),
-					child: form,
+					child: {
+						view: () => [
+							m(form),
+							m(ExpanderPanelN,
+								{expanded: form.domain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))},
+								m(".pt-m", lang.get("permanentAliasWarning_msg"))
+							)
+						]
+					},
 					validator: () => form.getErrorMessageId(),
 					okAction: addEmailAliasOkAction
 				})

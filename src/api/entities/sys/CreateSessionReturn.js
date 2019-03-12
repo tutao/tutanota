@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "42"
+	"version": "43"
 }
 
 export function createCreateSessionReturn(): CreateSessionReturn {

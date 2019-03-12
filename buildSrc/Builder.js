@@ -4,7 +4,6 @@ const BuildCache = require('./BuildCache.js')
 
 const path = require("path")
 const fs = Promise.Promise.promisifyAll(require("fs-extra"))
-const chokidar = require('chokidar')
 const babel = Promise.promisifyAll(require("babel-core"))
 
 const srcDir = "src"
@@ -39,6 +38,7 @@ class Builder {
 	 */
 	build(srcDirs, watch) {
 		return new Promise((resolve, reject) => {
+			const chokidar = require('chokidar')
 			let watcher = chokidar.watch(srcDirs, {ignoreInitial: true, followSymlinks: true, cwd: this.baseDir})
 			                      .on('change', (file) => this._translateIfChanged(file).then(() => watch()))
 			                      .on('add', (file) => this._translateIfChanged(file).then(() => watch()))

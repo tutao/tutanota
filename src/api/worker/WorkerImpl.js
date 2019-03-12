@@ -15,7 +15,7 @@ import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
-import type {BrowserData} from "../../misc/ClientDetector"
+import type {BrowserData} from "../../misc/ClientConstants"
 
 assertWorkerOrNode()
 
@@ -71,9 +71,6 @@ export class WorkerImpl {
 			},
 			sendExternalPasswordSms: (message: Request) => {
 				return locator.login.sendExternalPasswordSms.apply(locator.login, message.args)
-			},
-			retrieveExternalSmsPassword: (message: Request) => {
-				return locator.login.retrieveExternalSmsPassword.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
 				return resetLocator()
@@ -321,7 +318,7 @@ export class WorkerImpl {
 	}
 
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws state: ", state)
+		console.log("ws displayed state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
 	}
 

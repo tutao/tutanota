@@ -56,7 +56,6 @@ type WorkerRequestType = 'setup'
 	| 'createExternalSession'
 	| 'loadExternalPasswordChannels'
 	| 'sendExternalPasswordSms'
-	| 'retrieveExternalSmsPassword'
 	| 'reset'
 	| 'resumeSession'
 	| 'testEcho'
@@ -178,6 +177,9 @@ type JsRequestType = 'createMailEditor'
 	| 'openFindInPage'
 	| 'reportError'
 
+type WebContentsMessage
+	= 'setup-context-menu'
+	| 'open-context-menu'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>

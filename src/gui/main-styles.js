@@ -226,6 +226,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
+		'.min-width-0': {'min-width': 0},
 		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.break-word-links a': {'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
@@ -588,7 +589,8 @@ styles.registerStyle('main', () => {
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),
-			'margin-left': px(0)
+			'margin-left': px(0),
+			'margin-right': px(0)
 		},
 
 		'.MsoNormal': {margin: 0},
@@ -816,7 +818,7 @@ styles.registerStyle('main', () => {
 			margin: 0, // for safari browser
 			background: 'transparent',
 			outline: 'none',
-			width: '100%',
+			width: "100%",
 			overflow: 'hidden',
 			color: theme.content_fg,
 		},

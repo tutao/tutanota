@@ -117,15 +117,6 @@ export default class DesktopUtils {
 				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
 		}
 	}
-
-	/**
-	 * run AppleScript and return stdout as string
-	 * @param script
-	 * @returns {never|Promise<any>|Promise<void>|Promise<string>|Promise<Buffer | string>|*}
-	 */
-	static executeAppleScript(script: string): Promise<{stdout: string, stderr: string}> {
-		return promisify(exec)(`osascript -e '${script}'`, {encoding: 'utf-8'})
-	}
 }
 
 /**
@@ -135,7 +126,8 @@ export default class DesktopUtils {
 function checkForAdminStatus(): Promise<boolean> {
 	if (process.platform === 'win32') {
 		return promisify(exec)('NET SESSION')
-			.then((ret) => ret.stderr.length === 0)
+			.then(() => true)
+			.catch(() => false)
 	} else {
 		return Promise.reject(new Error(`No NET SESSION on ${process.platform}`))
 	}

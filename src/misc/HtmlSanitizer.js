@@ -6,6 +6,7 @@ import {ReplacementImage} from "../gui/base/icons/Icons"
 // '#' character is reserved in URL and FF won't display SVG otherwise
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
+const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
 
 class HtmlSanitizer {
 
@@ -90,7 +91,7 @@ class HtmlSanitizer {
 
 	_preventExternalImageLoading(htmlNode) {
 		if (htmlNode.attributes) {
-			this._replaceSrcAttributes(htmlNode);
+			this._replaceAttributeValue(htmlNode);
 		}
 		if (htmlNode.style) {
 			if (htmlNode.style.backgroundImage) {
@@ -114,14 +115,16 @@ class HtmlSanitizer {
 	}
 
 
-	_replaceSrcAttributes(htmlNode) {
-		let imageSrcAttr = htmlNode.attributes.getNamedItem('src') || htmlNode.attributes.getNamedItem('poster');
-		if (imageSrcAttr) {
-			this._externalContent.push(imageSrcAttr.value)
-			imageSrcAttr.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-			htmlNode.attributes.setNamedItem(imageSrcAttr);
-			htmlNode.style["max-width"] = "100px"
-		}
+	_replaceAttributeValue(htmlNode) {
+		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
+			let attribute = htmlNode.attributes.getNamedItem(attrName)
+			if (attribute) {
+				this._externalContent.push(attribute.value)
+				attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+				htmlNode.attributes.setNamedItem(attribute)
+				htmlNode.style["max-width"] = "100px"
+			}
+		})
 	}
 
 	_removeStyleImage(htmlNode, styleAttributeName: string) {
