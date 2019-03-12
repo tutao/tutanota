@@ -18,8 +18,7 @@ export const Type = {
 	Text: "text",
 	Email: "email",
 	Password: "password",
-	Area: "area",
-	ExternalPassword: "externalpassword",
+	Area: "area"
 }
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
@@ -135,9 +134,7 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			const typeAttr = (this.type === Type.Password)
-				? Type.Password
-				: this.type
+			const typeAttr = this.type
 			// Due to modern browser's 'smart' password managers that try to autofill everything
 			// that remotely resembles a password field, we prepend invisible inputs to password fields
 			// that shouldn't be autofilled.

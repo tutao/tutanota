@@ -128,9 +128,9 @@ export class _TextField {
 			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
 			// This is mostly done to prevent autofill which happens if the field type="password".
 			const autofillGuard = a.preventAutofill ? [
-				m("input", {style: {display: 'none'}, type: Type.Text}),
-				m("input", {style: {display: 'none'}, type: Type.Password}),
-				m("input", {style: {display: 'none'}, type: Type.Text})
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
 			] : []
 
 			return m('.flex-grow.rel', autofillGuard.concat([

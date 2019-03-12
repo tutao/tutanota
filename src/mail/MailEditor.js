@@ -1,7 +1,9 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {TextField, Type} from "../gui/base/TextField"
+import {TextField} from "../gui/base/TextField"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
@@ -74,8 +76,6 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
