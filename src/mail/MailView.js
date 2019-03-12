@@ -230,7 +230,7 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this._newMail().catch(PermissionError, noOp ): any),
+				exec: () => (this._newMail().catch(PermissionError, noOp): any),
 				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
 					&& !logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action"
@@ -402,6 +402,8 @@ export class MailView implements CurrentView {
 					history.pushState("", document.title, window.location.pathname) // remove # from url
 				})
 			}
+		} else if (args.action === 'supportMail' && logins.isGlobalAdminUserLoggedIn()) {
+			MailEditor.writeSupportMail()
 		}
 
 		if (isApp()) {
