@@ -228,6 +228,28 @@ export class MailView implements CurrentView {
 				help: "addNext_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this.mailList.list.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
+				key: Keys.K,
+				shift: true,
+				exec: () => this.mailList.list.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
+				key: Keys.J,
+				exec: () => this.mailList.list.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
+				key: Keys.J,
+				shift: true,
+				exec: () => this.mailList.list.selectNext(true),
+				help: "addNext_action"
+			},
+			{
 				key: Keys.N,
 				exec: () => (this._newMail().catch(PermissionError, noOp): any),
 				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
