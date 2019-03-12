@@ -375,8 +375,17 @@ class ClientDetector {
 		return client.browser === BrowserType.CHROME
 	}
 
+	needsMicrotaskHack(): boolean {
+		return this.isIos()
+			|| this.browser === BrowserType.SAFARI
+			|| this.browser === BrowserType.PALEMOON
+			|| this.browser === BrowserType.WATERFOX
+			|| this.browser === BrowserType.FIREFOX && this.browserVersion < 60
+			|| this.browser === BrowserType.CHROME && this.browserVersion < 59
+	}
+
 	browserData(): BrowserData {
-		return {browserType: this.browser, browserVersion: this.browserVersion}
+		return {needsMicrotaskHack: this.needsMicrotaskHack()}
 	}
 }
 
