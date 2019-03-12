@@ -935,7 +935,9 @@ const translation = {
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal."
+		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal.",
+		"storageDeletion_msg": "E-Mails in diesem Ordner werden nach 30 Tagen automatisch gelöscht.",
+		"clearFolder_action": "Ordner leeren"
 	}
 }
 export default translation

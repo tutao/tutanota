@@ -931,7 +931,9 @@ const translation = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later."
+		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later.",
+		"storageDeletion_msg": "Emails in this folder will automatically be deleted after 30 days.",
+		"clearFolder_action": "Clear folder"
 	}
 }
 export default translation
