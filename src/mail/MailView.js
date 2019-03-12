@@ -39,7 +39,6 @@ import {
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	isFinalDelete,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -334,15 +333,6 @@ export class MailView implements CurrentView {
 
 	createMailBoxExpanderButton(mailGroupId: Id): ExpanderButton {
 		let folderMoreButton = this.createFolderMoreButton(mailGroupId)
-		let purgeAllButton = new Button('delete_action', () => {
-			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.selectedFolder)}))
-			      .then(confirmed => {
-				      if (confirmed) {
-					      this._finallyDeleteAllMailsInSelectedFolder()
-				      }
-			      })
-		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
-
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
 			view: () => {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
@@ -353,9 +343,7 @@ export class MailView implements CurrentView {
 						                                   return m(MailFolderComponent, {
 							                                   count: count,
 							                                   button,
-							                                   rightButton: button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
-								                                   ? purgeAllButton
-								                                   : null,
+							                                   rightButton: null,
 							                                   key: id
 						                                   })
 					                                   })
@@ -613,7 +601,7 @@ export class MailView implements CurrentView {
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		return showDeleteConfirmationDialog(mails).then((confirmed) => {
-			if (confirmed == true) {
+			if (confirmed) {
 				mailModel.deleteMails(mails)
 			} else {
 				return Promise.resolve()
