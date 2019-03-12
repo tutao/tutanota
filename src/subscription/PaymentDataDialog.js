@@ -67,7 +67,7 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country))
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false))
 					.then(success => {
 						if (success) {
 							dialog.close()

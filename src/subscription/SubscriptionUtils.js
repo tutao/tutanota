@@ -16,6 +16,14 @@ export const SubscriptionType = Object.freeze({
 })
 export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
 
+export const UpgradeType = {
+	Signup: 'Signup', // during signup
+	Initial: 'Initial', // when logged in into Free account
+	Switch: 'Switch' // switching in paid account
+}
+export type UpgradeTypeEnum = $Values<typeof UpgradeType>;
+
+
 export const PaymentIntervalItems: SegmentControlItem<number>[] = [
 	{name: lang.get("pricing.yearly_label"), value: 12},
 	{name: lang.get("pricing.monthly_label"), value: 1}
