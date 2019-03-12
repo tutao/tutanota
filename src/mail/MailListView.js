@@ -7,7 +7,7 @@ import {sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {load, loadRange} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
+import {getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
@@ -203,7 +203,7 @@ export class MailRow {
 		let iconText = "";
 		if (this._showFolderIcon) {
 			let folder = mailModel.getMailFolder(mail._id[0])
-			iconText += folder ? this._getFolderIcon(folder.folderType) : ""
+			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
 		}
 		iconText += mail._errors ? FontIcons.Warning : "";
 		switch (mail.replyType) {

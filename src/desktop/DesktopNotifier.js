@@ -6,10 +6,10 @@ import type {ApplicationWindow} from "./ApplicationWindow"
 import {neverNull} from "../api/common/utils/Utils"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
-export const NotificationResult = {
+export const NotificationResult = Object.freeze({
 	Click: 'click',
 	Close: 'close'
-}
+})
 
 export class DesktopNotifier {
 	_tray: DesktopTray;

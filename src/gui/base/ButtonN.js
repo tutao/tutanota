@@ -12,7 +12,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
-export const ButtonType = {
+export const ButtonType = Object.freeze({
 	Action: 'action',
 	ActionLarge: 'action-large', // action button with large icon
 	Primary: 'primary',
@@ -23,14 +23,14 @@ export const ButtonType = {
 	Bubble: 'bubble',
 	TextBubble: 'textBubble',
 	Toggle: 'toggle'
-}
+})
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = {
+export const ButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 function getColors(buttonColors: ?ButtonColorEnum) {

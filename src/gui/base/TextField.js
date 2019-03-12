@@ -14,12 +14,13 @@ const FALSE_CLOSURE = () => {
 	return false
 }
 
-export const Type = {
+export const Type = Object.freeze({
 	Text: "text",
 	Email: "email",
 	Password: "password",
-	Area: "area"
-}
+	Area: "area",
+})
+
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
 

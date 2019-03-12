@@ -29,13 +29,13 @@ export type TextFieldAttrs = {
 	disabled?: boolean,
 }
 
-export const Type = {
+export const Type = Object.freeze({
 	Text: "text",
 	Email: "email",
 	Password: "password",
 	Area: "area",
 	ExternalPassword: "externalpassword",
-}
+})
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
 export const inputLineHeight = size.font_size_base + 8

@@ -166,11 +166,11 @@ class _NavButton {
 
 export const NavButtonN: Class<MComponent<NavButtonAttrs>> = _NavButton
 
-export const NavButtonColors = {
+export const NavButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 type NavButtonColorEnum = $Values<typeof NavButtonColors>;
 
 function getColors(buttonColors: ?NavButtonColorEnum) {
