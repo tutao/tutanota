@@ -38,7 +38,7 @@ import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscr
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
+import {formatPrice} from "../subscription/SubscriptionUtils"
 import {show} from "../gui/base/NotificationOverlay"
 
 assertMainOrNode()

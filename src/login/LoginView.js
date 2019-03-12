@@ -303,6 +303,8 @@ export class LoginView {
 
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
+		} else if (args.action) {
+			this._requestedPath = this.targetPath + `?action=${args.action}`
 		} else {
 			this._requestedPath = this.targetPath
 		}

@@ -55,6 +55,7 @@ import {px, size} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
+import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
@@ -73,6 +74,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import {client} from "../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -960,6 +962,35 @@ export class MailEditor {
 		if (bubbles) {
 			remove(bubbles, bubble)
 		}
+	}
+
+	static writeSupportMail() {
+		mailModel.init().then(() => {
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			let signature = "<br><br>--"
+			signature += "<br>Client: " + client.getIdentifier()
+			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>User agent:<br>" + navigator.userAgent
+			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+				editor.show()
+			})
+		})
+
+	}
+
+	static writeInviteMail() {
+		mailModel.init().then(() => {
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			const username = logins.getUserController().userGroupInfo.name;
+			const body = lang.get("invitationMailBody_msg", {
+				'{registrationLink}': "https://mail.tutanota.com/signup",
+				'{username}': username,
+				'{githubLink}': "https://github.com/tutao/tutanota"
+			})
+			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+				editor.show()
+			})
+		})
 	}
 }
 
