@@ -690,6 +690,10 @@ export class MailEditor {
 		return Promise
 			.resolve()
 			.then(() => {
+				this.toRecipients.createBubbles()
+				this.ccRecipients.createBubbles()
+				this.bccRecipients.createBubbles()
+
 				if (this.toRecipients.textField.value().trim() !== "" ||
 					this.ccRecipients.textField.value().trim() !== "" ||
 					this.bccRecipients.textField.value().trim() !== "") {
@@ -710,8 +714,10 @@ export class MailEditor {
 			.then(confirmed => {
 				if (confirmed) {
 					let send = this
-						.saveDraft(true, false)
-						.then(() => this._waitForResolvedRecipients())
+						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
+						.then((recipients) =>
+							this.saveDraft(true, false)
+							    .return(recipients))
 						.then(resolvedRecipients => {
 							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
 							if (this._confidentialButtonState && externalRecipients.length > 0
@@ -852,7 +858,7 @@ export class MailEditor {
 	/**
 	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
 	 */
-	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
+	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
 		this._mailChanged = true
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
