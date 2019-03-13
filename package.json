@@ -1,7 +1,7 @@
 {
 	"name": "tutanota",
 	"version": "3.48.1",
-	"license": "GNU General Public License v3.0",
+	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tutao/tutanota.git"
