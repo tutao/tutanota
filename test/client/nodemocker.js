@@ -1,5 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
+import chalk from 'chalk'
 import mockery from 'mockery'
 import path from 'path'
 import {neverNull} from "../../src/api/common/utils/Utils"
@@ -8,7 +9,7 @@ let exit = {value: undefined}
 
 function enable() {
 	exit = setProperty(process, 'exit', o.spy(code => {
-		console.log("mock exit with code", code)
+		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
 	}))
 	mockery.enable({useCleanCache: true})
 	mockery.registerAllowables([
@@ -71,10 +72,19 @@ class MockBuilder<T> {
 		this._old = old
 	}
 
+	/**
+	 *
+	 * @param obj the object whose properties will replace properties on this mockbuilders output
+	 * @returns {MockBuilder<*>} a new mockbuilder with the combined output
+	 */
 	with<B>(obj: B): MockBuilder<T> {
 		return mock(this._old, Object.assign(this._mock, obj))
 	}
 
+	/**
+	 * register & get the actual mock module object
+	 * @returns {T} the mock with recursively o.spy()'d functions
+	 */
 	get(): T {
 		const copy = spyify(this._mock)
 		mockery.deregisterMock(this._old)

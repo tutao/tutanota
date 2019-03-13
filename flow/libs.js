@@ -68,6 +68,57 @@ declare module 'mockery' {
 	declare export default any;
 }
 
+declare module 'chalk' {
+
+	declare interface Chalk {
+		(...args: Array<string>): string,
+
+		red: Chalk,
+		green: Chalk,
+		blue: Chalk,
+		black: Chalk,
+		yellow: Chalk,
+		magenta: Chalk,
+		gray: Chalk,
+		white: Chalk,
+		cyan: Chalk,
+
+		redBright: Chalk,
+		greenBright: Chalk,
+		yellowBright: Chalk,
+		blueBright: Chalk,
+		magentaBright: Chalk,
+		cyanBright: Chalk,
+		whiteBright: Chalk,
+
+
+		bgBlack: Chalk,
+		bgRed: Chalk,
+		bgGreen: Chalk,
+		bgYellow: Chalk,
+		bgBlue: Chalk,
+		bgMagenta: Chalk,
+		bgCyan: Chalk,
+		bgWhite: Chalk,
+		bgBlackBright: Chalk,
+		bgRedBright: Chalk,
+		bgGreenBright: Chalk,
+		bgYellowBright: Chalk,
+		bgBlueBright: Chalk,
+		bgMagentaBright: Chalk,
+		bgCyanBright: Chalk,
+		bgWhiteBright: Chalk,
+
+		reset: Chalk,
+		bold: Chalk,
+		dim: Chalk,
+		underline: Chalk,
+	}
+
+	//declare var chalk: Chalk;
+	declare export default Chalk
+}
+
 declare module 'faker' {
 	declare var faker: any;
 }
