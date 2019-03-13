@@ -49,11 +49,7 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (!conf.getDesktopConfig('runAsTrayApp') && wm.getAll().length > 0) {
-				wm.getAll().forEach(w => w.show())
-			} else {
-				wm.newWindow(true)
-			}
+			wm.getAll().forEach(w => w.show())
 			handleArgv(args)
 		})
 	}
