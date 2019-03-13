@@ -230,7 +230,9 @@ export class EventBusClient {
 				|| this._socket.readyState === WebSocket.CLOSING)
 			&& this._state !== EventBusState.Terminated
 			&& this._login.isLoggedIn()) {
-			this.connect(true);
+			// Don't try to connect right away because connection may not be actually there
+			// see #1165
+			setTimeout(() => this.connect(true), 100)
 		}
 	}
 
