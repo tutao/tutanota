@@ -62,13 +62,21 @@ export class DesktopNotifier {
 		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
 			this._notificationCloseFunctions[id]()
 		}
-		this._notificationCloseFunctions[id] = this._makeNotification({
-			title: title,
-			body: message,
-			icon: DesktopTray.getIcon(),
-		}, onClick)
 
-		this._tray.update()
+		const showIt = () => {
+			this._notificationCloseFunctions[id] = this._makeNotification({
+				title: title,
+				body: message,
+				icon: DesktopTray.getIcon(),
+			}, onClick)
+			this._tray.update()
+		}
+
+		if (this._canShow) {
+			showIt()
+		} else {
+			this.pendingNotifications.push(showIt)
+		}
 	}
 
 	resolveGroupedNotification(id: ?string) {
