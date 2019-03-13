@@ -979,6 +979,9 @@ export class MailEditor {
 
 	static writeSupportMail() {
 		mailModel.init().then(() => {
+			if(!logins.getUserController().isPremiumAccount()) {
+				return
+			}
 			const editor = new MailEditor(mailModel.getUserMailboxDetails())
 			let signature = "<br><br>--"
 			signature += "<br>Client: " + client.getIdentifier()
