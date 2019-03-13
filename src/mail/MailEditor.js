@@ -78,6 +78,8 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
+import {formatPrice} from "../subscription/SubscriptionUtils"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -980,6 +982,13 @@ export class MailEditor {
 	static writeSupportMail() {
 		mailModel.init().then(() => {
 			if(!logins.getUserController().isPremiumAccount()) {
+				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+				const title = lang.get("upgradeReminderTitle_msg")
+				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
+					if (confirm) {
+						showUpgradeWizard()
+					}
+				})
 				return
 			}
 			const editor = new MailEditor(mailModel.getUserMailboxDetails())
