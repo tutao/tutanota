@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-03-01T09:48:04Z",
+	"updated_at": "2019-03-13T08:12:00Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +125,7 @@ const translation = {
 		"chooseNumber_msg": "Bitte klicke auf eine deiner Telefonnummern, um das Tutanota-Passwort per SMS zu erhalten.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Bitte auswählen ...",
+		"clearFolder_action": "Ordner leeren",
 		"clickNumber_msg": "Bitte klicke auf deine Telefonnummer, um das Tutanota-Passwort per SMS zu erhalten.",
 		"clickToUpdate_msg": "Hier klicken um sie sofort zu installieren.",
 		"client_label": "Client",
@@ -291,6 +292,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "Dieser technische Absender ist eine andere E-Mail-Adresse als die in 'Von' angegebene. Da 'Von' gefälscht werden kann, wird als Information auch der technische Absender angezeigt.",
 		"errorAtLine_msg": "Fehler in Zeile {index}: {error}",
+		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal.",
 		"errorReport_label": "Oh nein!",
 		"expiredLink_msg": "Leider ist dieser Link nicht mehr gültig. Du hast eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link von diesem Absender bekommen. Vorhergehende Links werden aus Sicherheitsgründen deaktiviert.",
 		"exportSelectedAsVCard_action": "Ausgewählte Kontakte als vCard exportieren",
@@ -824,6 +826,7 @@ const translation = {
 		"storageCapacityUsed_label": "Verwendeter Speicher",
 		"storageCapacity_label": "Speicherkapazität",
 		"storageDeletionAnnouncement_msg": "Info: E-Mails im Papierkorb oder Spam-Ordner werden automatisch nach 30 Tagen gelöscht.",
+		"storageDeletion_msg": "E-Mails in diesem Ordner werden nach 30 Tagen automatisch gelöscht.",
 		"storePassword_action": "Passwort speichern",
 		"subject_label": "Betreff",
 		"subscriptionCancelledMessage_msg": "Dein Abonnement wurde storniert. Bitte informiere den Support, wenn Du das Abonnement wieder aktivieren möchtest.",
@@ -904,7 +907,7 @@ const translation = {
 		"userEmailSignature_label": "E-Mail-Signatur",
 		"userSettings_label": "Benutzer-Einstellungen",
 		"validInputFormat_msg": "Format ok.",
-		"waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um Massenregistrierungen zu verhindern. Das Tutanota-Team wird deinen Account innerhalb von 48 Stunden freigeben. Vielen Dank für deine Geduld!",
+		"waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um eine anonyme Registrierung zu ermöglichen und gleichzeitig Massenregistrierungen zu verhindern. Dein Account wird nach 48 Stunden automatisch freigeschaltet. Vielen Dank für deine Geduld!",
 		"wantToSendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Möchtest du einen Fehlerbericht senden? Du kannst eine Nachricht hinzufügen, um uns zu helfen, diesen Fehler zu beheben.",
 		"welcomeMailBody1_msg": "Herzlich willkommen in deiner sicheren und werbefreien Tutanota-Mailbox, geschützt mit starker Verschlüsselung. Selbst wir, die Entwickler, haben keinen Zugriff auf deine Daten. Du allein kannst deine E-Mails und deine Kontakte mit deinem Passwort entschlüsseln. Bitte verlier dein Passwort nicht, da wir es nicht zurücksetzen können.",
 		"welcomeMailBody2_msg": "Du kannst E-Mails an jede E-Mail-Adresse weltweit senden. Wenn deine Freunde ebenfalls Tutanota nutzen, werden alle E-Mails automatisch Ende-zu-Ende verschlüsselt. Außerdem kannst du E-Mails an andere E-Mail-Provider verschlüsseln. Tutanota verschlüsselt Betreff, Inhalt und Anhänge automatisch. Selbst E-Mails, die du unverschlüsselt erhältst, werden auf unseren Servern verschlüsselt. ",
@@ -934,10 +937,7 @@ const translation = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal.",
-		"storageDeletion_msg": "E-Mails in diesem Ordner werden nach 30 Tagen automatisch gelöscht.",
-		"clearFolder_action": "Ordner leeren"
+		"yourMessage_label": "Deine Nachricht"
 	}
 }
 export default translation

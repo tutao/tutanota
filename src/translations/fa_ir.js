@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2019-03-01T09:51:54Z",
+	"updated_at": "2019-03-10T00:34:20Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "لطفا با انتخاب جعبه بررسی، قوانین  حفظ حریم خصوصی را بپذیرید.",
@@ -668,6 +668,7 @@ const translation = {
 		"pricing.yearly_label": "سالانه",
 		"print_action": "چاپ",
 		"privacyLink_label": "سیاست حفظ حریم خصوصی",
+		"privacyPolicyUrl_label": "پیوند به قوانین حفظ حریم خصوصی",
 		"privateKey_label": "کلید خصوصی",
 		"private_label": "به طور خصوصی",
 		"progressDeleting_msg": "درحال حذف شدن است...",

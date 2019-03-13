@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2019-02-28T12:00:31Z",
+	"updated_at": "2019-03-01T12:06:15Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -306,6 +306,7 @@ const translation = {
 		"languageKorean_label": "Korea",
 		"languageLatvian_label": "Läti",
 		"languageLithuanian_label": "leedu",
+		"languageMalay_label": "Malai",
 		"languageNorwegian_label": "Norra",
 		"languagePersian_label": "Pärsia",
 		"languagePolish_label": "poola",

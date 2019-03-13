@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-03-01T09:47:34Z",
+	"updated_at": "2019-03-13T08:11:34Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
@@ -121,6 +121,7 @@ const translation = {
 		"chooseNumber_msg": "Please click on one of your phone numbers below to receive your Tutanota password as text message.",
 		"choosePhotos_action": "Photos",
 		"choose_label": "Choose ...",
+		"clearFolder_action": "Clear folder",
 		"clickNumber_msg": "Please click on your phone number below to receive your Tutanota password as text message.",
 		"clickToUpdate_msg": "Click here if you want to apply it now, or let us auto install on quit.",
 		"client_label": "Client",
@@ -248,7 +249,7 @@ const translation = {
 		"downgradeToPremium_msg": "Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without custom domain login and themes.",
 		"download_action": "Download",
 		"draft_action": "Drafts",
-		"duplicatedMailAddressInUserList_msg": "The email address is included more then once in your input data.",
+		"duplicatedMailAddressInUserList_msg": "The email address is included more than once in your input data.",
 		"duplicatesNotification_msg": "{1} duplicate contacts were found and will be deleted.",
 		"editContactForm_label": "Edit contact form",
 		"editContact_label": "Edit contact",
@@ -287,6 +288,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
 		"errorAtLine_msg": "Error at line {index}: {error}",
+		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later.",
 		"errorReport_label": "Oh no!",
 		"expiredLink_msg": "Sorry, this link is not valid anymore. You should have received a new notification email with the currently valid link. Previous links are deactivated for security reasons.",
 		"exportSelectedAsVCard_action": "Export selected contacts as vCard",
@@ -820,6 +822,7 @@ const translation = {
 		"storageCapacityUsed_label": "Used storage",
 		"storageCapacity_label": "Storage capacity",
 		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
+		"storageDeletion_msg": "Emails in this folder will automatically be deleted after 30 days.",
 		"storePassword_action": "Store password",
 		"subject_label": "Subject",
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
@@ -900,7 +903,7 @@ const translation = {
 		"userEmailSignature_label": "Email signature",
 		"userSettings_label": "User settings",
 		"validInputFormat_msg": "Format ok.",
-		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval to prevent mass registrations. The Tutanota team will approve your account within 48 hours. Thanks for your patience!",
+		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will be automatically approved after 48 hours. Thank you for your patience!",
 		"wantToSendReport_msg": "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
 		"welcomeMailBody1_msg": "Welcome to your secure & ad-free Tutanota  mailbox, protected with strong encryption. Even we, the developers, do not have the ability to access it. You are the only one who can decrypt your emails and contacts with your password. Please make sure you don't lose your password as it cannot be reset.",
 		"welcomeMailBody2_msg": "You can send emails to any email address in the world. If your friends also use Tutanota, all your emails are automatically end-to-end encrypted. You can also encrypt emails to other email services. Tutanota encrypts subject, content and attachments automatically. Even emails that you send or receive unencrypted are stored encrypted on our servers.",
@@ -930,10 +933,7 @@ const translation = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later.",
-		"storageDeletion_msg": "Emails in this folder will automatically be deleted after 30 days.",
-		"clearFolder_action": "Clear folder"
+		"yourMessage_label": "Your message"
 	}
 }
 export default translation

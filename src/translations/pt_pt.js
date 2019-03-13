@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2019-03-01T09:50:14Z",
+	"updated_at": "2019-03-07T10:38:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -630,6 +630,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "O transação de pagamento falhou. Por favor, tente novamente mais tarde ou atualize os seus dados de pagamento.",
 		"payPalRedirect_msg": "Vai ser redirecionado para o site do PayPal.",
 		"periodOfTime_label": "Período de tempo",
+		"permanentAliasWarning_msg": "Este é um domínio pseudónimo do Tutanota que, em contraste com os domínios pseudónimo personalizados, pode apenas ser desativado, não eliminado. Contará permanentemente para o seu limite de pseudónimos.",
 		"phone_label": "Telefone",
 		"photoLibraryUsageDescription_msg": "Adicione uma imagem da sua biblioteca como anexo.",
 		"plaintext_action": "Texto simples",
@@ -677,6 +678,7 @@ const translation = {
 		"pricing.yearly_label": "Anual",
 		"print_action": "Imprimir",
 		"privacyLink_label": "Política de privacidade",
+		"privacyPolicyUrl_label": "Ligação para a política de privacidade",
 		"privateKeyInfo_msg": "Por favor seleccione o ficheiro com a chave privada do certificado no formato PEM (codificado em base64).",
 		"privateKey_label": "Chave privada",
 		"private_label": "Privado",
@@ -902,7 +904,7 @@ const translation = {
 		"userEmailSignature_label": "Assinatura de email",
 		"userSettings_label": "Definições do utilizador",
 		"validInputFormat_msg": "Formato ok.",
-		"waitingForApproval_msg": "Desculpe, mas de momento não lhe é permitido enviar ou receber emails porque a sua conta foi marcada para aprovação para evitar abusos, como correio não solicitado. A equipa Tutanota aprovará a sua conta em 48 horas.",
+		"waitingForApproval_msg": "Desculpe, de momento não lhe é permitido enviar ou receber correio electrónico porque a sua conta foi marcada para aprovação. Este processo é necessário para garantir um registo que respeita a privacidade e previna o registo em massa ao mesmo tempo. A sua conta será autenticamente aprovada após 48h. Obrigado pela sua paciência!",
 		"wantToSendReport_msg": "Algo inesperado correu mal. Deseja enviar um relatório de erro? Pode adicionar uma mensagem para nos ajudar a corrigir este erro.",
 		"welcomeMailBody1_msg": "Bem-vindo(a) à sua caixa de correio segura e sem anúncios! A sua caixa de correio Tutanota está protegida por forte encriptação. Nem nós, os desenvolvedores, conseguimos ter acesso. Só você pode desencriptar os seus emails e contactos com a sua palavra-passe. Por favor não a perca, pois não poderemos repo-la.",
 		"welcomeMailBody2_msg": "Pode enviar emails para qualquer endereço de email no mundo. Se os seus amigos também usarem Tutanota todos os seus emails são automaticamente encriptados ponta-a-ponta. Pode também encriptar emails para outros serviços de email. O Tutanota encripta automaticamente o assunto, o conteúdo e os anexos. Mesmo os emails que envie ou receba não encriptados são armazenados de forma encriptada nos nossos servidores.",

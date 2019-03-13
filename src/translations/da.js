@@ -13,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2019-03-01T09:49:54Z",
+	"updated_at": "2019-03-09T07:31:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -669,6 +669,7 @@ const translation = {
 		"pricing.yearly_label": "Årlig",
 		"print_action": "Print",
 		"privacyLink_label": "Privatlivs politik",
+		"privacyPolicyUrl_label": "Link til privatlivs politik",
 		"privateKeyInfo_msg": "Venligst vælg filen med certifikatets private nøgle i PEM format (base64 kodet).",
 		"privateKey_label": "Privat nøgle",
 		"private_label": "Privat",
@@ -894,7 +895,7 @@ const translation = {
 		"userEmailSignature_label": "E-mail-signatur",
 		"userSettings_label": "Brugerindstillinger",
 		"validInputFormat_msg": "Format ok.",
-		"waitingForApproval_msg": "Beklager, du har i øjeblikket ikke tilladelse til at sende eller modtage e-mails, fordi din konto blev markeret til godkendelse for at undgå misbrug som spam-e-mails. Tutanota-holdet godkender din konto inden for 48 timer.",
+		"waitingForApproval_msg": "Beklager, du har i øjeblikket ikke tilladelse til at sende eller modtage e-mails, fordi din konto blev markeret til godkendelse. Denne process er nødvendig for at tilbyde en privatlivs-venlig registrering og forhindre masseregistrering på samme tid. Din konto vil automatisk blive godkendt efter 48 timer. Tak for din tålmodighed.",
 		"wantToSendReport_msg": "Noget uventet gik galt. Vil du sende en fejlrapport? Du kan tilføje en besked for at hjælpe os med at rette op på denne fejl.",
 		"welcomeMailBody1_msg": "Velkommen til din sikre og reklamefri Tutanota mailkonto! Din Tutanota mailkonto er beskyttet med stærk kryptering. Selv vi, udviklerne, har ikke mulighed for at tilgå den. Du er den eneste som kan dekryptere dine mails og kontakter med din adgangskode. Glem venligst ikke din adgangskode, da det ikke kan nulstilles.",
 		"welcomeMailBody2_msg": "Du kan sende mails til, hvilken som helst mailadresse i verden. Hvis dine venner også bruger Tutanota, vil alle dine mails automatisk være ende-til-ende krypterede. Du kan også kryptere mails til andre mail tjenester. Tutanota krypterer emne, indhold og vedhæftede filer automatisk. Selv mails som du sender eller modtager ikke-krypterede er gemt krypteret på en af vores servere.",

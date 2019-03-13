@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2019-03-01T09:50:51Z",
+	"updated_at": "2019-03-04T08:54:26Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",

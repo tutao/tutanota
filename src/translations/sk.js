@@ -14,7 +14,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2019-03-01T09:52:24Z",
+	"updated_at": "2019-03-04T12:45:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Označením začiarkavacieho políčka prijmi pravidlá ochrany súkromia.",
@@ -901,7 +901,7 @@ const translation = {
 		"userEmailSignature_label": "E-mailový podpis",
 		"userSettings_label": "Nastavenia používateľa",
 		"validInputFormat_msg": "Formát je OK.",
-		"waitingForApproval_msg": "Je nám ľúto, ale aby sa predišlo zneužitiu, akým sú napríklad nevyžiadané e-maily, tvoj účet bol označený na schválenie a momentálne nemôžeš odosielať ani prijímať e-maily. Tím Tutanoty schváli tvoj účet v priebehu 48 hodín.",
+		"waitingForApproval_msg": "Je nám ľúto, ale momentálne nemôžeš odosielať ani prijímať e-maily, pretože tvoj účet bol označený na schválenie. Tento proces je nevyhnutný pre ponuku registrácie rešpektujúcej ochranu súkromia a súčasnému zabráneniu hromadných registrácií. Tvoj účet bude po 48 hodinách automaticky schválený. Vďaka za tvoju trpezlivosť!",
 		"wantToSendReport_msg": "Vyskytla sa neočakávaná chyba. Chceš odoslať chybové hlásenie? Ak pridáš aj vlastnú správu, môže nám to pomôcť s opravou tejto chyby.",
 		"welcomeMailBody1_msg": "Vitaj vo svojej bezpečnej schránke Tutanota bez reklám, chránenej silným šifrovaním. Dokonca ani my, vývojári, nemáme k nej prístup. Ty si jediný/á, kto môže dešifrovať tvoje e-maily a kontakty pomocou tvojho hesla. Prosím, urob všetko preto, aby si nestratil/a svoje heslo, pretože ho nemožno obnoviť.",
 		"welcomeMailBody2_msg": "Môžeš posielať e-maily na ktorúkoľvek e-mailovú adresu na svete. Ak tvoji kamaráti tiež používajú Tutanotu, všetky tvoje e-maily budú automaticky end-to-end šifrované. Môžeš tiež šifrovať e-maily pre iné e-mailové služby. Tutanota automaticky šifruje predmet, obsah a prílohy. Dokonca aj e-maily, ktoré posielaš alebo prijímaš v nešifrovanej podobe, sa na našich serveroch uchovávajú zašifrované.",

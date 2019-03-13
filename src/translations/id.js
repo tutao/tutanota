@@ -12,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-03-08T12:02:57Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Silakan nonaktifkan semua pengguna tambahan sebelum berganti tipe langganan.",
@@ -94,7 +94,7 @@ const translation = {
 		"corrupted_msg": "Elemen ini tidak bisa ditampilkan dengan benar.",
 		"couldNotAttachFile_msg": "Berkas tidak dapat dimuat.",
 		"createAccountInvalidCaptcha_msg": "Sayangnya, jawaban salah. Mohon coba lagi.",
-		"createAccountRunning_msg": "Akun sedang dibuat ...",
+		"createAccountRunning_msg": "Membuat akun...",
 		"createActionStatus_msg": "Membuat pengguna. Menyelesaikan {index} dari {count} akun ...",
 		"createContactForm_label": "Buat formulir kontak",
 		"createContactsForRecipients_action": "SImpan kontak semua penerima saat mengirim surel",
