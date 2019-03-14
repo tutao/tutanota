@@ -239,8 +239,14 @@ typedef void(^VoidCallback)(void);
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
 	var *message = @"";
-	if (value.userInfo) {
-		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value.userInfo options:0 error:nil]
+	if (value.userInfo && [value isKindOfClass:NSDictionary.class]) {
+		let dict = (NSDictionary *)value.userInfo;
+		let newDict = [NSMutableDictionary new];
+		foreach(key, dict) {
+			const NSObject *value = dict[key];
+			newDict[key] = value.description;
+		}
+		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:newDict options:0 error:nil]
 										encoding:NSUTF8StringEncoding];
 	}
 
