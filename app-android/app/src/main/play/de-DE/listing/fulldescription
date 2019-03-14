@@ -1,17 +1,35 @@
+Tutanota macht es möglich, dass du die Vorteile der Cloud - Verfügbarkeit, Flexibilität, automatisches Back-up - nutzen kannst, ohne auf Sicherheit zu verzichten. Mit Tutanotas eingebauter Verschlüsselung gehören deine Daten allein dir, niemand sonst kann darauf zugreifen. Tutanota kommt mit einem hellen & schönen Design, inklusive eines Dark Themes, mit Push Benachrichtigungen, auto-sync, Volltextsuche, Wischgesten und mehr.
+
 Die Open Source App Tutanota macht es dir ganz einfach, Ende-zu-Ende verschlüsselte E-Mails an jeden zu verschicken. Selbst E-Mails ohne Ende-zu-Ende-Verschlüsselung sowie alle deine Kontakte werden verschlüsselt auf den Tutanota-Servern in Deutschland gespeichert.
 
-Nur du mit deinem Passwort hast Zugriff auf deine Daten. So kannst du deine Privatsphäre ganz einfach schützen.
+Unsere Leidenschaft für Privatsphäre
 
-Webseite: https://tutanota.de
+Das gesamte Tutanota Team kämpft mit Leidenschaft für dein Recht auf Privatsphäre. Wir werden von einer tollen Gemeinschaft unterstützt, die es uns ermöglicht unser Team kontinuierlich zu vergrößern, ganz ohne auf Interessen von Investoren Rücksicht nehmen zu müssen.
+
+Tutanota respektiert dich & deine Daten:
+
+- Nur du kannst auf deine E-Mails & Kontakte zugreifen.
+- Tutanota spioniert dich nicht aus und erstellt kein Profil über dich.
+- Open Source Client & Apps.
+- Innovative Volltextsuche lässt dich die gesamte Mailbox durchsuchen.
+- TLS mit Unterstützung für PFS, DMARC, DKIM, DNSSEC und DANE.
+- Sichere Passwortwiederherstellung, die uns keinerlei Zugriff erlaubt.
+- 100% in Deutschland entwickelt mit Speicherstandort Deutschland unter strengen Datenschutzgesetzen (DSGVO).
+
+Webseite: https://tutanota.com
+
 Source Code: https://github.com/tutao/tutanota
 
-- Registriere deinen kostenlosen Tutanota-Account mit 1 GB freien Speicher.
-- Wähle deine E-Mail-Adresse aus den verfügbaren Domains @tutanota.com, @tutanota.de, @tuta.io, @tutamail.com und @keemail.me aus.
-- Sende und empfange Ende-zu-Ende verschlüsselte E-Mails an jeden, an andere Tutanota-Nutzer automatisch und an externe Empfänger geschützt mit einem Passwort.
+Das bietet die Tutanota App:
+
+- Registriere deine kostenlose E-Mail-Adresse mit @tutanota.com, @tutanota.de, @tuta.io, @tutamail.com oder @keemail.me mit 1GB Speicher.
+- Nutze E-Mail-Adressen deiner eigenen Domain für 1€ im Monat.
+- Sende und empfange Ende-zu-Ende verschlüsselte E-Mails an jeden.
 - Sende und empfange 'normale' E-Mails (nicht Ende-zu-Ende verschlüsselt). Selbst diese E-Mails werden verschlüsselt auf den Tutanota-Servern gespeichert.
 - Betreff, Inhalt und Anhänge werden automatisch verschlüsselt.
 - Schnelle Benachrichtigung über neue E-Mails mit automatischer Push Funktion.
 - Automatische Vervollständigung der Empfängernamen beim Eintippen (von deinen Tutanota- und Telefonbuchkontakten).
+- Automatisches Syncen zwischen App, Web Client und Desktop Clients.
 - Tutanota ist kostenlos und Open Source, so dass jeder die Sicherheit prüfen kann.
 
 Die Tutanota App verlangt möglichst wenige Berechtigungen, damit deine Privatsphäre maximal geschützt wird. Die Berechtigungen werden für folgende Funktionen verwendet:
@@ -22,4 +40,4 @@ Die Tutanota App verlangt möglichst wenige Berechtigungen, damit deine Privatsp
 - Kontakte lesen: Empfänger aus den Kontakten des Telefons auswählen.
 - Lesen der SD-Karte: Anhänge von der SD-Karte anfügen.
 - Vibration steuern: Vibrationsalarm, wenn eine neue Nachricht empfangen wird.
-- Ruhezustand deaktivieren: Benachrichtigung, wenn eine neue E-Mail empfangen wird.",
+- Ruhezustand deaktivieren: Benachrichtigung, wenn eine neue E-Mail empfangen wird.
