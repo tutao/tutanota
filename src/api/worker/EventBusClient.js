@@ -3,7 +3,7 @@ import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
@@ -154,7 +154,7 @@ export class EventBusClient {
 	}
 
 	_message(message: MessageEvent): Promise<void> {
-		console.log("ws message: ", message.data);
+		//console.log("ws message: ", message.data);
 		const [type, value] = downcast(message.data).split(";")
 		if (type === "entityUpdate") {
 			return decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null)
@@ -200,12 +200,8 @@ export class EventBusClient {
 		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
 			this._worker.updateWebSocketState("connecting")
 
-			if (this._immediateReconnect || isIOSApp()) {
+			if (this._immediateReconnect) {
 				this._immediateReconnect = false
-				// on ios devices the close event fires when the app comes back to foreground
-				// so try a reconnect immediately. The tryReconnect method is also triggered when
-				// the app  comes to foreground by the "resume" event, but the order in which these
-				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false, false);
 			}
 			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(30, 120));
@@ -217,12 +213,12 @@ export class EventBusClient {
 	 */
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
-			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state);
+			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
+			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
 			this._state = EventBusState.Automatic
 		}
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
-			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
 		} else if (
