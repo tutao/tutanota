@@ -297,23 +297,31 @@ export class SearchFacade {
 	_findIndexEntries(searchResult: SearchResult, maxResults: ?number): Promise<KeyToEncryptedIndexEntries[]> {
 		const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 		const firstSearchTokenInfo = searchResult.lastReadSearchIndexRow[0]
+		// First read all metadata to narrow time range we search in.
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
 		           .then(transaction => {
 			           return Promise
 				           .map(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
-					           const [searchToken, fromRowTimestamp] = tokenInfo
+					           const [searchToken] = tokenInfo
 					           let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 					           return transaction
 						           .get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
 						           .then((metaData: ?SearchIndexMetaDataDbRow) => {
-							           if (!metaData) return {id: -index, word: indexKey, rows: []}
+							           if (!metaData) {
+								           tokenInfo[1] = 0 // "we've read all" (because we don't have anything
+								           // If there's no metadata for key, return empty result
+								           return {id: -index, word: indexKey, rows: []}
+							           }
 							           return decryptMetaData(this._db.key, metaData)
 						           })
 				           })
 				           .then((metaRows) => {
+					           // Find index entry rows in which we will search.
 					           const rowsToReadForIndexKeys = this._findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
 
+					           // Iterate each query token
 					           return Promise.map(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
+					           	// For each token find token entries in the rows we've found
 						           return Promise.map(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
 						                         .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
 						                         .then((indexEntries: EncryptedSearchIndexEntry[]) => {
@@ -334,6 +342,9 @@ export class SearchFacade {
 	}
 
 	_findRowsToReadFromMetaData(firstTokenInfo: [string, ?number], safeMetaDataRows: Array<SearchIndexMetaDataRow>, typeInfo: TypeInfo, maxResults: ?number): Array<RowsToReadForIndexKey> {
+		// "Leading row" narrows down time range in which we search in this iteration
+		// Doesn't matter for correctness which one it is (because query is always AND) but matters for performance
+		// For now arbitrarily picked first (usually it's the most specific part anyway)
 		const leadingRow = safeMetaDataRows[0]
 		const otherRows = safeMetaDataRows.slice(1)
 		const rangeForLeadingRow = this._findRowsToRead(leadingRow, typeInfo, firstTokenInfo[1] || Number.MAX_SAFE_INTEGER, maxResults)
@@ -402,7 +413,6 @@ export class SearchFacade {
 			}
 		})
 
-		// searchTokenInfo[1] = lastReadRowTimestamp
 		return {metaEntries: rowsToRead, oldestTimestamp: lastReadRowTimestamp, newestRowTimestamp: newestRowTimestamp}
 	}
 
