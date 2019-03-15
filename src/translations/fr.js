@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "0bbba0bd9097c32da7426931c0c0bc05",
 	"name": "fr",
 	"code": "fr",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2019-03-12T16:49:06Z",
+	"updated_at": "2019-03-13T10:54:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,6 +290,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "L'expéditeur technique est différent de l'adresse e-mail fournie dans le champ \"De:\". Sachant que le champ \"De:\" peut être falsifié, l'expéditeur technique est également affiché afin de savoir qui a réellement envoyé cet email.",
 		"errorAtLine_msg": "Erreur à la ligne {index} : {error}",
+		"errorDuringUpdate_msg": "Un problème est survenu lors du processus de mise à jour. Nous essaierons à nouveau plus tard.",
 		"errorReport_label": "Oh non !",
 		"expiredLink_msg": "Désolé, ce lien n'est plus valide. Vous devriez avoir reçu un nouveau message de notification avec un lien valide. Les liens précédents ont été désactivés pour des raisons de sécurité.",
 		"exportSelectedAsVCard_action": "Exporter les contacts sélectionnés en vCard",
@@ -938,5 +937,3 @@ const translation = {
 		"yourMessage_label": "Votre message"
 	}
 }
-export default translation
-export var __useDefault = translation

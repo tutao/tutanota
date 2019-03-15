@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "4d5760712acedcde66a193bfd917539c",
 	"name": "vi",
 	"code": "vi",
@@ -640,5 +638,3 @@ const translation = {
 		"yes_label": "Có"
 	}
 }
-export default translation
-export var __useDefault = translation

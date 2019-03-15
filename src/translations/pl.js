@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "2e467284b4e2ed1094bb7f07fbef3615",
 	"name": "pl",
 	"code": "pl",
@@ -15,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2019-03-11T16:46:21Z",
+	"updated_at": "2019-03-13T18:06:15Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -127,6 +125,7 @@ const translation = {
 		"chooseNumber_msg": "Prosimy kliknij na jeden ze swoich numerów telefonu, aby otrzymać swoje hasło w wiadomości SMS.",
 		"choosePhotos_action": "Zdjęcia",
 		"choose_label": "Wybierz...",
+		"clearFolder_action": "Wyczyść folder",
 		"clickNumber_msg": "Kliknij na swój numer telefonu poniżej, by otrzymać hasło SMS.",
 		"clickToUpdate_msg": "Kliknij tutaj jeżeli chcesz zastosować teraz lub pozwól nam zainstalować automatycznie przy wyjściu.",
 		"client_label": "Klient",
@@ -293,6 +292,7 @@ const translation = {
 		"enum_label": "Wyliczenie",
 		"envelopeSenderInfo_msg": "Adres e-mail  w polu \"Od\" jest inny niż adres rzeczywistego nadawcy. Ponieważ adres w polu \"Od\" może być sfałszowany, wyświetlony jest także rzeczywisty nadawca. Ułatwi to zrozumienie, kto faktycznie wysłał tego e-maila.",
 		"errorAtLine_msg": "Błąd w linii {index}: {error}",
+		"errorDuringUpdate_msg": "Coś poszło nie tak podczas procesu aktualizacji, spróbujemy ponownie później.",
 		"errorReport_label": "O nie!",
 		"expiredLink_msg": "Przepraszamy, ten link jest nieaktualny. Powinieneś był otrzymać nowe powiadomienie z nowym linkiem. Poprzednie linki zostały zdezaktualizowane dla zachowania bezpieczeństwa.",
 		"exportSelectedAsVCard_action": "Eksportuj wybrane kontakty w formacie vCard",
@@ -826,6 +826,7 @@ const translation = {
 		"storageCapacityUsed_label": "Używana przestrzeń",
 		"storageCapacity_label": "Pojemność skrzynki pocztowej",
 		"storageDeletionAnnouncement_msg": "Info: maile przeniesione do Kosza lub Spamu będą automatycznie kasowane po 30 dniach.",
+		"storageDeletion_msg": "Wiadomości w tym folderze zostaną automatycznie usunięte po 30 dniach.",
 		"storePassword_action": "Zapamiętaj hasło",
 		"subject_label": "Temat",
 		"subscriptionCancelledMessage_msg": "Twoja subskrybcja została anulowana. Skontaktuj się z działem wsparcia, aby ją ponownie aktywować.",
@@ -938,5 +939,3 @@ const translation = {
 		"yourMessage_label": "Twoja wiadomość"
 	}
 }
-export default translation
-export var __useDefault = translation
