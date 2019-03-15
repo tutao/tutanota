@@ -16,8 +16,10 @@ import type {
 	MoreResultsIndexEntry,
 	SearchIndexEntry,
 	SearchIndexMetaDataDbRow,
-	SearchIndexMetadataEntry
+	SearchIndexMetadataEntry,
+	SearchIndexMetaDataRow
 } from "./SearchTypes"
+import type {TypeInfo} from "./IndexUtils"
 import {
 	decryptMetaData,
 	decryptSearchIndexEntry,
@@ -42,6 +44,8 @@ import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
 const AssociationType = EC.AssociationType
+
+type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
 export class SearchFacade {
 	_loginFacade: LoginFacade;
@@ -291,11 +295,62 @@ export class SearchFacade {
 
 
 	_findIndexEntries(searchResult: SearchResult, maxResults: ?number): Promise<KeyToEncryptedIndexEntries[]> {
+		const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
+		const firstSearchTokenInfo = searchResult.lastReadSearchIndexRow[0]
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
-		           .then(transaction =>
-			           mapInCallContext(
-				           searchResult.lastReadSearchIndexRow,
-				           (token) => this._findEntriesForSearchToken(transaction, token, searchResult, maxResults)))
+		           .then(transaction => {
+			           return Promise
+				           .map(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
+					           const [searchToken, fromRowTimestamp] = tokenInfo
+					           let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
+					           return transaction
+						           .get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
+						           .then((metaData: ?SearchIndexMetaDataDbRow) => {
+							           if (!metaData) return {id: -index, word: indexKey, rows: []}
+							           return decryptMetaData(this._db.key, metaData)
+						           })
+				           })
+				           .then((metaRows) => {
+					           const rowsToReadForIndexKeys = this._findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
+
+					           return Promise.map(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
+						           return Promise.map(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
+						                         .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
+						                         .then((indexEntries: EncryptedSearchIndexEntry[]) => {
+							                         return indexEntries.map(entry => ({
+								                         encEntry: entry,
+								                         idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
+							                         }))
+						                         })
+						                         .then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+							                         return {
+								                         indexKey: rowsToRead.indexKey,
+								                         indexEntries: indexEntries
+							                         }
+						                         })
+					           })
+				           })
+		           })
+	}
+
+	_findRowsToReadFromMetaData(firstTokenInfo: [string, ?number], safeMetaDataRows: Array<SearchIndexMetaDataRow>, typeInfo: TypeInfo, maxResults: ?number): Array<RowsToReadForIndexKey> {
+		const leadingRow = safeMetaDataRows[0]
+		const otherRows = safeMetaDataRows.slice(1)
+		const rangeForLeadingRow = this._findRowsToRead(leadingRow, typeInfo, firstTokenInfo[1] || Number.MAX_SAFE_INTEGER, maxResults)
+		const rowsForLeadingRow = [
+			{
+				indexKey: leadingRow.word,
+				rows: rangeForLeadingRow.metaEntries
+			}
+		]
+		firstTokenInfo[1] = rangeForLeadingRow.oldestTimestamp
+		const rowsForOtherRows = otherRows.map((r) => {
+			return {
+				indexKey: r.word,
+				rows: this._findRowsToReadByTimeRange(r, typeInfo, rangeForLeadingRow.newestRowTimestamp, rangeForLeadingRow.oldestTimestamp)
+			}
+		})
+		return rowsForLeadingRow.concat(rowsForOtherRows)
 	}
 
 	_findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
@@ -308,6 +363,49 @@ export class SearchFacade {
 			return result
 		})
 	}
+
+
+	_findRowsToReadByTimeRange(metaData: SearchIndexMetaDataRow, typeInfo: TypeInfo, fromNewestTimestamp: number, toOldestTimestamp: number): Array<SearchIndexMetadataEntry> {
+		const filteredRows = metaData.rows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
+		filteredRows.reverse()
+		const passedRows = []
+		for (let row of filteredRows) {
+			if (row.oldestElementTimestamp < fromNewestTimestamp) {
+				passedRows.push(row)
+				if (row.oldestElementTimestamp <= toOldestTimestamp) {
+					break
+				}
+			}
+		}
+		return passedRows
+	}
+
+	_findRowsToRead(metaData: SearchIndexMetaDataRow, typeInfo: TypeInfo, fromRowTimestamp: number,
+	                maxResults: ?number): {metaEntries: Array<SearchIndexMetadataEntry>, oldestTimestamp: number, newestRowTimestamp: number} {
+		const filteredRows = metaData.rows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
+		filteredRows.reverse()
+		let entitiesToRead = 0
+		let lastReadRowTimestamp = 0
+		let newestRowTimestamp = Number.MAX_SAFE_INTEGER
+		const rowsToRead = filteredRows.filter(r => {
+			if (maxResults) {
+				if ((!fromRowTimestamp || r.oldestElementTimestamp < fromRowTimestamp) && entitiesToRead < 1000) {
+					entitiesToRead += r.size
+					lastReadRowTimestamp = r.oldestElementTimestamp
+					return true
+				} else {
+					newestRowTimestamp = Math.min(r.oldestElementTimestamp, newestRowTimestamp)
+				}
+				return false
+			} else {
+				return true
+			}
+		})
+
+		// searchTokenInfo[1] = lastReadRowTimestamp
+		return {metaEntries: rowsToRead, oldestTimestamp: lastReadRowTimestamp, newestRowTimestamp: newestRowTimestamp}
+	}
+
 
 	_findEntriesForSearchToken(transaction: DbTransaction, searchTokenInfo: [string, ?number], searchResult: SearchResult,
 	                           maxResults: ?number): Promise<KeyToEncryptedIndexEntries> {

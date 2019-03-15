@@ -406,7 +406,7 @@ o.spec("MailIndexer test", () => {
 			indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
 		})
 
-		o.only("one mailbox until certain point", async function () {
+		o("one mailbox until certain point", async function () {
 			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: NOTHING_INDEXED_TIMESTAMP})
 
 			// initial indexing - first time range
@@ -420,7 +420,7 @@ o.spec("MailIndexer test", () => {
 
 		})
 
-		o.only("one mailbox extend once", async function () {
+		o("one mailbox extend once", async function () {
 			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: rangeEnd})
 
 			// next index update - continue indexing
@@ -431,7 +431,7 @@ o.spec("MailIndexer test", () => {
 			o(mailboxesData2).deepEquals([{groupId: mailGroup, indexTimestamp: rangeEnd2}])
 		})
 
-		o.only("one mailbox extend till end", async function () {
+		o("one mailbox extend till end", async function () {
 			transaction.put(GroupDataOS, mailGroup, {indexTimestamp: rangeEnd2})
 
 			// next index update - finish indexing

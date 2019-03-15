@@ -17,7 +17,7 @@ import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} fr
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
-import {groupBy, splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
+import {groupBy, numberRange, splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
@@ -131,10 +131,10 @@ o.spec("SearchFacade test", () => {
 		}
 	}
 
-	let testSearch = (dbData: KeyToIndexEntriesWithType[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, minSuggestionCount: number = 0): Promise<void> => {
-		createDbContent(transaction, dbData, listIds)
+	let testSearch = (dbData: KeyToIndexEntriesWithType[], dbListIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, minSuggestionCount: number = 0, maxResults?: number): Promise<void> => {
+		createDbContent(transaction, dbData, dbListIds)
 		let s = createSearchFacade(transaction, currentIndexTimestamp)
-		return s.search(query, restriction, minSuggestionCount).then(result => {
+		return s.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 			o(result.query).equals(query)
 			o(result.restriction).deepEquals(restriction)
 			o(result.results)
@@ -282,6 +282,31 @@ o.spec("SearchFacade test", () => {
 			"ja,test",
 			createMailRestriction(),
 			[["listId1", id1]]
+		)
+	})
+
+
+	o("find two search words with a time gap", () => {
+
+		const firstWordIds: Array<IdTuple> = numberRange(1, 1200).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+		const secondWordIds: Array<IdTuple> = numberRange(1, 10).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+
+		const firstWordEntries = firstWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+		const secondWordEntries = secondWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+
+		//const oldestId = in
+		return testSearch(
+			[
+				createKeyToIndexEntries("test", firstWordEntries),
+				createKeyToIndexEntries("ja", secondWordEntries)
+			],
+			firstWordIds.concat(secondWordIds),
+			"ja,test",
+			createMailRestriction(),
+			secondWordIds,
+			0,
+			0,
+			100
 		)
 	})
 
