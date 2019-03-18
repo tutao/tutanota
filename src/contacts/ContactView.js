@@ -119,13 +119,29 @@ export class ContactView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this._contactList.list.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
 				shift: true,
 				exec: () => this._contactList.list.selectPrevious(true),
 				help: "addPrevious_action"
 			},
 			{
+				key: Keys.K,
+				shift: true,
+				exec: () => this._contactList.list.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
 				key: Keys.DOWN,
+				exec: () => this._contactList.list.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
+				key: Keys.J,
 				exec: () => this._contactList.list.selectNext(false),
 				help: "selectNext_action"
 			},
@@ -134,22 +150,6 @@ export class ContactView implements CurrentView {
 				shift: true,
 				exec: () => this._contactList.list.selectNext(true),
 				help: "addNext_action"
-			},
-			{
-				key: Keys.K,
-				exec: () => this._contactList.list.selectPrevious(false),
-				help: "selectPrevious_action"
-			},
-			{
-				key: Keys.K,
-				shift: true,
-				exec: () => this._contactList.list.selectPrevious(true),
-				help: "addPrevious_action"
-			},
-			{
-				key: Keys.J,
-				exec: () => this._contactList.list.selectNext(false),
-				help: "selectNext_action"
 			},
 			{
 				key: Keys.J,

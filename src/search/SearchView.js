@@ -285,13 +285,29 @@ export class SearchView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this._searchList.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
 				shift: true,
 				exec: () => this._searchList.selectPrevious(true),
 				help: "addPrevious_action"
 			},
 			{
+				key: Keys.K,
+				shift: true,
+				exec: () => this._searchList.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
 				key: Keys.DOWN,
+				exec: () => this._searchList.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
+				key: Keys.J,
 				exec: () => this._searchList.selectNext(false),
 				help: "selectNext_action"
 			},
@@ -300,22 +316,6 @@ export class SearchView implements CurrentView {
 				shift: true,
 				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"
-			},
-			{
-				key: Keys.K,
-				exec: () => this._searchList.selectPrevious(false),
-				help: "selectPrevious_action"
-			},
-			{
-				key: Keys.K,
-				shift: true,
-				exec: () => this._searchList.selectPrevious(true),
-				help: "addPrevious_action"
-			},
-			{
-				key: Keys.J,
-				exec: () => this._searchList.selectNext(false),
-				help: "selectNext_action"
 			},
 			{
 				key: Keys.J,
