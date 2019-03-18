@@ -318,6 +318,7 @@ type SearchIndexStateInfo = {
 	progress: number;
 	currentMailIndexTimestamp: number;
 	indexedMailCount: number;
+	failedIndexingUpTo: ?number;
 }
 
 type CreditCardData = {

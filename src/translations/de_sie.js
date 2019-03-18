@@ -939,7 +939,9 @@ const translation = {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal.",
-		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt."
+		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt.",
+		"retry_action": "Wiederholen",
+		"indexing_error": "Die Indizierung wurde aufgrund eines Fehlers abgebrochen."
 	}
 }
 export default translation

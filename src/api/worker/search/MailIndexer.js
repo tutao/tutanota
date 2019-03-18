@@ -2,7 +2,7 @@
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker, load, loadAll} from "../EntityWorker"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
-import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
@@ -210,7 +210,8 @@ export class MailIndexer {
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
-			indexedMailCount: 0
+			indexedMailCount: 0,
+			failedIndexingUpTo: null
 		})
 		let memberships = filterMailMemberships(user)
 		this._core.queue.pause()
@@ -249,33 +250,35 @@ export class MailIndexer {
 			.then(() => {
 				this._core.printStatus()
 				console.log("finished indexing")
-			}).catch(e => {
+				return this.updateCurrentIndexTimestamp(user)
+				           .then(() =>
+					           this._worker.sendIndexState({
+						           initializing: false,
+						           indexingSupported: this._core.indexingSupported,
+						           mailIndexEnabled: this.mailIndexingEnabled,
+						           progress: 0,
+						           currentMailIndexTimestamp: this.currentIndexTimestamp,
+						           indexedMailCount: this._core._stats.mailcount,
+						           failedIndexingUpTo: null
+					           }))
+			})
+			.catch(e => {
+				console.warn("Mail indexing failed: ", e)
 				// avoid that a rejected promise is stored
 				this.mailboxIndexingPromise = Promise.resolve()
-				if (e instanceof DbError && this._core.isStoppedProcessing()) {
-					console.log("The database was closed, ignore indexing error", e)
-				} else if (e instanceof ConnectionError) {
-					console.log("There was a connection error, stop index")
-				} else {
-					throw e
-				}
-			}).finally(() => {
-				this._core.queue.resume()
-				// update our index timestamp and send the information to the main thread. this can be done async
-				this.updateCurrentIndexTimestamp(user)
-				    .catch((err) => {
-					    if (err instanceof DbError && this._core.isStoppedProcessing()) {
-						    console.log("The database was closed, do not write currentIndexTimestamp")
-					    }
-				    })
-				    .finally(() => this._worker.sendIndexState({
-					    initializing: false,
-					    indexingSupported: this._core.indexingSupported,
-					    mailIndexEnabled: this.mailIndexingEnabled,
-					    progress: 0,
-					    currentMailIndexTimestamp: this.currentIndexTimestamp,
-					    indexedMailCount: this._core._stats.mailcount
-				    }))
+
+				return this.updateCurrentIndexTimestamp(user)
+				           .then(() => {
+					           this._worker.sendIndexState({
+						           initializing: false,
+						           indexingSupported: this._core.indexingSupported,
+						           mailIndexEnabled: this.mailIndexingEnabled,
+						           progress: 0,
+						           currentMailIndexTimestamp: this.currentIndexTimestamp,
+						           indexedMailCount: this._core._stats.mailcount,
+						           failedIndexingUpTo: this._core.isStoppedProcessing() || e instanceof CancelledError ? null : oldestTimestamp
+					           })
+				           })
 			})
 		return this.mailboxIndexingPromise.return()
 	}
@@ -290,7 +293,8 @@ export class MailIndexer {
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
-				indexedMailCount: this._core._stats.mailcount
+				indexedMailCount: this._core._stats.mailcount,
+				failedIndexingUpTo: null
 			})
 		})
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
@@ -420,7 +424,7 @@ export class MailIndexer {
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return Promise.all(filterMailMemberships(user).map((mailGroupMembership, index) => {
+			return Promise.all(filterMailMemberships(user).map((mailGroupMembership) => {
 				return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: ?GroupData) => {
 					if (!groupData) {
 						return NOTHING_INDEXED_TIMESTAMP
@@ -431,6 +435,10 @@ export class MailIndexer {
 			})).then(groupIndexTimestamps => {
 				this.currentIndexTimestamp = _getCurrentIndexTimestamp(groupIndexTimestamps)
 			})
+		}).catch((err) => {
+			if (err instanceof DbError && this._core.isStoppedProcessing()) {
+				console.log("The database was closed, do not write currentIndexTimestamp")
+			}
 		})
 	}
 

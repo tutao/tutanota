@@ -120,7 +120,8 @@ export class Indexer {
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0
+					indexedMailCount: 0,
+					failedIndexingUpTo: null
 				})
 				this._core.startProcessing()
 				return this._contact.indexFullContactList(user.userGroup.group)
@@ -151,7 +152,8 @@ export class Indexer {
 						mailIndexEnabled: false,
 						progress: 0,
 						currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-						indexedMailCount: 0
+						indexedMailCount: 0,
+						failedIndexingUpTo: this._mail.currentIndexTimestamp
 					})
 					throw e
 				}
@@ -165,7 +167,8 @@ export class Indexer {
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-				indexedMailCount: 0
+				indexedMailCount: 0,
+				failedIndexingUpTo: this._mail.currentIndexTimestamp
 			})
 		})
 	}
@@ -476,7 +479,7 @@ export class Indexer {
 						return this._processUserEntityEvents(value)
 					}
 					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
-					
+
 					if (isSameTypeRef(MailTypeRef, key)) {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate, futureActions)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {

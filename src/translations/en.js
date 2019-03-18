@@ -932,7 +932,9 @@ const translation = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"errorDuringUpdate_msg": "Something went wrong during the update process, we'll try again later.",
-		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search."
+		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search.",
+		"retry_action": "Try again",
+		"indexing_error": "Indexing was aborted because of the error"
 	}
 }
 export default translation

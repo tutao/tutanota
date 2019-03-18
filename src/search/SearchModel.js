@@ -23,7 +23,8 @@ export class SearchModel {
 			mailIndexEnabled: false,
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-			indexedMailCount: 0
+			indexedMailCount: 0,
+			failedIndexingUpTo: null
 		})
 	}
 

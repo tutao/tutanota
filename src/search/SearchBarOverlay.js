@@ -19,6 +19,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
+import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import {theme} from "../gui/theme"
 
@@ -36,9 +37,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 	view({attrs}: Vnode<SearchBarOverlayAttrs>) {
 		const {state} = attrs
 		return [
-			state.indexState.progress !== 0 && (attrs.isFocused || !attrs.isQuickSearch)
-				? this._renderProgress(state, attrs)
-				: null,
+			this._renderIndexingStatus(state, attrs),
 			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isExpanded && attrs.isFocused
 				? this.renderResults(state, attrs)
 				: null,
@@ -59,6 +58,20 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				}, this.renderResult(state, result))
 			}),
 		])
+	}
+
+	_renderIndexingStatus(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
+		if (attrs.isFocused || (!attrs.isQuickSearch && client.isDesktopDevice())) {
+			if (state.indexState.failedIndexingUpTo != null) {
+				return this._renderError(state.indexState.failedIndexingUpTo, attrs)
+			} else if (state.indexState.progress !== 0) {
+				return this._renderProgress(state, attrs)
+			} else {
+				return null
+			}
+		} else {
+			return null
+		}
 	}
 
 	_renderProgress(state: SearchBarState, attrs: SearchBarOverlayAttrs) {
@@ -92,6 +105,24 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 					bottom: 0
 				}
 			})
+		])
+	}
+
+	_renderError(failedIndexingUpTo: number, attrs: SearchBarOverlayAttrs) {
+		return m(".flex.rel", [
+			m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s", {
+				style: {
+					height: px(52),
+					borderLeft: `${px(size.border_selection)} solid transparent`,
+				}
+			}, [
+				m(".small", lang.get("indexing_error")),
+				m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
+					label: "retry_action",
+					click: () => worker.extendMailIndex(failedIndexingUpTo),
+					type: ButtonType.Secondary
+				}))
+			]),
 		])
 	}
 
