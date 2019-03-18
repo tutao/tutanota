@@ -32,7 +32,7 @@ import {
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
-import {MailIndexer} from "./MailIndexer"
+import {INITIAL_MAIL_INDEX_INTERVAL_MILLIS, MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
@@ -222,6 +222,11 @@ export class SearchFacade {
 
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		timeStart("findIndexEntries")
+		if (searchResult.moreResults.length === 0 && (Date.now() - this._mailIndexer.currentIndexTimestamp) < INITIAL_MAIL_INDEX_INTERVAL_MILLIS
+			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
+			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(), Date.now() - INITIAL_MAIL_INDEX_INTERVAL_MILLIS)
+		}
+
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
 		if (maxResults && searchResult.moreResults.length >= maxResults) {
 			moreResultsEntries = Promise.resolve(searchResult.moreResults)
@@ -321,7 +326,7 @@ export class SearchFacade {
 
 					           // Iterate each query token
 					           return Promise.map(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
-					           	// For each token find token entries in the rows we've found
+						           // For each token find token entries in the rows we've found
 						           return Promise.map(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
 						                         .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
 						                         .then((indexEntries: EncryptedSearchIndexEntry[]) => {
