@@ -152,7 +152,8 @@ export type ConversationTypeEnum = $Values<typeof ConversationType>;
 export const MailState = Object.freeze({
 	DRAFT: '0',
 	SENT: '1',
-	RECEIVED: '2'
+	RECEIVED: '2',
+	SENDING: '3'
 })
 export type MailStateEnum = $Values<typeof MailState>;
 
