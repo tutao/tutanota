@@ -36,7 +36,7 @@ export class DesktopDownloadManager {
 					// if the last dl ended more than 30s ago, open dl dir in file manager
 					let fileManagerLock = noOp
 					if (this._fileManagersOpen === 0) {
-						this._fileManagersOpen = fileManagersOpen + 1
+						this._fileManagersOpen = this._fileManagersOpen + 1
 						fileManagerLock = () => {
 							shell.openItem(path.dirname(savePath))
 							setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, 30000)
