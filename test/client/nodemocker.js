@@ -6,21 +6,24 @@ import path from 'path'
 import {neverNull} from "../../src/api/common/utils/Utils"
 
 let exit = {value: undefined}
+let spyCache = []
 
 function enable() {
 	exit = setProperty(process, 'exit', o.spy(code => {
 		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
 	}))
 	mockery.enable({useCleanCache: true})
+	mockery.registerAllowables(allowedNodeModules)
 	mockery.registerAllowables([
-		'path',
-		'util'
+		'bluebird'
 	])
 }
 
 function disable(): void {
 	mockery.disable()
 	setProperty(process, 'exit', neverNull(exit).value)
+	spyCache.forEach(obj => delete obj.spy)
+	spyCache = []
 }
 
 // register and get a test subject
@@ -29,12 +32,12 @@ function subject(module: string): any {
 	return require(module)
 }
 
-function allow(module: string) {
-	mockery.registerAllowable(module)
+function allow(module: string | Array<string>) {
+	[...module].forEach(m => mockery.registerAllowable(m))
 }
 
-function disallow(module: string): void {
-	mockery.deregisterAllowable(module)
+function disallow(module: string | Array<string>): void {
+	[...module].forEach(m => mockery.deregisterAllowable(m))
 }
 
 function mock<T>(old: string, replacer: T): MockBuilder<T> {
@@ -44,7 +47,11 @@ function mock<T>(old: string, replacer: T): MockBuilder<T> {
 function spyify<T>(obj: T): T {
 	switch (typeof obj) {
 		case 'function':
-			return o.spy(obj)
+			if (typeof obj.spy !== 'function') {
+				obj.spy = o.spy(obj)
+				spyCache.push(obj)
+			}
+			return obj.spy
 		case 'object':
 			return obj == null || 'undefined' === typeof obj
 				? obj
@@ -99,7 +106,47 @@ const n = {
 	subject,
 	allow,
 	disallow,
-	mock
+	mock,
+	spyify
 }
+
+const allowedNodeModules = [
+	'promise', './promise',
+	'path', './path',
+	'util', './util',
+	'./es5',
+	'./async',
+	'./schedule',
+	'./errors',
+	'./finally',
+	'./context',
+	'./queue',
+	'./thenables',
+	'./promise_array',
+	'./debuggability',
+	'./catch_filter',
+	'./nodeback',
+	'./method',
+	'./bind',
+	'./cancel',
+	'./direct_resolve',
+	'./synchronous_inspection',
+	'./join',
+	'./map.js',
+	'./call_get.js',
+	'./using.js',
+	'./timers.js',
+	'./generators.js',
+	'./nodeify.js',
+	'./promisify.js',
+	'./props.js',
+	'./race.js',
+	'./reduce.js',
+	'./settle.js',
+	'./some.js',
+	'./filter.js',
+	'./each.js',
+	'./any.js'
+]
 
 export default n

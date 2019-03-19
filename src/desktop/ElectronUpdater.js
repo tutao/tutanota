@@ -2,15 +2,15 @@
 import {autoUpdater} from 'electron-updater'
 import {net} from 'electron'
 import forge from 'node-forge'
-import {NotificationResult} from './DesktopNotifier.js'
+import type {DesktopNotifier} from "./DesktopNotifier"
+import {NotificationResult} from './DesktopNotifier'
 import {lang} from './DesktopLocalizationProvider.js'
 import type {DesktopConfigHandler} from './DesktopConfigHandler'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import {handleRestError} from "../api/common/error/RestError"
 import {UpdateError} from "../api/common/error/UpdateError"
-import {DesktopTray} from "./DesktopTray.js"
-import type {DesktopNotifier} from "./DesktopNotifier"
+import {DesktopTray} from "./DesktopTray"
 
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
