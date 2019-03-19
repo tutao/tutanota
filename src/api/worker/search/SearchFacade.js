@@ -26,6 +26,9 @@ import {
 	encryptIndexKeyBase64,
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
+	markEnd,
+	markStart,
+	printMeasure,
 	typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
@@ -196,6 +199,7 @@ export class SearchFacade {
 
 
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
+		markStart("findIndexEntries")
 		if (searchResult.moreResults.length === 0 && (Date.now() - this._mailIndexer.currentIndexTimestamp) < INITIAL_MAIL_INDEX_INTERVAL_MILLIS
 			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(), Date.now() - INITIAL_MAIL_INDEX_INTERVAL_MILLIS)
@@ -208,27 +212,44 @@ export class SearchFacade {
 			moreResultsEntries = this
 				._findIndexEntries(searchResult, maxResults)
 				.then(keyToEncryptedIndexEntries => {
+					markEnd("findIndexEntries")
+					markStart("_filterByEncryptedId")
 					return this._filterByEncryptedId(keyToEncryptedIndexEntries)
 				})
 				.then(keyToEncryptedIndexEntries => {
+					markEnd("_filterByEncryptedId")
+					markStart("_decryptSearchResult")
 					return this._decryptSearchResult(keyToEncryptedIndexEntries)
 				})
 				.then(keyToIndexEntries => {
+					markEnd("_decryptSearchResult")
+					markStart("_filterByTypeAndAttributeAndTime")
 					return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
 				})
 				.then(keyToIndexEntries => {
+					markEnd("_filterByTypeAndAttributeAndTime")
+					markStart("_reduceWords")
 					return this._reduceWords(keyToIndexEntries, searchResult.matchWordOrder)
 				})
 				.then(searchIndexEntries => {
+					markEnd("_reduceWords")
+					markStart("_reduceToUniqueElementIds")
 					return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
 				})
 				.then((additionalEntries) => additionalEntries.concat(searchResult.moreResults))
 		}
 		return moreResultsEntries
 			.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
+				markEnd("_reduceToUniqueElementIds")
+				markStart("_filterByListIdAndGroupSearchResults")
 				return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
 			})
 			.then((result) => {
+				markEnd("_filterByListIdAndGroupSearchResults")
+				typeof self !== "undefined" && printMeasure("query: " + searchResult.query + ", maxResults: " + String(maxResults), [
+					"findIndexEntries", "_filterByEncryptedId", "_decryptSearchResult", "_filterByTypeAndAttributeAndTime", "_reduceWords",
+					"_reduceToUniqueElementIds", "_filterByListIdAndGroupSearchResults"
+				])
 				return result
 			})
 

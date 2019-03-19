@@ -13,7 +13,6 @@ import type {
 	SearchIndexMetaDataRow
 } from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
-import {noOp} from "../../common/utils/Utils"
 import {calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers} from "./SearchIndexEncoding"
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
@@ -330,16 +329,37 @@ export function getPerformanceTimestamp(): number {
 	return typeof performance === "undefined" ? Date.now() : performance.now()  // performance is not available in Safari 10 worker scope
 }
 
-
-export const timeStart: (string) => void =
-	typeof self !== "undefined" && console.time ? console.time.bind(console) : noOp
-export const timeEnd: (string) => void =
-	typeof self !== "undefined" && console.timeEnd ? console.timeEnd.bind(console) : noOp
-
 export function getIdFromEncSearchIndexEntry(entry: Uint8Array): Uint8Array {
 	return entry.subarray(0, 16)
 }
 
 export function compareMetaEntriesOldest(left: SearchIndexMetadataEntry, right: SearchIndexMetadataEntry): number {
 	return left.oldestElementTimestamp - right.oldestElementTimestamp
+}
+
+
+export function printMeasure(prefix: string, names: string[]) {
+	const measures = {}
+	for (let name of names) {
+		try {
+			measures[name] = performance.getEntriesByName(name, "measure")
+			                            .reduce((acc, entry) => acc + entry.duration, 0)
+			performance.clearMeasures(name)
+			performance.clearMarks(name + "-end")
+			performance.clearMarks(name + "-start")
+		} catch (e) {
+		}
+	}
+
+
+	console.log(prefix, JSON.stringify(measures))
+}
+
+export function markStart(name: string) {
+	performance.mark(name + "-start")
+}
+
+export function markEnd(name: string) {
+	performance.mark(name + "-end")
+	performance.measure(name, name + "-start", name + "-end")
 }

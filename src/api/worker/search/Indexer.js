@@ -12,7 +12,7 @@ import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
-import {_createNewIndexUpdate, filterIndexMemberships, typeRefToTypeInfo} from "./IndexUtils"
+import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, printMeasure, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -50,6 +50,11 @@ export type InitParams = {
 	user: User;
 	groupKey: Aes128Key;
 }
+
+const operationTypeKeys = Array.from(Object.keys(OperationType)).reduce((acc, k) => {
+	acc[OperationType[k]] = k
+	return acc
+}, {})
 
 export class Indexer {
 	db: Db;
@@ -455,7 +460,7 @@ export class Indexer {
 				if (this._indexedGroupIds.indexOf(groupId) === -1) {
 					return Promise.resolve()
 				}
-				performance.mark("processEntityEvents-start")
+				markStart("processEntityEvents")
 				let indexUpdates = []
 				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
 					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
@@ -472,7 +477,7 @@ export class Indexer {
 					return all
 				}, new Map())
 
-				performance.mark("processEvent-start")
+				markStart("processEvent")
 				return Promise.each(groupedEvents.entries(), ([key, value]) => {
 					let promise = Promise.resolve()
 					if (isSameTypeRef(UserTypeRef, key)) {
@@ -492,17 +497,14 @@ export class Indexer {
 						promise = this._whitelabelChildIndexer.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
 					}
 					return promise.then(() => {
-						performance.mark("processEvent-end")
-						performance.measure("processEvent", "processEvent-start", "processEvent-end")
-						performance.mark("writeIndexUpdate-start")
+						markEnd("processEvent")
+						markStart("writeIndexUpdate")
 						return this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
 					}).then(() => {
-						performance.mark("writeIndexUpdate-end")
-						performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
-						performance.mark("processEntityEvents-end")
-						performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
+						markEnd("writeIndexUpdate")
+						markEnd("processEntityEvents")
 						if (!env.dist && env.mode !== "Test") {
-							measure([
+							printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
 								"processEntityEvents", "processEvent", "writeIndexUpdate"
 							])
 						}
@@ -537,15 +539,3 @@ export class Indexer {
 	}
 }
 
-export function measure(names: string[]) {
-	const measures = {}
-	for (let name of names) {
-		try {
-			measures[name] = performance.getEntriesByName(name, "measure")
-			                            .reduce((acc, entry) => acc + entry.duration, 0)
-		} catch (e) {
-		}
-	}
-	performance.clearMeasures()
-	console.log(JSON.stringify(measures))
-}
