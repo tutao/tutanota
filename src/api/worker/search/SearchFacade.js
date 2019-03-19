@@ -27,7 +27,6 @@ import {
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
 	timeEnd,
-	timeStart,
 	typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
@@ -69,12 +68,9 @@ export class SearchFacade {
 	 */
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
 	       maxResults: ?number): Promise<SearchResult> {
-		console.timeStamp && console.timeStamp("search start")
 		return this._db.initialized.then(() => {
 			let searchTokens = tokenize(query)
 
-			let totalSearchTimeStart = getPerformanceTimestamp()
-			let timing = {}
 
 			let result: SearchResult = {
 				query,
@@ -89,15 +85,12 @@ export class SearchFacade {
 			if (searchTokens.length > 0) {
 				let isFirstWordSearch = searchTokens.length === 1
 				let before = getPerformanceTimestamp()
-				console.timeStamp && console.timeStamp("find suggestions")
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
-				timing.suggestionSearchTime = getPerformanceTimestamp() - before
 				let searchPromise
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
 					let addSuggestionBefore = getPerformanceTimestamp()
 					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result)
 					                    .then(() => {
-						                    timing.addSuggestionsTime = getPerformanceTimestamp() - addSuggestionBefore
 						                    if (result.results.length < minSuggestionCount) {
 							                    // there may be fields that are not indexed with suggestions but which we can find with the normal search
 							                    // TODO: let suggestion facade and search facade know which fields are
@@ -107,40 +100,24 @@ export class SearchFacade {
 							                    let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
 							                    return this._startOrContinueSearch(result)
 							                               .then((result) => {
-								                               timing.searchForTokensAfterSuggestions = getPerformanceTimestamp()
-									                               - searchForTokensAfterSuggestionsBefore
 								                               return result
 							                               })
 						                    }
 					                    })
 				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
-					let beforeSearchTokens = getPerformanceTimestamp()
 					let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
 					searchPromise = this._startOrContinueSearch(result).then(() => {
-						timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
 						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
 						result.results.sort(compareNewestFirst)
-						let beforeLoadAndReduce = getPerformanceTimestamp()
 						return this._loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
-						           .then(() => {
-							           timing._loadAndReduceTime = getPerformanceTimestamp() - beforeLoadAndReduce
-						           })
 					})
 				} else {
-					let beforeSearchTokens = getPerformanceTimestamp()
-					console.timeStamp && console.timeStamp("search for tokens")
 					searchPromise = this._startOrContinueSearch(result, maxResults)
-					                    .then((result) => {
-						                    timing.searchForTokensTotal = getPerformanceTimestamp() - beforeSearchTokens
-						                    return result
-					                    })
 				}
 
 				return searchPromise.then(() => {
 					result.results.sort(compareNewestFirst)
-					timing.total = getPerformanceTimestamp() - totalSearchTimeStart
-					typeof self !== "undefined" && console.log(JSON.stringify(timing))
 					return result
 				})
 			} else {
@@ -220,7 +197,6 @@ export class SearchFacade {
 
 
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
-		timeStart("findIndexEntries")
 		if (searchResult.moreResults.length === 0 && (Date.now() - this._mailIndexer.currentIndexTimestamp) < INITIAL_MAIL_INDEX_INTERVAL_MILLIS
 			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(), Date.now() - INITIAL_MAIL_INDEX_INTERVAL_MILLIS)
@@ -233,41 +209,27 @@ export class SearchFacade {
 			moreResultsEntries = this
 				._findIndexEntries(searchResult, maxResults)
 				.then(keyToEncryptedIndexEntries => {
-					makeStamp("findIndexEntries")
-					timeStart("_filterByEncryptedId")
 					return this._filterByEncryptedId(keyToEncryptedIndexEntries)
 				})
 				.then(keyToEncryptedIndexEntries => {
-					makeStamp("_filterByEncryptedId")
-					timeStart("_decryptSearchResult")
 					return this._decryptSearchResult(keyToEncryptedIndexEntries)
 				})
 				.then(keyToIndexEntries => {
-					makeStamp("_decryptSearchResult")
-					timeStart("_filterByTypeAndAttributeAndTime")
 					return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
 				})
 				.then(keyToIndexEntries => {
-					makeStamp("_filterByTypeAndAttributeAndTime")
-					timeStart("_reduceWords")
 					return this._reduceWords(keyToIndexEntries, searchResult.matchWordOrder)
 				})
 				.then(searchIndexEntries => {
-					makeStamp("_reduceWords")
-					timeStart("_reduceToUniqueElementIds")
 					return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
 				})
 				.then((additionalEntries) => additionalEntries.concat(searchResult.moreResults))
 		}
 		return moreResultsEntries
 			.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
-				makeStamp("_reduceToUniqueElementIds")
-				timeStart("_filterByListIdAndGroupSearchResults")
 				return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
 			})
 			.then((result) => {
-				makeStamp("_filterByListIdAndGroupSearchResults")
-				typeof self !== "undefined" && console.log(JSON.stringify(timings))
 				return result
 			})
 
@@ -608,13 +570,5 @@ export class SearchFacade {
 function normalizeQuery(query: string): string {
 	return tokenize(query).join(" ")
 }
-
-const makeStamp = (name) => {
-	timeEnd(name)
-	timings[name] = getPerformanceTimestamp() - stamp
-	stamp = getPerformanceTimestamp()
-}
-let stamp = getPerformanceTimestamp()
-let timings = {}
 
 

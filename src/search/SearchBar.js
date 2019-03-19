@@ -368,8 +368,13 @@ export class SearchBar implements Component {
 		setSearchUrl(getSearchUrl(query, this._getRestriction(), selected && getElementId(selected)))
 	}
 
-	search() {
-		let {query} = this._state()
+	search(query?: string) {
+		let oldQuery = this._state().query
+		if (query != null) {
+			this._updateState({query})
+		} else {
+			query = oldQuery
+		}
 		let restriction = this._getRestriction()
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
 			restriction.listId = this._groupInfoRestrictionListId
@@ -385,7 +390,7 @@ export class SearchBar implements Component {
 				}
 			})
 		} else {
-			if (!locator.search.isNewSearch(query, restriction)) {
+			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
 				const result = locator.search.result()
 				if (this._isQuickSearch() && result) {
 					this._showResultsInOverlay(result)
@@ -410,18 +415,35 @@ export class SearchBar implements Component {
 			? this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
 			: null
 		locator.search.search(query, restriction, useSuggestions ? 10 : 0, limit)
-		       .then(result => {
-			       this._updateState({searchResult: result})
-			       if (!result) return
-			       if (this._isQuickSearch()) {
-				       this._showResultsInOverlay(result)
-			       } else {
-				       // instances will be displayed as part of the list of the search view, when the search view is displayed
-				       setSearchUrl(getSearchUrl(query, restriction))
-			       }
-		       })
+		       .then(result => this._loadAndDisplayResult(query, result, limit))
 		       .finally(() => cb())
 	})
+
+	/** Given the result from the search load additional results if needed and then display them or set URL. */
+	_loadAndDisplayResult(query: string, result: ?SearchResult, limit: ?number) {
+		// Let Flow know that they're constants
+		const sResult = result, sLimit = limit
+		this._updateState({searchResult: result})
+		if (!sResult || locator.search.isNewSearch(query, sResult.restriction)) {
+			return
+		}
+		if (this._isQuickSearch()) {
+			if (sLimit && hasMoreResults(sResult) && sResult.results.length < sLimit) {
+				worker.getMoreSearchResults(sResult, sLimit - sResult.results.length).then((result) => {
+					if (locator.search.isNewSearch(query, result.restriction)) {
+						return
+					} else {
+						this._loadAndDisplayResult(query, result, limit)
+					}
+				})
+			} else {
+				this._showResultsInOverlay(sResult)
+			}
+		} else {
+			// instances will be displayed as part of the list of the search view, when the search view is displayed
+			setSearchUrl(getSearchUrl(query, sResult.restriction))
+		}
+	}
 
 	close() {
 		if (this.expanded) {
@@ -435,7 +457,7 @@ export class SearchBar implements Component {
 		}
 	}
 
-	_showResultsInOverlay(result: SearchResult) {
+	_showResultsInOverlay(result: SearchResult): Promise<void> {
 		return this._downloadResults(result)
 		           .then((entries) => {
 			           // If there was no new search while we've been downloading the result
@@ -504,8 +526,7 @@ export class SearchBar implements Component {
 				const domValue = this._domInput.value
 				if (this._state().query !== domValue) {
 					// update the input on each change
-					this._updateState({query: domValue})
-					this.search()
+					this.search(domValue)
 				}
 			},
 			onkeydown: e => {
