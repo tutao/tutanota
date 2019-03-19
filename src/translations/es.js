@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "f5f4136a64ef8f813902c32e223bc289",
 	"name": "es",
 	"code": "es",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2019-03-12T17:33:08Z",
+	"updated_at": "2019-03-13T08:33:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,6 +290,7 @@ const translation = {
 		"enum_label": "Valor (numérico)",
 		"envelopeSenderInfo_msg": "El remitente técnico no coincide con la dirección electrónica en 'De'. Como 'De\" puede falsificarse, se muestra además el remitente para que sea notorio quién envía este mensaje realmente.",
 		"errorAtLine_msg": "Error en línea {index}: {error}",
+		"errorDuringUpdate_msg": "Algo salió mal durante el proceso de actualización, volveremos a intentarlo más tarde.",
 		"errorReport_label": "¡Oh no!",
 		"expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por motivos de seguridad.",
 		"exportSelectedAsVCard_action": "Exportar los contactos seleccionados como vCard",
@@ -939,5 +938,3 @@ const translation = {
 		"yourMessage_label": "Tu mensaje"
 	}
 }
-export default translation
-export var __useDefault = translation

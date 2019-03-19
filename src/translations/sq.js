@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "83abbac2842c26560e8e784497ba8a7d",
 	"name": "sq",
 	"code": "sq",
@@ -474,5 +472,3 @@ const translation = {
 		"yourMessage_label": "Mesazhi i juaj"
 	}
 }
-export default translation
-export var __useDefault = translation

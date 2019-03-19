@@ -1,0 +1,39 @@
+Tutanota te permite usar los beneficios de la nube - disponibilidad, flexibilidad, copia de seguridad automática - sin comprometer la seguridad. Con la encriptación nativa de Tutanota de tus datos, nadie más puede acceder a ellos.  Tutanotavbiene con un interface ligero y luminoso, u oscuro (incluido), con notificaciones instantáneas , con búsqueda de texto completo, gestión de gestos y más.
+
+La aplicación de código abierto Tutanota te permite enviar correos electrónicos cifrados de extremo a extremo a cualquier persona. Incluso los correos electrónicos que se envían sin cifrado, así como todos tus contactos, se almacenan encriptados en los servidores de Tutanota.
+
+Nuestra pasión por la privacidad.
+
+Tutanota estás desarrollada por un equipo apasionado con el derecho individual a la privacidad. Estamos respaldados por una alucinante comunidad, que nos permite que nuestro equipo haga crecer Tutanota con éxito continuado, sin depender de intereses o capital ajeno.
+
+Tutanota respeta a ti y a tus datos.
+
+- Sólo tu tienes acceso a tus datos y contactos.
+- Tutanota no te sigue ni crea perfiles sobre ti.
+- Cliente y App son de código abierto.
+- La innovadora característica de búsqueda de texto completo permite las búsquedas en tus correos de forma fácil.
+- Soporta protocolos TLS con PFS, DMARC, DKIM, DNSSEC and DANE.
+- Facilidad de cambio de contraseñas segura que ni siquiera nosotros podemos acceder.
+- 100% desarrollada y localizada en Alemania bajo estricto cumplimiento de la ley de protección de datos (GDPR).
+
+Sitio web oficial:  https://tutanota.com
+
+Código fuente: https://github.com/tutao/tutanota
+
+- Registra tu dirección de correo electrónico Tutanota (con terminación de @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io or @keemail.me) con 1 GB gratis de almacenamiento.
+- crea tu dominio personalizado por 1€ al mes.
+- Envía y recibe correos electrónicos cifrados punto a punto a cualquier persona.
+- Envía y recibe correos electrónicos de forma convencional (sin encriptar). Incluso estos correos electrónicos se almacenan cifrados en los servidores Tutanota.
+- Asunto, contenido y archivos adjuntos se cifran automáticamente.
+- Incluye notificaciones push al recibir nuevos mensajes de correo electrónico.
+- las direcciones de correo se auto-completan automáticamente a medida que escribes desde Tutanota o tus contactos del teléfono.
+
+La aplicación Tutanota pide muy pocos permisos para mantener tu nivel de privacidad al máximo:
+
+- Acceso completo a la red: Se utiliza para enviar y recibir mensajes de correo electrónico.
+- Recibe datos desde Internet: Para que te notifique cuando reciba un nuevo correo electrónico.
+- Monitoriza las conexiones a la red: Para saber si existe una conexión de datos.
+- Lectura de tus contactos: Esto te permite seleccionar los destinatarios de los contactos de tu teléfono.
+- Lectura desde la tarjeta SD: Para permitir que se adjunten archivos guardados en la tarjeta SD.
+- Control por vibración: Para que te notifique cuando recibas un nuevo correo electrónico.
+- Desactivación del modo noche: para que te notifique cuando recibas un nuevo correo electrónico.

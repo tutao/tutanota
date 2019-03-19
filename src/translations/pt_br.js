@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92b6d040e25fb7052101a48c6e755d55",
 	"name": "pt_br",
 	"code": "pt_br",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2019-03-10T03:01:51Z",
+	"updated_at": "2019-03-14T00:39:50Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Por favor clique em um dos números de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escolha...",
+		"clearFolder_action": "Limpar pasta",
 		"clickNumber_msg": "Por favor clique em seu número de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"clickToUpdate_msg": "Clique aqui se quiser atualizar agora, ou deixe-nos instalar ao fechar.",
 		"client_label": "Cliente",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enumeração",
 		"envelopeSenderInfo_msg": "O remetente real do e-mail é diferente do remetente informado nos metadados no campo 'De'. Como o remetente pode ser falso, o remetente real também está sendo exibido para que você compreenda quem realmente enviou este e-mail.",
 		"errorAtLine_msg": "Erro na linha {index}: {error}",
+		"errorDuringUpdate_msg": "Algo deu errado durante o processo de atualização. Tentaremos novamente mais tarde.",
 		"errorReport_label": "Oh, não!",
 		"expiredLink_msg": "Desculpe, este link não é mais válido. Você deve ter recebido uma nova notificação com um endereço válido. Links anteriores são removidos por razões de segurança.",
 		"exportSelectedAsVCard_action": "Exportar contatos selecionados com vCard",
@@ -824,6 +824,7 @@ const translation = {
 		"storageCapacityUsed_label": "Espaço utilizado",
 		"storageCapacity_label": "Armazenamento:",
 		"storageDeletionAnnouncement_msg": "Atenção: Emails movidos para Lixeira ou Spam são automaticamente  excluídos após 30 dias.",
+		"storageDeletion_msg": "Os emails nesta pasta serão excluídos automaticamente após 30 dias.",
 		"storePassword_action": "Lembrar senha",
 		"subject_label": "Assunto",
 		"subscriptionCancelledMessage_msg": "Seu plano de assinatura foi cancelado. Por favor entre em contato com o suporte para reativar seu plano de assinatura.",
@@ -937,5 +938,3 @@ const translation = {
 		"yourMessage_label": "Sua mensagem"
 	}
 }
-export default translation
-export var __useDefault = translation

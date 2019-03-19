@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "a25323d521c7f7450e0036f2769e5044",
 	"name": "ru",
 	"code": "ru",
@@ -15,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2019-03-12T16:40:33Z",
+	"updated_at": "2019-03-14T10:06:40Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -294,6 +292,7 @@ const translation = {
 		"enum_label": "Выберите значения",
 		"envelopeSenderInfo_msg": "Технический отправитель отличается от адреса электронной почты в поле «Отправитель». Поскольку значение поля «Отправитель» может быть поддельным, технический отправитель также отображается, чтобы понять, кто на самом деле послал это письмо.",
 		"errorAtLine_msg": "Ошибка в строке {index}: {error}",
+		"errorDuringUpdate_msg": "Что-то пошло не так в процессе обновления, мы повторим попытку позже.",
 		"errorReport_label": "О, нет!",
 		"expiredLink_msg": "Извините, данная ссылка более не действительна. Вы должны были получить новое уведомление по электронной почте с действующей в данный момент ссылкой. Предыдущие ссылки отключены по соображениям безопасности.",
 		"exportSelectedAsVCard_action": "Экспортировать выбранные контакты как vCard",
@@ -940,5 +939,3 @@ const translation = {
 		"yourMessage_label": "Ваше сообщение"
 	}
 }
-export default translation
-export var __useDefault = translation

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "d2556ba1f6042e2e81990398edd0828a",
 	"name": "ar",
 	"code": "ar",
@@ -16,7 +14,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2019-03-04T13:24:52Z",
+	"updated_at": "2019-03-13T14:17:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -128,6 +126,7 @@ const translation = {
 		"chooseNumber_msg": "يرجى النقر أدناه فوق أحد أرقام هواتفك لاستلام  على شكل رسالة نصية كلمة المرور الخاصة بك في توتانوتا.",
 		"choosePhotos_action": "الصور",
 		"choose_label": "اختر ...",
+		"clearFolder_action": "مسح مجلد",
 		"clickNumber_msg": "يرجى النقر أدناه فوق رقم هاتفك لاستلام على شكل رسالة نصية كلمة المرور الخاصة بك في توتانوتا.\n",
 		"clickToUpdate_msg": "انقر هنا إذا كنت تريد تطبيقه الآن، أو دعنا نقوم بالتثبيت التلقائي عند المغادرة.",
 		"client_label": "عميل",
@@ -294,6 +293,7 @@ const translation = {
 		"enum_label": "التعداد",
 		"envelopeSenderInfo_msg": "المرسل التقني مختلف عن عنوان البريد في 'من'. بما أنه يمكن تزييف 'من'، سيظهر المرسل التقني أيضًا لمعرفة من أرسل فعليًّا الرسالة.",
 		"errorAtLine_msg": "خطأ في السطر {error}: {index}",
+		"errorDuringUpdate_msg": "حدث خطأ ما أثناء عملية التحديث، وسنحاول مرة أخرى لاحقًا.",
 		"errorReport_label": "كلا !",
 		"expiredLink_msg": "معذرة، هذا الرابط لم يعد صالحاً للإستخدام. المفترض أنك استلمت إخطاراً جديداً بالبريد مرفق به الرابط الصالح حالياً. الروابط السابقة تم إلفائها لأسباب أمنية.",
 		"exportSelectedAsVCard_action": "تصدير جهات الاتصال المحددة كـ vCard ",
@@ -826,6 +826,7 @@ const translation = {
 		"storageCapacityUsed_label": "التخزين المُستعمل",
 		"storageCapacity_label": "سعة التخزين",
 		"storageDeletionAnnouncement_msg": "معلومات: سيتم تلقائيًا حذف رسائل البريد الإلكتروني التي يتم نقلها إلى سلة المهملات أو إلى مجلدات البريد المزعج بعد 30 يومًا.",
+		"storageDeletion_msg": "سيتم حذف رسائل البريد الإلكتروني الموجودة في هذا المجلد تلقائيًا بعد 30 يومًا.",
 		"storePassword_action": "حفظ كلمة المرور",
 		"subject_label": "الموضوع",
 		"subscriptionCancelledMessage_msg": "تم إلغاء اشتراكك. يرجى الاتصال بالدعم لإعادة تفعيل اشتراكك.",
@@ -939,5 +940,3 @@ const translation = {
 		"yourMessage_label": "رسالتك"
 	}
 }
-export default translation
-export var __useDefault = translation

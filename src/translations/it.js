@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "bca6e9991b687282745131bc052d31d9",
 	"name": "it",
 	"code": "it",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2019-03-06T16:57:35Z",
+	"updated_at": "2019-03-13T08:45:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Clicca su uno dei tuoi numeri di telefono qui sotto per ricevere la tua password Tutanota con un SMS.",
 		"choosePhotos_action": "Fotografie",
 		"choose_label": "Scegli ...",
+		"clearFolder_action": "Cancella cartella",
 		"clickNumber_msg": "Clicca sul tuo numero di telefono qui sotto per ricevere la tua password Tutanota con un SMS.",
 		"clickToUpdate_msg": "Clicca qui se vuoi aggiornare adesso, o lascia che venga installato alla chiusura.",
 		"client_label": "Client",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "Il mittente tecnico è diverso dall'indirizzo email 'Da'. Visto che 'Da' può essere falsificato, il mittente tecnico è anch'esso mostrato in modo da capire chi effettivamente ha inviato la mail.",
 		"errorAtLine_msg": "Errore alla linea {index}: {error}",
+		"errorDuringUpdate_msg": "Qualcosa è andato storto durante il processo di aggiornamento, riproveremo più tardi.",
 		"errorReport_label": "Oh no!",
 		"expiredLink_msg": "Siamo spiacenti ma questo link non e' piu' valido. Dovresti aver ricevuto una nuova email di notifica con il link attualmente valido. I link precedenti sono disattivati per ragioni di sicurezza.",
 		"exportSelectedAsVCard_action": "Esporta contatti selezionati come vCard",
@@ -824,6 +824,7 @@ const translation = {
 		"storageCapacityUsed_label": "Spazio usato",
 		"storageCapacity_label": "Spazio su disco a disposizione",
 		"storageDeletionAnnouncement_msg": "Le email spostate nel cestino o nella cartella spam saranno automaticamente cancellate dopo 30 giorni.",
+		"storageDeletion_msg": "Le email in questa cartella verranno automaticamente cancellate dopo 30 giorni.",
 		"storePassword_action": "Salva la password",
 		"subject_label": "Oggetto",
 		"subscriptionCancelledMessage_msg": "La tia sottoscrizione è stata cancellata. Contatta il servizio clienti per riattivarla.",
@@ -937,5 +938,3 @@ const translation = {
 		"yourMessage_label": "il tuo messaggio"
 	}
 }
-export default translation
-export var __useDefault = translation

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92ad6953a5b1b188f70dc44f3e29ec78",
 	"name": "nl",
 	"code": "nl",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2019-03-12T18:57:33Z",
+	"updated_at": "2019-03-13T08:25:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,6 +290,7 @@ const translation = {
 		"enum_label": "Opsomming",
 		"envelopeSenderInfo_msg": "De werkelijke afzender is anders dan het email adres in 'Van'. Aangezien 'van' kan worden vervalst, wordt ook de werkelijke afzender weergegeven om te begrijpen wie deze mail stuurt.",
 		"errorAtLine_msg": "Fout op regel {index}: {error}",
+		"errorDuringUpdate_msg": "Er ging iets mis bij het updaten, we proberen later nog eens.",
 		"errorReport_label": "O nee!",
 		"expiredLink_msg": "Sorry, deze link is niet meer geldig. U heeft een nieuwe e-mail met een geldige link ontvangen. Eerdere links zijn gedeactiveerd om veiligheidsredenen.",
 		"exportSelectedAsVCard_action": "Exporteer de geselcteerde ontacten als vCard",
@@ -938,5 +937,3 @@ const translation = {
 		"yourMessage_label": "Uw bericht"
 	}
 }
-export default translation
-export var __useDefault = translation

@@ -29,10 +29,16 @@ export function isTutanotaDomain(): boolean {
 }
 
 export function isIOSApp(): boolean {
+	if (isWorker()) {
+		throw new Error("isIOSApp is not available in the worker yet (platformId is not set)")
+	}
 	return env.mode === Mode.App && env.platformId === "ios"
 }
 
 export function isAndroidApp(): boolean {
+	if (isWorker()) {
+		throw new Error("isAndroidApp is not available in the worker yet (platformId is not set)")
+	}
 	return env.mode === Mode.App && env.platformId === "android"
 }
 
