@@ -38,7 +38,6 @@ import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {mapInCallContext} from "../../common/utils/PromiseUtils"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 
 const ValueType = EC.ValueType
@@ -396,75 +395,33 @@ export class SearchFacade {
 		return passedRows
 	}
 
-	_findRowsToRead(metaData: SearchIndexMetaDataRow, typeInfo: TypeInfo, fromRowTimestamp: number,
+	_findRowsToRead(metaData: SearchIndexMetaDataRow, typeInfo: TypeInfo, mustBeOlderThan: number,
 	                maxResults: ?number): {metaEntries: Array<SearchIndexMetadataEntry>, oldestTimestamp: number, newestRowTimestamp: number} {
 		const filteredRows = metaData.rows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
 		filteredRows.reverse()
 		let entitiesToRead = 0
 		let lastReadRowTimestamp = 0
 		let newestRowTimestamp = Number.MAX_SAFE_INTEGER
-		const rowsToRead = filteredRows.filter(r => {
-			if (maxResults) {
-				if ((!fromRowTimestamp || r.oldestElementTimestamp < fromRowTimestamp) && entitiesToRead < 1000) {
-					entitiesToRead += r.size
-					lastReadRowTimestamp = r.oldestElementTimestamp
-					return true
-				} else {
-					newestRowTimestamp = Math.min(r.oldestElementTimestamp, newestRowTimestamp)
-				}
-				return false
-			} else {
-				return true
-			}
-		})
-
-		return {metaEntries: rowsToRead, oldestTimestamp: lastReadRowTimestamp, newestRowTimestamp: newestRowTimestamp}
-	}
-
-
-	_findEntriesForSearchToken(transaction: DbTransaction, searchTokenInfo: [string, ?number], searchResult: SearchResult,
-	                           maxResults: ?number): Promise<KeyToEncryptedIndexEntries> {
-		const [searchToken, fromRowTimestamp] = searchTokenInfo
-		let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
-		return transaction
-			.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex)
-			.then((metaData: ?SearchIndexMetaDataDbRow) => {
-				const safeRows = metaData ? decryptMetaData(this._db.key, metaData).rows : []
-				const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
-
-				const filteredRows = safeRows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
-				filteredRows.reverse()
-				let entitiesToRead = 0
-				let lastReadRowTimestamp = 0
-				const rowsToRead = filteredRows.filter(r => {
-					if (maxResults) {
-						if ((!fromRowTimestamp || r.oldestElementTimestamp < fromRowTimestamp) && entitiesToRead < 1000) {
-							entitiesToRead += r.size
-							lastReadRowTimestamp = r.oldestElementTimestamp
-							return true
-						}
-						return false
+		let rowsToRead
+		if (maxResults) {
+			rowsToRead = []
+			for (let r of filteredRows) {
+				if (r.oldestElementTimestamp < mustBeOlderThan) {
+					if (entitiesToRead < 1000) {
+						entitiesToRead += r.size
+						lastReadRowTimestamp = r.oldestElementTimestamp
+						rowsToRead.push(r)
 					} else {
-						return true
+						break
 					}
-				})
-
-				searchTokenInfo[1] = lastReadRowTimestamp
-				return mapInCallContext(rowsToRead, (entry) => this._findEntriesForMetadata(transaction, entry))
-			})
-			.then((results: EncryptedSearchIndexEntry[][]) => flat(results))
-			.then((indexEntries: EncryptedSearchIndexEntry[]) => {
-				return indexEntries.map(entry => ({
-					encEntry: entry,
-					idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
-				}))
-			})
-			.then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
-				return {
-					indexKey: indexKey,
-					indexEntries: indexEntries
+				} else {
+					newestRowTimestamp = r.oldestElementTimestamp
 				}
-			})
+			}
+		} else {
+			rowsToRead = filteredRows
+		}
+		return {metaEntries: rowsToRead, oldestTimestamp: lastReadRowTimestamp, newestRowTimestamp: newestRowTimestamp}
 	}
 
 	/**
