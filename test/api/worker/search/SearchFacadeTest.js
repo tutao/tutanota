@@ -285,9 +285,31 @@ o.spec("SearchFacade test", () => {
 		)
 	})
 
+	o("find two search words in multiple rows", () => {
+		const firstWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+		const secondWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+
+		const firstWordEntries = firstWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+		const secondWordEntries = secondWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+
+		//const oldestId = in
+		return testSearch(
+			[
+				createKeyToIndexEntries("test", firstWordEntries),
+				createKeyToIndexEntries("ja", secondWordEntries)
+			],
+			firstWordIds.concat(secondWordIds),
+			"ja,test",
+			createMailRestriction(),
+			secondWordIds.slice(500).reverse(),
+			0,
+			0,
+			1000
+		)
+	})
+
 
 	o("find two search words with a time gap", () => {
-
 		const firstWordIds: Array<IdTuple> = numberRange(1, 1200).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 		const secondWordIds: Array<IdTuple> = numberRange(1, 10).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 
@@ -309,6 +331,7 @@ o.spec("SearchFacade test", () => {
 			100
 		)
 	})
+
 
 	o("find two search words ordered", () => {
 		return testSearch(

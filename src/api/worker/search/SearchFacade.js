@@ -26,7 +26,6 @@ import {
 	encryptIndexKeyBase64,
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
-	timeEnd,
 	typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"

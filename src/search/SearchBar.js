@@ -422,26 +422,26 @@ export class SearchBar implements Component {
 	/** Given the result from the search load additional results if needed and then display them or set URL. */
 	_loadAndDisplayResult(query: string, result: ?SearchResult, limit: ?number) {
 		// Let Flow know that they're constants
-		const sResult = result, sLimit = limit
+		const safeResult = result, safeLimit = limit
 		this._updateState({searchResult: result})
-		if (!sResult || locator.search.isNewSearch(query, sResult.restriction)) {
+		if (!safeResult || locator.search.isNewSearch(query, safeResult.restriction)) {
 			return
 		}
 		if (this._isQuickSearch()) {
-			if (sLimit && hasMoreResults(sResult) && sResult.results.length < sLimit) {
-				worker.getMoreSearchResults(sResult, sLimit - sResult.results.length).then((result) => {
-					if (locator.search.isNewSearch(query, result.restriction)) {
+			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
+				worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+					if (locator.search.isNewSearch(query, moreResults.restriction)) {
 						return
 					} else {
-						this._loadAndDisplayResult(query, result, limit)
+						this._loadAndDisplayResult(query, moreResults, limit)
 					}
 				})
 			} else {
-				this._showResultsInOverlay(sResult)
+				this._showResultsInOverlay(safeResult)
 			}
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
-			setSearchUrl(getSearchUrl(query, sResult.restriction))
+			setSearchUrl(getSearchUrl(query, safeResult.restriction))
 		}
 	}
 
