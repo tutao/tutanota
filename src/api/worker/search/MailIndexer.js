@@ -280,6 +280,9 @@ export class MailIndexer {
 					           })
 				           })
 			})
+			.finally(() => {
+				this._core.queue.resume()
+			})
 		return this.mailboxIndexingPromise.return()
 	}
 
