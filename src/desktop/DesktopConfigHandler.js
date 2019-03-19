@@ -74,6 +74,12 @@ export class DesktopConfigHandler {
 			: this._desktopConfig
 	}
 
+	/**
+	 * change the runtime-defined config and write it to disk
+	 * @param key value to change. a key of "any" will replace the conf object with value.
+	 * @param value the new value
+	 * @returns {never|Promise<any>|Promise<void>|*}
+	 */
 	setDesktopConfig(key: DesktopConfigKey, value: any): Promise<void> {
 		setImmediate(() => this._emit(key, value))
 		if (key !== 'any') {
@@ -84,6 +90,12 @@ export class DesktopConfigHandler {
 		return promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
 	}
 
+	/**
+	 * listen to changes in the config
+	 * @param key the value you want to listen for. a key of "any" will be called with the complete config for any changes to the config.
+	 * @param cb a function that's called when the config changes. argument is the new value or the entire config object in case of the "any" event.
+	 * @returns {DesktopConfigHandler}
+	 */
 	on(key: DesktopConfigKey, cb: (val: any) => void): DesktopConfigHandler {
 		if (!this._onValueSetListeners[key]) {
 			this._onValueSetListeners[key] = [cb]
@@ -109,8 +121,12 @@ export class DesktopConfigHandler {
 		return this
 	}
 
+	// calls every callback for the given key, and every "any" callback
 	_emit(key: DesktopConfigKey, val: any) {
-		if (!this._onValueSetListeners[key]) return
+		if (this._onValueSetListeners["any"]) {
+			this._onValueSetListeners["any"].forEach(cb => cb(this._desktopConfig))
+		}
+		if (key === "any" || !this._onValueSetListeners[key]) return
 		this._onValueSetListeners[key].forEach(cb => cb(val))
 	}
 }
