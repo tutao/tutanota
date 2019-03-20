@@ -2,7 +2,8 @@
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "./utils/Encoding"
 import EC from "./EntityConstants"
 import {asyncImport} from "./utils/Utils"
-import {last} from "./utils/ArrayUtils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {last} from "./utils/ArrayUtils"
+
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -41,6 +42,8 @@ export const CUSTOM_MIN_ID = ""
 
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
+
+export const READ_ONLY_HEADER = "read-only"
 
 /**
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
@@ -182,7 +185,7 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 }
 
 
-export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<T[]> {
+export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
 	// split the ids into chunks
 	let idChunks = [];
 	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
@@ -194,14 +197,15 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 			let queryParams = {
 				ids: idChunk.join(",")
 			}
-			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
 		}, {concurrency: 1}).then(instanceChunks => {
 			return Array.prototype.concat.apply([], instanceChunks);
 		})
 	})
 }
 
-export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface): Promise<T[]> {
+export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
+                                    extraHeaders?: Params): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		let queryParams = {
@@ -209,20 +213,20 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 			count: count + "",
 			reverse: reverse.toString()
 		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
 	})
 }
 
 export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
-                                                         rangeItemLimit: number): Promise<{elements: T[], loadedCompletely: boolean}> {
+                                                         rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target)
+		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target, extraHeaders)
 			.then(loadedEntities => {
 				const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
 				if (filteredEntities.length === rangeItemLimit) {
 					const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
-					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit)
+					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit, extraHeaders)
 						.then(({elements: remainingEntities, loadedCompletely}) => {
 							return {elements: filteredEntities.concat(remainingEntities), loadedCompletely}
 						})
@@ -382,3 +386,6 @@ export function customIdToString(customId: string) {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
 }
 
+export function readOnlyHeaders(): Params {
+	return {[READ_ONLY_HEADER]: "true"}
+}

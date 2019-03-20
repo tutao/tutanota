@@ -8,7 +8,7 @@ import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
+import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
@@ -45,13 +45,11 @@ export class MailIndexer {
 	_db: Db;
 	_worker: WorkerImpl;
 	_entityRestClient: EntityRestInterface;
-	_noncachingEntity: EntityWorker;
 	_defaultCachingClient: EntityWorker;
 
 	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestInterface, defaultCachingRestClient: EntityRestInterface) {
 		this._core = core
 		this._db = db
-		this._noncachingEntity = new EntityWorker(entityRestClient)
 		this._defaultCachingClient = new EntityWorker(defaultCachingRestClient)
 		this._worker = worker
 
@@ -99,10 +97,10 @@ export class MailIndexer {
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		return this._noncachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+		return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders()).then(mail => {
 			return Promise.all([
-				Promise.map(mail.attachments, attachmentId => this._noncachingEntity.load(FileTypeRef, attachmentId)),
-				this._noncachingEntity.load(MailBodyTypeRef, mail.body)
+				Promise.map(mail.attachments, attachmentId => this._defaultCachingClient.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
+				this._defaultCachingClient.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
 			]).spread((files, body) => {
 				let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
 				return {mail, keyToIndexEntries}
@@ -533,7 +531,7 @@ export class MailIndexer {
 					return Promise.resolve()
 				}
 
-				return this._noncachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId]).then(mail => {
+				return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders()).then(mail => {
 					if (mail.state === MailState.DRAFT) {
 						return Promise.all([
 							this._core._processDeleted(event, indexUpdate),
@@ -655,4 +653,7 @@ class IndexLoader {
 		}, {concurrency: 2})
 		              .then(entityResults => flat(entityResults))
 	}
+
+
 }
+

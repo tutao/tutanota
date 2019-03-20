@@ -99,8 +99,8 @@ export class EntityWorker {
 		this._target = target
 	}
 
-	load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
-		return _loadEntity(typeRef, id, queryParams, this._target)
+	load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params): Promise<T> {
+		return _loadEntity(typeRef, id, queryParams, this._target, extraHeaders)
 	}
 
 	loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {

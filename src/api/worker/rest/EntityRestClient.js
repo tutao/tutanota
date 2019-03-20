@@ -14,6 +14,8 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 
 export type AuthHeadersProvider = () => Params
 
+
+
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *

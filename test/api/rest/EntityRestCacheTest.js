@@ -12,6 +12,7 @@ import {
 	getElementId,
 	HttpMethod,
 	isSameTypeRef,
+	readOnlyHeaders,
 	stringToCustomId,
 	TypeRef
 } from "../../../src/api/common/EntityFunctions"
@@ -408,9 +409,16 @@ o.spec("entity rest cache", function () {
 		})
 	})
 
-	o("load list elements partly from server - range min to id3 loaded", function (done) {
+	o("load list elements partly from server - range min to id3 loaded", async function () {
+		await _loadListElementsPartlyFromServer_RangeMinRoId3Loaded(false)
+	})
+	o.only("load list elements partly from server - range min to id3 loaded - readOnlyCache", async function () {
+		await _loadListElementsPartlyFromServer_RangeMinRoId3Loaded(true)
+	})
+
+	function _loadListElementsPartlyFromServer_RangeMinRoId3Loaded(readOnly: boolean): Promise<*> {
 		let mail4 = createMailInstance("listId1", "id4", "subject4")
-		setupMailList(true, false).then(originalMails => {
+		return setupMailList(true, false).then(originalMails => {
 			clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
 				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(method).equals(HttpMethod.GET)
@@ -418,20 +426,22 @@ o.spec("entity rest cache", function () {
 				o(id).equals(null)
 				o(entity).equals(null)
 				o(queryParameter).deepEquals({start: originalMails[2]._id[1], count: "1", reverse: "false"})
+				o(typeof extraHeaders === "undefined").equals(true) // never pass read only parameter to network request
 				return Promise.resolve([mail4])
 			}
 			return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
-				start: GENERATED_MIN_ID,
-				count: "4",
-				reverse: "false"
-			}).then(mails => {
+					start: GENERATED_MIN_ID,
+					count: "4",
+					reverse: "false"
+				},
+				readOnly ? readOnlyHeaders() : {}
+			).then(mails => {
 				o(mails).deepEquals([originalMails[0], originalMails[1], originalMails[2], clone(mail4)])
 			})
 		}).then(() => {
 			o(clientSpy.callCount).equals(2) // entities are provided from server
-			done()
 		})
-	})
+	}
 
 	o("load list elements partly from server - range max to id2 loaded - start in middle of range", function (done) {
 		let mail0 = createMailInstance("listId1", "id0", "subject0")
@@ -457,6 +467,30 @@ o.spec("entity rest cache", function () {
 			done()
 		})
 	})
+	o.only("load list elements partly from server - range max to id2 loaded - start in middle of range - read only cache", async function () {
+		let mail0 = createMailInstance("listId1", "id0", "subject0")
+		await setupMailList(false, true).then(originalMails => {
+			clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
+				o(method).equals(HttpMethod.GET)
+				o(listId).equals("listId1")
+				o(id).equals(null)
+				o(entity).equals(null)
+				o(queryParameter).deepEquals({start: originalMails[0]._id[1], count: "3", reverse: "true"})
+				return Promise.resolve([mail0])
+			}
+			return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
+				start: createId("id2"),
+				count: "4",
+				reverse: "true"
+			}).then(mails => {
+				o(mails).deepEquals([originalMails[0], clone(mail0)])
+			})
+		}).then(() => {
+			o(clientSpy.callCount).equals(2) // entities are provided from server
+		})
+	})
+
 
 	o("load list elements partly from server - range max to id2 loaded - loadMore", function (done) {
 		let mail0 = createMailInstance("listId1", "id0", "subject0")
