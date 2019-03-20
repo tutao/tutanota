@@ -224,11 +224,7 @@ export class EntityRestCache implements EntityRestInterface {
 					let entities: Array<T> = downcast(result)
 					if (readOnly) {
 						const cachedEntities = this._provideFromCache(listCache, start, count - newRequestParams.newCount, reverse)
-						if (reverse) {
-							return entities.concat(cachedEntities)
-						} else {
-							return cachedEntities.concat(entities)
-						}
+						return cachedEntities.concat(entities)
 					} else {
 						return this._handleElementRangeResult(neverNull(listCache), start, count, reverse, entities, newRequestParams.newCount)
 					}
@@ -241,11 +237,11 @@ export class EntityRestCache implements EntityRestInterface {
 			|| (firstBiggerThanSecond(listCache.lowerRangeId, start) && reverse)) {
 			if (readOnly) {
 				// Doesn't make any sense to read from existing range because we know that elements are not in the cache
-				return this.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
+				return downcast(this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
 					start: start,
 					count: String(count),
 					reverse: String(reverse)
-				})
+				}))
 			}
 			let loadStartId
 			if (firstBiggerThanSecond(start, listCache.upperRangeId) && !reverse) {
