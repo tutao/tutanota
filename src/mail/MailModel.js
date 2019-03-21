@@ -22,7 +22,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {locator} from "../api/main/MainLocator"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
+import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
@@ -47,27 +47,29 @@ export class MailModel {
 	mailboxCounters: Stream<MailboxCounters>
 	_initialization: ?Promise<void>
 	_notifications: Notifications
+	_eventController: EventController
 
-	constructor(notifications: Notifications) {
+	constructor(notifications: Notifications, eventController: EventController) {
 		this.mailboxDetails = stream([])
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
-
-		locator.eventController.addEntityListener((updates) => {
-			this.entityEventsReceived(updates)
-		})
-
-		locator.eventController.countersStream().map((update) => {
-			this._mailboxCountersUpdates(update)
-		})
+		this._eventController = eventController
 	}
 
 	init(): Promise<void> {
 		if (this._initialization) {
 			return this._initialization
 		}
+		this._eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 
+		this._eventController.countersStream().map((update) => {
+			this._mailboxCountersUpdates(update)
+		})
+		return this._init()
+	}
+
+	_init(): Promise<void> {
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
 		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
 			return Promise.all([
@@ -198,12 +200,10 @@ export class MailModel {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
 		for (let update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				this._initialization = null
-				this.init().then(() => m.redraw())
+				this._init().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
-					this._initialization = null
-					this.init().then(() => m.redraw())
+					this._init().then(() => m.redraw())
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
@@ -212,8 +212,7 @@ export class MailModel {
 						                                .filter(membership => membership.groupType === GroupType.Mail)
 						let currentDetails = this.mailboxDetails()
 						if (newMemberships.length !== currentDetails.length) {
-							this._initialization = null
-							this.init().then(() => m.redraw())
+							this._init().then(() => m.redraw())
 						}
 					})
 				}
@@ -247,7 +246,7 @@ export class MailModel {
 	}
 }
 
-export const mailModel = new MailModel(new Notifications())
+export const mailModel = new MailModel(new Notifications(), locator.eventController)
 
 if (replaced) {
 	Object.assign(mailModel, replaced.mailModel)

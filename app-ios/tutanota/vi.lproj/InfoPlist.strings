@@ -1,4 +1,6 @@
 NSCameraUsageDescription = "Chụp hình hoặc quay phim để đính kèm vào thư.";
+NSMicrophoneUsageDescription = "Được sử dụng khi quay video làm phần đính kèm.";
+NSRemindersUsageDescription = "Hiển thị thông báo khi email mới đến.";
 TutaoChoosePhotosAction = "Hình";
 TutaoCancelAction = "Huỷ";
 TutaoSettingsAction = "Cài đặt";

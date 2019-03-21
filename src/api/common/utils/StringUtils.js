@@ -39,3 +39,11 @@ export function lazyStringValue(valueOrLazy: string | lazy<string>): string {
 		? valueOrLazy()
 		: valueOrLazy
 }
+
+export function repeat(value: string, length: number): string {
+	let result = ""
+	for (let i = 0; i < length; i++) {
+		result += value;
+	}
+	return result
+}

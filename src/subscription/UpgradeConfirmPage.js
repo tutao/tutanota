@@ -19,7 +19,7 @@ import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
-import {formatPrice, SubscriptionType} from "./SubscriptionUtils"
+import {formatPrice, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
@@ -60,10 +60,12 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 					return this.close()
 				})
 				.catch(PreconditionFailedError, e => {
-					Dialog.error("paymentProviderTransactionFailedError_msg")
+					Dialog.error(() => lang.get("paymentProviderTransactionFailedError_msg") + ((data.upgradeType === UpgradeType.Signup) ? " "
+						+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 				.catch(BadGatewayError, e => {
-					Dialog.error("paymentProviderNotAvailableError_msg")
+					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((data.upgradeType === UpgradeType.Signup) ? " "
+						+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 		}).setType(ButtonType.Login)
 

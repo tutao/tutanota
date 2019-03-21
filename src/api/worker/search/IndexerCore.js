@@ -43,7 +43,6 @@ import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
-import {BrowserType} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {arrayHash, findLastIndex, groupByAndMap, lastThrow} from "../../common/utils/ArrayUtils"
 import {
@@ -93,7 +92,7 @@ export class IndexerCore {
 		this.queue = queue
 		this.db = db
 		this._isStopped = false;
-		this._promiseMapCompat = promiseMapCompat(this._needsMicrotaskHack(browserData))
+		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 		this.resetStats()
 	}
 
@@ -682,15 +681,6 @@ export class IndexerCore {
 				return transaction.put(GroupDataOS, groupId, groupData)
 			}
 		})
-	}
-
-
-	_needsMicrotaskHack(browserData: BrowserData): boolean {
-		return browserData.browserType === BrowserType.SAFARI
-			|| browserData.browserType === BrowserType.PALEMOON
-			|| browserData.browserType === BrowserType.WATERFOX
-			|| browserData.browserType === BrowserType.FIREFOX && browserData.browserVersion < 60
-			|| browserData.browserType === BrowserType.CHROME && browserData.browserVersion < 59;
 	}
 
 	_cancelIfNeeded() {

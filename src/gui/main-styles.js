@@ -135,14 +135,13 @@ styles.registerStyle('main', () => {
 		},
 
 
-		'h1, h2, h3, h4, h5, h6': {margin: 0},
+		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
 		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
 		'h2, .h2': {'font-size': px(size.font_size_base * 1.8)},
 		'h3, .h3': {'font-size': px(size.font_size_base * 1.6)},
 		'h4, .h4': {'font-size': px(size.font_size_base * 1.4)},
 		'h5, .h5': {'font-size': px(size.font_size_base * 1.2)},
 		'h6, .h6': {'font-size': px(size.font_size_base * 1.1)},
-		"h1, h2, h3, h4, h5, h6": {'font-weight': 'normal'},
 		'input, button, select, textarea': {
 			'font-family': 'inherit',
 			'font-size': 'inherit',
@@ -184,7 +183,6 @@ styles.registerStyle('main', () => {
 		'.pt-m': {'padding-top': px(size.vpad)},
 		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
-		'.pt-s': {'padding-top': px(size.hpad_small)},
 		'.pt-xs': {'padding-top': px(size.vpad_xs)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
@@ -239,7 +237,6 @@ styles.registerStyle('main', () => {
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
-		'.overflow-x-hidden': {'overflow-x': 'hidden'},
 
 		'.view-column': {'will-change': 'transform'},
 
@@ -371,7 +368,6 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
-		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -589,7 +585,8 @@ styles.registerStyle('main', () => {
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),
-			'margin-left': px(0)
+			'margin-left': px(0),
+			'margin-right': px(0)
 		},
 
 		'.MsoNormal': {margin: 0},

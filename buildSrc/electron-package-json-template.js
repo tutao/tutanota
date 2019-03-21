@@ -41,7 +41,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.4",
+			"electronVersion": "4.0.8",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0

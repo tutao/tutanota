@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "f27aca718b4b8c5a52b30c098b4ee276",
 	"name": "zh-tw",
 	"code": "zh_tw",
@@ -12,7 +10,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2019-03-01T09:50:51Z",
+	"updated_at": "2019-03-04T08:54:26Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -932,5 +930,3 @@ const translation = {
 		"yourMessage_label": "您的訊息"
 	}
 }
-export default translation
-export var __useDefault = translation

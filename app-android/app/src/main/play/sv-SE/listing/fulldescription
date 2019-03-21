@@ -1,0 +1,40 @@
+Tutanota gör att du kan ta del av fördelarna med molnet, tillgänglighet, flexibilitet och automatisk backup, utan att kompromissa med säkerheten. Med Tutanotas inbyggda kryptering äger du dina data, ingen annan kommer åt dem. Tutanota har ett ljust & lätt gränsnitt, mörkt tema, push notiser, automatisk synkronisering, full textsökning, swipe och mycket mer.
+
+Tutanotas e-post app med öppen källkod gör att du kan du skicka end-to-end krypterad e-post till vem som helst. Även e-post som skickas utan end-to-end kryptering, och alla dina kontakter, sparas krypterade på Tutanotas servrar.
+
+Vår passion är personlig integritet.
+
+Tutanota byggs av ett team som brinner för allas rätt till personlig integritet. Vi stöttas av en fantastisk community, det gör att vi kontinuerligt kan utöka vårt team och göra Tutanota framgångsrikt utan beroende av riskkapital.
+
+Tutanota respekterar dig & dina data:
+
+- Bara du kan komma åt din krypterade e-post & kontakter.
+- Tutanota spårar inte eller kartlägger dig.
+- Klient & appar med öppen källkod.
+- Innovativ fulltextsökning låter dig enkelt söka i din brevlåda.
+- TLS med stöd för PFS, DMARC, DKIM, DNSSEC och DANE.
+- Säker lösenordsåterställning gör att vi inte kommer åt dina data.
+-100% utvecklad och belägen i Tyskland under strikta dataskyddslagar (BNPR).
+
+Officiell webbsida: https://tutanota.com
+Källkod: https://github.com/tutao/tutanota
+
+Med Tutanota appen kan du:
+
+- Skapa din egen Tutanota e-postadress (slutar på @tutanota. com, @tutanota. de, @tutamail. com, @tuta. io eller @keemail. me) inkluderat 1 GB gratis lagringsutrymme.
+- Skapa e-postadress med anpassad domän för €1 per månad.
+- Skicka och ta emot krypterad e-post end-to-end till vem som helst.
+- Skicka och ta emot traditionell e-post (inte end-to-end krypterad). Även dessa mejl lagras krypterade på Tutanotas servrar.
+- Automatiskt kryptera ämne, innehåll och bilagor.
+- Få push notiser direkt.
+- Automatiskt komplettera e-postadresser när du skriver  från Tutanota eller dina telefonkontakter.
+
+Tutanota appen ber om mycket få tillstånd för att värna om din personlig integritet:
+
+- Fullständig nätverksåtkomst: Används för att skicka och ta emot e-post.
+- Ta emot data från Internet: För att meddela dig när du får ett nytt mejl.
+- Visa nätverksanslutningar: För att ta reda på om det finns en Internetanslutning.
+- Läsa dina kontakter: Låter dig välja mottagare från telefonens kontakter.
+- Läsa från SD-kort: Gör det möjligt att lägga till e-postbilagor från SD-kort.
+- Kontroll av vibration: För att meddela dig när du får ett nytt mejl.
+- Avaktivera viloläge: För att meddela dig när du får ett nytt mejl.

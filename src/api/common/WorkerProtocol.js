@@ -219,5 +219,6 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.CryptoError": CryptoError, // Android app exception class name
 	"de.tutao.tutanota.TutCrypto": CryptoError, // iOS app crypto error domain
 	"android.content.ActivityNotFoundException": FileOpenError,
-	"de.tutao.tutanota.TutFileViewer": FileOpenError
+	"de.tutao.tutanota.TutFileViewer": FileOpenError,
+	"NSURLErrorDomain": ConnectionError
 }

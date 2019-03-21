@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "89e360bddae0ae4fe387489ceb199baa",
 	"name": "hu",
 	"code": "hu",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2019-03-01T09:49:30Z",
+	"updated_at": "2019-03-05T14:24:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -898,7 +896,7 @@ const translation = {
 		"userEmailSignature_label": "Levélaláírás",
 		"userSettings_label": "Felhasználói beállítások",
 		"validInputFormat_msg": "A formátum megfelelő.",
-		"waitingForApproval_msg": "Sajnáljuk, de jelenleg nincs lehetősége üzenetek küldésére vagy fogadására, mert a fiókja további jóváhagyást igényel, a tömeges regisztrációt megelőzendő. A Tutanota csapata 48 órán belül felülvizsgálja fiókját. Köszönjük türelmét!",
+		"waitingForApproval_msg": "Sajnáljuk, de jelenleg nincs lehetősége üzenetek küldésére vagy fogadására, mert a fiókja további jóváhagyást igényel. Ez a művelet szükséges, hogy biztosíthassuk a titkosított regisztrációt és egyidejűleg megelőzhessük a többszörös regisztrációkat. Fiókja automatikusan jóváhagyásra kerül 48 órán belül.\n Köszönjük türelmét!",
 		"wantToSendReport_msg": "Váratlan hiba történt. Szeretne hibajelentést küldeni? Üzenetet írhat nekünk, amely segítségével orvosolni tudjuk a hibát.",
 		"welcomeMailBody1_msg": "Üdvözöljük az Ön biztonságos és reklámmentes postafiókjánál! Az Ön Tutanota fiókját erős titkosítás védi. Még mi, a fejlesztők sem tudunk hozzáférni. Kizárólag Ön oldhatja fel jelszavával levelei és névjegyei titkosítását. Kérjük, őrizze meg jelszavát, mivel annak elvesztése esetén azt a későbbiekben nem áll módunkban visszaállítani.",
 		"welcomeMailBody2_msg": "Ön képes e-mailt küldeni minden e-mail címre a világon. Ha az Ön barátai is Tutanota-t használnak, az összes levelezés végpontig lesz titkosítva. Titkosíthat e-maileket egyéb szolgáltatókhoz is. Tutanota titkosítja a tárgyat, a tartalmat és mellékleteket automatikusan. Sőt, még a titkosítatlan bejövő és kimenő e-maileket is titkosítva tároljuk a szervereinken. \n\n\nHívja meg ismerőseit is a Tutanotához, hogy könnyen, végponti titkosítással küldhessen leveleket. Külső címzettek esetében is használhat jelszavas titkosítást. A Tutanota automatikusan titkosítja a tárgyat, a tartalmat és a mellékleteket is. A titkosítatlan, fogadott és elküldött levelek is titkosításra kerülnek szervereinken. Csatlakozzon az adatvédelemért vívott harchoz, frissítsen Prémium fiókra mindössze havi 1 Euróért. Böngészőjében kattintson a Prémium gombra, a Tutanota fiókjában található menüsoron.",
@@ -908,6 +906,7 @@ const translation = {
 		"welcomeMailBody5_msg": "U.i.: A Tutanota nyílt forráskódú, nyugodtan megnézheti és átvizsgálhatja a forráskódot.",
 		"welcomeMailBody6_msg": "U.i.: Kérjük ne küldjön levélben funkciókéréseket, mivel szeretnénk a tényleges fejlesztésre fordítani az időnket. Amennyiben úgy látja, hogy hiányzik egy fontos funkció, arról itt szavazhat:",
 		"welcomeMailBodyTweetText_msg": "Most állítottam be a Tutanota postafiókomat. Végre elrejthetem az összes levelemet a kíváncsi szemek elől! Csatlakozzon:",
+		"welcomeMailBody_markdown": "Üdvözöljük biztonságos, reklámmentes és erős titkosítással ellátott Tutanota fiókjában.Tutanotára váltani más email-szolgáltatókról egyszerű. Könnyen kezelhető web kliensünk, Android és iOS appjaink, valamint Windows, Mac és Linux asztali appjaink biztonságos hozzáférést jelentenek fiókjához minden eszközön.\n\nAkár egy profi, időt és pénzt takaríthat meg, ha üzleti levelezését a Tutanota németországi, végponti titkosítással elátott szerverein bonyolítja. A Tutanota Whitelabel üzleti felhasználásra született: jelenítse meg a bejelentkezést honlapján, valamint rendeljen honlapjához titkosított névjegyűrlapot - így ügyfelei könnyedén és bizalmasan érhetik el Önt. [Tudjon meg többet a Tutanota széleskörű  üzleti alkalmazásairól]({businessLink}) \n\n**A Tutanota 4 elvet követ, hogy titkosított levelezést biztosítson**\n\n1. A Tutanota nem követi Önt.\n2. A Tutanota nem vizsgálja adatait.\n3. A Tutanota titkosítja teljes fiókját és kapcsolatait.\n4. A Tutanota felépítése magában foglalja a titkosítást.\n\nAjánlja a Tutanotát, a [nyílt forráskódú email szolgáltatót, amely tiszteletben tartja Önt és magánszférához való jogát]({blogOpenSourceLink}).\n\nÚgy hisszük, mindenki megérdemel egy ingyenes és privát email fiókot. Támogathat bennünket, ha követ minket kedvenc közösségi média oldalán, vagy megosztja információinkat barátaival és kollégáival. Együtt jobbá tehetjük az internetet:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nNagyon köszönjük!\n\nAz Ön Tutanot csapata\n\nA Tutanota nyílt forráskódú rendszer. [Megtekintheti és ellenőrizheti a forráskódot itt]({githubLink})",
 		"welcomeMailSubject_msg": "Érezze magát otthon: Adatait bizalmasan kezeljük.",
 		"whitelabelAccounts_label": "Átcímkézett fiókok",
 		"whitelabelAccount_label": "Átcímkézéssel rendelkező fiók",
@@ -930,5 +929,3 @@ const translation = {
 		"yourMessage_label": "Az Ön üzenete"
 	}
 }
-export default translation
-export var __useDefault = translation

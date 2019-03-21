@@ -34,7 +34,7 @@ o.spec("MailModelTest", function () {
 	o.beforeEach(function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
-		model = new MailModel(downcast(notifications))
+		model = new MailModel(downcast(notifications), downcast({}))
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails)
 	})

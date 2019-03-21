@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "0bbba0bd9097c32da7426931c0c0bc05",
 	"name": "fr",
 	"code": "fr",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2019-03-01T09:49:43Z",
+	"updated_at": "2019-03-13T10:54:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -61,7 +59,7 @@ const translation = {
 		"adminPayment_action": "Paiement",
 		"adminPremiumFeatures_action": "Extensions",
 		"adminSettings_label": "Paramètres administrateur",
-		"adminSpamRuleInfo_msg": "Détails pour la configuration des règles de spam :",
+		"adminSpamRuleInfo_msg": "Détails pour la configuration des règles de spam : ",
 		"adminSpam_action": "Règles de spam",
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Gestion utilisateur(s)",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Veuillez cliquer sur l'un de vos numéros de téléphone ci-dessous pour recevoir votre mot de passe Tutanota par message texte (SMS).",
 		"choosePhotos_action": "Photos",
 		"choose_label": "Choisissez…",
+		"clearFolder_action": "Vider le dossier",
 		"clickNumber_msg": "Merci de cliquer sur votre numéro de téléphone ci-dessous pour recevoir votre mot de passe Tutanota par message texte (SMS).",
 		"clickToUpdate_msg": "Cliquer ici si vous souhaitez y souscrire maintenant, ou laissez nous installer automatiquement en quittant.",
 		"client_label": "Client",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "L'expéditeur technique est différent de l'adresse e-mail fournie dans le champ \"De:\". Sachant que le champ \"De:\" peut être falsifié, l'expéditeur technique est également affiché afin de savoir qui a réellement envoyé cet email.",
 		"errorAtLine_msg": "Erreur à la ligne {index} : {error}",
+		"errorDuringUpdate_msg": "Un problème est survenu lors du processus de mise à jour. Nous essaierons à nouveau plus tard.",
 		"errorReport_label": "Oh non !",
 		"expiredLink_msg": "Désolé, ce lien n'est plus valide. Vous devriez avoir reçu un nouveau message de notification avec un lien valide. Les liens précédents ont été désactivés pour des raisons de sécurité.",
 		"exportSelectedAsVCard_action": "Exporter les contacts sélectionnés en vCard",
@@ -823,6 +823,7 @@ const translation = {
 		"storageCapacityUsed_label": "stockage utilisé",
 		"storageCapacity_label": "Espace disponible",
 		"storageDeletionAnnouncement_msg": "Information : Les e-mails déplacés dans la corbeille ou dans le dossier de SPAM seront automatiquement supprimés après 30 jours.",
+		"storageDeletion_msg": "Les e-mails de ce dossier seront automatiquement supprimés après 30 jours.",
 		"storePassword_action": "Enregistrer le mot de passe",
 		"subject_label": "Objet",
 		"subscriptionCancelledMessage_msg": "Votre abonnement a été annulé. Veuillez contacter le support pour relancer votre abonnement.",
@@ -903,7 +904,7 @@ const translation = {
 		"userEmailSignature_label": "Signature d'email",
 		"userSettings_label": "Réglages de l'utilisateur",
 		"validInputFormat_msg": "Format OK.",
-		"waitingForApproval_msg": "Désolé, vous n'êtes actuellement pas autorisé à envoyer ou recevoir des mails car votre compte a été marqué pour approbation afin d'éviter les enregistrements en masse. L'équipe Tutanota approuvera votre compte sous 48 heures. Merci pour votre patience!",
+		"waitingForApproval_msg": "Désolé, vous n'êtes actuellement pas autorisé à envoyer ou recevoir des mails car votre compte a été marqué pour approbation afin d'éviter les enregistrements en masse. L'équipe Tutanota approuvera votre compte automatiquement sous 48 heures. Merci pour votre patience!",
 		"wantToSendReport_msg": "Quelque chose d'inattendu a eu lieu. Voulez-vous envoyer un rapport d'erreur ? Vous pouvez ajouter un message pour nous aider à corriger ce problème.",
 		"welcomeMailBody1_msg": "Bienvenue dans votre nouvelle boîte mail sécurisée ! Votre boîte mail TUtanota est protégée avec un chiffrement fort. Même nous, nous n'avons pas la possibilité d'y accéder. Vous seul pouvez déchiffrer vos messages et contacts grâce à votre mot de passe. Ne perdez pas ce mot de passe et conservez-le, nous ne pouvons pas le réinitialiser.",
 		"welcomeMailBody2_msg": "Vous pouvez envoyer des emails à n'importe quelle adresse dans le monde. Si vos amis utilisent aussi Tutanota, tous vos emails sont automatiquement chiffrés de bout-en-bout. Vous pouvez également chiffrer des e-mails envoyés à d'autres fournisseurs de mails. Tutanota chiffre l'objet de l'e-mail, son contenu, ainsi que les pièces jointes automatiquement. Même les e-mails reçus ou envoyés non chiffrés sont chiffrés sur nos serveurs.",
@@ -936,5 +937,3 @@ const translation = {
 		"yourMessage_label": "Votre message"
 	}
 }
-export default translation
-export var __useDefault = translation

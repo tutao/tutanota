@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-	"version": "3.48.1",
+  "version": "3.48.6",
   "scripts": {
 	"flow": "flow; test $? -eq 0 -o $? -eq 2",
 	"start": "./node_modules/electron/dist/electron --inspect=5858 ./build/"
@@ -15,6 +15,7 @@
 	"systemjs": "0.20.19"
   },
   "devDependencies": {
+	"mockery": "^2.1.0",
 	"babel-core": "6.26.3",
 	"babel-plugin-transform-class-properties": "6.24.1",
 	"babel-plugin-transform-flow-strip-types": "6.22.0",
@@ -26,7 +27,7 @@
 	"chokidar-socket-emitter": "0.6.0",
 	"commander": "2.19.0",
 	"core-js": "2.5.7",
-	"electron": "4.0.4",
+	"electron": "4.0.8",
 	"electron-builder": "20.38.5",
 	"electron-localshortcut": "3.1.0",
 	"electron-packager": "13.1.0",

@@ -2,9 +2,10 @@
 import {restClient} from "./RestClient"
 import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral, resolveSessionKey, setNewOwnerEncSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {HttpMethod, MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {HttpMethod, isSameTypeRef, MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
+import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 
 assertWorkerOrNode()
 
@@ -63,12 +64,22 @@ export class EntityRestClient implements EntityRestInterface {
 				return restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
 					let data = JSON.parse((json: string))
 					if (data instanceof Array) {
-						return Promise.map(data, instance => resolveSessionKey(model, instance)
-							.catch(SessionKeyNotFoundError, e => {
-								console.log("could not resolve session key", e)
-								return null // will result in _errors being set on the instance
-							})
-							.then(sk => decryptAndMapToInstance(model, instance, sk)), {concurrency: 5})
+						let p = Promise.resolve()
+						// PushIdentifier was changed in the system model v43 to encrypt the name.
+						// We check here to check the type only once per array and not for each element.
+						if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
+							p = Promise.map(data, instance => applyMigrations(typeRef, instance))
+						}
+						return p.then(() => {
+							return Promise.map(data, instance =>
+									resolveSessionKey(model, instance)
+										.catch(SessionKeyNotFoundError, e => {
+											console.log("could not resolve session key", e)
+											return null // will result in _errors being set on the instance
+										})
+										.then(sk => decryptAndMapToInstance(model, instance, sk)),
+								{concurrency: 5})
+						})
 					} else {
 						return applyMigrations(typeRef, data).then(data => {
 							return resolveSessionKey(model, data).catch(SessionKeyNotFoundError, e => {

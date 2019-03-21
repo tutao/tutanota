@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92ad6953a5b1b188f70dc44f3e29ec78",
 	"name": "nl",
 	"code": "nl",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2019-03-01T09:51:02Z",
+	"updated_at": "2019-03-13T08:25:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Klik a.u.b. op een van uw telefoonnummers hieronder om uw Tutanota wachtwoord te ontvangen als SMS.",
 		"choosePhotos_action": "Foto's",
 		"choose_label": "Kies...",
+		"clearFolder_action": "Maak map leeg",
 		"clickNumber_msg": "Klik a.u.b. op uw telefoonnummer hieronder om uw Tutanota wachtwoord te ontvangen als SMS.",
 		"clickToUpdate_msg": "Klik hier als u het nu wil toepassen of laat ons het automatisch doen bij afsluiten.",
 		"client_label": "Cliënt",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Opsomming",
 		"envelopeSenderInfo_msg": "De werkelijke afzender is anders dan het email adres in 'Van'. Aangezien 'van' kan worden vervalst, wordt ook de werkelijke afzender weergegeven om te begrijpen wie deze mail stuurt.",
 		"errorAtLine_msg": "Fout op regel {index}: {error}",
+		"errorDuringUpdate_msg": "Er ging iets mis bij het updaten, we proberen later nog eens.",
 		"errorReport_label": "O nee!",
 		"expiredLink_msg": "Sorry, deze link is niet meer geldig. U heeft een nieuwe e-mail met een geldige link ontvangen. Eerdere links zijn gedeactiveerd om veiligheidsredenen.",
 		"exportSelectedAsVCard_action": "Exporteer de geselcteerde ontacten als vCard",
@@ -352,6 +352,8 @@ const translation = {
 		"group_label": "Groep",
 		"header_label": "Aanhef",
 		"helpPage_label": "Hulp pagina",
+		"howtoMailBody_markdown": "Tutanota laat u versleutelde e-mails sturen naar eender welk e-mailadres in de wereld - automatisch als de ontvanger ook Tutanota gebruikt, of via een gedeeld wachtwoord als de ontvanger een andere dienst gebruikt. Zelfs niet-versleutelde e-mails worden versleuteld opgeslagen op onze eigen servers in Duitsland.\n\nBekijk a.u.b. de Tutanota FAQ, de How-to en het ondersteuningsforum om alles te leren wat u wilt weten over uw nieuwe, beveiligde brievenbus:\n\n* [FAQ]({faqLink})\n* [How-to]({howtoLink})\n* [OndersteuningsForum]({redditLink})\n\n**Zoeken in versleutelde data**\n\nTutanota laat u uw versleutelde brievenbus lokaal op uw toestel doorzoeken om vertrouwelijkheid van uw data te garanderen. Klik a.u.b. op de zoekbalk bovenaan. De standaard zoekfunctie gaat één maand terug. [Om ongelimiteerd zoeken te ontsluiten en massa's andere bijkomende functies in uw Tutanota brievenbus]({blogPremiumProLink}), klik a.u.b. op Premium in het bovenste menu van uw Tutanota brievenbus.\n\n**Directe ondersteuning**\n\nBij Tutanota stellen we iedereen in de wereld in staat om vertrouwelijk e-mails te versturen. Met miljoenen gebruikers kunnen we niet iedereen zijn vragen via e-mail beantwoorden. In geval u geen antwoorden op uw vragen vindt in onze FAQ en How-to, [vraag het a.u.b. hier aan de gemeenschap]({redditLink}). Support via e-mail is voorbehouden voor Premium gebruikers. [Voor directe ondersteuning, upgrade a.u.b. voor € 1 per maand]({pricingLink}).\n\nHoud het veilig,\n\nuw Tutanota Team",
+		"howtoMailSubject_msg": "How-to voor uw beveiligde Tutanota brievenbus",
 		"htmlSourceCode_label": "HTML broncode",
 		"html_action": "HTML",
 		"ignoreCase_alt": "Negeer case",
@@ -627,6 +629,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "Betaaltransactie mislukt. A.u.b. later opnieuw proberen of wijzig uw betaalgegevens.",
 		"payPalRedirect_msg": "U zult doorgestuurd worden naar de website van PayPal.",
 		"periodOfTime_label": "Tijdsvak",
+		"permanentAliasWarning_msg": "Dit is een Tutanota domein alias, die, in tegenstelling tot aangepaste domein aliassen, alleen gedeactiveerd kan worden, niet gewist. Hij zal altijd meegeteld worden voor uw alias limiet.",
 		"phone_label": "Telefoon",
 		"photoLibraryUsageDescription_msg": "Voeg een foto uit uw bibliotheek toe als bijlage.",
 		"plaintext_action": "Platte tekst",
@@ -674,6 +677,7 @@ const translation = {
 		"pricing.yearly_label": "Jaarlijks",
 		"print_action": "Afdrukken",
 		"privacyLink_label": "Privacybeleid",
+		"privacyPolicyUrl_label": "Link naar het privacybeleid",
 		"privateKeyInfo_msg": "Selecteer het bestand met de privé-sleutel van het certificaat in PEM-formaat (base64 gecodeerd).",
 		"privateKey_label": "Privé-sleutel",
 		"private_label": "Privé",
@@ -721,7 +725,7 @@ const translation = {
 		"replyAll_action": "Allen beantwoorden",
 		"replyTo_label": "Beantwoord",
 		"reply_action": "Beantwoorden",
-		"requestApproval_msg": "Sorry, u mag nu geen e-mails versturen of ontvangen (behalve naar Tutanota ondersteuning) omdat uw account gemarkeerd werd voor goedkeuring om misbruik zoals spam te vermijden. Contacteer ons a.u.b. via approval@tutao.de en beschrijf waar u deze e-mailaccount voor wil gebruiken.",
+		"requestApproval_msg": "Sorry, u mag nu geen e-mails versturen of ontvangen (behalve naar Tutanota ondersteuning) omdat uw account gemarkeerd werd voor goedkeuring om misbruik zoals spam te vermijden. Contacteer ons a.u.b. via approval@tutao.de direct van uw Tutanota account en beschrijf waar u deze e-mailaccount voor wil gebruiken.",
 		"responsiblePersonsInfo_msg": "Beperk het aantal gebruikers waar de ontvangende mail naar kan worden doorgestuurd . Er zijn geen beperkingen als de lijst leeg is.",
 		"responsiblePersons_label": "Verantwoordelijke deelnemers",
 		"restartBefore_action": "Herstart Tutanota voor versturen",
@@ -732,7 +736,7 @@ const translation = {
 		"saveAll_action": "Alles opslaan",
 		"saveDownloadNotPossibleIe_msg": "De mobiele Internet Explorer versie ondersteunt het opslaan of weergeven van bijlagen niet. Gebruik een andere browser voor deze functies.",
 		"saveDownloadNotPossibleIos_msg": "Deze browser ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te klikken op de link. ",
-		"saveDraft_action": "Veranderingen opslaan",
+		"saveDraft_action": "Bericht opslaan",
 		"saveEncryptedIpAddress_label": "Bewaar versleutelde IP adressen in sessie en audit log",
 		"save_action": "Bewaar",
 		"save_msg": "Gegevens opslaan...",
@@ -819,6 +823,7 @@ const translation = {
 		"storageCapacityUsed_label": "Gebruikte opslag",
 		"storageCapacity_label": "Opslagcapaciteit",
 		"storageDeletionAnnouncement_msg": "Info: E-mails verplaatst naar de Prullenbak of Spam mappen worden na 30 dagen automatisch verwijderd.",
+		"storageDeletion_msg": "E-mails in deze map worden na 30 dagen automatisch verwijderd.",
 		"storePassword_action": "Bewaar wachtwoord",
 		"subject_label": "Onderwerp",
 		"subscriptionCancelledMessage_msg": "Uw abonnement is geannuleerd. Neem a.u.b. contact op met klantenservice om het abonnement te reactiveren.",
@@ -899,7 +904,7 @@ const translation = {
 		"userEmailSignature_label": "E-mail ondertekening",
 		"userSettings_label": "Gebruiker",
 		"validInputFormat_msg": "Formaat ok.",
-		"waitingForApproval_msg": "U kunt momenteel geen mail ontvangen of verzenden omdat uw account is vergrendeld vanwege een extra check op misbruik. Het team van Tutanota zal binnen 48 uur het account beschikbaar stellen.",
+		"waitingForApproval_msg": "Sorry, u mag nu geen e-mails versturen of ontvangen omdat uw account gemarkeerd werd voor goedkeuring. Deze procedure is nodig om een privacy-vriendelijke registratie aan te bieden en tegelijkertijd massa-registraties te voorkomen. Uw account zal automatisch goedgekeurd worden na 48 uur. Bedankt voor uw geduld!",
 		"wantToSendReport_msg": "Er is iets onverwachts verkeerd gegaan. Wilt u een foutrapport verzenden? U kunt een bericht toevoegen om ons te helpen de fout te repareren.",
 		"welcomeMailBody1_msg": "Welkom bij uw veilige en advertentievrije brievenbus! Uw Tutanota brievenbus is beveiligd met sterke versleuteling. Zelfs wij, de ontwikkelaars, hebben geen mogelijkheid om toegang te krijgen tot deze. U bent de enige die uw e-mails en contacten met uw wachtwoord kunt ontsleutelen. Zorg ervoor dat u uw wachtwoord niet verliest omdat het niet opnieuw kan worden ingesteld.",
 		"welcomeMailBody2_msg": "U kunt email verzenden naar elk adres ter wereld. Als uw vrienden ook Tutanota gebruiken wordt alle email automatisch van begin tot eind  versleuteld. U kunt ook email naar externe ontvangers versleutelen. Tutanota versleutelt onderwerp, de inhoud en bijlagen automatisch. Zelfs email die u verstuurt of ontvangt wordt versleuteld opgeslagen op onze servers. We nodigen u uit om samen met ons te vechten voor privacy door op te waarderen naar Premium voor slechts 1 Euro per maand. Klik a.u.b. op Premium in ons hoofdmenu van uw Tutanota account.",
@@ -932,5 +937,3 @@ const translation = {
 		"yourMessage_label": "Uw bericht"
 	}
 }
-export default translation
-export var __useDefault = translation

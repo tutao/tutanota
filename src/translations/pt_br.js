@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92b6d040e25fb7052101a48c6e755d55",
 	"name": "pt_br",
 	"code": "pt_br",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2019-03-01T09:50:21Z",
+	"updated_at": "2019-03-14T00:39:50Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Por favor clique em um dos números de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escolha...",
+		"clearFolder_action": "Limpar pasta",
 		"clickNumber_msg": "Por favor clique em seu número de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"clickToUpdate_msg": "Clique aqui se quiser atualizar agora, ou deixe-nos instalar ao fechar.",
 		"client_label": "Cliente",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enumeração",
 		"envelopeSenderInfo_msg": "O remetente real do e-mail é diferente do remetente informado nos metadados no campo 'De'. Como o remetente pode ser falso, o remetente real também está sendo exibido para que você compreenda quem realmente enviou este e-mail.",
 		"errorAtLine_msg": "Erro na linha {index}: {error}",
+		"errorDuringUpdate_msg": "Algo deu errado durante o processo de atualização. Tentaremos novamente mais tarde.",
 		"errorReport_label": "Oh, não!",
 		"expiredLink_msg": "Desculpe, este link não é mais válido. Você deve ter recebido uma nova notificação com um endereço válido. Links anteriores são removidos por razões de segurança.",
 		"exportSelectedAsVCard_action": "Exportar contatos selecionados com vCard",
@@ -353,6 +353,7 @@ const translation = {
 		"group_label": "Grupo",
 		"header_label": "Cabeçalho",
 		"helpPage_label": "Página de ajuda",
+		"howtoMailBody_markdown": "O Tutanota permite o envio de emails criptografados para qualquer destinatário de email no mundo - automaticamente, se o destinatário também usar o Tutanota, ou por meio de  uma senha compartilhada, se o destinatário usar outro provedor de email.  Mesmo emails não criptografados são armazenados de forma criptografada em nossos servidores localizados na Alemanha.\n\nPor favor, consulte o Perguntas & Respostas, o Tutorial e o Fórum Tutanota para saber mais detalhes relativos à segurança de sua nova caixa postal:\n\n* [Perguntas & Respostas]({faqLink})\n* [Tutorial]({howtoLink})\n* [Fórum]({redditLink})\n\n**Procurar em dados criptografados**\n\nO Tutanota permite que você pesquise em sua caixa postal criptografada para garantir a confidencialidade dos seus dados.  Por favor, clique na barra de pesquisa no topo.  A busca padrão trará resultados de um mês atrás. [Para desbloquear o acesso a pesquisas ilimitadas e a muitos outros recursos adicionais da sua caixa de correio Tutanota]({blogPremiumProLink}), por favor, clique em Premium no menu superior da caixa de correio Tutanota.\n\n**Apoio direto **\n\nNo Tutanota, permitimos que todos enviem emails confidencialmente.  Por termos milhares de usuários, não podemos responder as perguntas por email. Se você não encontrar respostas às suas dúvidas nos nossos Perguntas & Respostas ou Tutorial, [por favor, pergunte à comunidade de usuários aqui]({redditLink}). O suporte por email é restrito aos usuários Premium. [Para suporte direto, atualize sua conta por €1 ao mês]({pricingLink}).\n\nMantenha-se seguro,\n\nsua Equipe Tutanota\n",
 		"howtoMailSubject_msg": "Tutorial para sua caixa de email segura Tutanota",
 		"htmlSourceCode_label": "Código fonte HTML",
 		"html_action": "HTML",
@@ -629,6 +630,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "O pagamento falhou. Por favor, tente novamente mais tarde ou atualize seus dados de pagamento.",
 		"payPalRedirect_msg": "Você será redirecionado ao PayPal",
 		"periodOfTime_label": "Período",
+		"permanentAliasWarning_msg": "Apenas domínios Tutanota",
 		"phone_label": "Telefone",
 		"photoLibraryUsageDescription_msg": "Adicione uma foto da biblioteca como anexo.",
 		"plaintext_action": "Texto simples",
@@ -822,6 +824,7 @@ const translation = {
 		"storageCapacityUsed_label": "Espaço utilizado",
 		"storageCapacity_label": "Armazenamento:",
 		"storageDeletionAnnouncement_msg": "Atenção: Emails movidos para Lixeira ou Spam são automaticamente  excluídos após 30 dias.",
+		"storageDeletion_msg": "Os emails nesta pasta serão excluídos automaticamente após 30 dias.",
 		"storePassword_action": "Lembrar senha",
 		"subject_label": "Assunto",
 		"subscriptionCancelledMessage_msg": "Seu plano de assinatura foi cancelado. Por favor entre em contato com o suporte para reativar seu plano de assinatura.",
@@ -902,7 +905,7 @@ const translation = {
 		"userEmailSignature_label": "Assinatura de email",
 		"userSettings_label": "Configurações de usuário",
 		"validInputFormat_msg": "Formato válido. ",
-		"waitingForApproval_msg": "Sentimos muito, você atualmente não é autorizada a enviar ou receber emails porque sua conta está marcada para verificação para evitar abusos, como envio de spam. A equipe to Tutanota irá aprovar seu cadastro em 48 horas.",
+		"waitingForApproval_msg": "Sentimos muito, mas no momento você não está autorizado a enviar ou a receber emails pois sua conta ainda está pendente de aprovação. Este processo é necessário para garantir seu registro de forma segura e amigável, além de prevenir o cadastramento em massa de novos usuários.  Sua conta será aprovada automaticamente em 48 horas. Obrigado pela paciência!",
 		"wantToSendReport_msg": "Algo deu errado. Você gostaria de enviar um relatório de erro? Você pode adicionar uma mensagem para nos ajudar a solucionar esse erro.",
 		"welcomeMailBody1_msg": "Bem-vindo à sua caixa de mensagens Tutanota segura e livre de anúncios, protegida com forte criptografia. Mesmo nós, os desenvolvedores, não temos como acessar as informações nela contidas. Só você pode descriptografar seus emails e contatos com sua senha. Por favor, se assegure de não perdê-la, pois não poderemos resetá-la.",
 		"welcomeMailBody2_msg": "Você pode enviar emails para qualquer endereço de email do mundo. Se seus amigos também usarem Tutanota, todos os emails são automaticamente criptografados de ponta-a-ponta. Você também pode criptografar emails para outros serviços de email. Tutanota criptografa o assunto, o conteúdo e os anexos automaticamente. Mesmo os emails que você envia ou recebe sem criptografia são armazenados criptografados em nossos servidores.",
@@ -912,6 +915,7 @@ const translation = {
 		"welcomeMailBody5_msg": "PS: Tutanota é feito em código aberto, esteja livre para inspecionar e revisar o código fonte:",
 		"welcomeMailBody6_msg": "PPS: Você pode pedir e votar em qualquer funcionalidade aqui:",
 		"welcomeMailBodyTweetText_msg": "Acabo de criar minha conta Tutanota. Agora meus e-mails estão protegidos de olhos curiosos! Participe também:",
+		"welcomeMailBody_markdown": "Bem vindo ao Tutanota: sua caixa de correio segura, livre de anúncios e protegida por uma robusta criptografia. O Tutanota permite uma mudança tranquila para usuários de outros serviços de email. Sua intuitiva interface para internet, seu aplicativo para Android & iOS, bem como seu aplicativo para desktop Windows, Mac OS e Linux oferecem acesso seguro a sua caixa de correio em qualquer equipamento.\n\nComo profissional, você pode economizar tempo e dinheiro hospedando todos os seus emails corporativos criptografados de ponta-a-ponta nos servidores seguros do Tutanota, localizados na Alemanha. Com o WhiteLabel Tutanota, coloque a autenticação na página web do seu próprio negócio e adicione um formulário criptografado para que seus clientes possam entrar em contato confidencialmente.  [Saiba mais sobre os recursos oferecidos para empresas pelo Tutatona]({businessLink}).\n\n**O Tutanota segue 4 princípios para garantir sua privacidade**\n\n1. O Tutanota não rastreia você.\n2. O Tutanota não examina seus dados.\n3. O Tutanota criptografa sua caixa de correio e seus contatos.\n4. O Tutanota incorpora a criptografia no seu design.\n\nRecomende o Tutatota, [o serviço de email de código aberto que respeita você e seu direito à privacidade]({blogOpenSourceLink}).\n\nAcreditamos que todos merecem uma caixa de correio gratuita e privada.  Você pode nos apoiar nos seguindo na sua rede social preferida e compartilhando nosso conteúdo com seus amigos e colegas. Juntos mudaremos a Internet apara melhor: \n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nMuito obrigado,\n\nsua Equipe Tutanota\n\nTutanota é um código aberto. [Inspecione e revise o código fonte aqui]({githubLink}).",
 		"welcomeMailSubject_msg": "Sinta-se em casa: Seus dados estão seguros.",
 		"whitelabelAccounts_label": "Contas com marca personalizada",
 		"whitelabelAccount_label": "Conta com marca personalizada",
@@ -934,5 +938,3 @@ const translation = {
 		"yourMessage_label": "Sua mensagem"
 	}
 }
-export default translation
-export var __useDefault = translation

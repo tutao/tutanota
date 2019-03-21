@@ -21,7 +21,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Button, createDropDownButton} from "../gui/base/Button"
 import {ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
-import {InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
+import {getPaymentMethodType, InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import TableLine from "../gui/base/TableLine"
@@ -157,7 +157,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._accountingInfo = accountingInfo
 		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
-		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " "
+		this._paymentMethodField.setValue(getPaymentMethodName(getPaymentMethodType(accountingInfo)) + " "
 			+ getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}

@@ -1,6 +1,8 @@
 // @flow
 
-export const GroupType = {
+import {downcast} from "./utils/Utils"
+
+export const GroupType = Object.freeze({
 	User: "0",
 	Admin: "1",
 	MailingList: "2",
@@ -10,26 +12,27 @@ export const GroupType = {
 	Contact: "6",
 	File: "7",
 	LocalAdmin: "8"
-}
+})
 export type GroupTypeEnum = $Values<typeof GroupType>;
+export const getMembershipGroupType = (membership: GroupMembership) => downcast(membership.groupType)
 
-export const PermissionType = {
+export const PermissionType = Object.freeze({
 	Public: "0",
 	Symmetric: "1",
 	Public_Symmetric: "2", // instances without ownerEncSessionKey (e.g. MailBody, FileData) after asymmetric decryption
 	Unencrypted: "3",
 	External: "5",
 	Owner_List: "8"
-}
+})
 export type PermissionTypeEnum = $Values<typeof PermissionType>;
 
-export const BucketPermissionType = {
+export const BucketPermissionType = Object.freeze({
 	Public: "2",
 	External: "3"
-}
+})
 export type BucketPermissionTypeEnum = $Values<typeof BucketPermissionType>;
 
-export const MailFolderType = {
+export const MailFolderType = Object.freeze({
 	CUSTOM: '0',
 	INBOX: '1',
 	SENT: '2',
@@ -37,65 +40,67 @@ export const MailFolderType = {
 	ARCHIVE: '4',
 	SPAM: '5',
 	DRAFT: '6'
-}
+})
+export const getMailFolderType = (folder: MailFolder): MailFolderTypeEnum => downcast(folder.folderType)
 
 export type MailFolderTypeEnum = $Values<typeof MailFolderType>;
 
-export const ReplyType = {
+export const ReplyType = Object.freeze({
 	NONE: '0',
 	REPLY: '1',
 	FORWARD: '2',
 	REPLY_FORWARD: '3'
-}
+})
 export type ReplyTypeEnum = $Values<typeof ReplyType>;
 
-export const ContactAddressType = {
+export const ContactAddressType = Object.freeze({
 	PRIVATE: '0',
 	WORK: '1',
 	OTHER: '2',
 	CUSTOM: '3'
-}
+})
 export type ContactAddressTypeEnum = $Values<typeof ContactAddressType>;
 
-export const ContactPhoneNumberType = {
+export const ContactPhoneNumberType = Object.freeze({
 	PRIVATE: '0',
 	WORK: '1',
 	MOBILE: '2',
 	FAX: '3',
 	OTHER: '4',
 	CUSTOM: '5'
-}
+})
 export type ContactPhoneNumberTypeEnum = $Values<typeof ContactPhoneNumberType>;
 
-export const ContactSocialType = {
+export const ContactSocialType = Object.freeze({
 	TWITTER: '0',
 	FACEBOOK: '1',
 	XING: '2',
 	LINKED_IN: '3',
 	OTHER: '4',
 	CUSTOM: '5'
-}
+})
 export type ContactSocialTypeEnum = $Values<typeof ContactSocialType>;
+export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialTypeEnum => downcast(contactSocialId.type)
 
-export const OperationType = {
+export const OperationType = Object.freeze({
 	CREATE: '0',
 	UPDATE: '1',
 	DELETE: '2'
-}
+})
 export type OperationTypeEnum = $Values<typeof OperationType>;
 
-export const AccountType = {
+export const AccountType = Object.freeze({
 	FREE: '1',
 	STARTER: '2',
 	PREMIUM: '3',
 	EXTERNAL: '5'
-}
+})
 export type AccountTypeEnum = $Values<typeof AccountType>;
 
 
 export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
 
-export const BookingItemFeatureType = {
+export const BookingItemFeatureType = Object.freeze({
 	Users: '0',
 	Storage: '1',
 	Alias: '2',
@@ -105,17 +110,18 @@ export const BookingItemFeatureType = {
 	WhitelabelChild: '6',
 	LocalAdminGroup: '7',
 	Discount: '8'
-}
+})
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 
 
-export const PaymentMethodType = {
+export const PaymentMethodType = Object.freeze({
 	Invoice: '0',
 	CreditCard: '1',
 	Sepa: '2',
 	Paypal: '3'
-}
+})
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
+export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodTypeEnum => downcast(accountingInfo.paymentMethod)
 
 export const reverse = (objectMap: Object) => Object.keys(objectMap)
                                                     .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
@@ -136,87 +142,88 @@ export const Const = {
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"]
 
-export const ConversationType = {
+export const ConversationType = Object.freeze({
 	NEW: '0',
 	REPLY: '1',
 	FORWARD: '2',
-}
+})
 export type ConversationTypeEnum = $Values<typeof ConversationType>;
 
-export const MailState = {
+export const MailState = Object.freeze({
 	DRAFT: '0',
 	SENT: '1',
-	RECEIVED: '2'
-}
+	RECEIVED: '2',
+	SENDING: '3'
+})
 export type MailStateEnum = $Values<typeof MailState>;
 
-export const ApprovalState = {
+export const ApprovalState = Object.freeze({
 	REGISTRATION_APPROVED: "0",
 	REGISTRATION_APPROVAL_NEEDED: "1",
 	SEND_MAILS_APPROVED: "2",
 	INVOICE_NOT_PAID: "3",
-}
+})
 export type ApprovalStateEnum = $Values<typeof ApprovalState>;
 
 
-export const InboxRuleType = {
+export const InboxRuleType = Object.freeze({
 	FROM_EQUALS: "0",
 	RECIPIENT_TO_EQUALS: "1",
 	RECIPIENT_CC_EQUALS: "2",
 	RECIPIENT_BCC_EQUALS: "3",
 	SUBJECT_CONTAINS: "4",
 	MAIL_HEADER_CONTAINS: "5"
-}
+})
 export type InboxRuleTypeEnum = $Values<typeof InboxRuleType>;
 
-export const SpamRuleType = {
+export const SpamRuleType = Object.freeze({
 	WHITELIST: "1",
 	BLACKLIST: "2",
 	DISCARD: "3",
-}
+})
 export type SpamRuleTypeEnum = $Values<typeof SpamRuleType>;
 
-export const EmailSignatureType = {
+export const EmailSignatureType = Object.freeze({
 	EMAIL_SIGNATURE_TYPE_DEFAULT: "0",
 	EMAIL_SIGNATURE_TYPE_CUSTOM: "1",
 	EMAIL_SIGNATURE_TYPE_NONE: "2",
-}
+})
 export type EmailSignatureTypeEnum = $Values<typeof EmailSignatureType>;
 
-export const CustomDomainStatusCode = {
+export const CustomDomainStatusCode = Object.freeze({
 	CUSTOM_DOMAIN_STATUS_OK: "0",
 	CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED: "1",
 	CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD: "2",
 	CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD: "3",
 	CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD: "4",
 	CUSTOM_DOMAIN_STATUS_DOMAIN_NOT_AVAILABLE: "5"
-}
+})
 export type CustomDomainStatusCodeEnum = $Values<typeof CustomDomainStatusCode>;
 
-export const SessionState = {
+export const SessionState = Object.freeze({
 	SESSION_STATE_ACTIVE: "0",
 	SESSION_STATE_EXPIRED: "1",
 	SESSION_STATE_DELETED: "2",
 	SESSION_STATE_PENDING: "3",
-}
+})
 export type SessionStateEnum = $Values<typeof SessionState>;
 
-export const PushServiceType = {
+export const PushServiceType = Object.freeze({
 	ANDROID: "0",
 	IOS: "1",
 	EMAIL: "2",
 	SSE: "3"
-}
+})
 export type PushServiceTypeEnum = $Values<typeof PushServiceType>;
 
-export const InputFieldType = {
+export const InputFieldType = Object.freeze({
 	TEXT: "0",
 	NUMBER: "1",
 	ENUM: "2"
-}
+})
 export type InputFieldTypeEnum = $Values<typeof InputFieldType>;
 
-export const EntropySrc = {
+export const EntropySrc = Object.freeze({
 	mouse: "mouse",
 	touch: "touch",
 	key: "key",
@@ -224,18 +231,18 @@ export const EntropySrc = {
 	static: "static",
 	time: "time",
 	accelerometer: "accel"
-}
+})
 export type EntropySrcEnum = $Values<typeof EntropySrc>;
 
-export const SecondFactorType = {
+export const SecondFactorType = Object.freeze({
 	u2f: "0",
 	totp: "1"
-}
+})
 export type SecondFactorTypeEnum = $Values<typeof SecondFactorType>;
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 
-export const FeatureType = {
+export const FeatureType = Object.freeze({
 	DisableContacts: "0",
 	DisableMailExport: "1",
 	InternalCommunication: "2",
@@ -244,20 +251,20 @@ export const FeatureType = {
 	WhitelabelChild: "5",
 	ReplyOnly: "6",
 	DisableDefaultSignature: "7"
-}
+})
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const ValueToFeatureType = reverse(FeatureType)
 
-export const BootstrapFeatureType = {
+export const BootstrapFeatureType = Object.freeze({
 	DisableSavePassword: "0",
-}
+})
 export type BootstrapFeatureTypeEnum = $Values<typeof BootstrapFeatureType>;
 
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 
 
-export const PaymentDataResultType = {
+export const PaymentDataResultType = Object.freeze({
 	OK: "0",
 	COUNTRY_MISMATCH: "1",
 	INVALID_VATID_NUMBER: "2",
@@ -269,32 +276,32 @@ export const PaymentDataResultType = {
 	COULD_NOT_VERIFY_VATID: "8",
 	CREDIT_CARD_DATE_INVALID: "9",
 	CREDIT_CARD_NUMBER_INVALID: "10"
-}
+})
 
-export const ContactComparisonResult = {
+export const ContactComparisonResult = Object.freeze({
 	Unique: "unique",
 	Similar: "similar",
 	Equal: "equal",
-}
+})
 export type ContactComparisonResultEnum = $Values<typeof ContactComparisonResult>;
 
-export const IndifferentContactComparisonResult = {
+export const IndifferentContactComparisonResult = Object.freeze({
 	OneEmpty: "oneEmpty",
 	BothEmpty: "bothEmpty",
-}
+})
 export type IndifferentContactComparisonResultEnum = $Values<typeof IndifferentContactComparisonResult>;
 
-export const ContactMergeAction = {
+export const ContactMergeAction = Object.freeze({
 	DeleteFirst: "deleteFirst",
 	DeleteSecond: "deleteSecond",
 	Merge: "merge",
 	Skip: "skip",
 	Cancel: "cancel"
-}
+})
 export type ContactMergeActionEnum = $Values<typeof ContactMergeAction>;
 
 
-export const InvoiceStatus = {
+export const InvoiceStatus = Object.freeze({
 	CREATED: "0",
 	PUBLISHEDFORAUTOMATIC: "1",
 	PUBLISHEDFORMANUAL: "2",
@@ -307,18 +314,17 @@ export const InvoiceStatus = {
 	REFUNDED: "9",
 	DISPUTEACCEPTED: "10",
 	SECONDREMINDER: "11"
-}
+})
 export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;
 
-export const CloseEventBusOption = {
+export const CloseEventBusOption = Object.freeze({
 	Terminate: "terminate",
 	Reconnect: "reconnect",
 	Pause: "pause"
-}
+})
+export type CloseEventBusOptionEnum = $Values<typeof CloseEventBusOption>;
 
-export const Announcement = {
+export const Announcement = Object.freeze({
 	None: '0',
 	StorageDeletion: '1'
-}
-
-export type CloseEventBusOptionEnum = $Values<typeof InvoiceStatus>;
+})

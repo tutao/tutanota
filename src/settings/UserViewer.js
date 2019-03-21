@@ -39,7 +39,6 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 import {checkAndImportUserData} from "./ImportUsersViewer"
-import {IdentifierListViewer} from "./IdentifierListViewer"
 import {EditAliasesFormN} from "./EditAliasesFormN"
 
 assertMainOrNode()
@@ -178,6 +177,7 @@ export class UserViewer {
 		})
 
 		this.view = () => {
+			const whitelistProtestciton = this._whitelistProtection
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".h4.mt-l", lang.get('userSettings_label')),
@@ -202,11 +202,12 @@ export class UserViewer {
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(EditAliasesFormN, {userGroupInfo: this.userGroupInfo}),
-					!logins.getUserController().isPremiumAccount() ? null : [
-						m(".h4.mt-l", lang.get('mailSettings_label')),
-						(this._whitelistProtection) ? m(this._whitelistProtection) : null,
-						m(IdentifierListViewer, {user: this._user.getSync()}),
-					]
+					logins.getUserController().isPremiumAccount() && whitelistProtestciton
+						? [
+							m(".h4.mt-l", lang.get('mailSettings_label')),
+							m(whitelistProtestciton)
+						]
+						: null
 				]),
 			]
 		}

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "bca6e9991b687282745131bc052d31d9",
 	"name": "it",
 	"code": "it",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2019-03-01T09:48:31Z",
+	"updated_at": "2019-03-13T08:45:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Clicca su uno dei tuoi numeri di telefono qui sotto per ricevere la tua password Tutanota con un SMS.",
 		"choosePhotos_action": "Fotografie",
 		"choose_label": "Scegli ...",
+		"clearFolder_action": "Cancella cartella",
 		"clickNumber_msg": "Clicca sul tuo numero di telefono qui sotto per ricevere la tua password Tutanota con un SMS.",
 		"clickToUpdate_msg": "Clicca qui se vuoi aggiornare adesso, o lascia che venga installato alla chiusura.",
 		"client_label": "Client",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "Il mittente tecnico è diverso dall'indirizzo email 'Da'. Visto che 'Da' può essere falsificato, il mittente tecnico è anch'esso mostrato in modo da capire chi effettivamente ha inviato la mail.",
 		"errorAtLine_msg": "Errore alla linea {index}: {error}",
+		"errorDuringUpdate_msg": "Qualcosa è andato storto durante il processo di aggiornamento, riproveremo più tardi.",
 		"errorReport_label": "Oh no!",
 		"expiredLink_msg": "Siamo spiacenti ma questo link non e' piu' valido. Dovresti aver ricevuto una nuova email di notifica con il link attualmente valido. I link precedenti sono disattivati per ragioni di sicurezza.",
 		"exportSelectedAsVCard_action": "Esporta contatti selezionati come vCard",
@@ -630,6 +630,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "La transazione di pagamento non è riuscita. Provare nuovamente più tardi o aggiornare i dati di pagamento.",
 		"payPalRedirect_msg": "Verrai reindirizzato al sito di PayPal",
 		"periodOfTime_label": "Periodo di tempo",
+		"permanentAliasWarning_msg": "Questo è un alias di dominio Tutanota che, a differenza degli alias di dominio personalizzati, può essere solo disattivato, non eliminato. Conta in modo permanente verso il limite dei tuoi alias.",
 		"phone_label": "Telefono",
 		"photoLibraryUsageDescription_msg": "Aggiungi un'immagine dalla libreria come allegato.",
 		"plaintext_action": "Testo normale",
@@ -677,6 +678,7 @@ const translation = {
 		"pricing.yearly_label": "Annuale",
 		"print_action": "Stampa",
 		"privacyLink_label": "Informativa sulla privacy",
+		"privacyPolicyUrl_label": "Link alla politica sulla privacy",
 		"privateKeyInfo_msg": "Per favore seleziona il file con la chiave privata del certificato in formato PEM (con codifica base64).",
 		"privateKey_label": "Chiave privata",
 		"private_label": "Privato",
@@ -724,7 +726,7 @@ const translation = {
 		"replyAll_action": "Rispondi a tutti",
 		"replyTo_label": "Rispondi a",
 		"reply_action": "Rispondi",
-		"requestApproval_msg": "Ci dispiace ma al momento non ti è consentito inviare o ricevere e-mail (tranne che per il supporto Tutanota) perché il tuo account è stato contrassegnato per l'approvazione per evitare abusi come e-mail di spam. Ti preghiamo di contattarci a approval@tutao.de e descrivere a quale scopo si vuole utilizzare questo account di posta elettronica.",
+		"requestApproval_msg": "Spiacenti, al momento non sei autorizzato a inviare o ricevere email (ad eccezione al supporto Tutanota) perché il tuo account è stato contrassegnato per l'approvazione per evitare abusi come email di spam. Ti preghiamo di contattarci a approval@tutao.de direttamente dal tuo account Tutanota e descrivere per cosa vuoi utilizzare questo account email.",
 		"responsiblePersonsInfo_msg": "Limita gli utenti ai quali il messaggio può essere inoltrato dalla mailbox ricevente. Non ci sono restrizioni se la lista è vuota.",
 		"responsiblePersons_label": "Persona responsabile",
 		"restartBefore_action": "Riavvia Tutanota prima di inviare",
@@ -822,6 +824,7 @@ const translation = {
 		"storageCapacityUsed_label": "Spazio usato",
 		"storageCapacity_label": "Spazio su disco a disposizione",
 		"storageDeletionAnnouncement_msg": "Le email spostate nel cestino o nella cartella spam saranno automaticamente cancellate dopo 30 giorni.",
+		"storageDeletion_msg": "Le email in questa cartella verranno automaticamente cancellate dopo 30 giorni.",
 		"storePassword_action": "Salva la password",
 		"subject_label": "Oggetto",
 		"subscriptionCancelledMessage_msg": "La tia sottoscrizione è stata cancellata. Contatta il servizio clienti per riattivarla.",
@@ -902,7 +905,7 @@ const translation = {
 		"userEmailSignature_label": "Firma dell'email",
 		"userSettings_label": "Impostazioni utente",
 		"validInputFormat_msg": "Il formato è ok",
-		"waitingForApproval_msg": "Spiacenti, attualmente non è possibile inviare o ricevere email poichè il tuo account è stato contrassegnato per evitare l'abuso di email spam. Il team di Tutanota approverà il tuo account nelle prossime 48 ore.",
+		"waitingForApproval_msg": "Spiacenti, al momento non sei autorizzato a inviare o ricevere email perché il tuo account è stato contrassegnato per l'approvazione. Questo processo è necessario per offrire una registrazione conforme alla privacy e prevenire le registrazioni in massa allo stesso tempo. Il tuo account verrà automaticamente approvato dopo 48 ore. Grazie per la tua pazienza!",
 		"wantToSendReport_msg": "SI è verificato qualcosa di imprevisto. Vuoi inviare un report dell'errore? Puoi anche scriverci un messaggio per aiutarci a sistemare quest'errore.",
 		"welcomeMailBody1_msg": "Benvenuto nella tua mailbox Tutanota sicura e senza pubblicità, protetta con una crittografia forte. Nemmeno noi sviluppatori abbiamo la possibilità di accedervi. Solo tu puoi decrittografare le tue email e i tuoi contatti tramite la tua password. Assicurati di non perdere la tua password perchè non può essere resettata.",
 		"welcomeMailBody2_msg": "Puoi inviare email a qualsiasi indirizzo email nel mondo. Se anche i tuoi amici usano Tutanota, tutte le tue email sono automaticamente crittografate end-to-end. Puoi inoltre crittografare le email con altri servizi email. Tutanota crittografa soggetto, contenuto e allegati automaticamente. Persino le email non crittografate che invii o ricevi sono archiviate crittografate sui nostri server.",
@@ -935,5 +938,3 @@ const translation = {
 		"yourMessage_label": "il tuo messaggio"
 	}
 }
-export default translation
-export var __useDefault = translation

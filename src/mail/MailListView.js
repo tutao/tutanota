@@ -7,11 +7,11 @@ import {sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {load, loadRange} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
+import {getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
+import {getArchiveFolder, getFolderName, getInboxFolder, getSenderOrRecipientHeading, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
@@ -21,6 +21,11 @@ import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
+import {theme} from "../gui/theme"
+import {ButtonColors} from "../gui/base/Button"
+import {Dialog} from "../gui/base/Dialog"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -102,14 +107,48 @@ export class MailListView implements Component {
 	}
 
 	view(): Children {
-		return m(this.list)
+		const purgeButtonAttrs: ButtonAttrs = {
+			label: "clearFolder_action",
+			type: ButtonType.Primary,
+			colors: ButtonColors.Nav,
+			click: () => {
+				Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.mailView.selectedFolder)}))
+				      .then(confirmed => {
+					      if (confirmed) {
+						      this.mailView._finallyDeleteAllMailsInSelectedFolder()
+					      }
+				      })
+			}
+		}
+
+		return this.showingTrashOrSpamFolder()
+			? m(".flex.flex-column.fill-absolute", [
+				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg", {
+					style: {
+						'border-bottom': `1px solid ${theme.list_border}`,
+					}
+				}, [
+					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
+				]),
+				m(".rel.flex-grow", m(this.list))
+			])
+			: m(this.list)
 	}
 
 	targetInbox() {
-		const mailboxDetail = this.mailView.selectedFolder ? mailModel.getMailboxDetailsForMailListId(this.mailView.selectedFolder.mails) : null
-		if (mailboxDetail) {
-			return this.mailView.selectedFolder === getArchiveFolder(mailboxDetail.folders)
-				|| this.mailView.selectedFolder === getTrashFolder(mailboxDetail.folders)
+		if (this.mailView.selectedFolder) {
+			return this.mailView.selectedFolder.folderType === MailFolderType.ARCHIVE
+				|| this.mailView.selectedFolder.folderType === MailFolderType.TRASH
+		} else {
+			return false
+		}
+	}
+
+	showingTrashOrSpamFolder(): boolean {
+		if (this.mailView.selectedFolder) {
+			return this.mailView.selectedFolder.folderType === MailFolderType.SPAM
+				|| this.mailView.selectedFolder.folderType === MailFolderType.TRASH
 		} else {
 			return false
 		}
@@ -203,7 +242,7 @@ export class MailRow {
 		let iconText = "";
 		if (this._showFolderIcon) {
 			let folder = mailModel.getMailFolder(mail._id[0])
-			iconText += folder ? this._getFolderIcon(folder.folderType) : ""
+			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
 		}
 		iconText += mail._errors ? FontIcons.Warning : "";
 		switch (mail.replyType) {

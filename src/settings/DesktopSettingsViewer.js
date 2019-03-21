@@ -19,10 +19,10 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
-const DownloadLocationStrategy = {
+const DownloadLocationStrategy = Object.freeze({
 	ALWAYS_ASK: 0,
 	CHOOSE_DIRECTORY: 1
-}
+})
 
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;

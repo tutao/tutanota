@@ -5,7 +5,14 @@ import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameA
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {ContactAddressType, EmailSignatureType as TutanotaConstants, GroupType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
+import {
+	ContactAddressType,
+	EmailSignatureType as TutanotaConstants,
+	getMailFolderType,
+	GroupType,
+	MailFolderType,
+	MailState
+} from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
@@ -40,13 +47,13 @@ assertMainOrNode()
  */
 export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact, doNotResolveContact: boolean): RecipientInfo {
 	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
-	let recipientInfo = {
+	let recipientInfo: RecipientInfo = {
 		_type: 'RecipientInfo',
 		type,
 		mailAddress,
-		name: (name) ? name : "", // "" will be replaced as soon as a contact is found
+		name: name || "", // "" will be replaced as soon as a contact is found
 		contact: contact,
-		resolveContactPromise: neverNull(null) // strangely, flow does not allow null here
+		resolveContactPromise: null
 	}
 	if (!contact && !doNotResolveContact && logins.getUserController() && logins.getUserController().isInternalUser()) {
 		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
@@ -300,7 +307,7 @@ export function getFolderIconByType(folderType: MailFolderTypeEnum): lazyIcon {
 }
 
 export function getFolderIcon(folder: MailFolder): lazyIcon {
-	return getFolderIconByType(folder.folderType)
+	return getFolderIconByType(getMailFolderType(folder))
 }
 
 

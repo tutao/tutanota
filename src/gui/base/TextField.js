@@ -14,13 +14,13 @@ const FALSE_CLOSURE = () => {
 	return false
 }
 
-export const Type = {
+export const Type = Object.freeze({
 	Text: "text",
 	Email: "email",
 	Password: "password",
 	Area: "area",
-	ExternalPassword: "externalpassword",
-}
+})
+
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
 
@@ -135,24 +135,24 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			const typeAttr = (this.type === Type.ExternalPassword)
-				? Type.Password
-				: this.type
-			/**
-			 * due to modern browser's 'smart' password managers that try to autofill everything
-			 * that remotely resembles a password field, we prepend invisible inputs to password fields
-			 * that shouldn't be autofilled.
-			 * since the autofill algorithm looks at inputs that come before and after the password field we need
-			 * three dummies.
-			 */
+			const typeAttr = this.type
+			// Due to modern browser's 'smart' password managers that try to autofill everything
+			// that remotely resembles a password field, we prepend invisible inputs to password fields
+			// that shouldn't be autofilled.
+			// since the autofill algorithm looks at inputs that come before and after the password field we need
+			// three dummies.
+			//
+			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
+			// This is mostly done to prevent autofill which happens if the field type="password".
 			const autofillGuard = this._preventAutofill ? [
-				m("input", {style: {display: 'none'}, type: Type.Text}),
-				m("input", {style: {display: 'none'}, type: Type.Password}),
-				m("input", {style: {display: 'none'}, type: Type.Text})
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
 			] : []
 
 			return m('.flex-grow', autofillGuard.concat(
 				m("input.input" + (this._alignRight ? ".right" : ""), {
+					autocomplete: this._preventAutofill ? "off" : "",
 					type: typeAttr,
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom

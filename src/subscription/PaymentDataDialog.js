@@ -10,9 +10,7 @@ import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {px} from "../gui/size"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
-import {PaymentMethodType} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {getPaymentMethodType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {serviceRequest} from "../api/main/Entity"
 import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
@@ -39,8 +37,8 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo, payPalRequestUrl)
 	const availablePaymentMethods = paymentMethodInput.getAvailablePaymentMethods()
 
-	const paymentMethod = neverNull(accountingInfo.paymentMethod)
-	const selectedPaymentMethod: Stream<PaymentMethodTypeEnum> = stream(paymentMethod)
+	const paymentMethod = getPaymentMethodType(accountingInfo)
+	const selectedPaymentMethod = stream(paymentMethod)
 	paymentMethodInput.updatePaymentMethod(paymentMethod)
 
 	const paymentMethodSelector = new DropDownSelector("paymentMethod_label",
@@ -69,7 +67,7 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country))
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false))
 					.then(success => {
 						if (success) {
 							dialog.close()

@@ -1,7 +1,10 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {TextField, Type} from "../gui/base/TextField"
+import {TextField} from "../gui/base/TextField"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
@@ -56,6 +59,7 @@ import {px, size} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
+import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
@@ -74,6 +78,9 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import {client} from "../misc/ClientDetector"
+import {formatPrice} from "../subscription/SubscriptionUtils"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -85,7 +92,7 @@ export class MailEditor {
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
-	_mailAddressToPasswordField: Map<string, TextField>;
+	_mailAddressToPasswordField: Map<string, TextFieldAttrs>;
 	subject: TextField;
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
@@ -272,15 +279,17 @@ export class MailEditor {
 						]),
 					])
 				),
-				this._confidentialButtonState ? m(".external-recipients.overflow-hidden", {
-					oncreate: vnode => this.animate(vnode.dom, true),
-					onbeforeremove: vnode => this.animate(vnode.dom, false)
-				}, this._allRecipients()
-				       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
-				       .map(r => m(this.getPasswordField(r), {
-					       oncreate: vnode => this.animate(vnode.dom, true),
-					       onbeforeremove: vnode => this.animate(vnode.dom, false)
-				       }))) : null,
+				this._confidentialButtonState
+					? m(".external-recipients.overflow-hidden", {
+						oncreate: vnode => this.animate(vnode.dom, true),
+						onbeforeremove: vnode => this.animate(vnode.dom, false)
+					}, this._allRecipients()
+					       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
+					       .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
+						       oncreate: vnode => this.animate(vnode.dom, true),
+						       onbeforeremove: vnode => this.animate(vnode.dom, false)
+					       }))))
+					: null,
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
 					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
@@ -365,7 +374,7 @@ export class MailEditor {
 			case ConversationType.FORWARD:
 				return "forward_action"
 			default:
-				return ""
+				return "emptyString_msg"
 		}
 	}
 
@@ -377,17 +386,19 @@ export class MailEditor {
 		                 })
 	}
 
-	getPasswordField(recipientInfo: RecipientInfo): TextField {
+	getPasswordField(recipientInfo: RecipientInfo): TextFieldAttrs {
 		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
-			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
-				.setType(Type.ExternalPassword)
-				.setPreventAutofill(true)
-
-			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
-				textField.setValue(recipientInfo.contact.presharedPassword)
+			let textFieldAttrs = {
+				label: () => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}),
+				helpLabel: () => m(passwordIndicator),
+				value: stream(""),
+				type: Type.ExternalPassword
 			}
-			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textField)
+			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
+				textFieldAttrs.value(recipientInfo.contact.presharedPassword)
+			}
+			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textFieldAttrs)
 		}
 		return neverNull(this._mailAddressToPasswordField.get(recipientInfo.mailAddress))
 	}
@@ -684,6 +695,10 @@ export class MailEditor {
 		return Promise
 			.resolve()
 			.then(() => {
+				this.toRecipients.createBubbles()
+				this.ccRecipients.createBubbles()
+				this.bccRecipients.createBubbles()
+
 				if (this.toRecipients.textField.value().trim() !== "" ||
 					this.ccRecipients.textField.value().trim() !== "" ||
 					this.bccRecipients.textField.value().trim() !== "") {
@@ -704,8 +719,10 @@ export class MailEditor {
 			.then(confirmed => {
 				if (confirmed) {
 					let send = this
-						.saveDraft(true, false)
-						.then(() => this._waitForResolvedRecipients())
+						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
+						.then((recipients) =>
+							this.saveDraft(true, false)
+							    .return(recipients))
 						.then(resolvedRecipients => {
 							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
 							if (this._confidentialButtonState && externalRecipients.length > 0
@@ -846,7 +863,7 @@ export class MailEditor {
 	/**
 	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
 	 */
-	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
+	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
 		this._mailChanged = true
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
@@ -947,7 +964,7 @@ export class MailEditor {
 				replace(bubbles, oldBubble, newBubble)
 				if (updatedContact.presharedPassword && this._mailAddressToPasswordField.has(emailAddress)) {
 					neverNull(this._mailAddressToPasswordField.get(emailAddress))
-						.setValue(updatedContact.presharedPassword)
+						.value(updatedContact.presharedPassword || "")
 				}
 			}
 		})
@@ -961,6 +978,45 @@ export class MailEditor {
 		if (bubbles) {
 			remove(bubbles, bubble)
 		}
+	}
+
+	static writeSupportMail() {
+		mailModel.init().then(() => {
+			if(!logins.getUserController().isPremiumAccount()) {
+				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+				const title = lang.get("upgradeReminderTitle_msg")
+				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
+					if (confirm) {
+						showUpgradeWizard()
+					}
+				})
+				return
+			}
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			let signature = "<br><br>--"
+			signature += "<br>Client: " + client.getIdentifier()
+			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>User agent:<br>" + navigator.userAgent
+			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+				editor.show()
+			})
+		})
+
+	}
+
+	static writeInviteMail() {
+		mailModel.init().then(() => {
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			const username = logins.getUserController().userGroupInfo.name;
+			const body = lang.get("invitationMailBody_msg", {
+				'{registrationLink}': "https://mail.tutanota.com/signup",
+				'{username}': username,
+				'{githubLink}': "https://github.com/tutao/tutanota"
+			})
+			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+				editor.show()
+			})
+		})
 	}
 }
 

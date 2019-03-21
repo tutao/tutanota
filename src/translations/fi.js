@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "fc793e57b2ad95a6ade9c69abe1a46c4",
 	"name": "fi",
 	"code": "fi",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2019-03-01T09:52:11Z",
+	"updated_at": "2019-03-09T22:54:03Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Hyväksy tietosuojamenettely valitsemalla valintaruutu.",
@@ -349,6 +347,8 @@ const translation = {
 		"group_label": "Ryhmä",
 		"header_label": "Otsikkotiedot",
 		"helpPage_label": "Ohjesivu",
+		"howtoMailBody_markdown": "Tutanotalla voit lähettää salattuja sähköposteja mihin tahansa sähköpostiosoitteeseen maailmassa. Tämä tapahtuu automaattisesti, mikäli vastaanottaja käyttää itsekin Tutanotaa, tai jaetun salasanan kautta, mikäli hän käyttää toista sähköpostintarjoajaa. Jopa salaamattomat sähköpostit tallennetaan salattuina palvelimillemme Saksassa.\n\nKäy katsomassa Tutanotan Usein kysyttyjä kysymyksiä, ohjetta tai tukipalstaa saadaksesi tietää kaiken haluamasi uudesta turvallisesta sähköpostistasi:\n\n* [UKK]({faqLink})\n* [Ohje]({howtoLink})\n* [Tukipalsta]({redditLink})\n\n**Etsiminen salatuista tiedoista**\n\nTutanotan avulla voit etsiä salatusta sähköpostilaatikostasi paikallisesti omalla laitteellasi tietojen luottamuksellisuuden takaamiseksi. Napsauta hakupalkkia sivun ylälaidassa. Haku toimii oletusarvoisesti enintään kuukauden ikäisille viesteille. [Laajentaaksesi haun koskemaan kaikkia viestejä ja hyötyäksesi monista muista Tutanotan lisäominaisuuksista]({blogPremiumProLink}), napsauta sanaa Premium Tutanota-sähköpostisi ylävalikosta.\n\n**Suora tuki**\n\nTutanotan avulla kaikki maailmassa voivat lähettää luottamuksellisia sähköposteja. Koska meillä on miljoonia käyttäjiä, emme voi vastata jokaisen käyttäjän kysymyksiin sähköpostitse. Jos et löydä vastauksia kysymyksiisi UKK:sta tai Ohjeesta, [kysy yhteisöltä tällä palstalla]({redditLink}). Sähköpostitukea voivat käyttää vain Premium-käyttäjät. [Suoran tuen saamiseksi vaihda tilaustasi hintaan 1 € / kk]({pricingLink}).\n\nPysy turvattuna,\n\nTutanota-tiimisi",
+		"howtoMailSubject_msg": "Turvallisen Tutanota-sähköpostin ohje",
 		"htmlSourceCode_label": "HTML-lähdekoodi",
 		"html_action": "HTML",
 		"ignoreCase_alt": "Älä välitä kirjainkoosta",
@@ -624,6 +624,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "Maksu epäonnistui.",
 		"payPalRedirect_msg": "Sinut ohjataan PayPal verkkosivulle",
 		"periodOfTime_label": "Ajanjakso",
+		"permanentAliasWarning_msg": "Tämä on Tutanotan verkkotunnusalias, jonka – toisin kuin oman verkkotunnuksen – voi vain poistaa käytöstä mutta ei tuhota. Se lasketaan pysyvästi mukaan alias-rajaasi.",
 		"phone_label": "Puhelin",
 		"photoLibraryUsageDescription_msg": "Lisää kuva liitteenä.",
 		"plaintext_action": "Tavallinen teksti",
@@ -649,7 +650,7 @@ const translation = {
 		"pricing.businessUse_label": "Yrityskäyttäjä",
 		"pricing.comparisonAddUser_msg": "Lisää käyttäjä ({1})",
 		"pricing.comparisonContactFormPro_msg": "Yhteydenottolomakkeet ({price})",
-		"pricing.comparisonDomainFree_msg": "Vain Tutanota verkkotunnukset",
+		"pricing.comparisonDomainFree_msg": "Vain Tutanota-verkkotunnukset",
 		"pricing.comparisonDomainPremium_msg": "Oma verkkotunnus",
 		"pricing.comparisonInboxRulesPremium_msg": "Viestien käsittelysäännöt",
 		"pricing.comparisonLoginPro_msg": "Mukautetun verkkotunnuksen kirjautumissivu",
@@ -670,7 +671,8 @@ const translation = {
 		"pricing.upgradeLater_msg": "Tutanota on ilmainen yksityiskäyttäjille. Voit hankkia lisää ominaisuuksia päivittämällä Premiumiin.",
 		"pricing.yearly_label": "Vuosittain",
 		"print_action": "Tulosta",
-		"privacyLink_label": "Yksityisyyskäytännöt",
+		"privacyLink_label": "Tietosuojamenettely",
+		"privacyPolicyUrl_label": "Linkki tietosuojamenettelyyn",
 		"privateKeyInfo_msg": "Valitse tiedosto, josta löytyy sertifikaatin PEM-muotoinen yksityinen avain (base64-koodattuna).",
 		"privateKey_label": "Yksityinen avain",
 		"private_label": "Yksityinen",
@@ -718,7 +720,7 @@ const translation = {
 		"replyAll_action": "Vastaa kaikille",
 		"replyTo_label": "Vastaa",
 		"reply_action": "Vastaa",
-		"requestApproval_msg": "Et voi lähettää tai vastaanottaa sähköposteja (paitsi Tutanota tukeen). Tilisi pitää varmistaa roskapostien kaltaisten väärinkäytösten estämiseksi. Lähetä viesti osoitteeseen approval@tutao.de ja kerro mitä haluat tehdä tälle tilille.",
+		"requestApproval_msg": "Et voi lähettää tai vastaanottaa sähköposteja lukuun ottamatta Tutanota-tukea. Tilisi pitää erikseen hyväksyä roskapostien kaltaisten väärinkäytösten estämiseksi. Lähetä viesti osoitteeseen approval@tutao.de suoraan omasta Tutanota-osoitteestasi ja kerro mihin tarkoitukseen haluat käyttää tätä tiliä.",
 		"responsiblePersonsInfo_msg": "Rajoita käyttäjiä, joille saapuneita viestejä voidaan lähettää. Jos lista on tyhjä, rajoituksia ei ole.",
 		"responsiblePersons_label": "Vastuulliset henkilöt",
 		"restartBefore_action": "Käynnistä Tutanota uudelleen ennen lähetystä",
@@ -767,7 +769,7 @@ const translation = {
 		"sender_label": "Lähettäjä",
 		"sendingSms_msg": "Lähetetään tekstiviestiä...",
 		"sendingUnencrypted_msg": "Viestiäsi lähetetään.",
-		"sending_msg": "Viestisi salataan ja lähetetään.",
+		"sending_msg": "Viestiäsi salataan ja lähetetään.",
 		"sendMail_alt": "Lähetä uusi viesti vastaanottajalle",
 		"send_action": "Lähetä",
 		"sent_action": "Lähetetyt",
@@ -896,15 +898,17 @@ const translation = {
 		"userEmailSignature_label": "Viestin allekirjoitus",
 		"userSettings_label": "Käyttäjän asetukset",
 		"validInputFormat_msg": "Muotoilu on oikein.",
-		"waitingForApproval_msg": "Et voi tällä hetkellä lähettää tai vastaanottaa sähköposteja. Tilisi pitää varmistaa roskapostin kaltaisten väärinkäytösten estämiseksi. Tutanotan tiimi hyväksyy tilisi 48 tunnin sisällä.",
+		"waitingForApproval_msg": "Valitettavasti et voi tällä hetkellä lähettää tai vastaanottaa sähköposteja, koska tilisi pitää erikseen hyväksyä. Tätä menettelytapaa tarvitaan yksityisyyden takaavan rekisteröinnin varmistamiseksi ja massarekisteröintien estämiseksi. Tilisi hyväksytään automaattisesti kahden vuorokauden sisällä. Kiitos kärsivällisyydestäsi!",
 		"wantToSendReport_msg": "Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.",
 		"welcomeMailBody1_msg": "Tervetuloa vahvalla salauksella suojatun ja mainoksettoman Tutanota-sähköpostin käyttäjäksi. Edes me kehittäjät emme pysty avaamaan sähköpostilaatikkoasi. Vain sinä voit purkaa viestien ja yhteystietojen salauksen salasanallasi. Älä unohda salasanaasi, koska emme voi sitä palauttaa. ",
 		"welcomeMailBody2_msg": "Voit lähettää sähköpostia mihin tahansa sähköpostiosoitteeseen maailmassa. Jos ystäväsikin käyttävät Tutanotaa, kaikki viestit salataan automaattisesti päästä päähän. Voit lähettää salattuja sähköposteja myös Tutanotan ulkopuolisille käyttäjille yhtä helposti. Tutanota salaa viestin otsikon, sisällön ja liitteet automaattisesti. Myös salaamattomat viestit tallennetaan salattuina palvelimillemme.",
-		"welcomeMailBody3a_msg": "Tutustu Tutanotan ohjeeseen, usein kysyttyihin kysymyksiin ja tukifoorumiin saadaksesi tietää kaiken haluamasi uudesta salatusta postilaatikostasi:",
+		"welcomeMailBody3a_msg": "Tutustu Tutanotan ohjeeseen, usein kysyttyihin kysymyksiin ja tukipalstaan saadaksesi tietää kaiken haluamasi uudesta salatusta postilaatikostasi:",
+		"welcomeMailBody3_msg": "Tutanotan avulla viestinnästäsi tulee yksityistä ja voit suojella sitä yritysten väärinkäytöltä ja viranomaisten valvonnalta. Avoimelle lähdekoodille perustuvan projektimme kehittämiseksi tarvitsemme tukeasi. Liity meihin taistelussa yksityisyyden puolesta vaihtamalla tilauksesi Premiumiin hintaan 1 € / kk. Napsauta sanaa Premium Tutanota-sähköpostisi ylävalikossa. Voit myös tukea meitä seuraamalla sosiaalisen median sivujamme ja jakamalla niiden sisältöä ystävien ja perheen kesken. Yhdessä voimme muuttaa Internetiä paremmaksi:\n",
 		"welcomeMailBody4_msg": "Terveisin Tutanota-tiimisi",
 		"welcomeMailBody5_msg": "Ps. Tutanotan lähdekoodi on avoin, voit tarkastella koodia täällä:",
 		"welcomeMailBody6_msg": "PPS: voit ehdottaa ja äänestää uusia ominaisuuksia:",
 		"welcomeMailBodyTweetText_msg": "Loin juuri itselleni Tutanota-sähköpostiosoitteen. Nyt suojelen viestejäni uteliailta katseilta! Liity sinäkin:",
+		"welcomeMailBody_markdown": "Tervetuloa vahvalla salauksella suojatun ja mainoksettoman Tutanota-sähköpostin käyttäjäksi. Muista sähköpostintarjoajista Tutanotaan vaihtaminen on helppoa. Intuitiivisen verkkokäyttöliittymämme, Android- ja iOS-sovellusten sekä Windows-, MacOS- ja Linux-työpöytäsovellusten avulla pääset käsiksi turvalliseen sähköpostiisi millä tahansa laitteella.\n\nYrityskäyttäjänä säästät aikaa ja rahaa siirtämällä kaikki sähköpostisi Tutanotan päästä päähän -salausta käyttäville turvallisille palvelimille Saksassa. Voit brändätä Tutanotan oman yrityksesi käyttöön luomalla oman kirjautumissivun ja salatun yhteydenottolomakkeen, jotta asiakkaasi saavat sinuun luottamuksellisen yhteyden. [Lisätietoja Tutanotan kattavista yrityspalveluista]({businessLink}).\n\n**Tutanota noudattaa neljää periaatetta yksityisyyden takaavan vaihtoehdon tarjoamiseksi**\n\n1. Tutanota ei pidä kirjaa tekemisistäsi.\n2. Tutanota ei pysty käymään läpi tietojasi.\n3. Tutanota salaa koko sähköpostilaatikkosi ja yhteystietosi.\n4. Tutanotan suunnitteluperiaatteisiin kuuluu yksityisyys.\n\nSuosittele Tutanotaa, [avoimen lähdekoodin sähköpostintarjoajaa, joka kunnioittaa sinua ja oikeuttasi yksityisyyteen]({blogOpenSourceLink}).\n\nUskomme, että jokainen ansaitsee ilmaisen ja yksityisen sähköpostin. Voit tukea meitä seuraamalla meitä sosiaalisessa mediassa ja jakamalla sisältöämme ystävien ja työtovereiden kanssa. Yhdessä voimme muuttaa Internetiä paremmaksi:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nKiitos paljon,\n\nTutanota-tiimisi\n\nTutanota perustuu avoimelle lähdekoodille. [Voit tarkastella lähdekoodia täältä]({githubLink}).",
 		"welcomeMailSubject_msg": "Ole huoletta: tietosi pysyvät yksityisinä.",
 		"whitelabelAccounts_label": "Brändätyt tilit",
 		"whitelabelAccount_label": "Brändätty tili",
@@ -927,5 +931,3 @@ const translation = {
 		"yourMessage_label": "Viestisi"
 	}
 }
-export default translation
-export var __useDefault = translation

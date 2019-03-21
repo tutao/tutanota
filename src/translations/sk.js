@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "a3f708a36d08b64f86f80501fea61126",
 	"name": "sk",
 	"code": "sk",
@@ -14,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2019-03-01T09:52:24Z",
+	"updated_at": "2019-03-14T09:13:29Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Označením začiarkavacieho políčka prijmi pravidlá ochrany súkromia.",
@@ -122,6 +120,7 @@ const translation = {
 		"chooseNumber_msg": "Pre prijatie hesla Tutanota v textovej správe klikni, prosím, na jedno z tvojich telefónnych čísel nižšie.",
 		"choosePhotos_action": "Fotky",
 		"choose_label": "Vybrať...",
+		"clearFolder_action": "Vymazať priečinok",
 		"clickNumber_msg": "Prosím klikni nižšie na svoje číslo, aby si prijal svoje heslo do Tutanota v SMS.",
 		"clickToUpdate_msg": "Klikni tu, ak to chceš použiť teraz alebo nechaj na nás automatickú inštaláciu pri odchode.",
 		"client_label": "Klient",
@@ -288,6 +287,7 @@ const translation = {
 		"enum_label": "Enumerácia",
 		"envelopeSenderInfo_msg": "Skutočný odosielateľ sa odlišuje od e-mailovej adresy v poli „Od“. Keďže údaj v poli „Od“ možno sfalšovať, zobrazuje sa tiež skutočný odosielateľ, aby bolo jasné, kto naozaj daný e-mail odoslal.",
 		"errorAtLine_msg": "Chyba v riadku {index}: {error}",
+		"errorDuringUpdate_msg": "Pri procese aktualizácie sa vyskytla chyba. Skúsime to znova neskôr.",
 		"errorReport_label": "Ach nie!",
 		"expiredLink_msg": "Je nám ľúto, ale tento odkaz už viac neplatí. Mal/a by si dostať nové e-mailové oznámenie s aktuálne platným odkazom. Predchádzajúce odkazy sú deaktivované z bezpečnostných dôvodov.",
 		"exportSelectedAsVCard_action": "Exportovať označené kontakty ako vCard",
@@ -821,6 +821,7 @@ const translation = {
 		"storageCapacityUsed_label": "Využité úložisko",
 		"storageCapacity_label": "Kapacita úložiska",
 		"storageDeletionAnnouncement_msg": "Info: E-maily presunuté do priečinku Kôš alebo Spam sa po 30 dňoch automaticky vymažú.",
+		"storageDeletion_msg": "E-maily v tomto priečinku sa po 30 dňoch automaticky odstránia.",
 		"storePassword_action": "Uložiť heslo",
 		"subject_label": "Predmet",
 		"subscriptionCancelledMessage_msg": "Tvoje predplatné bolo zrušené. Kontaktuj, prosím, podporu pre opätovnú aktiváciu predplatného.",
@@ -901,7 +902,7 @@ const translation = {
 		"userEmailSignature_label": "E-mailový podpis",
 		"userSettings_label": "Nastavenia používateľa",
 		"validInputFormat_msg": "Formát je OK.",
-		"waitingForApproval_msg": "Je nám ľúto, ale aby sa predišlo zneužitiu, akým sú napríklad nevyžiadané e-maily, tvoj účet bol označený na schválenie a momentálne nemôžeš odosielať ani prijímať e-maily. Tím Tutanoty schváli tvoj účet v priebehu 48 hodín.",
+		"waitingForApproval_msg": "Je nám ľúto, ale momentálne nemôžeš odosielať ani prijímať e-maily, pretože tvoj účet bol označený na schválenie. Tento proces je nevyhnutný pre ponuku registrácie rešpektujúcej ochranu súkromia a súčasnému zabráneniu hromadných registrácií. Tvoj účet bude po 48 hodinách automaticky schválený. Vďaka za tvoju trpezlivosť!",
 		"wantToSendReport_msg": "Vyskytla sa neočakávaná chyba. Chceš odoslať chybové hlásenie? Ak pridáš aj vlastnú správu, môže nám to pomôcť s opravou tejto chyby.",
 		"welcomeMailBody1_msg": "Vitaj vo svojej bezpečnej schránke Tutanota bez reklám, chránenej silným šifrovaním. Dokonca ani my, vývojári, nemáme k nej prístup. Ty si jediný/á, kto môže dešifrovať tvoje e-maily a kontakty pomocou tvojho hesla. Prosím, urob všetko preto, aby si nestratil/a svoje heslo, pretože ho nemožno obnoviť.",
 		"welcomeMailBody2_msg": "Môžeš posielať e-maily na ktorúkoľvek e-mailovú adresu na svete. Ak tvoji kamaráti tiež používajú Tutanotu, všetky tvoje e-maily budú automaticky end-to-end šifrované. Môžeš tiež šifrovať e-maily pre iné e-mailové služby. Tutanota automaticky šifruje predmet, obsah a prílohy. Dokonca aj e-maily, ktoré posielaš alebo prijímaš v nešifrovanej podobe, sa na našich serveroch uchovávajú zašifrované.",
@@ -934,5 +935,3 @@ const translation = {
 		"yourMessage_label": "Tvoja správa"
 	}
 }
-export default translation
-export var __useDefault = translation

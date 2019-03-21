@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "f5f4136a64ef8f813902c32e223bc289",
 	"name": "es",
 	"code": "es",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2019-03-01T09:49:12Z",
+	"updated_at": "2019-03-13T08:33:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Por favor pulsa en uno de tus números de teléfono para recibir tu contraseña de Tutanota como un mensaje de texto.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escoger...",
+		"clearFolder_action": "Limpiar carpeta",
 		"clickNumber_msg": "Por favor pulsa en tu número de teléfono, abajo, para recibir tu contraseña de Tutanota como un mensaje de texto.",
 		"clickToUpdate_msg": "Haz clic aquí si deseas aplicarlo ahora, o permítenos instalar automáticamente al salir.",
 		"client_label": "Cliente",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Valor (numérico)",
 		"envelopeSenderInfo_msg": "El remitente técnico no coincide con la dirección electrónica en 'De'. Como 'De\" puede falsificarse, se muestra además el remitente para que sea notorio quién envía este mensaje realmente.",
 		"errorAtLine_msg": "Error en línea {index}: {error}",
+		"errorDuringUpdate_msg": "Algo salió mal durante el proceso de actualización, volveremos a intentarlo más tarde.",
 		"errorReport_label": "¡Oh no!",
 		"expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por motivos de seguridad.",
 		"exportSelectedAsVCard_action": "Exportar los contactos seleccionados como vCard",
@@ -824,6 +824,7 @@ const translation = {
 		"storageCapacityUsed_label": "Almacenamiento usado",
 		"storageCapacity_label": "Capacidad de almacenamiento",
 		"storageDeletionAnnouncement_msg": "Información: los correos electrónicos trasladados a la papelera o a las carpetas de spam se eliminarán automáticamente después de 30 días.",
+		"storageDeletion_msg": "Los correos electrónicos en esta carpeta se eliminarán automáticamente después de 30 días.",
 		"storePassword_action": "Almacenar contraseña",
 		"subject_label": "Asunto",
 		"subscriptionCancelledMessage_msg": "Su suscripción ha sido cancelada. Contacte con el soporte para reactivarla.",
@@ -904,7 +905,7 @@ const translation = {
 		"userEmailSignature_label": "Firma para el correo",
 		"userSettings_label": "Ajustes de Usuario",
 		"validInputFormat_msg": "Formato correcto.",
-		"waitingForApproval_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos debido a que tu cuenta fué categorizada como pendiente de aprobación para evitar su abuso, como spam, por ejemplo. El Equipo Tutanota aprobará tu cuenta en un lapso de 48 horas.",
+		"waitingForApproval_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos debido a que tu cuenta está pendiente de aprobación. Este proceso es necesario para ofrecer un registro amigable con la privacidad y prevenir al mismo tiempo los registros masivos. Tu cuenta será aprobada automáticamente en un lapso de 48 horas. Gracias por tu paciencia.",
 		"wantToSendReport_msg": "Algo inesperado salió mal. ¿Deseas enviar un informe de errores? Puedes añadir  un mensaje que nos ayude a corregir este error.",
 		"welcomeMailBody1_msg": "¡Bienvenido a tu correo seguro y sin publicidad! Tu cuenta de correo en Tutanota está protegida con un fuerte cifrado. Ni siquiera nosotros, los desarrolladores, podemos acceder a ella. Sólo tu puedes desencriptar tus correos y contactos con tu contraseña. Por favor asegúrate de no perder tu contraseña, no podremos restablecerla.",
 		"welcomeMailBody2_msg": "Invita a tus amigos a Tutanota y podrá enviar correos cifrados fácilmente. Puedes incluso enviar correos externos con una contraseña. Tutanota cifra el asunto, el contenido y los elementos adjuntos de forma automática. Incluso los correos sin cifrar se conservan encriptados en nuestros servidores. Si quieres apoyar nuestra lucha por la privacidad, puedes mejorar tu experiencia con el paquete Premium por sólo 1 Euro al mes. Solamente debes hacer clic en el botón \"Premium\" en el menú principal dentro de tu cuenta Tutanota.",
@@ -937,5 +938,3 @@ const translation = {
 		"yourMessage_label": "Tu mensaje"
 	}
 }
-export default translation
-export var __useDefault = translation

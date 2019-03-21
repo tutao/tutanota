@@ -6,10 +6,10 @@ import type {ApplicationWindow} from "./ApplicationWindow"
 import {neverNull} from "../api/common/utils/Utils"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
-export const NotificationResult = {
+export const NotificationResult = Object.freeze({
 	Click: 'click',
 	Close: 'close'
-}
+})
 
 export class DesktopNotifier {
 	_tray: DesktopTray;
@@ -62,13 +62,21 @@ export class DesktopNotifier {
 		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
 			this._notificationCloseFunctions[id]()
 		}
-		this._notificationCloseFunctions[id] = this._makeNotification({
-			title: title,
-			body: message,
-			icon: DesktopTray.getIcon(),
-		}, onClick)
 
-		this._tray.update()
+		const showIt = () => {
+			this._notificationCloseFunctions[id] = this._makeNotification({
+				title: title,
+				body: message,
+				icon: DesktopTray.getIcon(),
+			}, onClick)
+			this._tray.update()
+		}
+
+		if (this._canShow) {
+			showIt()
+		} else {
+			this.pendingNotifications.push(showIt)
+		}
 	}
 
 	resolveGroupedNotification(id: ?string) {
