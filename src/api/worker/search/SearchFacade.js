@@ -236,11 +236,13 @@ export class SearchFacade {
 					markStart("_reduceToUniqueElementIds")
 					return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
 				})
-				.then((additionalEntries) => additionalEntries.concat(searchResult.moreResults))
+				.then((additionalEntries) => {
+					markEnd("_reduceToUniqueElementIds")
+					return additionalEntries.concat(searchResult.moreResults)
+				})
 		}
 		return moreResultsEntries
 			.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
-				markEnd("_reduceToUniqueElementIds")
 				markStart("_filterByListIdAndGroupSearchResults")
 				return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
 			})
