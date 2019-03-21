@@ -2,6 +2,7 @@
 import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 import {TypeRef} from "../EntityFunctions"
+import type {EntityUpdateData} from "../../main/EventController"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -182,7 +183,11 @@ export function identity<T>(t: T): T {
 export function noOp() {}
 
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
+	return events.find(event => event.operation === type && event.instanceId === elementId) != null
+}
+
+export function getEventOfType(events: $ReadOnlyArray<EntityUpdate>, type: OperationTypeEnum, elementId: Id): ?EntityUpdate {
+	return events.find(event => event.operation === type && event.instanceId === elementId)
 }
 
 /**

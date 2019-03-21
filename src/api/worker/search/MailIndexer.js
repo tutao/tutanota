@@ -540,7 +540,8 @@ export class MailIndexer {
 							!futureActions.moved.get(event.instanceId)
 								? this.processNewMail(event).then(result => {
 									if (result) {
-										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+											indexUpdate)
 									}
 								})
 								: Promise.resolve()

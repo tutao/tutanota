@@ -8,7 +8,7 @@ import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
-import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
+import {ConnectionError, handleRestError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
@@ -296,52 +296,42 @@ export class EventBusClient {
 	}
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		return Promise
-			.map(events, event => {
-				return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
-				           .then(() => event)
-				           .catch(NotFoundError, e => {
-					           // skip this event. NotFoundError may occur if an entity is removed in parallel
-					           return null
-				           })
-				           .catch(NotAuthorizedError, e => {
-					           // skip this event. NotAuthorizedError may occur if the user was removed from the owner group
-					           return null
-				           })
-			})
-			.filter(event => event != null)
-			.then(filteredEvents => {
-				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
-				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
-				           .return(filteredEvents)
-			}).then(filteredEvents => {
-				if (!this._lastEntityEventIds[groupId]) {
-					this._lastEntityEventIds[groupId] = []
-				}
-				this._lastEntityEventIds[groupId].push(batchId)
-				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-				this._lastEntityEventIds[groupId].sort((e1, e2) => {
-					if (e1 === e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
+		return this._executeIfNotTerminated(() => {
+			return this
+				._cache.entityEventsReceived(events)
+				.then(filteredEvents => {
+					return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
+					           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
+					           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
+					           .return(filteredEvents)
 				})
-				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-					this._lastEntityEventIds[groupId].shift()
-				}
-				return filteredEvents
-			}).then(filteredEvents => {
-				// call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that shall not receive the event twice
-				this._executeIfNotTerminated(() => {
+				.then(filteredEvents => {
+					if (!this._lastEntityEventIds[groupId]) {
+						this._lastEntityEventIds[groupId] = []
+					}
+					this._lastEntityEventIds[groupId].push(batchId)
+					// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+					this._lastEntityEventIds[groupId].sort((e1, e2) => {
+						if (e1 === e2) {
+							return 0
+						} else {
+							return firstBiggerThanSecond(e1, e2) ? 1 : -1
+						}
+					})
+					if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+						this._lastEntityEventIds[groupId].shift()
+					}
+
+					// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
+					// shall not receive the event twice.
 					if (!isTest() && !isAdminClient()) {
-						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-						this._indexer.startProcessing()
+						this._executeIfNotTerminated(() => {
+							this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+							this._indexer.startProcessing()
+						})
 					}
 				})
-				return filteredEvents
-			})
+		})
 	}
 
 	/**

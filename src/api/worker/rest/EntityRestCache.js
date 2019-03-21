@@ -12,9 +12,9 @@ import {
 	resolveTypeReference,
 	TypeRef
 } from "../../common/EntityFunctions"
-import {MailState, OperationType} from "../../common/TutanotaConstants"
+import {OperationType} from "../../common/TutanotaConstants"
 import {flat, remove} from "../../common/utils/ArrayUtils"
-import {clone, downcast, neverNull} from "../../common/utils/Utils"
+import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
@@ -24,7 +24,7 @@ import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntr
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
 import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
-import {MailTypeRef} from "../../entities/tutanota/Mail"
+import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 
 const ValueType = EC.ValueType
 
@@ -124,6 +124,8 @@ export class EntityRestCache implements EntityRestInterface {
 				// load single entity
 				if (this._isInCache(typeRef, listId, id)) {
 					return Promise.resolve(this._getFromCache(typeRef, listId, id))
+				} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
+					return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
 				} else {
 					return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 					           .then(entity => {
@@ -399,36 +401,70 @@ export class EntityRestCache implements EntityRestInterface {
 	 * Resolves when the entity is loaded from the server if necessary
 	 * @pre The last call of this function must be resolved. This is needed to avoid that e.g. while
 	 * loading a created instance from the server we receive an update of that instance and ignore it because the instance is not in the cache yet.
+	 *
+	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (data.application !== "monitor") {
-			let typeRef = new TypeRef(data.application, data.type)
-			if (data.operation === OperationType.UPDATE) {
-				if (this._isInCache(typeRef, data.instanceListId, data.instanceId)) {
-					if (isSameTypeRef(MailTypeRef, typeRef)) {
-						// ignore update of owner enc session key to avoid loading mail instance twice.
-						const cachedMail: Mail = downcast(this._getFromCache(typeRef, data.instanceListId, data.instanceId))
-						if (cachedMail.state !== MailState.DRAFT) {
-							return Promise.resolve()
+	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
+		return Promise
+			.map(data, (update) => {
+				const {instanceListId, instanceId, operation, type, application} = update
+				if (application === "monitor") return
+
+				const typeRef = new TypeRef(application, type)
+				switch (operation) {
+					case OperationType.UPDATE:
+						return this._processUpdateEvent(typeRef, update)
+
+					case OperationType.DELETE:
+						if (!containsEventOfType(data, OperationType.CREATE, instanceId)) {
+							this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
 						}
-					}
-					return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, data.instanceListId, data.instanceId)
-					           .then(entity => {
-						           this._putIntoCache(entity)
-					           })
+						return update
+
+					case OperationType.CREATE:
+						return this._processCreateEvent(typeRef, update, data)
 				}
-			} else if (data.operation === OperationType.DELETE) {
-				this._tryRemoveFromCache(typeRef, data.instanceListId, data.instanceId)
-			} else if (data.operation === OperationType.CREATE) {
-				if (data.instanceListId && this._isInCacheRange(typeRef, data.instanceListId, data.instanceId)) {
-					return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, data.instanceListId, data.instanceId)
-					           .then(entity => {
-						           this._putIntoCache(entity)
-					           })
-				}
+			})
+			.filter(Boolean)
+	}
+
+	_processCreateEvent(typeRef: TypeRef<*>, update: EntityUpdate, batch: Array<EntityUpdate>): $Promisable<?EntityUpdate> {
+		const {instanceListId, instanceId} = update
+		if (instanceListId) {
+			const path = typeRefToPath(typeRef)
+			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
+			if (deleteEvent && this._isInCache(typeRef, deleteEvent.instanceListId, instanceId)) { // It is a move event
+				const element = this._getFromCache(typeRef, deleteEvent.instanceListId, instanceId)
+				this._tryRemoveFromCache(typeRef, deleteEvent.instanceListId, instanceId)
+				element._id = [instanceListId, instanceId]
+				this._putIntoCache(element)
+				return update
+			} else if (this._isInCacheRange(path, instanceListId, instanceId)) {
+				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
+				           .then(entity => this._putIntoCache(entity))
+				           .catch(this._handleProcessingError)
 			}
 		}
-		return Promise.resolve()
+	}
+
+	_processUpdateEvent(typeRef: TypeRef<*>, update: EntityUpdate): $Promisable<?EntityUpdate> {
+		const {instanceListId, instanceId} = update
+		if (this._isInCache(typeRef, instanceListId, instanceId)) {
+			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
+			           .then(entity => this._putIntoCache(entity))
+			           .return(update)
+			           .catch(this._handleProcessingError)
+		}
+	}
+
+	_handleProcessingError(e: Error): ?EntityUpdate {
+		// skip event if NotFoundError. May occur if an entity is removed in parallel.
+		// Skip event if. May occur if the user was removed from the owner group.
+		if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+			return null
+		} else {
+			throw e
+		}
 	}
 
 	_isInCache(typeRef: TypeRef<any>, listId: ?Id, id: Id): boolean {
@@ -450,11 +486,10 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_isInCacheRange(typeRef: TypeRef<any>, listId: Id, id: Id): boolean {
-		let path = typeRefToPath(typeRef)
-		return (this._listEntities[path] != null && this._listEntities[path][listId] != null
-			&& firstBiggerThanSecond(this._listEntities[path][listId].upperRangeId, id)
-			&& firstBiggerThanSecond(id, this._listEntities[path][listId].lowerRangeId))
+	_isInCacheRange(path: string, listId: Id, id: Id): boolean {
+		return this._listEntities[path] != null && this._listEntities[path][listId] != null
+			&& !firstBiggerThanSecond(id, this._listEntities[path][listId].upperRangeId)
+			&& !firstBiggerThanSecond(this._listEntities[path][listId].lowerRangeId, id)
 	}
 
 	_putIntoCache(originalEntity: any): void {
@@ -474,8 +509,7 @@ export class EntityRestCache implements EntityRestInterface {
 				// if the element already exists in the cache, overwrite it
 				// add new element to existing list if necessary
 				this._listEntities[path][listId].elements[id] = entity
-				if (!firstBiggerThanSecond(id, this._listEntities[path][listId].upperRangeId)
-					&& !firstBiggerThanSecond(this._listEntities[path][listId].lowerRangeId, id)) {
+				if (this._isInCacheRange(path, listId, id)) {
 					this._insertIntoRange(this._listEntities[path][listId].allRange, id)
 				}
 			}

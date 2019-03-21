@@ -22,6 +22,8 @@ import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {clone} from "../../../src/api/common/utils/Utils"
 import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/ExternalUserReference"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
+import {typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
+import {lastThrow} from "../../../src/api/common/utils/ArrayUtils"
 
 o.spec("entity rest cache", function () {
 
@@ -67,60 +69,190 @@ o.spec("entity rest cache", function () {
 		cache = new EntityRestCache({entityRequest: clientSpy})
 	})
 
-	o("element create notifications are not put into cache", function () {
-		cache.entityEventReceived(createUpdate(MailBodyTypeRef, (null: any), "id1", OperationType.CREATE))
-		o(clientSpy.callCount).equals(0)
-	})
+	o.spec("entityEventsReceived", function () {
+		o("element create notifications are not put into cache", async function () {
+			await cache.entityEventsReceived([createUpdate(MailBodyTypeRef, (null: any), "id1", OperationType.CREATE)])
+			o(clientSpy.callCount).equals(0)
+		})
 
-	o("element update notifications are not put into cache", function () {
-		cache.entityEventReceived(createUpdate(MailBodyTypeRef, (null: any), "id1", OperationType.UPDATE))
-		o(clientSpy.callCount).equals(0)
-	})
+		o("element update notifications are not put into cache", async function () {
+			await cache.entityEventsReceived([createUpdate(MailBodyTypeRef, (null: any), "id1", OperationType.UPDATE)])
+			o(clientSpy.callCount).equals(0)
+		})
 
-	// element notifications
-	o("element is updated in cache", function (done) {
-		let initialBody = createBodyInstance("id1", "hello")
-		cache._putIntoCache(initialBody)
+		// element notifications
+		o("element is updated in cache", async function () {
+			let initialBody = createBodyInstance("id1", "hello")
+			cache._putIntoCache(initialBody)
 
-		let bodyUpdate = createBodyInstance("id1", "goodbye")
-		clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
-			o(isSameTypeRef(typeRef, MailBodyTypeRef)).equals(true)
-			o(method).equals(HttpMethod.GET)
-			o(listId).equals(null)
-			o(id).equals(createId("id1"))
-			return Promise.resolve(bodyUpdate)
-		}
+			let bodyUpdate = createBodyInstance("id1", "goodbye")
+			clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				o(isSameTypeRef(typeRef, MailBodyTypeRef)).equals(true)
+				o(method).equals(HttpMethod.GET)
+				o(listId).equals(null)
+				o(id).equals(createId("id1"))
+				return Promise.resolve(bodyUpdate)
+			}
 
-		cache.entityEventReceived(createUpdate(MailBodyTypeRef, (null: any), createId("id1"), OperationType.UPDATE)).then(() => {
+			await cache.entityEventsReceived([createUpdate(MailBodyTypeRef, (null: any), createId("id1"), OperationType.UPDATE)])
 			o(clientSpy.callCount).equals(1) // entity is loaded from server
-			cache.entityRequest(MailBodyTypeRef, HttpMethod.GET, null, createId("id1"), null, null).then(body => {
-				o(body.text).equals("goodbye")
-			}).then(() => {
-				o(clientSpy.callCount).equals(1) // entity is provided from cache
-				done()
-			})
+			const body = await cache.entityRequest(MailBodyTypeRef, HttpMethod.GET, null, createId("id1"), null, null)
+			o(body.text).equals("goodbye")
+			o(clientSpy.callCount).equals(1) // entity is provided from cache
 		})
-	})
 
-	o("element is deleted from cache", function (done) {
-		let initialBody = createBodyInstance("id1", "hello")
-		cache._putIntoCache(initialBody)
+		o("element is deleted from cache", async function () {
+			let initialBody = createBodyInstance("id1", "hello")
+			cache._putIntoCache(initialBody)
 
-		let newBody = createBodyInstance("id1", "goodbye")
-		clientEntityRequest = function (args) {
-			return Promise.reject(new NotFoundError("not found"))
-		}
+			let newBody = createBodyInstance("id1", "goodbye")
+			clientEntityRequest = function (args) {
+				return Promise.reject(new NotFoundError("not found"))
+			}
 
-		cache.entityEventReceived(createUpdate(MailBodyTypeRef, (null: any), createId("id1"), OperationType.DELETE)).then(() => {
+			await cache.entityEventsReceived([createUpdate(MailBodyTypeRef, (null: any), createId("id1"), OperationType.DELETE)])
 			o(clientSpy.callCount).equals(0) // entity is not loaded from server
-			cache.entityRequest(MailBodyTypeRef, HttpMethod.GET, null, createId("id1"), null, null).catch(e => {
-				o(e instanceof NotFoundError).equals(true)
+			const e = await cache.entityRequest(MailBodyTypeRef, HttpMethod.GET, null, createId("id1"), null, null)
+			                     .catch(e => e)
+			o(e instanceof NotFoundError).equals(true)("Is NotFoundError")
+			o(clientSpy.callCount).equals(1) // entity is provided from cache
+		})
+
+		o("move event is detected", async function () {
+			const instance = createMailInstance("listId1", "id1", "henlo")
+			cache._putIntoCache(instance)
+
+			const newListId = "listid2"
+			const newInstance = clone(instance)
+			newInstance._id = [newListId, getElementId(instance)]
+
+			await cache.entityEventsReceived([
+				createUpdate(MailTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
+				createUpdate(MailTypeRef, newListId, getElementId(instance), OperationType.CREATE)
+			])
+			o(clientSpy.callCount).equals(0)
+
+			clientEntityRequest = () => Promise.reject(new Error("error from test"))
+			const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, getListId(instance), getElementId(instance), null, null)
+			                           .catch(e => e)
+			// Checking prototypes doesn't really work because of the TutanotaError
+			o(result1.constructor).equals(NotFoundError)
+			o(clientSpy.callCount).equals(0)
+
+			const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, newListId, getElementId(instance), null, null)
+			o(result2).deepEquals(newInstance)
+		})
+
+		o("id is in range but instance doesn't exist after moving lower range", async function () {
+			const mails = [1, 2, 3].map((i) => createMailInstance("listId1", "id" + i, "mail" + i))
+			const newListId = "listId2"
+
+			clientEntityRequest = () => Promise.resolve(mails)
+
+			await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
+				start: GENERATED_MIN_ID,
+				count: "3",
+				reverse: "false"
+			})
+			o(clientSpy.callCount).equals(1)
+
+			// Move email
+			await cache.entityEventsReceived([
+				createUpdate(MailTypeRef, getListId(mails[0]), getElementId(mails[0]), OperationType.DELETE),
+				createUpdate(MailTypeRef, newListId, getElementId(mails[0]), OperationType.CREATE)
+			])
+
+			clientEntityRequest = () => Promise.reject(new Error("stub error"))
+
+			const errorResult = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", getElementId(mails[0]), null, null)
+			                               .catch(e => e)
+			o(errorResult.constructor).equals(NotFoundError)
+			o(clientSpy.callCount).equals(1)
+		})
+
+
+		o("id is in range but instance doesn't exist after moving upper range", async function () {
+			const mails = [1, 2, 3].map((i) => createMailInstance("listId1", "id" + i, "mail" + i))
+			const lastMail = lastThrow(mails)
+			const newListId = "listId2"
+
+			clientEntityRequest = () => Promise.resolve(mails)
+
+			await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
+				start: GENERATED_MIN_ID,
+				count: "3",
+				reverse: "false"
+			})
+			o(clientSpy.callCount).equals(1)
+
+			// Move email
+			await cache.entityEventsReceived([
+				createUpdate(MailTypeRef, getListId(lastMail), getElementId(lastMail), OperationType.DELETE),
+				createUpdate(MailTypeRef, newListId, getElementId(lastMail), OperationType.CREATE)
+			])
+
+			clientEntityRequest = () => Promise.reject(new Error("stub error"))
+
+			const errorResult = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", getElementId(lastMail), null, null)
+			                               .catch(e => e)
+			o(errorResult.constructor).equals(NotFoundError)
+			o(clientSpy.callCount).equals(1)
+		})
+
+		// list element notifications
+		o("list element create notifications are not put into cache", async function () {
+			await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)])
+			o(clientSpy.callCount).equals(0)
+		})
+
+		o("list element update notifications are not put into cache", async function () {
+			await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)])
+			o(clientSpy.callCount).equals(0)
+		})
+
+		o("list element is updated in cache", function (done) {
+			let initialMail = createMailInstance("listId1", createId("id1"), "hello")
+			cache._putIntoCache(initialMail)
+
+			let mailUpdate = createMailInstance("listId1", createId("id1"), "goodbye")
+			clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
+				o(method).equals(HttpMethod.GET)
+				o(listId).equals("listId1")
+				o(id).equals(createId("id1"))
+				return Promise.resolve(mailUpdate)
+			}
+
+			cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)]).then(() => {
+				o(clientSpy.callCount).equals(1) // entity is loaded from server
+				cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", createId("id1"), null, null).then(mail => {
+					o(mail.subject).equals("goodbye")
+				}).then(() => {
+					o(clientSpy.callCount).equals(1) // entity is provided from cache
+					done()
+				})
+			})
+		})
+
+		o("list element is deleted from range", function (done) {
+			setupMailList(true, true).then(originalMails => {
+				return cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]).then(() => {
+					o(clientSpy.callCount).equals(1) // entity is not loaded from server
+					return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
+						start: GENERATED_MIN_ID,
+						count: "4",
+						reverse: "false"
+					}).then(mails => {
+						o(mails).deepEquals([originalMails[0], originalMails[2]])
+					})
+				})
 			}).then(() => {
-				o(clientSpy.callCount).equals(1) // entity is provided from cache
+				o(clientSpy.callCount).equals(1) // entities are provided from cache
 				done()
 			})
 		})
 	})
+
 
 	o("cloned elements are provided", function (done) {
 		let body = createBodyInstance("id1", "hello")
@@ -171,59 +303,6 @@ o.spec("entity rest cache", function () {
 		const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, getListId(mail), getElementId(mail), null, null, readOnlyHeaders())
 		o(result2).deepEquals(mail)
 		o(clientSpy.callCount).equals(2)
-	})
-
-	// list element notifications
-	o("list element create notifications are not put into cache", function () {
-		cache.entityEventReceived(createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE))
-		o(clientSpy.callCount).equals(0)
-	})
-
-	o("list element update notifications are not put into cache", function () {
-		cache.entityEventReceived(createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE))
-		o(clientSpy.callCount).equals(0)
-	})
-
-	o("list element is updated in cache", function (done) {
-		let initialMail = createMailInstance("listId1", createId("id1"), "hello")
-		cache._putIntoCache(initialMail)
-
-		let mailUpdate = createMailInstance("listId1", createId("id1"), "goodbye")
-		clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
-			o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
-			o(method).equals(HttpMethod.GET)
-			o(listId).equals("listId1")
-			o(id).equals(createId("id1"))
-			return Promise.resolve(mailUpdate)
-		}
-
-		cache.entityEventReceived(createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)).then(() => {
-			o(clientSpy.callCount).equals(1) // entity is loaded from server
-			cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", createId("id1"), null, null).then(mail => {
-				o(mail.subject).equals("goodbye")
-			}).then(() => {
-				o(clientSpy.callCount).equals(1) // entity is provided from cache
-				done()
-			})
-		})
-	})
-
-	o("list element is deleted from range", function (done) {
-		setupMailList(true, true).then(originalMails => {
-			return cache.entityEventReceived(createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)).then(() => {
-				o(clientSpy.callCount).equals(1) // entity is not loaded from server
-				return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
-					start: GENERATED_MIN_ID,
-					count: "4",
-					reverse: "false"
-				}).then(mails => {
-					o(mails).deepEquals([originalMails[0], originalMails[2]])
-				})
-			})
-		}).then(() => {
-			o(clientSpy.callCount).equals(1) // entities are provided from cache
-			done()
-		})
 	})
 
 	o("cloned list elements are provided", function (done) {
@@ -851,7 +930,7 @@ o.spec("entity rest cache", function () {
 		}
 
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id4"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MAX_ID)).equals(false)
 
 		const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MAX_ID,
@@ -860,7 +939,7 @@ o.spec("entity rest cache", function () {
 		})
 		o(result1).deepEquals([cachedMails[2], cachedMails[1], cachedMails[0]])
 		o(clientSpy.callCount).equals(2) // entities are provided from server
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id4"))).equals(true)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MAX_ID)).equals(true)
 
 		// further requests are resolved from the cache
 		const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
@@ -887,7 +966,7 @@ o.spec("entity rest cache", function () {
 		}
 
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id4"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MAX_ID)).equals(false)
 
 		const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MAX_ID,
@@ -898,7 +977,7 @@ o.spec("entity rest cache", function () {
 		o(clientSpy.callCount).equals(2) // entities are provided from server
 
 		// Should not modify cache
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id4"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MAX_ID)).equals(false)
 
 		// further requests are resolved from the cache
 		const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
@@ -907,7 +986,7 @@ o.spec("entity rest cache", function () {
 			reverse: "true"
 		}, readOnlyHeaders())
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id4"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MAX_ID)).equals(false)
 
 		o(result2).deepEquals([cachedMails[2], cachedMails[1], cachedMails[0]])
 		o(clientSpy.callCount).equals(3) // entities are provided from network
@@ -927,7 +1006,7 @@ o.spec("entity rest cache", function () {
 			return Promise.resolve(cachedMails)
 		}
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(false)
 
 		const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MIN_ID,
@@ -938,14 +1017,14 @@ o.spec("entity rest cache", function () {
 		// further reqests are resolved from the cache
 		o(clientSpy.callCount).equals(2) // entities are provided from server
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(true)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(true)
 		const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MIN_ID,
 			count: "10",
 			reverse: "false"
 		})
 		o(result2).deepEquals([cachedMails[0], cachedMails[1], cachedMails[2]])
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(true)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(true)
 		o(clientSpy.callCount).equals(2) // entities are provided from cache
 	})
 
@@ -962,7 +1041,7 @@ o.spec("entity rest cache", function () {
 			return Promise.resolve(cachedMails)
 		}
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(false)
 
 		const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MIN_ID,
@@ -973,14 +1052,14 @@ o.spec("entity rest cache", function () {
 		// further reqests are resolved from the cache
 		o(clientSpy.callCount).equals(2) // entities are provided from server
 
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(false)
 		const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 			start: GENERATED_MIN_ID,
 			count: "10",
 			reverse: "false"
 		}, readOnlyHeaders())
 		o(result2).deepEquals([cachedMails[0], cachedMails[1], cachedMails[2]])
-		o(cache._isInCacheRange(MailTypeRef, "listId1", createId("id1"))).equals(false)
+		o(cache._isInCacheRange(typeRefToPath(MailTypeRef), "listId1", GENERATED_MIN_ID)).equals(false)
 		o(clientSpy.callCount).equals(3) // entities are provided from cache
 	})
 
