@@ -25,6 +25,7 @@ import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
 import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {MailTypeRef} from "../../entities/tutanota/Mail"
 
 const ValueType = EC.ValueType
 
@@ -107,7 +108,7 @@ export class EntityRestCache implements EntityRestInterface {
 				// monitor app and version requests are never cached
 				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 			} else if (!id && queryParameter && queryParameter["ids"]) {
-				return this._getMultiple(typeRef, method, listId, id, entity, queryParameter, extraHeaders, readOnly)
+				return this._loadMultiple(typeRef, method, listId, id, entity, queryParameter, extraHeaders, readOnly)
 			} else if (this.isRangeRequest(listId, id, queryParameter)) {
 				// load range
 				return resolveTypeReference(typeRef).then(typeModel => {
@@ -151,8 +152,8 @@ export class EntityRestCache implements EntityRestInterface {
 			&& queryParameter["count"] !== undefined && queryParameter["reverse"]
 	}
 
-	_getMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,
-	                extraHeaders?: Params, readOnly: boolean): Promise<Array<T>> {
+	_loadMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,
+	                 extraHeaders?: Params, readOnly: boolean): Promise<Array<T>> {
 		const ids = queryParameter["ids"].split(",")
 		const inCache = [], notInCache = []
 		ids.forEach((id) => {
@@ -163,15 +164,19 @@ export class EntityRestCache implements EntityRestInterface {
 			}
 		})
 		const newQuery = Object.assign({}, queryParameter, {ids: notInCache.join(",")})
+		const loadFromServerPromise = notInCache.length > 0
+			? this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, newQuery, extraHeaders)
+			      .then((response) => {
+				      const entities: Array<T> = downcast(response)
+				      if (!readOnly) {
+					      entities.forEach((e) => this._putIntoCache(e))
+				      }
+				      return entities
+			      })
+			: Promise.resolve([])
+
 		return Promise.all([
-			this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, newQuery, extraHeaders)
-			    .then((response) => {
-				    const entities: Array<T> = downcast(response)
-				    if (!readOnly) {
-					    entities.forEach((e) => this._putIntoCache(e))
-				    }
-				    return entities
-			    }),
+			loadFromServerPromise,
 			inCache.map(id => this._getFromCache(typeRef, listId, id))
 		]).then(flat)
 	}
@@ -416,7 +421,9 @@ export class EntityRestCache implements EntityRestInterface {
 						return this._processUpdateEvent(typeRef, update)
 
 					case OperationType.DELETE:
-						if (!containsEventOfType(data, OperationType.CREATE, instanceId)) {
+						if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(data, OperationType.CREATE, instanceId)) {
+							// move for mail is handled in create event.
+						} else {
 							this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
 						}
 						return update
@@ -433,7 +440,7 @@ export class EntityRestCache implements EntityRestInterface {
 		if (instanceListId) {
 			const path = typeRefToPath(typeRef)
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
-			if (deleteEvent && this._isInCache(typeRef, deleteEvent.instanceListId, instanceId)) { // It is a move event
+			if (deleteEvent && isSameTypeRef(MailTypeRef, typeRef) && this._isInCache(typeRef, deleteEvent.instanceListId, instanceId)) { // It is a move event
 				const element = this._getFromCache(typeRef, deleteEvent.instanceListId, instanceId)
 				this._tryRemoveFromCache(typeRef, deleteEvent.instanceListId, instanceId)
 				element._id = [instanceListId, instanceId]

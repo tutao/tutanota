@@ -36,6 +36,10 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, locator.cache, extraHeaders)
 }
 
+
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
 export function loadMultiple<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, locator.cache)
 }
@@ -119,6 +123,10 @@ export class EntityWorker {
 		return _loadEntityRange(typeRef, listId, start, count, reverse, this._target)
 	}
 
+
+	/**
+	 * load multiple does not guarantee order or completeness of returned elements.
+	 */
 	loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 		return _loadMultipleEntities(typeRef, listId, elementIds, this._target)
 	}

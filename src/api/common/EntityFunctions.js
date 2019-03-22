@@ -185,6 +185,9 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 }
 
 
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
 export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
 	// split the ids into chunks
 	let idChunks = [];
