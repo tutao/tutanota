@@ -49,9 +49,9 @@ o.spec('desktop config handler test', function () {
 	}
 
 	o("package.json & userConf", () => {
-		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).get()
-		const electronMock = n.mock('electron', electron).get()
+		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const electronMock = n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -80,11 +80,11 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("package.json & no userConf", () => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('electron', electron).set()
 		const fsExtraMock = n.mock('fs-extra', fsExtra)
 		                     .with({existsSync: () => false})
-		                     .get()
+		                     .set()
 
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
@@ -113,9 +113,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("package.json unavailable", () => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), undefined).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), undefined).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -126,15 +126,15 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("get values from conf", () => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
 
 		o(conf.get("pollingInterval")).equals(10000)
-		o(conf.getDesktopConfig("heartbeatTimeoutInSeconds")).equals(30)
+		o(conf.getDesktopConfig("heartbeatTimeoutInSeconds")).equals(240)
 		o(conf.get()).deepEquals({
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
 			"pollingInterval": 10000,
@@ -143,32 +143,32 @@ o.spec('desktop config handler test', function () {
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
 			"defaultDesktopConfig": {
-				"heartbeatTimeoutInSeconds": 30,
-				"defaultDownloadPath": null,
+				"heartbeatTimeoutInSeconds": 240,
+				"defaultDownloadPath": "/mock-Downloads/",
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
 			}
 		})
 		o(conf.getDesktopConfig()).deepEquals({
-			"heartbeatTimeoutInSeconds": 30,
-			"defaultDownloadPath": null,
+			"heartbeatTimeoutInSeconds": 240,
+			"defaultDownloadPath": "/mock-Downloads/",
 			"enableAutoUpdate": true,
 			"runAsTrayApp": true,
 		})
 	})
 
 	o("change single value and update conf file", (done) => {
-		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).get()
-		const electronMock = n.mock('electron', electron).get()
+		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const electronMock = n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
 
 		conf.setDesktopConfig("enableAutoUpdate", false).then(() => {
 			const expectedConfig = {
-				"heartbeatTimeoutInSeconds": 30,
-				"defaultDownloadPath": null,
+				"heartbeatTimeoutInSeconds": 240,
+				"defaultDownloadPath": "/mock-Downloads/",
 				"enableAutoUpdate": false,
 				"runAsTrayApp": true,
 			}
@@ -184,9 +184,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("update entire conf", (done) => {
-		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).get()
-		const electronMock = n.mock('electron', electron).get()
+		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const electronMock = n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -211,9 +211,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("set listener and change value", (done) => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -236,7 +236,7 @@ o.spec('desktop config handler test', function () {
 			//this should be called for any changes
 			o(anyListener.callCount).equals(1)
 			o(anyListener.args[0]).deepEquals({
-				"heartbeatTimeoutInSeconds": 30,
+				"heartbeatTimeoutInSeconds": 240,
 				"defaultDownloadPath": "/mock-downloads/",
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
@@ -246,9 +246,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("removeListener splices out the right listener", done => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -275,9 +275,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("set/remove listeners and change value", done => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
@@ -304,9 +304,9 @@ o.spec('desktop config handler test', function () {
 	})
 
 	o("removeAllListeners removes all listeners", done => {
-		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).get()
-		n.mock('fs-extra', fsExtra).get()
-		n.mock('electron', electron).get()
+		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
+		n.mock('fs-extra', fsExtra).set()
+		n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()

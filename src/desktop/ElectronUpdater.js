@@ -50,8 +50,8 @@ export class ElectronUpdater {
 	}
 
 	start() {
-		this._conf.removeListener('enableAutoUpdate', this.start)
-		    .on('enableAutoUpdate', this.start)
+		this._conf.removeListener('enableAutoUpdate', () => this.start())
+		    .on('enableAutoUpdate', () => this.start())
 		if (!this._conf.getDesktopConfig("enableAutoUpdate")) {
 			this._stopPolling()
 			return
@@ -79,22 +79,19 @@ export class ElectronUpdater {
 		return !this._checkUpdateSignature
 			? Promise.resolve()
 			: new Promise((resolve, reject) => {
-				let hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
-				let signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
-				let publicKey = forge.pki.publicKeyFromPem(this._pubKey)
 				try {
-					hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
-					signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
-					publicKey = forge.pki.publicKeyFromPem(this._pubKey)
+					let hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
+					let signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
+					let publicKey = forge.pki.publicKeyFromPem(this._pubKey)
+
+					if (publicKey.verify(hash, signature)) {
+						this._logger.info('Signature verification successful, downloading update')
+						resolve()
+					} else {
+						reject(new UpdateError('Signature verification failed, skipping update'))
+					}
 				} catch (e) {
 					reject(new UpdateError(e.message))
-				}
-
-				if (publicKey.verify(hash, signature)) {
-					this._logger.info('Signature verification successful, downloading update')
-					resolve()
-				} else {
-					reject(new UpdateError('Signature verification failed, skipping update'))
 				}
 			})
 	}
