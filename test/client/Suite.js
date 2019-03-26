@@ -24,6 +24,7 @@ node(() => {
 	require("./desktop/DesktopConfigHandlerTest")
 	require("./desktop/ElectronUpdaterTest")
 	require("./desktop/DesktopNotifierTest")
+	require("./desktop/DesktopWindowManagerTest.js")
 })()
 
 o.run()

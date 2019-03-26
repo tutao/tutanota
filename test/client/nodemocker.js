@@ -95,6 +95,9 @@ function classify(template: {prototype: {}, statics: {}}): ()=>void {
 
 	const cls = function () {
 		cls.mockedInstances.push(this)
+		if (typeof template.prototype["constructor"] === 'function') {
+			template.prototype["constructor"].apply(this, arguments)
+		}
 		Object.keys(template.prototype).forEach(p => {
 			this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
 		})

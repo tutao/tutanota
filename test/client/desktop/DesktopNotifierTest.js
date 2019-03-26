@@ -183,6 +183,6 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 			o(desktopTrayMock.update.callCount).equals(2)
 			o(notifier.hasNotificationForId("gn1")).equals(false)
 			done()
-		}, notificationStartDelay * 1.1)
+		}, notificationStartDelay * 1.2)
 	})
 })
