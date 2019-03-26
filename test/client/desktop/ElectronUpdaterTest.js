@@ -15,34 +15,66 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		'../TutanotaConstants'
 	])
 
-	const response = {
+	const response200 = {
 		statusCode: 200,
 		on: (ev: string, cb: (any)=>{}) => {
 			switch (ev) {
 				case 'error':
-					return n.spyify(response)
+					return n.spyify(response200)
 				case 'data':
 					setTimeout(() => cb(Buffer.from('-----BEGIN PUBLIC KEY-----\n')), 5)
 					setTimeout(() => cb(Buffer.from('notakey\n')), 10)
 					setTimeout(() => cb(Buffer.from('-----END PUBLIC KEY-----')), 15)
-					return n.spyify(response)
+					return n.spyify(response200)
 				case 'end':
 					setTimeout(() => cb(), 15)
-					return n.spyify(response)
+					return n.spyify(response200)
 				default:
 					throw new Error(`unexpected response event ${ev}`)
 			}
 		}
 	}
 
-	const conn = {
+	const response400 = {
+		responseCode: 400,
 		on: (ev: string, cb: (any)=>{}) => {
 			switch (ev) {
 				case 'error':
-					return n.spyify(conn)
+					return n.spyify(response400)
+				case 'data':
+					return n.spyify(response400)
+				case 'end':
+					setTimeout(() => cb(), 15)
+					return n.spyify(response400)
+				default:
+					throw new Error(`unexpected response event ${ev}`)
+			}
+		}
+	}
+
+	const conn200 = {
+		on: (ev: string, cb: (any)=>{}) => {
+			switch (ev) {
+				case 'error':
+					return n.spyify(conn200)
 				case 'response':
-					setTimeout(() => cb(n.spyify(response)), 10)
-					return n.spyify(conn)
+					setTimeout(() => cb(n.spyify(response200)), 10)
+					return n.spyify(conn200)
+				default:
+					throw new Error(`unexpected connection event ${ev}`)
+			}
+		},
+		end: () => {}
+	}
+
+	const conn400 = {
+		on: (ev: string, cb: (any)=>{}) => {
+			switch (ev) {
+				case 'error':
+					return n.spyify(conn400)
+				case 'response':
+					setTimeout(() => cb(n.spyify(response400)), 10)
+					return n.spyify(conn400)
 				default:
 					throw new Error(`unexpected connection event ${ev}`)
 			}
@@ -56,7 +88,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			getVersion: (): string => "3.45.0"
 		},
 		net: {
-			request: (url: string) => n.spyify(conn)
+			request: (url: string) => n.spyify(conn200)
 		}
 	}
 
@@ -174,9 +206,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			//request key
 			o(electronMock.net.request.callCount).equals(1)
 			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn).end.callCount).equals(1)
-			o(n.spyify(conn).on.callCount).equals(2)
-			o(n.spyify(response).on.callCount).equals(3)
+			o(n.spyify(conn200).end.callCount).equals(1)
+			o(n.spyify(conn200).on.callCount).equals(2)
+			o(n.spyify(response200).on.callCount).equals(3)
 
 			// check signature
 			o(forgeMock.pki.publicKeyFromPem.callCount).equals(1)
@@ -226,9 +258,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			//request key
 			o(electronMock.net.request.callCount).equals(1)
 			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn).end.callCount).equals(1)
-			o(n.spyify(conn).on.callCount).equals(2)
-			o(n.spyify(response).on.callCount).equals(3)
+			o(n.spyify(conn200).end.callCount).equals(1)
+			o(n.spyify(conn200).on.callCount).equals(2)
+			o(n.spyify(response200).on.callCount).equals(3)
 
 			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
 
@@ -293,9 +325,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			//request key
 			o(electronMock.net.request.callCount).equals(1)
 			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn).end.callCount).equals(1)
-			o(n.spyify(conn).on.callCount).equals(2)
-			o(n.spyify(response).on.callCount).equals(3)
+			o(n.spyify(conn200).end.callCount).equals(1)
+			o(n.spyify(conn200).on.callCount).equals(2)
+			o(n.spyify(response200).on.callCount).equals(3)
 
 			// check signature
 			o(forgeMock.pki.publicKeyFromPem.callCount).equals(1)

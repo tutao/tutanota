@@ -7,6 +7,7 @@ import {downcast, neverNull} from "../../src/api/common/utils/Utils"
 
 let exit = {value: undefined}
 let spyCache = []
+let classCache = []
 let testcount = 0
 
 function enable() {
@@ -27,6 +28,7 @@ function disable(): void {
 	setProperty(process, 'exit', neverNull(exit).value)
 	spyCache.forEach(obj => delete obj.spy)
 	spyCache = []
+	classCache.forEach(c => c.mockedInstances = [])
 }
 
 // register and get a test subject
@@ -45,8 +47,9 @@ function disallow(module: string | Array<string>): void {
 
 /**
  * you need to call .get() on the return value to actually register the replacer with mockery and to spyify its functions.
+ * placer object that replaces the module and gets returned when require(old) is called. Its functions are spyified when .get() is called.
+ * warning: contents of array properties will not be spyified
  * @param old name of the module to replace
- * @param replacer object that replaces the module and gets returned when require(old) is called. Its functions are spyified when .get() is called.
  * @returns {MockBuilder}
  */
 function mock<T>(old: string, replacer: T): MockBuilder<T> {
@@ -60,17 +63,50 @@ function spyify<T>(obj: T): T {
 				obj.spy = o.spy(obj)
 				spyCache.push(obj)
 			}
+
+			Object.keys(obj) // classes are functions
+			      .filter(k => !['args', 'callCount', 'spy'].includes(k))
+			      .forEach(k => (obj: any).spy[k] = spyify((obj: any)[k]))
+
 			return obj.spy
 		case 'object':
-			return obj == null
-				? obj
-				: (Object.keys(obj).reduce((newObj, key) => {
-					(newObj: any)[key] = spyify((obj: any)[key])
-					return newObj
-				}, ({}: any)): T)
+			if (Array.isArray(obj)) {
+				// TODO: use proxy to sync spyified array?
+				return obj
+			} else {
+				return obj == null
+					? obj
+					: (Object.keys(obj).reduce((newObj, key) => {
+						(newObj: any)[key] = spyify((obj: any)[key])
+						return newObj
+					}, ({}: any)): T)
+			}
 		default:
 			return obj
 	}
+}
+
+/**
+ * create a class-like structure from an object to be able to o.spy on method and constructor calls
+ * @param template
+ * @returns {cls}
+ */
+function classify(template: {prototype: {}, statics: {}}): ()=>void {
+
+	const cls = function () {
+		cls.mockedInstances.push(this)
+		Object.keys(template.prototype).forEach(p => {
+			this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
+		})
+	}
+
+	if (template.statics) {
+		Object.keys(template.statics).forEach(s => cls[s] = template.statics[s])
+	}
+
+	classCache.push(cls)
+	cls.mockedInstances = []
+	return cls
 }
 
 function setProperty(object, property, value) {
@@ -135,6 +171,7 @@ const n = {
 	subject,
 	allow,
 	disallow,
+	classify,
 	mock,
 	spyify
 }

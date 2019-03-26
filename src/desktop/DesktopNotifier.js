@@ -22,7 +22,7 @@ export class DesktopNotifier {
 	 * signal that notifications can now be shown. also start showing notifications that came
 	 * in before this point
 	 */
-	start(tray: DesktopTray): void {
+	start(tray: DesktopTray, delay: number): void {
 		this._tray = tray
 
 		setTimeout(() => {
@@ -30,7 +30,7 @@ export class DesktopNotifier {
 			while (this.pendingNotifications.length > 0) {
 				(this.pendingNotifications.pop())()
 			}
-		}, 2000)
+		}, delay)
 	}
 
 	isAvailable(): boolean {
@@ -64,6 +64,9 @@ export class DesktopNotifier {
 		}
 
 		const showIt = () => {
+			if (!this.isAvailable()) {
+				return
+			}
 			this._notificationCloseFunctions[id] = this._makeNotification({
 				title: title,
 				body: message,
@@ -85,7 +88,6 @@ export class DesktopNotifier {
 			this._tray.update()
 		}
 		delete this._notificationCloseFunctions[id]
-
 	}
 
 	hasNotificationsForWindow(w: ApplicationWindow): boolean {

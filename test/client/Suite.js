@@ -23,6 +23,7 @@ node(() => {
 	require("./desktop/DesktopUtilsTest.js")
 	require("./desktop/DesktopConfigHandlerTest")
 	require("./desktop/ElectronUpdaterTest")
+	require("./desktop/DesktopNotifierTest")
 })()
 
 o.run()

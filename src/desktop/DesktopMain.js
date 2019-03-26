@@ -90,7 +90,7 @@ function main() {
 		// so set listener later to avoid the call on launch
 		wm.getLastFocused(true)
 	})
-	notifier.start(tray)
+	notifier.start(tray, 2000)
 	updater.start()
 	handleArgv(process.argv)
 }
