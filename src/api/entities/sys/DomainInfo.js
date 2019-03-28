@@ -22,6 +22,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"certificateState": {
+			"name": "certificateState",
+			"id": 1501,
+			"since": 44,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"domain": {"name": "domain", "id": 698, "since": 9, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
 		"validatedMxRecord": {"name": "validatedMxRecord", "id": 699, "since": 9, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false}
 	},
@@ -58,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createDomainInfo(): DomainInfo {

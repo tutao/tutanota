@@ -12,8 +12,33 @@ import {InvalidDataError, PreconditionFailedError} from "../api/common/error/Res
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isDomainName} from "../misc/FormatValidator"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
+
+const CertificateType = Object.freeze({
+	LETS_ENCRYPT: 0,
+	CUSTOM: 1
+})
+type CertificateTypeEnum = $Values<typeof CertificateType>
+
+function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?DataFile, dialog: Dialog) {
+	showProgressDialog("pleaseWait_msg",
+		worker.uploadCertificate(domain,
+			certChainFile && utf8Uint8ArrayToString(certChainFile.data),
+			privKeyFile && utf8Uint8ArrayToString(privKeyFile.data))
+		      .then(() => {
+			      dialog.close()
+		      })
+		      .catch(InvalidDataError, e => {
+			      Dialog.error("certificateError_msg")
+		      })
+		      .catch(PreconditionFailedError, e => {
+			      Dialog.error("invalidCnameRecord_msg")
+		      }))
+}
 
 export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
@@ -49,13 +74,28 @@ export function show(customerInfo: CustomerInfo): void {
 	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
+	const selectedType = stream(CertificateType.LETS_ENCRYPT)
+	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
+		label: () => "certificate type",
+		items: [
+			{name: "Automatic (by Let's Encrypt)", value: CertificateType.LETS_ENCRYPT},
+			{name: "Custom", value: CertificateType.CUSTOM}
+		],
+		selectedValue: selectedType,
+		dropdownWidth: 250
+	}
+
 	let form = {
 		view: () => {
 			return [
 				m(domainField),
-				m(certificateChainField),
-				m(privateKeyField),
-			]
+				m(DropDownSelectorN, certOptionDropDownAttrs),
+			].concat(selectedType() === CertificateType.CUSTOM
+				? [
+					m(certificateChainField),
+					m(privateKeyField),
+				]
+				: null)
 		}
 	}
 	let dialog = Dialog.showActionDialog({
@@ -63,30 +103,24 @@ export function show(customerInfo: CustomerInfo): void {
 		child: form,
 		okAction: () => {
 			let domain = domainField.value().trim().toLowerCase()
-			if (!certChainFile) {
-				Dialog.error("certificateChainInfo_msg")
-			} else if (!privKeyFile) {
-				Dialog.error("privateKeyInfo_msg")
-			} else if (!isDomainName(domain) || domain.split(".").length < 3) {
+
+			if (!isDomainName(domain) || domain.split(".").length < 3) {
 				Dialog.error("notASubdomain_msg")
 			} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
 				Dialog.error("customDomainErrorDomainNotAvailable_msg")
+			} else if (selectedType() === CertificateType.LETS_ENCRYPT) {
+				registerDomain(domain, null, null, dialog)
 			} else {
-				try {
-					showProgressDialog("pleaseWait_msg",
-						worker.uploadCertificate(domain,
-							utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data))
-						      .then(() => {
-							      dialog.close()
-						      })
-						      .catch(InvalidDataError, e => {
-							      Dialog.error("certificateError_msg")
-						      })
-						      .catch(PreconditionFailedError, e => {
-							      Dialog.error("invalidCnameRecord_msg")
-						      }))
-				} catch (e) {
-					Dialog.error("certificateError_msg")
+				if (!certChainFile) {
+					Dialog.error("certificateChainInfo_msg")
+				} else if (!privKeyFile) {
+					Dialog.error("privateKeyInfo_msg")
+				} else {
+					try {
+						registerDomain(domain, certChainFile, privKeyFile, dialog)
+					} catch (e) {
+						Dialog.error("certificateError_msg")
+					}
 				}
 			}
 		}

@@ -84,7 +84,7 @@ export class CustomerFacade {
 		return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.PUT, data)
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain === domainName
@@ -97,8 +97,12 @@ export class CustomerFacade {
 							.then(systemAdminPubEncAccountingInfoSessionKey => {
 								let data = createBrandingDomainData()
 								data.domain = domainName
-								data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
-								data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
+								if (pemCertificateChain) {
+									data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
+								}
+								if (pemPrivateKey) {
+									data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
+								}
 								data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
 								return serviceRequestVoid(SysService.BrandingDomainService,
 									(existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)

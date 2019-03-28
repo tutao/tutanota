@@ -10,7 +10,7 @@ import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {BookingItemFeatureType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, CertificateState, FeatureType, OperationType} from "../api/common/TutanotaConstants"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -187,7 +187,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
-			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
+			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificateState)
 			return this._tryLoadWhitelabelConfig(brandingDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
@@ -197,7 +197,17 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						// customJsonTheme is defined when brandingDomainInfo is defined
 						this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
 							if (brandingDomainInfo) {
-								return lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
+								switch (brandingDomainInfo.certificateState) {
+									case CertificateState.VALID:
+										return lang.get("certificateExpiryDate_label",
+											{"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
+									case CertificateState.VALIDATING:
+										return "Processing";
+									case CertificateState.INVALID:
+										return "Failed to order certificate";
+									default:
+										return lang.get("emptyString_msg")
+								}
 							} else {
 								return lang.get("emptyString_msg")
 							}
@@ -435,15 +445,19 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
 		for (let update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
+				console.log("WHITELABEL update customer: ", update)
 				this._customer.reset()
 				this._customer.getAsync().then(() => m.redraw())
 				this._updateWhitelabelRegistrationFields()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+				console.log("WHITELABEL update customerInfo: ", update)
 				this._customerInfo.reset()
 				this._updateFields()
 			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
+				console.log("WHITELABEL update whitelabelConfig: ", update)
 				this._updateFields()
 			} else if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				console.log("WHITELABEL update customerServerProtperties: ", update)
 				this._props.reset()
 				this._updateWhitelabelRegistrationFields()
 			}

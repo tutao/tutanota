@@ -845,6 +845,7 @@ type DomainInfo = {
 	_type: TypeRef<DomainInfo>;
 	_id: Id;
 	certificateExpiryDate: ?Date;
+	certificateState: ?NumberString;
 	domain: string;
 	validatedMxRecord: boolean;
 
@@ -1218,9 +1219,9 @@ type BrandingDomainData = {
 	_type: TypeRef<BrandingDomainData>;
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: Uint8Array;
-	sessionEncPemPrivateKey: Uint8Array;
-	systemAdminPubEncSessionKey: Uint8Array;
+	sessionEncPemCertificateChain: ?Uint8Array;
+	sessionEncPemPrivateKey: ?Uint8Array;
+	systemAdminPubEncSessionKey: ?Uint8Array;
 
 }
 

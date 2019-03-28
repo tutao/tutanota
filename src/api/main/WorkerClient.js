@@ -350,7 +350,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('setCatchAllGroup', arguments))
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return this._postRequest(new Request('uploadCertificate', arguments))
 	}
 
