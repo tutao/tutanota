@@ -34,7 +34,7 @@ class HtmlSanitizer {
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
-						if (allowedClasses.indexOf(cl[0]) == -1) {
+						if (allowedClasses.indexOf(cl[0]) === -1) {
 							cl.remove(cl[0]);
 						}
 					}
@@ -96,14 +96,14 @@ class HtmlSanitizer {
 		if (htmlNode.style) {
 			if (htmlNode.style.backgroundImage) {
 				//console.log(htmlNode.style.backgroundImage)
-				this._replaceStyleImage(htmlNode, "backgroundImage")
+				this._replaceStyleImage(htmlNode, "backgroundImage", false)
 				htmlNode.style.backgroundRepeat = "no-repeat"
 			}
 			if (htmlNode.style.listStyleImage) {
-				this._replaceStyleImage(htmlNode, "listStyleImage")
+				this._replaceStyleImage(htmlNode, "listStyleImage", true)
 			}
 			if (htmlNode.style.content) {
-				this._replaceStyleImage(htmlNode, "content")
+				this._replaceStyleImage(htmlNode, "content", true)
 			}
 			if (htmlNode.style.cursor) {
 				this._removeStyleImage(htmlNode, "cursor")
@@ -135,7 +135,7 @@ class HtmlSanitizer {
 		}
 	}
 
-	_replaceStyleImage(htmlNode, styleAttributeName: string) {
+	_replaceStyleImage(htmlNode, styleAttributeName: string, limitWidth: boolean) {
 		let value = htmlNode.style[styleAttributeName]
 		if (value.match(/^url\(/)) {
 			// remove surrounding url definition. url(<link>)
@@ -144,7 +144,9 @@ class HtmlSanitizer {
 			this._externalContent.push(value)
 			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
-			htmlNode.style["max-width"] = "100px"
+			if (limitWidth) {
+				htmlNode.style["max-width"] = "100px"
+			}
 		}
 	}
 
