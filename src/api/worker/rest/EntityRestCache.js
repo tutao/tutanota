@@ -125,8 +125,12 @@ export class EntityRestCache implements EntityRestInterface {
 				// load single entity
 				if (this._isInCache(typeRef, listId, id)) {
 					return Promise.resolve(this._getFromCache(typeRef, listId, id))
-				} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
-					return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
+					// Some methods like "createDraft" are loading the created instance directly after the service has completed.
+					// Currently we cannot apply this optimization here because the cached is not updated directly after a service request because
+					// We don't wait for the updated/create event of the modified instance.
+					// We can add this optimization again if our service requests resolve after the cache has been updated
+					//} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
+					//return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
 				} else {
 					return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
 					           .then(entity => {
