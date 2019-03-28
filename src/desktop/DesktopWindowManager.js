@@ -45,6 +45,7 @@ export class WindowManager {
 		windows.push(w)
 
 		w.on('close', ev => {
+			// we don't want to actually close windows where someone is logged in, just hide them
 			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
 				ev.preventDefault()
 				w.hide()
