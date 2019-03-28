@@ -17,7 +17,7 @@ import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
+import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, Mode} from "../api/Env"
@@ -199,7 +199,10 @@ export class MailEditor {
 			},
 			{
 				label: "saveDraft_action",
-				click: () => this.saveDraft(true, true).then(() => this._close()),
+				click: () => this.saveDraft(true, true)
+				                 .then(() => this._close())
+				                 .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                 .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg")),
 				type: ButtonType.Dropdown
 			}
 		], () => this._mailChanged, 250)
@@ -343,6 +346,7 @@ export class MailEditor {
 			                    exec: () => {
 				                    this.saveDraft(true, true)
 				                        .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                        .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 			                    },
 			                    help: "save_action"
 		                    })
@@ -633,6 +637,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 * @throws FileNotFoundError when one of the attachments could not be opened
+	 * @throws PreconditionFailedError when the draft is locked
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
@@ -767,6 +772,7 @@ export class MailEditor {
 								})
 						})
 						.catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+						.catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 
 					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
@@ -981,7 +987,7 @@ export class MailEditor {
 
 	static writeSupportMail() {
 		mailModel.init().then(() => {
-			if(!logins.getUserController().isPremiumAccount()) {
+			if (!logins.getUserController().isPremiumAccount()) {
 				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
 				const title = lang.get("upgradeReminderTitle_msg")
 				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
