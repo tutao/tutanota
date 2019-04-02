@@ -42,7 +42,7 @@ export class WindowManager {
 
 	newWindow(showWhenReady: boolean): ApplicationWindow {
 		const w = new ApplicationWindow(this)
-		windows.push(w)
+		windows.unshift(w)
 
 		w.on('close', ev => {
 			// we don't want to actually close windows where someone is logged in, just hide them

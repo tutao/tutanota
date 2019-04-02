@@ -138,7 +138,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	const lang = {
 		lang: {
 			get: (key: string) => {
-				if (['updateAvailable_label', 'clickToUpdate_msg'].includes(key)) {
+				if (['updateAvailable_label', 'clickToUpdate_msg', 'errorReport_label', 'errorDuringUpdate_msg'].includes(key)) {
 					return key
 				}
 				throw new Error(`unexpected lang key ${key}`)
@@ -345,5 +345,73 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
 			done()
 		}, 190)
+	})
+
+	o("retry after autoUpdater reports an error", done => {
+		//mock node modules
+		const forgeMock = n.mock('node-forge', nodeForge).set()
+		const electronMock = n.mock('electron', electron).set()
+		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater})
+		                         .with({
+			                         autoUpdater: {
+				                         checkForUpdates: () => {
+					                         setTimeout(() => autoUpdater.callbacks['update-available']({
+						                         sha512: 'sha512',
+						                         signature: 'signature',
+					                         }), 30)
+					                         return Promise.resolve()
+				                         },
+				                         downloadUpdate: () => {
+					                         setTimeout(() => autoUpdater.callbacks['update-downloaded']({
+						                         version: '4.5.0',
+					                         }), 30)
+					                         return Promise.resolve()
+				                         },
+				                         on: (ev: string, cb: (e: {message: string})=>void) => {
+					                         autoUpdater.callbacks[ev] = cb
+					                         if (ev === "error") {
+						                         setTimeout(() => cb({message: "this is an autoUpdater error"}), 20)
+					                         }
+					                         return autoUpdaterMock
+				                         }
+			                         }
+		                         })
+		                         .set().autoUpdater
+
+		//mock our modules
+		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./DesktopLocalizationProvider.js', lang).set()
+
+		//mock instances
+		const confMock = n.mock('__conf', conf).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+
+		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
+		const upd = new ElectronUpdater(confMock, notifierMock)
+
+		upd.start()
+
+		// after the error
+		setTimeout(() => {
+			o(notifierMock.showOneShot.callCount).equals(1)
+			o(notifierMock.showOneShot.args[0]).deepEquals({
+				title: "errorReport_label",
+				body: "errorDuringUpdate_msg",
+				icon: 'this is an icon'
+			})
+			o(autoUpdaterMock.downloadUpdate.callCount).equals(0)
+		}, 20)
+
+		//after the download
+		setTimeout(() => {
+			o(notifierMock.showOneShot.callCount).equals(2)
+			o(notifierMock.showOneShot.args[0]).deepEquals({
+				title: "updateAvailable_label",
+				body: "clickToUpdate_msg",
+				icon: 'this is an icon'
+			})
+			o(autoUpdaterMock.downloadUpdate.callCount).equals(1)
+			done()
+		}, 150)
 	})
 })

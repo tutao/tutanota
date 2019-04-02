@@ -48,9 +48,12 @@ o.spec("Desktop Window Manager Test", () => {
 					this.callbacks[ev] = cb
 					return this
 				},
+				getUserId: () => "userId",
 				center: function () {},
 				setBounds: function () {},
-				show: function () {},
+				show: function () {
+					this.callbacks["focus"]()
+				},
 				setZoomFactor: function () {}
 			},
 			statics: {
@@ -93,7 +96,9 @@ o.spec("Desktop Window Manager Test", () => {
 		}
 	}
 
-	const notifier = {}
+	const notifier = {
+		resolveGroupedNotification: () => {}
+	}
 
 	const ipc = {}
 
@@ -193,6 +198,60 @@ o.spec("Desktop Window Manager Test", () => {
 		o(wm.get(1)).equals(win)
 
 		o(desktopTrayMock.update.callCount).equals(1)
+	})
+
+	o.only("getLastFocused returns the last focused window", () => {
+		// node modules
+		const electronMock = n.mock("electron", electron).set()
+
+		// our modules
+		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
+		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+
+		// instances
+		const confMock = n.mock('__conf', conf).set()
+		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon", update: () => {}}).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+		const ipcMock = n.mock('__ipc', ipc).set()
+
+		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock)
+		wm.setIPC(ipcMock)
+
+		const w1 = wm.newWindow(true)
+		const w2 = wm.newWindow(true)
+		const w3 = wm.newWindow(true)
+
+		o(wm.getAll()).deepEquals([w1, w2, w3])
+		o(wm.getLastFocused(false)).deepEquals(w3)
+
+		wm.get(w2.id).show()
+
+		o(wm.getAll()).deepEquals([w1, w3, w2])
+		o(wm.getLastFocused(false)).deepEquals(w2)
+		const w4 = wm.newWindow(false)
+		o(wm.getLastFocused(false)).deepEquals(w2)
+	})
+
+	o("wm is saving bounds to file when closing", () => {
+		// node modules
+		const electronMock = n.mock("electron", electron).set()
+
+		// our modules
+		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
+		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+
+		// instances
+		const confMock = n.mock('__conf', conf).set()
+		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon", update: () => {}}).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+		const ipcMock = n.mock('__ipc', ipc).set()
+
+		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock)
+		wm.setIPC(ipcMock)
+
+		const w = wm.newWindow(true)
 	})
 })
 
