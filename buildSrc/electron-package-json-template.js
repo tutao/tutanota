@@ -18,6 +18,17 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		},
 		"tutao-config": {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
+			"pubKeys": [
+				"-----BEGIN PUBLIC KEY-----\n"
+				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1eQA3vZyVSSMUbFZrSxB\n"
+				+ "va/OErAiT7HrVKF1m8ZLpsTu652SFLKelrFlUWz+ZcWx7yxNzpj8hpB4SDwJxQeO\n"
+				+ "9UD5q6IozwhNSV10h6G19lls3+3x3rzuQTOPXzNLv7SG1mdQUwfsf91gzv3Yg2Qd\n"
+				+ "Wd8gpKYLmG8rKo95FFAAXiafISs/3Xi8B+9dBp8cjgO4Nq/oTdLeYGBWfe+oDzPv\n"
+				+ "JPL4IDQa+SR5eI6jEMoVBRC7LihkP+fCwdhrlyOD+ei7s1YVoNU+qpWeLZ6wCYLP\n"
+				+ "Xbt7N3L2t3TiXEWmz+pjCz/HG3m/PuGamlGHDy/P8WlnvsbIEI6doDU8gAHUkpNS\n"
+				+ "HwIDAQAB\n"
+				+ "-----END PUBLIC KEY-----"
+			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
