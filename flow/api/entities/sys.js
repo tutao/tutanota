@@ -845,7 +845,6 @@ type DomainInfo = {
 	_type: TypeRef<DomainInfo>;
 	_id: Id;
 	certificateExpiryDate: ?Date;
-	certificateState: ?NumberString;
 	domain: string;
 	validatedMxRecord: boolean;
 
@@ -1213,6 +1212,7 @@ type WhitelabelConfig = {
 	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
+	certificateInfo: CertificateInfo;
 }
 
 type BrandingDomainData = {
@@ -1221,7 +1221,7 @@ type BrandingDomainData = {
 	domain: string;
 	sessionEncPemCertificateChain: ?Uint8Array;
 	sessionEncPemPrivateKey: ?Uint8Array;
-	systemAdminPubEncSessionKey: ?Uint8Array;
+	systemAdminPubEncSessionKey: Uint8Array;
 
 }
 
@@ -1575,4 +1575,14 @@ type WebsocketCounterData = {
 	mailGroup: Id;
 
 	counterValues: WebsocketCounterValue[];
+}
+
+type CertificateInfo = {
+	_type: TypeRef<CertificateInfo>;
+	_id: Id;
+	expiryDate: ?Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: ?Id;
 }

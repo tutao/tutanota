@@ -330,8 +330,14 @@ export const Announcement = Object.freeze({
 })
 
 export const CertificateState = Object.freeze({
-	VALIDATING: '0',
-	VALID: '1',
+	VALID: '0',
+	VALIDATING: '1',
 	INVALID: '2'
 })
-export type CertificateStateEnum = $Values<typeof CertificateState>;
+export type CertificateStateEnum = $Values<typeof CertificateState>
+
+export const CertificateType = Object.freeze({
+	MANUAL: '0',
+	LETS_ENCRYPT: '1',
+})
+export type CertificateTypeEnum = $Values<typeof CertificateType>

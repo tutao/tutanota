@@ -15,14 +15,11 @@ import {isDomainName} from "../misc/FormatValidator"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
+import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
+import {CertificateType} from "../api/common/TutanotaConstants"
+import {getWhitelabelDomain} from "../api/common/utils/Utils"
 
 assertMainOrNode()
-
-const CertificateType = Object.freeze({
-	LETS_ENCRYPT: 0,
-	CUSTOM: 1
-})
-type CertificateTypeEnum = $Values<typeof CertificateType>
 
 function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?DataFile, dialog: Dialog) {
 	showProgressDialog("pleaseWait_msg",
@@ -42,10 +39,10 @@ function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?
 
 export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
+	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 	let domainField
-	if (brandingDomainInfo) {
-		domainField = new TextField("whitelabelDomain_label").setValue(brandingDomainInfo.domain).setDisabled()
+	if (whitelabelDomainInfo) {
+		domainField = new TextField("whitelabelDomain_label").setValue(whitelabelDomainInfo.domain).setDisabled()
 	} else {
 		domainField = new TextField("whitelabelDomain_label")
 	}
@@ -79,7 +76,7 @@ export function show(customerInfo: CustomerInfo): void {
 		label: () => "certificate type",
 		items: [
 			{name: "Automatic (by Let's Encrypt)", value: CertificateType.LETS_ENCRYPT},
-			{name: "Custom", value: CertificateType.CUSTOM}
+			{name: "Manual", value: CertificateType.MANUAL}
 		],
 		selectedValue: selectedType,
 		dropdownWidth: 250
@@ -90,7 +87,7 @@ export function show(customerInfo: CustomerInfo): void {
 			return [
 				m(domainField),
 				m(DropDownSelectorN, certOptionDropDownAttrs),
-			].concat(selectedType() === CertificateType.CUSTOM
+			].concat(selectedType() === CertificateType.MANUAL
 				? [
 					m(certificateChainField),
 					m(privateKeyField),
@@ -106,7 +103,7 @@ export function show(customerInfo: CustomerInfo): void {
 
 			if (!isDomainName(domain) || domain.split(".").length < 3) {
 				Dialog.error("notASubdomain_msg")
-			} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
+			} else if (customerInfo.domainInfos.find(di => !di.whitelabelConfig && di.domain === domain)) {
 				Dialog.error("customDomainErrorDomainNotAvailable_msg")
 			} else if (selectedType() === CertificateType.LETS_ENCRYPT) {
 				registerDomain(domain, null, null, dialog)

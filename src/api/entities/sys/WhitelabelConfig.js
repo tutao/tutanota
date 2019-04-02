@@ -47,6 +47,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"refType": "BootstrapFeature",
 			"final": false
+		},
+		"certificateInfo": {
+			"name": "certificateInfo",
+			"id": 1506,
+			"since": 44,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "CertificateInfo",
+			"final": false
 		}
 	},
 	"app": "sys",

@@ -6,7 +6,7 @@ import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {load, loadAll, setup, update} from "../api/main/Entity"
-import {compareGroupInfos, getBrandingDomain, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {compareGroupInfos, getWhitelabelDomain, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
@@ -244,10 +244,10 @@ export class ContactFormEditor {
 
 		let cancelAction = () => this._close()
 
-		let headerBarAttrs : DialogHeaderBarAttrs =  {
-			left:[{label: 'cancel_action', click: cancelAction, type: ButtonType.Secondary}],
-			right:[{label: 'save_action', click: () => this._save(), type: ButtonType.Primary}],
-			middle:() => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label")
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: 'cancel_action', click: cancelAction, type: ButtonType.Secondary}],
+			right: [{label: 'save_action', click: () => this._save(), type: ButtonType.Primary}],
+			middle: () => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label")
 		}
 
 		this.view = () => m("#contact-editor.pb", [
@@ -405,9 +405,8 @@ export class ContactFormEditor {
 export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: Function) {
 	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			let brandingDomain = getBrandingDomain(customerInfo)
-			if (brandingDomain) {
-				//ContactFormEditor.show(null, true, brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+			const whitelabelDomain = getWhitelabelDomain(customerInfo)
+			if (whitelabelDomain) {
 				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
 					.filter(g => !g.deleted)
 					.then(userGroupInfos => {
@@ -418,7 +417,7 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 								.filter(g => !g.deleted)
 								.filter(teamGroupInfo => teamGroupInfo.groupType === GroupType.Mail)
 								.then(sharedMailGroupInfos => {
-									let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, neverNull(brandingDomain))
+									let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, whitelabelDomain.domain)
 									editor.dialog.show()
 									windowFacade.checkWindowClosing(true)
 								})
