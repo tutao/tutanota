@@ -145,6 +145,7 @@ o.spec("FormatterTest", function () {
 		o(isMailAddress("asdf asdf@d.de", false)).equals(false)
 		o(isMailAddress("@@d.de", false)).equals(false)
 		o(isMailAddress("a@b@d.de", false)).equals(false)
+		o(isMailAddress("abc@döh.de", false)).equals(false) // no IDNA support
 	})
 
 	o("cleanedMailAddress", function () {

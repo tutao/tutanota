@@ -1,10 +1,13 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {TextField, Type} from "../gui/base/TextField"
+import {TextField} from "../gui/base/TextField"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
-import {isMailAddress} from "../misc/FormatValidator"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
@@ -14,7 +17,7 @@ import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
+import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, Mode} from "../api/Env"
@@ -55,6 +58,7 @@ import {px, size} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
+import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
@@ -66,13 +70,16 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {DialogHeaderBarN} from "../gui/base/DialogHeaderBarN"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import {client} from "../misc/ClientDetector"
+import {formatPrice} from "../subscription/SubscriptionUtils"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -84,7 +91,7 @@ export class MailEditor {
 	toRecipients: BubbleTextField<RecipientInfo>;
 	ccRecipients: BubbleTextField<RecipientInfo>;
 	bccRecipients: BubbleTextField<RecipientInfo>;
-	_mailAddressToPasswordField: Map<string, TextField>;
+	_mailAddressToPasswordField: Map<string, TextFieldAttrs>;
 	subject: TextField;
 	conversationType: ConversationTypeEnum;
 	previousMessageId: ?Id; // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
@@ -179,10 +186,6 @@ export class MailEditor {
 		}
 		this.subject.onUpdate(v => this._mailChanged = true)
 
-		// close button needed changes so it was possible to show different outcomes
-		// if nothing changed in the editor in comparison to after it was created just close the editor onclick
-		// show drop down button if an input was made to choose closing or draft saving
-
 		let closeButtonAttrs = attachDropdown({
 			label: "close_alt",
 			click: () => this._close(),
@@ -196,21 +199,19 @@ export class MailEditor {
 			},
 			{
 				label: "saveDraft_action",
-				click: () => this.saveDraft(true, true).then(() => this._close()),
+				click: () => this.saveDraft(true, true)
+				                 .then(() => this._close())
+				                 .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                 .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg")),
 				type: ButtonType.Dropdown
 			}
 		], () => this._mailChanged, 250)
 
-		const sendButtonAttrs = {
-			label: "send_action",
-			click: () => this.send(),
-			type: ButtonType.Primary
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [closeButtonAttrs],
+			right: [{label: "send_action", click: () => this.send(), type: ButtonType.Primary}],
+			middle: () => lang.get(this._conversationTypeToTitleTextId())
 		}
-
-		let headerBar = new DialogHeaderBarN()
-			.addLeft(closeButtonAttrs)
-			.setMiddle(() => lang.get(this._conversationTypeToTitleTextId()))
-			.addRight(sendButtonAttrs)
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._richTextToolbar = new RichTextToolbar(this._editor)
@@ -280,15 +281,17 @@ export class MailEditor {
 						]),
 					])
 				),
-				this._confidentialButtonState ? m(".external-recipients.overflow-hidden", {
-					oncreate: vnode => this.animate(vnode.dom, true),
-					onbeforeremove: vnode => this.animate(vnode.dom, false)
-				}, this._allRecipients()
-				       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
-				       .map(r => m(this.getPasswordField(r), {
-					       oncreate: vnode => this.animate(vnode.dom, true),
-					       onbeforeremove: vnode => this.animate(vnode.dom, false)
-				       }))) : null,
+				this._confidentialButtonState
+					? m(".external-recipients.overflow-hidden", {
+						oncreate: vnode => this.animate(vnode.dom, true),
+						onbeforeremove: vnode => this.animate(vnode.dom, false)
+					}, this._allRecipients()
+					       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
+					       .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
+						       oncreate: vnode => this.animate(vnode.dom, true),
+						       onbeforeremove: vnode => this.animate(vnode.dom, false)
+					       }))))
+					: null,
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
 					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
@@ -307,7 +310,7 @@ export class MailEditor {
 			}
 		}
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
 			                    exec: () => closeButtonAttrs.click(null, this._domCloseButton),
@@ -343,6 +346,7 @@ export class MailEditor {
 			                    exec: () => {
 				                    this.saveDraft(true, true)
 				                        .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                        .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 			                    },
 			                    help: "save_action"
 		                    })
@@ -373,7 +377,7 @@ export class MailEditor {
 			case ConversationType.FORWARD:
 				return "forward_action"
 			default:
-				return ""
+				return "emptyString_msg"
 		}
 	}
 
@@ -385,17 +389,19 @@ export class MailEditor {
 		                 })
 	}
 
-	getPasswordField(recipientInfo: RecipientInfo): TextField {
+	getPasswordField(recipientInfo: RecipientInfo): TextFieldAttrs {
 		if (!this._mailAddressToPasswordField.has(recipientInfo.mailAddress)) {
 			let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength(recipientInfo))
-			let textField = new TextField(() => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}), () => m(passwordIndicator))
-				.setType(Type.ExternalPassword)
-				.setPreventAutofill(true)
-
-			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
-				textField.setValue(recipientInfo.contact.presharedPassword)
+			let textFieldAttrs = {
+				label: () => lang.get("passwordFor_label", {"{1}": recipientInfo.mailAddress}),
+				helpLabel: () => m(passwordIndicator),
+				value: stream(""),
+				type: Type.ExternalPassword
 			}
-			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textField)
+			if (recipientInfo.contact && recipientInfo.contact.presharedPassword) {
+				textFieldAttrs.value(recipientInfo.contact.presharedPassword)
+			}
+			this._mailAddressToPasswordField.set(recipientInfo.mailAddress, textFieldAttrs)
 		}
 		return neverNull(this._mailAddressToPasswordField.get(recipientInfo.mailAddress))
 	}
@@ -631,6 +637,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 * @throws FileNotFoundError when one of the attachments could not be opened
+	 * @throws PreconditionFailedError when the draft is locked
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
@@ -652,8 +659,7 @@ export class MailEditor {
 				                console.log("draft has been deleted, creating new one")
 				                return createMailDraft()
 			                })
-		}
-		else {
+		} else {
 			promise = createMailDraft()
 		}
 
@@ -693,6 +699,10 @@ export class MailEditor {
 		return Promise
 			.resolve()
 			.then(() => {
+				this.toRecipients.createBubbles()
+				this.ccRecipients.createBubbles()
+				this.bccRecipients.createBubbles()
+
 				if (this.toRecipients.textField.value().trim() !== "" ||
 					this.ccRecipients.textField.value().trim() !== "" ||
 					this.bccRecipients.textField.value().trim() !== "") {
@@ -713,8 +723,10 @@ export class MailEditor {
 			.then(confirmed => {
 				if (confirmed) {
 					let send = this
-						.saveDraft(true, false)
-						.then(() => this._waitForResolvedRecipients())
+						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
+						.then((recipients) =>
+							this.saveDraft(true, false)
+							    .return(recipients))
 						.then(resolvedRecipients => {
 							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
 							if (this._confidentialButtonState && externalRecipients.length > 0
@@ -760,6 +772,7 @@ export class MailEditor {
 								})
 						})
 						.catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+						.catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 
 					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
@@ -799,8 +812,7 @@ export class MailEditor {
 			return update(this._previousMail).catch(NotFoundError, e => {
 				// ignore
 			})
-		}
-		else {
+		} else {
 			return Promise.resolve();
 		}
 	}
@@ -856,7 +868,7 @@ export class MailEditor {
 	/**
 	 * @param name If null the name is taken from the contact if a contact is found for the email addrss
 	 */
-	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
+	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
 		this._mailChanged = true
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
@@ -957,7 +969,7 @@ export class MailEditor {
 				replace(bubbles, oldBubble, newBubble)
 				if (updatedContact.presharedPassword && this._mailAddressToPasswordField.has(emailAddress)) {
 					neverNull(this._mailAddressToPasswordField.get(emailAddress))
-						.setValue(updatedContact.presharedPassword)
+						.value(updatedContact.presharedPassword || "")
 				}
 			}
 		})
@@ -971,6 +983,45 @@ export class MailEditor {
 		if (bubbles) {
 			remove(bubbles, bubble)
 		}
+	}
+
+	static writeSupportMail() {
+		mailModel.init().then(() => {
+			if (!logins.getUserController().isPremiumAccount()) {
+				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+				const title = lang.get("upgradeReminderTitle_msg")
+				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
+					if (confirm) {
+						showUpgradeWizard()
+					}
+				})
+				return
+			}
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			let signature = "<br><br>--"
+			signature += "<br>Client: " + client.getIdentifier()
+			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>User agent:<br>" + navigator.userAgent
+			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+				editor.show()
+			})
+		})
+
+	}
+
+	static writeInviteMail() {
+		mailModel.init().then(() => {
+			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+			const username = logins.getUserController().userGroupInfo.name;
+			const body = lang.get("invitationMailBody_msg", {
+				'{registrationLink}': "https://mail.tutanota.com/signup",
+				'{username}': username,
+				'{githubLink}': "https://github.com/tutao/tutanota"
+			})
+			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+				editor.show()
+			})
+		})
 	}
 }
 

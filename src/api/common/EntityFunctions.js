@@ -6,18 +6,18 @@ const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
 
-export const HttpMethod = {
+export const HttpMethod = Object.freeze({
 	GET: 'GET',
 	POST: 'POST',
 	PUT: 'PUT',
 	DELETE: 'DELETE'
-}
+})
 export type HttpMethodEnum = $Values<typeof HttpMethod>;
 
-export const MediaType = {
+export const MediaType = Object.freeze({
 	Json: 'application/json',
 	Binary: 'application/octet-stream',
-}
+})
 export type MediaTypeEnum = $Values<typeof MediaType>;
 
 /**

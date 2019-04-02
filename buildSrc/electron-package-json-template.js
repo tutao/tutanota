@@ -24,24 +24,26 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
-			"iconName": "logo-solo-red",
+			"initialSseConnectTimeoutInSeconds": 60,
+			"maxSseConnectTimeoutInSeconds": 2400,
 			"defaultDesktopConfig": {
+				"heartbeatTimeoutInSeconds": 30,
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
 			}
 		},
 		"dependencies": {
-			"electron-updater": "4.0.6",
+			"electron-updater": "4.0.7",
 			"electron-localshortcut": "3.1.0",
 			"fs-extra": "7.0.1",
 			"bluebird": "3.5.2",
-			"node-forge": "0.7.6",
+			"node-forge": "0.8.1",
 			"winreg": "1.2.4"
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
-			"electronVersion": "4.0.2",
+			"electronVersion": "4.0.8",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
@@ -86,7 +88,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				]
 			},
 			"nsis": {
-				"oneClick": false,"perMachine": false,
+				"oneClick": false, "perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
 				"allowToChangeInstallationDirectory": true
@@ -120,3 +122,4 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 		}
 	}
 }
+

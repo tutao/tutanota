@@ -47,7 +47,11 @@ export class Editor {
 		this.initialized = defer()
 		this.onbeforeupdate = () => !(this._squire != null)  // do not update the dom part managed by squire
 		this.onremove = () => {
-			if (this._squire) this._squire.destroy()
+			if (this._squire) {
+				this._squire.destroy()
+				this._squire = null
+				this.initialized = defer()
+			}
 		}
 
 		this._styleActions = Object.freeze({

@@ -72,6 +72,7 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
@@ -95,6 +96,8 @@ export class    MailViewer {
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
+	mailHeaderDialog: Dialog;
+	mailHeaderInfo: string;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if(isDesktop()) {
@@ -117,6 +120,22 @@ export class    MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
+
+		let closeAction = () => this.mailHeaderDialog.close()
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("mailHeaders_title")
+		}
+		this.mailHeaderInfo = ""
+		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
+			view: () => {
+				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
+			}
+		}).addShortcut({
+			key: Keys.ESC,
+			exec: closeAction,
+			help: "close_alt"
+		}).setCloseHandler(closeAction)
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -397,6 +416,26 @@ export class    MailViewer {
 				},
 				help: "editMail_action"
 			},
+			{
+				key: Keys.H,
+				exec: () => this._showHeaders(),
+				help: "showHeaders_action"
+			},
+			{
+				key: Keys.R,
+				exec: (key: KeyPress) => {
+					this._reply(false)
+				},
+				help: "reply_action"
+			},
+			{
+				key: Keys.R,
+				shift: true,
+				exec: (key: KeyPress) => {
+					this._reply(true)
+				},
+				help: "replyAll_action"
+			},
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
@@ -504,7 +543,7 @@ export class    MailViewer {
 				let toRecipients = []
 				let ccRecipients = []
 				let bccRecipients = []
-				if (!logins.getUserController().isInternalUser() && this.mail.state !== MailState.SENT) {
+				if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
 					toRecipients.push(this.mail.sender)
 				} else if (this.mail.state === MailState.RECEIVED) {
 					if (this.mail.replyTos.length > 0) {
@@ -666,6 +705,21 @@ export class    MailViewer {
 			const end = dom.scrollHeight - dom.offsetHeight
 			return scroll(dom.scrollTop, end)
 		})
+	}
+
+	_showHeaders() {
+		if (!this.mailHeaderDialog.visible) {
+			if (this.mail.headers) {
+				load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+						this.mailHeaderInfo = mailHeaders.headers
+						this.mailHeaderDialog.show()
+					}
+				).catch(NotFoundError, noOp)
+			} else {
+				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
+				this.mailHeaderDialog.show()
+			}
+		}
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {

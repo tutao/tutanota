@@ -1,3 +1,5 @@
+NSMicrophoneUsageDescription = "Kasutatakse kui lindistada videot manuseks.";
+NSRemindersUsageDescription = "Näitab teavitust kui uus e-kiri saabub.";
 TutaoChoosePhotosAction = "Pildid";
 TutaoCancelAction = "Tühista";
 TutaoSettingsAction = "Seaded";

@@ -38,7 +38,6 @@ export class SearchInPageOverlay {
 				)
 			}
 			m.redraw()
-			this._domInput.focus()
 		}
 	}
 
@@ -65,6 +64,7 @@ export class SearchInPageOverlay {
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
+					this._domInput.focus()
 				},
 				oninput: e => {
 					nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {foward: true, matchCase: this._matchCase}]))

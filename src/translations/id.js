@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "e0c6d0e30b75555ab7719fbbf7a18584",
 	"name": "id",
 	"code": "id",
@@ -12,7 +10,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2019-01-14T08:59:46Z",
+	"updated_at": "2019-03-08T12:02:57Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Silakan nonaktifkan semua pengguna tambahan sebelum berganti tipe langganan.",
@@ -94,7 +92,7 @@ const translation = {
 		"corrupted_msg": "Elemen ini tidak bisa ditampilkan dengan benar.",
 		"couldNotAttachFile_msg": "Berkas tidak dapat dimuat.",
 		"createAccountInvalidCaptcha_msg": "Sayangnya, jawaban salah. Mohon coba lagi.",
-		"createAccountRunning_msg": "Akun sedang dibuat ...",
+		"createAccountRunning_msg": "Membuat akun...",
 		"createActionStatus_msg": "Membuat pengguna. Menyelesaikan {index} dari {count} akun ...",
 		"createContactForm_label": "Buat formulir kontak",
 		"createContactsForRecipients_action": "SImpan kontak semua penerima saat mengirim surel",
@@ -272,13 +270,11 @@ const translation = {
 		"languageHebrew_label": "Ibrani",
 		"languageHindi_label": "India",
 		"languageHungarian_label": "Hungaria",
-		"languageIcelandic_label": "Islandia",
 		"languageIndonesian_label": "Indonesia",
 		"languageItalian_label": "Italia",
 		"languageJapanese_label": "Jepang",
 		"languageKorean_label": "Korea",
 		"languageLithuanian_label": "Lituania",
-		"languageMacedonian_label": "Makedonia",
 		"languageNorwegian_label": "Norwegia",
 		"languagePersian_label": "Persia",
 		"languagePolish_label": "Polandia",
@@ -288,7 +284,6 @@ const translation = {
 		"languageRussian_label": "Rusia",
 		"languageSerbian_label": "Serbia",
 		"languageSlovak_label": "Slovakia",
-		"languageSlovene_label": "Slovenia",
 		"languageSpanish_label": "Spanyol",
 		"languageSwedish_label": "Swedia",
 		"languageTamil_label": "Tamil",
@@ -388,8 +383,7 @@ const translation = {
 		"paymentMethodCreditCard_label": "Kartu kredit",
 		"paymentMethodOnAccount_label": "Pembelian pada akun",
 		"paymentMethod_label": "Metode pembayaran",
-		"paymentProviderNotAvailableError_msg": "Penyedia layanan pembayaran tidak tersedia. Silakan coba lagi nanti.",
-		"paymentProviderNotAvailable_msg": "Penyedia layanan pembayaran saat ini tidak tersedia. Silakan coba lagi nanti.",
+		"paymentProviderNotAvailableError_msg": "Penyedia layanan pembayaran saat ini tidak tersedia. Silakan coba lagi nanti.",
 		"paymentProviderTransactionFailedError_msg": "Transaksi pembayaran gagal. Silakan coba lagi nanti atau perbarui data pembayaran Anda.",
 		"phone_label": "Telepon",
 		"pleaseEnterValidPath_msg": "Silakan masukkan jalur yang valid. Karakter yang diizinkan adalah a-z, A-Z, '-' dan '_'.",
@@ -523,5 +517,3 @@ const translation = {
 		"yes_label": "Ya"
 	}
 }
-export default translation
-export var __useDefault = translation

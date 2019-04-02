@@ -24,7 +24,7 @@
 
 - (void)aesEncryptFileWithKey:(NSString * _Nonnull)keyBase64
 					   atPath:(NSString * _Nonnull)filePath
-				   completion:(void(^ _Nonnull)(NSString * _Nullable filePath, NSError * _Nullable error))completion;
+				   completion:(void(^ _Nonnull)(NSDictionary<NSString *, NSString *> * _Nullable fileInfo, NSError * _Nullable error))completion;
 
 - (void)aesDecryptFileWithKey:(NSString * _Nonnull)base64key
 					   atPath:(NSString * _Nonnull)filePath

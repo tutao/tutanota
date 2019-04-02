@@ -34,7 +34,14 @@ class Modal {
 				this.components.map((wrapper, i, array) => {
 					return m(".layer.fill-absolute", {
 							key: wrapper.key,
-							oncreate: vnode => this.addAnimation(vnode.dom, true),
+							oncreate: vnode => {
+								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
+								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
+								// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
+								this.visible = true
+								m.redraw()
+								this.addAnimation(vnode.dom, true)
+							},
 							style: {
 								zIndex: 100 + i,
 							},
@@ -57,7 +64,6 @@ class Modal {
 	}
 
 	display(component: ModalComponent) {
-		this.visible = true
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}

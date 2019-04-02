@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "843123d4565788564ec757f2a14cdbc4",
 	"name": "ca",
 	"code": "ca",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2019-01-28T12:54:12Z",
+	"updated_at": "2019-03-01T09:54:07Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Si us plau, desactiveu totes les extensions i paquets i desactiveu tots els àlies de correu electrònic abans de canviar la subscripció.",
@@ -237,6 +235,7 @@ const translation = {
 		"delete_action": "Elimina",
 		"desktopSettings_label": "Configuració d'escriptori",
 		"desktop_label": "Escriptori",
+		"details_label": "Detalls",
 		"differentSecurityKeyDomain_msg": "La vostra clau de seguretat no està registrada per aquest domini. Inicieu sessió a {domain}.",
 		"discardChanges_action": "Descartar els canvis",
 		"display_action": "Display",
@@ -253,7 +252,7 @@ const translation = {
 		"emailAddressInUse_msg": "L' adreça de correu electrònic segueix sent utilitzada per un altre usuari. Si us plau, desactiveu allí primer.",
 		"emailAliasesTooManyActivatedForBooking_msg": "Hi ha massa àlies de correu electrònic actius per processar aquesta sol·licitud. En primer lloc desactiveu els àlies de correu electrònic.",
 		"emailAlias_label": "Àlies de correu electrònic",
-		"emailProcessing_label": "Processament de correu electrònic",
+		"emailProcessing_label": "Processant el correu electrònic",
 		"emailPushNotification_action": "Afegiu una adreça electrònica de notificació",
 		"emailPushNotification_msg": "S'enviarà un correu electrònic de notificació a aquesta adreça si rebeu un correu electrònic nou.",
 		"emailSenderBlacklist_action": "Sempre correu brossa",
@@ -301,7 +300,7 @@ const translation = {
 		"facebook_label": "Facebook",
 		"failedDebitAttempt_msg": "Si nostre intent de dèbit ha fallat, ho intentem una altra vegada en pocs dies. Si us plau, assegureu-vos que el vostre compte està cobert.",
 		"fax_label": "Fax",
-		"feedbackOnErrorInfo_msg": "Ho sentim, s'ha produït un error. Si us plau digui'ns quins passos han donat lloc a aquest error en anglès o alemany perquè puguem solucionar-ho. Els seus missatges, els detalls de l'error i l'identificador del navegador s'envien xifrats a l'equip Tutanota. Gràcies!",
+		"feedbackOnErrorInfo_msg": "Si us plau digueu-nos quins passos han donat lloc a aquest error en anglès o alemany perquè puguem solucionar-ho. Els missatges, els detalls de l'error i l'identificador del navegador s'envien xifrats a l'equip Tutanota. Gràcies!",
 		"field_label": "Camp",
 		"fileAccessDeniedMobile_msg": "Accés a emmagatzematge extern denegat. Pot activar-lo en la configuració del seu dispositiu mòbil.",
 		"filter_label": "Filtre",
@@ -417,7 +416,6 @@ const translation = {
 		"knownCredentials_label": "Comptes guardats",
 		"languageAlbanianref_label": " Albanès reformat",
 		"languageAlbanian_label": "Albanès",
-		"languageAmharic_label": "Amhàric",
 		"languageArabic_label": "Àrab",
 		"languageBosnian_label": "Bosnià",
 		"languageBulgarian_label": "Búlgar",
@@ -441,14 +439,12 @@ const translation = {
 		"languageHebrew_label": "Hebreu",
 		"languageHindi_label": "Hindi",
 		"languageHungarian_label": "Hongarès",
-		"languageIcelandic_label": "Islandès",
 		"languageIndonesian_label": "Indonesi",
 		"languageItalian_label": "Italià",
 		"languageJapanese_label": "Japonès",
 		"languageKorean_label": "Coreà",
+		"languageLatvian_label": "Letònia",
 		"languageLithuanian_label": "Lituà",
-		"languageMacedonian_label": "Macedoni",
-		"languageMalayalam_label": "Malayalam",
 		"languageMalay_label": "Malai",
 		"languageNorwegian_label": "Noruec",
 		"languagePersian_label": "Persa",
@@ -459,7 +455,7 @@ const translation = {
 		"languageRussian_label": "Rus",
 		"languageSerbian_label": "Serbi",
 		"languageSlovak_label": "Eslovac",
-		"languageSlovene_label": "Eslovè",
+		"languageSlovenian_label": "Eslovè",
 		"languageSpanish_label": "Espanyol",
 		"languageSwahili_label": "Swahili",
 		"languageSwedish_label": "Suec",
@@ -620,7 +616,6 @@ const translation = {
 		"paymentMethodOnAccount_msg": "Heu de pagar les factures per transferència bancària i heu de tenir cura del pagament. L'import de la factura no es carregua automàticament.",
 		"paymentMethod_label": "Mètode de pagament",
 		"paymentProviderNotAvailableError_msg": "El proveïdor de pagament no està disponible. Si us plau, intenteu-ho més tard.",
-		"paymentProviderNotAvailable_msg": "El proveïdor de pagament no està disponible. Si us plau, intenteu-ho més tard.",
 		"paymentProviderTransactionFailedError_msg": "La transacció de pagament ha fallat. Proveu-ho de nou més tard o actualitzeu les vostres dades de pagament.",
 		"payPalRedirect_msg": "Sereu redirigit a la pàgina web de PayPal",
 		"periodOfTime_label": "Període de temps",
@@ -705,6 +700,7 @@ const translation = {
 		"registrationHeadline_msg": "Registre",
 		"releaseNotes_action": "Notes de llançament",
 		"remindersUsageDescription_msg": "Mostra una notificació quan arribi un nou correu electrònic.",
+		"removeFormatting_action": "Suprimeix el format en la selecció",
 		"removeGroup_action": "Eliminar el grup",
 		"removeOwnAdminFlagInfo_msg": "La pròpia bandera d'administrador només pot ser eliminada per un altre administrador.",
 		"removeStatisticsField_action": "Treure el camp estadístiques",
@@ -719,7 +715,7 @@ const translation = {
 		"requestApproval_msg": "Ho sentim, actualment no podeu enviar o rebre missatges de correu electrònic (excepte a Tutanota suport) perquè el compte es va marcar per a aprovació per evitar abusos com spam. Si us plau contacti amb nosaltres a approval@tutao.de i descrigui com li agradaria utilitzar aquest compte de correu electrònic.",
 		"responsiblePersonsInfo_msg": "Limiteu els usuaris als que es pot reenviar el missatge des de la bústia de recepció. No hi ha restriccions si la llista està buida.",
 		"responsiblePersons_label": "Responsables",
-		"restartBefore_action": "Reinicia ara Tutanota",
+		"restartBefore_action": "Reiniciar Tutanota abans d'enviar",
 		"richText_label": "Text enriquit",
 		"role_placeholder": "Rol",
 		"runAsTrayApp_action": "Executar com app de safata",
@@ -761,6 +757,7 @@ const translation = {
 		"selectNext_action": "Seleccionar el següent",
 		"selectPeriodOfTime_label": "Seleccioneu un període de temps",
 		"selectPrevious_action": "Seleccionar l'anterior",
+		"sendErrorReport_action": "Enviar informe d'error",
 		"sender_label": "Remitent",
 		"sendingSms_msg": "Enviant SMS ...",
 		"sendingUnencrypted_msg": "El missatge s'està enviant.",
@@ -894,7 +891,7 @@ const translation = {
 		"userSettings_label": "Configuració de l'usuari",
 		"validInputFormat_msg": "Format correcte.",
 		"waitingForApproval_msg": "Ho sentim, malauradament vostè encara no està permès d'enviar o rebre missatges de correu electrònic ja que el seu compte ha d'estar aprovat per tal d'evitar abusos com correus electrònics no desitjats. L'equip Tutanota aprovarà el seu compte en les properes 48 hores.",
-		"wantToSendReport_msg": "Quelcom inesperat ha fallat. Voleu enviar un informe d'error?",
+		"wantToSendReport_msg": "Quelcom inesperat ha fallat. Voleu enviar un informe d'error? Es pot afegir un missatge per ajudar-nos a solucionar-ho.",
 		"welcomeMailBody1_msg": "Benvingut a la teva bústia de correu segur i sense anuncis! La bústia Tutanota es protegeix amb xifrat fort. Ni tant sols nosaltres, els desenvolupadors, no tenim la capacitat per accedir-hi. Tu és l'únic que pot desxifrar els missatges de correu electrònic i contactes amb la contrasenya. Si us plau assegureu-vos que no perdeu la contrasenya, ja que no es pot restablir.",
 		"welcomeMailBody2_msg": "Podeu enviar correus electrònics a qualsevol adreça electrònica del món. Si els vostres amics també fan servir Tutanota, tots els vostres correus electrònics són automàticament xifrats d'extrem a extrem. També podeu xifrar missatges de correu electrònic a d'altres serveis de correu electrònic. Tutanota xifra automàticament l'assumpte, el contingut i els fitxers adjunts. Fins i tot els correus electrònics que envieu o es reben sense xifrar s'emmagatzemen xifrats en els nostres servidors.",
 		"welcomeMailBody3a_msg": "Per favor revisa la secció Tutanota How-to i FAQ per a aprendre tot en que necessites sobre el teu nou correu electrònic encriptat.",
@@ -925,5 +922,3 @@ const translation = {
 		"yourMessage_label": "El teu missatge"
 	}
 }
-export default translation
-export var __useDefault = translation

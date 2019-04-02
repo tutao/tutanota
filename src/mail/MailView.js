@@ -22,8 +22,6 @@ import {MailListView} from "./MailListView"
 import {MailEditor} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
@@ -41,7 +39,6 @@ import {
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	isFinalDelete,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -79,8 +76,6 @@ export class MailView implements CurrentView {
 	selectedFolder: MailFolder;
 	mailViewer: ?MailViewer;
 	newAction: Button;
-	mailHeaderDialog: Dialog;
-	mailHeaderInfo: string;
 	oncreate: Function;
 	onbeforeremove: Function;
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
@@ -92,7 +87,6 @@ export class MailView implements CurrentView {
 
 	constructor() {
 		this.mailViewer = null
-		this.mailHeaderInfo = ""
 		this._mailboxExpanders = {}
 		this._folderToUrl = {}
 		this._throttledRouteSet = throttleRoute()
@@ -168,20 +162,6 @@ export class MailView implements CurrentView {
 				])
 		}
 
-		let closeAction = () => this.mailHeaderDialog.close()
-		let headerBar = new DialogHeaderBar()
-			.addRight(new Button('ok_action', closeAction).setType(ButtonType.Secondary))
-			.setMiddle(() => lang.get("mailHeaders_title"))
-		this.mailHeaderDialog = Dialog.largeDialog(headerBar, {
-			view: () => {
-				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
-			}
-		}).addShortcut({
-			key: Keys.ESC,
-			exec: closeAction,
-			help: "close_alt"
-		}).setCloseHandler(closeAction)
-
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener((updates) => {
@@ -231,7 +211,18 @@ export class MailView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this.mailList.list.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
+				shift: true,
+				exec: () => this.mailList.list.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
+				key: Keys.K,
 				shift: true,
 				exec: () => this.mailList.list.selectPrevious(true),
 				help: "addPrevious_action"
@@ -242,37 +233,28 @@ export class MailView implements CurrentView {
 				help: "selectNext_action"
 			},
 			{
+				key: Keys.J,
+				exec: () => this.mailList.list.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
 				key: Keys.DOWN,
 				shift: true,
 				exec: () => this.mailList.list.selectNext(true),
 				help: "addNext_action"
 			},
 			{
+				key: Keys.J,
+				shift: true,
+				exec: () => this.mailList.list.selectNext(true),
+				help: "addNext_action"
+			},
+			{
 				key: Keys.N,
-				exec: () => (this._newMail().catch(PermissionError, noOp ): any),
+				exec: () => (this._newMail().catch(PermissionError, noOp): any),
 				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
 					&& !logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action"
-			},
-			{
-				key: Keys.R,
-				exec: (key: KeyPress) => {
-					if (this.mailViewer) this.mailViewer._reply(false)
-				},
-				help: "reply_action"
-			},
-			{
-				key: Keys.R,
-				shift: true,
-				exec: (key: KeyPress) => {
-					if (this.mailViewer) this.mailViewer._reply(true)
-				},
-				help: "replyAll_action"
-			},
-			{
-				key: Keys.H,
-				exec: () => this._showHeaders(),
-				help: "showHeaders_action"
 			},
 			{
 				key: Keys.DELETE,
@@ -373,15 +355,6 @@ export class MailView implements CurrentView {
 
 	createMailBoxExpanderButton(mailGroupId: Id): ExpanderButton {
 		let folderMoreButton = this.createFolderMoreButton(mailGroupId)
-		let purgeAllButton = new Button('delete_action', () => {
-			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.selectedFolder)}))
-			      .then(confirmed => {
-				      if (confirmed) {
-					      this._finallyDeleteAllMailsInSelectedFolder()
-				      }
-			      })
-		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
-
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
 			view: () => {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
@@ -392,9 +365,7 @@ export class MailView implements CurrentView {
 						                                   return m(MailFolderComponent, {
 							                                   count: count,
 							                                   button,
-							                                   rightButton: button.isSelected() && this.selectedFolder && isFinalDelete(this.selectedFolder)
-								                                   ? purgeAllButton
-								                                   : null,
+							                                   rightButton: null,
 							                                   key: id
 						                                   })
 					                                   })
@@ -441,6 +412,8 @@ export class MailView implements CurrentView {
 					history.pushState("", document.title, window.location.pathname) // remove # from url
 				})
 			}
+		} else if (args.action === 'supportMail' && logins.isGlobalAdminUserLoggedIn()) {
+			MailEditor.writeSupportMail()
 		}
 
 		if (isApp()) {
@@ -650,7 +623,7 @@ export class MailView implements CurrentView {
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		return showDeleteConfirmationDialog(mails).then((confirmed) => {
-			if (confirmed == true) {
+			if (confirmed) {
 				mailModel.deleteMails(mails)
 			} else {
 				return Promise.resolve()
@@ -687,21 +660,6 @@ export class MailView implements CurrentView {
 					})
 				}
 			})
-		}
-	}
-
-	_showHeaders() {
-		if (this.mailViewer != null && !this.mailHeaderDialog.visible) {
-			if (this.mailViewer.mail.headers) {
-				load(MailHeadersTypeRef, this.mailViewer.mail.headers).then(mailHeaders => {
-						this.mailHeaderInfo = mailHeaders.headers
-						this.mailHeaderDialog.show()
-					}
-				).catch(NotFoundError, noOp)
-			} else {
-				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
-				this.mailHeaderDialog.show()
-			}
 		}
 	}
 

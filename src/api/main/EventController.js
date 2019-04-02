@@ -5,7 +5,7 @@ import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 import stream from "mithril/stream/stream.js"
-import {identity} from "../common/utils/Utils"
+import {downcast, identity} from "../common/utils/Utils"
 
 assertMainOrNode()
 
@@ -54,7 +54,8 @@ export class EventController {
 
 		loginsUpdates.then(() => {
 			this._entityListeners.forEach(listener => {
-				listener(entityUpdates)
+				let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
+				listener(entityUpdatesData)
 			})
 		})
 	}

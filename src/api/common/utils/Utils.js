@@ -180,3 +180,7 @@ export function noOp() {}
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
 	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
 }
+
+export function randomIntFromInterval(min: number, max: number): number {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}

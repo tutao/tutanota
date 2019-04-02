@@ -3,10 +3,11 @@ import {assertMainOrNodeBoot} from "../api/Env"
 import {asyncImport, downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import typeof en from "../translations/en"
+import type {TranslationKeyType} from "./TranslationKey"
+
+export type TranslationKey = TranslationKeyType
 
 assertMainOrNodeBoot()
-
-export type TranslationKey = $Keys<$PropertyType<en, "keys">> | "emptyString_msg"
 
 export type Language = {code: string, textId: TranslationKey}
 
@@ -24,7 +25,6 @@ export const languages: Language[] = [
 	{code: 'et', textId: 'languageEstonian_label'},
 	{code: 'fa_ir', textId: 'languagePersian_label'},
 	{code: 'fi', textId: 'languageFinnish_label'},
-	{code: 'fil', textId: 'languageFilipino_label'},
 	{code: 'fr', textId: 'languageFrench_label'},
 	{code: 'gl', textId: 'languageGalician_label'},
 	{code: 'hi', textId: 'languageHindi_label'},
@@ -35,7 +35,6 @@ export const languages: Language[] = [
 	{code: 'ja', textId: 'languageJapanese_label'},
 	{code: 'lt', textId: 'languageLithuanian_label'},
 	{code: 'lv', textId: 'languageLatvian_label'},
-	{code: 'mk', textId: 'languageMacedonian_label'},
 	{code: 'ms', textId: 'languageMalay_label'},
 	{code: 'nl', textId: 'languageDutch_label'},
 	{code: 'no', textId: 'languageNorwegian_label'},
@@ -49,7 +48,6 @@ export const languages: Language[] = [
 	{code: 'sr', textId: 'languageSerbian_label'},
 	{code: 'sv', textId: 'languageSwedish_label'},
 	{code: 'sw', textId: 'languageSwahili_label'},
-	{code: 'ta', textId: 'languageTamil_label'},
 	{code: 'tr', textId: 'languageTurkish_label'},
 	{code: 'uk', textId: 'languageUkrainian_label'},
 	{code: 'vi', textId: 'languageVietnamese_label'},
@@ -59,12 +57,28 @@ export const languages: Language[] = [
 
 const infoLinks = {
 	"recoverCode_link": {
-		"de": "https://tutanota.uservoice.com/knowledgebase/articles/470716",
-		"en": "https://tutanota.uservoice.com/knowledgebase/articles/470717"
+		"de": "https://tutanota.com/de/howto/#reset",
+		"en": "https://tutanota.com/howto/#reset"
 	},
 	"2FA_link": {
-		"de": "https://tutanota.uservoice.com/knowledgebase/articles/1201945",
-		"en": "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
+		"de": "https://tutanota.com/de/howto#2fa",
+		"en": "https://tutanota.com/howto#2fa"
+	},
+	"spamRules_link": {
+		"de": "https://tutanota.com/de/howto#spam",
+		"en": "https://tutanota.com/howto#spam"
+	},
+	"domainInfo_link": {
+		"de": "https://tutanota.com/de/howto/#custom-domain",
+		"en": "https://tutanota.com/howto#custom-domain"
+	},
+	"whitelabel_link": {
+		"de": "https://tutanota.com/de/howto#whitelabel",
+		"en": "https://tutanota.com/howto#whitelabel"
+	},
+	"webview_link": {
+		"de": "https://tutanota.com/howto/#webview",
+		"en": "https://tutanota.com/de/howto/#webview"
 	}
 }
 

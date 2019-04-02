@@ -1,7 +1,7 @@
 //@flow
-import {assertMainOrNodeBoot} from "../api/Env"
-import {BrowserType, DeviceType} from "./ClientConstants"
+import {assertMainOrNodeBoot, Mode} from "../api/Env"
 import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
+import {BrowserType, DeviceType} from "./ClientConstants"
 import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
@@ -339,8 +339,19 @@ class ClientDetector {
 		return d.style[prop] === value
 	}
 
-	getIdentifier() {
-		return env.mode === "App" ? client.device + " App" : client.browser + " " + client.device
+	getIdentifier(): string {
+		if (env.mode === Mode.App) {
+			return client.device + " App"
+		} else if (env.mode === Mode.Browser) {
+			return client.browser + " Browser"
+		} else if (env.platformId === 'linux') {
+			return 'Linux Desktop'
+		} else if (env.platformId === 'darwin') {
+			return 'Mac Desktop'
+		} else if (env.platformId === 'win32') {
+			return 'Windows Desktop'
+		}
+		return 'Unknown'
 	}
 
 
@@ -364,8 +375,17 @@ class ClientDetector {
 		return client.browser === BrowserType.CHROME
 	}
 
+	needsMicrotaskHack(): boolean {
+		return this.isIos()
+			|| this.browser === BrowserType.SAFARI
+			|| this.browser === BrowserType.PALEMOON
+			|| this.browser === BrowserType.WATERFOX
+			|| this.browser === BrowserType.FIREFOX && this.browserVersion < 60
+			|| this.browser === BrowserType.CHROME && this.browserVersion < 59
+	}
+
 	browserData(): BrowserData {
-		return {browserType: this.browser, browserVersion: this.browserVersion}
+		return {needsMicrotaskHack: this.needsMicrotaskHack()}
 	}
 }
 

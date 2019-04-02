@@ -1,18 +1,30 @@
 // @flow
 import {err} from './DesktopErrorHandler.js'
-import {conf} from './DesktopConfigHandler'
+import {DesktopConfigHandler} from './DesktopConfigHandler'
 import {app} from 'electron'
-import {updater} from './ElectronUpdater.js'
-import {ApplicationWindow} from './ApplicationWindow.js'
 import DesktopUtils from './DesktopUtils.js'
-import {notifier} from "./DesktopNotifier.js"
 import {lang} from './DesktopLocalizationProvider.js'
-import {sock} from './Socketeer.js'
-import {tray} from './DesktopTray.js'
-import {ipc} from './IPC.js'
+import {IPC} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
+import {WindowManager} from "./DesktopWindowManager"
+import {DesktopNotifier} from "./DesktopNotifier"
+import {DesktopTray} from './DesktopTray.js'
+import {ElectronUpdater} from "./ElectronUpdater"
+import {DesktopSseClient} from "./DesktopSseClient"
+import {Socketeer} from "./Socketeer"
 
-PreloadImports.keep()
+const conf = new DesktopConfigHandler()
+const sock = new Socketeer()
+const notifier = new DesktopNotifier()
+const updater = new ElectronUpdater(conf, notifier)
+const tray = new DesktopTray(conf, notifier)
+const wm = new WindowManager(conf, tray, notifier)
+tray.setWindowManager(wm)
+const sse = new DesktopSseClient(conf, notifier, wm)
+const ipc = new IPC(conf, notifier, sse, wm, sock)
+wm.setIPC(ipc)
+
+PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
@@ -39,10 +51,10 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (!conf.getDesktopConfig('runAsTrayApp') && ApplicationWindow.getAll().length > 0) {
-				ApplicationWindow.getAll().forEach(w => w.show())
+			if (wm.getAll().length === 0) {
+				wm.newWindow(true)
 			} else {
-				new ApplicationWindow(true)
+				wm.getAll().forEach(w => w.show())
 			}
 			handleArgv(args)
 		})
@@ -65,14 +77,13 @@ function onAppReady() {
 		handleMailto(url)
 	})
 
-	err.init()
+	err.init(wm, ipc)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = ApplicationWindow.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
+	const w = wm.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
-	console.log("notifications available:", notifier.isAvailable())
 	ipc.initialized(w.id)
-	   .then(() => lang.init(w.id))
+	   .then(() => lang.init(ipc.sendRequest(w.id, 'sendTranslations', [])))
 	   .then(main)
 }
 
@@ -86,9 +97,9 @@ function main() {
 		// MacOs
 		// this is fired for almost every interaction and on launch
 		// so set listener later to avoid the call on launch
-		ApplicationWindow.getLastFocused(true)
+		wm.getLastFocused(true)
 	})
-	notifier.start()
+	notifier.start(tray)
 	updater.start()
 	handleArgv(process.argv)
 }
@@ -104,7 +115,8 @@ function handleArgv(argv: string[]) {
 function handleMailto(mailtoArg?: string) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
-		const w = ApplicationWindow.getLastFocused(true)
+		const w = wm.getLastFocused(true)
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }
+

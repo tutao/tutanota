@@ -1,12 +1,12 @@
 // @flow
 import {app, dialog} from 'electron'
 import {lang} from './DesktopLocalizationProvider.js'
-import {ApplicationWindow} from "./ApplicationWindow"
 import {LOGIN_TITLE} from "../api/Env"
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import {ipc} from "./IPC"
+import type {IPC} from "./IPC"
+import type {WindowManager} from "./DesktopWindowManager.js"
 
 type ErrorLog = {|
 	name: string,
@@ -17,6 +17,8 @@ type ErrorLog = {|
 |}
 
 class DesktopErrorHandler {
+	_wm: WindowManager
+	_ipc: IPC
 	_errorLogPath: string;
 	lastErrorLog: ?ErrorLog;
 
@@ -25,7 +27,10 @@ class DesktopErrorHandler {
 	}
 
 	// these listeners can only be set after the app ready event
-	init() {
+	init(wm: WindowManager, ipc: IPC) {
+		this._wm = wm
+		this._ipc = ipc
+
 		process.on('uncaughtException', error => {
 			this.handleUnexpectedFailure(error)
 		}).on('unhandledRejection', (error, p) => {
@@ -77,11 +82,11 @@ class DesktopErrorHandler {
 						app.relaunch({args: process.argv.slice(1)})
 						app.exit(0)
 					} else {
-						const loggedInWindow = ApplicationWindow.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
+						const loggedInWindow = this._wm.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
 						if (loggedInWindow) {
 							this.sendErrorReport(loggedInWindow.id)
 						} else {
-							this.sendErrorReport(ApplicationWindow.getLastFocused(true).id)
+							this.sendErrorReport(this._wm.getLastFocused(true).id)
 						}
 					}
 				}
@@ -98,7 +103,7 @@ class DesktopErrorHandler {
 			return Promise.resolve()
 		}
 		return lang.initialized.promise
-		           .then(() => ipc.sendRequest(windowId, 'reportError', [this.lastErrorLog]))
+		           .then(() => this._ipc.sendRequest(windowId, 'reportError', [this.lastErrorLog]))
 		           .then(() => this.lastErrorLog = null)
 	}
 

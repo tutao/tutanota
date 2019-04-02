@@ -266,7 +266,10 @@ function createHtml(env) {
 }
 
 function createLanguageBundles(bundles) {
-	return Promise.all(glob.sync('src/translations/*.js').map(translation => {
+	const languageFiles = options.stage === 'release' || options.stage === 'prod'
+		? glob.sync('src/translations/*.js')
+		: ['src/translations/en.js', 'src/translations/de.js', 'src/translations/de_sie.js', 'src/translations/ru.js']
+	return Promise.all(languageFiles.map(translation => {
 		let filename = path.basename(translation)
 		return builder.bundle(translation, {
 			minify: false,

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "c2b96e2a8d8522fb59ca9d67662721f8",
 	"name": "ms",
 	"code": "ms",
@@ -12,7 +10,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2019-01-28T12:46:59Z",
+	"updated_at": "2019-02-28T13:20:14Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Sila nyahaktifkan pakej penyimpanan atau alias yang ditempah dan matikan semua alias email sebelum menukar jenis akaun.",
@@ -325,13 +323,11 @@ const translation = {
 		"languageHebrew_label": "Ibrani",
 		"languageHindi_label": "Hindi",
 		"languageHungarian_label": "Hungary",
-		"languageIcelandic_label": "Iceland",
 		"languageIndonesian_label": "Indonesia",
 		"languageItalian_label": "Itali",
 		"languageJapanese_label": "Jepun",
 		"languageKorean_label": "Korea",
 		"languageLithuanian_label": "Lithuania",
-		"languageMacedonian_label": "Macedonia",
 		"languageNorwegian_label": "Norway",
 		"languagePersian_label": "Persia",
 		"languagePolish_label": "Poland",
@@ -341,7 +337,6 @@ const translation = {
 		"languageRussian_label": "Rusia",
 		"languageSerbian_label": "Serbia",
 		"languageSlovak_label": "Slovak",
-		"languageSlovene_label": "Slovenia",
 		"languageSpanish_label": "Sepanyol",
 		"languageSwedish_label": "Sweden",
 		"languageTamil_label": "Tamil",
@@ -454,8 +449,7 @@ const translation = {
 		"paymentMethodCreditCard_label": "Kad kredit",
 		"paymentMethodOnAccount_label": "Pembelian atas akaun",
 		"paymentMethod_label": "Kaedah pembayaran",
-		"paymentProviderNotAvailableError_msg": "Pembekal pembayaran tidak tersedia. Sila cuba sebentar lagi.",
-		"paymentProviderNotAvailable_msg": "Penyedia pembayaran tidak tersedia pada masa ini. Sila cuba sebentar lagi.",
+		"paymentProviderNotAvailableError_msg": "Penyedia pembayaran tidak tersedia pada masa ini. Sila cuba sebentar lagi.",
 		"paymentProviderTransactionFailedError_msg": "Transaksi pembayaran gagal. Sila cuba sebentar lagi atau kemas kini data pembayaran anda.",
 		"phone_label": "Telefon",
 		"photoLibraryUsageDescription_msg": "Tambah gambar dari pustaka anda sebagai lampiran.",
@@ -626,5 +620,3 @@ const translation = {
 		"yourMessage_label": "Mesej anda"
 	}
 }
-export default translation
-export var __useDefault = translation

@@ -1,6 +1,6 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
+import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -267,7 +267,9 @@ export class Indexer {
 		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
 		           .then(indexedGroupIds => {
 			           if (indexedGroupIds.length === 0) {
-				           throw new InvalidDatabaseStateError("no group ids in database")
+				           // tried to index twice, this is probably not our fault
+				           console.log("no group ids in database, disabling indexer")
+				           this.disableMailIndexing()
 			           }
 			           this._indexedGroupIds = indexedGroupIds
 		           })
@@ -275,8 +277,8 @@ export class Indexer {
 
 
 	_loadGroupDiff(user: User): Promise<{deletedGroups: {id: Id, type: GroupTypeEnum}[], newGroups: {id: Id, type: GroupTypeEnum}[]}> {
-		let currentGroups = filterIndexMemberships(user).map(m => {
-			return {id: m.group, type: neverNull(m.groupType)}
+		let currentGroups: Array<{id: Id, type: GroupTypeEnum}> = filterIndexMemberships(user).map(m => {
+			return {id: m.group, type: getMembershipGroupType(m)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id, value: GroupData}[]) => {
@@ -329,7 +331,7 @@ export class Indexer {
 					           groupData: ({
 						           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
 						           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						           groupType: neverNull(membership.groupType)
+						           groupType: getMembershipGroupType(membership)
 					           }: GroupData)
 				           }
 			           })

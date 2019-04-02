@@ -4,7 +4,7 @@ import {assertMainOrNode, isIOSApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
@@ -339,8 +339,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateSubscriptionField(cancelled: boolean) {
 		let cancelledText = !cancelled ? "" : " "
 			+ lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
-		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro)
-			+ cancelledText).setDisabled()
+		const accountType: AccountTypeEnum = downcast(logins.getUserController().user.accountType)
+		this._subscriptionField.setValue(_getAccountTypeName(accountType, this._isPro) + cancelledText).setDisabled()
 	}
 
 	_updateBookings() {

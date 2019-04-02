@@ -3,14 +3,14 @@ import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {downcast, identity, neverNull} from "../common/utils/Utils"
+import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
@@ -21,11 +21,11 @@ import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/Websoc
 assertWorkerOrNode()
 
 
-const EventBusState = {
+const EventBusState = Object.freeze({
 	Automatic: "automatic", // automatic reconnection is enabled
 	Suspended: "suspended", // automatic reconnection is suspended but can be enabled again
 	Terminated: "terminated" // automatic reconnection is disabled and websocket is closed but can be opened again by calling connect explicit
-}
+})
 
 type EventBusStateEnum = $Values<typeof EventBusState>;
 
@@ -154,7 +154,7 @@ export class EventBusClient {
 	}
 
 	_message(message: MessageEvent): Promise<void> {
-		console.log("ws message: ", message.data);
+		//console.log("ws message: ", message.data);
 		const [type, value] = downcast(message.data).split(";")
 		if (type === "entityUpdate") {
 			return decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null)
@@ -200,15 +200,11 @@ export class EventBusClient {
 		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
 			this._worker.updateWebSocketState("connecting")
 
-			if (this._immediateReconnect || isIOSApp()) {
+			if (this._immediateReconnect) {
 				this._immediateReconnect = false
-				// on ios devices the close event fires when the app comes back to foreground
-				// so try a reconnect immediately. The tryReconnect method is also triggered when
-				// the app  comes to foreground by the "resume" event, but the order in which these
-				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false, false);
 			}
-			setTimeout(() => this.tryReconnect(false, false), 1000 * this._randomIntFromInterval(10, 30));
+			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(30, 120));
 		}
 	}
 
@@ -217,12 +213,12 @@ export class EventBusClient {
 	 */
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
-			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state);
+			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
+			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
 			this._state = EventBusState.Automatic
 		}
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
-			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
 		} else if (
@@ -230,12 +226,10 @@ export class EventBusClient {
 				|| this._socket.readyState === WebSocket.CLOSING)
 			&& this._state !== EventBusState.Terminated
 			&& this._login.isLoggedIn()) {
-			this.connect(true);
+			// Don't try to connect right away because connection may not be actually there
+			// see #1165
+			setTimeout(() => this.connect(true), 100)
 		}
-	}
-
-	_randomIntFromInterval(min: number, max: number): number {
-		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 
 	/**

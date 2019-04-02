@@ -3,15 +3,15 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Editor} from "./Editor.js"
 import {DropDownSelector} from "./DropDownSelector"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
-export const Mode = {
+export const Mode = Object.freeze({
 	HTML: "html",
 	WYSIWYG: "what you see is what you get",
-}
+})
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
 export class HtmlEditor {
@@ -44,6 +44,10 @@ export class HtmlEditor {
 
 		this._mode.map(v => {
 			this.setValue(this._value())
+			this._editor.initialized.promise.then(() => {
+				this._editor._domElement.onfocus = (e) => focus()
+				this._editor._domElement.onblur = (e) => blur()
+			})
 		})
 
 		let focus = () => {
@@ -73,12 +77,6 @@ export class HtmlEditor {
 			}
 			m.redraw()
 		}
-
-		this._editor.initialized.promise.then(() => {
-			this._editor.setHTML(this._value())
-			this._editor._domElement.onfocus = (e) => focus()
-			this._editor._domElement.onblur = (e) => blur()
-		})
 
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {

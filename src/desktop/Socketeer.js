@@ -9,7 +9,7 @@ const socketPath = '/tmp/tutadb.sock'
 /**
  * this is used to control our administration tool
  */
-class Socketeer {
+export class Socketeer {
 	_server: ?net.Server;
 	_connection: ?net.Socket;
 
@@ -90,5 +90,3 @@ class Socketeer {
 			}).on('data', ondata)
 	}
 }
-
-export const sock = new Socketeer()

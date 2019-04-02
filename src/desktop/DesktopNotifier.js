@@ -1,21 +1,30 @@
 // @flow
+import type {NativeImage} from 'electron'
 import {Notification} from 'electron'
+import {DesktopTray} from "./DesktopTray"
+import type {ApplicationWindow} from "./ApplicationWindow"
+import {neverNull} from "../api/common/utils/Utils"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
-export const NotificationResult = {
+export const NotificationResult = Object.freeze({
 	Click: 'click',
 	Close: 'close'
-}
+})
 
-class DesktopNotifier {
-	_canShow: boolean = false
-	pendingNotifications: Array<Function> = []
+export class DesktopNotifier {
+	_tray: DesktopTray;
+
+	_canShow: boolean = false;
+	pendingNotifications: Array<Function> = [];
+	_notificationCloseFunctions: {[userId: ?string]: ()=>void} = {};
 
 	/**
 	 * signal that notifications can now be shown. also start showing notifications that came
 	 * in before this point
 	 */
-	start(): void {
+	start(tray: DesktopTray): void {
+		this._tray = tray
+
 		setTimeout(() => {
 			this._canShow = true
 			while (this.pendingNotifications.length > 0) {
@@ -38,46 +47,77 @@ class DesktopNotifier {
 	showOneShot(props: {|
 		title: string,
 		body?: string,
-		icon?: string
+		icon?: NativeImage
 	|}): Promise<NotificationResultEnum> {
 		if (!this.isAvailable()) {
 			return Promise.resolve()
 		}
-		let promise: Promise<NotificationResultEnum>
-		if (this._canShow) {
-			promise = new Promise((resolve, reject) => this._makeNotification(props, (res) => {
-				return () => resolve(res)
-			}))
-		} else {
-			promise = new Promise((resolve, reject) => this.pendingNotifications.push(resolve))
-				.then(() => {
-					return new Promise((resolve, reject) => {
-						this._makeNotification(props, (res) => {
-							return () => resolve(res)
-						})
-					})
-				})
-		}
-		return promise
+		return this._canShow
+			? new Promise(resolve => this._makeNotification(props, res => resolve(res)))
+			: new Promise(resolve => this.pendingNotifications.push(resolve))
+				.then(() => new Promise(resolve => this._makeNotification(props, res => resolve(res))))
 	}
 
+	submitGroupedNotification(title: string, message: string, id: string, onClick: () => void): void {
+		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
+			this._notificationCloseFunctions[id]()
+		}
+
+		const showIt = () => {
+			this._notificationCloseFunctions[id] = this._makeNotification({
+				title: title,
+				body: message,
+				icon: DesktopTray.getIcon(),
+			}, onClick)
+			this._tray.update()
+		}
+
+		if (this._canShow) {
+			showIt()
+		} else {
+			this.pendingNotifications.push(showIt)
+		}
+	}
+
+	resolveGroupedNotification(id: ?string) {
+		if ('function' === typeof this._notificationCloseFunctions[id]) {
+			this._notificationCloseFunctions[id]()
+			this._tray.update()
+		}
+		delete this._notificationCloseFunctions[id]
+
+	}
+
+	hasNotificationsForWindow(w: ApplicationWindow): boolean {
+		return !!w.getUserInfo && this.hasNotificationForId(neverNull(w.getUserId()))
+	}
+
+	hasNotificationForId(id: string): boolean {
+		return 'function' === typeof this._notificationCloseFunctions[id]
+	}
+
+	/**
+	 *
+	 * @param props
+	 * @param onClick this will get called with the result
+	 * @returns {function(): void} call this to dismiss the notification
+	 * @private
+	 */
 	_makeNotification(props: {|
 		title: string,
 		body?: string,
-		icon?: string
-	|}, onClick: (res: NotificationResultEnum) => Function): void {
+		icon?: NativeImage
+	|}, onClick: (res: NotificationResultEnum) => void): () => void {
+
 		const {title, body, icon} =
 			Object.assign({}, {body: ""}, props)
 
-		const oneshot = new Notification({
-			"title": title,
-			"icon": icon,
-			"body": body,
-		})
-		oneshot.on('click', onClick(NotificationResult.Click))
-		oneshot.on('close', onClick(NotificationResult.Close))
-		oneshot.show()
+		const notification = new Notification({title, icon, body})
+			.on('click', () => onClick(NotificationResult.Click))
+			.on('close', () => onClick(NotificationResult.Close))
+		notification.show()
+		//remove listeners before closing to distinguish from dismissal by user
+		return () => notification.removeAllListeners().close()
+
 	}
 }
-
-export const notifier = new DesktopNotifier()

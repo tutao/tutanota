@@ -37,6 +37,7 @@ import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
+import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -126,6 +127,11 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		migrationData.symEncSessionKey = groupEncSessionKey
 		return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData)
 			.then(() => (data: any))
+	} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
+		// set sessionKey for allowing encryption when old instance (< v43) is updated
+		return resolveTypeReference(typeRef)
+			.then(typeModel => _updateOwnerEncSessionKey(typeModel, data, locator.login.getUserGroupKey(), aes128RandomKey()))
+			.return(data)
 	}
 	return Promise.resolve(data)
 }
@@ -288,14 +294,7 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 		return Promise.resolve()
 	}
 	if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
-		instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(permissionOwnerGroupKey, sessionKey))
-		// we have to call the rest client directly because instance is still the encrypted server-side version
-		let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/'
-			+ (instance._id instanceof Array ? instance._id.join("/") : instance._id)
-
-		let headers = locator.login.createAuthHeaders()
-		headers["v"] = typeModel.version
-		return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+		return _updateOwnerEncSessionKey(typeModel, instance, permissionOwnerGroupKey, sessionKey)
 	} else { // instances shared via permissions (e.g. body)
 		let updateService = createUpdatePermissionKeyData()
 		updateService.permission = permission._id
@@ -306,6 +305,16 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 	}
 }
 
+function _updateOwnerEncSessionKey(typeModel: TypeModel, instance: Object, ownerGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {
+	instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(ownerGroupKey, sessionKey))
+	// we have to call the rest client directly because instance is still the encrypted server-side version
+	let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/'
+		+ (instance._id instanceof Array ? instance._id.join("/") : instance._id)
+
+	let headers = locator.login.createAuthHeaders()
+	headers["v"] = typeModel.version
+	return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+}
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {
 	if (!entity._ownerGroup) {

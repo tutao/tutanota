@@ -18,9 +18,10 @@ import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod, isSameId, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {ColumnWidth, Table} from "../gui/base/Table"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
+import {ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
-import {InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
+import {getPaymentMethodType, InvoiceStatus, OperationType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import TableLine from "../gui/base/TableLine"
@@ -31,12 +32,14 @@ import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData
 import {SysService} from "../api/entities/sys/Services"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import stream from "mithril/stream/stream.js"
 import {formatPrice} from "./SubscriptionUtils"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -154,7 +157,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._accountingInfo = accountingInfo
 		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
-		this._paymentMethodField.setValue(getPaymentMethodName(accountingInfo.paymentMethod) + " "
+		this._paymentMethodField.setValue(getPaymentMethodName(getPaymentMethodType(accountingInfo)) + " "
 			+ getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}
@@ -251,35 +254,30 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 
 function _showPayInvoiceConfirmDialog(invoiceNumber: string, invoiceDate: Date, price: number): Promise<boolean> {
-	return Promise.fromCallback(cb => {
-		let actionBar = new DialogHeaderBar()
-		const dialog = new Dialog(DialogType.EditSmall, {
+	return new Promise(resolve => {
+		let dialog: Dialog
+
+		const doAction = res => {
+			dialog.close()
+			resolve(res)
+		}
+
+		const actionBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => doAction(false), type: ButtonType.Secondary}],
+			right: [{label: "invoicePay_action", click: () => doAction(true), type: ButtonType.Primary}],
+			middle: () => lang.get("adminPayment_action")
+		}
+
+		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
-				m(".dialog-header.plr-l", m(actionBar)),
+				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 				m(".plr-l.pb", m("", [
 					m(".pt", lang.get("invoicePayConfirm_msg")),
-					m(orderField),
-					m(dateField),
-					m(priceField),
+					m(TextFieldN, {label: "number_label", value: stream(invoiceNumber), disabled: true}),
+					m(TextFieldN, {label: "date_label", value: stream(formatDate(invoiceDate)), disabled: true}),
+					m(TextFieldN, {label: "price_label", value: stream(formatPrice(price, true)), disabled: true}),
 				]))
 			]
-		})
-		const cancelAction = () => {
-			dialog.close()
-			cb(null, false)
-		}
-		actionBar.setMiddle(() => lang.get("adminPayment_action"))
-		actionBar.addLeft(new Button("cancel_action", cancelAction).setType(ButtonType.Secondary))
-		actionBar.addRight(new Button("invoicePay_action", () => {
-			dialog.close()
-			cb(null, true)
-		}).setType(ButtonType.Primary))
-
-		let orderField = new TextField("number_label").setValue(invoiceNumber).setDisabled()
-		let dateField = new TextField("date_label").setValue(formatDate(invoiceDate)).setDisabled()
-		let priceField = new TextField("price_label").setValue(formatPrice(price, true)).setDisabled()
-
-		dialog.setCloseHandler(cancelAction)
-		      .show()
+		}).setCloseHandler(() => doAction(false)).show()
 	})
 }

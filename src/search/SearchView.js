@@ -18,13 +18,12 @@ import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {createRestriction, getFreeSearchStartDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
-import {NotFoundError} from "../api/common/error/RestError"
-import {erase, load} from "../api/main/Entity"
+import {load} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
-import {getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "../mail/MailUtils"
+import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
@@ -286,7 +285,18 @@ export class SearchView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this._searchList.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
+				shift: true,
+				exec: () => this._searchList.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
+				key: Keys.K,
 				shift: true,
 				exec: () => this._searchList.selectPrevious(true),
 				help: "addPrevious_action"
@@ -297,14 +307,25 @@ export class SearchView implements CurrentView {
 				help: "selectNext_action"
 			},
 			{
+				key: Keys.J,
+				exec: () => this._searchList.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
 				key: Keys.DOWN,
 				shift: true,
 				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"
 			},
 			{
+				key: Keys.J,
+				shift: true,
+				exec: () => this._searchList.selectNext(true),
+				help: "addNext_action"
+			},
+			{
 				key: Keys.DELETE,
-				exec: () => this._deleteSelected(),
+				exec: () => this._searchList.deleteSelected(),
 				help: "delete_action"
 			},
 		]
@@ -374,34 +395,6 @@ export class SearchView implements CurrentView {
 			this._searchList.selectNone()
 		}
 	}
-
-	_deleteSelected(): void {
-		let selected = this._searchList.getSelectedEntities()
-		if (selected.length > 0) {
-			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map(m => ((m.entry: any): Mail))
-				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
-					if (confirmed) {
-						mailModel.deleteMails(selectedMails).then(() => {
-							selected.forEach((sm) => this._searchList.deleteLoadedEntity(sm._id[1]))
-						})
-					}
-				})
-
-			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContacts = selected.map(m => ((m.entry: any): Contact))
-				Dialog.confirm("deleteContacts_msg").then(confirmed => {
-					if (confirmed) {
-						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
-							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}))
-						selected.forEach((sc) => this._searchList.deleteLoadedEntity(sc._id[1]))
-					}
-				})
-			}
-		}
-	}
-
 
 	_getCategory(): string {
 		let restriction = getRestriction(m.route.get())

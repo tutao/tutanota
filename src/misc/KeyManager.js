@@ -1,12 +1,11 @@
 //@flow
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/Env"
-import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonType} from "../gui/base/ButtonN"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
@@ -29,8 +28,7 @@ export function focusPrevious(dom: HTMLElement) {
 				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection if selection is in list
-		}
-		else {
+		} else {
 			tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
 			return false
 		}
@@ -52,8 +50,7 @@ export function focusNext(dom: HTMLElement) {
 				|| (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))) {
 			return true
 			//dont change selection
-		}
-		else {
+		} else {
 			tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
 			return false
 		}
@@ -90,6 +87,8 @@ export const Keys = {
 	F: {code: 70, name: "F"},
 	H: {code: 72, name: "H"},
 	I: {code: 73, name: "I"},
+	J: {code: 74, name: "J"},
+	K: {code: 75, name: "K"},
 	L: {code: 76, name: "L"},
 	M: {code: 77, name: "M"},
 	N: {code: 78, name: "N"},
@@ -124,10 +123,10 @@ class KeyManager {
 								                          .setValue(lang.get(shortcut.help))
 								                          .setDisabled()
 						                          })
-						this._helpDialog = module.Dialog.largeDialog(new DialogHeaderBar()
-							.addRight(new Button('close_alt', () => neverNull(this._helpDialog)
-								.close()).setType(ButtonType.Secondary))
-							.setMiddle(() => lang.get("keyboardShortcuts_title")), {
+						this._helpDialog = module.Dialog.largeDialog({
+							right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
+							middle: () => lang.get("keyboardShortcuts_title")
+						}, {
 							view: () => {
 								return m("div.pb", textFields.map(t => m(t)))
 							}
@@ -135,8 +134,7 @@ class KeyManager {
 							key: Keys.ESC,
 							exec: () => neverNull(this._helpDialog).close(),
 							help: "close_alt"
-						})
-						this._helpDialog.show()
+						}).show()
 					})
 			},
 			help: "showHelp_action"

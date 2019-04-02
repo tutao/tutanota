@@ -23,7 +23,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
-import {SubscriptionType} from "./SubscriptionUtils"
+import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 
 
 /**
@@ -50,7 +50,7 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			} else {
 				this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
 				this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null)
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null, this._upgradeData.upgradeType == UpgradeType.Signup)
 					.then(success => {
 						if (success) {
 							this._pageActionHandler.showNext(this._upgradeData)
@@ -137,45 +137,48 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 
 }
 
-export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country): Promise<boolean> {
+export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean): Promise<boolean> {
 	return worker.updatePaymentData(subscriptionOptions.businessUse(), subscriptionOptions.paymentInterval(), invoiceData, paymentData, confirmedCountry)
-		.then(paymentResult => {
-			const statusCode = paymentResult.result
-			if (statusCode === PaymentDataResultType.OK) {
-				return true;
-			} else {
-				if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
-					const countryName = invoiceData.country ? invoiceData.country.n : ""
-					const confirmMessage = lang.get("confirmCountry_msg", {"{1}": countryName})
-					return Dialog.confirm(() => confirmMessage).then(confirmed => {
-						if (confirmed) {
-							return updatePaymentData(subscriptionOptions, invoiceData, paymentData, invoiceData.country)  // add confirmed invoice country
-						} else {
-							return false;
-						}
-					})
-				} else {
-					if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-						Dialog.error(() => lang.get("invalidVatIdNumber_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-						Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
-						Dialog.error("creditCardCVVInvalid_msg");
-					} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-						Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-						Dialog.error(() => lang.get("paymentAccountRejected_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
-						Dialog.error("creditCardExprationDateInvalid_msg");
-					} else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-						Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-						Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					} else {
-						Dialog.error(() => lang.get("otherPaymentProviderError_msg") + " " + lang.get("accountWasStillCreated_msg"))
-					}
-					return false
-				}
-			}
-		})
+	             .then(paymentResult => {
+		             const statusCode = paymentResult.result
+		             if (statusCode === PaymentDataResultType.OK) {
+			             return true;
+		             } else {
+			             if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
+				             const countryName = invoiceData.country ? invoiceData.country.n : ""
+				             const confirmMessage = lang.get("confirmCountry_msg", {"{1}": countryName})
+				             return Dialog.confirm(() => confirmMessage).then(confirmed => {
+					             if (confirmed) {
+						             return updatePaymentData(subscriptionOptions, invoiceData, paymentData, invoiceData.country, isSignup)  // add confirmed invoice country
+					             } else {
+						             return false;
+					             }
+				             })
+			             } else {
+				             if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
+					             Dialog.error(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
+					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
+					             Dialog.error("creditCardCVVInvalid_msg");
+				             } else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
+					             Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
+					             Dialog.error(() => lang.get("paymentAccountRejected_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
+					             Dialog.error("creditCardExprationDateInvalid_msg");
+				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
+					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
+					             Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
+				             } else {
+					             Dialog.error(() => lang.get("otherPaymentProviderError_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
+				             }
+				             return false
+			             }
+		             }
+	             })
 }
