@@ -44,10 +44,10 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let queryParams = queryParameter == null ? {} : queryParameter
 			const authHeaders = this._authHeadersProvider()
-			if (Object.keys(authHeaders).length === 0) {
+			const headers = Object.assign(authHeaders, extraHeaders)
+			if (Object.keys(headers).length === 0) {
 				throw new NotAuthenticatedError("user must be authenticated for entity requests")
 			}
-			const headers = Object.assign(authHeaders, extraHeaders)
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity: any))
