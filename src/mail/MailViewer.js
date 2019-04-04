@@ -82,7 +82,7 @@ export class MailViewer {
 	mail: Mail;
 	_mailBody: ?MailBody;
 	_darkText: boolean;
-	_htmlBody: string; // always sanitized
+	_htmlBody: DocumentFragment; // always sanitized
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
@@ -110,7 +110,7 @@ export class MailViewer {
 		}
 		this._attachments = []
 		this._attachmentButtons = []
-		this._htmlBody = ""
+		this._htmlBody = document.createDocumentFragment()
 		this._darkText = false
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
@@ -257,7 +257,7 @@ export class MailViewer {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
 				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
-					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
+					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, stringifyFragment(this._htmlBody)), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
 				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
@@ -293,19 +293,23 @@ export class MailViewer {
 
 		load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitize(body.text, true)
-			this._htmlBody = urlify(sanitizeResult.text)
-			this._contentBlocked = sanitizeResult.externalContent.length > 0
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(urlify(body.text), true)
+
 			// check if we need to improve contrast for dark theme
 			if (themeId() === 'dark') {
-				const doc = new DOMParser().parseFromString(this._htmlBody, 'text/html')
 				//find an explicit style that has the color property set
-				const styleWithColor = Array.from(doc.querySelectorAll('*[style]'), e => e.style)
+				const styleWithColor = Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
 				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
 				if (typeof styleWithColor !== 'undefined') {
 					this._darkText = true
 				}
 			}
+
+			this._htmlBody = sanitizeResult.html
+			if(this._domBody) {
+				this._domBody
+			}
+			this._contentBlocked = sanitizeResult.externalContent.length > 0
 			m.redraw()
 		}).catch(NotFoundError, e => {
 			this._errorOccurred = true
@@ -382,20 +386,24 @@ export class MailViewer {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
+								console.log("appending", stringifyFragment(this._htmlBody))
+								vnode.dom.appendChild(this._htmlBody)
 							},
 							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
-						}, (this._mailBody == null
-							&& !this._errorOccurred) ? m(".progress-panel.flex-v-center.items-center", {
-							style: {
-								height: '200px'
-							}
-						}, [
-							progressIcon(),
-							m("small", lang.get("loading_msg"))
-						]) : ((this._errorOccurred || this.mail._errors
-							|| neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+						}, (this._mailBody == null && !this._errorOccurred)
+							? m(".progress-panel.flex-v-center.items-center", {
+								style: {
+									height: '200px'
+								}
+							}, [
+								progressIcon(),
+								m("small", lang.get("loading_msg"))
+							])
+							: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
+								? m(errorMessageBox)
+								: m("", {}, ""))) // this._htmlBody is always sanitized
 					]
 				)
 			]
@@ -547,7 +555,7 @@ export class MailViewer {
 				let subject = (startsWith(this.mail.subject, prefix)) ? this.mail.subject : prefix + this.mail.subject
 				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 					+ this.mail.sender.address + ":";
-				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
+				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + stringifyFragment(this._htmlBody) + "</blockquote>";
 
 				let toRecipients = []
 				let ccRecipients = []
@@ -607,7 +615,7 @@ export class MailViewer {
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
 
-		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
+		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + stringifyFragment(this._htmlBody) + "</blockquote>";
 
 		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		return editor.initAsResponse(this.mail, ConversationType.FORWARD, this._getSenderOfResponseMail(), recipients, [], [], this._attachments.slice(), "Fwd: "
@@ -791,4 +799,10 @@ export class MailViewer {
 		}
 		return buttons
 	}
+}
+
+function stringifyFragment(fragment: DocumentFragment): string {
+	let div = document.createElement("div");
+	div.appendChild(fragment);
+	return div.innerHTML;
 }
