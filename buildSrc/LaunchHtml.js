@@ -32,8 +32,8 @@ module.exports.renderHtml = function (scripts, env) {
 				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
 				scripts.map(script => m(`script[src=${script}][defer]`)),
 				m.trust("<!-- TutanotaTags -->"), // everything from here to </head> is replaced at runtime for custom domains with defined metaTags
-				m("title", "Mail. Done. Right. Tutanota Login & Sign up"), // keep in sync with Env.
-				m("meta[name=description][content=Mail. Done. Right. Register with the secure mail service Tutanota for free & take back your privacy. Tutanota encrypts mails and contacts automatically.]"),
+				m("title", "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"), // keep in sync with Env.
+				m("meta[name=description][content=Mail. Done. Right. Make a fresh start in 2019 and get a free mail account that does not abuse your emails for advertising. Tutanota is fast, easy, secure and free of ads.]"),
 				m("link[rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
 				m("meta[name=application-name][content=Tutanota]"),
 				m("link[rel=apple-touch-icon][sizes=152x152][href=/images/logo-favicon-152.png]"),
