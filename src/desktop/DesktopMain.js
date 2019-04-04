@@ -21,6 +21,7 @@ const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(conf, notifier, wm)
+sse.start()
 const ipc = new IPC(conf, notifier, sse, wm, sock)
 wm.setIPC(ipc)
 

@@ -42,17 +42,19 @@ export class DesktopSseClient {
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
-
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
 		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-		this._tryToReconnect = true
-		this._reschedule(1)
-
+		this._tryToReconnect = false
 		app.on('will-quit', () => {
 			this._cleanup()
 			this._tryToReconnect = false
 		})
+	}
+
+	start() {
+		this._tryToReconnect = true
+		this._reschedule(1)
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
