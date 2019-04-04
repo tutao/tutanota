@@ -136,8 +136,8 @@ o.spec("entity rest cache", function () {
 			const result1 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, getListId(instance), getElementId(instance), null, null)
 			                           .catch(e => e)
 			// Checking prototypes doesn't really work because of the TutanotaError
-			o(result1.constructor).equals(NotFoundError)
-			o(clientSpy.callCount).equals(0)
+			o(result1.constructor).equals(Error)
+			o(clientSpy.callCount).equals(1)
 
 			const result2 = await cache.entityRequest(MailTypeRef, HttpMethod.GET, newListId, getElementId(instance), null, null)
 			o(result2).deepEquals(newInstance)
@@ -166,8 +166,8 @@ o.spec("entity rest cache", function () {
 
 			const errorResult = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", getElementId(mails[0]), null, null)
 			                               .catch(e => e)
-			o(errorResult.constructor).equals(NotFoundError)
-			o(clientSpy.callCount).equals(1)
+			o(errorResult.constructor).equals(Error)
+			o(clientSpy.callCount).equals(2)
 		})
 
 
@@ -195,8 +195,8 @@ o.spec("entity rest cache", function () {
 
 			const errorResult = await cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", getElementId(lastMail), null, null)
 			                               .catch(e => e)
-			o(errorResult.constructor).equals(NotFoundError)
-			o(clientSpy.callCount).equals(1)
+			o(errorResult.constructor).equals(Error)
+			o(clientSpy.callCount).equals(2)
 		})
 
 		// list element notifications

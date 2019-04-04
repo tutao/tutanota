@@ -352,7 +352,7 @@ o.spec("Indexer test", () => {
 				loadRange: (type, listId, startId, count, reverse) => {
 					o(type).equals(EntityEventBatchTypeRef)
 					o(startId).equals(GENERATED_MAX_ID)
-					o(count).equals(100)
+					o(count).equals(1)
 					o(reverse).equals(true)
 					return Promise.resolve([{_id: [null, "event-batch-id"]}])
 				}
