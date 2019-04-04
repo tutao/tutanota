@@ -75,8 +75,8 @@ export function show(customerInfo: CustomerInfo): void {
 	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
 		label: () => "certificate type",
 		items: [
-			{name: lang.get("certificatTypeManual_label"), value: CertificateType.LETS_ENCRYPT},
-			{name: lang.get("certificateTypeAutomatic_label"), value: CertificateType.MANUAL}
+			{name: lang.get("certificateTypeAutomatic_label"), value: CertificateType.LETS_ENCRYPT},
+			{name: lang.get("certificatTypeManual_label"), value: CertificateType.MANUAL}
 		],
 		selectedValue: selectedType,
 		dropdownWidth: 250

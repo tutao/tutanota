@@ -439,7 +439,7 @@ export class EntityRestCache implements EntityRestInterface {
 			.filter(Boolean)
 	}
 
-	_processCreateEvent(typeRef: TypeRef<*>, update: EntityUpdate, batch: Array<EntityUpdate>): $Promisable<?EntityUpdate> {
+	_processCreateEvent(typeRef: TypeRef<*>, update: EntityUpdate, batch: Array<EntityUpdate>): $Promisable<EntityUpdate | null> { // do not return undefined
 		const {instanceListId, instanceId} = update
 		if (instanceListId) {
 			const path = typeRefToPath(typeRef)
@@ -453,12 +453,14 @@ export class EntityRestCache implements EntityRestInterface {
 			} else if (this._isInCacheRange(path, instanceListId, instanceId)) {
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 				           .then(entity => this._putIntoCache(entity))
+				           .return(update)
 				           .catch(this._handleProcessingError)
 			}
 		}
+		return update
 	}
 
-	_processUpdateEvent(typeRef: TypeRef<*>, update: EntityUpdate): $Promisable<?EntityUpdate> {
+	_processUpdateEvent(typeRef: TypeRef<*>, update: EntityUpdate): $Promisable<EntityUpdate | null> {
 		const {instanceListId, instanceId} = update
 		if (this._isInCache(typeRef, instanceListId, instanceId)) {
 			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
@@ -466,6 +468,7 @@ export class EntityRestCache implements EntityRestInterface {
 			           .return(update)
 			           .catch(this._handleProcessingError)
 		}
+		return update
 	}
 
 	_handleProcessingError(e: Error): ?EntityUpdate {
