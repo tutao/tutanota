@@ -931,6 +931,12 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"certificatTypeManual_label": "Manual",
+		"certificateTypeAutomatic_label": "Automatic (Let's Encrypt)",
+		"certificateStateProcessing_label": "Processing",
+		"certificateStateInvalid_label": "Failed to order certificate"
+
+
 	}
 }

@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../api/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {load, loadAll, loadRange, update} from "../api/main/Entity"
-import {getWhitelabelDomain, getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
@@ -401,10 +401,10 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					]
 					break
 				case CertificateState.VALIDATING:
-					components = ["Processing"]
+					components = [lang.get("certificateStateProcessing_label")]
 					break
 				case CertificateState.INVALID:
-					components = ["Failed to order certificate"];
+					components = [lang.get("certificateStateInvalid_label")];
 					break
 				default:
 					components = [lang.get("emptyString_msg")]
@@ -418,9 +418,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_certificateTypeString(whitelabelConfig: WhitelabelConfig): string {
 		switch (whitelabelConfig.certificateInfo.type) {
 			case CertificateType.LETS_ENCRYPT:
-				return "Automatic (by Let's Encrypt)"
+				return lang.get("certificateTypeAutomatic_label")
 			case CertificateType.MANUAL:
-				return "Manual"
+				return lang.get("certificatTypeManual_label")
 			default:
 				return lang.get("emptyString_msg")
 		}
@@ -465,19 +465,15 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
 		for (let update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
-				console.log("WHITELABEL update customer: ", update)
 				this._customer.reset()
 				this._customer.getAsync().then(() => m.redraw())
 				this._updateWhitelabelRegistrationFields()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
-				console.log("WHITELABEL update customerInfo: ", update)
 				this._customerInfo.reset()
 				this._updateFields()
 			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
-				console.log("WHITELABEL update whitelabelConfig: ", update)
 				this._updateFields()
 			} else if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				console.log("WHITELABEL update customerServerProtperties: ", update)
 				this._props.reset()
 				this._updateWhitelabelRegistrationFields()
 			}
