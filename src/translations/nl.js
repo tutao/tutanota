@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2019-03-13T08:25:01Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -513,8 +513,8 @@ module.exports = {
 		"mailNotificationHello_msg": "Hallo,",
 		"mailNotificationRegards_msg": "Vriendelijke groet en hartelijk bedankt,{1}het Tutanota team",
 		"mailSendFailureBody_msg": "Het spijt ons dat de volgende email niet afgeleverd kon worden.",
-		"mailSendFailureCustomerOnlyBody_msg": "We vinden het jammer om u te laten weten dat uw laatste bericht niet kon worden afgeleverd aan {ontvanger}.\n<Nieuwe regel>\n<Nieuwe regel> Het is niet toegestaan ​​om berichten naar ontvangers buiten uw organisatie te sturen.",
-		"mailSendFailureNonExistingRecipientBody_msg": "We vinden het jammer om u te laten weten dat uw laatste bericht niet kon worden afgeleverd aan {ontvanger}.\n<Nieuwe regel>\n<Nieuwe regel> De ontvanger bestaat niet.",
+		"mailSendFailureCustomerOnlyBody_msg": "Het is niet toegestaan ​​om berichten naar ontvangers buiten uw organisatie te sturen.",
+		"mailSendFailureNonExistingRecipientBody_msg": "De ontvanger bestaat niet.",
 		"mailSendFailureSubject_msg": "E-mail kon niet afgeleverd worden",
 		"mailSettings_label": "E-mail instellingen",
 		"mailView_action": "Overschakelen naar de e-mailweergave",
@@ -567,7 +567,6 @@ module.exports = {
 		"notAvailableInApp_msg": "Deze functionaliteit is niet beschikbaar in de mobiele App.",
 		"notFound404_msg": "Sorry, de pagina die u zocht kon niet gevonden worden. Controleer de URL op fouten of ververs de pagina.",
 		"notificationMailLanguage_label": "Taal van notificatie e-mail:",
-		"notificationMailSendFailureBody_msg": "Het spijt ons u te moeten meedelen dat de volgende notificatie email niet kon worden afgeleverd.",
 		"notificationsDisabled_label": "Uitgeschakeld",
 		"notificationSettings_action": "Notificaties",
 		"notSigned_msg": "Niet getekend.",

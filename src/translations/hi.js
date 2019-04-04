@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2019-03-13T22:21:52Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "कृपया चेकबॉक्स का चयन करके प्राइवेसी नीति स्वीकार करें",
@@ -564,7 +564,6 @@ module.exports = {
 		"notAvailableInApp_msg": "आवेदन में उपलब्ध नहीं है",
 		"notFound404_msg": "क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह नहीं मिला। एकबार त्रुटियों के लिए युआरएल जाँच लें और ब्राउजर रिफ्रेश  बटन दबाएँ।",
 		"notificationMailLanguage_label": "अधिसूचकमेल की भाषा",
-		"notificationMailSendFailureBody_msg": "हमें  खेद है कि निम्नलिखित अधिसूचना ईमेल वितरित नहीं किया जा सका । ",
 		"notificationsDisabled_label": "अक्षम",
 		"notificationSettings_action": "अधिसूचना",
 		"notSigned_msg": "हस्ताक्षररहित",
