@@ -324,7 +324,8 @@ export class Indexer {
 			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
 		return Promise.map(memberships, (membership: GroupMembership) => {
-			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 100, true)
+			// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
+			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
 			           .then(eventBatches => {
 				           return {
 					           groupId: membership.group,

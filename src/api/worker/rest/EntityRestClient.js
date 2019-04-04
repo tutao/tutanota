@@ -6,6 +6,7 @@ import {HttpMethod, isSameTypeRef, MediaType, resolveTypeReference, TypeRef} fro
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
+import {NotAuthenticatedError} from "../../common/error/RestError"
 
 assertWorkerOrNode()
 
@@ -44,6 +45,9 @@ export class EntityRestClient implements EntityRestInterface {
 			let queryParams = queryParameter == null ? {} : queryParameter
 			const authHeaders = this._authHeadersProvider()
 			const headers = Object.assign(authHeaders, extraHeaders)
+			if (Object.keys(headers).length === 0) {
+				throw new NotAuthenticatedError("user must be authenticated for entity requests")
+			}
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
 				let sk = setNewOwnerEncSessionKey(model, (entity: any))
