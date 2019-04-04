@@ -12,15 +12,37 @@ import {InvalidDataError, PreconditionFailedError} from "../api/common/error/Res
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isDomainName} from "../misc/FormatValidator"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import stream from "mithril/stream/stream.js"
+import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
+import {CertificateType} from "../api/common/TutanotaConstants"
+import {getWhitelabelDomain} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
+function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?DataFile, dialog: Dialog) {
+	showProgressDialog("pleaseWait_msg",
+		worker.uploadCertificate(domain,
+			certChainFile && utf8Uint8ArrayToString(certChainFile.data),
+			privKeyFile && utf8Uint8ArrayToString(privKeyFile.data))
+		      .then(() => {
+			      dialog.close()
+		      })
+		      .catch(InvalidDataError, e => {
+			      Dialog.error("certificateError_msg")
+		      })
+		      .catch(PreconditionFailedError, e => {
+			      Dialog.error("invalidCnameRecord_msg")
+		      }))
+}
+
 export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
+	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 	let domainField
-	if (brandingDomainInfo) {
-		domainField = new TextField("whitelabelDomain_label").setValue(brandingDomainInfo.domain).setDisabled()
+	if (whitelabelDomainInfo) {
+		domainField = new TextField("whitelabelDomain_label").setValue(whitelabelDomainInfo.domain).setDisabled()
 	} else {
 		domainField = new TextField("whitelabelDomain_label")
 	}
@@ -49,13 +71,28 @@ export function show(customerInfo: CustomerInfo): void {
 	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
+	const selectedType = stream(CertificateType.LETS_ENCRYPT)
+	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
+		label: () => "certificate type",
+		items: [
+			{name: lang.get("certificatTypeManual_label"), value: CertificateType.LETS_ENCRYPT},
+			{name: lang.get("certificateTypeAutomatic_label"), value: CertificateType.MANUAL}
+		],
+		selectedValue: selectedType,
+		dropdownWidth: 250
+	}
+
 	let form = {
 		view: () => {
 			return [
 				m(domainField),
-				m(certificateChainField),
-				m(privateKeyField),
-			]
+				m(DropDownSelectorN, certOptionDropDownAttrs),
+			].concat(selectedType() === CertificateType.MANUAL
+				? [
+					m(certificateChainField),
+					m(privateKeyField),
+				]
+				: null)
 		}
 	}
 	let dialog = Dialog.showActionDialog({
@@ -63,30 +100,24 @@ export function show(customerInfo: CustomerInfo): void {
 		child: form,
 		okAction: () => {
 			let domain = domainField.value().trim().toLowerCase()
-			if (!certChainFile) {
-				Dialog.error("certificateChainInfo_msg")
-			} else if (!privKeyFile) {
-				Dialog.error("privateKeyInfo_msg")
-			} else if (!isDomainName(domain) || domain.split(".").length < 3) {
+
+			if (!isDomainName(domain) || domain.split(".").length < 3) {
 				Dialog.error("notASubdomain_msg")
-			} else if (customerInfo.domainInfos.find(d => d.domain === domain && !d.certificate)) {
+			} else if (customerInfo.domainInfos.find(di => !di.whitelabelConfig && di.domain === domain)) {
 				Dialog.error("customDomainErrorDomainNotAvailable_msg")
+			} else if (selectedType() === CertificateType.LETS_ENCRYPT) {
+				registerDomain(domain, null, null, dialog)
 			} else {
-				try {
-					showProgressDialog("pleaseWait_msg",
-						worker.uploadCertificate(domain,
-							utf8Uint8ArrayToString(certChainFile.data), utf8Uint8ArrayToString(privKeyFile.data))
-						      .then(() => {
-							      dialog.close()
-						      })
-						      .catch(InvalidDataError, e => {
-							      Dialog.error("certificateError_msg")
-						      })
-						      .catch(PreconditionFailedError, e => {
-							      Dialog.error("invalidCnameRecord_msg")
-						      }))
-				} catch (e) {
-					Dialog.error("certificateError_msg")
+				if (!certChainFile) {
+					Dialog.error("certificateChainInfo_msg")
+				} else if (!privKeyFile) {
+					Dialog.error("privateKeyInfo_msg")
+				} else {
+					try {
+						registerDomain(domain, certChainFile, privKeyFile, dialog)
+					} catch (e) {
+						Dialog.error("certificateError_msg")
+					}
 				}
 			}
 		}

@@ -328,3 +328,16 @@ export const Announcement = Object.freeze({
 	None: '0',
 	StorageDeletion: '1'
 })
+
+export const CertificateState = Object.freeze({
+	VALID: '0',
+	VALIDATING: '1',
+	INVALID: '2'
+})
+export type CertificateStateEnum = $Values<typeof CertificateState>
+
+export const CertificateType = Object.freeze({
+	MANUAL: '0',
+	LETS_ENCRYPT: '1',
+})
+export type CertificateTypeEnum = $Values<typeof CertificateType>

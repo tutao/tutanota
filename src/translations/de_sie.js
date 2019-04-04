@@ -938,6 +938,10 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"certificatTypeManual_label": "Manuell",
+		"certificateTypeAutomatic_label": "Automatisch (Let's Encrypt)",
+		"certificateStateProcessing_label": "In Bearbeitung",
+		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates"
 	}
 }

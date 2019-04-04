@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		}
-	}, "associations": {}, "app": "sys", "version": "43"
+	}, "associations": {}, "app": "sys", "version": "44"
 }
 
 export function createPlanPrices(): PlanPrices {

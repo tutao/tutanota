@@ -4,13 +4,13 @@ import {assertMainOrNode} from "../api/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {load, loadAll, loadRange, update} from "../api/main/Entity"
-import {neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {BookingItemFeatureType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, CertificateState, CertificateType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -138,7 +138,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		return this._customer.isLoaded() &&
 			this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) &&
 			this._customerInfo.isLoaded() &&
-			this._customerInfo.getLoaded().domainInfos.find(info => info.certificate) &&
+			getWhitelabelDomain(this._customerInfo.getLoaded()) &&
 			this._whitelabelCodeField &&
 			this._whitelabelRegistrationDomains
 	}
@@ -166,7 +166,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
 
 				let items = [{name: lang.get("deactivated_label"), value: null}]
-				items = items.concat(customerInfo.domainInfos.filter(d => !d.certificate).map(d => {
+				items = items.concat(getCustomMailDomains(customerInfo).map(d => {
 					return {name: d.domain, value: d.domain}
 				}))
 				let initialValue = (props.whitelabelRegistrationDomains.length
@@ -187,28 +187,22 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
-			let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate)
-			return this._tryLoadWhitelabelConfig(brandingDomainInfo).then(whitelabelConfig => {
+			const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
+			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
-						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding,
-							bookings.length === 1 ? bookings[0] : null)
+						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length === 1 ? bookings[0] : null)
 						let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 						// customJsonTheme is defined when brandingDomainInfo is defined
-						this._brandingDomainField = new TextField("whitelabelDomain_label", () => {
-							if (brandingDomainInfo) {
-								return lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(brandingDomainInfo.certificateExpiryDate))})
-							} else {
-								return lang.get("emptyString_msg")
-							}
-						}).setValue((brandingDomainInfo) ? brandingDomainInfo.domain : lang.get("deactivated_label"))
-						  .setDisabled()
+						this._brandingDomainField = new TextField("whitelabelDomain_label", this._whitelabelInfo(whitelabelConfig))
+							.setValue((whitelabelDomainInfo) ? whitelabelDomainInfo.domain : lang.get("deactivated_label"))
+							.setDisabled()
 						let deactivateAction = null
-						if (brandingDomainInfo) {
+						if (whitelabelDomainInfo) {
 							deactivateAction = new Button("deactivate_action", () => {
 								Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 									if (ok) {
-										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(brandingDomainInfo).domain))
+										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(whitelabelDomainInfo).domain))
 									}
 
 								})
@@ -394,6 +388,42 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					})
 			})
 		})
+	}
+
+	_whitelabelInfo(whitelabelConfig: ?WhitelabelConfig): (() => Children) {
+		let components: Array<string>
+		if (whitelabelConfig) {
+			switch (whitelabelConfig.certificateInfo.state) {
+				case CertificateState.VALID:
+					components = [
+						lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(whitelabelConfig.certificateInfo.expiryDate))}),
+						this._certificateTypeString(whitelabelConfig)
+					]
+					break
+				case CertificateState.VALIDATING:
+					components = [lang.get("certificateStateProcessing_label")]
+					break
+				case CertificateState.INVALID:
+					components = [lang.get("certificateStateInvalid_label")];
+					break
+				default:
+					components = [lang.get("emptyString_msg")]
+			}
+		} else {
+			components = [lang.get("emptyString_msg")]
+		}
+		return () => m(".flex", components.map(c => m(".pr-s", c)))
+	}
+
+	_certificateTypeString(whitelabelConfig: WhitelabelConfig): string {
+		switch (whitelabelConfig.certificateInfo.type) {
+			case CertificateType.LETS_ENCRYPT:
+				return lang.get("certificateTypeAutomatic_label")
+			case CertificateType.MANUAL:
+				return lang.get("certificatTypeManual_label")
+			default:
+				return lang.get("emptyString_msg")
+		}
 	}
 
 	_areCustomColorsDefined(theme: ?Theme): boolean {

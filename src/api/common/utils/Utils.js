@@ -141,9 +141,12 @@ export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
 	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
 }
 
-export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
-	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
+export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName: ?string): ?DomainInfo {
+	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName))
+}
+
+export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
+	return customerInfo.domainInfos.filter(di => di.whitelabelConfig == null)
 }
 
 /**

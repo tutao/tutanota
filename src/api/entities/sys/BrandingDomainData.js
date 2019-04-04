@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 			"id": 1152,
 			"since": 22,
 			"type": "Bytes",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 			"id": 1153,
 			"since": 22,
 			"type": "Bytes",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createBrandingDomainData(): BrandingDomainData {
