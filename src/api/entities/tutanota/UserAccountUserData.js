@@ -141,7 +141,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createUserAccountUserData(): UserAccountUserData {
