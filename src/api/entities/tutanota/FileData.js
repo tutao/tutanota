@@ -25,5 +25,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createFileData(): FileData {
-	return create(_TypeModel)
+	return create(_TypeModel, FileDataTypeRef)
 }

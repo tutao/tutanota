@@ -22,5 +22,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createVerifyRegistrationCodeData(): VerifyRegistrationCodeData {
-	return create(_TypeModel)
+	return create(_TypeModel, VerifyRegistrationCodeDataTypeRef)
 }

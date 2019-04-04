@@ -32,5 +32,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createInputField(): InputField {
-	return create(_TypeModel)
+	return create(_TypeModel, InputFieldTypeRef)
 }

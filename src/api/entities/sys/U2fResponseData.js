@@ -23,5 +23,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createU2fResponseData(): U2fResponseData {
-	return create(_TypeModel)
+	return create(_TypeModel, U2fResponseDataTypeRef)
 }

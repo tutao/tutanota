@@ -23,5 +23,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createAuthenticatedDevice(): AuthenticatedDevice {
-	return create(_TypeModel)
+	return create(_TypeModel, AuthenticatedDeviceTypeRef)
 }

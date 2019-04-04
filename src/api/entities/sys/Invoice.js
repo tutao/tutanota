@@ -71,5 +71,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createInvoice(): Invoice {
-	return create(_TypeModel)
+	return create(_TypeModel, InvoiceTypeRef)
 }

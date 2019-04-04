@@ -38,5 +38,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPushIdentifier(): PushIdentifier {
-	return create(_TypeModel)
+	return create(_TypeModel, PushIdentifierTypeRef)
 }

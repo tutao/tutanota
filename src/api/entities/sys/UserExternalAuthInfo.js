@@ -51,5 +51,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createUserExternalAuthInfo(): UserExternalAuthInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, UserExternalAuthInfoTypeRef)
 }

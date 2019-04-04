@@ -54,5 +54,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createGroupMember(): GroupMember {
-	return create(_TypeModel)
+	return create(_TypeModel, GroupMemberTypeRef)
 }

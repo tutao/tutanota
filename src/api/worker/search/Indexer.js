@@ -6,13 +6,13 @@ import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
-import {defer, neverNull, noOp} from "../../common/utils/Utils"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
+import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
-import {_createNewIndexUpdate, filterIndexMemberships} from "./IndexUtils"
+import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, printMeasure, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -37,6 +37,7 @@ import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
+import {getFromMap} from "../../common/utils/MapUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -49,6 +50,11 @@ export type InitParams = {
 	user: User;
 	groupKey: Aes128Key;
 }
+
+const operationTypeKeys = Array.from(Object.keys(OperationType)).reduce((acc, k) => {
+	acc[OperationType[k]] = k
+	return acc
+}, {})
 
 export class Indexer {
 	db: Db;
@@ -67,11 +73,13 @@ export class Indexer {
 	_indexedGroupIds: Array<Id>;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean,
-	            browserData: BrowserData) {
+	            browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
 		this.db = {
-			dbFacade: new DbFacade(indexedDbSupported),
+			dbFacade: new DbFacade(indexedDbSupported, () => {
+				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
+			}),
 			key: neverNull(null),
 			iv: neverNull(null),
 			initialized: deferred.promise
@@ -79,10 +87,10 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
-		this._entity = new EntityWorker()
+		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
-		this._mail = new MailIndexer(this._core, this.db, this._entity, worker, entityRestClient)
+		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient, defaultEntityRestCache)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 	}
@@ -116,7 +124,9 @@ export class Indexer {
 					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null
 				})
 				this._core.startProcessing()
 				return this._contact.indexFullContactList(user.userGroup.group)
@@ -140,13 +150,15 @@ export class Indexer {
 					return this._reCreateIndex()
 				} else {
 					// disable storage if it fails to inititalize
-					this._core.indexingSupported = false
+					this._core.indexingSupported = e instanceof DbError
 					this._worker.sendIndexState({
 						initializing: false,
 						indexingSupported: false,
 						mailIndexEnabled: false,
 						progress: 0,
-						currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+						currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+						indexedMailCount: 0,
+						failedIndexingUpTo: this._mail.currentIndexTimestamp
 					})
 					throw e
 				}
@@ -159,7 +171,9 @@ export class Indexer {
 				indexingSupported: this._core.indexingSupported,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
-				currentMailIndexTimestamp: this._mail.currentIndexTimestamp
+				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+				indexedMailCount: 0,
+				failedIndexingUpTo: this._mail.currentIndexTimestamp
 			})
 		})
 	}
@@ -167,10 +181,8 @@ export class Indexer {
 	enableMailIndexing(): Promise<void> {
 		return this.db.initialized.then(() => {
 			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
-				this._mail.mailboxIndexingPromise.catch(CancelledError, () => {
-					// Disable mail indexing if the user cancelled the initial mail indexing.
-					this.disableMailIndexing()
-				})
+				// We don't have to disable mail indexing when it's stopped now
+				this._mail.mailboxIndexingPromise.catch(CancelledError, noOp)
 			})
 		})
 	}
@@ -186,10 +198,14 @@ export class Indexer {
 		           })
 	}
 
+
+	extendMailIndex(newOldestTimestamp: number): Promise<void> {
+		return this._mail.extendIndexIfNeeded(this._initParams.user, newOldestTimestamp)
+	}
+
 	cancelMailIndexing(): Promise<void> {
 		return this._mail.cancelMailIndexing()
 	}
-
 
 	addBatchesToQueue(batches: QueuedBatch[]) {
 		this._core.addBatchesToQueue(batches)
@@ -281,9 +297,10 @@ export class Indexer {
 			return {id: m.group, type: getMembershipGroupType(m)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id, value: GroupData}[]) => {
-				let oldGroups = loadedGroups.map((group: {key: Id, value: GroupData}) => {
-					return {id: group.key, type: group.value.groupType}
+			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id | number, value: GroupData}[]) => {
+				let oldGroups = loadedGroups.map((group) => {
+					const id: Id = downcast(group.key)
+					return {id, type: group.value.groupType}
 				})
 				let deletedGroups = oldGroups.filter(oldGroup => currentGroups.find(m => m.id === oldGroup.id) == null)
 				let newGroups = currentGroups.filter(m => oldGroups.find(oldGroup => m.id === oldGroup.id) == null)
@@ -423,7 +440,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw new Error("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
+						throw new DbError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 					}
 				})
 			}))
@@ -432,80 +449,83 @@ export class Indexer {
 
 	_processEntityEvents(batch: QueuedBatch, futureActions: FutureBatchActions): Promise<void> {
 		const {events, groupId, batchId} = batch
-		return this.db.initialized.then(() => {
-			if (!this._core.indexingSupported) {
-				return Promise.resolve()
-			}
-
-			if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) === -1) {
-				return Promise.resolve()
-			}
-			if (this._indexedGroupIds.indexOf(groupId) === -1) {
-				return Promise.resolve()
-			}
-			performance.mark("processEntityEvents-start")
-			let indexUpdate = _createNewIndexUpdate(groupId)
-			indexUpdate.batchId = [groupId, batchId]
-			let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
-				if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
-					neverNull(all.get(MailTypeRef)).push(update)
-				} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
-					neverNull(all.get(ContactTypeRef)).push(update)
-				} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
-					neverNull(all.get(GroupInfoTypeRef)).push(update)
-				} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
-					neverNull(all.get(UserTypeRef)).push(update)
-				} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
-					neverNull(all.get(WhitelabelChildTypeRef)).push(update)
+		return this
+			.db.initialized.then(() => {
+				if (!this._core.indexingSupported) {
+					return Promise.resolve()
 				}
-				return all
-			}, new Map([
-				[MailTypeRef, []], [ContactTypeRef, []], [GroupInfoTypeRef, []], [UserTypeRef, []],
-				[WhitelabelChildTypeRef, []]
-			]))
-			performance.mark("processEvent-start")
 
-			return Promise
-				.all([
-					this._mail.processEntityEvents(neverNull(groupedEvents.get(MailTypeRef)), groupId, batchId, indexUpdate, futureActions),
-					this._contact.processEntityEvents(neverNull(groupedEvents.get(ContactTypeRef)), groupId, batchId, indexUpdate),
-					this._groupInfo.processEntityEvents(neverNull(groupedEvents.get(GroupInfoTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
-					this._whitelabelChildIndexer.processEntityEvents(neverNull(groupedEvents.get(WhitelabelChildTypeRef)), groupId, batchId, indexUpdate, this._initParams.user),
-					this._processUserEntityEvents(neverNull(groupedEvents.get(UserTypeRef)))
-				])
-				.then(() => {
-					performance.mark("processEvent-end")
-					performance.measure("processEvent", "processEvent-start", "processEvent-end")
-					performance.mark("writeIndexUpdate-start")
-					return this._core.writeIndexUpdate(indexUpdate)
+				if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) === -1) {
+					return Promise.resolve()
+				}
+				if (this._indexedGroupIds.indexOf(groupId) === -1) {
+					return Promise.resolve()
+				}
+				markStart("processEntityEvents")
+				let indexUpdates = []
+				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
+					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
+						getFromMap(all, MailTypeRef, () => []).push(update)
+					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
+						getFromMap(all, ContactTypeRef, () => []).push(update)
+					} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
+						getFromMap(all, GroupInfoTypeRef, () => []).push(update)
+					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
+						getFromMap(all, UserTypeRef, () => []).push(update)
+					} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
+						getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
+					}
+					return all
+				}, new Map())
+
+				markStart("processEvent")
+				return Promise.each(groupedEvents.entries(), ([key, value]) => {
+					let promise = Promise.resolve()
+					if (isSameTypeRef(UserTypeRef, key)) {
+						return this._processUserEntityEvents(value)
+					}
+					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
+
+					if (isSameTypeRef(MailTypeRef, key)) {
+						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate, futureActions)
+					} else if (isSameTypeRef(ContactTypeRef, key)) {
+						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
+					} else if (isSameTypeRef(GroupInfoTypeRef, key)) {
+						promise = this._groupInfo.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
+					} else if (isSameTypeRef(UserTypeRef, key)) {
+						promise = this._processUserEntityEvents(value)
+					} else if (isSameTypeRef(WhitelabelChildTypeRef, key)) {
+						promise = this._whitelabelChildIndexer.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
+					}
+					return promise.then(() => {
+						markEnd("processEvent")
+						markStart("writeIndexUpdate")
+						return this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
+					}).then(() => {
+						markEnd("writeIndexUpdate")
+						markEnd("processEntityEvents")
+						if (!env.dist && env.mode !== "Test") {
+							printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
+								"processEntityEvents", "processEvent", "writeIndexUpdate"
+							])
+						}
+					})
+
 				})
-				.then(() => {
-					performance.mark("writeIndexUpdate-end")
-					performance.measure("writeIndexUpdate", "writeIndexUpdate-start", "writeIndexUpdate-end")
-					performance.mark("processEntityEvents-end")
-					performance.measure("processEntityEvents", "processEntityEvents-start", "processEntityEvents-end")
-					// measure([
-					// 	"processEntityEvents", "processEvent", "writeIndexUpdate", "processNewMail", "processNewMail_load",
-					// 	"processNewMail_createIndexEnties", "insertNewElementData", "insertNewElementData_get", "insertNewElementData_put",
-					// 	"insertNewIndexEntries", "insertNewIndexEntries_getMeta", "insertNewIndexEntries_putIndexNew",
-					// 	"insertNewIndexEntries_getRow", "insertNewIndexEntries_putIndex",
-					// 	"insertNewIndexEntries_putMeta"
-					// ])
-				})
-		})
-		           .catch(CancelledError, noOp)
-		           .catch(DbError, (e) => {
-			           if (this._core.isStoppedProcessing()) {
-				           console.log("Ignoring DBerror when indexing is disabled", e)
-			           } else {
-				           throw e
-			           }
-		           })
-		           .catch(InvalidDatabaseStateError, (e) => {
-			           console.log("InvalidDatabaseStateError during _processEntityEvents")
-			           this._core.stopProcessing()
-			           return this._reCreateIndex()
-		           })
+			})
+			.catch(CancelledError, noOp)
+			.catch(DbError, (e) => {
+				if (this._core.isStoppedProcessing()) {
+					console.log("Ignoring DBerror when indexing is disabled", e)
+				} else {
+					throw e
+				}
+			})
+			.catch(InvalidDatabaseStateError, (e) => {
+				console.log("InvalidDatabaseStateError during _processEntityEvents")
+				this._core.stopProcessing()
+				return this._reCreateIndex()
+			})
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
@@ -518,9 +538,5 @@ export class Indexer {
 			return Promise.resolve()
 		})).return()
 	}
-
 }
-
-
-
 

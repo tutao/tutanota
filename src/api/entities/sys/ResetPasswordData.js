@@ -34,5 +34,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createResetPasswordData(): ResetPasswordData {
-	return create(_TypeModel)
+	return create(_TypeModel, ResetPasswordDataTypeRef)
 }

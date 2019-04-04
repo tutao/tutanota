@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailAddress(): MailAddress {
-	return create(_TypeModel)
+	return create(_TypeModel, MailAddressTypeRef)
 }

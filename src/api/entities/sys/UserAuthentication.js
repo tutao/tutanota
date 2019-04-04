@@ -49,5 +49,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createUserAuthentication(): UserAuthentication {
-	return create(_TypeModel)
+	return create(_TypeModel, UserAuthenticationTypeRef)
 }

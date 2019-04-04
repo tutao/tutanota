@@ -42,5 +42,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSecondFactorAuthData(): SecondFactorAuthData {
-	return create(_TypeModel)
+	return create(_TypeModel, SecondFactorAuthDataTypeRef)
 }

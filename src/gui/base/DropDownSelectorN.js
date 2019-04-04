@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import type Stream from "mithril/stream/stream.js"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonType} from "./Button"

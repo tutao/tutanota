@@ -935,10 +935,13 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
 		"certificatTypeManual_label": "Manuell",
 		"certificateTypeAutomatic_label": "Automatisch (Let's Encrypt)",
 		"certificateStateProcessing_label": "In Bearbeitung",
-		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates"
+		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates",
+		"yourMessage_label": "Deine Nachricht",
+		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt.",
+		"retry_action": "Wiederholen",
+		"indexing_error": "Die Indizierung wurde aufgrund eines Fehlers abgebrochen."
 	}
 }

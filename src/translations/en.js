@@ -935,8 +935,9 @@ module.exports = {
 		"certificatTypeManual_label": "Manual",
 		"certificateTypeAutomatic_label": "Automatic (Let's Encrypt)",
 		"certificateStateProcessing_label": "Processing",
-		"certificateStateInvalid_label": "Failed to order certificate"
-
-
+		"certificateStateInvalid_label": "Failed to order certificate",
+		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search.",
+		"retry_action": "Try again",
+		"indexing_error": "Indexing was aborted because of the error"
 	}
 }

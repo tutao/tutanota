@@ -61,5 +61,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createContactFormUserData(): ContactFormUserData {
-	return create(_TypeModel)
+	return create(_TypeModel, ContactFormUserDataTypeRef)
 }

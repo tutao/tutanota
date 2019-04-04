@@ -45,5 +45,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createAdministratedGroup(): AdministratedGroup {
-	return create(_TypeModel)
+	return create(_TypeModel, AdministratedGroupTypeRef)
 }

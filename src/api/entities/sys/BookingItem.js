@@ -35,5 +35,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createBookingItem(): BookingItem {
-	return create(_TypeModel)
+	return create(_TypeModel, BookingItemTypeRef)
 }

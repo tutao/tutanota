@@ -82,11 +82,11 @@ export const ContactSocialType = Object.freeze({
 export type ContactSocialTypeEnum = $Values<typeof ContactSocialType>;
 export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialTypeEnum => downcast(contactSocialId.type)
 
-export const OperationType = Object.freeze({
+export const OperationType = {
 	CREATE: '0',
 	UPDATE: '1',
 	DELETE: '2'
-})
+}
 export type OperationTypeEnum = $Values<typeof OperationType>;
 
 export const AccountType = Object.freeze({

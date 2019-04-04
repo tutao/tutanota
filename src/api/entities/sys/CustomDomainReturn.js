@@ -31,5 +31,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCustomDomainReturn(): CustomDomainReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, CustomDomainReturnTypeRef)
 }

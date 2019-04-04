@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createU2fKey(): U2fKey {
-	return create(_TypeModel)
+	return create(_TypeModel, U2fKeyTypeRef)
 }

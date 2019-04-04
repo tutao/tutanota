@@ -25,5 +25,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createU2fRegisteredDevice(): U2fRegisteredDevice {
-	return create(_TypeModel)
+	return create(_TypeModel, U2fRegisteredDeviceTypeRef)
 }

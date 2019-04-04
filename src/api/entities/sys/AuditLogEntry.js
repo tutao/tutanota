@@ -58,5 +58,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createAuditLogEntry(): AuditLogEntry {
-	return create(_TypeModel)
+	return create(_TypeModel, AuditLogEntryTypeRef)
 }

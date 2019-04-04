@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailAddressAliasServiceDataDelete(): MailAddressAliasServiceDataDelete {
-	return create(_TypeModel)
+	return create(_TypeModel, MailAddressAliasServiceDataDeleteTypeRef)
 }

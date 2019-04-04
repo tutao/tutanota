@@ -1,5 +1,6 @@
 // @flow
 import {CryptoError} from "../error/CryptoError"
+import {pad} from "./StringUtils"
 
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 
@@ -46,8 +47,18 @@ export function base64ToBase64Url(base64: Base64): Base64Url {
 	return base64url
 }
 
+function makeLookup(str: string): {[string]: number} {
+	const lookup = {}
+	for (let i = 0; i < str.length; i++) {
+		lookup[str.charAt(i)] = i;
+	}
+	return lookup
+}
+
 const base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+const base64Lookup = makeLookup(base64Alphabet)
 const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
+const base64ExtLookup = makeLookup(base64extAlphabet)
 
 /**
  * Converts a base64 string to a base64ext string. Base64ext uses another character set than base64 in order to make it sortable.
@@ -58,12 +69,12 @@ const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmno
  */
 export function base64ToBase64Ext(base64: Base64): Base64Ext {
 	base64 = base64.replace(/=/g, "")
-	let base64ext = new Array(base64.length)
+	let base64ext = ""
 	for (let i = 0; i < base64.length; i++) {
-		let index = base64Alphabet.indexOf(base64.charAt(i))
-		base64ext[i] = base64extAlphabet[index]
+		let index = base64Lookup[base64.charAt(i)]
+		base64ext += base64extAlphabet[index]
 	}
-	return base64ext.join("")
+	return base64ext
 }
 
 /**
@@ -72,15 +83,20 @@ export function base64ToBase64Ext(base64: Base64): Base64Ext {
  * @returns The base64 string
  */
 export function base64ExtToBase64(base64ext: Base64Ext): Base64 {
-	let base64 = new Array(base64ext.length)
-	for (let i = 0; i < base64.length; i++) {
-		let index = base64extAlphabet.indexOf(base64ext.charAt(i))
-		base64[i] = base64Alphabet[index]
+	let base64 = ""
+	for (let i = 0; i < base64ext.length; i++) {
+		const index = base64ExtLookup[base64ext.charAt(i)]
+		base64 += base64Alphabet[index]
 	}
-	let padding = ""
-	if (base64.length % 4 === 2) padding = "=="
-	if (base64.length % 4 === 3) padding = "="
-	return base64.join("") + padding
+	let padding
+	if (base64.length % 4 === 2) {
+		padding = "=="
+	} else if (base64.length % 4 === 3) {
+		padding = "="
+	} else {
+		padding = ""
+	}
+	return base64 + padding
 }
 
 /**
@@ -89,9 +105,9 @@ export function base64ExtToBase64(base64ext: Base64Ext): Base64 {
  * @param timestamp The timestamp of the GeneratedId
  * @return The GeneratedId as hex string.
  */
-export function timestampToHexGeneratedId(timestamp: number): Hex {
+export function timestampToHexGeneratedId(timestamp: number, serverId: number): Hex {
 	let id = timestamp * 4 // shifted 2 bits left, so the value covers 44 bits overall (42 timestamp + 2 shifted)
-	let hex = parseInt(id).toString(16) + "0000000" // add one zero for the missing 4 bits plus 6 more (3 bytes) to get 9 bytes
+	let hex = parseInt(id).toString(16) + "00000" + pad(serverId, 2) // add one zero for the missing 4 bits plus 4 more (2 bytes) plus 2 more for the server id to get 9 bytes
 	// add leading zeros to reach 9 bytes (GeneratedId length) = 18 hex
 	for (let length = hex.length; length < 18; length++) {
 		hex = "0" + hex
@@ -105,8 +121,8 @@ export function timestampToHexGeneratedId(timestamp: number): Hex {
  * @param timestamp The timestamp of the GeneratedId
  * @return The GeneratedId.
  */
-export function timestampToGeneratedId(timestamp: number): Id {
-	let hex = timestampToHexGeneratedId(timestamp)
+export function timestampToGeneratedId(timestamp: number, serverId: number = 0): Id {
+	let hex = timestampToHexGeneratedId(timestamp, serverId)
 	return base64ToBase64Ext(hexToBase64(hex))
 }
 
@@ -116,12 +132,20 @@ export function timestampToGeneratedId(timestamp: number): Id {
  * @returns The timestamp of the GeneratedId
  */
 export function generatedIdToTimestamp(base64Ext: Id) {
-	let long = base64ToHex(base64ExtToBase64(base64Ext)).substring(0, 16)
-	// js only supports 32bit shift operations. That is why we split our 8 byte value into two 4 byte values and join them after shifting
-	let upper = parseInt(long.substring(0, 8), 16)
-	let lower = parseInt(long.substring(8, 16), 16)
-	let lowerShifted = lower >>> 22
-	return upper * Math.pow(2, 10) + lowerShifted
+	const base64 = base64ExtToBase64(base64Ext)
+	const decodedbB4 = atob(base64)
+	let numberResult = 0
+	// Timestamp is in the first 42 bits
+	for (let i = 0; i < 5; i++) {
+		// We "shift" each number by 8 bits to the left: numberResult << 8
+		numberResult = numberResult * 256
+		numberResult += decodedbB4.charCodeAt(i)
+	}
+	// We need to shift the whole number to the left by 2 bits (because 42 bits is encoded in 6 bytes)
+	numberResult = numberResult * 4
+	// We take only last two highest bits from the last byte
+	numberResult += decodedbB4.charCodeAt(5) >>> 6
+	return numberResult
 }
 
 /**
@@ -132,7 +156,7 @@ export function generatedIdToTimestamp(base64Ext: Id) {
  * @return The base64 string.
  */
 export function base64UrlToBase64(base64url: Base64Url): Base64 {
-	let base64 = base64url.replace(/\-/g, "+")
+	let base64 = base64url.replace(/-/g, "+")
 	base64 = base64.replace(/_/g, "/")
 	let nbrOfRemainingChars = base64.length % 4
 	if (nbrOfRemainingChars === 0) {
@@ -150,7 +174,7 @@ export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 	let fixedString
 	try {
 		fixedString = encodeURIComponent(string)
-	}catch(e) {
+	} catch (e) {
 		fixedString = encodeURIComponent(_replaceLoneSurrogates(string)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
 	}
 	let utf8 = unescape(fixedString)
@@ -236,8 +260,9 @@ export function hexToUint8Array(hex: Hex): Uint8Array {
 	return bufView
 }
 
+const hexDigits = '0123456789abcdef'
+
 export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
-	let hexDigits = '0123456789abcdef'
 	let hex = ""
 	for (let i = 0; i < uint8Array.byteLength; i++) {
 		let value = uint8Array[i]
@@ -253,8 +278,12 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
  * @return The Base64 encoded string.
  */
 export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
+	if (bytes.length < 60000) {
+		// Apply fails on big arrays fairly often
+		return btoa(String.fromCharCode.apply(null, bytes))
+	}
 	let binary = ''
-	let len = bytes.byteLength
+	const len = bytes.byteLength
 	for (let i = 0; i < len; i++) {
 		binary += String.fromCharCode(bytes[i])
 	}
@@ -278,7 +307,10 @@ export function base64ToUint8Array(base64: Base64): Uint8Array {
 	if (base64.length % 4 !== 0) {
 		throw new CryptoError(`invalid base64 length: ${base64} (${base64.length})`);
 	}
-	return new Uint8Array(atob(base64).split("").map(function (c) {
-		return c.charCodeAt(0)
-	}))
+	const binaryString = atob(base64)
+	const result = new Uint8Array(binaryString.length)
+	for (let i = 0; i < binaryString.length; i++) {
+		result[i] = binaryString.charCodeAt(i)
+	}
+	return result
 }

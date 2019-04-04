@@ -26,5 +26,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateGroupData(): CreateGroupData {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateGroupDataTypeRef)
 }

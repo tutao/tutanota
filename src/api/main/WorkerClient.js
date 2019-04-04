@@ -14,6 +14,7 @@ import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
+import type {InfoMessage} from "../common/CommonTypes"
 
 assertMainOrNode()
 
@@ -34,8 +35,10 @@ export class WorkerClient {
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
+	+infoMessages: Stream<InfoMessage>;
 
 	constructor() {
+		this.infoMessages = stream()
 		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
@@ -67,6 +70,10 @@ export class WorkerClient {
 			},
 			counterUpdate: (message: Message) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			infoMessage: (message: Message) => {
+				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
 			}
 		})
@@ -377,6 +384,10 @@ export class WorkerClient {
 
 	disableMailIndexing(): Promise<void> {
 		return this._postRequest(new Request('disableMailIndexing', arguments))
+	}
+
+	extendMailIndex(newEndTimestamp: number): Promise<void> {
+		return this._postRequest(new Request('extendMailIndex', arguments))
 	}
 
 	cancelMailIndexing(): Promise<void> {

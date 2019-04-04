@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPhoneNumber(): PhoneNumber {
-	return create(_TypeModel)
+	return create(_TypeModel, PhoneNumberTypeRef)
 }

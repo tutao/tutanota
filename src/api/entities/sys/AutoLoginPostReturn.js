@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createAutoLoginPostReturn(): AutoLoginPostReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, AutoLoginPostReturnTypeRef)
 }

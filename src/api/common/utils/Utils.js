@@ -1,6 +1,8 @@
 // @flow
 import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
+import {TypeRef} from "../EntityFunctions"
+import type {EntityUpdateData} from "../../main/EventController"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -74,8 +76,11 @@ export function clone<T>(instance: T): T {
 		return instance.map(i => clone(i))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
+	} else if (instance instanceof TypeRef) {
+		return instance
 	} else if (instance instanceof Object) {
-		let copy = {}
+		// Can only pass null or Object, cannot pass undefined
+		const copy = Object.create(instance.__proto__ || null)
 		Object.assign(copy, instance)
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
@@ -181,7 +186,28 @@ export function identity<T>(t: T): T {
 export function noOp() {}
 
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
+	return events.find(event => event.operation === type && event.instanceId === elementId) != null
+}
+
+export function getEventOfType(events: $ReadOnlyArray<EntityUpdate>, type: OperationTypeEnum, elementId: Id): ?EntityUpdate {
+	return events.find(event => event.operation === type && event.instanceId === elementId)
+}
+
+/**
+ * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
+ * Executes function with the last passed arguments
+ * @return {Function}
+ */
+export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+	let timeoutId
+	let toInvoke: (...args: A) => void;
+	return (...args: A) => {
+		if (timeoutId) {
+			clearTimeout(timeoutId)
+		}
+		toInvoke = toThrottle.bind(null, ...args)
+		timeoutId = setTimeout(toInvoke, timeout)
+	}
 }
 
 export function randomIntFromInterval(min: number, max: number): number {

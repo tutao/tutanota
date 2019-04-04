@@ -54,5 +54,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSystemKeysReturn(): SystemKeysReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, SystemKeysReturnTypeRef)
 }

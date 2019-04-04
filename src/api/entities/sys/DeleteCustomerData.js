@@ -43,5 +43,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDeleteCustomerData(): DeleteCustomerData {
-	return create(_TypeModel)
+	return create(_TypeModel, DeleteCustomerDataTypeRef)
 }

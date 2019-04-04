@@ -32,5 +32,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createExternalPropertiesReturn(): ExternalPropertiesReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, ExternalPropertiesReturnTypeRef)
 }

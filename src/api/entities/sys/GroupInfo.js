@@ -76,5 +76,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createGroupInfo(): GroupInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, GroupInfoTypeRef)
 }

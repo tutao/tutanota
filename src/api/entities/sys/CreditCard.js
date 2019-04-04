@@ -25,5 +25,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreditCard(): CreditCard {
-	return create(_TypeModel)
+	return create(_TypeModel, CreditCardTypeRef)
 }

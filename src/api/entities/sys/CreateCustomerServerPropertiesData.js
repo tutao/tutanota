@@ -29,5 +29,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateCustomerServerPropertiesData(): CreateCustomerServerPropertiesData {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateCustomerServerPropertiesDataTypeRef)
 }

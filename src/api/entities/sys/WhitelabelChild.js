@@ -47,5 +47,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createWhitelabelChild(): WhitelabelChild {
-	return create(_TypeModel)
+	return create(_TypeModel, WhitelabelChildTypeRef)
 }

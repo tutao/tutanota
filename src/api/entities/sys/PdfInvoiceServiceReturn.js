@@ -21,5 +21,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPdfInvoiceServiceReturn(): PdfInvoiceServiceReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PdfInvoiceServiceReturnTypeRef)
 }

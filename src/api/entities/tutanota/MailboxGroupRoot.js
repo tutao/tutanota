@@ -84,5 +84,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailboxGroupRoot(): MailboxGroupRoot {
-	return create(_TypeModel)
+	return create(_TypeModel, MailboxGroupRootTypeRef)
 }
