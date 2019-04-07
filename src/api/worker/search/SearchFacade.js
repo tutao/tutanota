@@ -33,13 +33,14 @@ import {
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
-import {INITIAL_MAIL_INDEX_INTERVAL_MILLIS, MailIndexer} from "./MailIndexer"
+import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
+import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -200,9 +201,12 @@ export class SearchFacade {
 
 	_startOrContinueSearch(searchResult: SearchResult, maxResults: ?number): Promise<void> {
 		markStart("findIndexEntries")
-		if (searchResult.moreResults.length === 0 && (Date.now() - this._mailIndexer.currentIndexTimestamp) < INITIAL_MAIL_INDEX_INTERVAL_MILLIS
+		if (searchResult.moreResults.length === 0
+			&& getStartOfDay(getDayShifted(new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime()
+			> getStartOfDay(getDayShifted(new Date(), 1))
 			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
-			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(), Date.now() - INITIAL_MAIL_INDEX_INTERVAL_MILLIS)
+			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(),
+				getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))
 		}
 
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>

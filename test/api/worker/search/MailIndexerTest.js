@@ -361,7 +361,7 @@ o.spec("MailIndexer test", () => {
 	}
 
 	o.spec("_indexMailLists", function () {
-		const rangeStart = 1513033200000
+		const rangeStart = 1554415200000 // should be 1554415200000
 		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime()
 		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
@@ -757,11 +757,11 @@ o.spec("MailIndexer test", () => {
 			const currentIndexTimestamp = 1551884510318
 			indexer.currentIndexTimestamp = currentIndexTimestamp
 
-			await indexer.extendIndexIfNeeded(user, currentIndexTimestamp - INITIAL_MAIL_INDEX_INTERVAL_DAYS)
+			await indexer.extendIndexIfNeeded(user, currentIndexTimestamp - INITIAL_MAIL_INDEX_INTERVAL_DAYS * 24 * 60 * 60 * 1000)
 
 			o(indexer.indexMailboxes.invocations).deepEquals([
 				// Start of the day
-				[user, 1551826800000]
+				[user, 1549411200000]
 			])
 		})
 	})

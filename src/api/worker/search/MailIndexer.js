@@ -27,7 +27,6 @@ import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-export const INITIAL_MAIL_INDEX_INTERVAL_MILLIS = INITIAL_MAIL_INDEX_INTERVAL_DAYS * 1000 * 60 * 60 * 24
 
 const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
