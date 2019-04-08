@@ -388,9 +388,10 @@ o.spec("MailIndexer test", () => {
 		//  |--------------------------------------|---------------|---------------|
 		//  rangeStart                           rangeEnd      rangeEnd2          rangeEndShifted2Days
 		//                     m4    m3        m2     m1                            m0
-		const rangeStart = 1554415200000 // should be 1554415200000
-		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
-		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime()
+		const rangeStart = 1554415200000
+		// Simulating time zone changes by adding/subtracting one hour
+		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime() + 60 * 60 * 1000
+		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
 		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 
 		const mailGroup = "mail-group-id"

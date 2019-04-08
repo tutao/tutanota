@@ -324,8 +324,13 @@ export class MailIndexer {
 	_indexMailListsInTimeBatches(dataPerMailbox: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor,
 	                             indexLoader: IndexLoader): Promise<void> {
 		const [rangeStart, rangeEnd] = timeRange
-		const batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		let batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
+		if (batchEnd < rangeEnd) {
+			batchEnd = rangeEnd
+		}
 		const mailboxesToWrite = dataPerMailbox.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
+
 		const batchRange = [rangeStart, batchEnd]
 
 		// rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
