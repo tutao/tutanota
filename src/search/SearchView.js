@@ -25,7 +25,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
-import {formatDateWithMonth} from "../misc/Formatter"
+import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
@@ -225,19 +225,19 @@ export class SearchView implements CurrentView {
 			start = formatDateWithMonth(getFreeSearchStartDate())
 		} else {
 			if (this._endDate) {
-				end = formatDateWithMonth(this._endDate)
+				end = formatDateWithTimeIfNotEven(this._endDate)
 			} else {
 				end = lang.get("today_label")
 			}
 			if (this._startDate) {
-				start = formatDateWithMonth(this._startDate)
+				start = formatDateWithTimeIfNotEven(this._startDate)
 			} else {
 				let currentIndexDate = this._getCurrentMailIndexDate()
 				if (currentIndexDate) {
 					if (isSameDay(currentIndexDate, new Date())) {
 						start = lang.get("today_label")
 					} else {
-						start = formatDateWithMonth(currentIndexDate)
+						start = formatDateWithTimeIfNotEven(currentIndexDate)
 					}
 				} else {
 					start = lang.get("unlimited_label")

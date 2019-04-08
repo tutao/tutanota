@@ -168,21 +168,6 @@ type ThemeId = 'light' | 'dark' | 'custom'
 
 declare var navigator: Navigator;
 
-declare class DateTimeFormat {
-	constructor(lang: string, options?: Object): void;
-	format(d: Date): string;
-}
-
-declare class NumberFormat {
-	constructor(lang: string, options?: Object): void;
-	format(value: number): string;
-}
-
-declare class Intl {
-	static DateTimeFormat: DateTimeFormat;
-	static NumberFormat: NumberFormat;
-}
-
 type SanitizeResult = {
 	text: string,
 	externalContent: string[]

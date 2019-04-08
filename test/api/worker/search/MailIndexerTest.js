@@ -33,7 +33,23 @@ import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
 import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFolderRef"
 import {EntityRestClientMock} from "../EntityRestClientMock"
+import type {DateProvider} from "../../../../src/api/worker/DateProvider"
+import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
 
+class FixedDateProvider implements DateProvider {
+	now: number;
+
+	constructor(now: number) {
+		this.now = now;
+	}
+
+	getStartOfDayShiftedBy(shiftedBy: number) {
+		const date = getDayShifted(new Date(this.now), shiftedBy)
+		// Making start of the day in UTC to make it determenistic. beforeNowInterval is calculated just like that and hardcoded to be reliable
+		date.setUTCHours(0, 0, 0, 0)
+		return date
+	}
+}
 
 const dbMock: any = {iv: fixedIv}
 const emptyFutureActions: FutureBatchActions = {deleted: new Map(), moved: new Map()}
@@ -43,15 +59,17 @@ const mailId = "L-dNNLe----0"
 o.spec("MailIndexer test", () => {
 
 	let entityMock: EntityRestClientMock
+	let dateProvider: DateProvider
 	o.beforeEach(function () {
 		entityMock = new EntityRestClientMock()
+		dateProvider = new LocalTimeDateProvider()
 	})
 
 	o("createMailIndexEntries without entries", function () {
 		let mail = createMail()
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any))
+		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any), dateProvider)
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(0)
 	})
@@ -61,14 +79,14 @@ o.spec("MailIndexer test", () => {
 		mail.subject = "Hello"
 		let body = createMailBody()
 		let files = [createFile()]
-		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any))
+		let indexer = new MailIndexer(new IndexerCore(dbMock, (null: any), browserDataStub), (null: any), (null: any), (null: any), (null: any), dateProvider)
 		let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
 		o(keyToIndexEntries.size).equals(1)
 	})
 
 	o("createMailIndexEntries", function () {
 		let core: IndexerCore = ({createIndexEntriesForAttributes: o.spy(), _stats: {}}: any)
-		let indexer = new MailIndexer(core, dbMock, (null: any), (null: any), (null: any))
+		let indexer = new MailIndexer(core, dbMock, (null: any), (null: any), (null: any), dateProvider)
 
 		let toRecipients = [createMailAddress(), createMailAddress()]
 		toRecipients[0].address = "tr0A"
@@ -139,7 +157,7 @@ o.spec("MailIndexer test", () => {
 		let event: EntityUpdate = ({instanceListId: mailListId, instanceId: mailElementId}: any)
 		entityMock.addListInstances(mail, ...files)
 		entityMock.addElementInstances(body)
-		let indexer = mock(new MailIndexer((null: any), dbMock, (null: any), entityMock, entityMock), mocked => {
+		let indexer = mock(new MailIndexer((null: any), dbMock, (null: any), entityMock, entityMock, dateProvider), mocked => {
 			mocked.createMailIndexEntries = o.spy((mailParam, bodyParam, filesParam) => {
 				o(mailParam).deepEquals(mail)
 				o(bodyParam).deepEquals(body)
@@ -154,7 +172,7 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("processNewMail catches NotFoundError", function (done) {
-		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock)
+		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).then(result => {
 			o(result).equals(null)
@@ -163,7 +181,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processNewMail catches NotAuthorizedError", function (done) {
 		entityMock.setException("eid", new NotAuthorizedError("blah"))
-		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock)
+		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).then(result => {
 			o(result).equals(null)
@@ -172,7 +190,7 @@ o.spec("MailIndexer test", () => {
 
 	o("processNewMail passes other Errors", function (done) {
 		entityMock.setException(["lid", "eid"], new Error("blah"))
-		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock)
+		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
 		indexer.processNewMail(event).catch(Error, e => {
 			done()
@@ -197,7 +215,7 @@ o.spec("MailIndexer test", () => {
 			}
 		}
 
-		const indexer = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
+		const indexer = new MailIndexer((null: any), db, (null: any), (null: any), (null: any), dateProvider)
 
 		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		indexer.processMovedMail(event, indexUpdate).then(() => {
@@ -227,7 +245,7 @@ o.spec("MailIndexer test", () => {
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId, fixedIv)
 
 		const core: any = {encryptSearchIndexEntries: o.spy()}
-		const indexer: any = new MailIndexer(core, db, (null: any), (null: any), (null: any))
+		const indexer: any = new MailIndexer(core, db, (null: any), (null: any), (null: any), dateProvider)
 		let result = {mail: {_id: 'mail-id', _ownerGroup: 'owner-group'}, keyToIndexEntries: new Map()}
 		indexer.processNewMail = o.spy(() => Promise.resolve(result))
 
@@ -265,7 +283,13 @@ o.spec("MailIndexer test", () => {
 		let spamFolder = createMailFolder()
 		spamFolder.mails = "mail-list-id"
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
-		const indexer = mock(new MailIndexer((null: any), db, (null: any), (null: any), (null: any)), (mocked) => {
+
+		// There was a timezone shift in Germany in this time range
+		const now = 1554720827674 // 2019-04-08T10:53:47.674Z
+		const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
+		const dateProvider = new FixedDateProvider(now)
+
+		const indexer = mock(new MailIndexer((null: any), db, (null: any), (null: any), (null: any), dateProvider), (mocked) => {
 			mocked.indexMailboxes = spy(() => Promise.resolve())
 			mocked.mailIndexingEnabled = false
 			mocked._excludedListIds = []
@@ -275,10 +299,9 @@ o.spec("MailIndexer test", () => {
 			}
 		})
 
-		const startOfDayTimestamp = getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime()
 		indexer.enableMailIndexing(user).then(() => {
 			o(indexer.indexMailboxes.invocations[0])
-				.deepEquals([user, startOfDayTimestamp])
+				.deepEquals([user, beforeNowInterval])
 
 			o(indexer.mailIndexingEnabled).equals(true)
 			o(indexer._excludedListIds).deepEquals([spamFolder.mails])
@@ -304,7 +327,7 @@ o.spec("MailIndexer test", () => {
 		}
 
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {createTransaction: () => Promise.resolve(transaction)}}: any)
-		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
+		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any), dateProvider)
 		indexer.indexMailboxes = o.spy()
 
 		indexer.mailIndexingEnabled = false
@@ -321,7 +344,7 @@ o.spec("MailIndexer test", () => {
 
 	o("disableMailIndexing", function () {
 		let db: Db = ({key: aes256RandomKey(), dbFacade: {deleteDatabase: o.spy()}}: any)
-		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any))
+		const indexer: any = new MailIndexer((null: any), db, (null: any), (null: any), (null: any), dateProvider)
 		indexer.mailIndexingEnabled = true
 		indexer._excludedListIds = [1]
 		indexer.disableMailIndexing()
@@ -331,7 +354,7 @@ o.spec("MailIndexer test", () => {
 	})
 
 	o("indexMailboxes disabled", function (done) {
-		const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock), (mocked) => {
+		const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider), (mocked) => {
 			mocked.mailIndexingEnabled = false
 			mocked.indexMailboxes(createUser(), 1512946800000).then(done)
 		})
@@ -361,9 +384,14 @@ o.spec("MailIndexer test", () => {
 	}
 
 	o.spec("_indexMailLists", function () {
-		const rangeStart = 1513033200000
-		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
-		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime()
+		// now                                  now - 28d      now - 29d       now - 30d
+		//  |--------------------------------------|---------------|---------------|
+		//  rangeStart                           rangeEnd      rangeEnd2          rangeEndShifted2Days
+		//                     m4    m3        m2     m1                            m0
+		const rangeStart = 1554415200000
+		// Simulating time zone changes by adding/subtracting one hour
+		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime() + 60 * 60 * 1000
+		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
 		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 
 		const mailGroup = "mail-group-id"
@@ -403,7 +431,7 @@ o.spec("MailIndexer test", () => {
 			})
 
 			const worker = ({sendIndexState: () => Promise.resolve()}: any)
-			indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+			indexer = new MailIndexer(core, db, worker, entityMock, entityMock, dateProvider)
 		})
 
 		o("one mailbox until certain point", async function () {
@@ -728,7 +756,7 @@ o.spec("MailIndexer test", () => {
 			const core = makeCore()
 			const db = (null: any)
 			const worker = (null: any)
-			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock, dateProvider)
 			const user = (null: any)
 			indexer.currentIndexTimestamp = FULL_INDEXED_TIMESTAMP
 
@@ -740,7 +768,7 @@ o.spec("MailIndexer test", () => {
 			const core = makeCore()
 			const db = (null: any)
 			const worker = (null: any)
-			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock)
+			const indexer = new MailIndexer(core, db, worker, entityMock, entityMock, dateProvider)
 			const user = (null: any)
 			const newOldTimestamp = Date.now()
 			indexer.currentIndexTimestamp = newOldTimestamp - 1000
@@ -751,17 +779,20 @@ o.spec("MailIndexer test", () => {
 
 		o("extends", async function () {
 			const user = createUser()
-			const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock), (mocked) => {
+
+			const currentIndexTimestamp = 1554720827674 // 2019-04-08T10:53:47.674Z
+			const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
+			const dateProvider = new FixedDateProvider(currentIndexTimestamp)
+			const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider), (mocked) => {
 				mocked.indexMailboxes = spy(() => Promise.resolve())
 			})
-			const currentIndexTimestamp = 1551884510318
 			indexer.currentIndexTimestamp = currentIndexTimestamp
 
-			await indexer.extendIndexIfNeeded(user, currentIndexTimestamp - INITIAL_MAIL_INDEX_INTERVAL_DAYS)
+			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
 
 			o(indexer.indexMailboxes.invocations).deepEquals([
 				// Start of the day
-				[user, 1551826800000]
+				[user, beforeNowInterval]
 			])
 		})
 	})
@@ -816,7 +847,7 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 		iv: fixedIv
 	}: any)
 	let worker: WorkerImpl = ({sendIndexState: o.spy()}: any)
-	const indexer = mock(new MailIndexer(core, db, worker, entityMock, entityMock), (mock) => {
+	const indexer = mock(new MailIndexer(core, db, worker, entityMock, entityMock, new LocalTimeDateProvider()), (mock) => {
 		mock.mailIndexingEnabled = true
 		mock._loadMailListIds = (mbox) => {
 			o(mbox).equals(mailbox)
@@ -874,7 +905,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 	const entityMock = new EntityRestClientMock()
 	entityMock.addElementInstances(body)
 	entityMock.addListInstances(mail)
-	return mock(new MailIndexer(core, db, (null: any), entityMock, entityMock), (mocked) => {
+	return mock(new MailIndexer(core, db, (null: any), entityMock, entityMock, new LocalTimeDateProvider()), (mocked) => {
 		mocked.processNewMail = spy(mocked.processNewMail.bind(mocked))
 		mocked.processMovedMail = spy(mocked.processMovedMail.bind(mocked))
 		mocked.mailIndexingEnabled = indexingEnabled

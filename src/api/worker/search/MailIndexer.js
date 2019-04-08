@@ -16,7 +16,6 @@ import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
-import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
@@ -25,9 +24,9 @@ import type {FutureBatchActions} from "./EventQueue"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
+import type {DateProvider} from "../DateProvider"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-export const INITIAL_MAIL_INDEX_INTERVAL_MILLIS = INITIAL_MAIL_INDEX_INTERVAL_DAYS * 1000 * 60 * 60 * 24
 
 const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -46,8 +45,10 @@ export class MailIndexer {
 	_worker: WorkerImpl;
 	_entityRestClient: EntityRestInterface;
 	_defaultCachingClient: EntityWorker;
+	_dateProvider: DateProvider;
 
-	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestInterface, defaultCachingRestClient: EntityRestInterface) {
+	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestInterface, defaultCachingRestClient: EntityRestInterface,
+	            dateProvider: DateProvider) {
 		this._core = core
 		this._db = db
 		this._defaultCachingClient = new EntityWorker(defaultCachingRestClient)
@@ -59,6 +60,7 @@ export class MailIndexer {
 		this._indexingCancelled = false
 		this._excludedListIds = []
 		this._entityRestClient = entityRestClient
+		this._dateProvider = dateProvider
 	}
 
 
@@ -153,8 +155,8 @@ export class MailIndexer {
 							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 							                         // create index in background, cancellation is handled in Indexer.enableMailIndexing
-							                         const oldestTimestamp = getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))
-								                         .getTime()
+							                         const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS)
+							                                                     .getTime()
 							                         this.indexMailboxes(user, oldestTimestamp)
 							                             .catch(CancelledError, (e) => {console.log("cancelled initial indexing", e)})
 							                         return t2.wait()
@@ -182,10 +184,14 @@ export class MailIndexer {
 		return Promise.resolve()
 	}
 
+	/**
+	 * Extend mail index if not indexed this range yet.
+	 * newOldestTimestamp should be aligned to the start of the day up until which you want to index, we don't do rounding inside here.
+	 */
 	extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		return this.mailboxIndexingPromise.then(() => {
 			if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-				this.indexMailboxes(user, getStartOfDay(new Date(newOldestTimestamp)).getTime())
+				this.indexMailboxes(user, newOldestTimestamp)
 				    .catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
 				return this.mailboxIndexingPromise
 			}
@@ -228,7 +234,7 @@ export class MailIndexer {
 								           return null
 							           } else {
 								           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-									           ? getDayShifted(getStartOfDay(new Date()), 1)
+									           ? this._dateProvider.getStartOfDayShiftedBy(1)
 									           : groupData.indexTimestamp
 								           if (newestTimestamp > oldestTimestamp) {
 									           return {mbox, newestTimestamp}
@@ -247,7 +253,6 @@ export class MailIndexer {
 			})
 			.then(() => {
 				this._core.printStatus()
-				console.log("finished indexing")
 				return this.updateCurrentIndexTimestamp(user)
 				           .then(() =>
 					           this._worker.sendIndexState({
@@ -319,11 +324,19 @@ export class MailIndexer {
 	_indexMailListsInTimeBatches(dataPerMailbox: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, progress: ProgressMonitor,
 	                             indexLoader: IndexLoader): Promise<void> {
 		const [rangeStart, rangeEnd] = timeRange
-		const batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		let batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
+		if (batchEnd < rangeEnd) {
+			batchEnd = rangeEnd
+		}
 		const mailboxesToWrite = dataPerMailbox.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
+
 		const batchRange = [rangeStart, batchEnd]
 
-		if (batchEnd < rangeEnd) { // all ranges have been processed
+		// rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
+		// If it's less then we overdid a little bit but we've covered the range and we will write down rangeStart so
+		// we will continue from it next time.
+		if (rangeStart <= rangeEnd) { // all ranges have been processed
 			const indexTimestampPerGroup = mailboxesToWrite.map(data => ({
 				groupId: data.ownerGroup,
 				indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : rangeStart
