@@ -131,6 +131,11 @@ export class SearchBar implements Component {
 						shortcuts = this._setupShortcuts()
 						keyManager.registerShortcuts(shortcuts)
 						locator.search.indexState.map((indexState) => {
+							// When we finished indexing, search again forcibly to not confuse anyone with old results
+							const currentResult = this._state().searchResult
+							if (currentResult && this._state().indexState.progress !== 0 && indexState.progress === 0) {
+								this._doSearch(this._state().query, currentResult.restriction, m.redraw)
+							}
 							this._updateState({indexState})
 						})
 						indexStateStream = this._state.map((state) => {
