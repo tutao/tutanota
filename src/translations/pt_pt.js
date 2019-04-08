@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 	"name": "pt",
 	"code": "pt_pt",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2019-03-07T10:38:42Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Por favor, abaixo clique num dos seus números de telefone para receber a sua palavra-passe Tutanota como menssagem de texto.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escolha...",
+		"clearFolder_action": "Limpar pasta",
 		"clickNumber_msg": "Por favor, abaixo clique no seu número de telefone para receber a sua palavra-passe Tutanota como mensagem de texto.",
 		"clickToUpdate_msg": "Clique aqui se você quiser aplicá-lo agora, ou deixe-nos instalar automaticamente ao sair.",
 		"client_label": "Cliente",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "O remetente técnico é diferente do endereço de email em 'De'. Como o 'De' pode ser falsificado, o remetente técnico é também exibido para ter a certeza de quem realmente enviou este email.",
 		"errorAtLine_msg": "Erro na linha {index}: {error}",
+		"errorDuringUpdate_msg": "Algo errado aconteceu durante o proceso de atualização, iremos tentar novamente mais tarde.",
 		"errorReport_label": "Oh, não!",
 		"expiredLink_msg": "Lamentamos, mas esta ligação já não é válida. Deverá ter recebido uma nova notificação com a ligação atualmente válida. As ligações antigas são removidas por razões de segurança.",
 		"exportSelectedAsVCard_action": "Exportar contactos seleccionados como vCard",
@@ -568,7 +568,6 @@ const translation = {
 		"notAvailableInApp_msg": "Esta função não está disponível na aplicação móvel.",
 		"notFound404_msg": "Lamentamos, a página que procura não foi encontrada. Tente procurar erros no URL e pressione o botão de atualização do browser.",
 		"notificationMailLanguage_label": "Idioma do email de notificação",
-		"notificationMailSendFailureBody_msg": "Lamentamos informar que não foi possível entregar a notificação de email que segue.",
 		"notificationsDisabled_label": "Desativado",
 		"notificationSettings_action": "Notificações",
 		"notSigned_msg": "Não assinado!",
@@ -824,6 +823,7 @@ const translation = {
 		"storageCapacityUsed_label": "Armazenamento utilizado",
 		"storageCapacity_label": "Armazenamento",
 		"storageDeletionAnnouncement_msg": "Info: Emails movidos para as pastas reciclagem ou spam serão automaticamente eliminados ao fim de 30 dias.",
+		"storageDeletion_msg": "Os emails desta pasta serão automaticamente eliminados após 30 dias.",
 		"storePassword_action": "Guardar palavra-passe",
 		"subject_label": "Assunto",
 		"subscriptionCancelledMessage_msg": "A sua subscrição foi cancelada. Por favor contacte o apoio para reativar a sua subscrição.",
@@ -937,5 +937,3 @@ const translation = {
 		"yourMessage_label": "A sua mensagem"
 	}
 }
-export default translation
-export var __useDefault = translation

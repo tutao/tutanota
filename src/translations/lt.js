@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "c422d719f2cb6aff639b4e5c8d87e0a0",
 	"name": "lt",
 	"code": "lt",
@@ -14,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -627,5 +625,3 @@ const translation = {
 		"yourMessage_label": "Jūsų žinutė"
 	}
 }
-export default translation
-export var __useDefault = translation

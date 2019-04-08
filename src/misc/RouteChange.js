@@ -2,7 +2,7 @@
 import stream from "mithril/stream/stream.js"
 import m from "mithril"
 
-export type RouteChangeEvent = {args: Object, requestedPath: string}
+export type RouteChangeEvent = {args: Object, requestedPath: string, currentPath: string}
 
 export const routeChange: Stream<RouteChangeEvent> = stream()
 

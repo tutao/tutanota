@@ -82,11 +82,11 @@ export const ContactSocialType = Object.freeze({
 export type ContactSocialTypeEnum = $Values<typeof ContactSocialType>;
 export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialTypeEnum => downcast(contactSocialId.type)
 
-export const OperationType = Object.freeze({
+export const OperationType = {
 	CREATE: '0',
 	UPDATE: '1',
 	DELETE: '2'
-})
+}
 export type OperationTypeEnum = $Values<typeof OperationType>;
 
 export const AccountType = Object.freeze({
@@ -152,7 +152,8 @@ export type ConversationTypeEnum = $Values<typeof ConversationType>;
 export const MailState = Object.freeze({
 	DRAFT: '0',
 	SENT: '1',
-	RECEIVED: '2'
+	RECEIVED: '2',
+	SENDING: '3'
 })
 export type MailStateEnum = $Values<typeof MailState>;
 
@@ -327,3 +328,16 @@ export const Announcement = Object.freeze({
 	None: '0',
 	StorageDeletion: '1'
 })
+
+export const CertificateState = Object.freeze({
+	VALID: '0',
+	VALIDATING: '1',
+	INVALID: '2'
+})
+export type CertificateStateEnum = $Values<typeof CertificateState>
+
+export const CertificateType = Object.freeze({
+	MANUAL: '0',
+	LETS_ENCRYPT: '1',
+})
+export type CertificateTypeEnum = $Values<typeof CertificateType>

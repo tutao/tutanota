@@ -4,7 +4,6 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {neverNull} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
@@ -133,7 +132,8 @@ export class IPC {
 				//first, send error report if there is one
 				err.sendErrorReport(windowId)
 				   .then(() => {
-					   const w = neverNull(this._wm.get(windowId))
+					   const w = this._wm.get(windowId)
+					   if (!w) return
 					   w.setUserInfo(uInfo)
 					   if (!w.isHidden()) {
 						   this._notifier.resolveGroupedNotification(uInfo.userId)

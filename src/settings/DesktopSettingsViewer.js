@@ -27,10 +27,10 @@ const DownloadLocationStrategy = Object.freeze({
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
 
-	_isDefaultMailtoHandler: stream<?boolean>;
-	_defaultDownloadPath: stream<string>;
-	_runAsTrayApp: stream<?boolean>;
-	_runOnStartup: stream<?boolean>;
+	_isDefaultMailtoHandler: Stream<?boolean>;
+	_defaultDownloadPath: Stream<string>;
+	_runAsTrayApp: Stream<?boolean>;
+	_runOnStartup: Stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {

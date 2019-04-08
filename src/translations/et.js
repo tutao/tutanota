@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "7ae7c62e37e94a100aac7f2ee6d2df41",
 	"name": "et",
 	"code": "et",
@@ -395,7 +393,6 @@ const translation = {
 		"notASubdomain_msg": "See domeen ei ole alamdomeen.",
 		"notFound404_msg": "Vabandage, kuid lehekülge, mida otsite, ei leitud. Proovige kontrollida võimalikke vigu URL'is ja vajutage brauseris \"värskenda\" nuppu. ",
 		"notificationMailLanguage_label": "Teavituskirja keel",
-		"notificationMailSendFailureBody_msg": "Vabandusega teatame, et järgnev teavituskiri ei jõudnud kohale.",
 		"notificationsDisabled_label": "Keelatud",
 		"notificationSettings_action": "Teated",
 		"no_label": "Ei",
@@ -634,5 +631,3 @@ const translation = {
 		"yourMessage_label": "Sinu sõnum"
 	}
 }
-export default translation
-export var __useDefault = translation

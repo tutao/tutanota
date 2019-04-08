@@ -1,6 +1,6 @@
 //@flow
 import o from "ospec/ospec.js"
-import {arrayEquals, concat, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
+import {arrayEquals, concat, findLastIndex, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
 
 o.spec("array utils", function () {
 
@@ -30,4 +30,13 @@ o.spec("array utils", function () {
 		o(splitInChunks(3, [])).deepEquals([[]])
 	})
 
+	o.spec("findLastIndex", function () {
+		o("returns the last index", function () {
+			o(findLastIndex([8, 1, 2, 8, 4, 5], (n) => n === 8)).equals(3)
+		})
+
+		o("returns -1 if not found", function () {
+			o(findLastIndex([1, 2, 3, 4, 5], (n) => n === 8)).equals(-1)
+		})
+	})
 })

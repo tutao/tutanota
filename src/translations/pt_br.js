@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92b6d040e25fb7052101a48c6e755d55",
 	"name": "pt_br",
 	"code": "pt_br",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2019-03-10T03:01:51Z",
+	"updated_at": "2019-03-31T12:00:35Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -125,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Por favor clique em um dos números de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escolha...",
+		"clearFolder_action": "Limpar pasta",
 		"clickNumber_msg": "Por favor clique em seu número de telefone abaixo para receber sua senha Tutanota via mensagem de texto.",
 		"clickToUpdate_msg": "Clique aqui se quiser atualizar agora, ou deixe-nos instalar ao fechar.",
 		"client_label": "Cliente",
@@ -291,6 +290,7 @@ const translation = {
 		"enum_label": "Enumeração",
 		"envelopeSenderInfo_msg": "O remetente real do e-mail é diferente do remetente informado nos metadados no campo 'De'. Como o remetente pode ser falso, o remetente real também está sendo exibido para que você compreenda quem realmente enviou este e-mail.",
 		"errorAtLine_msg": "Erro na linha {index}: {error}",
+		"errorDuringUpdate_msg": "Algo deu errado durante o processo de atualização. Tentaremos novamente mais tarde.",
 		"errorReport_label": "Oh, não!",
 		"expiredLink_msg": "Desculpe, este link não é mais válido. Você deve ter recebido uma nova notificação com um endereço válido. Links anteriores são removidos por razões de segurança.",
 		"exportSelectedAsVCard_action": "Exportar contatos selecionados com vCard",
@@ -514,9 +514,11 @@ const translation = {
 		"mailNotificationHello_msg": "Ola,",
 		"mailNotificationRegards_msg": "Meus cumprimentos, {1} sua equipe Tutanota",
 		"mailSendFailureBody_msg": "Lamentamos informá-lo que não foi possível entregar o e-mail abaixo.",
-		"mailSendFailureCustomerOnlyBody_msg": "Lamentamos, sua mensagem não pôde ser entregue ao destinatário {recipient}.\n\nVocê não tem permissão para enviar mensagens para destinatários fora da sua organização.",
-		"mailSendFailureNonExistingRecipientBody_msg": "Lamentamos, sua mensagem não pôde ser entregue ao destinatário {recipient}.\n\nO destinatário não existe.",
+		"mailSendFailureCustomerOnlyBody_msg": "Você não tem permissão para enviar mensagens para destinatários de fora da sua organização.",
+		"mailSendFailureNonExistingRecipientBody_msg": "O destinatário não existe.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "O destinatário atingiu o limite máximo de área de armazenamento.",
 		"mailSendFailureSubject_msg": "O email não pôde ser entregue",
+		"mailSendFailureTechnicalError_msg": "Ocorreu um erro técnico. Por favor, tente novamente mais tarde ou entre em contato com o nosso setor de suporte. ID do erro: {errorId}",
 		"mailSettings_label": "Configurações de email",
 		"mailView_action": "Ir para os emails",
 		"makeLink_action": "Criar link",
@@ -568,7 +570,6 @@ const translation = {
 		"notAvailableInApp_msg": "Esta função não está disponível para o dispositivo móvel. ",
 		"notFound404_msg": "Desculpe, a página que você procura não foi encontrada. Verifique se digitou o endereço corretamente e pressione o botão para atualizar a página. ",
 		"notificationMailLanguage_label": "Idioma do email de notificação",
-		"notificationMailSendFailureBody_msg": "Infelizmente o seguinte email de notificação não pode ser entregue.",
 		"notificationsDisabled_label": "Desativado",
 		"notificationSettings_action": "Notificações",
 		"notSigned_msg": "Não assinado.",
@@ -726,7 +727,7 @@ const translation = {
 		"replyAll_action": "Responder a todos",
 		"replyTo_label": "ResponderPara",
 		"reply_action": "Responder",
-		"requestApproval_msg": "Desculpe, no momento você não tem permissão para enviar ou receber emails (exceto para o suporte do Tutanota) porque sua conta foi marcada para verificação para evitar abusos como spam. Por favor, contate-nos em approval@tutao.de a partir da sua conta Tutanota e descreva para qual finalidade você gostaria de usar esta conta.",
+		"requestApproval_msg": "Desculpe, no momento você não tem permissão para enviar ou receber emails (exceto para o suporte do Tutanota) porque sua conta foi marcada para verificação para evitar abusos como spam. Por favor, contate-nos em approval@tutao.de a partir da sua conta Tutanota e descreva para qual finalidade você gostaria de usar esta conta. Por favor, redija o texto em inglês ou alemão. Obrigado! ",
 		"responsiblePersonsInfo_msg": "Limite os usuários em que a mensagem da caixa de e-mail receptora possa ser encaminhada. Não há restrições se a lista estiver vazia.",
 		"responsiblePersons_label": "Pessoais responsáveis",
 		"restartBefore_action": "Reiniciar Tutanota antes de enviar",
@@ -824,6 +825,7 @@ const translation = {
 		"storageCapacityUsed_label": "Espaço utilizado",
 		"storageCapacity_label": "Armazenamento:",
 		"storageDeletionAnnouncement_msg": "Atenção: Emails movidos para Lixeira ou Spam são automaticamente  excluídos após 30 dias.",
+		"storageDeletion_msg": "Os emails nesta pasta serão excluídos automaticamente após 30 dias.",
 		"storePassword_action": "Lembrar senha",
 		"subject_label": "Assunto",
 		"subscriptionCancelledMessage_msg": "Seu plano de assinatura foi cancelado. Por favor entre em contato com o suporte para reativar seu plano de assinatura.",
@@ -937,5 +939,3 @@ const translation = {
 		"yourMessage_label": "Sua mensagem"
 	}
 }
-export default translation
-export var __useDefault = translation

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "7c5abe41bb0368d1942aa01b24158d75",
 	"name": "gl",
 	"code": "gl",
@@ -16,7 +14,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2019-03-01T09:50:35Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",
@@ -550,7 +548,6 @@ const translation = {
 		"notAvailableInApp_msg": "Esta función non está dispoñible na app móbil",
 		"notFound404_msg": "Desculpe, pero non atopamos a páxina que busca. Comprobe si o URL contén erros e pulse o botón de refresco no seu navegador.",
 		"notificationMailLanguage_label": "Idioma do correo de notificación",
-		"notificationMailSendFailureBody_msg": "Lamentamos facerlle saber que a seguinte notificación de correo non puido ser entregada.",
 		"notificationsDisabled_label": "Desactivado",
 		"notificationSettings_action": "Notificacións",
 		"notSigned_msg": "Non conectada.",
@@ -907,5 +904,3 @@ const translation = {
 		"yourMessage_label": "A súa mensaxe"
 	}
 }
-export default translation
-export var __useDefault = translation

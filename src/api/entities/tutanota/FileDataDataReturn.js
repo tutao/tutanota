@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createFileDataDataReturn(): FileDataDataReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, FileDataDataReturnTypeRef)
 }

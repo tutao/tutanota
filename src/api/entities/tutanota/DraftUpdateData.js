@@ -34,9 +34,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createDraftUpdateData(): DraftUpdateData {
-	return create(_TypeModel)
+	return create(_TypeModel, DraftUpdateDataTypeRef)
 }

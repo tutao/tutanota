@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "0ab6e705ed85671452240a810c5b25dc",
 	"name": "no",
 	"code": "no",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2019-03-01T09:50:05Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Vennligst godta personvernreglene ved å merke av i avkrysningsruten.",
@@ -561,7 +559,6 @@ const translation = {
 		"notAvailableInApp_msg": "Denne funksjonen er ikke tilgjengelig på mobil appen.",
 		"notFound404_msg": "Beklager, siden du ser etter ble ikke funnet. Sjekk URL-adressen for feil og trykk Oppdater.",
 		"notificationMailLanguage_label": "Språk i e-post med varsling:",
-		"notificationMailSendFailureBody_msg": "Vi beklager å måtte fortelle deg at den følgende varslingsemailen ikke kunne leveres.",
 		"notificationsDisabled_label": "Deaktivert",
 		"notificationSettings_action": "Varsler",
 		"notSigned_msg": "Ikke signert.",
@@ -927,5 +924,3 @@ const translation = {
 		"yourMessage_label": "Din melding"
 	}
 }
-export default translation
-export var __useDefault = translation

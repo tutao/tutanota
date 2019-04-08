@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "11f201a619413fb4269642880313942c",
 	"name": "da",
 	"code": "da",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2019-03-09T07:31:28Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -506,7 +504,7 @@ const translation = {
 		"mailNotificationHello_msg": "Hej,",
 		"mailNotificationRegards_msg": "Tak og venlig hilsen, {1}dit Tutanota-team",
 		"mailSendFailureBody_msg": "Vi er kede af at fortælle dig at følgende mail ikke kunne leveres.",
-		"mailSendFailureCustomerOnlyBody_msg": "Vi beklager, din sidste besked ikke kunne leveres til {recipient}.\n\nDet er ikke tilladt at sende beskeder til modtagere uden for din organisation.",
+		"mailSendFailureCustomerOnlyBody_msg": "Det er ikke tilladt at sende beskeder til modtagere uden for din organisation.",
 		"mailSendFailureNonExistingRecipientBody_msg": "Vi beklager, din sidste besked kunne ikke leveres til {recipient}.\n\nModtageren eksisterer ikke.",
 		"mailSendFailureSubject_msg": "E-mail kunne ikke leveres",
 		"mailSettings_label": "E-mail indstillinger",
@@ -560,7 +558,6 @@ const translation = {
 		"notAvailableInApp_msg": "Denne funktion er ikke tilgængelig i mobilappen.",
 		"notFound404_msg": "Beklager, men siden du leder efter blev ikke fundet. Prøv at tjekke URL'en for fejl og tryk genindlæs på din browser.",
 		"notificationMailLanguage_label": "Sprog for meddelelsesmail",
-		"notificationMailSendFailureBody_msg": "Vi må desværre meddele dig at følgende påmindelsesmail ikke kunne leveres.",
 		"notificationsDisabled_label": "Deaktiveret",
 		"notificationSettings_action": "Underretninger",
 		"notSigned_msg": "Ikke underskrevet.",
@@ -927,5 +924,3 @@ const translation = {
 		"yourMessage_label": "Din besked"
 	}
 }
-export default translation
-export var __useDefault = translation

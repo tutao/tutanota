@@ -21,9 +21,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {"blocks": {"name": "blocks", "id": 10, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "DataBlock", "final": false}},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createFileData(): FileData {
-	return create(_TypeModel)
+	return create(_TypeModel, FileDataTypeRef)
 }

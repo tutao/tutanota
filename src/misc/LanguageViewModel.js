@@ -3,10 +3,11 @@ import {assertMainOrNodeBoot} from "../api/Env"
 import {asyncImport, downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import typeof en from "../translations/en"
+import type {TranslationKeyType} from "./TranslationKey"
+
+export type TranslationKey = TranslationKeyType
 
 assertMainOrNodeBoot()
-
-export type TranslationKey = $Keys<$PropertyType<en, "keys">> | "emptyString_msg"
 
 export type Language = {code: string, textId: TranslationKey}
 

@@ -49,9 +49,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createStatisticLogEntry(): StatisticLogEntry {
-	return create(_TypeModel)
+	return create(_TypeModel, StatisticLogEntryTypeRef)
 }

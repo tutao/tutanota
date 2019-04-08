@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createDraftCreateReturn(): DraftCreateReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, DraftCreateReturnTypeRef)
 }

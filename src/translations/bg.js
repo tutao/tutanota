@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "7099d69d03bc03d4e76962b7301d6b82",
 	"name": "bg",
 	"code": "bg",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2019-03-01T09:54:17Z",
+	"updated_at": "2019-03-22T11:10:48Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Моля приемете политиката за поверителност като изберете отметката.",
@@ -133,7 +131,7 @@ const translation = {
 		"company_label": "Фирма",
 		"confidentialStatus_msg": "Това съобщение е изпратено изцяло кодирано.",
 		"confidential_action": "Поверително",
-		"confirmCountry_msg": "За да сметнем цената с добавен данък е нужно да потвърдите държавата си: {1}.",
+		"confirmCountry_msg": "За да изчислим цената с ДДС е нужно да потвърдите държавата си: {1}.",
 		"confirmDeactivateCustomColors_msg": "Наистина ли искате да деактивирате персонализираните цветове?",
 		"confirmDeactivateCustomLogo_msg": "Наистина ли искат да спрете своето специално лого?",
 		"confirmDeactivateWhitelabelDomain_msg": "Наистина ли искате да деактивирате влизането в Тутанота за Вашия домейн и да изтриете частния ключ (сертификата), избраното лого и цвят",
@@ -186,7 +184,7 @@ const translation = {
 		"creditCardExpirationDate_label": "Крайна дата",
 		"creditCardExprationDateInvalid_msg": "Датата на изтичане е невалидна",
 		"creditCardNumberFormat_msg": "Моля, въведи номера на своята банкова карта.",
-		"creditCardNumberInvalid_msg": "Невалиден номер на карта.",
+		"creditCardNumberInvalid_msg": "Невалиден номер на кредитна карта.",
 		"creditCardNumber_label": "Номер на кредитна карта",
 		"currentlyBooked_label": "Преглед на резервацията",
 		"customColorsInfo_msg": "Ако оставиш полето празно ще бъде използван цвета от темата по подразбиране. ",
@@ -284,7 +282,7 @@ const translation = {
 		"enterPresharedPassword_msg": "Моля въведете паролата, която ви е дал подателя.",
 		"enumValue_label": "Предопределена стойност",
 		"enum_label": "Номер. За конфигуриране на статистическа информация, оформяне на полета и т.н.",
-		"envelopeSenderInfo_msg": "Фактическият подател е различен от адреса, изписан в \"Подател:\". Полето \"Подател:\" може да бъде манипулирано и затова е изписан и фактическия подател. ",
+		"envelopeSenderInfo_msg": "Фактическият подател е различен от адреса, изписан в \"Подател:\". Полето \"Подател:\" може да бъде манипулирано, затова е посочен и фактическият подател. ",
 		"errorAtLine_msg": "Грешка в ред {index}: {error}",
 		"errorReport_label": "О, не!",
 		"expiredLink_msg": "За съжаление, тази връзка е вече невалидна.  Вие би трябвало да получите нов мейл с валиден линк. Предишните връзки са деактивирани от съображения за сигурност.",
@@ -389,7 +387,7 @@ const translation = {
 		"invoiceAddressInfoBusiness_msg": "Моля, въведи адреса си за фактуриране (макс. 5 реда).",
 		"invoiceAddressInput_msg": "Най-много 5 реда",
 		"invoiceAddress_label": "Адрес за фактуриране",
-		"invoiceCountryInfoBusiness_msg": "Моля, изберете държавата където сте.",
+		"invoiceCountryInfoBusiness_msg": "Моля, изберете държавата, в която пребивавате.",
 		"invoiceCountryInfoConsumer_msg": "Това е необходимо за изчисляване на данъка върху добавената стойност (ДДС).",
 		"invoiceCountry_label": "Държава",
 		"invoiceData_msg": "Данни за фактура",
@@ -478,7 +476,7 @@ const translation = {
 		"localAdminGroup_label": "локална администраторска група",
 		"localAdmin_label": "местен админ",
 		"location_label": "Местоположение",
-		"loggingOut_msg": "Отписване ...",
+		"loggingOut_msg": "Напускане...",
 		"loginAbuseDetected_msg": "Профилът ви не може да се използва повече, защото са нарушени условията на Tutanota, напр. чрез изпращане на спам имейли.",
 		"loginCredentials_label": "Данни за вход",
 		"loginFailed_msg": "Невалидни данни за вписване. Моля, опитайте отново",
@@ -500,7 +498,7 @@ const translation = {
 		"mailBody_label": "Съдържание на имейла",
 		"mailbox_label": "Пощенска кутия",
 		"mailFolder_label": "Папка на имейла",
-		"mailHeaders_title": "Заглаван част на писмото",
+		"mailHeaders_title": "Заглавна част на писмото",
 		"mailName_label": "Име на подател",
 		"mailNotificationHello_msg": "Здравейте,",
 		"mailNotificationRegards_msg": "Благодаря, и поздрави,{1} от екипа на Тутанота",
@@ -559,7 +557,6 @@ const translation = {
 		"notAvailableInApp_msg": "Тази функция не е налична в мобилно приложение",
 		"notFound404_msg": "Съжаляваме, но тази страница не е намерена.  Проверете за грешки в адреса и опитайте пак.",
 		"notificationMailLanguage_label": "Език за известяващи съобщения.",
-		"notificationMailSendFailureBody_msg": "Със съжаление те информираме, че следващите извстия не могат да бъдат доставени.",
 		"notificationsDisabled_label": "Забранено",
 		"notificationSettings_action": "Известия",
 		"notSigned_msg": "Неподписано.",
@@ -618,7 +615,7 @@ const translation = {
 		"paymentMethodOnAccount_msg": "Плащането трябва да се извърши лично и ръчно по банков път. Стойността на фактурата няма да бъде дебитирана автоматично. ",
 		"paymentMethod_label": "Начин на плащане",
 		"paymentProviderNotAvailableError_msg": "Понастоящем доставчикът на платежни услуги не е налице.  Моля, опитайте отново по-късно.",
-		"paymentProviderTransactionFailedError_msg": "Разплащането се провали. Моля, опитай по-късно или обнови данните си.",
+		"paymentProviderTransactionFailedError_msg": "Плащането не може да бъде осъществено. Моля, опитайте по-късно или обновете данните.",
 		"payPalRedirect_msg": "Ще бъдете пренасочени към сайта на Пейпал",
 		"periodOfTime_label": "Период от време",
 		"phone_label": "Телефон",
@@ -924,5 +921,3 @@ const translation = {
 		"yourMessage_label": "Вашето съобщение"
 	}
 }
-export default translation
-export var __useDefault = translation

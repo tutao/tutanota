@@ -24,9 +24,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createPasswordChannelReturn(): PasswordChannelReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordChannelReturnTypeRef)
 }

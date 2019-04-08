@@ -94,9 +94,9 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "tutanota", "version": "30"
+	}, "app": "tutanota", "version": "31"
 }
 
 export function createMail(): Mail {
-	return create(_TypeModel)
+	return create(_TypeModel, MailTypeRef)
 }

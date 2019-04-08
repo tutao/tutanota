@@ -16,7 +16,7 @@ import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {hexToPrivateKey, privateKeyToHex, rsaDecrypt} from "./Rsa"
 import {random} from "./Randomizer"
-import {HttpMethod, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
@@ -129,7 +129,9 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 			.then(() => (data: any))
 	} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
-		data._ownerEncSessionKey = encryptKey(locator.login.getUserGroupKey(), aes128RandomKey())
+		return resolveTypeReference(typeRef)
+			.then(typeModel => _updateOwnerEncSessionKey(typeModel, data, locator.login.getUserGroupKey(), aes128RandomKey()))
+			.return(data)
 	}
 	return Promise.resolve(data)
 }
@@ -168,8 +170,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 		if (!typeModel.encrypted) {
 			return Promise.resolve(null)
-		} else if (isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailBodyTypeRef)
-			&& mailBodySessionKeyCache[instance._id]) {
+		} else if (isSameTypeRefByAttr(MailBodyTypeRef, typeModel.app, typeModel.name) && mailBodySessionKeyCache[instance._id]) {
 			let sessionKey = mailBodySessionKeyCache[instance._id]
 			// the mail body instance is cached, so the session key is not needed any more
 			delete mailBodySessionKeyCache[instance._id]
@@ -267,7 +268,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		}
 	}).then(sessionKey => {
 		// store the mail session key for the mail body because it is the same
-		if (sessionKey && isSameTypeRef(new TypeRef(typeModel.app, typeModel.name), MailTypeRef)) {
+		if (sessionKey && isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)) {
 			mailBodySessionKeyCache[instance.body] = sessionKey
 		}
 		return sessionKey
@@ -292,14 +293,7 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 		return Promise.resolve()
 	}
 	if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
-		instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(permissionOwnerGroupKey, sessionKey))
-		// we have to call the rest client directly because instance is still the encrypted server-side version
-		let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/'
-			+ (instance._id instanceof Array ? instance._id.join("/") : instance._id)
-
-		let headers = locator.login.createAuthHeaders()
-		headers["v"] = typeModel.version
-		return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+		return _updateOwnerEncSessionKey(typeModel, instance, permissionOwnerGroupKey, sessionKey)
 	} else { // instances shared via permissions (e.g. body)
 		let updateService = createUpdatePermissionKeyData()
 		updateService.permission = permission._id
@@ -310,6 +304,16 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 	}
 }
 
+function _updateOwnerEncSessionKey(typeModel: TypeModel, instance: Object, ownerGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {
+	instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(ownerGroupKey, sessionKey))
+	// we have to call the rest client directly because instance is still the encrypted server-side version
+	let path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + '/'
+		+ (instance._id instanceof Array ? instance._id.join("/") : instance._id)
+
+	let headers = locator.login.createAuthHeaders()
+	headers["v"] = typeModel.version
+	return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+}
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {
 	if (!entity._ownerGroup) {

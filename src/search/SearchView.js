@@ -37,6 +37,7 @@ import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -88,7 +89,6 @@ export class SearchView implements CurrentView {
 						} else {
 							this._startDate = dates.start
 						}
-
 						this._searchAgain()
 					})
 			}
@@ -254,10 +254,13 @@ export class SearchView implements CurrentView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			if (this._startDate && this._startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
+			const startDate = this._startDate
+			if (startDate && startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
-						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						worker.extendMailIndex(startDate.getTime()).then(() => {
+							setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						})
 					}
 				})
 			} else {
@@ -285,7 +288,18 @@ export class SearchView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this._searchList.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
+				shift: true,
+				exec: () => this._searchList.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
+				key: Keys.K,
 				shift: true,
 				exec: () => this._searchList.selectPrevious(true),
 				help: "addPrevious_action"
@@ -296,7 +310,18 @@ export class SearchView implements CurrentView {
 				help: "selectNext_action"
 			},
 			{
+				key: Keys.J,
+				exec: () => this._searchList.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
 				key: Keys.DOWN,
+				shift: true,
+				exec: () => this._searchList.selectNext(true),
+				help: "addNext_action"
+			},
+			{
+				key: Keys.J,
 				shift: true,
 				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"

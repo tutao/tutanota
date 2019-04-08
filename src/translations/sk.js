@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "a3f708a36d08b64f86f80501fea61126",
 	"name": "sk",
 	"code": "sk",
@@ -14,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2019-03-04T12:45:51Z",
+	"updated_at": "2019-03-29T09:00:54Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Označením začiarkavacieho políčka prijmi pravidlá ochrany súkromia.",
@@ -122,6 +120,7 @@ const translation = {
 		"chooseNumber_msg": "Pre prijatie hesla Tutanota v textovej správe klikni, prosím, na jedno z tvojich telefónnych čísel nižšie.",
 		"choosePhotos_action": "Fotky",
 		"choose_label": "Vybrať...",
+		"clearFolder_action": "Vymazať priečinok",
 		"clickNumber_msg": "Prosím klikni nižšie na svoje číslo, aby si prijal svoje heslo do Tutanota v SMS.",
 		"clickToUpdate_msg": "Klikni tu, ak to chceš použiť teraz alebo nechaj na nás automatickú inštaláciu pri odchode.",
 		"client_label": "Klient",
@@ -288,6 +287,7 @@ const translation = {
 		"enum_label": "Enumerácia",
 		"envelopeSenderInfo_msg": "Skutočný odosielateľ sa odlišuje od e-mailovej adresy v poli „Od“. Keďže údaj v poli „Od“ možno sfalšovať, zobrazuje sa tiež skutočný odosielateľ, aby bolo jasné, kto naozaj daný e-mail odoslal.",
 		"errorAtLine_msg": "Chyba v riadku {index}: {error}",
+		"errorDuringUpdate_msg": "Pri procese aktualizácie sa vyskytla chyba. Skúsime to znova neskôr.",
 		"errorReport_label": "Ach nie!",
 		"expiredLink_msg": "Je nám ľúto, ale tento odkaz už viac neplatí. Mal/a by si dostať nové e-mailové oznámenie s aktuálne platným odkazom. Predchádzajúce odkazy sú deaktivované z bezpečnostných dôvodov.",
 		"exportSelectedAsVCard_action": "Exportovať označené kontakty ako vCard",
@@ -511,9 +511,11 @@ const translation = {
 		"mailNotificationHello_msg": "Ahoj,",
 		"mailNotificationRegards_msg": "Ďakujeme a ostávame s pozdravom,{1} Tvoj tím Tutanota",
 		"mailSendFailureBody_msg": "Mrzí nás to, ale nasledujúci email nemôže byť doručený:",
-		"mailSendFailureCustomerOnlyBody_msg": "Je nám ľúto, ale tvoju poslednú správu nebolo možné doručiť {recipient}.\n\nNemáš povolenie odosielať správy príjemcom mimo tvojej organizácie.",
-		"mailSendFailureNonExistingRecipientBody_msg": "Mrzí nás to, ale tvoju poslednú správu sa nepodarilo doručiť {recipient}.\n\nPríjemca neexistuje.",
+		"mailSendFailureCustomerOnlyBody_msg": "Nemáš povolenie odosielať správy príjemcom mimo tvojej organizácie.",
+		"mailSendFailureNonExistingRecipientBody_msg": "Príjemca neexistuje.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "Dosiahol sa limit úložiska príjemcu.",
 		"mailSendFailureSubject_msg": "Email nemože byť doručený",
+		"mailSendFailureTechnicalError_msg": "Vyskytla sa technická chyba. Skús znova neskôr alebo kontaktuj našu podporu. ID chyby: {errorId}",
 		"mailSettings_label": "E-mailové nastavenia",
 		"mailView_action": "Prepnúť na zobrazenie e-mailu",
 		"makeLink_action": "Vytvoriť odkaz",
@@ -565,7 +567,6 @@ const translation = {
 		"notAvailableInApp_msg": "Táto funkcia nie je dostupná pre mobilnú aplikáciu.",
 		"notFound404_msg": "Ľutujeme, ale stránka, ktorú hľadáš, nebola nájdená. Skontroluj chyby v adrese URL a stlač tlačidlo obnovenia v prehliadači.",
 		"notificationMailLanguage_label": "Jazyk e-mailového oznámenia",
-		"notificationMailSendFailureBody_msg": "Mrzí nás to, ale nasledujúce e-mailové oznámenie sa nepodarilo doručiť.",
 		"notificationsDisabled_label": "Vypnuté",
 		"notificationSettings_action": "Oznámenia",
 		"notSigned_msg": "Nepodpísané.",
@@ -723,7 +724,7 @@ const translation = {
 		"replyAll_action": "Odpovedať všetkým",
 		"replyTo_label": "Odpovedať",
 		"reply_action": "Odpovedať",
-		"requestApproval_msg": "Je nám ľúto, ale momentálne nemáš povolenie posielať ani prijímať e-maily (netýka sa podpory Tutanota), pretože tvoj účet bol označený na schválenie, aby sa predišlo zneužitiu, akým sú napríklad nevyžiadané e-maily. Prosím, kontaktuj nás na approval@tutao.de priamo zo svojho účtu Tutanota a popíš, načo by si chceš používať tento e-mailový účet.",
+		"requestApproval_msg": "Je nám ľúto, ale momentálne nemáš povolenie posielať ani prijímať e-maily (netýka sa podpory Tutanota), pretože tvoj účet bol označený na schválenie, aby sa predišlo zneužitiu, akým sú napríklad nevyžiadané e-maily. Prosím, kontaktuj nás na approval@tutao.de priamo zo svojho účtu Tutanota a popíš, načo by si chceš používať tento e-mailový účet. Prosíme, píš v angličtine alebo nemčine, aby sme Ti rozumeli. Vďaka!",
 		"responsiblePersonsInfo_msg": "Obmedz používateľov, ktorým možno poslať ďalej správu z prijímacej poštovej schránky. Ak je zoznam prázdny, neexistujú žiadne obmedzenia.",
 		"responsiblePersons_label": "Zodpovedné osoby",
 		"restartBefore_action": "Reštartovať Tutanotu pred odoslaním",
@@ -821,6 +822,7 @@ const translation = {
 		"storageCapacityUsed_label": "Využité úložisko",
 		"storageCapacity_label": "Kapacita úložiska",
 		"storageDeletionAnnouncement_msg": "Info: E-maily presunuté do priečinku Kôš alebo Spam sa po 30 dňoch automaticky vymažú.",
+		"storageDeletion_msg": "E-maily v tomto priečinku sa po 30 dňoch automaticky odstránia.",
 		"storePassword_action": "Uložiť heslo",
 		"subject_label": "Predmet",
 		"subscriptionCancelledMessage_msg": "Tvoje predplatné bolo zrušené. Kontaktuj, prosím, podporu pre opätovnú aktiváciu predplatného.",
@@ -934,5 +936,3 @@ const translation = {
 		"yourMessage_label": "Tvoja správa"
 	}
 }
-export default translation
-export var __useDefault = translation

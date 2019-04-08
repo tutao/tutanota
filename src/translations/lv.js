@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "0d19ca046e0d291c587510d6fe8c29c0",
 	"name": "lv",
 	"code": "lv",
@@ -427,7 +425,6 @@ const translation = {
 		"noSubject_msg": "Ziņas temats nav norādīts. Vai sūtīt e-vēstuli bez tā?",
 		"notASubdomain_msg": "Šis domēna vārds nav apakšdomēns.",
 		"notificationMailLanguage_label": "Paziņojuma vēstules valoda",
-		"notificationMailSendFailureBody_msg": "Ar nožēlu jums paziņojam, ka paziņojumu saturoša vēstule nevar tikt piegādāta.",
 		"notificationSettings_action": "Paziņojumi",
 		"no_label": "Nē",
 		"npoDiscount_msg": "Piedāvājums bezpeļņas organizācijām: 50% atlaide Premium kontam un 100 aizstājadreses bez maksas!",
@@ -676,5 +673,3 @@ const translation = {
 		"yourMessage_label": "Jūsu ziņa"
 	}
 }
-export default translation
-export var __useDefault = translation

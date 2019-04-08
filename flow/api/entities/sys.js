@@ -1212,14 +1212,15 @@ type WhitelabelConfig = {
 	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
+	certificateInfo: CertificateInfo;
 }
 
 type BrandingDomainData = {
 	_type: TypeRef<BrandingDomainData>;
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: Uint8Array;
-	sessionEncPemPrivateKey: Uint8Array;
+	sessionEncPemCertificateChain: ?Uint8Array;
+	sessionEncPemPrivateKey: ?Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
 
 }
@@ -1574,4 +1575,14 @@ type WebsocketCounterData = {
 	mailGroup: Id;
 
 	counterValues: WebsocketCounterValue[];
+}
+
+type CertificateInfo = {
+	_type: TypeRef<CertificateInfo>;
+	_id: Id;
+	expiryDate: ?Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: ?Id;
 }

@@ -100,9 +100,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "31"
 }
 
 export function createExternalUserData(): ExternalUserData {
-	return create(_TypeModel)
+	return create(_TypeModel, ExternalUserDataTypeRef)
 }

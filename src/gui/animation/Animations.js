@@ -66,7 +66,7 @@ class Animations {
 	 */
 	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): AnimationPromise {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
-		let targetArrayOrCollection = target['length'] != null
+		let targetArrayOrCollection =target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
 			return Promise.reject(new Error('tried to animate a non existing element'))
 		}

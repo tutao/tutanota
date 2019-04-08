@@ -133,11 +133,12 @@ function hyperscript(selector) {
 	}
 	var vnode = hyperscriptVnode.apply(1, arguments)
 	if (typeof selector === "string") {
-		return execSelector(selectorCache[selector] || compileSelector(selector), vnode)
-	} else {
-		vnode.tag = selector
-		return vnode
+		vnode.children = Vnode.normalizeChildren(vnode.children)
+		if (selector !== "[") return execSelector(selectorCache[selector] || compileSelector(selector), vnode)
 	}
+	
+	vnode.tag = selector
+	return vnode
 }
 hyperscript.trust = function(html) {
 	if (html == null) html = ""
@@ -1576,7 +1577,7 @@ m.request = requestService.request
 m.jsonp = requestService.jsonp
 m.parseQueryString = parseQueryString
 m.buildQueryString = buildQueryString
-m.version = "2.0.0-rc.3"
+m.version = "2.0.0-rc.4"
 m.vnode = Vnode
 m.PromisePolyfill = PromisePolyfill
 if (typeof module !== "undefined") module["exports"] = m

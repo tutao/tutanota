@@ -1,7 +1,7 @@
 // @flow
 
 // keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up"
+export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"
 
 export const Mode = {
 	Browser: "Browser",
@@ -29,10 +29,16 @@ export function isTutanotaDomain(): boolean {
 }
 
 export function isIOSApp(): boolean {
+	if (isWorker()) {
+		throw new Error("isIOSApp is not available in the worker yet (platformId is not set)")
+	}
 	return env.mode === Mode.App && env.platformId === "ios"
 }
 
 export function isAndroidApp(): boolean {
+	if (isWorker()) {
+		throw new Error("isAndroidApp is not available in the worker yet (platformId is not set)")
+	}
 	return env.mode === Mode.App && env.platformId === "android"
 }
 

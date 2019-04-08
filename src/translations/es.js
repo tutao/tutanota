@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "f5f4136a64ef8f813902c32e223bc289",
 	"name": "es",
 	"code": "es",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2019-03-12T17:33:08Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,6 +290,7 @@ const translation = {
 		"enum_label": "Valor (numérico)",
 		"envelopeSenderInfo_msg": "El remitente técnico no coincide con la dirección electrónica en 'De'. Como 'De\" puede falsificarse, se muestra además el remitente para que sea notorio quién envía este mensaje realmente.",
 		"errorAtLine_msg": "Error en línea {index}: {error}",
+		"errorDuringUpdate_msg": "Algo salió mal durante el proceso de actualización, volveremos a intentarlo más tarde.",
 		"errorReport_label": "¡Oh no!",
 		"expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por motivos de seguridad.",
 		"exportSelectedAsVCard_action": "Exportar los contactos seleccionados como vCard",
@@ -515,9 +514,11 @@ const translation = {
 		"mailNotificationHello_msg": "Hola,",
 		"mailNotificationRegards_msg": "¡Gracias! Con nuestros mejores saludos, {1} su equipo de Tutanota",
 		"mailSendFailureBody_msg": "Lamentamos comunicarte que el siguiente correo no ha podido ser entregado.",
-		"mailSendFailureCustomerOnlyBody_msg": "Sentimos comunicarle que su último mensaje no ha podido entregarse a {recipient}\n\nNo tienes permitido el envío de mensajes a destinatarios fuera de tu organización.",
-		"mailSendFailureNonExistingRecipientBody_msg": "Sentimos comunicarle que su último mensaje no ha podido entregarse a {recipient}.\n\nEl destinatario no existe.",
+		"mailSendFailureCustomerOnlyBody_msg": "No tienes permitido el envío de mensajes a destinatarios fuera de tu organización.",
+		"mailSendFailureNonExistingRecipientBody_msg": "El destinatario no existe.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "Se ha alcanzado el límite de almacenamiento del destinatario.",
 		"mailSendFailureSubject_msg": "El correo no se pudo entregar",
+		"mailSendFailureTechnicalError_msg": "Se ha producido un error técnico. Inténtalo de nuevo más tarde o ponte en contacto con nuestro soporte. ID de error: {errorId}",
 		"mailSettings_label": "Ajustes de correo",
 		"mailView_action": "Cambiar a vista de correo",
 		"makeLink_action": "Crear hipervínculo",
@@ -569,7 +570,6 @@ const translation = {
 		"notAvailableInApp_msg": "Esta función no está disponible en la aplicación móvil.",
 		"notFound404_msg": "Lo sentimos, no hemos encontrado la página que buscas. Comprueba la URL en busca de errores y pulsa el botón de actualización de su navegador.",
 		"notificationMailLanguage_label": "Idioma de las notificaciones",
-		"notificationMailSendFailureBody_msg": "Sentimos comunicarle que no se pudo entregar el siguiente mensaje de aviso.",
 		"notificationsDisabled_label": "Deshabilitado",
 		"notificationSettings_action": "Notificaciones",
 		"notSigned_msg": "Sin firmar.",
@@ -939,5 +939,3 @@ const translation = {
 		"yourMessage_label": "Tu mensaje"
 	}
 }
-export default translation
-export var __useDefault = translation

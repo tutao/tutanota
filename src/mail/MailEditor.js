@@ -13,11 +13,12 @@ import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from ".
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
+import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {AccessBlockedError, ConnectionError, NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
+import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, Mode} from "../api/Env"
@@ -78,6 +79,8 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
+import {formatPrice} from "../subscription/SubscriptionUtils"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -197,7 +200,10 @@ export class MailEditor {
 			},
 			{
 				label: "saveDraft_action",
-				click: () => this.saveDraft(true, true).then(() => this._close()),
+				click: () => this.saveDraft(true, true)
+				                 .then(() => this._close())
+				                 .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                 .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg")),
 				type: ButtonType.Dropdown
 			}
 		], () => this._mailChanged, 250)
@@ -341,6 +347,7 @@ export class MailEditor {
 			                    exec: () => {
 				                    this.saveDraft(true, true)
 				                        .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+				                        .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 			                    },
 			                    help: "save_action"
 		                    })
@@ -631,6 +638,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 * @throws FileNotFoundError when one of the attachments could not be opened
+	 * @throws PreconditionFailedError when the draft is locked
 	 */
 	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
@@ -765,6 +773,7 @@ export class MailEditor {
 								})
 						})
 						.catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
+						.catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 
 					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
@@ -979,6 +988,16 @@ export class MailEditor {
 
 	static writeSupportMail() {
 		mailModel.init().then(() => {
+			if (!logins.getUserController().isPremiumAccount()) {
+				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+				const title = lang.get("upgradeReminderTitle_msg")
+				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
+					if (confirm) {
+						showUpgradeWizard()
+					}
+				})
+				return
+			}
 			const editor = new MailEditor(mailModel.getUserMailboxDetails())
 			let signature = "<br><br>--"
 			signature += "<br>Client: " + client.getIdentifier()
@@ -1009,7 +1028,7 @@ export class MailEditor {
 
 const ContactSuggestionHeight = 60
 
-export class ContactSuggestion {
+export class ContactSuggestion implements Suggestion {
 	name: string;
 	mailAddress: string;
 	contact: ?Contact;
@@ -1038,7 +1057,7 @@ export class ContactSuggestion {
 
 }
 
-class MailBubbleHandler {
+class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
 	suggestionHeight: number;
 	_mailEditor: MailEditor;
 
@@ -1053,31 +1072,34 @@ class MailBubbleHandler {
 			return Promise.resolve([])
 		}
 		let contactsPromise = (locator.search.indexState().indexingSupported) ?
-			searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync()
-			                                                             .then(listId => loadAll(ContactTypeRef, listId))
-		return contactsPromise.map(contact => {
-			let name = `${contact.firstName} ${contact.lastName}`.trim()
-			let mailAddresses = []
-			if (name.toLowerCase().indexOf(query) !== -1) {
-				mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
-			} else {
-				mailAddresses = contact.mailAddresses.filter(ma => {
-					return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
-				})
-			}
-			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
-		}).reduce((a, b) => a.concat(b), [])
-		                      .then(suggestions => {
-			                      if (env.mode === Mode.App) {
-				                      return findRecipients(query, 10, suggestions).then(() => suggestions)
-			                      } else {
-				                      return suggestions
-			                      }
-		                      })
-		                      .then(suggestions => {
-			                      return suggestions.sort((suggestion1, suggestion2) =>
-				                      suggestion1.name.localeCompare(suggestion2.name))
-		                      })
+			searchForContacts("\"" + query + "\"", "recipient", 10) // ensure match word order for email addresses mainly
+			: LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+
+		return contactsPromise
+			.map(contact => {
+				let name = `${contact.firstName} ${contact.lastName}`.trim()
+				let mailAddresses = []
+				if (name.toLowerCase().indexOf(query) !== -1) {
+					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
+				} else {
+					mailAddresses = contact.mailAddresses.filter(ma => {
+						return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
+					})
+				}
+				return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
+			})
+			.reduce((a, b) => a.concat(b), [])
+			.then(suggestions => {
+				if (env.mode === Mode.App) {
+					return findRecipients(query, 10, suggestions).then(() => suggestions)
+				} else {
+					return suggestions
+				}
+			})
+			.then(suggestions => {
+				return suggestions.sort((suggestion1, suggestion2) =>
+					suggestion1.name.localeCompare(suggestion2.name))
+			})
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
@@ -1103,9 +1125,7 @@ class MailBubbleHandler {
 		return bubbles
 	}
 
-
 	bubbleDeleted(bubble: Bubble<RecipientInfo>): void {
-
 	}
 
 	/**

@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "83abbac2842c26560e8e784497ba8a7d",
 	"name": "sq",
 	"code": "sq",
@@ -327,7 +325,6 @@ const translation = {
 		"notAvailableInApp_msg": "Ky veprim nuk është i mundshëm në epin e pajisjes së dorës.",
 		"notFound404_msg": "Na vjen keq, por faqja që po e kërkon nuk u gjet. Shih mos vegëza ka ndonjë gabim dhe provo me e rihapë faqen.",
 		"notificationMailLanguage_label": "Gjuha e mesazhit njoftues",
-		"notificationMailSendFailureBody_msg": "Me keqardhje ju njoftojmë se mesazhi lajmërues në vijim nuk mund të dorëzohej.",
 		"notificationSettings_action": "Njoftime",
 		"ok_action": "Ani",
 		"oldPasswordInvalid_msg": "Fjalëkalimi i vjetër gabim.",
@@ -474,5 +471,3 @@ const translation = {
 		"yourMessage_label": "Mesazhi i juaj"
 	}
 }
-export default translation
-export var __useDefault = translation

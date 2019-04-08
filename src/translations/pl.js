@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "2e467284b4e2ed1094bb7f07fbef3615",
 	"name": "pl",
 	"code": "pl",
@@ -15,7 +13,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2019-03-11T16:46:21Z",
+	"updated_at": "2019-03-28T20:40:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -127,6 +125,7 @@ const translation = {
 		"chooseNumber_msg": "Prosimy kliknij na jeden ze swoich numerów telefonu, aby otrzymać swoje hasło w wiadomości SMS.",
 		"choosePhotos_action": "Zdjęcia",
 		"choose_label": "Wybierz...",
+		"clearFolder_action": "Wyczyść folder",
 		"clickNumber_msg": "Kliknij na swój numer telefonu poniżej, by otrzymać hasło SMS.",
 		"clickToUpdate_msg": "Kliknij tutaj jeżeli chcesz zastosować teraz lub pozwól nam zainstalować automatycznie przy wyjściu.",
 		"client_label": "Klient",
@@ -272,7 +271,7 @@ const translation = {
 		"emailSenderInvalidRule_msg": "Reguła dla tego nadawcy e-mail nie jest dozwolona.",
 		"emailSenderPlaceholder_label": "Adres e-mail lub nazwa domeny",
 		"emailSenderRule_label": "Reguła",
-		"emailSenderWhitelist_action": "Bez spamu",
+		"emailSenderWhitelist_action": "Brak spamu",
 		"emailSender_label": "Nadawca wiadomości",
 		"emailSending_label": "Wiadomości jest wysyłana.",
 		"emailSignatureTypeCustom_msg": "Niestandardowe",
@@ -293,6 +292,7 @@ const translation = {
 		"enum_label": "Wyliczenie",
 		"envelopeSenderInfo_msg": "Adres e-mail  w polu \"Od\" jest inny niż adres rzeczywistego nadawcy. Ponieważ adres w polu \"Od\" może być sfałszowany, wyświetlony jest także rzeczywisty nadawca. Ułatwi to zrozumienie, kto faktycznie wysłał tego e-maila.",
 		"errorAtLine_msg": "Błąd w linii {index}: {error}",
+		"errorDuringUpdate_msg": "Coś poszło nie tak podczas procesu aktualizacji, spróbujemy ponownie później.",
 		"errorReport_label": "O nie!",
 		"expiredLink_msg": "Przepraszamy, ten link jest nieaktualny. Powinieneś był otrzymać nowe powiadomienie z nowym linkiem. Poprzednie linki zostały zdezaktualizowane dla zachowania bezpieczeństwa.",
 		"exportSelectedAsVCard_action": "Eksportuj wybrane kontakty w formacie vCard",
@@ -516,9 +516,11 @@ const translation = {
 		"mailNotificationHello_msg": "Cześć,",
 		"mailNotificationRegards_msg": "Z poważaniem, Twój zespół Tutanota",
 		"mailSendFailureBody_msg": "Z przykrością informujemy, że e-mail oznaczony poniższą datą nie mógł zostać dostarczony:",
-		"mailSendFailureCustomerOnlyBody_msg": "Z przykrością informujemy, że Twoja ostatnia wiadomość nie mogła zostać dostarczona do {recipient}.\n\nNie masz uprawnień do wysyłania wiadomości do odbiorców z Twojej organizacji.",
-		"mailSendFailureNonExistingRecipientBody_msg": "Z przykrością informujemy, że twoja ostatnia wiadomość nie mogła zostać dostarczona do {recipient}.\n\nOdbiorca nie istnieje.",
+		"mailSendFailureCustomerOnlyBody_msg": "Nie masz wystarczających uprawnień, aby wysyłać wiadomości do adresatów spoza organizacji.",
+		"mailSendFailureNonExistingRecipientBody_msg": "Odbiorca nie istnieje.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "Osiągnięto limit pamięci odbiorców.",
 		"mailSendFailureSubject_msg": "Nie można dostarczyć wiadomości.",
+		"mailSendFailureTechnicalError_msg": "Wystąpił błąd techniczny. Spróbuj ponownie później lub skontaktuj się z naszym działem pomocy. Identyfikator błędu: {errorId}",
 		"mailSettings_label": "Ustawienia e-mail",
 		"mailView_action": "Przełącz do widoku e-mail",
 		"makeLink_action": "Utwórz hiperłącze",
@@ -570,7 +572,6 @@ const translation = {
 		"notAvailableInApp_msg": "Ta funkcja nie jest dostępna w aplikacji na telefon.",
 		"notFound404_msg": "Przepraszamy, wybrana strona nie została znaleziona. Sprawdź, czy URL jest poprawny i naciśnij przycisk 'Odśwież' w Twojej przeglądarce. ",
 		"notificationMailLanguage_label": "Język powiadomienia:",
-		"notificationMailSendFailureBody_msg": "Z przykrością informujemy, że poniższe powiadomienie nie może zostać doręczone.",
 		"notificationsDisabled_label": "Wyłączone",
 		"notificationSettings_action": "Powiadomienia",
 		"notSigned_msg": "Niepodpisany.",
@@ -728,7 +729,7 @@ const translation = {
 		"replyAll_action": "Odpowiedz wszystkim",
 		"replyTo_label": "Odpowiedz Do",
 		"reply_action": "Odpowiedź",
-		"requestApproval_msg": "Przepraszamy, obecnie nie możesz wysyłać ani odbierać wiadomości e-mail (z wyjątkiem pomocy technicznej Tutanota), ponieważ Twoje konto zostało oznaczone do zatwierdzenia w celu uniknięcia nadużyć, takich jak spam. Napisz do nas na adres approval@tutao.de bezpośrednio ze swojego konta Tutanota i opisz w jakim celu zamierzasz używać swojego konta.",
+		"requestApproval_msg": "Przepraszamy, obecnie nie możesz wysyłać ani odbierać wiadomości e-mail (z wyjątkiem pomocy technicznej Tutanota), ponieważ Twoje konto zostało oznaczone do zatwierdzenia w celu uniknięcia nadużyć, takich jak spam. Napisz do nas na adres approval@tutao.de bezpośrednio ze swojego konta Tutanota i opisz w jakim celu zamierzasz używać swojego konta. Napisz po angielsku lub niemiecku, abyśmy mogli Cię zrozumieć. Dzięki!",
 		"responsiblePersonsInfo_msg": "Ogranicz liczbę użytkowników, którzy mogą brać udział w konwersacji. Nie zostaną nałożone żadne ograniczenia, jeśli lista jest pusta.",
 		"responsiblePersons_label": "Osoby odpowiedzialne ",
 		"restartBefore_action": "Zrestartuj Tutanota przed wysłaniem",
@@ -826,6 +827,7 @@ const translation = {
 		"storageCapacityUsed_label": "Używana przestrzeń",
 		"storageCapacity_label": "Pojemność skrzynki pocztowej",
 		"storageDeletionAnnouncement_msg": "Info: maile przeniesione do Kosza lub Spamu będą automatycznie kasowane po 30 dniach.",
+		"storageDeletion_msg": "Wiadomości w tym folderze zostaną automatycznie usunięte po 30 dniach.",
 		"storePassword_action": "Zapamiętaj hasło",
 		"subject_label": "Temat",
 		"subscriptionCancelledMessage_msg": "Twoja subskrybcja została anulowana. Skontaktuj się z działem wsparcia, aby ją ponownie aktywować.",
@@ -916,6 +918,7 @@ const translation = {
 		"welcomeMailBody5_msg": "PS: Tutanota jest oprogramowaniem otwartym, możesz sprawdzić i zweryfikować kod:",
 		"welcomeMailBody6_msg": "PPS: Tutaj możesz zapytać się o dowolną funkcję lub na nią zagłosować:",
 		"welcomeMailBodyTweetText_msg": "Właśnie założyłem konto na Tutanota. Teraz chronię swoje e-maile przed podglądaczami! Ty też możesz się zapisać:",
+		"welcomeMailBody_markdown": "Witamy w bezpiecznej i wolnej od reklam skrzynce pocztowej Tutanota, zabezpieczonej silnym szyfrowaniem. Tutanota ułatwia przełączanie się z innych usług e-mail. Nasz intuicyjny klient WWW, aplikacje na Androida i iOS, a także aplikacje na komputery z systemem Windows, Mac OS i Linux umożliwiają dostęp do bezpiecznej skrzynki pocztowej na dowolnym urządzeniu.\n\nJako profesjonalista możesz zaoszczędzić czas i pieniądze, udostępniając kompleksowo wszystkie wiadomości e-mail firmy, zaszyfrowane na bezpiecznych serwerach Tutanota w Niemczech: Własne etykiety w Tutanota dla Twojej firmy, pozwalają umieścić logowanie na własnej stronie internetowej i dodać zaszyfrowany formularz kontaktowy, aby klienci mogli w prosty i bezpieczny sposób wysłać Ci poufne wiadomość. [Dowiedz się więcej o kompleksowych funkcjach biznesowych Tutanota]({businessLink}).\n\n** Tutanota przestrzega 4 zasad, aby zaoferować przyjazną dla prywatności alternatywę **\n\n1. Tutanota Cię nie śledzi.\n2. Tutanota nie może skanować danych.\n3. Tutanota szyfruje całą skrzynkę pocztową i kontakty.\n4. Tutanota implementuje prywatność już w fazie projektu.\n\nPoleć Tutanota, [usługę poczty e-mail o otwartym kodzie źródłowym, która szanuje Ciebie i Twoje prawo do prywatności]({blogOpenSourceLink}).\n\nWierzymy, że każdy zasługuje na darmową i prywatną skrzynkę pocztową. Możesz nas wspierać, śledząc nas na swoim ulubionym kanale mediów społecznościowych i dzieląc się treściami ze znajomymi i współpracownikami. Razem zmienimy Internet na lepsze:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nDziękuję Ci bardzo,\n\nTwój zespół Tutanota\n\nTutanota jest open source. [Możesz sprawdzić i przejrzeć kod źródłowy tutaj]({githubLink}).",
 		"welcomeMailSubject_msg": "Poczuj się jak w domu: Twoje dane należą tylko i wyłącznie do Ciebie!",
 		"whitelabelAccounts_label": "Konta z własnym wyglądem",
 		"whitelabelAccount_label": "Konta z własnym wyglądem",
@@ -938,5 +941,3 @@ const translation = {
 		"yourMessage_label": "Twoja wiadomość"
 	}
 }
-export default translation
-export var __useDefault = translation

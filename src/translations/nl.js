@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "92ad6953a5b1b188f70dc44f3e29ec78",
 	"name": "nl",
 	"code": "nl",
@@ -13,7 +11,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2019-03-12T18:57:33Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -292,6 +290,7 @@ const translation = {
 		"enum_label": "Opsomming",
 		"envelopeSenderInfo_msg": "De werkelijke afzender is anders dan het email adres in 'Van'. Aangezien 'van' kan worden vervalst, wordt ook de werkelijke afzender weergegeven om te begrijpen wie deze mail stuurt.",
 		"errorAtLine_msg": "Fout op regel {index}: {error}",
+		"errorDuringUpdate_msg": "Er ging iets mis bij het updaten, we proberen later nog eens.",
 		"errorReport_label": "O nee!",
 		"expiredLink_msg": "Sorry, deze link is niet meer geldig. U heeft een nieuwe e-mail met een geldige link ontvangen. Eerdere links zijn gedeactiveerd om veiligheidsredenen.",
 		"exportSelectedAsVCard_action": "Exporteer de geselcteerde ontacten als vCard",
@@ -514,8 +513,8 @@ const translation = {
 		"mailNotificationHello_msg": "Hallo,",
 		"mailNotificationRegards_msg": "Vriendelijke groet en hartelijk bedankt,{1}het Tutanota team",
 		"mailSendFailureBody_msg": "Het spijt ons dat de volgende email niet afgeleverd kon worden.",
-		"mailSendFailureCustomerOnlyBody_msg": "We vinden het jammer om u te laten weten dat uw laatste bericht niet kon worden afgeleverd aan {ontvanger}.\n<Nieuwe regel>\n<Nieuwe regel> Het is niet toegestaan ​​om berichten naar ontvangers buiten uw organisatie te sturen.",
-		"mailSendFailureNonExistingRecipientBody_msg": "We vinden het jammer om u te laten weten dat uw laatste bericht niet kon worden afgeleverd aan {ontvanger}.\n<Nieuwe regel>\n<Nieuwe regel> De ontvanger bestaat niet.",
+		"mailSendFailureCustomerOnlyBody_msg": "Het is niet toegestaan ​​om berichten naar ontvangers buiten uw organisatie te sturen.",
+		"mailSendFailureNonExistingRecipientBody_msg": "De ontvanger bestaat niet.",
 		"mailSendFailureSubject_msg": "E-mail kon niet afgeleverd worden",
 		"mailSettings_label": "E-mail instellingen",
 		"mailView_action": "Overschakelen naar de e-mailweergave",
@@ -568,7 +567,6 @@ const translation = {
 		"notAvailableInApp_msg": "Deze functionaliteit is niet beschikbaar in de mobiele App.",
 		"notFound404_msg": "Sorry, de pagina die u zocht kon niet gevonden worden. Controleer de URL op fouten of ververs de pagina.",
 		"notificationMailLanguage_label": "Taal van notificatie e-mail:",
-		"notificationMailSendFailureBody_msg": "Het spijt ons u te moeten meedelen dat de volgende notificatie email niet kon worden afgeleverd.",
 		"notificationsDisabled_label": "Uitgeschakeld",
 		"notificationSettings_action": "Notificaties",
 		"notSigned_msg": "Niet getekend.",
@@ -938,5 +936,3 @@ const translation = {
 		"yourMessage_label": "Uw bericht"
 	}
 }
-export default translation
-export var __useDefault = translation
