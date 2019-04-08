@@ -206,7 +206,7 @@ export class SearchFacade {
 			> getStartOfDay(getDayShifted(new Date(), 1))
 			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(),
-				getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS))
+				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)))
 		}
 
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
