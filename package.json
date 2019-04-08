@@ -1,6 +1,11 @@
 {
 	"name": "tutanota",
 	"version": "3.50.0",
+	"license": "GPL-3.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tutao/tutanota.git"
+	},
 	"scripts": {
 		"flow": "flow; test $? -eq 0 -o $? -eq 2",
 		"start": "./node_modules/electron/dist/electron --inspect=5858 ./build/"
