@@ -16,7 +16,7 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
 import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
-import {CertificateType} from "../api/common/TutanotaConstants"
+import {CertificateType, getCertificateType} from "../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 
 assertMainOrNode()
@@ -37,7 +37,7 @@ function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?
 		      }))
 }
 
-export function show(customerInfo: CustomerInfo): void {
+export function show(customerInfo: CustomerInfo, whitelabelConfig: ?WhitelabelConfig): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
 	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 	let domainField
@@ -71,9 +71,10 @@ export function show(customerInfo: CustomerInfo): void {
 	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
-	const selectedType = stream(CertificateType.LETS_ENCRYPT)
+	const certificateInfo = whitelabelConfig && whitelabelConfig.certificateInfo
+	const selectedType = stream(certificateInfo ? getCertificateType(certificateInfo) : CertificateType.LETS_ENCRYPT)
 	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
-		label: () => "certificate type",
+		label: "certificateType_label",
 		items: [
 			{name: lang.get("certificateTypeAutomatic_label"), value: CertificateType.LETS_ENCRYPT},
 			{name: lang.get("certificatTypeManual_label"), value: CertificateType.MANUAL}

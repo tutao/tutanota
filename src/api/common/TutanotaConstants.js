@@ -341,3 +341,6 @@ export const CertificateType = Object.freeze({
 	LETS_ENCRYPT: '1',
 })
 export type CertificateTypeEnum = $Values<typeof CertificateType>
+export function getCertificateType(certificateInfo: CertificateInfo): CertificateTypeEnum {
+	return downcast(certificateInfo.type)
+}
