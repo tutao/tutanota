@@ -32,7 +32,7 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
-import type {lazyIcon} from "../gui/base/Icon"
+import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
 
 assertMainOrNode()
@@ -426,5 +426,14 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 		return getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
 	} else {
 		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
+	}
+}
+
+export function getMailFolderIcon(mail: Mail): AllIconsEnum {
+	let folder = mailModel.getMailFolder(mail._id[0])
+	if (folder) {
+		return getFolderIcon(folder)()
+	} else {
+		return Icons.Folder
 	}
 }

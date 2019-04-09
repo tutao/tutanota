@@ -25,7 +25,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
-import {formatDateWithMonth} from "../misc/Formatter"
+import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
@@ -37,6 +37,7 @@ import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -88,7 +89,6 @@ export class SearchView implements CurrentView {
 						} else {
 							this._startDate = dates.start
 						}
-
 						this._searchAgain()
 					})
 			}
@@ -225,19 +225,19 @@ export class SearchView implements CurrentView {
 			start = formatDateWithMonth(getFreeSearchStartDate())
 		} else {
 			if (this._endDate) {
-				end = formatDateWithMonth(this._endDate)
+				end = formatDateWithTimeIfNotEven(this._endDate)
 			} else {
 				end = lang.get("today_label")
 			}
 			if (this._startDate) {
-				start = formatDateWithMonth(this._startDate)
+				start = formatDateWithTimeIfNotEven(this._startDate)
 			} else {
 				let currentIndexDate = this._getCurrentMailIndexDate()
 				if (currentIndexDate) {
 					if (isSameDay(currentIndexDate, new Date())) {
 						start = lang.get("today_label")
 					} else {
-						start = formatDateWithMonth(currentIndexDate)
+						start = formatDateWithTimeIfNotEven(currentIndexDate)
 					}
 				} else {
 					start = lang.get("unlimited_label")
@@ -254,10 +254,13 @@ export class SearchView implements CurrentView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			if (this._startDate && this._startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
+			const startDate = this._startDate
+			if (startDate && startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
-						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						worker.extendMailIndex(startDate.getTime()).then(() => {
+							setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						})
 					}
 				})
 			} else {

@@ -100,5 +100,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createContact(): Contact {
-	return create(_TypeModel)
+	return create(_TypeModel, ContactTypeRef)
 }

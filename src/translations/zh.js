@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2019-03-01T09:51:26Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -553,7 +553,6 @@ module.exports = {
 		"notAvailableInApp_msg": "该功能在手机上不可用。",
 		"notFound404_msg": "抱歉，页面未找到，请检查链接并刷新浏览器。",
 		"notificationMailLanguage_label": "通知邮件的语言",
-		"notificationMailSendFailureBody_msg": "抱歉通知您，以下通知邮件无法投递。",
 		"notificationsDisabled_label": "已禁用",
 		"notificationSettings_action": "通知",
 		"notSigned_msg": "未签名。",

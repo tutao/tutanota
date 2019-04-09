@@ -47,12 +47,21 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"refType": "BootstrapFeature",
 			"final": false
+		},
+		"certificateInfo": {
+			"name": "certificateInfo",
+			"id": 1506,
+			"since": 44,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "CertificateInfo",
+			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createWhitelabelConfig(): WhitelabelConfig {
-	return create(_TypeModel)
+	return create(_TypeModel, WhitelabelConfigTypeRef)
 }

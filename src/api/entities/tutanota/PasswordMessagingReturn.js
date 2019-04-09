@@ -29,5 +29,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPasswordMessagingReturn(): PasswordMessagingReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordMessagingReturnTypeRef)
 }

@@ -13,6 +13,7 @@ import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from ".
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
+import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
@@ -1027,7 +1028,7 @@ export class MailEditor {
 
 const ContactSuggestionHeight = 60
 
-export class ContactSuggestion {
+export class ContactSuggestion implements Suggestion {
 	name: string;
 	mailAddress: string;
 	contact: ?Contact;
@@ -1056,7 +1057,7 @@ export class ContactSuggestion {
 
 }
 
-class MailBubbleHandler {
+class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
 	suggestionHeight: number;
 	_mailEditor: MailEditor;
 
@@ -1071,31 +1072,34 @@ class MailBubbleHandler {
 			return Promise.resolve([])
 		}
 		let contactsPromise = (locator.search.indexState().indexingSupported) ?
-			searchForContacts(query, "recipient", 10) : LazyContactListId.getAsync()
-			                                                             .then(listId => loadAll(ContactTypeRef, listId))
-		return contactsPromise.map(contact => {
-			let name = `${contact.firstName} ${contact.lastName}`.trim()
-			let mailAddresses = []
-			if (name.toLowerCase().indexOf(query) !== -1) {
-				mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
-			} else {
-				mailAddresses = contact.mailAddresses.filter(ma => {
-					return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
-				})
-			}
-			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
-		}).reduce((a, b) => a.concat(b), [])
-		                      .then(suggestions => {
-			                      if (env.mode === Mode.App) {
-				                      return findRecipients(query, 10, suggestions).then(() => suggestions)
-			                      } else {
-				                      return suggestions
-			                      }
-		                      })
-		                      .then(suggestions => {
-			                      return suggestions.sort((suggestion1, suggestion2) =>
-				                      suggestion1.name.localeCompare(suggestion2.name))
-		                      })
+			searchForContacts("\"" + query + "\"", "recipient", 10) // ensure match word order for email addresses mainly
+			: LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+
+		return contactsPromise
+			.map(contact => {
+				let name = `${contact.firstName} ${contact.lastName}`.trim()
+				let mailAddresses = []
+				if (name.toLowerCase().indexOf(query) !== -1) {
+					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
+				} else {
+					mailAddresses = contact.mailAddresses.filter(ma => {
+						return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
+					})
+				}
+				return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
+			})
+			.reduce((a, b) => a.concat(b), [])
+			.then(suggestions => {
+				if (env.mode === Mode.App) {
+					return findRecipients(query, 10, suggestions).then(() => suggestions)
+				} else {
+					return suggestions
+				}
+			})
+			.then(suggestions => {
+				return suggestions.sort((suggestion1, suggestion2) =>
+					suggestion1.name.localeCompare(suggestion2.name))
+			})
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
@@ -1121,9 +1125,7 @@ class MailBubbleHandler {
 		return bubbles
 	}
 
-
 	bubbleDeleted(bubble: Bubble<RecipientInfo>): void {
-
 	}
 
 	/**

@@ -124,7 +124,6 @@ export class NavBar {
 		let route = m.route.get()
 		let locator: ?MainLocatorType = window.tutao.locator
 		return this.searchBar != null && locator != null && !locator.search.indexState().initializing
-			&& locator.search.indexState().indexingSupported
 			&& styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()
 			&& (route.startsWith("/search")

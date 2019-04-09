@@ -60,7 +60,7 @@ declare class Promise<+R> {
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
 	catch<U, ErrorT: Error>(err: Class<ErrorT>, onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
 
-	finally<U>(onDone?: () => mixed): Promise<U>;
+	finally<R>(onDone?: () => mixed): Promise<R>;
 
 	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 

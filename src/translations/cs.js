@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2019-03-01T09:54:27Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Přijměte zásady ochrany osobních údajů zaškrtnutím políčka.",
@@ -563,7 +563,6 @@ module.exports = {
 		"notAvailableInApp_msg": "Tato funkce není k dispozici v mobilní aplikaci.",
 		"notFound404_msg": "Je nám líto, ale stránka, kterou hledáte, neexistuje. Zkontrolujte správnost adresy URL a klepněte na tlačítko obnovit ve svém prohlížeči.",
 		"notificationMailLanguage_label": "Jazyk oznamovacího e-mailu",
-		"notificationMailSendFailureBody_msg": "Litujeme, ale tento notifikační email nemohl být doručen.",
 		"notificationsDisabled_label": "Vypnuto",
 		"notificationSettings_action": "Upozornění",
 		"notSigned_msg": "Nepodepsáno.",

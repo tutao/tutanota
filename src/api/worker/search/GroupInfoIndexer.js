@@ -5,7 +5,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {neverNull} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate, userIsLocalOrGlobalAdmin} from "./IndexUtils"
+import {_createNewIndexUpdate, typeRefToTypeInfo, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
@@ -72,14 +72,14 @@ export class GroupInfoIndexer {
 								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
 								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
 							]).spread((allUserGroupInfos, allTeamGroupInfos) => {
-								let indexUpdate = _createNewIndexUpdate(customer.customerGroup)
+								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(GroupInfoTypeRef))
 								allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
 									let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
 									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
-								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
-									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+									this._core.writeIndexUpdate([{groupId: customer.customerGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this.suggestionFacade.store()
 								])
 							})
 						}
@@ -96,13 +96,19 @@ export class GroupInfoIndexer {
 			if (userIsLocalOrGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup),
+								result.keyToIndexEntries, indexUpdate)
+						}
 					})
 				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewGroupInfo(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.groupInfo._id, neverNull(result.groupInfo._ownerGroup),
+									result.keyToIndexEntries, indexUpdate)
+							}
 						})
 					])
 				} else if (event.operation === OperationType.DELETE) {

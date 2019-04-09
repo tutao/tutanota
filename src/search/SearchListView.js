@@ -18,6 +18,7 @@ import {defer, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
+import {hasMoreResults} from "./SearchModel"
 import {showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
@@ -114,7 +115,7 @@ export class SearchListView {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0 && this._searchResult.moreResultsEntries.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0 && !hasMoreResults(this._searchResult)) {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
@@ -178,7 +179,7 @@ export class SearchListView {
 			return Promise.resolve([])
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
-		if (getMoreFromSearch && currentResult.moreResultsEntries.length > 0) {
+		if (getMoreFromSearch && hasMoreResults(currentResult)) {
 			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
@@ -210,7 +211,7 @@ export class SearchListView {
 				}
 			})
 			.then(results => {
-				return results.length < count && neverNull(this._searchResult).moreResultsEntries.length > 0
+				return results.length < count && hasMoreResults(neverNull(this._searchResult))
 					// Recursively load more until we have enough or there are no more results.
 					// Otherwise List thinks that this is the end
 					? this._loadSearchResults(neverNull(this._searchResult), true, startId, count)

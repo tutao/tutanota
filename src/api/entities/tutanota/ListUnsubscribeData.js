@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createListUnsubscribeData(): ListUnsubscribeData {
-	return create(_TypeModel)
+	return create(_TypeModel, ListUnsubscribeDataTypeRef)
 }

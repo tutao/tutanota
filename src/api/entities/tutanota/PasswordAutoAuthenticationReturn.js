@@ -18,5 +18,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPasswordAutoAuthenticationReturn(): PasswordAutoAuthenticationReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef)
 }

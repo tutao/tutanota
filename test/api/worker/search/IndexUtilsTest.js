@@ -3,29 +3,32 @@ import o from "ospec/ospec.js"
 import {
 	_createNewIndexUpdate,
 	byteLength,
+	decryptMetaData,
 	decryptSearchIndexEntry,
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
+	encryptMetaData,
 	encryptSearchIndexEntry,
 	filterIndexMemberships,
 	filterMailMemberships,
-	getAppId,
 	htmlToText,
+	typeRefToTypeInfo,
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
-import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
-import type {SearchIndexEntry} from "../../../../src/api/worker/search/SearchTypes"
+import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
+import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
+import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
+import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
@@ -35,41 +38,60 @@ o.spec("Index Utils", () => {
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 
-	o("encryptSearchIndexEntry", function () {
+	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
 		let key = aes256RandomKey()
-		let entry: SearchIndexEntry = {id: "my-id", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
-		let encryptedInstanceId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
-		let encryptedEntry = encryptSearchIndexEntry(key, entry, encryptedInstanceId)
-		o(encryptedEntry.length).equals(2)
-		o(encryptedEntry[0]).deepEquals(encryptedInstanceId)
-		let decrypted = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(key, encryptedEntry[1], true, false)))
-		o(decrypted.length).equals(4)
-		o(decrypted[0]).equals(entry.app)
-		o(decrypted[1]).equals(entry.type)
-		o(decrypted[2]).equals(entry.attribute)
-		o(decrypted[3]).deepEquals(entry.positions)
-	})
-
-	o("decryptSearchIndexEntry", function () {
-		let key = aes256RandomKey()
-		let entry: SearchIndexEntry = {id: "122", app: 0, type: 64, attribute: 84, positions: [12, 58, 3]}
+		let entry: SearchIndexEntry = {id: "L0YED5d----1", attribute: 84, positions: [12, 536, 3]}
 		let encId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
+
+		// attribute 84 => 0x54,
+		// position[0] 12 => 0xC
+		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
+		// position[2] 3 => 0x03
+		const encodedIndexEntry = [0x54, 0xC, 0x82, 0x02, 0x18, 0x03]
+
+		const result = aes256Decrypt(key, encryptedEntry.slice(16), true, false)
+		o(Array.from(result))
+			.deepEquals(Array.from(encodedIndexEntry))
+
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
-		o(decrypted.encId).deepEquals(encId)
+		o(JSON.stringify(decrypted.encId)).deepEquals(JSON.stringify(encId))
 		delete decrypted.encId
 		o(JSON.stringify(decrypted)).deepEquals(JSON.stringify(entry))
 	})
 
-	o("getAppId", function () {
-		o(getAppId(UserTypeRef)).equals(0)
-		o(getAppId(ContactTypeRef)).equals(1)
-		try {
-			getAppId({app: 5})
-			o("Failure, non supported appid").equals(false)
-		} catch (e) {
-			o(e.message.startsWith("non indexed application")).equals(true)
+	o("encryptMetaData", function () {
+		const key = aes256RandomKey()
+		const meta: SearchIndexMetaDataRow = {
+			id: 3,
+			word: "asdsadasds",
+			rows: [{app: 1, type: 64, key: 3, size: 10, oldestElementTimestamp: 6}, {app: 2, type: 66, key: 4, size: 8, oldestElementTimestamp: 15}]
 		}
+		const encryptedMeta = encryptMetaData(key, meta)
+		o(encryptedMeta.id).equals(meta.id)
+		o(encryptedMeta.word).equals(meta.word)
+		o(Array.from(aes256Decrypt(key, encryptedMeta.rows, true, false))).deepEquals([
+			// First row
+			1, 64, 3, 10, 6,
+			// Second row
+			2, 66, 4, 8, 15
+		])
+
+		o(decryptMetaData(key, encryptedMeta)).deepEquals(meta)
+	})
+
+	o("typeRefToTypeInfo", function () {
+		let thrown = false
+		try {
+			typeRefToTypeInfo(UserTypeRef)
+		} catch (e) {
+			thrown = true
+		}
+		o(thrown).equals(true)
+		// o(typeRefToTypeInfo(UserTypeRef).appId).equals(0)
+		// o(typeRefToTypeInfo(UserTypeRef).typeId).equals(UserTypeModel.id)
+		o(typeRefToTypeInfo(ContactTypeRef).appId).equals(1)
+		o(typeRefToTypeInfo(ContactTypeRef).typeId).equals(ContactTypeModel.id)
 	})
 
 	o("userIsLocalOrGlobalAdmin", function () {
@@ -161,14 +183,11 @@ o.spec("Index Utils", () => {
 	})
 
 	o("new index update", function () {
-		let indexUpdate = _createNewIndexUpdate("groupId")
-		o(indexUpdate.groupId).equals("groupId")
-		o(indexUpdate.batchId).equals(null)
-		o(indexUpdate.indexTimestamp).equals(null)
+		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		o(indexUpdate.create.encInstanceIdToElementData instanceof Map).equals(true)
 		o(indexUpdate.create.indexMap instanceof Map).equals(true)
 		o(indexUpdate.move).deepEquals([])
-		o(indexUpdate.delete.encWordToEncInstanceIds instanceof Map).equals(true)
+		o(indexUpdate.delete.searchMetaRowToEncInstanceIds instanceof Map).equals(true)
 		o(indexUpdate.delete.encInstanceIds).deepEquals([])
 	})
 

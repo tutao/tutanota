@@ -32,15 +32,15 @@ class ClientDetector {
 	 * Browsers which support these features are supported
 	 */
 	isSupported(): boolean {
-		return this.flexbox() &&
+		return this.isSupportedBrowserVersion() &&
+			this.flexbox() &&
 			this.websockets() &&
 			this.xhr2() &&
 			this.randomNumbers() &&
 			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
-			this.supportsFocus() &&
-			this.notOldFirefox()
+			this.supportsFocus()
 	}
 
 	isMobileDevice(): boolean {
@@ -359,10 +359,18 @@ class ClientDetector {
 		return this.browser === BrowserType.IE
 	}
 
+	isSupportedBrowserVersion(): boolean {
+		return this.notOldFirefox() && this.notOldChrome()
+	}
+
 	notOldFirefox() {
 		// issue only occurs for old Firefox browsers
 		// https://github.com/tutao/tutanota/issues/835
 		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
+	}
+
+	notOldChrome() {
+		return this.browser !== BrowserType.CHROME || this.browserVersion > 37
 	}
 
 	canDownloadMultipleFiles(): boolean {

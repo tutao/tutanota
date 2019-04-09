@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2019-03-04T08:54:26Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -561,7 +561,6 @@ module.exports = {
 		"notAvailableInApp_msg": "此功能在行動裝置APP內使用無效。",
 		"notFound404_msg": "很抱歉，並無您欲尋找的頁面。請檢查網址是否錯誤然後重整您的瀏覽器。",
 		"notificationMailLanguage_label": "通知郵件的語言選項",
-		"notificationMailSendFailureBody_msg": "很抱歉，我們需要告訴您以下的通知郵件無法送達。",
 		"notificationsDisabled_label": "未開啟",
 		"notificationSettings_action": "通知",
 		"notSigned_msg": "尚未簽署。",
