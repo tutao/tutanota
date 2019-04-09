@@ -12,7 +12,7 @@ o.spec("EventBusClient test", () => {
 	o.beforeEach(() => {
 		cacheMock = ({
 			cacheCallState: "initial",
-			entityEventReceived: (data: EntityUpdate) => {
+			entityEventsReceived: (data: Array<EntityUpdate>) => {
 				//console.log("enter", cacheCallState)
 				if (cacheMock.cacheCallState == "initial") {
 					cacheMock.cacheCallState = "firstEntered"
@@ -30,6 +30,7 @@ o.spec("EventBusClient test", () => {
 					} else {
 						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventsReceived")
 					}
+					return data
 				})
 			}
 		}: any)

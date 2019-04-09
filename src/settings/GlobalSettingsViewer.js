@@ -9,7 +9,7 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
 import {GroupType, OperationType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
@@ -241,7 +241,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateDomains() {
 		this._customerInfo.getAsync().then(customerInfo => {
-			let customDomainInfos = customerInfo.domainInfos.filter(domainInfo => domainInfo.certificate == null)
+			let customDomainInfos = getCustomMailDomains(customerInfo)
 			Promise.map(customDomainInfos, domainInfo => {
 				let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"))
 				if (domainInfo.catchAllMailGroup) {

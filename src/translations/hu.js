@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2019-03-05T14:24:51Z",
+	"updated_at": "2019-03-28T10:08:37Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -561,7 +561,6 @@ module.exports = {
 		"notAvailableInApp_msg": "Ez a funkció nem érhető el a mobilalkalmazásból.",
 		"notFound404_msg": "Sajnáljuk, de a keresett oldal nem található. Ellenőrizze az URL-t és kattintson az újratöltés gombra.",
 		"notificationMailLanguage_label": "Az értesítő levél nyelve:",
-		"notificationMailSendFailureBody_msg": "Sajnos az értesítés nem került kézbesÍtésre.",
 		"notificationsDisabled_label": "Tiltva",
 		"notificationSettings_action": "Értesítések",
 		"notSigned_msg": "Nincs aláírva.",

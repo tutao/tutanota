@@ -123,6 +123,7 @@ type WorkerRequestType = 'setup'
 	| 'createRecoveryCode'
 	| 'recoverLogin'
 	| 'resetSecondFactors'
+	| 'extendMailIndex'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -130,6 +131,7 @@ type MainRequestType = 'execNative'
 	| 'updateIndexState'
 	| 'updateWebSocketState'
 	| 'counterUpdate'
+	| 'infoMessage'
 type NativeRequestType = 'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -304,7 +306,9 @@ type SearchResult = {
 	restriction: SearchRestriction,
 	results: IdTuple[];
 	currentIndexTimestamp: number;
-	moreResultsEntries: MoreResultsIndexEntry[];
+	moreResults: Array<MoreResultsIndexEntry>,
+	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	matchWordOrder: boolean;
 }
 
 type SearchIndexStateInfo = {
@@ -313,6 +317,8 @@ type SearchIndexStateInfo = {
 	mailIndexEnabled: boolean;
 	progress: number;
 	currentMailIndexTimestamp: number;
+	indexedMailCount: number;
+	failedIndexingUpTo: ?number;
 }
 
 type CreditCardData = {

@@ -23,9 +23,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createSecondFactorAuthentication(): SecondFactorAuthentication {
-	return create(_TypeModel)
+	return create(_TypeModel, SecondFactorAuthenticationTypeRef)
 }

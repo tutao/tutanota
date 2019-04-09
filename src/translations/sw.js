@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2019-02-28T13:20:14Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Tafadhali kulemaza hifadhi ya kiganjani kwa kupitia au lakabu mfuko na kulemaza lakabu wote wa barua pepe kabla ya kubadilisha aina ya akaunti.",
@@ -380,7 +380,6 @@ module.exports = {
 		"notAvailableInApp_msg": "kazi hii haipatikani katika programu ya simu.",
 		"notFound404_msg": "Samahani, lakini ukurasa wewe ni kuangalia kwa haijawahi kupatikana. Jaribu kuangalia URL kwa makosa na kugonga furahisha kifungo ya kivinjari chako.",
 		"notificationMailLanguage_label": "Lugha ya taarifa ya barua pepe",
-		"notificationMailSendFailureBody_msg": "Tunasikitika basi unajua kwamba barua pepe taarifa ifuatayo haukuweza kuwasilishwa.",
 		"notificationSettings_action": "Taarifa",
 		"no_label": "Hapana",
 		"number_label": "Idadi",

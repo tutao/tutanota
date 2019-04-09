@@ -43,5 +43,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createFileSystem(): FileSystem {
-	return create(_TypeModel)
+	return create(_TypeModel, FileSystemTypeRef)
 }

@@ -98,18 +98,19 @@ class LanguageViewModel {
 	languageTag: string;
 	staticTranslations: Object;
 	formats: {
-		simpleDate: DateTimeFormat,
-		dateWithMonth: DateTimeFormat,
-		dateWithoutYear: DateTimeFormat,
-		simpleDateWithoutYear: DateTimeFormat,
-		dateWithWeekday: DateTimeFormat,
-		dateWithWeekdayAndYear: DateTimeFormat,
-		time: DateTimeFormat,
-		dateTime: DateTimeFormat,
-		priceWithCurrency: NumberFormat,
-		priceWithCurrencyWithoutFractionDigits: NumberFormat,
-		priceWithoutCurrency: NumberFormat,
-		priceWithoutCurrencyWithoutFractionDigits: NumberFormat
+		simpleDate: Intl.DateTimeFormat,
+		dateWithMonth: Intl.DateTimeFormat,
+		dateWithoutYear: Intl.DateTimeFormat,
+		simpleDateWithoutYear: Intl.DateTimeFormat,
+		dateWithWeekday: Intl.DateTimeFormat,
+		dateWithWeekdayAndYear: Intl.DateTimeFormat,
+		time: Intl.DateTimeFormat,
+		dateTime: Intl.DateTimeFormat,
+		dateTimeShort: Intl.DateTimeFormat,
+		priceWithCurrency: Intl.NumberFormat,
+		priceWithCurrencyWithoutFractionDigits: Intl.NumberFormat,
+		priceWithoutCurrency: Intl.NumberFormat,
+		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat
 	};
 
 	constructor() {
@@ -151,51 +152,57 @@ class LanguageViewModel {
 		this.languageTag = tag
 		if (client.dateFormat()) {
 			this.formats = {
-				simpleDate: new (Intl.DateTimeFormat: any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
-				dateWithMonth: new (Intl.DateTimeFormat: any)(tag, {
+				simpleDate: new Intl.DateTimeFormat(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
+				dateWithMonth: new Intl.DateTimeFormat(tag, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric'
 				}),
-				dateWithoutYear: new (Intl.DateTimeFormat: any)(tag, {day: 'numeric', month: 'short'}),
-				simpleDateWithoutYear: new (Intl.DateTimeFormat: any)(tag, {
+				dateWithoutYear: Intl.DateTimeFormat(tag, {day: 'numeric', month: 'short'}),
+				simpleDateWithoutYear: Intl.DateTimeFormat(tag, {
 					day: 'numeric', month: 'numeric'
 				}),
-				dateWithWeekday: new (Intl.DateTimeFormat: any)(tag, {
+				dateWithWeekday: new Intl.DateTimeFormat(tag, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short'
 				}),
-				dateWithWeekdayAndYear: new (Intl.DateTimeFormat: any)(tag, {
+				dateWithWeekdayAndYear: new Intl.DateTimeFormat(tag, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric'
 				}),
-				time: new (Intl.DateTimeFormat: any)(tag, {hour: 'numeric', minute: 'numeric'}),
-				dateTime: new (Intl.DateTimeFormat: any)(tag, {
+				time: new Intl.DateTimeFormat(tag, {hour: 'numeric', minute: 'numeric'}),
+				dateTime: new Intl.DateTimeFormat(tag, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric',
 					hour: 'numeric',
 					minute: 'numeric'
 				}),
-				priceWithCurrency: new (Intl.NumberFormat: any)(tag, {
+				dateTimeShort: new Intl.DateTimeFormat(tag, {
+					day: 'numeric',
+					month: 'numeric',
+					year: 'numeric',
+					hour: 'numeric',
+				}),
+				priceWithCurrency: new Intl.NumberFormat(tag, {
 					style: 'currency',
 					currency: 'EUR',
 					minimumFractionDigits: 2
 				}),
-				priceWithCurrencyWithoutFractionDigits: new (Intl.NumberFormat: any)(tag, {
+				priceWithCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
 					style: 'currency',
 					currency: 'EUR',
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
 				}),
-				priceWithoutCurrency: new (Intl.NumberFormat: any)(tag, {
+				priceWithoutCurrency: new Intl.NumberFormat(tag, {
 					style: 'decimal',
 					minimumFractionDigits: 2
 				}),
-				priceWithoutCurrencyWithoutFractionDigits: new (Intl.NumberFormat: any)(tag, {
+				priceWithoutCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
 					style: 'decimal',
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0

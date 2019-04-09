@@ -35,5 +35,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailBody(): MailBody {
-	return create(_TypeModel)
+	return create(_TypeModel, MailBodyTypeRef)
 }

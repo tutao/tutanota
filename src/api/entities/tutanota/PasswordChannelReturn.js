@@ -28,5 +28,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createPasswordChannelReturn(): PasswordChannelReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordChannelReturnTypeRef)
 }

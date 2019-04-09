@@ -44,10 +44,12 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 	return date1.toDateString() === date2.toDateString()
 }
 
+/**
+ * Creates new date in with {@param days} added to it as if the days are just fixed
+ * periods of time and are not subject to daylight saving.
+ */
 export function getDayShifted(date: Date, days: number): Date {
-	let d = new Date(date.getTime())
-	d.setDate(date.getDate() + days);
-	return d
+	return new Date(date.getTime() + days * 24 * 60 * 60 * 1000)
 }
 
 /**

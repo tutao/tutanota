@@ -102,9 +102,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createGroup(): Group {
-	return create(_TypeModel)
+	return create(_TypeModel, GroupTypeRef)
 }

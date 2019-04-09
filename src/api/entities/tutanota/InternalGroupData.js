@@ -43,5 +43,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createInternalGroupData(): InternalGroupData {
-	return create(_TypeModel)
+	return create(_TypeModel, InternalGroupDataTypeRef)
 }

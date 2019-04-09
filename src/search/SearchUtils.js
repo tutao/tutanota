@@ -151,7 +151,7 @@ export function getRestriction(route: string): SearchRestriction {
 	} else if (route.startsWith('/settings/whitelabelaccounts')) {
 		category = "whitelabelchild"
 	} else {
-		throw new Error("invalid type")
+		throw new Error("invalid type " + route)
 	}
 	return createRestriction(category, start, end, field, listId)
 }

@@ -425,7 +425,6 @@ module.exports = {
 		"noSubject_msg": "Ziņas temats nav norādīts. Vai sūtīt e-vēstuli bez tā?",
 		"notASubdomain_msg": "Šis domēna vārds nav apakšdomēns.",
 		"notificationMailLanguage_label": "Paziņojuma vēstules valoda",
-		"notificationMailSendFailureBody_msg": "Ar nožēlu jums paziņojam, ka paziņojumu saturoša vēstule nevar tikt piegādāta.",
 		"notificationSettings_action": "Paziņojumi",
 		"no_label": "Nē",
 		"npoDiscount_msg": "Piedāvājums bezpeļņas organizācijām: 50% atlaide Premium kontam un 100 aizstājadreses bez maksas!",

@@ -3,7 +3,7 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
 import {EntityWorker} from "../EntityWorker"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate} from "./IndexUtils"
+import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
 import {neverNull} from "../../common/utils/Utils"
 import {GroupDataOS, MetaDataOS} from "./DbFacade"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
@@ -68,8 +68,7 @@ export class ContactIndexer {
 	}
 
 	_getSuggestionWords(contact: Contact): string[] {
-		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address)
-		                                                                          .join(" "))
+		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address).join(" "))
 	}
 
 	processNewContact(event: EntityUpdate): Promise<?{contact: Contact, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
@@ -94,7 +93,7 @@ export class ContactIndexer {
 		return this._entity.loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
 			return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
 				let groupId = neverNull(contactList._ownerGroup)
-				let indexUpdate = _createNewIndexUpdate(groupId)
+				let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 				return t.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
 					if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 						return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
@@ -102,9 +101,9 @@ export class ContactIndexer {
 								let keyToIndexEntries = this.createContactIndexEntries(contact)
 								this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 							})
-							indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 							return Promise.all([
-								this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+								this._core.writeIndexUpdate([{groupId, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+								this.suggestionFacade.store()
 							])
 						})
 					}

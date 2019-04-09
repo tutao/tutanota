@@ -42,5 +42,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createDraftCreateData(): DraftCreateData {
-	return create(_TypeModel)
+	return create(_TypeModel, DraftCreateDataTypeRef)
 }

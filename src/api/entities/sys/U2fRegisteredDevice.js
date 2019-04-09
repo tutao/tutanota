@@ -21,9 +21,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createU2fRegisteredDevice(): U2fRegisteredDevice {
-	return create(_TypeModel)
+	return create(_TypeModel, U2fRegisteredDeviceTypeRef)
 }
