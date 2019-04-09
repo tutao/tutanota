@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-03-13T08:12:00Z",
+	"updated_at": "2019-04-04T14:09:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -114,6 +114,10 @@ module.exports = {
 		"certificateChain_label": "Zertifikatskette",
 		"certificateError_msg": "Das Zertifikat oder der private Schlüssel haben ein falsches Format oder passen nicht zu der Domain.",
 		"certificateExpiryDate_label": "Ablaufdatum des Zertifikats: {date}",
+		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates",
+		"certificateStateProcessing_label": "In Bearbeitung",
+		"certificateTypeAutomatic_label": "Automatisch (Let's Encrypt)",
+		"certificatTypeManual_label": "Manuell",
 		"changeAdminPassword_msg": "Das Passwort eines Admin-Benutzers kann nicht zurückgesetzt werden.",
 		"changePasswordCode_msg": "Bestätigungscode: ",
 		"changePassword_label": "Passwort ändern",
@@ -377,6 +381,8 @@ module.exports = {
 		"inboxRuleTargetFolder_label": "Ziel-Ordner",
 		"inboxRuleToRecipientEquals_action": "An-Empfänger",
 		"inboxRuleValue_label": "Wert",
+		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt.",
+		"indexing_error": "Die Indizierung wurde aufgrund eines Fehlers abgebrochen.",
 		"insufficientStorageAdmin_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entferne Inhalte aus deinem Postfach, um Speicherplatz freizugeben, oder buche ein größeres Speicherpaket.",
 		"insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Bitte wende dich an deinen Administrator.",
 		"insufficientStorageWarning_msg": "Der verfügbare Speicher deines Postfaches ist fast verbraucht. Entferne Inhalte aus deinem Postfach, um Speicherplatz freizugeben oder buche ein größeres Speicherpaket.",
@@ -514,9 +520,11 @@ module.exports = {
 		"mailNotificationHello_msg": "Guten Tag,",
 		"mailNotificationRegards_msg": "Vielen Dank und herzliche Grüße,{1}das Team von Tutanota",
 		"mailSendFailureBody_msg": "Es tut uns leid, aber die folgende E-Mail konnte nicht zugestellt werden.",
-		"mailSendFailureCustomerOnlyBody_msg": "Es tut uns leid, aber die letzte E-Mail an {recipient} konnte nicht zugestellt werden.\n\nDu bist nicht dazu berechtigt, Nachrichten an Empfänger außerhalb deiner Organisation zu versenden.",
-		"mailSendFailureNonExistingRecipientBody_msg": "Es tut uns leid, aber die letzte E-Mail an {recipient} konnte nicht zugestellt werden.\n\nDer Empfänger existiert nicht.",
+		"mailSendFailureCustomerOnlyBody_msg": "Du bist nicht dazu berechtigt, Nachrichten an Empfänger außerhalb deiner Organisation zu versenden.",
+		"mailSendFailureNonExistingRecipientBody_msg": "Der Empfänger existiert nicht.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "Das Speicherlimit des Empfängers ist erreicht.",
 		"mailSendFailureSubject_msg": "E-Mail konnte nicht zugestellt werden",
+		"mailSendFailureTechnicalError_msg": "Ein technischer Fehler ist aufgetreten. Bitte versuche es später noch einmal oder kontaktiere unseren Support. Fehler-Id: {errorId}",
 		"mailSettings_label": "E-Mail-Einstellungen",
 		"mailView_action": "Zur E-Mail-Ansicht wechseln",
 		"makeLink_action": "Hyperlink erstellen",
@@ -568,7 +576,6 @@ module.exports = {
 		"notAvailableInApp_msg": "Diese Funktion ist in der mobilen App nicht verfügbar.",
 		"notFound404_msg": "Leider konnte die aufgerufene Seite nicht gefunden werden. Bitte prüfe die URL nach Fehlern und aktualisiere die aktuelle Seite.",
 		"notificationMailLanguage_label": "Sprache der Benachrichtigungs-E-Mail",
-		"notificationMailSendFailureBody_msg": "Es tut uns leid, aber die folgende Benachrichtigungs-E-Mail konnte nicht zugestellt werden.",
 		"notificationsDisabled_label": "Deaktiviert",
 		"notificationSettings_action": "Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
@@ -730,6 +737,7 @@ module.exports = {
 		"responsiblePersonsInfo_msg": "Schränkt die Benutzer ein, an die die Nachricht von der empfangenden Mailbox weitergeleitet werden können. Wenn die Liste keine Benutzer enthält, gibt es keine Einschränkungen.",
 		"responsiblePersons_label": "Bearbeiter",
 		"restartBefore_action": "Tutanota vorher neu starten",
+		"retry_action": "Wiederholen",
 		"richText_label": "Rich Text",
 		"role_placeholder": "Rolle",
 		"runAsTrayApp_action": "Als Hintergrundanwendung ausführen",
@@ -935,6 +943,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"certificateType_label": "Zertifikatstyp"
 	}
 }

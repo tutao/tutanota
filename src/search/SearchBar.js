@@ -6,7 +6,6 @@ import {logins} from "../api/main/LoginController"
 import {inputLineHeight, px, size} from "../gui/size"
 import stream from "mithril/stream/stream.js"
 import {theme} from "../gui/theme"
-import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -17,13 +16,9 @@ import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
-import {getFolderIcon, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/MailUtils"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import type {ListElement} from "../api/common/EntityFunctions"
+import {getElementId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
-import type {RouteChangeEvent} from "../misc/RouteChange"
-import {routeChange} from "../misc/RouteChange"
-import {lang} from "../misc/LanguageViewModel"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
@@ -31,22 +26,22 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {Button} from "../gui/base/Button"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
-import {mailModel} from "../mail/MailModel"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector";
-import {downcast} from "../api/common/utils/Utils"
+import {debounce, downcast} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
-import Badge from "../gui/base/Badge"
+import {hasMoreResults} from "./SearchModel"
+import {SearchBarOverlay} from "./SearchBarOverlay"
+import {routeChange} from "../misc/RouteChange"
 
 assertMainOrNode()
 
-type ShowMoreAction = {
+export type ShowMoreAction = {
 	resultCount: number,
 	shownCount: number,
 	indexTimestamp: number,
@@ -65,50 +60,127 @@ const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 
+export type Entry = Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction
+type Entries = Array<Entry>
+
+export type SearchBarState = {
+	query: string,
+	searchResult: ?SearchResult,
+	indexState: SearchIndexStateInfo,
+	entities: Entries,
+	selected: ?Entry
+}
+
 export class SearchBar implements Component {
 	view: Function;
 	_domInput: HTMLInputElement;
 	_domWrapper: HTMLElement;
-	value: Stream<string>;
 	focused: boolean;
 	expanded: boolean;
 	dropdown: Dropdown;
-	skipNextBlur: boolean;
-	_results: Array<Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction>;
+	skipNextBlur: Stream<boolean>;
+	_state: Stream<SearchBarState>
 	oncreate: Function;
 	onbeforeremove: Function;
 	busy: boolean;
-	_selected: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction;
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: Stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
 	_closeOverlayFunction: ?(() => void);
-	_overlayContentComponent: {view: () => Children};
+	_overlayContentComponent: {view: () => ?Children};
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
 		this.lastSelectedGroupInfoResult = stream()
 		this.lastSelectedWhitelabelChildrenInfoResult = stream()
-		this.expanded = false
 		this.focused = false
-		this.skipNextBlur = false
+		this.skipNextBlur = stream(false)
 		this.busy = false
-		this.value = stream("")
-		this.value.map(v => {
-			if (v) {
-				this.expanded = true
-			}
+		this._state = stream({
+			query: "",
+			searchResult: null,
+			indexState: locator.search.indexState(),
+			entities: ([]: Entries),
+			selected: null
 		})
-		locator.search.lastQuery.map(this.value)
-		let b = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
-		this.dropdown = new Dropdown(() => [b], 250)
-		this._results = []
-		this._overlayContentComponent = {view: () => null}
+
+		this._overlayContentComponent = {
+			view: () => {
+				return m(SearchBarOverlay, {
+					state: this._state(),
+					isQuickSearch: this._isQuickSearch(),
+					isFocused: this.focused,
+					isExpanded: this.expanded,
+					skipNextBlur: this.skipNextBlur,
+					selectResult: (selected) => this._selectResult(selected)
+				})
+			}
+		}
+
+		const navBtn = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
+		this.dropdown = new Dropdown(() => [navBtn], 250)
+		let indexStateStream
+		let routeChangeStream
+		let lastQueryStream
+		let shortcuts
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
 				m(".search-bar.flex-end.items-center", {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom
+						shortcuts = this._setupShortcuts()
+						keyManager.registerShortcuts(shortcuts)
+						locator.search.indexState.map((indexState) => {
+							// When we finished indexing, search again forcibly to not confuse anyone with old results
+							const currentResult = this._state().searchResult
+							if (currentResult && this._state().indexState.progress !== 0 && indexState.progress === 0) {
+								this._doSearch(this._state().query, currentResult.restriction, m.redraw)
+							}
+							this._updateState({indexState})
+						})
+						indexStateStream = this._state.map((state) => {
+							this._showOverlay()
+							if (this._domInput) {
+								const input = this._domInput
+								if (state.query !== input.value) {
+									input.value = state.query
+								}
+							}
+							m.redraw()
+						})
+
+						routeChangeStream = routeChange.map(newRoute => {
+							try {
+								if (locator.search.isNewSearch(this._state().query, getRestriction(newRoute.requestedPath))) {
+									this._updateState({searchResult: null, entities: []})
+								}
+							} catch (e) {
+								// ignore error here because it might be called with settings url
+								// because routeChange is updated before SearchBar is removed from the DOM
+							}
+						})
+
+						lastQueryStream = locator.search.lastQuery.map((value) => {
+							// Set value from the model when we it's set from the URL e.g. reloading the page on the search screen
+							if (value) {
+								this._updateState({query: value})
+								this.expanded = true
+							}
+						})
+
+					},
+					onremove: () => {
+						shortcuts && keyManager.unregisterShortcuts(shortcuts)
+						if (indexStateStream) {
+							indexStateStream.end(true)
+						}
+						if (routeChangeStream) {
+							routeChangeStream.end(true)
+						}
+						if (lastQueryStream) {
+							lastQueryStream.end(true)
+						}
+						this._closeOverlay()
 					},
 					style: {
 						'min-height': px(inputLineHeight + 2), // 2 px border
@@ -122,24 +194,25 @@ export class SearchBar implements Component {
 						'flex': "1"
 					}
 				}, [
-					styles.isDesktopLayout() ? m(".ml-negative-xs.click", {
-						onmousedown: (e) => {
-							if (this.focused) {
-								this.skipNextBlur = true // avoid closing of overlay when clicking search icon
+					styles.isDesktopLayout()
+						? m(".ml-negative-xs.click", {
+							onmousedown: (e) => {
+								if (this.focused) {
+									this.skipNextBlur(true) // avoid closing of overlay when clicking search icon
+								}
+							},
+							onclick: (e) => {
+								e.preventDefault()
+								this.handleSearchClick(e)
 							}
-						},
-						onclick: (e) => {
-							e.preventDefault()
-							this.handleSearchClick(e)
-						}
-					}, m(Icon, {
-						icon: BootIcons.Search,
-						class: "flex-center items-center icon-large",
-						style: {
-							fill: this.focused ? theme.header_button_selected : theme.header_button,
-							//"margin-top": (this._hideLabel) ? "0px" : "-2px"
-						}
-					})) : null,
+						}, m(Icon, {
+							icon: BootIcons.Search,
+							class: "flex-center items-center icon-large",
+							style: {
+								fill: this.focused ? theme.header_button_selected : theme.header_button,
+							}
+						}))
+						: null,
 					m(".searchInputWrapper.flex.items-center", {
 							style: (() => {
 								let paddingLeft: string
@@ -163,59 +236,25 @@ export class SearchBar implements Component {
 							})()
 						},
 						[
-							this._getInputField(vnode.attrs), m(".closeIconWrapper", {
-							onclick: (e) => this.close(),
-							style: {width: size.icon_size_large}
-						}, this.busy ? m(Icon, {
-							icon: BootIcons.Progress,
-							class: 'flex-center items-center icon-progress-search icon-progress'
-						}) : m(Icon, {
-							icon: Icons.Close,
-							class: "flex-center items-center icon-large",
-							style: {
-								fill: theme.header_button
-							}
-						}))
+							this._getInputField(vnode.attrs),
+							m(".closeIconWrapper", {
+								onclick: (e) => this.close(),
+								style: {width: size.icon_size_large}
+							}, this.busy
+								? m(Icon, {
+									icon: BootIcons.Progress,
+									class: 'flex-center items-center icon-progress-search icon-progress'
+								})
+								: m(Icon, {
+									icon: Icons.Close,
+									class: "flex-center items-center icon-large",
+									style: {fill: theme.header_button}
+								}))
 						]
 					),
-
 				]),
 				(vnode.attrs.spacer ? m(".nav-bar-spacer") : null)
 			])
-		}
-		let shortcuts = null
-
-		let indexStateStream
-		let routeChangeStream
-		this.oncreate = () => {
-			shortcuts = this._setupShortcuts()
-			keyManager.registerShortcuts(shortcuts)
-			indexStateStream = locator.search.indexState.map((newState: SearchIndexStateInfo) => {
-				this.showIndexingProgress(newState, m.route.get())
-				m.redraw() // redraw in any case, especially to show the search bar after the db is initialized
-				// Fix bug in current Safari with losing focus
-				if (this.focused) {
-					setTimeout(() => this._domInput.focus(), 50)
-				}
-			})
-			routeChangeStream = routeChange.map((e: RouteChangeEvent) => {
-				if (e.requestedPath.startsWith("/search/mail")) {
-					let indexState = locator.search.indexState()
-					this.showIndexingProgress(indexState, e.requestedPath)
-				} else {
-					this._closeOverlay()
-				}
-			})
-		}
-		this.onbeforeremove = () => {
-			shortcuts && keyManager.unregisterShortcuts(shortcuts)
-			if (indexStateStream) {
-				indexStateStream.end(true)
-			}
-			if (routeChangeStream) {
-				routeChangeStream.end(true)
-			}
-			this._closeOverlay()
 		}
 	}
 
@@ -227,36 +266,13 @@ export class SearchBar implements Component {
 		}
 	}
 
-	showIndexingProgress(newState: SearchIndexStateInfo, route: string) {
-		if (this._domWrapper && newState.progress > 0 && ((this.focused && route.startsWith("/mail"))
-			|| (route.startsWith("/search/mail") && newState.progress <= 100))) {
-			let cancelButton = new Button("cancel_action", () => {
-				worker.cancelMailIndexing()
-			}, () => Icons.Cancel)
-			this._showOverlay(() => {
-				return m(".plr-l.pt-s.pb-s.flex.items-center.flex-space-between", {
-					style: {
-						height: px(52)
-					}
-				}, [
-					m("", lang.get("createSearchIndex_msg", {"{progress}": newState.progress})),
-					newState.progress !== 100
-						? m("div", {onmousedown: e => this.skipNextBlur = true,}, m(cancelButton)) : null // avoid closing overlay before the click event can be received
-				])
-			})
-		} else if ((route.startsWith("/search/mail") && newState.progress === 0)) {
-			this._closeOverlay()
-		}
-	}
-
 	/**
 	 * Replace contents of the overlay if it was shown or display a new one
 	 * if it wasn't
 	 * @param contentFunction what to show in overlay
 	 * @private
 	 */
-	_showOverlay(contentFunction: () => Children) {
-		this._overlayContentComponent.view = contentFunction;
+	_showOverlay() {
 		if (this._closeOverlayFunction == null) {
 			this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), this._overlayContentComponent)
 		} else {
@@ -268,7 +284,6 @@ export class SearchBar implements Component {
 		if (this._closeOverlayFunction) {
 			this._closeOverlayFunction()
 			this._closeOverlayFunction = null
-			this._overlayContentComponent.view = () => null
 		}
 	}
 
@@ -303,8 +318,6 @@ export class SearchBar implements Component {
 				help: "search_label"
 			},
 		]
-
-
 	}
 
 	// TODO: remove this and take the list id from the url as soon as the list id is included in user and group settings
@@ -312,205 +325,30 @@ export class SearchBar implements Component {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	_downloadResults(searchResult: SearchResult): Promise<Array<Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction>> {
-		if (searchResult.results.length === 0) {
-			return Promise.resolve([])
+	_downloadResults({results, restriction}: SearchResult): Promise<Array<?Entry>> {
+		if (results.length === 0) {
+			return Promise.resolve(([]))
 		}
-		const toFetch = searchResult.results.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
-		return Promise.map(toFetch, r => load(searchResult.restriction.type, r)
+
+		return Promise.map(results, r => load(restriction.type, r)
 			.catch(NotFoundError, () => console.log("mail from search index not found"))
 			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index")))
 	}
 
-	showDropdown(searchResult: SearchResult) {
-		let newResults = []
-		this._downloadResults(searchResult)
-		    .then(resultInstances => {
-			    let filteredInstances = resultInstances.filter(instance => instance) // filter not found results
-
-			    // filter group infos for local admins
-			    if (isSameTypeRef(GroupInfoTypeRef, searchResult.restriction.type) && !logins.getUserController()
-			                                                                                 .isGlobalAdmin()) {
-				    let localAdminGroupIds = logins.getUserController()
-				                                   .getLocalAdminGroupMemberships()
-				                                   .map(gm => gm.group)
-				    filteredInstances = filteredInstances.filter(gi => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
-			    }
-			    if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
-				    filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
-			    }
-			    newResults.push(...filteredInstances)
-		    })
-		    .then(() => {
-			    if (this.value() === searchResult.query) {
-				    this._results = newResults
-				    let resultCount = (searchResult.results.length)
-				    if (resultCount === 0
-					    || searchResult.moreResultsEntries.length > 0
-					    || searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP) {
-					    this._results.push({
-						    resultCount: resultCount,
-						    shownCount: this._results.length,
-						    indexTimestamp: searchResult.currentIndexTimestamp,
-						    allowShowMore: !isSameTypeRef(searchResult.restriction.type, GroupInfoTypeRef)
-						    && !isSameTypeRef(searchResult.restriction.type, WhitelabelChildTypeRef)
-					    }) // add SearchMoreAction
-				    }
-				    if (this._results.length > 0) {
-					    this._selected = this._results[0]
-				    } else {
-					    this._selected = null
-				    }
-			    }
-			    if (this._domWrapper != null && this.value().trim() != "" && this.focused) {
-				    this._showOverlay(() =>
-					    m("ul.list.click.mail-list", [
-						    this._results.map(result => {
-							    return m("li.plr-l.flex-v-center.", {
-								    style: {
-									    height: px(52),
-									    'border-left': px(size.border_selection) + " solid transparent",
-								    },
-								    onmousedown: e => this.skipNextBlur = true, // avoid closing overlay before the click event can be received
-								    onclick: e => this._selectResult(result),
-								    class: this._selected === result ? "row-selected" : "",
-							    }, this.renderResult(result))
-						    }),
-					    ]))
-			    }
-			    // updates the suggestion list if the dropdown is already visible
-			    m.redraw()
-		    })
-	}
-
-	renderResult(result: Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
-		let type: ?TypeRef = result._type ? result._type : null
-		if (!type) { // show more action
-			let showMoreAction = ((result: any): ShowMoreAction)
-			let infoText
-			let indexInfo
-			if (showMoreAction.resultCount === 0) {
-				infoText = lang.get("searchNoResults_msg")
-				if (logins.getUserController().isFreeAccount()) {
-					indexInfo = lang.get("changeTimeFrame_msg")
-				}
-			} else if (showMoreAction.allowShowMore) {
-				infoText = lang.get("showMore_action")
-			} else {
-				infoText = lang.get("moreResultsFound_msg", {
-					"{1}": showMoreAction.resultCount - showMoreAction.shownCount
-				})
-			}
-			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
-				indexInfo = lang.get("searchedUntil_msg") + " "
-					+ formatDate(new Date(showMoreAction.indexTimestamp))
-			}
-
-			return indexInfo ? [
-				m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)
-			] : m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
-
-		} else if (isSameTypeRef(MailTypeRef, type)) {
-			let mail = ((result: any): Mail)
-			return [
-				m(".top.flex-space-between.badge-line-height", [
-					isTutanotaTeamMail(mail) ? m(Badge, {classes: ".small.mr-s"}, "Tutanota Team") : null,
-					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
-					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate))
-				]),
-				m(".bottom.flex-space-between", [
-					m(".text-ellipsis", mail.subject),
-					m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
-						m(Icon, {
-							icon: this._getMailFolderIcon(mail),
-							class: this._selected === result ? "svg-content-accent-fg" : "svg-content-fg",
-						}),
-						m(Icon, {
-							icon: Icons.Attachment,
-							class: this._selected === result ? "svg-content-accent-fg" : "svg-content-fg",
-							style: {display: mail.attachments.length > 0 ? '' : 'none'},
-						}),
-					])
-				])
-			]
-		} else if (isSameTypeRef(ContactTypeRef, type)) {
-			let contact = ((result: any): Contact)
-			return [
-				m(".top.flex-space-between",
-					m(".name", contact.firstName + " " + contact.lastName),
-				),
-				m(".bottom.flex-space-between",
-					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length
-						> 0) ? contact.mailAddresses[0].address : ""),
-				)
-			]
-		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-			let groupInfo = ((result: any): GroupInfo)
-			return [
-				m(".top.flex-space-between",
-					m(".name", groupInfo.name),
-				),
-				m(".bottom.flex-space-between", [
-					m("small.mail-address", groupInfo.mailAddress),
-					m(".icons.flex", [
-						(groupInfo.deleted) ? m(Icon, {
-							icon: Icons.Trash,
-							class: "svg-list-accent-fg",
-						}) : null,
-						(!groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-							icon: BootIcons.Settings,
-							class: "svg-list-accent-fg",
-						}) : null,
-						(groupInfo.mailAddress && m.route.get().startsWith('/settings/groups')) ? m(Icon, {
-							icon: BootIcons.Mail,
-							class: "svg-list-accent-fg",
-						}) : null
-					])
-				])
-			]
-		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-			let whitelabelChild = ((result: any): WhitelabelChild)
-			return [
-				m(".top.flex-space-between",
-					m(".name", whitelabelChild.mailAddress),
-				),
-				m(".bottom.flex-space-between", [
-					m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
-					m(".icons.flex", [
-						(whitelabelChild.deletedDate) ? m(Icon, {
-							icon: Icons.Trash,
-							class: "svg-list-accent-fg",
-						}) : null
-					])
-				])
-			]
-		}
-	}
-
-	_getMailFolderIcon(mail: Mail): AllIconsEnum {
-		let folder = mailModel.getMailFolder(mail._id[0])
-		if (folder) {
-			return getFolderIcon(folder)()
-		} else {
-			return Icons.Folder
-		}
-	}
 
 	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
+		const {query} = this._state()
 		if (result != null) {
-			this._closeOverlay()
 			this._domInput.blur()
 			let type: ?TypeRef = result._type ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
-					setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get())))
+					this._updateSearchUrl(query)
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				let mail: Mail = downcast(result)
-				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), mail._id[1]))
+				this._updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				let contact: Contact = downcast(result)
-				setSearchUrl(getSearchUrl(this.value(), getRestriction(m.route.get()), contact._id[1]))
+				this._updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
 				this.lastSelectedGroupInfoResult(downcast(result))
 			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
@@ -527,15 +365,26 @@ export class SearchBar implements Component {
 		}
 	}
 
-	search() {
-		let value = this.value()
-		let restriction = getRestriction(m.route.get())
+	_getRestriction(): SearchRestriction {
+		return getRestriction(m.route.get())
+	}
+
+	_updateSearchUrl(query: string, selected: ?ListElement) {
+		setSearchUrl(getSearchUrl(query, this._getRestriction(), selected && getElementId(selected)))
+	}
+
+	search(query?: string) {
+		let oldQuery = this._state().query
+		if (query != null) {
+			this._updateState({query})
+		} else {
+			query = oldQuery
+		}
+		let restriction = this._getRestriction()
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
 			restriction.listId = this._groupInfoRestrictionListId
 		}
-
-		if (!locator.search.indexState().mailIndexEnabled && restriction
-			&& isSameTypeRef(restriction.type, MailTypeRef)) {
+		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
@@ -545,117 +394,154 @@ export class SearchBar implements Component {
 					})
 				}
 			})
-
 		} else {
-			if (value.trim() === "") {
-				this.busy = false
-				if (m.route.get().startsWith("/search")) {
-					setSearchUrl(getSearchUrl("", restriction))
-				}
-			} else if (!locator.search.isNewSearch(value, restriction)) {
+			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
 				const result = locator.search.result()
-				if (!m.route.get().startsWith("/search") && result) {
-					this.showDropdown(result)
+				if (this._isQuickSearch() && result) {
+					this._showResultsInOverlay(result)
 				}
 				this.busy = false
 			} else {
-				this.busy = true
-				setTimeout(() => {
-					if (value === this.value()) {
-						if (this.value().trim() !== "") {
-							let useSuggestions = m.route.get().startsWith("/settings")
-							const isQuickSearch = !m.route.get().startsWith("/search")
-							locator.search.search(value, restriction, useSuggestions ? 10 : 0,
-								isSameTypeRef(MailTypeRef, restriction.type)
-									? isQuickSearch ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
-									: null)
-							       .then(result => {
-								       if (m.route.get().startsWith("/search")) {
-									       // instances will be displayed as part of the list of the search view, when the search view is displayed
-									       this.busy = false
-									       setSearchUrl(getSearchUrl(value, restriction))
-								       } else {
-									       if (result) {
-										       this.showDropdown(result)
-									       } else {
-										       this._closeOverlay()
-									       }
-								       }
-							       })
-							       .finally(() => {
-								       this.busy = false
-								       m.redraw()
-							       })
-						} else {
-							this.busy = false
-						}
-					} else if (this.value().trim() === "") {
-						locator.search.lastQuery("")
-						locator.search.result(null)
-						this.busy = false
-					}
+				if (query.trim() !== "") {
+					this.busy = true
+				}
+				this._doSearch(query, restriction, () => {
+					this.busy = false
 					m.redraw()
-				}, 500)
+				})
 			}
+		}
+	}
 
+	_doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
+		let useSuggestions = m.route.get().startsWith("/settings")
+		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
+		const limit = isSameTypeRef(MailTypeRef, restriction.type)
+			? this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
+			: null
+		locator.search.search(query, restriction, useSuggestions ? 10 : 0, limit)
+		       .then(result => this._loadAndDisplayResult(query, result, limit))
+		       .finally(() => cb())
+	})
+
+	/** Given the result from the search load additional results if needed and then display them or set URL. */
+	_loadAndDisplayResult(query: string, result: ?SearchResult, limit: ?number) {
+		// Let Flow know that they're constants
+		const safeResult = result, safeLimit = limit
+		this._updateState({searchResult: result})
+		if (!safeResult || locator.search.isNewSearch(query, safeResult.restriction)) {
+			return
+		}
+		if (this._isQuickSearch()) {
+			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
+				worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+					if (locator.search.isNewSearch(query, moreResults.restriction)) {
+						return
+					} else {
+						this._loadAndDisplayResult(query, moreResults, limit)
+					}
+				})
+			} else {
+				this._showResultsInOverlay(safeResult)
+			}
+		} else {
+			// instances will be displayed as part of the list of the search view, when the search view is displayed
+			setSearchUrl(getSearchUrl(query, safeResult.restriction))
 		}
 	}
 
 	close() {
 		if (this.expanded) {
 			this.expanded = false
-			this.value("")
+			this._updateState({query: ""})
 			this._domInput.blur() // remove focus from the input field in case ESC is pressed
-			this._closeOverlay()
 		}
 		if (m.route.get().startsWith("/search")) {
 			locator.search.result(null)
-			setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
+			this._updateSearchUrl("")
 		}
+	}
+
+	_showResultsInOverlay(result: SearchResult): Promise<void> {
+		return this._downloadResults(result)
+		           .then((entries) => {
+			           // If there was no new search while we've been downloading the result
+			           if (!locator.search.isNewSearch(result.query, result.restriction)) {
+				           const filteredResults = this._filterResults(entries, result.restriction)
+				           const overlayEntries = filteredResults.slice(0, MAX_SEARCH_PREVIEW_RESULTS)
+				           if (result.query.trim() !== ""
+					           && (overlayEntries.length === 0
+						           || hasMoreResults(result)
+						           || overlayEntries.length < filteredResults.length
+						           || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)) {
+					           const moreEntry: ShowMoreAction = {
+						           resultCount: result.results.length,
+						           shownCount: overlayEntries.length,
+						           indexTimestamp: result.currentIndexTimestamp,
+						           allowShowMore: !isSameTypeRef(result.restriction.type, GroupInfoTypeRef)
+							           && !isSameTypeRef(result.restriction.type, WhitelabelChildTypeRef)
+					           }
+					           overlayEntries.push(moreEntry)
+				           }
+				           this._updateState({entities: overlayEntries, selected: overlayEntries[0]})
+			           }
+		           })
+	}
+
+	_isQuickSearch(): boolean {
+		return !m.route.get().startsWith("/search")
+	}
+
+	_filterResults(instances: Array<?Entry>, restriction: SearchRestriction): Entries {
+		let filteredInstances = instances.filter(Boolean) // filter not found results
+
+		// filter group infos for local admins
+		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !logins.getUserController().isGlobalAdmin()) {
+			const localAdminGroupIds = logins.getUserController()
+			                                 .getLocalAdminGroupMemberships()
+			                                 .map(gm => gm.group)
+			filteredInstances = filteredInstances.filter(gi => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
+		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) { // Sort contacts by name
+			filteredInstances.sort((o1, o2) => compareContacts((o1: any), (o2: any)))
+		}
+		return filteredInstances
 	}
 
 	_getInputField(attrs: any): VirtualElement {
 		return m("input.input.input-no-clear", {
 			placeholder: attrs.placeholder,
 			type: Type.Text,
-			value: this.value(),
+			value: this._state().query,
 			oncreate: (vnode) => {
 				this._domInput = vnode.dom
 			},
 			onfocus: (e) => this.focus(),
 			onblur: e => {
-				if (this.skipNextBlur) {
+				if (this.skipNextBlur()) {
 					setTimeout(() => this._domInput.focus(), 0) // setTimeout needed in Firefox to keep focus
 				} else {
 					this.blur(e)
 				}
-				this.skipNextBlur = false
+				this.skipNextBlur(false)
 			},
 			onremove: () => {
 				this._domInput.onblur = null
 			},
 			oninput: e => {
-				if (this.value() !== this._domInput.value) {
-					this.value(this._domInput.value) // update the input on each change
-					let value = this.value()
-					if (value.trim() === "") {
-						this._closeOverlay()
-						locator.search.result(null)
-						if (m.route.get().startsWith("/search")) {
-							setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
-						}
-					} else {
-						this.search()
-					}
+				const domValue = this._domInput.value
+				if (this._state().query !== domValue) {
+					// update the input on each change
+					this.search(domValue)
 				}
 			},
 			onkeydown: e => {
+				const {selected, entities} = this._state()
 				let keyCode = e.which
 				if (keyCode === Keys.ESC.code) {
 					this.close()
 				} else if (keyCode === Keys.RETURN.code) {
-					if (this._selected) {
-						this._selectResult(this._selected)
+					if (selected) {
+						this._selectResult(selected)
 					} else {
 						if (isApp()) {
 							this._domInput.blur()
@@ -664,14 +550,18 @@ export class SearchBar implements Component {
 						}
 					}
 				} else if (keyCode === Keys.UP.code) {
-					if (this._results.length > 0) {
-						let selected = this._selected ? this._selected : this._results[0]
-						this._selected = this._results[mod(this._results.indexOf(selected) - 1, this._results.length)]
+					if (entities.length > 0) {
+						let oldSelected = selected || entities[0]
+						this._updateState({
+							selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
+						})
 					}
 				} else if (keyCode === Keys.DOWN.code) {
-					if (this._results.length > 0) {
-						let selected = this._selected ? this._selected : this._results[0]
-						this._selected = this._results[mod(this._results.indexOf(selected) + 1, this._results.length)]
+					if (entities.length > 0) {
+						let newSelected = selected || entities[0]
+						this._updateState({
+							selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
+						})
 					}
 				}
 				// disable key bindings
@@ -686,25 +576,23 @@ export class SearchBar implements Component {
 
 
 	focus() {
-		if (!this.focused) {
+		if (!this._state().indexState.indexingSupported) {
+			Dialog.error("searchDisabled_msg")
+		} else if (!this.focused) {
 			this.focused = true
 			this.expanded = true
 			// setTimeout to fix bug in current Safari with losing focus
 			setTimeout(() => {
 				this._domInput.select()
 				this._domInput.focus()
-				this.showIndexingProgress(locator.search.indexState(), m.route.get())
 				this.search()
 			}, client.browser === BrowserType.SAFARI ? 200 : 0)
-			//this._domWrapper.classList.add("active")
 		}
 	}
 
 	blur(e: MouseEvent) {
-		//this._domInput.classList.remove("active")
 		this.focused = false
-		this._closeOverlay()
-		if (this.value().trim() === "") {
+		if (this._state().query === "") {
 			this.expanded = false
 			if (m.route.get().startsWith("/search")) {
 				locator.search.result(null)
@@ -715,5 +603,11 @@ export class SearchBar implements Component {
 
 	getMaxWidth(): number {
 		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
+	}
+
+	_updateState(update: $Shape<SearchBarState>): SearchBarState {
+		const newState = Object.assign({}, this._state(), update)
+		this._state(newState)
+		return newState
 	}
 }

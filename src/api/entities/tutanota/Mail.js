@@ -98,5 +98,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMail(): Mail {
-	return create(_TypeModel)
+	return create(_TypeModel, MailTypeRef)
 }

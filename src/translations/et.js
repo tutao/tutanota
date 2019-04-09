@@ -393,7 +393,6 @@ module.exports = {
 		"notASubdomain_msg": "See domeen ei ole alamdomeen.",
 		"notFound404_msg": "Vabandage, kuid lehekülge, mida otsite, ei leitud. Proovige kontrollida võimalikke vigu URL'is ja vajutage brauseris \"värskenda\" nuppu. ",
 		"notificationMailLanguage_label": "Teavituskirja keel",
-		"notificationMailSendFailureBody_msg": "Vabandusega teatame, et järgnev teavituskiri ei jõudnud kohale.",
 		"notificationsDisabled_label": "Keelatud",
 		"notificationSettings_action": "Teated",
 		"no_label": "Ei",

@@ -33,5 +33,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailHeaders(): MailHeaders {
-	return create(_TypeModel)
+	return create(_TypeModel, MailHeadersTypeRef)
 }

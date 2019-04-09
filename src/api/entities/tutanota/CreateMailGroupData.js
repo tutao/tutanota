@@ -41,5 +41,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createCreateMailGroupData(): CreateMailGroupData {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateMailGroupDataTypeRef)
 }

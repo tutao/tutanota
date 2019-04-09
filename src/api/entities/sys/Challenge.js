@@ -27,9 +27,9 @@ export const _TypeModel: TypeModel = {
 		}, "u2f": {"name": "u2f", "id": 1190, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "U2fChallenge", "final": true}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createChallenge(): Challenge {
-	return create(_TypeModel)
+	return create(_TypeModel, ChallengeTypeRef)
 }

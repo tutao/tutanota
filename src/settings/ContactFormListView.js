@@ -12,7 +12,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {getBrandingDomain, neverNull} from "../api/common/utils/Utils"
+import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -112,9 +112,9 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			m.redraw()
 		} else if (contactForms.length === 1 && selectionChanged) {
 			this._customerInfo.getAsync().then(customerInfo => {
-				let brandingDomain = getBrandingDomain(customerInfo)
-				if (brandingDomain) {
-					this._settingsView.detailsViewer = new ContactFormViewer(contactForms[0], brandingDomain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+				const whitelabelDomain = getWhitelabelDomain(customerInfo)
+				if (whitelabelDomain) {
+					this._settingsView.detailsViewer = new ContactFormViewer(contactForms[0], whitelabelDomain.domain, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 					if (elementClicked) {
 						this._settingsView.focusSettingsDetailsColumn()
 					}
@@ -160,13 +160,13 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			} else {
 				this.list.entityEventReceived(instanceId, operation)
 			}
-			if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())
+			if (this._customerInfo.isLoaded() && getWhitelabelDomain(this._customerInfo.getLoaded())
 				&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
-				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
-					neverNull(instanceListId), instanceId
-				])) {
+				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [neverNull(instanceListId), instanceId])) {
 				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
-					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm, neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm,
+						neverNull(getWhitelabelDomain(this._customerInfo.getLoaded())).domain,
+						contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 					m.redraw()
 				})
 			}
@@ -211,8 +211,11 @@ export class ContactFormRow {
 		}
 
 		this._domPageTitle.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle
-		if (this._customerInfo.isLoaded() && getBrandingDomain(this._customerInfo.getLoaded())) {
-			this._domUrl.textContent = getContactFormUrl(neverNull(getBrandingDomain(this._customerInfo.getLoaded())), contactForm.path)
+		if (this._customerInfo.isLoaded()) {
+			const whitelabelDomain = getWhitelabelDomain(this._customerInfo.getLoaded())
+			if (whitelabelDomain) {
+				this._domUrl.textContent = getContactFormUrl(whitelabelDomain.domain, contactForm.path)
+			}
 		}
 	}
 

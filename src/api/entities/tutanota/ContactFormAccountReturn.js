@@ -30,5 +30,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createContactFormAccountReturn(): ContactFormAccountReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, ContactFormAccountReturnTypeRef)
 }

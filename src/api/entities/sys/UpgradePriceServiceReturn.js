@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}, "proPrices": {"name": "proPrices", "id": 1474, "since": 39, "type": "AGGREGATION", "cardinality": "One", "refType": "PlanPrices", "final": false}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "44"
 }
 
 export function createUpgradePriceServiceReturn(): UpgradePriceServiceReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, UpgradePriceServiceReturnTypeRef)
 }

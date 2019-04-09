@@ -104,5 +104,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createExternalUserData(): ExternalUserData {
-	return create(_TypeModel)
+	return create(_TypeModel, ExternalUserDataTypeRef)
 }

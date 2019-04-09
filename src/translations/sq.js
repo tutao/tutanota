@@ -325,7 +325,6 @@ module.exports = {
 		"notAvailableInApp_msg": "Ky veprim nuk është i mundshëm në epin e pajisjes së dorës.",
 		"notFound404_msg": "Na vjen keq, por faqja që po e kërkon nuk u gjet. Shih mos vegëza ka ndonjë gabim dhe provo me e rihapë faqen.",
 		"notificationMailLanguage_label": "Gjuha e mesazhit njoftues",
-		"notificationMailSendFailureBody_msg": "Me keqardhje ju njoftojmë se mesazhi lajmërues në vijim nuk mund të dorëzohej.",
 		"notificationSettings_action": "Njoftime",
 		"ok_action": "Ani",
 		"oldPasswordInvalid_msg": "Fjalëkalimi i vjetër gabim.",

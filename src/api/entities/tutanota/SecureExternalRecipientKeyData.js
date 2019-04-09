@@ -62,5 +62,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createSecureExternalRecipientKeyData(): SecureExternalRecipientKeyData {
-	return create(_TypeModel)
+	return create(_TypeModel, SecureExternalRecipientKeyDataTypeRef)
 }

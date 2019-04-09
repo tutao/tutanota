@@ -65,5 +65,5 @@ export const _TypeModel: TypeModel = {
 }
 
 export function createMailFolder(): MailFolder {
-	return create(_TypeModel)
+	return create(_TypeModel, MailFolderTypeRef)
 }
