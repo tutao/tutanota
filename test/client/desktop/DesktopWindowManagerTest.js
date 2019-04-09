@@ -2,6 +2,7 @@
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
 import type {UserInfo} from "../../../src/desktop/ApplicationWindow"
+import {downcast, noOp} from "../../../src/api/common/utils/Utils"
 
 o.spec("Desktop Window Manager Test", () => {
 	o.beforeEach(n.enable)
@@ -13,7 +14,11 @@ o.spec("Desktop Window Manager Test", () => {
 
 	const electron = {
 		app: {
-			once: (ev: string, cb: ()=>void) => n.spyify(electron.app)
+			callbacks: [],
+			once: function (ev: string, cb: ()=>void) {
+				this.callbacks[ev] = cb
+				return n.spyify(electron.app)
+			}
 		},
 		screen: {
 			getDisplayMatching: () => {
@@ -48,13 +53,25 @@ o.spec("Desktop Window Manager Test", () => {
 					this.callbacks[ev] = cb
 					return this
 				},
-				getUserId: () => "userId",
+				getPath: function () {return "this/path"},
+				getUserId: function () {return "userId"},
+				getUserInfo: function () { return {userId: "userId", mailAddress: "mailAddress"} },
+				isMinimized: function () { return false },
+				isFocused: function () { return false },
+				isHidden: function () { return false },
+				getBounds: function () { return {rect: {x: 0, y: 0, width: 0, height: 0}, fullscreen: false} },
 				center: function () {},
 				setBounds: function () {},
+				minimize: function () {},
 				show: function () {
 					this.callbacks["focus"]()
 				},
-				setZoomFactor: function () {}
+				hide: function () {},
+				setZoomFactor: function () {},
+				openMailBox: function () {
+					return Promise.resolve()
+				},
+				showInactive: function () {}
 			},
 			statics: {
 				lastId: 0
@@ -78,10 +95,13 @@ o.spec("Desktop Window Manager Test", () => {
 			switch (key) {
 				case 'lastBounds':
 					return undefined
+				case 'runAsTrayApp':
+					return true
 				default:
 					throw new Error(`unexpected getDesktopConfig key ${key}`)
 			}
 		},
+		setDesktopConfig: (key: string) => {},
 		get: (key: string) => {
 			switch (key) {
 				case 'checkUpdateSignature':
@@ -238,7 +258,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(wm.getLastFocused(false).id).equals(w2.id)
 	})
 
-	o("wm is saving bounds to file when closing", () => {
+	o("wm is saving bounds to file when closing window", () => {
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
 
@@ -257,6 +277,128 @@ o.spec("Desktop Window Manager Test", () => {
 		wm.setIPC(ipcMock)
 
 		const w = wm.newWindow(true)
+		w.callbacks['ready-to-show']()
+		w.callbacks['close']({preventDefault: noOp})
+
+		o(confMock.setDesktopConfig.callCount).equals(1)
+		o(confMock.setDesktopConfig.args[0]).equals("lastBounds")
+		o(confMock.setDesktopConfig.args[1]).deepEquals({rect: {x: 0, y: 0, width: 0, height: 0}, fullscreen: false})
+	})
+
+	o("recreate window", done => {
+		// node modules
+		const electronMock = n.mock("electron", electron).set()
+
+		// our modules
+		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
+		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+
+		// instances
+		const confMock = n.mock('__conf', conf).set()
+		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon", update: () => {}}).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+		const ipcMock = n.mock('__ipc', ipc).set()
+
+		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock)
+		wm.setIPC(ipcMock)
+
+		const w1 = wm.newWindow(true)
+		const w2 = wm.newWindow(true)
+		const w3 = wm.newWindow(true)
+		const w4 = wm.newWindow(true)
+		const applyBrowserWindow = w => {
+			w._browserWindow = {
+				destroy: () => w.callbacks['closed'](),
+			}
+			w.callbacks['ready-to-show']()
+		}
+		applyBrowserWindow(w1)
+		applyBrowserWindow(w2)
+		applyBrowserWindow(w3)
+		applyBrowserWindow(w4)
+
+		w2.getUserInfo = () => null
+
+		w3.getUserInfo = () => null
+		w3.isFocused = () => true
+
+		w4.getUserInfo = () => null
+		w4.isMinimized = () => true
+
+		wm.recreateWindow(w1)
+		wm.recreateWindow(w2)
+		wm.recreateWindow(w3)
+		wm.recreateWindow(w4)
+
+		o(wm.getAll().length).equals(4)
+		const newW1 = wm.getAll()[3]
+		const newW2 = wm.getAll()[2]
+		const newW3 = wm.getAll()[1]
+		const newW4 = wm.getAll()[0]
+
+		setTimeout(() => {
+			o(newW1.openMailBox.callCount).equals(1)
+			o(newW1.openMailBox.args[0]).deepEquals({userId: "userId", mailAddress: "mailAddress"})
+			o(newW1.openMailBox.args[1]).equals("this/path")
+			o(newW1.setBounds.callCount).equals(1)
+			o(newW1.setBounds.args[0]).deepEquals({rect: {x: 0, y: 0, width: 0, height: 0}, fullscreen: false})
+			o(newW1.showInactive.callCount).equals(1)
+			o(newW1.minimize.callCount).equals(0)
+			o(newW1.show.callCount).equals(0)
+
+			o(newW2.openMailBox.callCount).equals(0)
+			o(newW2.showInactive.callCount).equals(1)
+			o(newW2.minimize.callCount).equals(0)
+			o(newW2.show.callCount).equals(0)
+
+			o(newW3.openMailBox.callCount).equals(0)
+			o(newW3.showInactive.callCount).equals(0)
+			o(newW3.minimize.callCount).equals(0)
+			o(newW3.show.callCount).equals(1)
+
+			o(newW4.openMailBox.callCount).equals(0)
+			o(newW4.showInactive.callCount).equals(1)
+			o(newW4.minimize.callCount).equals(1)
+			o(newW4.show.callCount).equals(0)
+			done()
+		}, 10)
+	})
+
+	o("retain logged in windows", () => {
+		// node modules
+		const electronMock = n.mock("electron", electron).set()
+
+		// our modules
+		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
+		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+
+		// instances
+		const confMock = n.mock('__conf', conf).set()
+		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon", update: () => {}}).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+		const ipcMock = n.mock('__ipc', ipc).set()
+
+		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock)
+		wm.setIPC(ipcMock)
+
+		const w = wm.newWindow(true)
+		w.callbacks['ready-to-show']()
+		const e = {preventDefault: o.spy()}
+
+		// first, before before-quit
+		w.callbacks['close'](e)
+		o(w.hide.callCount).equals(1)
+		o(e.preventDefault.callCount).equals(1)
+		o(confMock.setDesktopConfig.callCount).equals(1)
+
+		//now, after
+		downcast(electronMock.app.callbacks)['before-quit']()
+		w.callbacks['close'](e)
+		o(w.hide.callCount).equals(1)
+		o(e.preventDefault.callCount).equals(1)
+		o(confMock.setDesktopConfig.callCount).equals(2)
 	})
 })
 
