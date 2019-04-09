@@ -947,6 +947,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"certificateType_label": "Zertifikatstyp"
+		"certificateType_label": "Zertifikatstyp",
+		"showAll_action": "Alle anzeigen",
 	}
 }

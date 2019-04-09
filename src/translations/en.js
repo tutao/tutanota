@@ -940,6 +940,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"certificateType_label": "Certificate type"
+		"certificateType_label": "Certificate type",
+		"showAll_action": "Show all",
 	}
 }
