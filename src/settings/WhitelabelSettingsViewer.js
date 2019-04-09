@@ -216,7 +216,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 									WhitelabelBuyDialog.show(true) : Promise.resolve(true)
 								whitelabelEnabledPromise.then(enabled => {
 									if (enabled) {
-										SetCustomDomainCertificateDialog.show(customerInfo)
+										SetCustomDomainCertificateDialog.show(customerInfo, whitelabelConfig)
 									}
 								})
 							}
