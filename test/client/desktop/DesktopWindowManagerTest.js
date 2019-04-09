@@ -200,7 +200,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(desktopTrayMock.update.callCount).equals(1)
 	})
 
-	o.only("getLastFocused returns the last focused window", () => {
+	o("getLastFocused returns the last focused window", () => {
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
 
@@ -222,15 +222,20 @@ o.spec("Desktop Window Manager Test", () => {
 		const w2 = wm.newWindow(true)
 		const w3 = wm.newWindow(true)
 
-		o(wm.getAll()).deepEquals([w1, w2, w3])
-		o(wm.getLastFocused(false)).deepEquals(w3)
+		w1.callbacks['ready-to-show']()
+		w2.callbacks['ready-to-show']()
+		w3.callbacks['ready-to-show']()
+
+		o(wm.getAll().map(w => w.id)).deepEquals([w1, w2, w3].map(w => w.id))
+		o(wm.getLastFocused(false).id).equals(w3.id)
 
 		wm.get(w2.id).show()
 
-		o(wm.getAll()).deepEquals([w1, w3, w2])
-		o(wm.getLastFocused(false)).deepEquals(w2)
+		o(wm.getAll().map(w => w.id)).deepEquals([w1, w3, w2].map(w => w.id))
+		o(wm.getLastFocused(false).id).equals(w2.id)
 		const w4 = wm.newWindow(false)
-		o(wm.getLastFocused(false)).deepEquals(w2)
+		w4.callbacks['ready-to-show']()
+		o(wm.getLastFocused(false).id).equals(w2.id)
 	})
 
 	o("wm is saving bounds to file when closing", () => {
