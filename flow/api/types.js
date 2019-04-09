@@ -178,6 +178,7 @@ type JsRequestType = 'createMailEditor'
 	| 'print'
 	| 'openFindInPage'
 	| 'reportError'
+	| 'showUpdateNotification'
 
 type WebContentsMessage
 	= 'setup-context-menu'

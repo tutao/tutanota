@@ -22,10 +22,12 @@ export class ElectronUpdater {
 	_checkUpdateSignature: boolean;
 	_pubKey: string;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
+	_hasUpdate: boolean;
 
 	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier) {
 		this._conf = conf
 		this._notifier = notifier
+		this._hasUpdate = false
 
 		this._logger = {
 			info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
@@ -73,6 +75,14 @@ export class ElectronUpdater {
 		    .catch((e: Error) => {
 			    this._logger.error("ElectronUpdater.start() failed,", e.message)
 		    })
+	}
+
+	hasUpdate(): boolean {
+		return this._hasUpdate
+	}
+
+	updateAndRestart() {
+		autoUpdater.quitAndInstall(false, true)
 	}
 
 	_verifySignature(updateInfo: UpdateInfo): Promise<void> {
@@ -190,7 +200,7 @@ export class ElectronUpdater {
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
-				    autoUpdater.quitAndInstall(false, true)
+				    this.updateAndRestart()
 			    }
 		    })
 		    .catch((e: Error) => this._logger.error("Notification failed,", e.message))

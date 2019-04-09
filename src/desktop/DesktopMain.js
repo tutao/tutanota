@@ -11,6 +11,7 @@ import {DesktopNotifier} from "./DesktopNotifier"
 import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./DesktopSseClient"
+import {ApplicationWindow} from "./ApplicationWindow"
 
 const conf = new DesktopConfigHandler()
 const notifier = new DesktopNotifier()
@@ -50,15 +51,31 @@ if (process.argv.indexOf("-r") !== -1) {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
 			if (wm.getAll().length === 0) {
-				wm.newWindow(true)
+				showUpdateInWindowIfNeeded(wm.newWindow(true))
 			} else {
-				wm.getAll().forEach(w => w.show())
+				wm.getAll().forEach(w => {
+					w.show()
+					showUpdateInWindowIfNeeded(w)
+				})
 			}
 			handleArgv(args)
 		})
 	}
 
 	app.on('ready', onAppReady)
+}
+
+function showUpdateInWindowIfNeeded(window: ApplicationWindow) {
+	window.once("show", () => {
+			ipc.initialized(window.id).then(() => {
+				if (updater.hasUpdate()) {
+					ipc.sendRequest(window.id, "showUpdateNotification", []).then(() => {
+						updater.updateAndRestart()
+					})
+				}
+			})
+		}
+	)
 }
 
 function onAppReady() {

@@ -113,6 +113,12 @@ function reportError(msg: Request): Promise<void> {
 	)
 }
 
+function showUpdateNotification(msg: Request): Promise<void> {
+	return _asyncImport("src/serviceworker/ServiceWorkerClient").then((module) => {
+		return new Promise((resolve) => module.showUpdateOverlay(resolve))
+	})
+}
+
 function _asyncImport(path): Promise<any> {
 	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 }
@@ -132,5 +138,6 @@ export const desktopCommands = {
 	sendTranslations,
 	print,
 	openFindInPage,
-	reportError
+	reportError,
+	showUpdateNotification
 }

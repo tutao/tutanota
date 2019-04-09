@@ -10,7 +10,7 @@ import {objToError} from "../api/common/WorkerProtocol"
 
 assertMainOrNodeBoot()
 
-function showUpdateOverlay(onUpdate: () => void) {
+export function showUpdateOverlay(onUpdate: () => void) {
 
 	const notificationMessage: Component = {
 		view: () => {
