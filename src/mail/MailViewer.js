@@ -81,8 +81,8 @@ export class MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
-	_darkText: boolean;
-	_htmlBody: DocumentFragment; // always sanitized
+	_contrastFixNeeded: boolean;
+	_htmlBody: string; // always sanitized
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
@@ -110,8 +110,8 @@ export class MailViewer {
 		}
 		this._attachments = []
 		this._attachmentButtons = []
-		this._htmlBody = document.createDocumentFragment()
-		this._darkText = false
+		this._htmlBody = ""
+		this._contrastFixNeeded = false
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
@@ -257,7 +257,7 @@ export class MailViewer {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
 				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
-					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, stringifyFragment(this._htmlBody)), () => Icons.Download).setType(ButtonType.Dropdown))
+					moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown))
 				}
 				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
@@ -296,19 +296,13 @@ export class MailViewer {
 			let sanitizeResult = htmlSanitizer.sanitizeFragment(urlify(body.text), true)
 
 			// check if we need to improve contrast for dark theme
-			if (themeId() === 'dark') {
-				//find an explicit style that has the color property set
-				const styleWithColor = Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
-				if (typeof styleWithColor !== 'undefined') {
-					this._darkText = true
-				}
-			}
-
-			this._htmlBody = sanitizeResult.html
-			if(this._domBody) {
-				this._domBody
-			}
+			this._contrastFixNeeded = themeId() === 'dark'
+				&& (
+					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+				                                .find(s => s.color !== "" && typeof s.color !== 'undefined')
+					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+				)
+			this._htmlBody = stringifyFragment(sanitizeResult.html)
 			this._contentBlocked = sanitizeResult.externalContent.length > 0
 			m.redraw()
 		}).catch(NotFoundError, e => {
@@ -381,13 +375,11 @@ export class MailViewer {
 						]),
 
 						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links"
-							+ (this._darkText ? ".bg-white.content-black" : "")
+							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
-								console.log("appending", stringifyFragment(this._htmlBody))
-								vnode.dom.appendChild(this._htmlBody)
 							},
 							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
@@ -403,7 +395,7 @@ export class MailViewer {
 							])
 							: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
 								? m(errorMessageBox)
-								: m("", {}, ""))) // this._htmlBody is always sanitized
+								: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
 					]
 				)
 			]
@@ -555,7 +547,7 @@ export class MailViewer {
 				let subject = (startsWith(this.mail.subject, prefix)) ? this.mail.subject : prefix + this.mail.subject
 				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 					+ this.mail.sender.address + ":";
-				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + stringifyFragment(this._htmlBody) + "</blockquote>";
+				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
 
 				let toRecipients = []
 				let ccRecipients = []
@@ -615,7 +607,7 @@ export class MailViewer {
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
 
-		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + stringifyFragment(this._htmlBody) + "</blockquote>";
+		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
 
 		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		return editor.initAsResponse(this.mail, ConversationType.FORWARD, this._getSenderOfResponseMail(), recipients, [], [], this._attachments.slice(), "Fwd: "
@@ -802,7 +794,7 @@ export class MailViewer {
 }
 
 function stringifyFragment(fragment: DocumentFragment): string {
-	let div = document.createElement("div");
-	div.appendChild(fragment);
-	return div.innerHTML;
+	let div = document.createElement("div")
+	div.appendChild(fragment)
+	return div.innerHTML
 }
