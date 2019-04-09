@@ -60,7 +60,7 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 			o(electronMock.Notification.args).deepEquals([{title: "Title1", body: "Body1", icon: "Icon1"}])
 			o(desktopTrayMock.update.callCount).equals(1)
 			done()
-		}, notificationStartDelay * 1.1)
+		}, notificationStartDelay * 3)
 	})
 
 	o("show no notifications when no notifications available", done => {

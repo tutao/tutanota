@@ -12,7 +12,15 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		'../api/common/error/RestError',
 		'../api/common/error/UpdateError',
 		'./DesktopNotifier',
-		'../TutanotaConstants'
+		'../TutanotaConstants',
+		'../EntityFunctions',
+		'./utils/Encoding',
+		'../error/CryptoError',
+		'./StringUtils',
+		'./EntityConstants',
+		'./utils/ArrayUtils',
+		'./Utils',
+		'./MapUtils'
 	])
 
 	const response200 = {
