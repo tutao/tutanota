@@ -26,6 +26,9 @@ import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {findAndApplyMatchingRule} from "./InboxRuleHandler"
+import {noOp} from "../api/common/utils/Utils"
+import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -221,7 +224,14 @@ export class MailModel {
 				if (folder && folder.folderType === MailFolderType.INBOX
 					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation
-					this._showNotification(update)
+					const mailboxDetail = mailModel.getMailboxDetailsForMailListId(update.instanceListId)
+					const mailId = [update.instanceListId, update.instanceId]
+					load(MailTypeRef, mailId)
+						.then(mail => {
+							return findAndApplyMatchingRule(mailboxDetail, mail)
+								.then((newId) => this._showNotification(newId || mailId))
+						})
+						.catch(noOp)
 				}
 			}
 		}
@@ -237,10 +247,9 @@ export class MailModel {
 		this.mailboxCounters(normalized)
 	}
 
-	_showNotification(update: EntityUpdateData) {
+	_showNotification(mailId: IdTuple) {
 		this._notifications.showNotification(lang.get("newMails_msg"), {}, (e) => {
-			// TODO: handle the case where the mail has been moved to a different folder
-			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+			m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
 			window.focus()
 		})
 	}

@@ -155,26 +155,7 @@ export class MailListView implements Component {
 	}
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
-		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
-			let mailboxDetail = mailModel.getMailboxDetailsForMailListId(this.listId)
-			if (isInboxList(mailboxDetail, this.listId)) {
-				// filter emails
-				return Promise.filter(mails, (mail) => {
-					return findAndApplyMatchingRule(mailboxDetail, mail).then(ruleFound => !ruleFound)
-				}).then(inboxMails => {
-					if (mails.length === count && inboxMails.length < mails.length) {
-						//console.log("load more because of matching inbox rules")
-						return this._loadMailRange(mails[mails.length - 1]._id[1], mails.length - inboxMails.length)
-						           .then(filteredMails => {
-							           return inboxMails.concat(filteredMails)
-						           })
-					}
-					return inboxMails
-				})
-			} else {
-				return mails
-			}
-		})
+		return loadRange(MailTypeRef, this.listId, start, count, true)
 	}
 }
 
