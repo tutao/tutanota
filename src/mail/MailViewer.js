@@ -1,7 +1,9 @@
 // @flow
 import {px, size} from "../gui/size"
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
@@ -96,10 +98,12 @@ export class MailViewer {
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
+  _filesExpanded: Stream<boolean>;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		this.mail = mail
 		this._folderText = null
+    this._filesExpanded = stream(false)
 		if (showFolder) {
 			let folder = mailModel.getMailFolder(mail._id[0])
 			if (folder) {
@@ -356,7 +360,9 @@ export class MailViewer {
 								m(actions)
 							]),
 							m(".flex-start.flex-wrap.ml-negative-bubble",
-								(!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [
+								!this._loadingAttachments
+                ? this._renderAttachmentsButton()
+                : [
 									m(".flex-v-center.pl-button", progressIcon()),
 									m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
 								]),
@@ -392,6 +398,23 @@ export class MailViewer {
 
 		this._setupShortcuts()
 	}
+
+
+  _renderAttachmentsButton(): Children {
+    if (this._attachmentButtons.length > 6) {
+      return [
+        m(ExpanderButtonN, {
+          label: () => "Attachments",
+          expanded: this._filesExpanded
+        }),
+        m(ExpanderPanelN, {
+          expanded: this._filesExpanded
+        }, this._attachmentButtons.map(m))
+      ]
+    } else {
+      return this._attachmentButtons.map(b => m(b));
+    }
+  }
 
 	_tutaoBadge(): Vnode<*> | null {
 		return isTutanotaTeamMail(this.mail) ? m(Badge, {classes: ".mr-s"}, "Tutanota Team") : null
