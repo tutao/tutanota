@@ -81,6 +81,10 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 }
 
 export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDataDbRow): SearchIndexMetaDataRow {
+	// Initially we write empty data block there. In this case we can't get IV from it and decrypt it
+	if (encryptedMeta.rows.length === 0) {
+		return {id: encryptedMeta.id, word: encryptedMeta.word, rows: []}
+	}
 	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []

@@ -21,6 +21,7 @@ import {groupBy, numberRange, splitInChunks} from "../../../../src/api/common/ut
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
+import type {BrowserData} from "../../../../src/misc/ClientConstants"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
 type KeyToIndexEntriesWithType = {
@@ -32,6 +33,7 @@ let dbKey
 
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
+const browserData: BrowserData = {needsMicrotaskHack: false}
 
 o.spec("SearchFacade test", () => {
 
@@ -51,7 +53,7 @@ o.spec("SearchFacade test", () => {
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp
-		}: any), [])
+		}: any), [], browserData)
 	}
 
 	function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
