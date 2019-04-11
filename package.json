@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.50.1",
+  "version": "3.50.2",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -19,7 +19,7 @@
 		"squire-rte": "1.9.0",
 		"systemjs": "0.20.19"
 	},
-	"devDependencies": {
+  "devDependencies": {
 		"babel-core": "6.26.3",
 		"babel-plugin-transform-class-properties": "6.24.1",
 		"babel-plugin-transform-flow-strip-types": "6.22.0",

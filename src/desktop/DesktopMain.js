@@ -17,9 +17,9 @@ const oldLog = console.log
 const oldError = console.error
 const oldWarn = console.warn
 
-console.log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
-console.error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
-console.warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
+;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
+;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
+;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
 
 const conf = new DesktopConfigHandler()
 const notifier = new DesktopNotifier()

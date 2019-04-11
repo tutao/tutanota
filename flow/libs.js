@@ -171,6 +171,10 @@ declare module 'qrcode' {
 	declare export default any;
 }
 
+declare module 'chalk' {
+	declare export default any;
+}
+
 declare type Squire = any
 
 declare var tutao: {

@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
-import {px} from "../size"
+import {px, size} from "../size"
 import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
@@ -17,7 +17,6 @@ import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
-import {size} from "../size"
 
 assertMainOrNode()
 
