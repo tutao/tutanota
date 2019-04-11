@@ -19,6 +19,7 @@ import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
 import {TypeRef} from "../../common/EntityFunctions"
+import {isTest} from "../../Env"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -81,6 +82,10 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 }
 
 export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDataDbRow): SearchIndexMetaDataRow {
+	// Initially we write empty data block there. In this case we can't get IV from it and decrypt it
+	if (encryptedMeta.rows.length === 0) {
+		return {id: encryptedMeta.id, word: encryptedMeta.word, rows: []}
+	}
 	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true, false)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []
@@ -339,6 +344,7 @@ export function compareMetaEntriesOldest(left: SearchIndexMetadataEntry, right: 
 
 
 export function printMeasure(prefix: string, names: string[]) {
+	if (!shouldMeasure()) return
 	const measures = {}
 	for (let name of names) {
 		try {
@@ -356,10 +362,18 @@ export function printMeasure(prefix: string, names: string[]) {
 }
 
 export function markStart(name: string) {
-	performance.mark(name + "-start")
+	shouldMeasure() && performance.mark(name + "-start")
 }
 
 export function markEnd(name: string) {
-	performance.mark(name + "-end")
-	performance.measure(name, name + "-start", name + "-end")
+	if (!shouldMeasure()) return
+	try {
+		performance.mark(name + "-end")
+		performance.measure(name, name + "-start", name + "-end")
+	} catch (e) {
+	}
+}
+
+export function shouldMeasure() {
+	return !env.dist && !isTest()
 }

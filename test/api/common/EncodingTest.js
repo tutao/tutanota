@@ -131,7 +131,7 @@ o.spec("Encoding", function () {
 		o(timestampToHexGeneratedId(timestamp, 0)).equals("4fc6fbb10000000000")
 	})
 
-	o("TimestampToHexGeneratedId ", function () {
+	o("TimestampToHexGeneratedId server id 1", function () {
 		let timestamp = 1370563200000
 		o(timestampToHexGeneratedId(timestamp, 1)).equals("4fc6fbb10000000001")
 	})

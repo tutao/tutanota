@@ -292,7 +292,7 @@ o.spec("entity rest cache", function () {
 		o(clientSpy.callCount).equals(0)
 	})
 
-	o("single element is not added to cache when read only", async function () {
+	o("single list element is not added to cache when read only", async function () {
 		const mail = createMailInstance("listId1", "id1", "hello")
 
 		clientEntityRequest = () => Promise.resolve(mail)

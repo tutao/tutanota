@@ -3,7 +3,8 @@
 import type {IndexName, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
 import {
 	DbTransaction,
-	ElementDataOS, GroupDataOS,
+	ElementDataOS,
+	GroupDataOS,
 	indexName,
 	osName,
 	SearchIndexMetaDataOS,

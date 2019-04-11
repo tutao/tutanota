@@ -24,7 +24,7 @@ import {
 } from "../../../../src/api/worker/search/IndexUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, generatedIdToTimestamp, timestampToGeneratedId, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
-import {defer, downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import {makeCore, spy} from "../../TestUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
@@ -887,7 +887,7 @@ o.spec("IndexerCore test", () => {
 		o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
 
 		try {
-			deferred.resolve()
+			deferred.resolve({abort: noOp})
 			await result
 			o(false).equals(true)("Should throw an error")
 		} catch (e) {

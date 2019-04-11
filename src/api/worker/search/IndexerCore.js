@@ -41,7 +41,7 @@ import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {promiseMapCompat, thenOrApply} from "../../common/utils/PromiseUtils"
+import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {arrayHash, findLastIndex, groupByAndMap, lastThrow} from "../../common/utils/ArrayUtils"
@@ -222,7 +222,7 @@ export class IndexerCore {
 		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataBatchId(groupId, batchId, t))
 	}
 
-	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => Promise<void>): Promise<void> {
+	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => $Promisable<void>): Promise<void> {
 		let startTimeStorage = getPerformanceTimestamp()
 		if (this._isStopped) {
 			return Promise.reject(new CancelledError("mail indexing cancelled"))
@@ -241,6 +241,10 @@ export class IndexerCore {
 					              return transaction.wait().then(() => {
 						              this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
 					              })
+				              })
+				              .catch(e => {
+					              transaction.abort()
+					              throw e
 				              })
 			})
 	}
@@ -326,7 +330,7 @@ export class IndexerCore {
 							}
 						})
 				})
-				return thenOrApply(updateSearchIndex, () => {
+				return updateSearchIndex.thenOrApply(() => {
 					metaDataRow.rows = metaDataRow.rows.filter((r) => r.size > 0)
 					if (metaDataRow.rows.length === 0) {
 						return transaction.delete(SearchIndexMetaDataOS, metaDataRow.id)
@@ -359,7 +363,7 @@ export class IndexerCore {
 			const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
 			return this._putEncryptedEntity(indexUpdate.typeInfo.appId, indexUpdate.typeInfo.typeId, transaction, encWordB64,
 				encWordToMetaRow, encryptedEntries)
-		}, {concurrency: 2})
+		}, {concurrency: 2}).value
 
 		return result instanceof Promise
 			? result.return(encWordToMetaRow)
@@ -599,8 +603,8 @@ export class IndexerCore {
 	              oldestTimestamp: number, appId: number, typeId: number): Promise<void> {
 		const byTimestamp = groupByAndMap(encryptedSearchIndexEntries, (e) => e.timestamp, (e) => e.entry)
 		const distributed = this._distributeEntities(byTimestamp, false)
-		return Promise
-			.map(distributed, ({row, oldestElementTimestamp}) => {
+		return this
+			._promiseMapCompat(distributed, ({row, oldestElementTimestamp}) => {
 				const binaryRow = appendBinaryBlocks(row)
 				return transaction
 					.put(SearchIndexOS, null, binaryRow)
@@ -647,17 +651,20 @@ export class IndexerCore {
 	}
 
 
-	_updateGroupDataIndexTimestamp(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, transaction: DbTransaction): Promise<void> {
-		return Promise.map(dataPerGroup, (data) => {
-			const {groupId, indexTimestamp} = data
-			return transaction.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
-				if (!groupData) {
-					throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
-				}
-				groupData.indexTimestamp = indexTimestamp
-				return transaction.put(GroupDataOS, groupId, groupData)
+	_updateGroupDataIndexTimestamp(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, transaction: DbTransaction): $Promisable<void> {
+		return this
+			._promiseMapCompat(dataPerGroup, (data) => {
+				const {groupId, indexTimestamp} = data
+				return transaction.get(GroupDataOS, groupId).then((groupData: ?GroupData) => {
+					if (!groupData) {
+						throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
+					}
+					groupData.indexTimestamp = indexTimestamp
+					return transaction.put(GroupDataOS, groupId, groupData)
+				})
 			})
-		}).return()
+			.thenOrApply(() => {})
+			.value
 	}
 
 	_updateGroupDataBatchId(groupId: Id, batchId: Id, transaction: DbTransaction): Promise<void> {

@@ -201,6 +201,7 @@ o.spec("rsa", function () {
 		try {
 			verifySignature(publicKey, input, signature)
 		} catch (e) {
+			// This is flaky for some reason
 			o(/^failed RSA verify sign> _verify/.test(e.message)
 				|| /^failed RSA verify sign> Error. rightmost octet of EM must be 188 \(0xbc\)/.test(e.message)) // first case is firefox, second chrome
 				.equals(true)("Error message doesn't match, got: " + e.message)
