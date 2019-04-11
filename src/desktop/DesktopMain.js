@@ -4,6 +4,7 @@ import {DesktopConfigHandler} from './DesktopConfigHandler'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {lang} from './DesktopLocalizationProvider.js'
+import chalk from 'chalk'
 import {IPC} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
 import {WindowManager} from "./DesktopWindowManager"
@@ -11,6 +12,14 @@ import {DesktopNotifier} from "./DesktopNotifier"
 import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./DesktopSseClient"
+
+const oldLog = console.log
+const oldError = console.error
+const oldWarn = console.warn
+
+console.log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
+console.error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
+console.warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
 
 const conf = new DesktopConfigHandler()
 const notifier = new DesktopNotifier()
