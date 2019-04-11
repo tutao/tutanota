@@ -945,6 +945,6 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"certificateType_label": "Zertifikatstyp",
-		"indexedMails_label": "Indizierte Emails: {count}"
+		"indexedMails_label": "Indizierte E-Mails: {count}"
 	}
 }

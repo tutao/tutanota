@@ -554,7 +554,6 @@ export class SearchFacade {
 		const entriesCopy: Array<?MoreResultsIndexEntry> = downcast(indexEntries.slice())
 		// Results are added in the random order and we may filter some of them out. We need to sort them.
 		// Use separate array to only sort new results and not all of them.
-		const newResults = []
 		return this
 			._db.dbFacade.createTransaction(true, [ElementDataOS])
 			.then((transaction) =>
@@ -570,13 +569,13 @@ export class SearchFacade {
 						                  if (elementData
 							                  && (!searchResult.restriction.listId
 								                  || searchResult.restriction.listId === elementData[0])) {
-							                  newResults.push([elementData[0], entry.id])
+							                  return [elementData[0], entry.id]
 						                  }
+						                  return null
 					                  })
 				}, {concurrency: 5}))
-			.then(() => {
-				newResults.sort(compareNewestFirst)
-				searchResult.results.push(...newResults)
+			.then((newResults) => {
+				searchResult.results.push(...newResults.filter(Boolean))
 				searchResult.moreResults = entriesCopy.filter(Boolean)
 			})
 	}
