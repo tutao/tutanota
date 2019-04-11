@@ -22,6 +22,7 @@ import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import type {BrowserData} from "../../../../src/misc/ClientConstants"
+import {browserDataStub} from "../../TestUtils"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
 type KeyToIndexEntriesWithType = {
@@ -33,7 +34,7 @@ let dbKey
 
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
-const browserData: BrowserData = {needsMicrotaskHack: false}
+const browserData: BrowserData = browserDataStub
 
 o.spec("SearchFacade test", () => {
 
