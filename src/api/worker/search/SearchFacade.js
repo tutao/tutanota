@@ -41,6 +41,9 @@ import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
+import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
+import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import type {BrowserData} from "../../../misc/ClientConstants"
 
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -53,12 +56,14 @@ export class SearchFacade {
 	_db: Db;
 	_mailIndexer: MailIndexer;
 	_suggestionFacades: SuggestionFacade<any>[];
+	_promiseMapCompat: PromiseMapFn;
 
-	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[]) {
+	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[], browserData: BrowserData) {
 		this._loginFacade = loginFacade
 		this._db = db
 		this._mailIndexer = mailIndexer
 		this._suggestionFacades = suggestionFacades
+		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 	}
 
 	/****************************** SEARCH ******************************/
@@ -292,8 +297,8 @@ export class SearchFacade {
 		// First read all metadata to narrow time range we search in.
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS])
 		           .then(transaction => {
-			           return Promise
-				           .map(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
+			           return this
+				           ._promiseMapCompat(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
 					           const [searchToken] = tokenInfo
 					           let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
 					           return transaction
@@ -307,29 +312,30 @@ export class SearchFacade {
 							           return decryptMetaData(this._db.key, metaData)
 						           })
 				           })
-				           .then((metaRows) => {
+				           .thenOrApply((metaRows) => {
 					           // Find index entry rows in which we will search.
 					           const rowsToReadForIndexKeys = this._findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
 
 					           // Iterate each query token
-					           return Promise.map(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
+					           return this._promiseMapCompat(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
 						           // For each token find token entries in the rows we've found
-						           return Promise.map(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
-						                         .then((results: EncryptedSearchIndexEntry[][]) => flat(results))
-						                         .then((indexEntries: EncryptedSearchIndexEntry[]) => {
-							                         return indexEntries.map(entry => ({
-								                         encEntry: entry,
-								                         idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
-							                         }))
-						                         })
-						                         .then((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
-							                         return {
-								                         indexKey: rowsToRead.indexKey,
-								                         indexEntries: indexEntries
-							                         }
-						                         })
-					           })
+						           return this._promiseMapCompat(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
+						                      .thenOrApply(flat)
+						                      .thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
+							                      return indexEntries.map(entry => ({
+								                      encEntry: entry,
+								                      idHash: arrayHash(getIdFromEncSearchIndexEntry(entry))
+							                      }))
+						                      })
+						                      .thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+							                      return {
+								                      indexKey: rowsToRead.indexKey,
+								                      indexEntries: indexEntries
+							                      }
+						                      }).value
+					           }).value
 				           })
+				           .toPromise()
 		           })
 	}
 

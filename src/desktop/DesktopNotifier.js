@@ -50,7 +50,7 @@ export class DesktopNotifier {
 		icon?: NativeImage
 	|}): Promise<NotificationResultEnum> {
 		if (!this.isAvailable()) {
-			return Promise.resolve()
+			return Promise.reject()
 		}
 		return this._canShow
 			? new Promise(resolve => this._makeNotification(props, res => resolve(res)))

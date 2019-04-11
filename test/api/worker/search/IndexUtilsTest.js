@@ -80,6 +80,10 @@ o.spec("Index Utils", () => {
 		o(decryptMetaData(key, encryptedMeta)).deepEquals(meta)
 	})
 
+	o("decryptMetaData with empty rows", function () {
+		o(decryptMetaData(aes256RandomKey(), {id: 1, word: "tuta", rows: new Uint8Array(0)})).deepEquals({id: 1, word: "tuta", rows: []})
+	})
+
 	o("typeRefToTypeInfo", function () {
 		let thrown = false
 		try {
