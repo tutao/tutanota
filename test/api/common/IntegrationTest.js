@@ -32,7 +32,7 @@ o.spec("integration test", function () {
 	let mailbox = null
 
 	o("login, read mails, update contact", function (done, timeout) {
-		initLocator((null: any), true, browserDataStub)
+		initLocator((null: any), browserDataStub)
 		timeout(20000)
 		env.staticUrl = 'http://localhost:9000'
 		locator.login.createSession("map-free@tutanota.de", "map", "Linux node", false, false)

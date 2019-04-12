@@ -26,7 +26,7 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean, browserData: BrowserData) {
+	constructor(self: ?DedicatedWorkerGlobalScope, browserData: BrowserData) {
 		if (browserData == null) {
 			throw new ProgrammingError("Browserdata is not passed")
 		}
@@ -36,7 +36,7 @@ export class WorkerImpl {
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this, indexedDbSupported, browserData);
+		initLocator(this, browserData);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),

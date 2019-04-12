@@ -40,4 +40,5 @@ export type BrowserData = {
 	 * If true then cannot rely on auto generated IDs, IDs need to be provided manually
 	 */
 	needsExplicitIDBIds: boolean,
+	indexedDbSupported: boolean
 }
