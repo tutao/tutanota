@@ -8,7 +8,10 @@
   },
   "scripts": {
 	"flow": "flow; test $? -eq 0 -o $? -eq 2",
-	"start": "./node_modules/electron/dist/electron --inspect=5858 ./build/"
+	"start": "./node_modules/electron/dist/electron --inspect=5858 ./build/",
+	"test": "cd test && node test api && node test client",
+	"testapi": "cd test && node test api",
+	"testclient": "cd test && node test client"
   },
   "dependencies": {
 	"autolinker": "1.7.1",
