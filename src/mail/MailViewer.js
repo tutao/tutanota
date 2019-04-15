@@ -96,8 +96,8 @@ export class MailViewer {
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
-	lastDistance: number;
-	lastScale: number;
+	_isScaling: boolean;
+	_domScaleButton: HTMLElement;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		this.mail = mail
@@ -117,6 +117,7 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
+		this._isScaling = true;
 
 		let closeAction = () => this.mailHeaderDialog.close()
 		const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -379,26 +380,6 @@ export class MailViewer {
 								onclick: (event: Event) => this._handleAnchorClick(event),
 								onsubmit: (event: Event) => this._confirmSubmit(event),
 								style: {'line-height': this._bodyLineHeight, 'transform-origin': 'top left'},
-								ontouchmove: (e) => {
-									if (e.touches.length === 2) {
-										const dist = Math.hypot(
-											e.touches[0].pageX - e.touches[1].pageX,
-											e.touches[0].pageY - e.touches[1].pageY);
-										const factor = dist / this.lastDistance
-										if (this.lastDistance != null) {
-											this.lastScale = this.lastScale * factor
-											// if (!updateRequested) {
-											// 	requestAnimationFrame(() => {
-											this._domBody.style.transform = `scale(${this.lastScale})`
-											// 		updateRequested = false
-											// 	})
-											// 	updateRequested = true
-											// }
-										}
-										this.lastDistance = dist
-										e.redraw = false
-									}
-								},
 							}, (this._mailBody == null && !this._errorOccurred)
 								? m(".progress-panel.flex-v-center.items-center", {
 									style: {
@@ -413,7 +394,29 @@ export class MailViewer {
 									: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
 						)
 					]
-				)
+				),
+
+				m(".abs", {
+					style: {
+						background: "grey",
+						opacity: 0.2,
+						width: px(size.icon_size_xl),
+						height: px(size.icon_size_xl),
+						"z-index": "100",
+						margin: "16px",
+						left: 0,
+						bottom: 0,
+						"border-radius": "4px"
+					},
+					onclick: () => {
+						this._isScaling = !this._isScaling
+					},
+					oncreate: (vnode) => {
+						this._domScaleButton = vnode.dom
+						this._domScaleButton.style.display = 'none'
+					}
+					// TODO: Change icon
+				}, m(Icon, {icon: Icons.Add, class: "icon-xl", style: {fill: "black"}})),
 			]
 		}
 
@@ -431,26 +434,22 @@ export class MailViewer {
 		return isExcludedMailAddress(this.mail.sender.address)
 	}
 
-
 	_rescale(vnode: Vnode<any>) {
-		// const child = Array.from(vnode.dom.children).reduce((acc, ch) => {
-		// 	const scrollWidth = ch.scrollWidth
-		// 	return acc == null || scrollWidth > acc ? ch : acc
-		// }, null)
-		// if (!child) return
 		const child = vnode.dom
 		const width = child.scrollWidth
 		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
-		console.log(`body width onupdate: ${width}, container width: ${containerWidth}`)
 		const scale = containerWidth / width
-		const scrollHeight = child.scrollHeight
-		const scrollHeigthScale = child.scrollHeight * scale
-		const heightDiff = child.scrollHeight - child.scrollHeight * scale
-		const heightDiffHalf = heightDiff / 2
-		console.log(`scale ${scale}, height: ${scrollHeight}, height * scale: ${scrollHeigthScale} diff: ${heightDiff}, diffHalf: ${heightDiffHalf}`)
-		// child.style.transform = `scale(${scale}) translate(-${(child.scrollWidth - child.scrollWidth * scale) / 2}px, -${heightDiffHalf}px)`
-		child.style.transform = `scale(${scale})`
-		this.lastScale = scale
+
+		if (!this._isScaling) {
+			child.style.transform = ''
+			child.style.marginBottom = ''
+		} else {
+			const heightDiff = child.scrollHeight - child.scrollHeight * scale
+			child.style.transform = `scale(${scale})`
+			child.style.marginBottom = `${-heightDiff}px`
+		}
+
+		if (this._domScaleButton) this._domScaleButton.style.display = 1 - scale < 0.05 ? 'none' : ''
 	}
 
 	_setupShortcuts() {
