@@ -12,6 +12,6 @@ worker.infoMessages.map((message) => {
 		{
 			view: () => m("", lang.get(message.translationKey, message.args))
 		},
-		"close_alt",
+		{label: "close_alt"},
 		[])
 })
