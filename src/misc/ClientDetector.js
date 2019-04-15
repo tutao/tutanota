@@ -144,8 +144,7 @@ class ClientDetector {
 
 	indexedDb(): boolean {
 		try {
-			indexedDB
-			return true
+			return indexedDB != null
 		} catch (e) {
 			return false
 		}
@@ -397,8 +396,12 @@ class ClientDetector {
 		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
 	}
 
+	indexedDBSupported(): boolean {
+		return this.indexedDb() && !this.isIE()
+	}
+
 	browserData(): BrowserData {
-		return {needsMicrotaskHack: this.needsMicrotaskHack(), needsExplicitIDBIds: this.needsExplicitIDBIds()}
+		return {needsMicrotaskHack: this.needsMicrotaskHack(), needsExplicitIDBIds: this.needsExplicitIDBIds(), indexedDbSupported: this.indexedDBSupported()}
 	}
 }
 

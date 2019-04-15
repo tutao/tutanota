@@ -40,15 +40,14 @@ type WorkerLocatorType = {
 
 export const locator: WorkerLocatorType = ({}: any)
 
-export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, browserData: BrowserData) {
+export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
 	const restClient = new EntityRestClient(getAuthHeaders)
 
 	locator._browserData = browserData
-	locator._indexedDbSupported = indexedDbSupported
 	locator.cache = isAdminClient() ? downcast(restClient) : new EntityRestCache(restClient) // we don't wont to cache within the admin area
-	locator.indexer = new Indexer(restClient, worker, indexedDbSupported, browserData, locator.cache)
+	locator.indexer = new Indexer(restClient, worker, browserData, locator.cache)
 	locator.login = new LoginFacade(worker)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
@@ -69,7 +68,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported, locator._browserData))
+	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._browserData))
 }
 
 if (typeof self !== "undefined") {
