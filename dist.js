@@ -296,38 +296,29 @@ let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 
 function packageDeb() {
 	if (options.deb) {
-		// create a symlink to all desktop files that does not include the version to not change the download link
 		const target = `/opt/tutanota`
-		try {
-			if (!fs.existsSync('./build/dist/desktop')) {
-				fs.symlinkSync(`${target}-desktop`, './build/dist/desktop')
-			}
+		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
+			cwd: __dirname + '/build/dist',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
 
-			exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
-				cwd: __dirname + '/build/dist',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
+		console.log("create " + webAppDebName)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota -v ${version} dist/=${target}`.split(" "), {
+			cwd: __dirname + '/build',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
 
-			console.log("create " + webAppDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota -v ${version} dist/=${target}`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
+		console.log("create " + desktopDebName)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
+			cwd: __dirname + '/build',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
 
-			console.log("create " + desktopDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-
-			console.log("create " + desktopTestDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		} finally {
-			fs.unlinkSync('./build/dist/desktop')
-		}
+		console.log("create " + desktopTestDebName)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
+			cwd: __dirname + '/build',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
 	}
 }
 
