@@ -385,8 +385,8 @@ export class IndexerCore {
 			._getOrCreateSearchIndexMeta(transaction, encWordB64)
 			.then((metaData: SearchIndexMetaDataRow) => {
 				encryptedEntries.sort((a, b) => a.timestamp - b.timestamp)
-				return this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
-				           .return(metaData)
+				const writeResult = this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
+				return writeResult ? writeResult.return(metaData) : metaData
 			})
 			.then((metaData) => {
 				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
@@ -415,9 +415,10 @@ export class IndexerCore {
 	 * @private
 	 */
 	_writeEntries(transaction: DbTransaction, entries: Array<EncSearchIndexEntryWithTimestamp>, metaData: SearchIndexMetaDataRow, appId: number,
-	              typeId: number): Promise<*> {
+	              typeId: number): Promise<*> | null {
 		if (entries.length === 0) {
-			return Promise.resolve()
+			// Prevent IDB timeouts in Safari casued by Promise.resolve()
+			return null
 		}
 		const oldestTimestamp = entries[0].timestamp
 		const indexOfMetaEntry = this._findMetaDataEntryByTimestamp(metaData, oldestTimestamp, appId, typeId)

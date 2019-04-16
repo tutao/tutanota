@@ -201,7 +201,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
 				const errorEntries = extractErrorProperties(event)
-				callback(new DbError("IDB transaction error! " + errorEntries, transaction.error))
+				callback(new DbError("IDB transaction error! " + errorEntries + "\n" + (transaction.error ? transaction.error.message : ''), transaction.error))
 			}
 			transaction.oncomplete = (event) => {
 				callback()
