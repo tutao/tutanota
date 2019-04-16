@@ -356,6 +356,12 @@ function publish() {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
+		// copy appimage for dev_clients
+		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/`.split(" "), {
+			cwd: __dirname,
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+
 		// user puppet needs to read the deb file from jetty
 		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${webAppDebName}`.split(" "), {
 			cwd: __dirname + '/build/',
@@ -367,6 +373,10 @@ function publish() {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${desktopTestDebName}`.split(" "), {
+			cwd: __dirname + '/build/',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux.AppImage`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
