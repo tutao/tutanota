@@ -10,6 +10,7 @@ import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
 import type {DesktopSseClient} from './DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
+import type {Socketeer} from "./Socketeer"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -19,16 +20,18 @@ export class IPC {
 	_sse: DesktopSseClient;
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
+	_sock: Socketeer;
 
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager, sock: Socketeer) {
 		this._conf = conf
 		this._sse = sse
 		this._wm = wm
 		this._notifier = notifier
+		this._sock = sock
 
 		this._initialized = []
 		this._queue = {}
@@ -151,6 +154,10 @@ export class IPC {
 				break
 			case 'closePushNotifications':
 				// TODO
+				break
+			case 'sendSocketMessage':
+				this._sock.sendSocketMessage(args[0])
+				d.resolve()
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))
