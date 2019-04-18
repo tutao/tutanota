@@ -25,9 +25,7 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 
 	//prepare files
 	return writeConfig
-		.then(() => {
-			return fs.removeAsync(path.join(distDir, "..", updateSubDir))
-		})
+		.then(() => fs.removeAsync(path.join(distDir, "..", updateSubDir)))
 		.then(() => {
 			console.log("Tracing dependencies...")
 			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js'], dirname, distDir)
@@ -126,8 +124,7 @@ function transpile(files, baseDir, distDir) {
 	while (nextFiles.length !== 0) {
 		let currentPath = nextFiles.pop()
 		let sourcePath = path.join(baseDir, currentPath)
-		let targetPath = path.join(distDir, currentPath)
-		if (transpiledFiles.indexOf(sourcePath) === -1) {
+		if (!transpiledFiles.includes(sourcePath)) {
 			let {src, deps} = findDirectDepsAndTranspile(sourcePath)
 			fs.mkdirsSync(path.dirname(path.resolve(distDir, currentPath)))
 			fs.writeFileSync(path.join(distDir, currentPath), src, 'utf-8')
@@ -142,6 +139,7 @@ function transpile(files, baseDir, distDir) {
 	}
 	console.log("transpiled files:")
 	console.log(transpiledFiles.map(p => path.relative(".", p)).join("\n"))
+	return Promise.resolve()
 }
 
 /**
@@ -169,7 +167,7 @@ function findDirectDepsAndTranspile(filePath) {
 }
 
 function babelCompile(src, srcFile) {
-	let result = babel.transform(src, {
+	return babel.transform(src, {
 		"plugins": [
 			"transform-flow-strip-types",
 			"transform-class-properties",
@@ -184,7 +182,6 @@ function babelCompile(src, srcFile) {
 		sourceMaps: srcFile != null ? "inline" : false,
 		filename: srcFile,
 	})
-	return result
 }
 
 module.exports = {

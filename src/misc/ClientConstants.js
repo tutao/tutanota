@@ -35,5 +35,10 @@ export type BrowserData = {
 	 * If true then should work around browsers not scheduling microtasks correctly (problems with IndexedDB).
 	 * {@see PromiseUtils.js}
 	 * */
-	needsMicrotaskHack: boolean
+	needsMicrotaskHack: boolean,
+	/**
+	 * If true then cannot rely on auto generated IDs, IDs need to be provided manually
+	 */
+	needsExplicitIDBIds: boolean,
+	indexedDbSupported: boolean
 }

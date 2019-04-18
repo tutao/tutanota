@@ -278,8 +278,9 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
  * @return The Base64 encoded string.
  */
 export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
-	if (bytes.length < 60000) {
-		// Apply fails on big arrays fairly often
+	if (bytes.length < 512) {
+		// Apply fails on big arrays fairly often. We tried it with 60000 but if you're already
+		// deep in the stack than we cannot allocate such a big argument array.
 		return btoa(String.fromCharCode.apply(null, bytes))
 	}
 	let binary = ''

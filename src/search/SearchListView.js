@@ -14,7 +14,7 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
-import {defer, neverNull} from "../api/common/utils/Utils"
+import {defer, downcast, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
@@ -22,6 +22,7 @@ import {hasMoreResults} from "./SearchModel"
 import {showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
+import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -196,7 +197,8 @@ export class SearchListView {
 							startIndex++ // the start index is already in the list of loaded elements load from the next element
 						}
 					}
-					let toLoad = moreResults.results.slice(startIndex, startIndex + count)
+					// Ignore count when slicing here because we would have to modify SearchResult too
+					let toLoad = moreResults.results.slice(startIndex)
 					return this._loadAndFilterInstances(currentResult.restriction.type, toLoad, moreResults, startIndex)
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards

@@ -88,7 +88,7 @@ export function replaceAllMaps(toReplace: any): any {
 }
 
 
-export const browserDataStub: BrowserData = {needsMicrotaskHack: false}
+export const browserDataStub: BrowserData = {needsMicrotaskHack: false, needsExplicitIDBIds: false, indexedDbSupported: true}
 
 export function makeCore(args?: {
 	db?: Db,

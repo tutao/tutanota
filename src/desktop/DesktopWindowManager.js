@@ -2,6 +2,7 @@
 
 import type {Rectangle} from "electron"
 import {app, screen} from "electron"
+import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
@@ -41,9 +42,12 @@ export class WindowManager {
 	}
 
 	newWindow(showWhenReady: boolean): ApplicationWindow {
-		const w = new ApplicationWindow(this)
+		const w = new ApplicationWindow(
+			this,
+			path.join(app.getAppPath(), this._conf.get("preloadjs")),
+			path.join(app.getAppPath(), this._conf.get("desktophtml"))
+		)
 		windows.unshift(w)
-
 		w.on('close', ev => {
 			// we don't want to actually close windows where someone is logged in, just hide them
 			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {

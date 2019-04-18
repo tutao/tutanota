@@ -144,8 +144,7 @@ class ClientDetector {
 
 	indexedDb(): boolean {
 		try {
-			indexedDB
-			return true
+			return indexedDB != null
 		} catch (e) {
 			return false
 		}
@@ -388,12 +387,21 @@ class ClientDetector {
 			|| this.browser === BrowserType.SAFARI
 			|| this.browser === BrowserType.PALEMOON
 			|| this.browser === BrowserType.WATERFOX
-			|| this.browser === BrowserType.FIREFOX && this.browserVersion < 60
+			// Waterfox looks like Firefox 60 currently
+			|| this.browser === BrowserType.FIREFOX && this.browserVersion <= 60
 			|| this.browser === BrowserType.CHROME && this.browserVersion < 59
 	}
 
+	needsExplicitIDBIds(): boolean {
+		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
+	}
+
+	indexedDBSupported(): boolean {
+		return this.indexedDb() && !this.isIE()
+	}
+
 	browserData(): BrowserData {
-		return {needsMicrotaskHack: this.needsMicrotaskHack()}
+		return {needsMicrotaskHack: this.needsMicrotaskHack(), needsExplicitIDBIds: this.needsExplicitIDBIds(), indexedDbSupported: this.indexedDBSupported()}
 	}
 }
 

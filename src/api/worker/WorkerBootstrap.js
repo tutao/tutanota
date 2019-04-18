@@ -26,13 +26,11 @@ self.onmessage = function (msg) {
 
 			      System.import('src/api/worker/WorkerImpl').then((workerModule) => {
 				      const initialRandomizerEntropy = data.args[1]
-				      const indexedDbSupported = data.args[2]
-				      const browserData = data.args[3]
-				      if (initialRandomizerEntropy == null || indexedDbSupported == null || browserData == null) {
+				      const browserData = data.args[2]
+				      if (initialRandomizerEntropy == null || browserData == null) {
 					      throw new Error("Invalid Worker arguments")
 				      }
-				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null,
-					      indexedDbSupported, browserData)
+				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null, browserData)
 				      workerImpl.addEntropy(initialRandomizerEntropy)
 				      self.postMessage({id: data.id, type: 'response', value: {}})
 			      })

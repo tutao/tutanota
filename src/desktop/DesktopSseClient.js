@@ -42,17 +42,23 @@ export class DesktopSseClient {
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
-
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
+		if (typeof this._readTimeoutInSeconds !== 'number') {
+			this._readTimeoutInSeconds = 30
+			conf.setDesktopConfig('heartbeatTimeoutInSeconds', 30)
+		}
 		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-		this._tryToReconnect = true
-		this._reschedule(1)
-
+		this._tryToReconnect = false
 		app.on('will-quit', () => {
 			this._cleanup()
 			this._tryToReconnect = false
 		})
+	}
+
+	start() {
+		this._tryToReconnect = true
+		this._reschedule(1)
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
@@ -132,11 +138,11 @@ export class DesktopSseClient {
 				                          this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 				                          this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			                          })
-			                          .on('error', e => console.log('sse response error:', e))
+			                          .on('error', e => console.error('sse response error:', e))
 		                       })
 		                       .on('information', e => console.log('sse information:', e))
 		                       .on('connect', e => console.log('sse connect:', e))
-		                       .on('error', e => console.log('sse error:', e))
+		                       .on('error', e => console.error('sse error:', e))
 		                       .end()
 	}
 
@@ -148,8 +154,14 @@ export class DesktopSseClient {
 		}
 		data = data.substring(6) // throw away 'data: '
 		if (data.startsWith('heartbeatTimeout')) {
-			this._readTimeoutInSeconds = Number(data.split(':')[1])
-			this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._readTimeoutInSeconds)
+			console.log("received new timeout:", data)
+			const newTimeout = Number(data.split(':')[1])
+			if (typeof newTimeout === 'number') {
+				this._readTimeoutInSeconds = newTimeout
+				this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', newTimeout)
+			} else {
+				console.error("got invalid heartbeat timeout from server")
+			}
 			this._reschedule()
 			return
 		}
@@ -160,7 +172,7 @@ export class DesktopSseClient {
 				try {
 					return PushMessage.fromJSON(p)
 				} catch (e) {
-					console.log("failed to parse push message from json:", e, "\n\noffending json:\n", p)
+					console.error("failed to parse push message from json:", e, "\n\noffending json:\n", p)
 				}
 			})
 			.filter(Boolean)
@@ -198,6 +210,7 @@ export class DesktopSseClient {
 
 	_sendConfirmation(pushIdentifier: string, confirmationId: string) {
 		if (!this._connectedSseInfo) {
+			console.error("no connectedSseInfo, can't send confirmation")
 			return
 		}
 		const confirmUrl = this._connectedSseInfo.sseOrigin
@@ -208,7 +221,7 @@ export class DesktopSseClient {
 
 		this._getProtocolModule().request(confirmUrl, {method: "DELETE"})
 		    .on('response', res => console.log('push message confirmation response code:', res.statusCode))
-		    .on('error', e => console.log("failed to send push message confirmation:", e))
+		    .on('error', e => console.error("failed to send push message confirmation:", e))
 		    .end()
 	}
 
@@ -221,6 +234,11 @@ export class DesktopSseClient {
 
 	_reschedule(delay?: number) {
 		delay = delay ? delay : Math.floor(this._readTimeoutInSeconds * 1.2)
+		if (typeof delay !== 'number') {
+			console.error("invalid reschedule delay, setting to 10")
+			delay = 10
+		}
+
 		console.log('scheduling to reconnect sse in', delay, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
 		clearTimeout(neverNull(this._nextReconnect))

@@ -21,6 +21,8 @@ export type BuildConfigKey
 	| "initialSseConnectTimeoutInSeconds"
 	| "maxSseConnectTimeoutInSeconds"
 	| "defaultDesktopConfig"
+	| "desktophtml"
+	| "preloadjs"
 
 /**
  * manages build and user config
@@ -35,18 +37,20 @@ export class DesktopConfigHandler {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
 		this._onValueSetListeners = {}
 		try {
-			this._buildConfig = require(path.join(__dirname, '../..', 'package.json'))['tutao-config']
+			this._buildConfig = require(path.join(app.getAppPath(), 'package.json'))['tutao-config']
 		} catch (e) {
-			dialog.showMessageBox(null, {
-				type: 'error',
-				buttons: ['Ok'],
-				defaultId: 0,
-				// no lang yet
-				title: 'Oh No!',
-				message: `Couldn't load config: \n ${e.message}`
+			app.once('ready', () => {
+				dialog.showMessageBox(null, {
+					type: 'error',
+					buttons: ['Ok'],
+					defaultId: 0,
+					// no lang yet
+					title: 'Oh No!',
+					message: `Couldn't load config: \n ${e.message}`
+				})
+				process.exit(1)
 			})
-			process.exit(1)
-			return // for testing
+			return
 		}
 		try {
 			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]

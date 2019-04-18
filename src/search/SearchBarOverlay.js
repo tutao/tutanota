@@ -85,7 +85,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				m(".top.flex-space-between.col",
 					m(".name", lang.get("createSearchIndex_msg", {"{progress}": state.indexState.progress})),
 					m(".bottom.flex-space-between",
-						m("small", "Indexed mails: " + state.indexState.indexedMailCount)
+						m("small", lang.get("indexedMails_label", {"{count}": state.indexState.indexedMailCount}))
 					)
 				),
 				state.indexState.progress !== 100

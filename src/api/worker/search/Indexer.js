@@ -73,12 +73,11 @@ export class Indexer {
 	_entity: EntityWorker;
 	_indexedGroupIds: Array<Id>;
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, indexedDbSupported: boolean,
-	            browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
 		let deferred = defer()
 		this._dbInitializedCallback = deferred.resolve
 		this.db = {
-			dbFacade: new DbFacade(indexedDbSupported, () => {
+			dbFacade: new DbFacade(browserData.indexedDbSupported, () => {
 				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
 			}),
 			key: neverNull(null),
@@ -88,6 +87,9 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
+		if (!browserData.indexedDbSupported) {
+			this._core.indexingSupported = false
+		}
 		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))

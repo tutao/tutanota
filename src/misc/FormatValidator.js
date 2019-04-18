@@ -1,6 +1,6 @@
 // @flow
-
 import {startsWith} from "../api/common/utils/StringUtils"
+
 
 /**
  * Checks if the given string is a valid email address format.
@@ -33,6 +33,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 		return /^[^\s\@]+\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string)
 	}
 }
+
 
 /**
  * Checks if the given string is a valid domain name.

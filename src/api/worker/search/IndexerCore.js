@@ -73,6 +73,8 @@ export class IndexerCore {
 	db: Db;
 	_isStopped: boolean;
 	_promiseMapCompat: PromiseMapFn;
+	_needsExplicitIds: boolean;
+	_explicitIdStart: number;
 
 	_stats: {
 		indexingTime: number,
@@ -93,6 +95,8 @@ export class IndexerCore {
 		this.db = db
 		this._isStopped = false;
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
+		this._needsExplicitIds = browserData.needsExplicitIDBIds;
+		this._explicitIdStart = Date.now()
 		this.resetStats()
 	}
 
@@ -381,8 +385,8 @@ export class IndexerCore {
 			._getOrCreateSearchIndexMeta(transaction, encWordB64)
 			.then((metaData: SearchIndexMetaDataRow) => {
 				encryptedEntries.sort((a, b) => a.timestamp - b.timestamp)
-				return this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
-				           .return(metaData)
+				const writeResult = this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
+				return writeResult ? writeResult.return(metaData) : metaData
 			})
 			.then((metaData) => {
 				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
@@ -411,9 +415,10 @@ export class IndexerCore {
 	 * @private
 	 */
 	_writeEntries(transaction: DbTransaction, entries: Array<EncSearchIndexEntryWithTimestamp>, metaData: SearchIndexMetaDataRow, appId: number,
-	              typeId: number): Promise<*> {
+	              typeId: number): Promise<*> | null {
 		if (entries.length === 0) {
-			return Promise.resolve()
+			// Prevent IDB timeouts in Safari casued by Promise.resolve()
+			return null
 		}
 		const oldestTimestamp = entries[0].timestamp
 		const indexOfMetaEntry = this._findMetaDataEntryByTimestamp(metaData, oldestTimestamp, appId, typeId)
@@ -639,8 +644,12 @@ export class IndexerCore {
 				if (metaData) {
 					return decryptMetaData(this.db.key, metaData)
 				} else {
+					const metaTemplate: $Shape<SearchIndexMetaDataDbRow> = {word: encWordBase64, rows: new Uint8Array(0)}
+					if (this._needsExplicitIds) {
+						metaTemplate.id = this._explicitIdStart++
+					}
 					return transaction
-						.put(SearchIndexMetaDataOS, null, {word: encWordBase64, rows: new Uint8Array(0)})
+						.put(SearchIndexMetaDataOS, null, metaTemplate)
 						.then((rowId) => {
 							this._stats.words += 1
 							return {id: rowId, word: encWordBase64, rows: []}
