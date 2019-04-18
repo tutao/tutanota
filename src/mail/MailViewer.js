@@ -18,7 +18,7 @@ import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -298,16 +298,22 @@ export class    MailViewer {
 
 		load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(urlify(body.text), true)
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
 
-			// check if we need to improve contrast for dark theme
+			/**
+			 * check if we need to improve contrast for dark theme.
+			 * 1. theme id must be 'dark'
+			 * 2. html body needs to contain any tag with a style attribute that has the color property set
+			 * OR
+			 * there is a font tag with the color attribute set
+			 */
 			this._contrastFixNeeded = themeId() === 'dark'
 				&& (
 					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
 				                                .find(s => s.color !== "" && typeof s.color !== 'undefined')
 					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
 				)
-			this._htmlBody = stringifyFragment(sanitizeResult.html)
+			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
 			this._contentBlocked = sanitizeResult.externalContent.length > 0
 			m.redraw()
 		}).catch(NotFoundError, e => {
@@ -796,10 +802,4 @@ export class    MailViewer {
 		}
 		return buttons
 	}
-}
-
-function stringifyFragment(fragment: DocumentFragment): string {
-	let div = document.createElement("div")
-	div.appendChild(fragment)
-	return div.innerHTML
 }
