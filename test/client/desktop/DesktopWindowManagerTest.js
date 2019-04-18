@@ -18,7 +18,8 @@ o.spec("Desktop Window Manager Test", () => {
 			once: function (ev: string, cb: ()=>void) {
 				this.callbacks[ev] = cb
 				return n.spyify(electron.app)
-			}
+			},
+			getAppPath: () => "/app/path/",
 		},
 		screen: {
 			getDisplayMatching: () => {
@@ -110,6 +111,10 @@ o.spec("Desktop Window Manager Test", () => {
 					return 'https://b.s'
 				case 'pollingInterval':
 					return 300
+				case 'preloadjs':
+					return "./src/desktop/preload.js"
+				case 'desktophtml':
+					return "./desktop.html"
 				default:
 					throw new Error(`unexpected get key ${key}`)
 			}
@@ -169,7 +174,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(win.center.callCount).equals(1)
 		o(win.setBounds.callCount).equals(0)
 		o(win.show.callCount).equals(0)
-		o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm])
+		o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html"])
 		o(wm.get(0)).equals(win)
 	})
 
@@ -206,7 +211,7 @@ o.spec("Desktop Window Manager Test", () => {
 		wm.newWindow(true)
 
 		o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(1)
-		o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm])
+		o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html"])
 		const win = applicationWindowMock.ApplicationWindow.mockedInstances[0]
 		win.callbacks["ready-to-show"]()
 		o(win.center.callCount).equals(0)

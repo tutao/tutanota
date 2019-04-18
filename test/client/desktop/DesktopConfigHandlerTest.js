@@ -2,7 +2,6 @@
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
 import path from "path"
-import {noOp} from "../../../src/api/common/utils/Utils"
 
 o.spec('desktop config handler test', function () {
 
@@ -24,10 +23,16 @@ o.spec('desktop config handler test', function () {
 
 	const electron = {
 		app: {
+			callbacks: {},
+			once: function (ev: string, cb: ()=>void) {
+				this.callbacks[ev] = cb
+				return n.spyify(electron.app)
+			},
 			getPath: (path: string) => `/mock-${path}/`,
+			getAppPath: () => path.resolve(__dirname, '../../../'),
 		},
 		dialog: {
-			showMessageBox: noOp
+			showMessageBox: () => {}
 		}
 	}
 
@@ -35,6 +40,8 @@ o.spec('desktop config handler test', function () {
 		"tutao-config": {
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
 			"pollingInterval": 10000,
+			"preloadjs": "./src/desktop/preload.js",
+			"desktophtml": "./desktop.html",
 			"checkUpdateSignature": true,
 			"appUserModelId": "de.tutao.tutanota-mock",
 			"initialSseConnectTimeoutInSeconds": 60,
@@ -112,17 +119,24 @@ o.spec('desktop config handler test', function () {
 		})
 	})
 
-	o("package.json unavailable", () => {
+	o("package.json unavailable", done => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), undefined).set()
 		n.mock('fs-extra', fsExtra).set()
-		n.mock('electron', electron).set()
+		const electronMock = n.mock('electron', electron).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/DesktopConfigHandler.js')
 		const conf = new DesktopConfigHandler()
 
 		// exit program
-		o(process.exit.callCount).equals(1)
-		o(process.exit.args[0]).equals(1)
+		o(electronMock.app.once.callCount).equals(1)
+		electronMock.app.callbacks["ready"]()
+
+		setTimeout(() => {
+			o(electronMock.dialog.showMessageBox.callCount).equals(1)
+			o(process.exit.callCount).equals(1)
+			o(process.exit.args[0]).equals(1)
+			done()
+		}, 10)
 	})
 
 	o("get values from conf", () => {
@@ -138,6 +152,8 @@ o.spec('desktop config handler test', function () {
 		o(conf.get()).deepEquals({
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
 			"pollingInterval": 10000,
+			"preloadjs": "./src/desktop/preload.js",
+			"desktophtml": "./desktop.html",
 			"checkUpdateSignature": true,
 			"appUserModelId": "de.tutao.tutanota-mock",
 			"initialSseConnectTimeoutInSeconds": 60,
