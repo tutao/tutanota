@@ -23,6 +23,7 @@ export type BuildConfigKey
 	| "defaultDesktopConfig"
 	| "desktophtml"
 	| "preloadjs"
+	| "iconName"
 
 /**
  * manages build and user config

@@ -186,7 +186,7 @@ export class ElectronUpdater {
 		    .showOneShot({
 			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
 			    body: lang.get('clickToUpdate_msg'),
-			    icon: DesktopTray.getIcon()
+			    icon: DesktopTray.getIcon(this._conf.get('iconName'))
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {

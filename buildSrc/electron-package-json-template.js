@@ -21,6 +21,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",
+			"iconName": "logo-solo-red.png",
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
