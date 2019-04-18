@@ -4,7 +4,7 @@ import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchInd
 import {elementIdPart, firstBiggerThanSecond, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
@@ -236,20 +236,30 @@ export class IndexerCore {
 			.then(transaction => {
 				return this
 					._moveIndexedInstance(indexUpdate, transaction)
-					.then(() => this._deleteIndexedInstance(indexUpdate, transaction))
-					.then(() => this._insertNewIndexEntries(indexUpdate, transaction))
-					.then((rowKeys: ?EncWordToMetaRow) =>
+					.thenOrApply(() => this._deleteIndexedInstance(indexUpdate, transaction))
+					.thenOrApply(() => this._insertNewIndexEntries(indexUpdate, transaction))
+					.thenOrApply((rowKeys: ?EncWordToMetaRow) =>
 						rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys))
-					.then(() => updateGroupData(transaction))
-					.then(() => {
+					.thenOrApply(() => updateGroupData(transaction))
+					.thenOrApply(() => {
 						return transaction.wait().then(() => {
 							this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
 						})
 					})
-					.catch(e => {
-						transaction.abort()
+					// a la catch(). Must be done in the next step because didReject is not invoked for the current Promise, only for the previous one.
+					// It's probably a bad idea to convert to the Promise first and then catch because it may do Promise.resolve() and this will schedule to
+					// the next event loop iteration and the context will be closed and it will be too late to abort(). Even worse, it will be commited to
+					// IndexedDB already and it will be inconsistent (oops).
+					.thenOrApply(noOp, e => {
+						try {
+							transaction.abort()
+						} catch (e) {
+							console.warn("abort has failed: ", e)
+							// Ignore if abort has failed
+						}
 						throw e
 					})
+					.toPromise()
 			})
 	}
 
@@ -355,7 +365,7 @@ export class IndexerCore {
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
 			const encMetaRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
-			return transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup])
+			promises.push(transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup]))
 		})
 		return Promise.all(promises)
 	}
@@ -459,8 +469,7 @@ export class IndexerCore {
 						.thenOrApply(() => this._writeEntries(transaction, toCurrentOne.concat(toNextOnes), metaData, appId, typeId))
 				}
 			} else {
-				return PromisableWrapper
-					.from(this._createNewRow(transaction, metaData, entries, oldestTimestamp, appId, typeId))
+				return this._createNewRow(transaction, metaData, entries, oldestTimestamp, appId, typeId)
 			}
 		}
 	}
@@ -606,7 +615,7 @@ export class IndexerCore {
 	}
 
 	_createNewRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, encryptedSearchIndexEntries: Array<EncSearchIndexEntryWithTimestamp>,
-	              oldestTimestamp: number, appId: number, typeId: number): Promise<void> {
+	              oldestTimestamp: number, appId: number, typeId: number): PromisableWrapper<void> {
 		const byTimestamp = groupByAndMap(encryptedSearchIndexEntries, (e) => e.timestamp, (e) => e.entry)
 		const distributed = this._distributeEntities(byTimestamp, false)
 		return this
@@ -625,7 +634,7 @@ export class IndexerCore {
 						})
 					})
 			}, {concurrency: 2})
-			.then(() => {
+			.thenOrApply(() => {
 				metaData.rows.sort(compareMetaEntriesOldest)
 			})
 	}

@@ -62,19 +62,22 @@ export class PromisableWrapper<T> {
 		this.value = value instanceof Promise ? value.then(flatWrapper) : flatWrapper(value);
 	}
 
-	thenOrApply<R>(fn: (T) => $Promisable<PromisableWrapper<R>> | $Promisable<R>): PromisableWrapper<R> {
+	thenOrApply<R>(onFulfill: (T) => $Promisable<PromisableWrapper<R>> | $Promisable<R>, onReject?: (any) => $Promisable<R>): PromisableWrapper<R> {
 		if (this.value instanceof Promise) {
-			return new PromisableWrapper(this.value.then(fn))
+			return new PromisableWrapper(this.value.then(onFulfill, onReject))
 		} else {
-			return new PromisableWrapper(fn(this.value))
+			try {
+				return new PromisableWrapper(onFulfill(this.value))
+			} catch (e) {
+				if (onReject) {
+					return new PromisableWrapper<R>(onReject(e))
+				}
+				throw e
+			}
 		}
 	}
 
 	toPromise(): Promise<T> {
 		return Promise.resolve(this.value)
-	}
-
-	then<R>(fn: (T) => $Promisable<R>): Promise<R> {
-		return Promise.resolve(this.value).then(fn)
 	}
 }
