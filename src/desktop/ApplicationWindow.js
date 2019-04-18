@@ -3,7 +3,6 @@ import type {ElectronPermission} from 'electron'
 import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
-import path from 'path'
 import u2f from '../misc/u2f-api.js'
 import {DesktopTray} from './DesktopTray.js'
 import {lang} from './DesktopLocalizationProvider.js'
@@ -22,11 +21,15 @@ export class ApplicationWindow {
 	_browserWindow: BrowserWindow;
 	_userInfo: ?UserInfo;
 	_setBoundsTimeout: TimeoutID;
+	_preloadjs: string;
+	_desktophtml: string;
 	id: number;
 
-	constructor(wm: WindowManager) {
+	constructor(wm: WindowManager, preloadjs: string, desktophtml: string) {
 		this._userInfo = null
 		this._ipc = wm.ipc
+		this._preloadjs = preloadjs
+		this._desktophtml = desktophtml
 		this._createBrowserWindow(wm)
 		this._browserWindow.loadURL(this._startFile)
 		Menu.setApplicationMenu(null)
@@ -68,8 +71,7 @@ export class ApplicationWindow {
 
 	_createBrowserWindow(wm: WindowManager) {
 		this._rewroteURL = false
-		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
-		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
+		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
 		console.log("startFile: ", this._startFile)
 		this._browserWindow = new BrowserWindow({
 			icon: DesktopTray.getIcon(),
@@ -86,7 +88,7 @@ export class ApplicationWindow {
 				// the preload script changes to the web app
 				contextIsolation: false,
 				webSecurity: true,
-				preload: path.join(__dirname, 'preload.js')
+				preload: this._preloadjs
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)

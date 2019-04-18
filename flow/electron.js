@@ -295,6 +295,7 @@ declare module 'electron' {
 		print(): void;
 		toggleDevTools(): void;
 		reloadIgnoringCache(): void;
+		executeJavaScript(code: string): Promise<any>;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
 	}
