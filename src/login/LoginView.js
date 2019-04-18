@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
@@ -42,6 +43,7 @@ export class LoginView {
 	onremove: Function;
 	permitAutoLogin: boolean;
 	_showingSignup: boolean;
+	_formsUpdateStream: ?Stream<*>;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -142,10 +144,25 @@ export class LoginView {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
+			// it only sends one input/change event for all fields so we didn't know if fields
+			// were updated. So we kindly ask our fields to update themselves with real DOM values.
+			this._formsUpdateStream = stream.combine(() => {
+				requestAnimationFrame(() => {
+					this.mailAddress.updateValue()
+					this.password.updateValue()
+				})
+			}, [this.mailAddress.value, this.password.value])
+		}
 		this.onremove = () => {
 			this.password.value("")
 			keyManager.unregisterShortcuts(shortcuts)
+
+			if (this._formsUpdateStream) {
+				this._formsUpdateStream.end(true)
+			}
 		}
 	}
 

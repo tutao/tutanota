@@ -126,6 +126,20 @@ export class TextField {
 		}
 	}
 
+	updateValue() {
+		const input = this._domInput
+		if (input) {
+			const inputValue = input.value
+			if (this.value() !== inputValue) {
+				const oldValue = this.value()
+				this.value(inputValue)
+				if ((oldValue == null || oldValue === "" ) && inputValue !== "" && !this.active) {
+					this.animate() // animate in case of browser autocompletion (non-webkit)
+				}
+			}
+		}
+	}
+
 	_getInputField(): VirtualElement {
 		if (this.disabled) {
 			return m(".text-break.selectable" + (this._alignRight ? ".right" : ""), {
