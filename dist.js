@@ -348,7 +348,7 @@ function publish() {
 		}))
 
 		// copy appimage for dev_clients
-		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/Tutanota-desktop-linux.AppImage`.split(" "), {
+		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/`.split(" "), {
 			cwd: __dirname,
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
@@ -367,7 +367,7 @@ function publish() {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/Tutanota-desktop-linux.AppImage`.split(" "), {
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux.AppImage`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
